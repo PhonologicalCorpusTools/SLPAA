@@ -3,7 +3,16 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QGraphicsScene,
     QGraphicsPixmapItem,
-    QFrame
+    QFrame,
+    QGridLayout,
+    QLineEdit,
+    QPushButton,
+    QDialog,
+    QHBoxLayout,
+    QListView,
+    QVBoxLayout,
+    QFileDialog,
+    QApplication
 )
 
 from PyQt5.QtGui import (
@@ -17,7 +26,8 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import (
     Qt,
     QPoint,
-    QRectF
+    QRectF,
+    QAbstractListModel
 )
 
 #reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
@@ -54,17 +64,22 @@ class LocationPolygon(QGraphicsPolygonItem):
 
 
 class LocationViewer(QGraphicsView):
-    def __init__(self, locations, parent=None):
+    def __init__(self, locations, viewer_size, parent=None, pen_width=5, pen_color='orange'):
         """
         :param locations: a dictionary {'name_of_location': [[polygon_points], [polygon_points]]}
         :param parent:
         """
         super().__init__(parent=parent)
 
+        self.viewer_size = viewer_size
+
+        self.pen_width = pen_width
+        self.pen_color = pen_color
+
         self._zoom = 0
         self._empty = True
         self._scene = QGraphicsScene(parent=self)
-        self._photo = QGraphicsPixmapItem(parent=self)
+        self._photo = QGraphicsPixmapItem()
         self._scene.addItem(self._photo)
         self.setScene(self._scene)
 
@@ -112,8 +127,8 @@ class LocationViewer(QGraphicsView):
                 unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
                 self.scale(1 / unity.width(), 1 / unity.height())
                 scenerect = self.transform().mapRect(rect)
-                factor = min(500 / scenerect.width(),
-                             500 / scenerect.height())
+                factor = min(self.viewer_size / scenerect.width(),
+                             self.viewer_size / scenerect.height())
                 # viewrect = self.viewport().rect()
                 # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
@@ -170,48 +185,18 @@ class LocationViewer(QGraphicsView):
         if self.is_defining:
             self.defining_locations[-1].append(self.mapToScene(event.pos()).toPoint())
             self.remove_polygons(self.defining_polygons)
-            pen = QPen(QColor('green'))
-            pen.setWidth(5)
+            pen = QPen(QColor(self.pen_color))
+            pen.setWidth(self.pen_width)
 
             self.defining_polygons = {QGraphicsPolygonItem(QPolygonF(poly)) for poly in self.defining_locations}
             for poly in self.defining_polygons:
                 poly.setPen(pen)
                 self._scene.addItem(poly)
 
-class LocationDefinitionLabel(QtWidgets.QLabel):
-    location = QtCore.pyqtSignal(str, str, list)
 
-    def __init__(self, part, image):
-        super().__init__()
-        self.part = part
-        self.base = QtGui.QPixmap(image).scaledToHeight(250)
-        self.setPixmap(self.base)
-        self.defining = False
-        self.polygon = QtGui.QPolygon()
-
-        self.pen = QtGui.QPen(QtGui.QColor(0, 0, 0))  # set lineColor
-        self.pen.setWidth(3)
-
-    def set_defining(self, is_defining):
-        self.defining = is_defining
-        if self.defining:
-            self.polygon = QtGui.QPolygon()
-
-    def mousePressEvent(self, ev):
-        if self.defining:
-            self.setPixmap(self.base)
-            self.painter = QtGui.QPainter(self.pixmap())
-            self.painter.setPen(self.pen)
-            self.polygon.append(QtCore.QPoint(ev.x(), ev.y()))
-            self.painter.drawPolygon(self.polygon)
-            self.painter.drawPoints(self.polygon)
-            self.painter.end()
-            self.update()
-
-
-class LocationListModel(QtCore.QAbstractListModel):
-    def __init__(self, locations=None):
-        super().__init__()
+class LocationListModel(QAbstractListModel):
+    def __init__(self, locations=None, parent=None):
+        super().__init__(parent=parent)
         self.locations = locations or []
 
     def data(self, index, role):
@@ -222,19 +207,20 @@ class LocationListModel(QtCore.QAbstractListModel):
         return len(self.locations)
 
 
-class LocationDefinitionPanel(QtWidgets.QFrame):
+class LocationDefinitionPanel(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        main_layout = QtWidgets.QGridLayout()
+        main_layout = QGridLayout()
         self.setLayout(main_layout)
 
-        self.location_name = QtWidgets.QLineEdit(parent=self)
+        self.location_name = QLineEdit(parent=self)
         self.location_name.setPlaceholderText('New location name...')
-        self.define_button = QtWidgets.QPushButton('Draw', parent=self)
-        self.add_button = QtWidgets.QPushButton('+', parent=self)
-        self.save_button = QtWidgets.QPushButton('Save', parent=self)
-        self.delete_button = QtWidgets.QPushButton('Delete', parent=self)
-        self.set_image_button = QtWidgets.QPushButton('Set image', parent=self)
+
+        self.set_image_button = QPushButton('Change image', parent=self)
+        self.define_button = QPushButton('Draw', parent=self)
+        self.add_button = QPushButton('+', parent=self)
+        self.save_button = QPushButton('Save', parent=self)
+        self.delete_button = QPushButton('Delete', parent=self)
 
         main_layout.addWidget(self.set_image_button, 0, 0, 1, 3)
         main_layout.addWidget(self.location_name, 1, 0, 1, 1)
@@ -247,10 +233,9 @@ class LocationDefinitionPanel(QtWidgets.QFrame):
         self.define_button.setText(label)
 
 
-class MainWindow(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        super().__init__()
+class LocationDefinerDialog(QDialog):
+    def __init__(self, parent=None, viewer_size=500):
+        super().__init__(parent=parent)
 
         self.is_defining = False
         self.locations = {'abdomen': [[(883, 685),
@@ -407,54 +392,37 @@ class MainWindow(QtWidgets.QMainWindow):
                                          (1186, 582),
                                          (1179, 600)]]}
 
-        central_widget = QtWidgets.QWidget()
-        central_layout = QtWidgets.QHBoxLayout()
-        #central_layout = QtWidgets.QVBoxLayout()
-        central_widget.setLayout(central_layout)
+        main_layout = QHBoxLayout()
 
-        self.location_model = LocationListModel(sorted(list(self.locations.keys())))
-        self.location_list_view = QtWidgets.QListView(parent=self)
+        self.location_model = LocationListModel(sorted(list(self.locations.keys())), parent=self)
+        self.location_list_view = QListView(parent=self)
         self.location_list_view.setModel(self.location_model)
-        #self.location_list_view.setCurrentIndex(self.location_model.index(0))
-
         self.location_list_view.clicked.connect(self.location_clicked)
 
         self.location_definition_panel = LocationDefinitionPanel(parent=self)
         self.location_definition_panel.define_button.clicked.connect(self.start_polygon)
         self.location_definition_panel.add_button.clicked.connect(self.add_polygon)
         self.location_definition_panel.save_button.clicked.connect(self.save_new_location)
-        self.location_definition_panel.delete_button.clicked.connect(self.remove_location)
+        self.location_definition_panel.delete_button.clicked.connect(self.delete_location)
         self.location_definition_panel.set_image_button.clicked.connect(self.set_image)
 
-        left_layout = QtWidgets.QVBoxLayout()
+        left_layout = QVBoxLayout()
         left_layout.addWidget(self.location_list_view)
         left_layout.addWidget(self.location_definition_panel)
-        central_layout.addLayout(left_layout)
+        main_layout.addLayout(left_layout)
 
-        self.location_viewer = LocationViewer(self.locations, self)
-        self.location_viewer.setFixedSize(500, 500)
-        self.location_viewer.set_photo(QtGui.QPixmap('Body_Front_Labelled.jpg'))
+        self.location_viewer = LocationViewer(self.locations, viewer_size, parent=self)
+        self.location_viewer.setFixedSize(viewer_size, viewer_size)
+        self.location_viewer.set_photo(QPixmap('Body_Front_Labelled.jpg'))
 
-        central_layout.addWidget(self.location_viewer)
+        main_layout.addWidget(self.location_viewer)
 
-
-        # self.label = LocationDefinitionLabel('upper', 'upper_cloth.jpg')
-        # central_layout.addWidget(self.label)
-        # self.base = QtGui.QPixmap('upper_cloth.jpg').scaledToHeight(250)
-        # self.label.setPixmap(self.base)
-        #
-        # self.start = QtWidgets.QPushButton('Start')
-        # self.start.setCheckable(True)
-        # self.start.clicked.connect(self.start_click)
-        # central_layout.addWidget(self.start)
-
-        self.setCentralWidget(central_widget)
+        self.setLayout(main_layout)
 
     def set_image(self):
-        file_name, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
-                                                         self.tr("Open Image"), "",
-                                                         self.tr("Image Files (*.png *.jpg *.bmp)"))
-        self.location_viewer.set_photo(QtGui.QPixmap(file_name))
+        file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'), '',
+                                                           self.tr('Image Files (*.png *.jpg *.bmp)'))
+        self.location_viewer.set_photo(QPixmap(file_name))
 
         self.location_model.locations = dict()
         self.location_model.layoutChanged.emit()
@@ -465,12 +433,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.locations = dict()
         self.location_viewer.remove_all_polygons()
         self.location_viewer.locations = dict()
-        self.location_viewer.add_polygons()
 
     def add_polygon(self):
-        self.location_viewer.defining.append([])
+        self.location_viewer.defining_locations.append([])
 
-    def remove_location(self):
+    def delete_location(self):
         indices = self.location_list_view.selectedIndexes()
         if indices:
             index = indices[0]
@@ -489,8 +456,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def save_new_location(self):
         # need to change self.locations, LocationListModel.locations, LocationViewer.location
         new_location_name = self.location_definition_panel.location_name.text()
-        #self.locations[new_location_name] = [(point.x(), point.y()) for point in self.location_viewer.defining]
-        self.locations[new_location_name] = [[(point.x(), point.y()) for point in poly] for poly in self.location_viewer.defining]
+        self.locations[new_location_name] = [[(point.x(), point.y()) for point in poly] for poly in self.location_viewer.defining_locations]
 
         self.location_definition_panel.location_name.setText('')
         self.location_definition_panel.location_name.repaint()
@@ -498,9 +464,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # If it's a duplicated name, need to remove the old location first
         if new_location_name in self.location_viewer.locations:
             self.location_viewer.remove_polygons(self.location_viewer.locations[new_location_name])
-        #self.location_viewer.locations[new_location_name] = Polygon(QtGui.QPolygonF(self.location_viewer.defining))
-        self.location_viewer.locations[new_location_name] = {Polygon(QtGui.QPolygonF(poly)) for poly in self.location_viewer.defining}
-        self.location_viewer.defining = [[]]
+        self.location_viewer.locations[new_location_name] = {LocationPolygon(QPolygonF(poly)) for poly in self.location_viewer.defining_locations}
+        self.location_viewer.defining_locations = [[]]
         self.location_viewer.remove_all_polygons()
         self.location_viewer.add_polygons()
 
@@ -523,8 +488,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.location_definition_panel.repaint()
 
             self.location_viewer.is_defining = True
-            self.location_viewer.defining = [[]]
-            self.location_viewer.remove_polygons(self.location_viewer.defining_polygon)
+            self.location_viewer.defining_locations = [[]]
+            self.location_viewer.remove_polygons(self.location_viewer.defining_polygons)
 
     def location_clicked(self, index):
         name = self.location_model.locations[index.row()]
@@ -543,19 +508,3 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             self.start.setText('Start')
-
-    # def mousePressEvent(self, e):
-    #     if self.start.isChecked():
-    #         self.label.setPixmap(self.base)
-    #
-    #         self.painter = QtGui.QPainter(self.label.pixmap())
-    #         self.painter.setPen(self.pen)
-    #         self.polygon.append(QtCore.QPoint(e.x(), e.y()))
-    #         self.painter.drawPolygon(self.polygon)
-    #         self.painter.end()
-    #         self.label.update()
-
-app = QtWidgets.QApplication(sys.argv)
-window = MainWindow()
-window.show()
-app.exec_()
