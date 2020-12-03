@@ -27,6 +27,7 @@ from PyQt5.QtGui import (
 from .hand_configuration import Config, ConfigGlobal
 from .meta_data import MetaDataWidget
 from .parameter import ParameterView
+from .location_definer import LocationDefinerDialog
 
 
 class MainWindow(QMainWindow):
@@ -64,6 +65,12 @@ class MainWindow(QMainWindow):
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
+
+        # define locations
+        action_define_location = QAction('Define locations', parent=self)
+        action_define_location.setStatusTip('Open define location window')
+        action_define_location.triggered.connect(self.on_action_define_location)
+        action_define_location.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction('New corpus', parent=self)
@@ -118,6 +125,9 @@ class MainWindow(QMainWindow):
         menu_edit = main_menu.addMenu('&Edit')
         menu_edit.addAction(action_copy)
         menu_edit.addAction(action_paste)
+
+        menu_location = main_menu.addMenu('&Location')
+        menu_location.addAction(action_define_location)
 
         # central widget
         central_widget = QWidget()
@@ -198,6 +208,10 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(central_widget)
 
+
+    def on_action_define_location(self):
+        location_definer = LocationDefinerDialog(parent=self)
+        location_definer.exec_()
 
     def update_status_bar(self, text):
         self.status_bar.showMessage(text)
