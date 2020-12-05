@@ -12,10 +12,12 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QSizePolicy,
     QCompleter,
-    QAbstractItemView,
+    QPushButton,
     QCheckBox,
     QFrame
 )
+
+from itertools import chain
 
 X_IN_BOX = '\u2327'
 NULL = '\u2205'
@@ -104,6 +106,20 @@ class ConfigField(QWidget):
     def insert_slot(self, slot):
         position = self.main_layout.count() - 1
         self.main_layout.insertWidget(position, slot)
+
+    def __iter__(self):
+        if self.field_number == 2:
+            return [self.slot2, self.slot3, self.slot4, self.slot5].__iter__()
+        elif self.field_number == 3:
+            return [self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15].__iter__()
+        elif self.field_number == 4:
+            return [self.slot16, self.slot17, self.slot18, self.slot19].__iter__()
+        elif self.field_number == 5:
+            return [self.slot20, self.slot21, self.slot22, self.slot23, self.slot24].__iter__()
+        elif self.field_number == 6:
+            return [self.slot25, self.slot26, self.slot27, self.slot28, self.slot29].__iter__()
+        elif self.field_number == 7:
+            return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
 
     def generate_slots(self):
         if self.field_number == 2:
@@ -439,6 +455,26 @@ class ConfigHand(QWidget):
         self.setLayout(self.main_layout)
 
         self.generate_fields()
+
+        clear_button = QPushButton('Clear', parent=self)
+        clear_button.setFixedWidth(75)
+        clear_button.setContentsMargins(0, 0, 0, 0)
+        clear_button.clicked.connect(self.clear_transcription)
+        self.main_layout.addWidget(clear_button)
+
+    def __iter__(self):
+        return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
+
+    def get_list_transcription(self):
+        return [slot.text() for slot in self.__iter__()]
+
+    def get_string_transcription(self):
+        return ''.join([slot.text() for slot in self.__iter__()])
+
+    def clear_transcription(self):
+        for slot in self.__iter__():
+            if slot.num not in ['8', '9', '16', '21', '26', '31']:
+                slot.clear()
 
     def generate_fields(self):
         self.field2 = ConfigField(2, parent=self)
