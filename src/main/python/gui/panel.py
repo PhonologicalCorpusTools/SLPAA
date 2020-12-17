@@ -4,6 +4,7 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtWidgets import (
+    QScrollArea,
     QVBoxLayout,
     QFrame,
     QLabel,
@@ -19,15 +20,16 @@ from PyQt5.QtGui import (
 from .hand_configuration import ConfigGlobal, Config
 
 
-class LexicalInformationPanel(QFrame):
+class LexicalInformationPanel(QScrollArea):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.setFrameStyle(QFrame.StyledPanel)
+        main_frame = QFrame(parent=self)
 
         main_layout = QVBoxLayout()
         main_layout.setSpacing(5)
-        self.setLayout(main_layout)
+        main_frame.setLayout(main_layout)
 
         gloss_label = QLabel('Gloss:', parent=self)
         freq_label = QLabel('Frequency:', parent=self)
@@ -54,15 +56,18 @@ class LexicalInformationPanel(QFrame):
         main_layout.addWidget(note_label)
         main_layout.addWidget(self.note_edit)
 
+        self.setWidget(main_frame)
 
-class HandTranscriptionPanel(QFrame):
+
+class HandTranscriptionPanel(QScrollArea):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.setFrameStyle(QFrame.StyledPanel)
+        main_frame = QFrame(parent=self)
 
         main_layout = QGridLayout()
-        self.setLayout(main_layout)
+        main_frame.setLayout(main_layout)
 
         self.global_option = ConfigGlobal(title='Handshape global options', parent=self)
         main_layout.addWidget(self.global_option, 0, 0, 2, 1)
@@ -73,15 +78,19 @@ class HandTranscriptionPanel(QFrame):
         self.config2 = Config(2, 'Configuration 2', parent=self)
         main_layout.addWidget(self.config2, 1, 1, 1, 2)
 
+        self.setWidget(main_frame)
 
-class HandIllustrationPanel(QFrame):
+
+class HandIllustrationPanel(QScrollArea):
     def __init__(self, app_ctx, **kwargs):
         super().__init__(**kwargs)
         self.app_ctx = app_ctx
 
+        main_frame = QFrame(parent=self)
+
         self.setFrameStyle(QFrame.StyledPanel)
         main_layout = QVBoxLayout()
-        self.setLayout(main_layout)
+        main_frame.setLayout(main_layout)
 
         self.hand_illustration = QLabel()
         self.hand_illustration.setFixedSize(QSize(400, 400))
@@ -89,3 +98,5 @@ class HandIllustrationPanel(QFrame):
         self.hand_illustration.setPixmap(
             neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
         main_layout.addWidget(self.hand_illustration)
+
+        self.setWidget(main_frame)
