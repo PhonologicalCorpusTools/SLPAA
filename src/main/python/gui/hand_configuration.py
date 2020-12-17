@@ -514,14 +514,13 @@ class ConfigHand(QWidget):
         self.main_layout.addWidget(self.field7)
 
 
-
 class Config(QGroupBox):
     slot_num_on_focus = pyqtSignal(str)
     slot_on_focus = pyqtSignal(str)
     slot_leave = pyqtSignal()
 
-    def __init__(self, config_number, title, parent=None):
-        super().__init__(title=title, parent=parent)
+    def __init__(self, config_number, title, **kwargs):
+        super().__init__(title=title, **kwargs)
         self.config_number = config_number
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         #self.setStyleSheet('QGroupBox{margin: 0; padding: 0}')
@@ -552,8 +551,8 @@ class ConfigGlobal(QGroupBox):
     slot_on_focus = pyqtSignal(str)
     slot_leave = pyqtSignal()
 
-    def __init__(self, title, parent=None):
-        super().__init__(title=title, parent=parent)
+    def __init__(self, title='', **kwargs):
+        super().__init__(title=title, **kwargs)
         #self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         #self.setStyleSheet('QGroupBox{margin: 0; padding: 0}')
 
