@@ -28,6 +28,7 @@ from .hand_configuration import Config, ConfigGlobal
 from .meta_data import MetaDataWidget
 from .parameter import ParameterView
 from .location_definer import LocationDefinerDialog
+from .panel import LexicalInformationPanel, HandTranscriptionPanel, HandIllustrationPanel
 
 
 class MainWindow(QMainWindow):
@@ -260,38 +261,31 @@ class TestMainWindow(QMainWindow):
         # app title
         self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
 
-        central_widget = QWidget()
-        central_layout = QHBoxLayout()
-        central_widget.setLayout(central_layout)
-        self.setCentralWidget(central_widget)
+        central_splitter = QSplitter(Qt.Horizontal, parent=self)
+        right_splitter = QSplitter(Qt.Vertical, parent=self)
+        top_splitter = QSplitter(Qt.Horizontal, parent=self)
+        bottom_splitter = QSplitter(Qt.Horizontal, parent=self)
 
-        spitter = QSplitter(Qt.Horizontal, parent=self)
-        central_layout.addWidget(spitter)
+        right_splitter.addWidget(top_splitter)
+        right_splitter.addWidget(bottom_splitter)
 
-        scroll_left = QScrollArea(parent=self)
-        self.hand_illustration = QLabel()
-        #self.hand_illustration.setFixedSize(QSize(350, 350))
-        img = QPixmap(self.app_ctx.hand_illustrations['slot2'])
-        self.hand_illustration.setPixmap(
-            img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
-        # self.hand_illustration.resize(QSize(100, 100))
-        scroll_left.setWidget(self.hand_illustration)
-        scroll_left.setMaximumWidth(200)
-        spitter.addWidget(scroll_left)
+        corpus_view = QListView(parent=self)
+        corpus_view.resize(QSize(100, 1000))
 
-        scroll_right = QScrollArea(parent=self)
+        corpus_scroll = QScrollArea(parent=self)
+        corpus_scroll.resize(QSize(100, 1000))
+        corpus_scroll.setWidgetResizable(True)
+        corpus_scroll.setWidget(corpus_view)
 
-        meta_data = MetaDataWidget(parent=self)
-        meta_data2 = MetaDataWidget(parent=self)
-        right_widget = QFrame()
-        right_layout = QVBoxLayout()
-        right_widget.setLayout(right_layout)
-        right_layout.addWidget(meta_data)
-        right_layout.addWidget(meta_data2)
-        #right_spitter = QSplitter(Qt.Vertical, parent=self)
-        #right_spitter.addWidget(meta_data)
-        #right_spitter.addWidget(meta_data2)
-        #scroll_right.setWidget(meta_data)
-        scroll_right.setWidget(right_widget)
+        lexical_scroll = LexicalInformationPanel(parent=self)
+        transcription_scroll = HandTranscriptionPanel(parent=self)
+        illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
 
-        spitter.addWidget(scroll_right)
+        top_splitter.addWidget(lexical_scroll)
+        top_splitter.addWidget(transcription_scroll)
+        bottom_splitter.addWidget(illustration_scroll)
+
+        central_splitter.addWidget(corpus_scroll)
+        central_splitter.addWidget(right_splitter)
+
+        self.setCentralWidget(central_splitter)
