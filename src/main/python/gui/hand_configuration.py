@@ -1,7 +1,8 @@
 from PyQt5.QtCore import (
     Qt,
     QSize,
-    pyqtSignal
+    pyqtSignal,
+    QEvent
 )
 from PyQt5.QtWidgets import (
     QWidget,
@@ -14,6 +15,8 @@ from PyQt5.QtWidgets import (
     QCompleter,
     QPushButton,
     QCheckBox,
+    QAction,
+    QMenu,
     QFrame
 )
 
@@ -50,10 +53,33 @@ class ConfigSlot(QLineEdit):
                                                                                                     s_num=descriptions[1],
                                                                                                     s_type=descriptions[2])
 
+        self.create_flag_menu()
         self.textChanged.connect(self.on_text_changed)
 
+    def create_flag_menu(self):
+        self.flag_menu = QMenu(parent=self)
+
+        self.flag_estimate_action = QAction('Flag as estimate', self, triggered=self.flag_estimate, checkable=True)
+        self.flag_uncertain_action = QAction('Flag as uncertain', self, triggered=self.flag_uncertain, checkable=True)
+
+        self.flag_menu.addActions([self.flag_estimate_action, self.flag_uncertain_action])
+
+    def flag_estimate(self):
+        pass
+
+    def flag_uncertain(self):
+        pass
+
+    def contextMenuEvent(self, event):
+        self.flag_menu.exec_(event.globalPos())
+
+    def mousePressEvent(self, event):
+        if event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.LeftButton:
+                self.completer().complete()
+        super().mousePressEvent(event)
+
     def focusInEvent(self, event):
-        self.completer().complete()
         self.slot_on_focus.emit(self.description)
         self.slot_num_on_focus.emit(self.num)
         super().focusInEvent(event)
