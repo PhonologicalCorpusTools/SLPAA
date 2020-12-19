@@ -615,8 +615,6 @@ class ConfigGlobal(QGroupBox):
 
     def __init__(self, title='', **kwargs):
         super().__init__(title=title, **kwargs)
-        #self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        #self.setStyleSheet('QGroupBox{margin: 0; padding: 0}')
 
         self.main_layout = QVBoxLayout()
         self.main_layout.setSpacing(5)
@@ -624,10 +622,10 @@ class ConfigGlobal(QGroupBox):
         self.setLayout(self.main_layout)
         self.add_slot1()
         self.add_options()
+        self.add_other()
 
     def add_slot1(self):
         slot1_layout = QHBoxLayout()
-        #slot1_layout.setSpacing(5)
         slot1_layout.addStretch()
         self.main_layout.addLayout(slot1_layout)
 
@@ -657,3 +655,15 @@ class ConfigGlobal(QGroupBox):
         option_layout.addWidget(self.estimated)
         option_layout.addWidget(self.uncertain)
         option_layout.addWidget(self.incomplete)
+
+    def add_other(self):
+        other_group = QGroupBox(parent=self)
+        other_layout = QVBoxLayout()
+        other_layout.setSpacing(5)
+        other_layout.addStretch()
+        other_group.setLayout(other_layout)
+        self.main_layout.addWidget(other_group)
+        self.fingerspelled = QCheckBox('Fingerspelled', parent=self)
+        self.initialized = QCheckBox('Initialized', parent=self)
+        other_layout.addWidget(self.fingerspelled)
+        other_layout.addWidget(self.initialized)
