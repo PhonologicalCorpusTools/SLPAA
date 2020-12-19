@@ -21,25 +21,54 @@ from PyQt5.QtWidgets import (
 )
 
 from itertools import chain
+from constant import NULL, X_IN_BOX, ESTIMATE_BORDER, UNCERTAIN_BACKGROUND
 
-X_IN_BOX = '\u2327'
-NULL = '\u2205'
 
 class ConfigSlot(QLineEdit):
     slot_num_on_focus = pyqtSignal(str)
     slot_on_focus = pyqtSignal(str)
     slot_leave = pyqtSignal()
-    def __init__(self, completer_options, descriptions, parent=None):
-        super().__init__(parent=parent)
+
+    def __init__(self, completer_options, descriptions, **kwargs):
+        super().__init__(**kwargs)
+
+        self.estimate = False
+        self.uncertain = False
+        self.setProperty('Estimate', self.estimate)
+        self.setProperty('Uncertain', self.uncertain)
 
         # styling
         self.setFixedSize(QSize(20, 20))
-        self.qss = 'QLineEdit {text-align: center;' \
-                              'margin: 0;' \
-                              'padding: 0;' \
-                              'border: 1px solid grey}'
-        self.setStyleSheet(self.qss)
+        qss = """
+            QLineEdit {{
+                text-align: center;
+                margin: 0;
+                padding: 0;
+            }}
+            
+            QLineEdit[Estimate=true][Uncertain=true] {{
+                background: {uncertain_background};
+                border: {estimate_border};
+            }}
+            
+            QLineEdit[Estimate=true][Uncertain=false] {{
+                background: white;
+                border: {estimate_border};
+            }}
+            
+            QLineEdit[Estimate=false][Uncertain=true] {{
+                background: {uncertain_background};
+                border: 1px solid grey;
+            }}
+            
+            QLineEdit[Estimate=false][Uncertain=false] {{
+                background: white;
+                border: 1px solid grey;
+            }}
+        """.format(estimate_border=ESTIMATE_BORDER, uncertain_background=UNCERTAIN_BACKGROUND)
+        self.setStyleSheet(qss)
 
+        # set completer
         completer = QCompleter(completer_options, parent=self)
         completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         completer.setCaseSensitivity(Qt.CaseInsensitive)
@@ -53,22 +82,29 @@ class ConfigSlot(QLineEdit):
                                                                                                     s_num=descriptions[1],
                                                                                                     s_type=descriptions[2])
 
+        # create menu
         self.create_flag_menu()
         self.textChanged.connect(self.on_text_changed)
 
     def create_flag_menu(self):
         self.flag_menu = QMenu(parent=self)
 
-        self.flag_estimate_action = QAction('Flag as estimate', self, triggered=self.flag_estimate, checkable=True)
-        self.flag_uncertain_action = QAction('Flag as uncertain', self, triggered=self.flag_uncertain, checkable=True)
+        self.flag_estimate_action = QAction('Flag as estimate', parent=self, triggered=self.flag_estimate, checkable=True)
+        self.flag_uncertain_action = QAction('Flag as uncertain', parent=self, triggered=self.flag_uncertain, checkable=True)
 
         self.flag_menu.addActions([self.flag_estimate_action, self.flag_uncertain_action])
 
     def flag_estimate(self):
-        pass
+        self.estimate = self.flag_estimate_action.isChecked()
+        self.setProperty('Estimate', self.estimate)
+
+        self.setStyle(self.style())
 
     def flag_uncertain(self):
-        pass
+        self.uncertain = self.flag_uncertain_action.isChecked()
+        self.setProperty('Uncertain', self.uncertain)
+
+        self.setStyle(self.style())
 
     def contextMenuEvent(self, event):
         self.flag_menu.exec_(event.globalPos())
