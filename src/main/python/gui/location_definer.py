@@ -14,7 +14,9 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QWidget,
     QTabWidget,
-    QTabBar
+    QTabBar,
+    QDialogButtonBox,
+    QMessageBox
 )
 
 from PyQt5.QtGui import (
@@ -34,6 +36,7 @@ from PyQt5.QtCore import (
 )
 
 from .helper_widget import EditableTabBar
+from constant import DEFAULT_UPPER_BODY_LOCATIONS
 
 #reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
 class LocationPolygon(QGraphicsPolygonItem):
@@ -659,159 +662,7 @@ class LocationDefinerTabWidget(QTabWidget):
 
         head = LocationDefinerPage(image_path=images.default_location_images['head'], parent=self)
         upper_body = LocationDefinerPage(image_path=images.default_location_images['upper_body'],
-                                         locations={'abdomen': [[(883, 685),
-                                       (882, 750),
-                                       (867, 781),
-                                       (874, 801),
-                                       (850, 835),
-                                       (867, 846),
-                                       (887, 836),
-                                       (1007, 862),
-                                       (1075, 854),
-                                       (1110, 851),
-                                       (1178, 848),
-                                       (1195, 836),
-                                       (1188, 819),
-                                       (1192, 804),
-                                       (1174, 765),
-                                       (1178, 680),
-                                       (1033, 672)]],
-                          'chest': [[(870, 515),
-                                     (874, 584),
-                                     (879, 658),
-                                     (884, 682),
-                                     (1033, 670),
-                                     (1179, 675),
-                                     (1181, 598),
-                                     (1188, 578),
-                                     (1190, 523),
-                                     (1025, 494)]],
-                          'forearm': [[(760, 660),
-                                       (744, 685),
-                                       (709, 732),
-                                       (682, 774),
-                                       (631, 876),
-                                       (659, 884),
-                                       (678, 905),
-                                       (680, 917),
-                                       (695, 896),
-                                       (743, 846),
-                                       (773, 816),
-                                       (806, 781),
-                                       (830, 747)],
-                                      [(1235, 771),
-                                       (1267, 814),
-                                       (1357, 926),
-                                       (1412, 904),
-                                       (1375, 831),
-                                       (1348, 789),
-                                       (1322, 751),
-                                       (1283, 687)]],
-                          'leg': [[(841, 998),
-                                   (836, 1029),
-                                   (836, 1148),
-                                   (844, 1282),
-                                   (836, 1344),
-                                   (827, 1389),
-                                   (864, 1428),
-                                   (937, 1436),
-                                   (966, 1346),
-                                   (992, 1271),
-                                   (1007, 1189),
-                                   (1023, 1072)],
-                                  [(1023, 1076),
-                                   (1028, 1168),
-                                   (1038, 1271),
-                                   (1043, 1305),
-                                   (1050, 1364),
-                                   (1064, 1409),
-                                   (1114, 1416),
-                                   (1172, 1413),
-                                   (1169, 1307),
-                                   (1182, 1224),
-                                   (1196, 1168),
-                                   (1209, 1074),
-                                   (1213, 1039)]],
-                          'neck': [[(974, 365),
-                                    (973, 393),
-                                    (964, 394),
-                                    (962, 404),
-                                    (958, 413),
-                                    (954, 422),
-                                    (1007, 431),
-                                    (1054, 433),
-                                    (1081, 433),
-                                    (1096, 421),
-                                    (1090, 413),
-                                    (1094, 407),
-                                    (1086, 398),
-                                    (1080, 398),
-                                    (1078, 374),
-                                    (1055, 390),
-                                    (1023, 388),
-                                    (1001, 381)]],
-                          'shoulder': [[(954, 424),
-                                        (941, 432),
-                                        (871, 451),
-                                        (869, 512),
-                                        (1023, 493),
-                                        (1190, 520),
-                                        (1190, 477),
-                                        (1111, 450),
-                                        (1091, 437),
-                                        (1026, 434)]],
-                          'sternum': [[(1007, 581), (1000, 661), (1072, 663), (1072, 589)]],
-                          'trunk': [[(870, 452),
-                                     (874, 581),
-                                     (883, 680),
-                                     (883, 749),
-                                     (864, 781),
-                                     (875, 803),
-                                     (848, 836),
-                                     (867, 843),
-                                     (846, 1000),
-                                     (836, 1036),
-                                     (972, 1052),
-                                     (1021, 1070),
-                                     (1209, 1039),
-                                     (1184, 854),
-                                     (1196, 838),
-                                     (1188, 819),
-                                     (1193, 803),
-                                     (1172, 761),
-                                     (1180, 683),
-                                     (1182, 647),
-                                     (1178, 600),
-                                     (1186, 577),
-                                     (1191, 564),
-                                     (1188, 479),
-                                     (1028, 458)]],
-                          'upper arm': [[(878, 651),
-                                         (831, 747),
-                                         (795, 707),
-                                         (761, 659),
-                                         (785, 608),
-                                         (800, 558),
-                                         (818, 510),
-                                         (844, 468),
-                                         (870, 450),
-                                         (869, 514),
-                                         (869, 548),
-                                         (874, 577)],
-                                        [(1179, 682),
-                                         (1217, 738),
-                                         (1234, 770),
-                                         (1282, 685),
-                                         (1270, 658),
-                                         (1259, 622),
-                                         (1252, 591),
-                                         (1240, 555),
-                                         (1225, 520),
-                                         (1208, 492),
-                                         (1191, 477),
-                                         (1191, 564),
-                                         (1186, 582),
-                                         (1179, 600)]]},
+                                         locations=DEFAULT_UPPER_BODY_LOCATIONS,
                                          parent=self)
         weak_hand = LocationDefinerPage(image_path=images.default_location_images['weak_hand'], parent=self)
 
@@ -832,16 +683,13 @@ class LocationDefinerTabWidget(QTabWidget):
         self.insertTab(index, new, 'New location')
         self.setCurrentIndex(index)
 
+    # Ref: https://stackoverflow.com/questions/57013483/dynamically-created-tabs-destroy-object-when-tab-closed
     def close_handler(self, index):
-        # gets the widget
         widget = self.widget(index)
 
-        # if the widget exists
         if widget:
-            # removes the widget
             widget.deleteLater()
 
-        # removes the tab of the QTabWidget
         self.removeTab(index)
 
         self.number_pages -= 1
@@ -852,8 +700,49 @@ class LocationDefinerDialog(QDialog):
     def __init__(self, images, **kwargs):
         super().__init__(**kwargs)
 
-        main_layout = QHBoxLayout()
+        main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
         location_tab = LocationDefinerTabWidget(images, parent=self)
         main_layout.addWidget(location_tab)
+
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separate_line)
+
+        buttons = QDialogButtonBox.Save | QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        #Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
+        self.button_box.clicked.connect(self.handle_button_click)
+
+        main_layout.addWidget(self.button_box)
+
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Ok:
+            self.accept()
+        elif standard == QDialogButtonBox.Cancel:
+            self.reject()
+        elif standard == QDialogButtonBox.Save:
+            #TODO: handle location save
+            confirmation = QMessageBox(parent=self)
+            confirmation.setWindowTitle('Location saved')
+            confirmation.setText('New locations have been successfully saved!')
+            confirmation.setIcon(QMessageBox.Information)
+            button = confirmation.exec_()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
