@@ -14,9 +14,19 @@ class AppContext(ApplicationContext):
     @cached_property
     def toolbar_icons(self):
         return {'copy': self.get_resource('icons/copy.png'),
+                'delete': self.get_resource('icons/delete.png'),
                 'paste': self.get_resource('icons/paste.png'),
+                'plus': self.get_resource('icons/plus.png'),
                 'save': self.get_resource('icons/disk.png'),
                 'new_sign': self.get_resource('icons/hand.png')}
+
+    @cached_property
+    def default_location_images(self):
+        return {
+            'head': self.get_resource('default_location_images/head.jpg'),
+            'upper_body': self.get_resource('default_location_images/upper_body.jpg'),
+            'weak_hand': self.get_resource('default_location_images/weak_hand.jpg')
+        }
 
     @cached_property
     def hand_illustrations(self):

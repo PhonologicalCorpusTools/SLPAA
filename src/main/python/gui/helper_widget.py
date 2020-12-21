@@ -2,7 +2,9 @@ from PyQt5.QtCore import (
     Qt,
     QParallelAnimationGroup,
     QPropertyAnimation,
-    QAbstractAnimation
+    QAbstractAnimation,
+    QEvent,
+    pyqtSignal
 )
 from PyQt5.QtWidgets import (
     QWidget,
@@ -10,7 +12,9 @@ from PyQt5.QtWidgets import (
     QFrame,
     QToolButton,
     QGridLayout,
-    QSizePolicy
+    QSizePolicy,
+    QTabBar,
+    QLineEdit
 )
 #from PyQt5.QtGui import ()
 
@@ -75,7 +79,6 @@ class CollapsibleSection(QWidget):
         self.toggleButton.clicked.connect(start_animation)
 
     def setContentLayout(self, contentLayout):
-
         # Not sure if this is equivalent to self.contentArea.destroy()
         self.contentArea.destroy()
         self.contentArea.setLayout(contentLayout)
@@ -93,3 +96,50 @@ class CollapsibleSection(QWidget):
         contentAnimation.setDuration(self.animationDuration)
         contentAnimation.setStartValue(0)
         contentAnimation.setEndValue(contentHeight)
+
+
+# Ref: https://stackoverflow.com/questions/8707457/pyqt-editable-tab-labels
+class EditableTabBar(QTabBar):
+    plus_clicked = pyqtSignal(int)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.setDocumentMode(True)
+        self.setTabsClosable(True)
+
+        self.editor = QLineEdit(self)
+        self.editor.setWindowFlags(Qt.Popup)
+        self.editor.setFocusProxy(self)
+        self.editor.editingFinished.connect(self.handle_editing_finished)
+        self.editor.installEventFilter(self)
+
+    def eventFilter(self, widget, event):
+        if (event.type() == QEvent.MouseButtonPress and not self.editor.geometry().contains(event.globalPos())) or \
+                (event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape):
+            self.editor.hide()
+            return True
+        return QTabBar.eventFilter(self, widget, event)
+
+    def mouseDoubleClickEvent(self, event):
+        index = self.tabAt(event.pos())
+        if index >= 0:
+            self.edit_tab(index)
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        if self.currentIndex() == self.count()-1:
+            self.plus_clicked.emit(self.currentIndex())
+
+    def edit_tab(self, index):
+        rect = self.tabRect(index)
+        self.editor.setFixedSize(rect.size())
+        self.editor.move(self.parent().mapToGlobal(rect.topLeft()))
+        self.editor.setText(self.tabText(index))
+        if not self.editor.isVisible():
+            self.editor.show()
+
+    def handle_editing_finished(self):
+        index = self.currentIndex()
+        if index >= 0:
+            self.editor.hide()
+            self.setTabText(index, self.editor.text())

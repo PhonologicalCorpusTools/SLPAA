@@ -211,7 +211,7 @@ class MainWindow(QMainWindow):
 
 
     def on_action_define_location(self):
-        location_definer = LocationDefinerDialog(parent=self)
+        location_definer = LocationDefinerDialog(self.app_ctx, parent=self)
         location_definer.exec_()
 
     def update_status_bar(self, text):
