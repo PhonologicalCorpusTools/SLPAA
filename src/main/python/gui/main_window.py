@@ -28,7 +28,14 @@ from .hand_configuration import Config, ConfigGlobal
 from .meta_data import MetaDataWidget
 from .parameter import ParameterView
 from .location_definer import LocationDefinerDialog
-from .panel import LexicalInformationPanel, HandTranscriptionPanel, HandIllustrationPanel
+from .panel import (
+    LexicalInformationPanel,
+    HandTranscriptionPanel,
+    HandIllustrationPanel,
+    ParameterPanel
+)
+
+from lexicon.lexicon_classes import SAMPLE_LOCATIONS
 
 
 class MainWindow(QMainWindow):
@@ -68,7 +75,7 @@ class MainWindow(QMainWindow):
         action_paste.setCheckable(False)
 
         # define locations
-        action_define_location = QAction('Define locations', parent=self)
+        action_define_location = QAction('Define locations...', parent=self)
         action_define_location.setStatusTip('Open define location window')
         action_define_location.triggered.connect(self.on_action_define_location)
         action_define_location.setCheckable(False)
@@ -211,7 +218,7 @@ class MainWindow(QMainWindow):
 
 
     def on_action_define_location(self):
-        location_definer = LocationDefinerDialog(self.app_ctx, parent=self)
+        location_definer = LocationDefinerDialog(SAMPLE_LOCATIONS, self.app_ctx, parent=self)
         location_definer.exec_()
 
     def update_status_bar(self, text):
@@ -222,7 +229,6 @@ class MainWindow(QMainWindow):
         self.hand_illustration.setPixmap(
             hand_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
         self.hand_illustration.repaint()
-
 
     def on_action_save(self, clicked):
         pass

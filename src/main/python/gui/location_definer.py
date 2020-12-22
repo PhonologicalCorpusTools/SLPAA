@@ -36,7 +36,6 @@ from PyQt5.QtCore import (
 )
 
 from .helper_widget import EditableTabBar
-from constant import DEFAULT_UPPER_BODY_LOCATIONS
 
 #reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
 class LocationPolygon(QGraphicsPolygonItem):
@@ -647,7 +646,8 @@ class LocationDefinerPage(QWidget):
 
 
 class LocationDefinerTabWidget(QTabWidget):
-    def __init__(self, images, **kwargs):
+    #TODO: modify this part to take Location class
+    def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
         self.number_pages = 3
@@ -660,17 +660,15 @@ class LocationDefinerTabWidget(QTabWidget):
 
         self.setTabBar(tabbar)
 
-        head = LocationDefinerPage(image_path=images.default_location_images['head'], parent=self)
-        upper_body = LocationDefinerPage(image_path=images.default_location_images['upper_body'],
-                                         locations=DEFAULT_UPPER_BODY_LOCATIONS,
-                                         parent=self)
-        weak_hand = LocationDefinerPage(image_path=images.default_location_images['weak_hand'], parent=self)
+        self.location_definer_pages = list()
+        for loc_identifier, loc_param in location_specifications.items():
+            loc_page = LocationDefinerPage(image_path=app_ctx.default_location_images[loc_param.image_path] if loc_param.image_path in app_ctx.default_location_images else loc_param.image_path,
+                                           locations=loc_param.location_polygons,
+                                           parent=self)
+            self.addTab(loc_page, loc_param.name)
+            self.location_definer_pages.append(loc_page)
 
-        self.addTab(head, 'Head')
-        self.addTab(upper_body, 'Upper body')
-        self.addTab(weak_hand, 'Weak hand')
-
-        self.addTab(QWidget(), QIcon(images.toolbar_icons['plus']), 'Add location')
+        self.addTab(QWidget(), QIcon(app_ctx.toolbar_icons['plus']), 'Add location')
 
         tabbar.tabButton(3, QTabBar.LeftSide).hide()
 
@@ -697,13 +695,13 @@ class LocationDefinerTabWidget(QTabWidget):
 
 
 class LocationDefinerDialog(QDialog):
-    def __init__(self, images, **kwargs):
+    def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        location_tab = LocationDefinerTabWidget(images, parent=self)
+        location_tab = LocationDefinerTabWidget(location_specifications, app_ctx, parent=self)
         main_layout.addWidget(location_tab)
 
         separate_line = QFrame()
