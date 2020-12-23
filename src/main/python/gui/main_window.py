@@ -347,10 +347,12 @@ class TestMainWindow(QMainWindow):
         lexical_scroll = LexicalInformationPanel(parent=self)
         transcription_scroll = HandTranscriptionPanel(parent=self)
         illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
+        parameter_scroll = ParameterPanel(self.app_ctx, parent=self)
 
         top_splitter.addWidget(lexical_scroll)
         top_splitter.addWidget(transcription_scroll)
         bottom_splitter.addWidget(illustration_scroll)
+        bottom_splitter.addWidget(parameter_scroll)
 
         central_splitter.addWidget(corpus_scroll)
         central_splitter.addWidget(right_splitter)
