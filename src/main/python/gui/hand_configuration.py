@@ -133,6 +133,9 @@ class ConfigSlot(QLineEdit):
         self.slot_leave.emit()
         super().leaveEvent(event)
 
+    def get_value(self):
+        return {'slot_number': int(self.num), 'symbol': self.text(), 'estimate': self.estimate, 'uncertain': self.uncertain}
+
 
 class ConfigField(QWidget):
     slot_num_on_focus = pyqtSignal(str)
@@ -500,6 +503,77 @@ class ConfigField(QWidget):
             self.slot34.slot_leave.connect(self.slot_leave.emit)
             self.insert_slot(self.slot34)
 
+    def get_value(self):
+        if self.field_number == 2:
+            return {
+                'field_number': self.field_number,
+                'slots': [
+                    self.slot2.get_value(),
+                    self.slot3.get_value(),
+                    self.slot4.get_value(),
+                    self.slot5.get_value()
+                ]
+            }
+        elif self.field_number == 3:
+            return {
+                'field_number': self.field_number,
+                'slots': [
+                    self.slot6.get_value(),
+                    self.slot7.get_value(),
+                    self.slot8.get_value(),
+                    self.slot9.get_value(),
+                    self.slot10.get_value(),
+                    self.slot11.get_value(),
+                    self.slot12.get_value(),
+                    self.slot13.get_value(),
+                    self.slot14.get_value(),
+                    self.slot15.get_value()
+                ]
+            }
+        elif self.field_number == 4:
+            return {
+                'field_number': self.field_number,
+                'slots': [
+                    self.slot16.get_value(),
+                    self.slot17.get_value(),
+                    self.slot18.get_value(),
+                    self.slot19.get_value()
+                ]
+            }
+        elif self.field_number == 5:
+            return {
+                'field_number': self.field_number,
+                'slots': [
+                    self.slot20.get_value(),
+                    self.slot21.get_value(),
+                    self.slot22.get_value(),
+                    self.slot23.get_value(),
+                    self.slot24.get_value()
+                ]
+            }
+        elif self.field_number == 6:
+            return {
+                'field_number': self.field_number,
+                'slots': [
+                    self.slot25.get_value(),
+                    self.slot26.get_value(),
+                    self.slot27.get_value(),
+                    self.slot28.get_value(),
+                    self.slot29.get_value()
+                ]
+            }
+        elif self.field_number == 7:
+            return {
+                'field_number': self.field_number,
+                'slots': [
+                    self.slot30.get_value(),
+                    self.slot31.get_value(),
+                    self.slot32.get_value(),
+                    self.slot33.get_value(),
+                    self.slot34.get_value()
+                ]
+            }
+
 
 class ConfigHand(QWidget):
     slot_num_on_focus = pyqtSignal(str)
@@ -575,6 +649,19 @@ class ConfigHand(QWidget):
         self.field7.slot_leave.connect(self.slot_leave.emit)
         self.main_layout.addWidget(self.field7)
 
+    def get_value(self):
+        return {
+            'hand_number': self.hand_number,
+            'fields': [
+                self.field2.get_value(),
+                self.field3.get_value(),
+                self.field4.get_value(),
+                self.field5.get_value(),
+                self.field6.get_value(),
+                self.field7.get_value()
+            ]
+        }
+
 
 class Config(QGroupBox):
     slot_num_on_focus = pyqtSignal(str)
@@ -607,6 +694,15 @@ class Config(QGroupBox):
 
         self.main_layout.addWidget(self.hand1)
         self.main_layout.addWidget(self.hand2)
+
+    def get_value(self):
+        return {
+            'config_number': self.config_number,
+            'hands': [
+                self.hand1.get_value(),
+                self.hand2.get_value()
+            ]
+        }
 
 
 class ConfigGlobal(QGroupBox):
