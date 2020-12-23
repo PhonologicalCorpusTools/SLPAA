@@ -42,7 +42,11 @@ class MainWindow(QMainWindow):
     def __init__(self, app_ctx):
         super().__init__()
         self.app_ctx = app_ctx
-        self.resize(QSize(1200, 1000))
+
+        self.handle_app_settings()
+        self.check_storage()
+        self.resize(self.app_settings['display']['size'])
+        self.move(self.app_settings['display']['position'])
 
         # app title
         self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
@@ -216,6 +220,54 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(central_widget)
 
+    def handle_app_settings(self):
+        self.app_settings = defaultdict(dict)
+
+        self.app_qsettings = QSettings('UBC Phonology Tools',
+                                       application='Sign Language Phonetic Annotator and Analyzer')
+
+        self.app_qsettings.beginGroup('storage')
+        self.app_settings['storage']['corpora'] = self.app_qsettings.value('corpora',
+                                                                           defaultValue=os.path.normpath(
+                                                                               os.path.join(
+                                                                                   os.path.expanduser('~/Documents'),
+                                                                                   'PCT', 'SLP-AA', 'CORPORA')))
+        self.app_settings['storage']['image'] = self.app_qsettings.value('image',
+                                                                         defaultValue=os.path.normpath(
+                                                                             os.path.join(
+                                                                                 os.path.expanduser('~/Documents'),
+                                                                                 'PCT', 'SLP-AA', 'IMAGE')))
+        self.app_qsettings.endGroup()
+
+        self.app_qsettings.beginGroup('display')
+        self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(1200, 1000))
+        self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(50, 50))
+        self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=3)
+        self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True)
+        self.app_qsettings.endGroup()
+
+    def check_storage(self):
+        if not os.path.exists(self.app_settings['storage']['corpora']):
+            os.makedirs(self.app_settings['storage']['corpora'])
+
+        if not os.path.exists(self.app_settings['storage']['image']):
+            os.makedirs(self.app_settings['storage']['image'])
+
+    def save_app_settings(self):
+        self.app_qsettings = QSettings('UBC Phonology Tools',
+                                       application='Sign Language Phonetic Annotator and Analyzer')
+
+        self.app_qsettings.beginGroup('storage')
+        self.app_qsettings.setValue('corpora', self.app_settings['storage']['corpora'])
+        self.app_qsettings.setValue('image', self.app_settings['storage']['image'])
+        self.app_qsettings.endGroup()
+
+        self.app_qsettings.beginGroup('display')
+        self.app_qsettings.setValue('size', self.size())
+        self.app_qsettings.setValue('position', self.pos())
+        self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
+        self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
+        self.app_qsettings.endGroup()
 
     def on_action_define_location(self):
         location_definer = LocationDefinerDialog(self.locations, self.app_settings, self.app_ctx, parent=self)
@@ -262,6 +314,10 @@ class MainWindow(QMainWindow):
     def on_action_new_sign(self, clicked):
         pass
         #TODO: implement
+
+    def closeEvent(self, event):
+        self.save_app_settings()
+        super().closeEvent(event)
 
 
 class TestMainWindow(QMainWindow):
