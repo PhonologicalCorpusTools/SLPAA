@@ -1,3 +1,5 @@
+from lexicon.lexicon_classes import LocationParameter, Locations
+
 # symbols
 X_IN_BOX = '\u2327'
 NULL = '\u2205'
@@ -108,3 +110,11 @@ DEFAULT_UPPER_BODY_LOCATIONS = {'abdomen': [[(883, 685), (882, 750), (867, 781),
                                          (1191, 564),
                                          (1186, 582),
                                          (1179, 600)]]}
+
+TEST_LOCATIONS = {
+    'head': LocationParameter(name='Head', image_path='head', location_polygons=DEFAULT_HEAD_LOCATIONS),
+    'upper_body': LocationParameter(name='Upper body', image_path='upper_body', location_polygons=DEFAULT_UPPER_BODY_LOCATIONS),
+    'weak_hand': LocationParameter(name='Weak hand', image_path='weak_hand', location_polygons=DEFAULT_WEAK_HAND_LOCATIONS)
+}
+
+SAMPLE_LOCATIONS = Locations(TEST_LOCATIONS)
