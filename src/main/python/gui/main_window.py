@@ -218,8 +218,13 @@ class MainWindow(QMainWindow):
 
 
     def on_action_define_location(self):
-        location_definer = LocationDefinerDialog(SAMPLE_LOCATIONS, self.app_ctx, parent=self)
+        location_definer = LocationDefinerDialog(self.locations, self.app_settings, self.app_ctx, parent=self)
+        location_definer.saved_locations.connect(self.save_new_locations)
         location_definer.exec_()
+
+    def save_new_locations(self, new_locations):
+        #TODO: need to reimplement this once corpus class is there
+        self.locations = new_locations
 
     def update_status_bar(self, text):
         self.status_bar.showMessage(text)

@@ -14,7 +14,8 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QSizePolicy,
     QTabBar,
-    QLineEdit
+    QLineEdit,
+    QMessageBox
 )
 #from PyQt5.QtGui import ()
 
@@ -141,5 +142,11 @@ class EditableTabBar(QTabBar):
     def handle_editing_finished(self):
         index = self.currentIndex()
         if index >= 0:
+            if self.editor.text() in self.get_tab_names():
+                QMessageBox.critical(parent=self, title='Name Error', text='Please use a name that has not been used!')
+                return
             self.editor.hide()
             self.setTabText(index, self.editor.text())
+
+    def get_tab_names(self):
+        return [self.tabText(i) for i in range(self.count()-1)]  # -1 because the last tab is just '+'
