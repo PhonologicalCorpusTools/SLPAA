@@ -1,6 +1,9 @@
+import os
 from PyQt5.QtCore import (
     Qt,
-    QSize
+    QSize,
+    QSettings,
+    QPoint
 )
 from PyQt5.QtWidgets import (
     QGridLayout,
@@ -35,7 +38,22 @@ from .panel import (
     ParameterPanel
 )
 
-from lexicon.lexicon_classes import SAMPLE_LOCATIONS
+from collections import defaultdict
+from constant import SAMPLE_LOCATIONS
+from lexicon.lexicon_classes import (
+    Corpus,
+    GlobalHandshapeOptions,
+    HandshapeTranscription,
+    HandshapeTranscriptionConfig,
+    HandshapeTranscriptionField,
+    HandshapeTranscriptionHand,
+    HandshapeTranscriptionSlot,
+    LexicalInformation,
+    LocationParameter,
+    Locations,
+    Sign
+)
+from pprint import pprint
 
 
 class MainWindow(QMainWindow):
@@ -183,21 +201,21 @@ class MainWindow(QMainWindow):
         #transcription_layout.setSpacing(5)
         #configuration_layout.addLayout(transcription_layout, 0, 1, 1, 1)
 
-        config1 = Config(1, 'Configuration 1', parent=self)
-        config1.slot_on_focus.connect(self.update_status_bar)
-        config1.slot_num_on_focus.connect(self.update_hand_illustration)
-        config1.slot_leave.connect(self.status_bar.clearMessage)
-        config1.slot_leave.connect(lambda: self.hand_illustration.setPixmap(
+        self.config1 = Config(1, 'Configuration 1', parent=self)
+        self.config1.slot_on_focus.connect(self.update_status_bar)
+        self.config1.slot_num_on_focus.connect(self.update_hand_illustration)
+        self.config1.slot_leave.connect(self.status_bar.clearMessage)
+        self.config1.slot_leave.connect(lambda: self.hand_illustration.setPixmap(
             neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio)))
-        configuration_layout.addWidget(config1, 0, 1, 1, 2)
+        configuration_layout.addWidget(self.config1, 0, 1, 1, 2)
 
-        config2 = Config(2, 'Configuration 2', parent=self)
-        config2.slot_on_focus.connect(self.update_status_bar)
-        config2.slot_num_on_focus.connect(self.update_hand_illustration)
-        config2.slot_leave.connect(self.status_bar.clearMessage)
-        config2.slot_leave.connect(lambda: self.hand_illustration.setPixmap(
+        self.config2 = Config(2, 'Configuration 2', parent=self)
+        self.config2.slot_on_focus.connect(self.update_status_bar)
+        self.config2.slot_num_on_focus.connect(self.update_hand_illustration)
+        self.config2.slot_leave.connect(self.status_bar.clearMessage)
+        self.config2.slot_leave.connect(lambda: self.hand_illustration.setPixmap(
             neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio)))
-        configuration_layout.addWidget(config2, 1, 1, 1, 2)
+        configuration_layout.addWidget(self.config2, 1, 1, 1, 2)
 
         # lower layout
         lower_layout = QHBoxLayout()
@@ -217,7 +235,7 @@ class MainWindow(QMainWindow):
         right_scroll.setWidget(right_frame)
         main_splitter.setSizes([100, 1000])
 
-
+        self.locations = SAMPLE_LOCATIONS
         self.setCentralWidget(central_widget)
 
     def handle_app_settings(self):
@@ -288,8 +306,9 @@ class MainWindow(QMainWindow):
         self.hand_illustration.repaint()
 
     def on_action_save(self, clicked):
-        pass
-        #TODO: implement
+
+        print(HandshapeTranscription([self.config1.get_value(), self.config2.get_value()]))
+
 
     def on_action_copy(self, clicked):
         pass
