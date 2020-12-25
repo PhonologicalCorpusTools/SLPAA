@@ -4,7 +4,8 @@ from PyQt5.QtCore import (
     QPropertyAnimation,
     QAbstractAnimation,
     QEvent,
-    pyqtSignal
+    pyqtSignal,
+    QRect
 )
 from PyQt5.QtWidgets import (
     QWidget,
@@ -15,9 +16,15 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QTabBar,
     QLineEdit,
-    QMessageBox
+    QMessageBox,
+    QPushButton
 )
-#from PyQt5.QtGui import ()
+from PyQt5.QtGui import (
+    QPainter,
+    QColor,
+    QPen,
+    QBrush
+)
 
 
 class CollapsibleSection(QWidget):
@@ -150,3 +157,39 @@ class EditableTabBar(QTabBar):
 
     def get_tab_names(self):
         return [self.tabText(i) for i in range(self.count()-1)]  # -1 because the last tab is just '+'
+
+
+# Ref: https://stackoverflow.com/questions/56806987/switch-button-in-pyqt
+class ToggleSwitch(QPushButton):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.setCheckable(True)
+        self.setMinimumWidth(66)
+        self.setMinimumHeight(22)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+
+        label = 'Dominant' if self.isChecked() else 'Weak'
+        bg_color = Qt.green if self.isChecked() else Qt.red
+
+        radius = 10
+        width = 75
+        center = self.rect().center()
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.translate(center)
+        painter.setBrush(QColor(0, 0, 0))
+
+        pen = QPen(Qt.black)
+        pen.setWidth(2)
+        painter.setPen(pen)
+
+        painter.drawRoundedRect(QRect(-width, -radius, 2*width, 2*radius), radius, radius)
+        painter.setBrush(QBrush(bg_color))
+        sw_rect = QRect(-radius, -radius, width + radius, 2*radius)
+        if not self.isChecked():
+            sw_rect.moveLeft(-width)
+        painter.drawRoundedRect(sw_rect, radius, radius)
+        painter.drawText(sw_rect, Qt.AlignCenter, label)

@@ -36,7 +36,7 @@ from PyQt5.QtGui import (
 )
 
 from .hand_configuration import ConfigGlobal, Config
-from .helper_widget import CollapsibleSection
+from .helper_widget import CollapsibleSection, ToggleSwitch
 from constant import SAMPLE_LOCATIONS
 
 
@@ -74,6 +74,10 @@ class SingleLocationViewer(QGraphicsView):
 
         self.viewer_size = viewer_size
 
+        self.clicked_D = QGraphicsItemGroup()
+        self.clicked_W = QGraphicsItemGroup()
+        self.hand = 'D'
+
         self.pen_width = pen_width
         self.pen_color = pen_color
 
@@ -94,7 +98,6 @@ class SingleLocationViewer(QGraphicsView):
         self.locations = {name: {LocationPolygon(QPolygonF([QPoint(x, y) for x, y in points])) for points in polygons} for name, polygons in locations.items()}
 
         self.add_polygons()
-        self.clicked = None
 
     def add_polygons(self):
         for loc_polys in self.locations.values():
@@ -103,6 +106,33 @@ class SingleLocationViewer(QGraphicsView):
 
     def has_photo(self):
         return not self._empty
+
+    def set_photo(self, pixmap=None):
+        self._zoom = 0
+        if pixmap and not pixmap.isNull():
+            self._empty = False
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+            self._photo.setPixmap(pixmap)
+        else:
+            self._empty = True
+            self.setDragMode(QGraphicsView.NoDrag)
+            self._photo.setPixmap(QPixmap())
+        self.fitInView()
+
+    def toggleDragMode(self):
+        if self.dragMode() == QGraphicsView.ScrollHandDrag:
+            self.setDragMode(QGraphicsView.NoDrag)
+        elif not self._photo.pixmap().isNull():
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+
+    def remove_clicked_group(self):
+        if self.hand == 'D':
+            self._scene.removeItem(self.clicked_D)
+        elif self.hand == 'W':
+            self._scene.removeItem(self.clicked_W)
+
+    def change_hand(self, hand):
+        self.hand = hand
 
     def fitInView(self, scale=True):
         rect = QRectF(self._photo.pixmap().rect())
@@ -119,18 +149,6 @@ class SingleLocationViewer(QGraphicsView):
                 self.scale(factor, factor)
             self._zoom = 0
 
-    def set_photo(self, pixmap=None):
-        self._zoom = 0
-        if pixmap and not pixmap.isNull():
-            self._empty = False
-            self.setDragMode(QGraphicsView.ScrollHandDrag)
-            self._photo.setPixmap(pixmap)
-        else:
-            self._empty = True
-            self.setDragMode(QGraphicsView.NoDrag)
-            self._photo.setPixmap(QPixmap())
-        self.fitInView()
-
     def wheelEvent(self, event):
         if self.has_photo():
             if event.angleDelta().y() > 0:
@@ -146,16 +164,6 @@ class SingleLocationViewer(QGraphicsView):
             else:
                 self._zoom = 0
 
-    def toggleDragMode(self):
-        if self.dragMode() == QGraphicsView.ScrollHandDrag:
-            self.setDragMode(QGraphicsView.NoDrag)
-        elif not self._photo.pixmap().isNull():
-            self.setDragMode(QGraphicsView.ScrollHandDrag)
-
-    def remove_clicked_group(self):
-        if self.clicked:
-            self._scene.removeItem(self.clicked)
-
     def mouseDoubleClickEvent(self, event):
         self.location_specified.emit()
 
@@ -163,14 +171,23 @@ class SingleLocationViewer(QGraphicsView):
 
         x = self.mapToScene(event.pos()).toPoint().x()
         y = self.mapToScene(event.pos()).toPoint().y()
+
         self.point = QGraphicsEllipseItem(x, y, 50, 50)
 
-        self.text = QGraphicsTextItem('D')
+        self.text = QGraphicsTextItem(self.hand)
         self.text.setPos(x, y)
-        self.clicked = QGraphicsItemGroup()
-        self.clicked.addToGroup(self.point)
-        self.clicked.addToGroup(self.text)
-        self._scene.addItem(self.clicked)
+
+        if self.hand == 'D':
+            self.clicked_D = QGraphicsItemGroup()
+            self.clicked_D.addToGroup(self.point)
+            self.clicked_D.addToGroup(self.text)
+            self._scene.addItem(self.clicked_D)
+        elif self.hand == 'W':
+            self.clicked_W = QGraphicsItemGroup()
+            self.clicked_W.addToGroup(self.point)
+            self.clicked_W.addToGroup(self.text)
+            self._scene.addItem(self.clicked_W)
+
         super().mouseDoubleClickEvent(event)
 
 
@@ -271,18 +288,30 @@ class LocationGroupLayout(QHBoxLayout):
         for viewer1, viewer2 in permutations(self.location_viewers, r=2):
             viewer1.location_specified.connect(viewer2.remove_clicked_group)
 
+        self.addWidget(self.contact_button)
 
-class LocationSpecificationLayout(QHBoxLayout):
+    def change_hand(self, hand):
+        for viewer in self.location_viewers:
+            viewer.change_hand(hand)
+
+
+class LocationSpecificationLayout(QVBoxLayout):
     def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
-        self.contact_button = QCheckBox('Contact?')
+        self.hand_switch = ToggleSwitch()
+        self.hand_switch.setChecked(True)
+        self.hand_switch.clicked.connect(self.change_hand)
+        self.start_location_group_layout = LocationGroupLayout(location_specifications, app_ctx)
+        self.end_location_group_layout = LocationGroupLayout(location_specifications, app_ctx)
 
-        self.location_group_layout = LocationGroupLayout(location_specifications, app_ctx)
+        self.addWidget(self.hand_switch)
+        self.addLayout(self.start_location_group_layout)
+        self.addLayout(self.end_location_group_layout)
 
-        self.addLayout(self.location_group_layout)
-        self.addWidget(self.contact_button)
-
+    def change_hand(self):
+        hand = 'D' if self.hand_switch.isChecked() else 'W'
+        self.start_location_group_layout.change_hand(hand)
 
 
 class ParameterPanel(QScrollArea):
