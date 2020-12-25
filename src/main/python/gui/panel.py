@@ -1,8 +1,11 @@
+from datetime import date
+from itertools import permutations
 from PyQt5.QtCore import (
     Qt,
     QSize,
     QRectF,
-    QPoint
+    QPoint,
+    pyqtSignal
 )
 
 from PyQt5.QtWidgets import (
@@ -18,7 +21,10 @@ from PyQt5.QtWidgets import (
     QGraphicsPolygonItem,
     QGraphicsView,
     QGraphicsScene,
-    QGraphicsPixmapItem
+    QGraphicsPixmapItem,
+    QGraphicsItemGroup,
+    QGraphicsEllipseItem,
+    QGraphicsTextItem
 )
 
 from PyQt5.QtGui import (
@@ -61,6 +67,8 @@ class LocationPolygon(QGraphicsPolygonItem):
 
 
 class SingleLocationViewer(QGraphicsView):
+    location_specified = pyqtSignal()
+
     def __init__(self, locations, viewer_size, pen_width=5, pen_color='orange', **kwargs):
         super().__init__(**kwargs)
 
@@ -86,6 +94,7 @@ class SingleLocationViewer(QGraphicsView):
         self.locations = {name: {LocationPolygon(QPolygonF([QPoint(x, y) for x, y in points])) for points in polygons} for name, polygons in locations.items()}
 
         self.add_polygons()
+        self.clicked = None
 
     def add_polygons(self):
         for loc_polys in self.locations.values():
@@ -143,8 +152,26 @@ class SingleLocationViewer(QGraphicsView):
         elif not self._photo.pixmap().isNull():
             self.setDragMode(QGraphicsView.ScrollHandDrag)
 
+    def remove_clicked_group(self):
+        if self.clicked:
+            self._scene.removeItem(self.clicked)
+
     def mouseDoubleClickEvent(self, event):
-        pass
+        self.location_specified.emit()
+
+        self.remove_clicked_group()
+
+        x = self.mapToScene(event.pos()).toPoint().x()
+        y = self.mapToScene(event.pos()).toPoint().y()
+        self.point = QGraphicsEllipseItem(x, y, 50, 50)
+
+        self.text = QGraphicsTextItem('D')
+        self.text.setPos(x, y)
+        self.clicked = QGraphicsItemGroup()
+        self.clicked.addToGroup(self.point)
+        self.clicked.addToGroup(self.text)
+        self._scene.addItem(self.clicked)
+        super().mouseDoubleClickEvent(event)
 
 
 class LexicalInformationPanel(QScrollArea):
@@ -228,6 +255,22 @@ class HandIllustrationPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
+class LocationGroupLayout(QHBoxLayout):
+    def __init__(self, location_specifications, app_ctx, **kwargs):
+        super().__init__(**kwargs)
+
+        self.location_viewers = list()
+        for loc_identifier, loc_param in location_specifications.items():
+            single_loc_viewer = SingleLocationViewer(loc_param.location_polygons, 250)
+
+            # TODO: might need to change the path
+            single_loc_viewer.set_photo(QPixmap(app_ctx.default_location_images[loc_param.image_path] if loc_param.image_path in app_ctx.default_location_images else loc_param.image_path))
+            self.location_viewers.append(single_loc_viewer)
+            self.addWidget(single_loc_viewer)
+
+        for viewer1, viewer2 in permutations(self.location_viewers, r=2):
+            viewer1.location_specified.connect(viewer2.remove_clicked_group)
+
 
 class LocationSpecificationLayout(QHBoxLayout):
     def __init__(self, location_specifications, app_ctx, **kwargs):
@@ -235,11 +278,9 @@ class LocationSpecificationLayout(QHBoxLayout):
 
         self.contact_button = QCheckBox('Contact?')
 
-        for loc_identifier, loc_param in location_specifications.items():
-            single_loc_viewer = SingleLocationViewer(loc_param.location_polygons, 250)
-            single_loc_viewer.set_photo(QPixmap(app_ctx.default_location_images[loc_param.image_path] if loc_param.image_path in app_ctx.default_location_images else loc_param.image_path))
-            self.addWidget(single_loc_viewer)
+        self.location_group_layout = LocationGroupLayout(location_specifications, app_ctx)
 
+        self.addLayout(self.location_group_layout)
         self.addWidget(self.contact_button)
 
 
