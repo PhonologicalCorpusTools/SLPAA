@@ -24,7 +24,8 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QGraphicsItemGroup,
     QGraphicsEllipseItem,
-    QGraphicsTextItem
+    QGraphicsTextItem,
+    QPushButton
 )
 
 from PyQt5.QtGui import (
@@ -69,14 +70,11 @@ class LocationPolygon(QGraphicsPolygonItem):
 class SingleLocationViewer(QGraphicsView):
     location_specified = pyqtSignal()
 
-    def __init__(self, locations, viewer_size, pen_width=5, pen_color='orange', **kwargs):
+    def __init__(self, location_identifier, locations, viewer_size, pen_width=5, pen_color='orange', **kwargs):
         super().__init__(**kwargs)
 
+        self.location_identifier = location_identifier
         self.viewer_size = viewer_size
-
-        self.clicked_D = QGraphicsItemGroup()
-        self.clicked_W = QGraphicsItemGroup()
-        self.hand = 'D'
 
         self.pen_width = pen_width
         self.pen_color = pen_color
@@ -87,6 +85,14 @@ class SingleLocationViewer(QGraphicsView):
         self._photo = QGraphicsPixmapItem()
         self._scene.addItem(self._photo)
         self.setScene(self._scene)
+
+        self.point_D = QGraphicsEllipseItem(0, 0, 50, 50)
+        self.text_D = QGraphicsTextItem('D')
+
+        self.point_W = QGraphicsEllipseItem(0, 0, 50, 50)
+        self.text_W = QGraphicsTextItem('W')
+
+        self.hand = 'D'
 
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
@@ -127,12 +133,34 @@ class SingleLocationViewer(QGraphicsView):
 
     def remove_clicked_group(self):
         if self.hand == 'D':
-            self._scene.removeItem(self.clicked_D)
+            if self.text_D.scene() and self.point_D.scene():
+                self._scene.removeItem(self.text_D)  # removeItem() only removes item from the scene but not delete it
+                self._scene.removeItem(self.point_D)
+
         elif self.hand == 'W':
-            self._scene.removeItem(self.clicked_W)
+            if self.text_W.scene() and self.point_W.scene():
+                self._scene.removeItem(self.text_W)
+                self._scene.removeItem(self.point_W)
 
     def change_hand(self, hand):
         self.hand = hand
+
+    def get_location_value(self):
+        location_value_dict = dict()
+
+        if self.text_D.scene():
+            location_value_dict[self.text_D.toPlainText()] = {
+                'image': self.location_identifier,
+                'point': (self.text_D.x(), self.text_D.y())
+            }
+
+        if self.text_W.scene():
+            location_value_dict[self.text_W.toPlainText()] = {
+                'image': self.location_identifier,
+                'point': (self.text_W.x(), self.text_W.y())
+            }
+
+        return location_value_dict
 
     def fitInView(self, scale=True):
         rect = QRectF(self._photo.pixmap().rect())
@@ -172,28 +200,27 @@ class SingleLocationViewer(QGraphicsView):
         x = self.mapToScene(event.pos()).toPoint().x()
         y = self.mapToScene(event.pos()).toPoint().y()
 
-        self.point = QGraphicsEllipseItem(x, y, 50, 50)
-
-        self.text = QGraphicsTextItem(self.hand)
-        self.text.setPos(x, y)
-
         if self.hand == 'D':
-            self.clicked_D = QGraphicsItemGroup()
-            self.clicked_D.addToGroup(self.point)
-            self.clicked_D.addToGroup(self.text)
-            self._scene.addItem(self.clicked_D)
+            self.text_D.setPos(x, y)
+            self.point_D.setPos(x, y)
+            self._scene.addItem(self.text_D)
+            self._scene.addItem(self.point_D)
+
         elif self.hand == 'W':
-            self.clicked_W = QGraphicsItemGroup()
-            self.clicked_W.addToGroup(self.point)
-            self.clicked_W.addToGroup(self.text)
-            self._scene.addItem(self.clicked_W)
+            self.text_W.setPos(x, y)
+            self.point_W.setPos(x, y)
+            self._scene.addItem(self.text_W)
+            self._scene.addItem(self.point_W)
 
         super().mouseDoubleClickEvent(event)
 
 
 class LexicalInformationPanel(QScrollArea):
-    def __init__(self, **kwargs):
+    def __init__(self, coder, update, **kwargs):
         super().__init__(**kwargs)
+
+        self.coder = coder
+        self.update = update
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
@@ -212,7 +239,10 @@ class LexicalInformationPanel(QScrollArea):
         self.gloss_edit.setPlaceholderText('Enter gloss here...')
         self.freq_edit = QLineEdit('1.0', parent=self)
         self.coder_edit = QLineEdit(parent=self)
+        self.coder_edit.setText(coder)
         self.update_edit = QLineEdit(parent=self)
+        self.update_edit.setPlaceholderText('YYYY-MM-DD')
+        self.update_edit.setText(str(update))
         self.note_edit = QPlainTextEdit(parent=self)
         self.note_edit.setPlaceholderText('Enter note here...')
 
@@ -228,6 +258,20 @@ class LexicalInformationPanel(QScrollArea):
         main_layout.addWidget(self.note_edit)
 
         self.setWidget(main_frame)
+
+    def get_date(self):
+        #TODO: add critical warming when date format is not right
+        year, month, day = self.update_edit.text().split(sep='-')
+        return date(year, month, day)
+
+    def get_value(self):
+        return {
+            'gloss': self.gloss_edit.text(),
+            'frequency': float(self.freq_edit.text()),
+            'coder': self.coder_edit.text(),
+            'update': self.get_date(),
+            'note': self.note_edit.toPlainText()
+        }
 
 
 class HandTranscriptionPanel(QScrollArea):
@@ -251,6 +295,11 @@ class HandTranscriptionPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
+    def get_value(self):
+        self.global_option.get_value()
+        self.config1.get_value()
+        self.config2.get_value()
+
 
 class HandIllustrationPanel(QScrollArea):
     def __init__(self, app_ctx, **kwargs):
@@ -272,13 +321,15 @@ class HandIllustrationPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
+
 class LocationGroupLayout(QHBoxLayout):
     def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
+        self.contact_button = QCheckBox('Contact?')
         self.location_viewers = list()
         for loc_identifier, loc_param in location_specifications.items():
-            single_loc_viewer = SingleLocationViewer(loc_param.location_polygons, 250)
+            single_loc_viewer = SingleLocationViewer(loc_identifier, loc_param.location_polygons, 250)
 
             # TODO: might need to change the path
             single_loc_viewer.set_photo(QPixmap(app_ctx.default_location_images[loc_param.image_path] if loc_param.image_path in app_ctx.default_location_images else loc_param.image_path))
@@ -289,10 +340,23 @@ class LocationGroupLayout(QHBoxLayout):
             viewer1.location_specified.connect(viewer2.remove_clicked_group)
 
         self.addWidget(self.contact_button)
+        #self.test = QPushButton('test')
+        #self.test.clicked.connect(self.get_location_value)
+        #self.addWidget(self.test)
 
     def change_hand(self, hand):
         for viewer in self.location_viewers:
             viewer.change_hand(hand)
+
+    def get_location_value(self):
+        location_value_dict = dict()
+
+        for viewer in self.location_viewers:
+            location_value_dict.update(viewer.get_location_value())
+
+        location_value_dict['contact'] = self.contact_button.isChecked()
+
+        return location_value_dict
 
 
 class LocationSpecificationLayout(QVBoxLayout):
@@ -312,6 +376,14 @@ class LocationSpecificationLayout(QVBoxLayout):
     def change_hand(self):
         hand = 'D' if self.hand_switch.isChecked() else 'W'
         self.start_location_group_layout.change_hand(hand)
+
+    def get_location_value(self):
+        location_value_dict = {
+            'start': self.start_location_group_layout.get_location_value(),
+            'end': self.end_location_group_layout.get_location_value()
+        }
+
+        return location_value_dict
 
 
 class ParameterPanel(QScrollArea):
