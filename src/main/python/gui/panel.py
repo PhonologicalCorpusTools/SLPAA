@@ -38,6 +38,7 @@ from PyQt5.QtGui import (
 
 from .hand_configuration import ConfigGlobal, Config
 from .helper_widget import CollapsibleSection, ToggleSwitch
+from .decorator import check_date_format, check_empty_gloss
 from constant import SAMPLE_LOCATIONS
 
 
@@ -236,7 +237,7 @@ class LexicalInformationPanel(QScrollArea):
         note_label = QLabel('Notes:', parent=self)
 
         self.gloss_edit = QLineEdit(parent=self)
-        self.gloss_edit.setPlaceholderText('Enter gloss here...')
+        self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
         self.freq_edit = QLineEdit('1.0', parent=self)
         self.coder_edit = QLineEdit(parent=self)
         self.coder_edit.setText(coder)
@@ -259,19 +260,24 @@ class LexicalInformationPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
+    @check_date_format
     def get_date(self):
-        #TODO: add critical warming when date format is not right
         year, month, day = self.update_edit.text().split(sep='-')
-        return date(year, month, day)
+        return date(int(year), int(month), int(day))
+
+    @check_empty_gloss
+    def get_gloss(self):
+        return self.gloss_edit.text()
 
     def get_value(self):
-        return {
-            'gloss': self.gloss_edit.text(),
-            'frequency': float(self.freq_edit.text()),
-            'coder': self.coder_edit.text(),
-            'update': self.get_date(),
-            'note': self.note_edit.toPlainText()
-        }
+        if self.get_date() and self.get_gloss():
+            return {
+                'gloss': self.get_gloss(),
+                'frequency': float(self.freq_edit.text()),
+                'coder': self.coder_edit.text(),
+                'update': self.get_date(),
+                'note': self.note_edit.toPlainText()
+            }
 
 
 class HandTranscriptionPanel(QScrollArea):
