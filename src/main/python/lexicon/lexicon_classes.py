@@ -1,10 +1,13 @@
+from shapely.geometry import Point
+
+
 class LexicalInformation:
-    def __init__(self, gloss, frequency, coder, update_date, note):
-        self._gloss = gloss
-        self._frequency = frequency
-        self._coder = coder
-        self._update_date = update_date
-        self._note = note
+    def __init__(self, lexical_info):
+        self._gloss = lexical_info['gloss']
+        self._frequency = lexical_info['frequency']
+        self._coder = lexical_info['coder']
+        self._update_date = lexical_info['date']
+        self._note = lexical_info['note']
 
     @property
     def gloss(self):
@@ -48,13 +51,13 @@ class LexicalInformation:
 
 
 class GlobalHandshapeOptions:
-    def __init__(self, is_forearm, is_estimated, is_uncertain, is_incomplete, is_fingerspelled, is_initialized):
-        self._forearm = is_forearm
-        self._estimated = is_estimated
-        self._uncertain = is_uncertain
-        self._incomplete = is_incomplete
-        self._fingerspelled = is_fingerspelled
-        self._initialized = is_initialized
+    def __init__(self, global_handshape_info):
+        self._forearm = global_handshape_info['forearm']
+        self._estimated = global_handshape_info['estimated']
+        self._uncertain = global_handshape_info['uncertain']
+        self._incomplete = global_handshape_info['incomplete']
+        self._fingerspelled = global_handshape_info['fingerspelled']
+        self._initialized = global_handshape_info['initialized']
 
     @property
     def estimated(self):
@@ -232,17 +235,41 @@ class HandshapeTranscription:
         return repr(self.configs)
 
 
+class LocationPoint:
+    def __init__(self, location_point_info):
+        self.loc_identifier = location_point_info['image']
+        self.point = Point(location_point_info['point']) if location_point_info['point'] else None
+
+
+class LocationHand:
+    def __init__(self, location_hand_info):
+        self.contact = location_hand_info['contact']
+        self.D = LocationPoint(location_hand_info['D'])
+        self.W = LocationPoint(location_hand_info['W'])
+
+
+class LocationTranscription:
+    def __init__(self, location_transcription_info):
+        self.start = LocationHand(location_transcription_info['start'])
+        self.end = LocationHand(location_transcription_info['end'])
+
+
 class Sign:
     def __init__(self,
-                 gloss, frequency, coder, update_date, note,
-                 is_forearm, is_estimated, is_uncertain, is_incomplete, is_fingerspelled, is_initialized,
-                 configs):
-        self.lexical_information = LexicalInformation(gloss, frequency, coder, update_date, note)
-        self.global_handshape_options = GlobalHandshapeOptions(is_forearm, is_estimated, is_uncertain, is_incomplete, is_fingerspelled, is_initialized)
+                 lexical_info,
+                 global_hand_info,
+                 configs,
+                 location_transcription_info):
+        self.lexical_information = LexicalInformation(lexical_info)
+        self.global_handshape_options = GlobalHandshapeOptions(global_hand_info)
         self.handshape_transcription = HandshapeTranscription(configs)
+        self.location = LocationTranscription(location_transcription_info)
 
 
 class LocationParameter:
+    """
+    This is intended to be used with the Locations class
+    """
     def __init__(self, name=None, image_path=None, location_polygons=None, default=True):
         if location_polygons is None:
             location_polygons = dict()
@@ -253,6 +280,9 @@ class LocationParameter:
 
 
 class Locations:
+    """
+    This class is intended for the Corpus class to specify corpus-level location definition
+    """
     #TODO: improve this so that order is kept, also a better repr
     def __init__(self, location_specification):
         """
