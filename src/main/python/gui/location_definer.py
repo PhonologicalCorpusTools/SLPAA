@@ -40,6 +40,7 @@ from PyQt5.QtCore import (
 from .helper_widget import EditableTabBar
 from constant import LocationParameter, Locations
 
+
 #reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
 class LocationPolygon(QGraphicsPolygonItem):
     def __init__(self, polygon, pen_width=5, pen_color='orange', fill_color='#FFD141', fill_alpha=0.5):
@@ -100,13 +101,12 @@ class LocationViewer(QGraphicsView):
         self.setBackgroundBrush(QBrush(QColor(30, 30, 30)))
         self.setFrameShape(QFrame.NoFrame)
 
+        # self.locations is default locations
         self.locations = {name: {LocationPolygon(QPolygonF([QPoint(x, y) for x, y in points])) for points in polygons} for name, polygons in locations.items()}
 
         self.is_defining = False
         self.defining_locations = [[]]
-        self.defining_polygons = {QGraphicsPolygonItem(QPolygonF())}  # this will be the polygon being drawn
-        for poly in self.defining_polygons:
-            self._scene.addItem(poly)
+        self.defining_polygons = {}
 
         self.add_polygons()
 
@@ -117,14 +117,20 @@ class LocationViewer(QGraphicsView):
 
     def remove_all_polygons(self):
         for poly in self.defining_polygons:
-            self._scene.removeItem(poly)
+            if poly.scene():
+                self._scene.removeItem(poly)
+                del poly
         for loc_polys in self.locations.values():
             for loc_poly in loc_polys:
-                self._scene.removeItem(loc_poly)
+                if loc_poly.scene():
+                    self._scene.removeItem(loc_poly)
+                    del loc_poly
 
     def remove_polygons(self, polygons):
         for poly in polygons:
-            self._scene.removeItem(poly)
+            if poly.scene():
+                self._scene.removeItem(poly)
+                del poly
 
     def has_photo(self):
         return not self._empty
@@ -494,17 +500,3 @@ class LocationDefinerDialog(QDialog):
             self.saved_locations.emit(self.location_tab.get_locations())
 
             QMessageBox.information(self, 'Locations Saved', 'New locations have been successfully saved!')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
