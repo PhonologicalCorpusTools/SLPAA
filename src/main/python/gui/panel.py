@@ -154,11 +154,21 @@ class SingleLocationViewer(QGraphicsView):
                 'image': self.location_identifier,
                 'point': (self.text_D.x(), self.text_D.y())
             }
+        else:
+            location_value_dict[self.text_D.toPlainText()] = {
+                'image': None,
+                'point': None
+            }
 
         if self.text_W.scene():
             location_value_dict[self.text_W.toPlainText()] = {
                 'image': self.location_identifier,
                 'point': (self.text_W.x(), self.text_W.y())
+            }
+        else:
+            location_value_dict[self.text_W.toPlainText()] = {
+                'image': None,
+                'point': None
             }
 
         return location_value_dict
@@ -275,7 +285,7 @@ class LexicalInformationPanel(QScrollArea):
                 'gloss': self.get_gloss(),
                 'frequency': float(self.freq_edit.text()),
                 'coder': self.coder_edit.text(),
-                'update': self.get_date(),
+                'date': self.get_date(),
                 'note': self.note_edit.toPlainText()
             }
 
@@ -333,6 +343,7 @@ class LocationGroupLayout(QHBoxLayout):
         super().__init__(**kwargs)
 
         self.contact_button = QCheckBox('Contact?')
+        self.contact_button.setTristate(True)
         self.location_viewers = list()
         for loc_identifier, loc_param in location_specifications.items():
             single_loc_viewer = SingleLocationViewer(loc_identifier, loc_param.location_polygons, 250)
@@ -360,7 +371,7 @@ class LocationGroupLayout(QHBoxLayout):
         for viewer in self.location_viewers:
             location_value_dict.update(viewer.get_location_value())
 
-        location_value_dict['contact'] = self.contact_button.isChecked()
+        location_value_dict['contact'] = self.contact_button.checkState()
 
         return location_value_dict
 

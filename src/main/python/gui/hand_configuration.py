@@ -763,3 +763,13 @@ class ConfigGlobal(QGroupBox):
         self.initialized = QCheckBox('Initialized', parent=self)
         other_layout.addWidget(self.fingerspelled)
         other_layout.addWidget(self.initialized)
+
+    def get_value(self):
+        return {
+            'forearm': self.slot1.isChecked(),
+            'estimated': self.estimated.isChecked(),
+            'uncertain': self.uncertain.isChecked(),
+            'incomplete': self.incomplete.isChecked(),
+            'fingerspelled': self.fingerspelled.isChecked(),
+            'initialized': self.initialized.isChecked()
+        }
