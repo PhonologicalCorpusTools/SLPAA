@@ -28,9 +28,7 @@ from PyQt5.QtGui import (
     QPixmap
 )
 from .initialization_dialog import InitializationDialog
-from .hand_configuration import Config, ConfigGlobal
-from .meta_data import MetaDataWidget
-from .parameter import ParameterView
+from .corpus_view import CorpusView
 from .location_definer import LocationDefinerDialog
 from .panel import (
     LexicalInformationPanel,
@@ -181,9 +179,7 @@ class MainWindow(QMainWindow):
         main_splitter.addWidget(left_scroll)
         main_splitter.addWidget(right_scroll)
 
-        # corpus list view
-
-        corpus_view = QListView(parent=self)
+        corpus_view = CorpusView(parent=self)
         corpus_view.resize(QSize(100, 1000))
         left_scroll.setWidget(corpus_view)
 
