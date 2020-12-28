@@ -1,5 +1,5 @@
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
-from .main_window import MainWindow, TestMainWindow
+from .main_window import MainWindow
 
 
 class AppContext(ApplicationContext):
@@ -12,13 +12,17 @@ class AppContext(ApplicationContext):
         return MainWindow(self)
 
     @cached_property
-    def toolbar_icons(self):
-        return {'copy': self.get_resource('icons/copy.png'),
-                'delete': self.get_resource('icons/delete.png'),
-                'paste': self.get_resource('icons/paste.png'),
-                'plus': self.get_resource('icons/plus.png'),
-                'save': self.get_resource('icons/disk.png'),
-                'new_sign': self.get_resource('icons/hand.png')}
+    def icons(self):
+        return {
+            'blank': self.get_resource('icons/blank.png'),
+            'copy': self.get_resource('icons/copy.png'),
+            'delete': self.get_resource('icons/delete.png'),
+            'load': self.get_resource('icons/load.png'),
+            'paste': self.get_resource('icons/paste.png'),
+            'plus': self.get_resource('icons/plus.png'),
+            'save': self.get_resource('icons/disk.png'),
+            'new_sign': self.get_resource('icons/hand.png')
+        }
 
     @cached_property
     def default_location_images(self):

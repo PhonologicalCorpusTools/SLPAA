@@ -27,6 +27,7 @@ from PyQt5.QtGui import (
     QKeySequence,
     QPixmap
 )
+from .initialization_dialog import InitializationDialog
 from .hand_configuration import Config, ConfigGlobal
 from .meta_data import MetaDataWidget
 from .parameter import ParameterView
@@ -232,11 +233,13 @@ class MainWindow(QMainWindow):
             neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
         lower_layout.addWidget(self.hand_illustration)
 
-        right_scroll.setWidget(right_frame)
-        main_splitter.setSizes([100, 1000])
+        self.open_initialization_window()
 
-        self.locations = SAMPLE_LOCATIONS
-        self.setCentralWidget(central_widget)
+    def open_initialization_window(self):
+        initialization = InitializationDialog(self.app_ctx, self.on_action_new_corpus, self.on_action_load_corpus, parent=self)
+        response = initialization.exec_()
+        if not response:  # close the window or press cancel
+            self.on_action_new_sign()
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -319,11 +322,11 @@ class MainWindow(QMainWindow):
         #TODO: implement
 
     def on_action_new_corpus(self, clicked):
-        pass
+        print('new_corpus', clicked)
         #TODO: implement
 
     def on_action_load_corpus(self, clicked):
-        pass
+        print('load_corpus', clicked)
         #TODO: implement
 
     def on_action_close(self, clicked):
