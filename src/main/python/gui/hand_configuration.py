@@ -106,6 +106,23 @@ class ConfigSlot(QLineEdit):
 
         self.setStyle(self.style())
 
+    def clear(self):
+        if self.num not in {'8', '9', '16', '21', '26', '31'}:
+            super().clear()
+            self.flag_estimate_action.setChecked(False)
+            self.flag_uncertain_action.setChecked(False)
+            self.flag_estimate()
+            self.flag_uncertain()
+            self.repaint()
+
+    def set_value(self, slot):
+        self.setText(slot.symbol)
+        self.flag_estimate_action.setChecked(slot.estimate)
+        self.flag_uncertain_action.setChecked(slot.uncertain)
+        self.flag_estimate()
+        self.flag_uncertain()
+        self.repaint()
+
     def contextMenuEvent(self, event):
         self.flag_menu.exec_(event.globalPos())
 
@@ -171,6 +188,88 @@ class ConfigField(QWidget):
     def insert_slot(self, slot):
         position = self.main_layout.count() - 1
         self.main_layout.insertWidget(position, slot)
+
+    def clear(self):
+        if self.field_number == 2:
+            self.slot2.clear()
+            self.slot3.clear()
+            self.slot4.clear()
+            self.slot5.clear()
+        elif self.field_number == 3:
+            self.slot6.clear()
+            self.slot7.clear()
+            self.slot8.clear()
+            self.slot9.clear()
+            self.slot10.clear()
+            self.slot11.clear()
+            self.slot12.clear()
+            self.slot13.clear()
+            self.slot14.clear()
+            self.slot15.clear()
+        elif self.field_number == 4:
+            self.slot16.clear()
+            self.slot17.clear()
+            self.slot18.clear()
+            self.slot19.clear()
+        elif self.field_number == 5:
+            self.slot20.clear()
+            self.slot21.clear()
+            self.slot22.clear()
+            self.slot23.clear()
+            self.slot24.clear()
+        elif self.field_number == 6:
+            self.slot25.clear()
+            self.slot26.clear()
+            self.slot27.clear()
+            self.slot28.clear()
+            self.slot29.clear()
+        elif self.field_number == 7:
+            self.slot30.clear()
+            self.slot31.clear()
+            self.slot32.clear()
+            self.slot33.clear()
+            self.slot34.clear()
+
+    def set_value(self, field):
+        if self.field_number == 2:
+            self.slot2.set_value(field.slot2)
+            self.slot3.set_value(field.slot3)
+            self.slot4.set_value(field.slot4)
+            self.slot5.set_value(field.slot5)
+        elif self.field_number == 3:
+            self.slot6.set_value(field.slot6)
+            self.slot7.set_value(field.slot7)
+            self.slot8.set_value(field.slot8)
+            self.slot9.set_value(field.slot9)
+            self.slot10.set_value(field.slot10)
+            self.slot11.set_value(field.slot11)
+            self.slot12.set_value(field.slot12)
+            self.slot13.set_value(field.slot13)
+            self.slot14.set_value(field.slot14)
+            self.slot15.set_value(field.slot15)
+        elif self.field_number == 4:
+            self.slot16.set_value(field.slot16)
+            self.slot17.set_value(field.slot17)
+            self.slot18.set_value(field.slot18)
+            self.slot19.set_value(field.slot19)
+        elif self.field_number == 5:
+            self.slot20.set_value(field.slot20)
+            self.slot21.set_value(field.slot21)
+            self.slot22.set_value(field.slot22)
+            self.slot23.set_value(field.slot23)
+            self.slot24.set_value(field.slot24)
+        elif self.field_number == 6:
+            self.slot25.set_value(field.slot25)
+            self.slot26.set_value(field.slot26)
+            self.slot27.set_value(field.slot27)
+            self.slot28.set_value(field.slot28)
+            self.slot29.set_value(field.slot29)
+        elif self.field_number == 7:
+            self.slot30.set_value(field.slot30)
+            self.slot31.set_value(field.slot31)
+            self.slot32.set_value(field.slot32)
+            self.slot33.set_value(field.slot33)
+            self.slot34.set_value(field.slot34)
 
     def __iter__(self):
         if self.field_number == 2:
@@ -595,22 +694,33 @@ class ConfigHand(QWidget):
         clear_button = QPushButton('Clear', parent=self)
         clear_button.setFixedWidth(75)
         clear_button.setContentsMargins(0, 0, 0, 0)
-        clear_button.clicked.connect(self.clear_transcription)
+        clear_button.clicked.connect(self.clear)
         self.main_layout.addWidget(clear_button)
 
     def __iter__(self):
         return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
 
-    def get_list_transcription(self):
+    def get_hand_transcription_list(self):
         return [slot.text() for slot in self.__iter__()]
 
-    def get_string_transcription(self):
+    def get_hand_transcription_string(self):
         return ''.join([slot.text() for slot in self.__iter__()])
 
-    def clear_transcription(self):
-        for slot in self.__iter__():
-            if slot.num not in ['8', '9', '16', '21', '26', '31']:
-                slot.clear()
+    def set_value(self, hand):
+        self.field2.set_value(hand.field2)
+        self.field3.set_value(hand.field3)
+        self.field4.set_value(hand.field4)
+        self.field5.set_value(hand.field5)
+        self.field6.set_value(hand.field6)
+        self.field7.set_value(hand.field7)
+
+    def clear(self):
+        self.field2.clear()
+        self.field3.clear()
+        self.field4.clear()
+        self.field5.clear()
+        self.field6.clear()
+        self.field7.clear()
 
     def generate_fields(self):
         self.field2 = ConfigField(2, parent=self)
@@ -695,6 +805,14 @@ class Config(QGroupBox):
         self.main_layout.addWidget(self.hand1)
         self.main_layout.addWidget(self.hand2)
 
+    def set_value(self, config):
+        self.hand1.set_value(config.hand1)
+        self.hand2.set_value(config.hand2)
+
+    def clear(self):
+        self.hand1.clear()
+        self.hand2.clear()
+
     def get_value(self):
         return {
             'config_number': self.config_number,
@@ -763,6 +881,22 @@ class ConfigGlobal(QGroupBox):
         self.initialized = QCheckBox('Initialized', parent=self)
         other_layout.addWidget(self.fingerspelled)
         other_layout.addWidget(self.initialized)
+
+    def clear(self):
+        self.slot1.setChecked(False)
+        self.estimated.setChecked(False)
+        self.uncertain.setChecked(False)
+        self.incomplete.setChecked(False)
+        self.fingerspelled.setChecked(False)
+        self.initialized.setChecked(False)
+
+    def set_value(self, global_handshape_info):
+        self.slot1.setChecked(global_handshape_info.forearm)
+        self.estimated.setChecked(global_handshape_info.estimated)
+        self.uncertain.setChecked(global_handshape_info.uncertain)
+        self.incomplete.setChecked(global_handshape_info.incomplete)
+        self.fingerspelled.setChecked(global_handshape_info.fingerspelled)
+        self.initialized.setChecked(global_handshape_info.initialized)
 
     def get_value(self):
         return {

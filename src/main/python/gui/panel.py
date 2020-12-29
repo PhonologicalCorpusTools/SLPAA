@@ -39,7 +39,6 @@ from PyQt5.QtGui import (
 from .hand_configuration import ConfigGlobal, Config
 from .helper_widget import CollapsibleSection, ToggleSwitch
 from .decorator import check_date_format, check_empty_gloss
-from constant import SAMPLE_LOCATIONS
 
 
 class LocationPolygon(QGraphicsPolygonItem):
@@ -110,6 +109,9 @@ class SingleLocationViewer(QGraphicsView):
         for loc_polys in self.locations.values():
             for loc_poly in loc_polys:
                 self._scene.addItem(loc_poly)
+
+    def set_value(self, value):
+        pass
 
     def has_photo(self):
         return not self._empty
@@ -279,6 +281,21 @@ class LexicalInformationPanel(QScrollArea):
     def get_gloss(self):
         return self.gloss_edit.text()
 
+    def clear(self, coder):
+        self.gloss_edit.clear()
+        self.freq_edit.setText('1.0')
+        self.coder_edit.setText(coder)
+        self.update_edit.setText(str(date.today()))
+        self.note_edit.clear()
+
+    def set_value(self, lexical_info):
+        self.gloss_edit.setText(lexical_info.gloss)
+        self.freq_edit.setText(str(lexical_info.frequency))
+        self.coder_edit.setText(lexical_info.coder)
+        self.update_edit.setText(str(lexical_info.update_date))
+        if lexical_info.note:
+            self.note_edit.setPlainText(lexical_info.note)
+
     def get_value(self):
         if self.get_date() and self.get_gloss():
             return {
@@ -300,8 +317,8 @@ class HandTranscriptionPanel(QScrollArea):
         main_layout = QGridLayout()
         main_frame.setLayout(main_layout)
 
-        self.global_option = ConfigGlobal(title='Handshape global options', parent=self)
-        main_layout.addWidget(self.global_option, 0, 0, 2, 1)
+        self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
+        main_layout.addWidget(self.global_info, 0, 0, 2, 1)
 
         self.config1 = Config(1, 'Configuration 1', parent=self)
         main_layout.addWidget(self.config1, 0, 1, 1, 2)
@@ -311,10 +328,15 @@ class HandTranscriptionPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
-    def get_value(self):
-        self.global_option.get_value()
-        self.config1.get_value()
-        self.config2.get_value()
+    def clear(self):
+        self.global_info.clear()
+        self.config1.clear()
+        self.config2.clear()
+
+    def set_value(self, global_handshape_info, hand_transcription):
+        self.global_info.set_value(global_handshape_info)
+        self.config1.set_value(hand_transcription.config1)
+        self.config2.set_value(hand_transcription.config2)
 
 
 class HandIllustrationPanel(QScrollArea):
@@ -330,12 +352,21 @@ class HandIllustrationPanel(QScrollArea):
 
         self.hand_illustration = QLabel()
         self.hand_illustration.setFixedSize(QSize(400, 400))
-        neutral_img = QPixmap(self.app_ctx.hand_illustrations['neutral'])
-        self.hand_illustration.setPixmap(
-            neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
+        self.set_neutral_img()
         main_layout.addWidget(self.hand_illustration)
 
         self.setWidget(main_frame)
+
+    def set_neutral_img(self):
+        neutral_img = QPixmap(self.app_ctx.hand_illustrations['neutral'])
+        self.hand_illustration.setPixmap(
+            neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
+        self.hand_illustration.repaint()
+
+    def set_img(self, new_img):
+        self.hand_illustration.setPixmap(
+            new_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
+        self.hand_illustration.repaint()
 
 
 class LocationGroupLayout(QHBoxLayout):
@@ -345,21 +376,20 @@ class LocationGroupLayout(QHBoxLayout):
         self.contact_button = QCheckBox('Contact?')
         self.contact_button.setTristate(True)
         self.location_viewers = list()
-        for loc_identifier, loc_param in location_specifications.items():
-            single_loc_viewer = SingleLocationViewer(loc_identifier, loc_param.location_polygons, 250)
 
-            # TODO: might need to change the path
-            single_loc_viewer.set_photo(QPixmap(app_ctx.default_location_images[loc_param.image_path] if loc_param.image_path in app_ctx.default_location_images else loc_param.image_path))
+        self.addWidget(self.contact_button)
+        self.add_loc_viewers(location_specifications, app_ctx)
+
+    def add_loc_viewers(self, location_specifications, app_ctx):
+        for i, (loc_identifier, loc_param) in enumerate(location_specifications.items()):
+            single_loc_viewer = SingleLocationViewer(loc_identifier, loc_param.location_polygons, 250)
+            single_loc_viewer.set_photo(QPixmap(app_ctx.default_location_images[loc_param.image_path] if loc_param.default else loc_param.image_path))
+            single_loc_viewer.repaint()
             self.location_viewers.append(single_loc_viewer)
-            self.addWidget(single_loc_viewer)
+            self.insertWidget(i, single_loc_viewer)
 
         for viewer1, viewer2 in permutations(self.location_viewers, r=2):
             viewer1.location_specified.connect(viewer2.remove_clicked_group)
-
-        self.addWidget(self.contact_button)
-        #self.test = QPushButton('test')
-        #self.test.clicked.connect(self.get_location_value)
-        #self.addWidget(self.test)
 
     def change_hand(self, hand):
         for viewer in self.location_viewers:
@@ -374,6 +404,20 @@ class LocationGroupLayout(QHBoxLayout):
         location_value_dict['contact'] = self.contact_button.checkState()
 
         return location_value_dict
+
+    def clear(self, location_specifications, app_ctx):
+        self.contact_button.setCheckState(Qt.Unchecked)
+        self.location_viewers.clear()
+
+        while self.count() >= 2:
+            child = self.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+        self.add_loc_viewers(location_specifications, app_ctx)
+
+    def set_value(self):
+        pass
 
 
 class LocationSpecificationLayout(QVBoxLayout):
@@ -402,9 +446,17 @@ class LocationSpecificationLayout(QVBoxLayout):
 
         return location_value_dict
 
+    def clear(self, location_specifications, app_ctx):
+        self.hand_switch.setChecked(True)
+        self.start_location_group_layout.clear(location_specifications, app_ctx)
+        self.end_location_group_layout.clear(location_specifications, app_ctx)
+
+    def set_value(self, value):
+        pass
+
 
 class ParameterPanel(QScrollArea):
-    def __init__(self, app_ctx, **kwargs):
+    def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
         self.setFrameStyle(QFrame.StyledPanel)
@@ -413,7 +465,7 @@ class ParameterPanel(QScrollArea):
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
 
-        self.location_layout = LocationSpecificationLayout(SAMPLE_LOCATIONS, app_ctx)
+        self.location_layout = LocationSpecificationLayout(location_specifications, app_ctx)
 
         self.orientation_layout = QVBoxLayout()
         orientation_label = QLabel('Coming soon...')
@@ -425,3 +477,6 @@ class ParameterPanel(QScrollArea):
         main_layout.addLayout(self.location_layout)
         main_layout.addWidget(self.orientation_section)
         self.setWidget(main_frame)
+
+    def clear(self, location_specifications, app_ctx):
+        self.location_layout.clear(location_specifications, app_ctx)
