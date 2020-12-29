@@ -50,7 +50,7 @@ class LexicalInformation:
         self._note = new_note
 
 
-class GlobalHandshapeOptions:
+class GlobalHandshapeInformation:
     def __init__(self, global_handshape_info):
         self._forearm = global_handshape_info['forearm']
         self._estimated = global_handshape_info['estimated']
@@ -254,16 +254,27 @@ class LocationTranscription:
         self.end = LocationHand(location_transcription_info['end'])
 
 
+# TODO: need to think about duplicated signs
 class Sign:
+    """
+    Gloss in lexical_information is used as the unique key
+    """
     def __init__(self,
                  lexical_info,
                  global_hand_info,
                  configs,
                  location_transcription_info):
         self.lexical_information = LexicalInformation(lexical_info)
-        self.global_handshape_options = GlobalHandshapeOptions(global_hand_info)
+        self.global_handshape_information = GlobalHandshapeInformation(global_hand_info)
         self.handshape_transcription = HandshapeTranscription(configs)
         self.location = LocationTranscription(location_transcription_info)
+
+    def __hash__(self):
+        return hash(self.lexical_information.gloss)
+
+    # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
+    def __eq__(self, other):
+        return isinstance(other, Sign) and self.lexical_information.gloss == other.lexical_information.gloss
 
 
 class LocationParameter:
@@ -339,10 +350,40 @@ class Locations:
     def __iter__(self):
         return iter(self.keys())
 
+
 class Corpus:
-    def __init__(self, signs=None, locations=None):
-        self.signs = signs if signs else list()
-        self.locations = locations if locations else SAMPLE_LOCATIONS
+    #TODO: need a default for location_definition
+    def __init__(self, signs=None, location_definition=None):
+        self.signs = signs if signs else set()
+        self.location_definition = location_definition if location_definition else None
+
+    def get_sign_glosses(self):
+        return sorted([sign.lexical_information.gloss for sign in self.signs])
+
+    def get_sign_by_gloss(self, gloss):
+        # Every sign has a unique gloss, so this function will always return one sign
+        for sign in self.signs:
+            if sign.lexical_information.gloss == gloss:
+                return sign
+
+    def add_sign(self, new_sign):
+        self.signs.add(new_sign)
+
+    def remove_sign(self, trash_sign):
+        self.signs.remove(trash_sign)
+
+    def __contains__(self, item):
+        return item in self.signs
+
+    def __iter__(self):
+        return iter(self.signs)
+
+    def __len__(self):
+        return len(self.signs)
+
+
+
+
 
 
 
