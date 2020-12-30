@@ -49,23 +49,12 @@ class InitializationDialog(QDialog):
         separate_line1.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line1, 1, 0, 1, 2)
 
-        main_layout.addWidget(QLabel('Preferred coder name:', parent=self), 2, 0, 1, 2)
-
-        self.preferred_coder_name = QLineEdit(parent=self)
-        self.preferred_coder_name.setText(preferred_coder_name)
-        main_layout.addWidget(self.preferred_coder_name, 3, 0, 1, 2)
-
-        separate_line2 = QFrame()
-        separate_line2.setFrameShape(QFrame.HLine)
-        separate_line2.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(separate_line2, 4, 0, 1, 2)
-
         # Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         buttons = QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.button_box.clicked.connect(self.handle_button_click)
 
-        main_layout.addWidget(self.button_box, 5, 0, 1, 2)
+        main_layout.addWidget(self.button_box, 2, 0, 1, 2)
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
