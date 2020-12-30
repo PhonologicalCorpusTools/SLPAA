@@ -1,5 +1,6 @@
 from datetime import date
 from itertools import permutations
+from collections import defaultdict
 from PyQt5.QtCore import (
     Qt,
     QSize,
@@ -25,7 +26,7 @@ from PyQt5.QtWidgets import (
     QGraphicsItemGroup,
     QGraphicsEllipseItem,
     QGraphicsTextItem,
-    QPushButton
+    QSizePolicy
 )
 
 from PyQt5.QtGui import (
@@ -158,7 +159,7 @@ class SingleLocationViewer(QGraphicsView):
             }
         else:
             location_value_dict[self.text_D.toPlainText()] = {
-                'image': None,
+                'image': self.location_identifier,
                 'point': None
             }
 
@@ -169,7 +170,7 @@ class SingleLocationViewer(QGraphicsView):
             }
         else:
             location_value_dict[self.text_W.toPlainText()] = {
-                'image': None,
+                'image': self.location_identifier,
                 'point': None
             }
 
@@ -226,6 +227,27 @@ class SingleLocationViewer(QGraphicsView):
             self._scene.addItem(self.point_W)
 
         super().mouseDoubleClickEvent(event)
+
+    def set_value(self, hand, position):
+        if hand == 'D':
+            if self.text_D.scene() and self.point_D.scene():
+                self._scene.removeItem(self.text_D)  # removeItem() only removes item from the scene but not delete it
+                self._scene.removeItem(self.point_D)
+
+            self.text_D.setPos(position[0], position[1])
+            self.point_D.setPos(position[0], position[1])
+            self._scene.addItem(self.text_D)
+            self._scene.addItem(self.point_D)
+
+        elif hand == 'W':
+            if self.text_W.scene() and self.point_W.scene():
+                self._scene.removeItem(self.text_W)
+                self._scene.removeItem(self.point_W)
+
+            self.text_W.setPos(position[0], position[1])
+            self.point_W.setPos(position[0], position[1])
+            self._scene.addItem(self.text_W)
+            self._scene.addItem(self.point_W)
 
 
 class LexicalInformationPanel(QScrollArea):
@@ -375,7 +397,7 @@ class LocationGroupLayout(QHBoxLayout):
 
         self.contact_button = QCheckBox('Contact?')
         self.contact_button.setTristate(True)
-        self.location_viewers = list()
+        self.location_viewers = dict()
 
         self.addWidget(self.contact_button)
         self.add_loc_viewers(location_specifications, app_ctx)
@@ -385,21 +407,25 @@ class LocationGroupLayout(QHBoxLayout):
             single_loc_viewer = SingleLocationViewer(loc_identifier, loc_param.location_polygons, 250)
             single_loc_viewer.set_photo(QPixmap(app_ctx.default_location_images[loc_param.image_path] if loc_param.default else loc_param.image_path))
             single_loc_viewer.repaint()
-            self.location_viewers.append(single_loc_viewer)
+            self.location_viewers[loc_identifier] = single_loc_viewer
             self.insertWidget(i, single_loc_viewer)
 
-        for viewer1, viewer2 in permutations(self.location_viewers, r=2):
+        for viewer1, viewer2 in permutations(self.location_viewers.values(), r=2):
             viewer1.location_specified.connect(viewer2.remove_clicked_group)
 
     def change_hand(self, hand):
-        for viewer in self.location_viewers:
+        for _, viewer in self.location_viewers.items():
             viewer.change_hand(hand)
 
     def get_location_value(self):
         location_value_dict = dict()
+        hand_dict = defaultdict(list)
 
-        for viewer in self.location_viewers:
-            location_value_dict.update(viewer.get_location_value())
+        for _, viewer in self.location_viewers.items():
+            for hand, point_dict in viewer.get_location_value().items():
+                hand_dict[hand].append(point_dict)
+
+        location_value_dict.update(hand_dict)
 
         location_value_dict['contact'] = self.contact_button.checkState()
 
@@ -416,8 +442,21 @@ class LocationGroupLayout(QHBoxLayout):
 
         self.add_loc_viewers(location_specifications, app_ctx)
 
-    def set_value(self):
-        pass
+    def set_value(self, value):
+
+        self.contact_button.setCheckState(value.contact)
+        for viewer in self.location_viewers.values():
+            viewer.remove_clicked_group()
+
+        for loc in value.D.points:
+            if loc['point']:
+                viewer = self.location_viewers[loc['image']]
+                viewer.set_value('D', loc['point'])
+
+        for loc in value.W.points:
+            if loc['point']:
+                viewer = self.location_viewers[loc['image']]
+                viewer.set_value('W', loc['point'])
 
 
 class LocationSpecificationLayout(QVBoxLayout):
@@ -437,6 +476,7 @@ class LocationSpecificationLayout(QVBoxLayout):
     def change_hand(self):
         hand = 'D' if self.hand_switch.isChecked() else 'W'
         self.start_location_group_layout.change_hand(hand)
+        self.end_location_group_layout.change_hand(hand)
 
     def get_location_value(self):
         location_value_dict = {
@@ -452,7 +492,8 @@ class LocationSpecificationLayout(QVBoxLayout):
         self.end_location_group_layout.clear(location_specifications, app_ctx)
 
     def set_value(self, value):
-        pass
+        self.start_location_group_layout.set_value(value.start)
+        self.end_location_group_layout.set_value(value.end)
 
 
 class ParameterPanel(QScrollArea):
@@ -461,6 +502,8 @@ class ParameterPanel(QScrollArea):
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
+        #TODO: need to fingure out how to do this...
+        main_frame.setFixedSize(1000, 1000)
 
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
@@ -476,7 +519,11 @@ class ParameterPanel(QScrollArea):
         main_layout.addWidget(QLabel('label'))
         main_layout.addLayout(self.location_layout)
         main_layout.addWidget(self.orientation_section)
+
         self.setWidget(main_frame)
 
     def clear(self, location_specifications, app_ctx):
         self.location_layout.clear(location_specifications, app_ctx)
+
+    def set_value(self, value):
+        self.location_layout.set_value(value)
