@@ -237,8 +237,9 @@ class HandshapeTranscription:
 
 class LocationPoint:
     def __init__(self, location_point_info):
-        self.loc_identifier = location_point_info['image']
-        self.point = Point(location_point_info['point']) if location_point_info['point'] else None
+        self.points = location_point_info
+        #self.loc_identifier = location_point_info['image']
+        #self.point = Point(location_point_info['point']) if location_point_info['point'] else None
 
 
 class LocationHand:
@@ -275,6 +276,9 @@ class Sign:
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
     def __eq__(self, other):
         return isinstance(other, Sign) and self.lexical_information.gloss == other.lexical_information.gloss
+
+    def __repr__(self):
+        return '<SIGN: ' + repr(self.lexical_information.gloss) + '>'
 
 
 class LocationParameter:
@@ -353,9 +357,11 @@ class Locations:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, signs=None, location_definition=None):
+    def __init__(self, name='Untitled', signs=None, location_definition=None, path=None):
+        self.name = name
         self.signs = signs if signs else set()
-        self.location_definition = location_definition if location_definition else None
+        self.location_definition = location_definition
+        self.path = path
 
     def get_sign_glosses(self):
         return sorted([sign.lexical_information.gloss for sign in self.signs])
@@ -380,6 +386,9 @@ class Corpus:
 
     def __len__(self):
         return len(self.signs)
+
+    def __repr__(self):
+        return '<CORPUS: ' + repr(self.name) + '>'
 
 
 
