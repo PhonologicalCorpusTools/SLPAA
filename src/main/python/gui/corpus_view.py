@@ -9,11 +9,13 @@ from PyQt5.QtCore import (
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
+    QLineEdit,
     QListView,
     QVBoxLayout
 )
 
 #from PyQt5.QtGui import ()
+
 
 class CorpusModel(QAbstractListModel):
     def __init__(self, glosses=None, **kwargs):
@@ -38,7 +40,7 @@ class CorpusView(QWidget):
         self.setLayout(main_layout)
 
         # TODO: maybe make this editable
-        self.corpus_title = QLabel(corpus_title)
+        self.corpus_title = QLineEdit(corpus_title, parent=self)
         main_layout.addWidget(self.corpus_title)
 
         self.corpus_model = CorpusModel(parent=self)
@@ -51,12 +53,13 @@ class CorpusView(QWidget):
         gloss = self.corpus_model.glosses[index.row()]
         self.selected_gloss.emit(gloss)
 
-    def add_gloss(self, gloss):
-        self.corpus_model.glosses.append(gloss)
+    def updated_glosses(self, glosses, current_gloss):
+        self.corpus_model.glosses.clear()
+        self.corpus_model.glosses.extend(glosses)
         self.corpus_model.glosses.sort()
         self.corpus_model.layoutChanged.emit()
 
-        index = self.corpus_model.glosses.index(gloss)
+        index = self.corpus_model.glosses.index(current_gloss)
 
         # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
         self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
