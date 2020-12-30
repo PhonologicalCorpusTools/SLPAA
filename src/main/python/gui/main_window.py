@@ -75,21 +75,21 @@ class MainWindow(QMainWindow):
 
         # actions
         # save
-        action_save = QAction(QIcon(self.app_ctx.toolbar_icons['save']), 'Save', parent=self)
+        action_save = QAction(QIcon(self.app_ctx.icons['save']), 'Save', parent=self)
         action_save.setStatusTip('Save')
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
         action_save.triggered.connect(self.on_action_save)
         action_save.setCheckable(False)
 
         # copy
-        action_copy = QAction(QIcon(self.app_ctx.toolbar_icons['copy']), 'Copy', parent=self)
+        action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
         action_copy.setStatusTip('Copy the current sign')
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
         action_copy.triggered.connect(self.on_action_copy)
         action_copy.setCheckable(False)
 
         # paste
-        action_paste = QAction(QIcon(self.app_ctx.toolbar_icons['paste']), 'Paste', parent=self)
+        action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
         action_paste.setStatusTip('Paste the copied sign')
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
         action_paste.triggered.connect(self.on_action_paste)
@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
         action_close.setCheckable(False)
 
         # new sign
-        action_new_sign = QAction(QIcon(self.app_ctx.toolbar_icons['new_sign']), 'New sign', parent=self)
+        action_new_sign = QAction(QIcon(self.app_ctx.icons['new_sign']), 'New sign', parent=self)
         action_new_sign.setStatusTip('Create a new sign')
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_N))
         action_new_sign.triggered.connect(self.on_action_new_sign)

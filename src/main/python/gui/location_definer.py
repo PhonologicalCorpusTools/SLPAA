@@ -424,7 +424,7 @@ class LocationDefinerTabWidget(QTabWidget):
             self.addTab(loc_page, loc_param.name)
             self.location_definer_pages.append(loc_page)
 
-        self.addTab(QWidget(), QIcon(app_ctx.toolbar_icons['plus']), 'Add location')
+        self.addTab(QWidget(), QIcon(app_ctx.icons['plus']), 'Add location')
 
         self.tabbar.tabButton(3, QTabBar.LeftSide).hide()
         self.tabCloseRequested.connect(self.close_handler)
