@@ -1,4 +1,8 @@
 import os
+import pickle
+from collections import defaultdict
+from getpass import getuser
+from datetime import date
 from PyQt5.QtCore import (
     Qt,
     QSize,
@@ -6,21 +10,14 @@ from PyQt5.QtCore import (
     QPoint
 )
 from PyQt5.QtWidgets import (
-    QGridLayout,
-    QListView,
-    QVBoxLayout,
-    QHBoxLayout,
+    QFileDialog,
     QMainWindow,
-    QWidget,
-    QLabel,
     QToolBar,
     QAction,
     QStatusBar,
     QSplitter,
-    QLineEdit,
-    QCompleter,
-    QFrame,
-    QScrollArea
+    QScrollArea,
+    QMessageBox
 )
 from PyQt5.QtGui import (
     QIcon,
@@ -36,34 +33,37 @@ from .panel import (
     HandIllustrationPanel,
     ParameterPanel
 )
-
-from collections import defaultdict
+from .decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
     Corpus,
-    GlobalHandshapeOptions,
-    HandshapeTranscription,
-    HandshapeTranscriptionConfig,
-    HandshapeTranscriptionField,
-    HandshapeTranscriptionHand,
-    HandshapeTranscriptionSlot,
-    LexicalInformation,
-    LocationParameter,
-    Locations,
     Sign
 )
-from pprint import pprint
 
 
+# TODO: add undo/redo stack: https://doc.qt.io/qt-5/qtwidgets-tools-undoframework-example.html
+# TODO: location image size problem
 class MainWindow(QMainWindow):
     def __init__(self, app_ctx):
         super().__init__()
         self.app_ctx = app_ctx
 
+        self.corpus = None
+        self.current_sign = None
+
+        # hand setting-related stuff
         self.handle_app_settings()
         self.check_storage()
         self.resize(self.app_settings['display']['size'])
         self.move(self.app_settings['display']['position'])
+
+        #self.open_initialization_window()
+
+        # date information
+        self.today = date.today()
+
+        # track unsaved changes
+        self.unsaved_changes = True
 
         # app title
         self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
@@ -142,6 +142,9 @@ class MainWindow(QMainWindow):
         # menu
         main_menu = self.menuBar()
 
+        menu_option = main_menu.addMenu('&Settings')
+        menu_option.addAction(action_new_corpus)
+
         menu_file = main_menu.addMenu('&File')
         menu_file.addAction(action_new_corpus)
         menu_file.addAction(action_load_corpus)
@@ -158,84 +161,65 @@ class MainWindow(QMainWindow):
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
 
-        # central widget
-        central_widget = QWidget()
-        central_layout = QHBoxLayout()
-        central_widget.setLayout(central_layout)
+        central_splitter = QSplitter(Qt.Horizontal, parent=self)
+        right_splitter = QSplitter(Qt.Vertical, parent=self)
+        top_splitter = QSplitter(Qt.Horizontal, parent=self)
+        bottom_splitter = QSplitter(Qt.Horizontal, parent=self)
 
-        # define main splitter and scroll areas
-        main_splitter = QSplitter(Qt.Horizontal, parent=self)
-        central_layout.addWidget(main_splitter)
+        right_splitter.addWidget(top_splitter)
+        right_splitter.addWidget(bottom_splitter)
 
-        left_scroll = QScrollArea(parent=self)
-        left_scroll.resize(QSize(100, 1000))
-        left_scroll.setWidgetResizable(True)
-        right_scroll = QScrollArea(parent=self)
-        right_scroll.setWidgetResizable(True)
-        right_frame = QFrame(parent=self)
-        right_frame.resize(QSize(1000, 1000))
-        right_layout = QVBoxLayout()
-        right_frame.setLayout(right_layout)
-        main_splitter.addWidget(left_scroll)
-        main_splitter.addWidget(right_scroll)
+        self.corpus_view = CorpusView('Untitled', parent=self)
+        self.corpus_view.resize(QSize(100, 1000))
+        self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
 
-        corpus_view = CorpusView(parent=self)
-        corpus_view.resize(QSize(100, 1000))
-        left_scroll.setWidget(corpus_view)
+        corpus_scroll = QScrollArea(parent=self)
+        corpus_scroll.resize(QSize(100, 1000))
+        corpus_scroll.setWidgetResizable(True)
+        corpus_scroll.setWidget(self.corpus_view)
 
-        # meta data
-        meta_data = MetaDataWidget(parent=self)
-        right_layout.addWidget(meta_data)
+        self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.today, parent=self)
 
-        configuration_layout = QGridLayout()
-        right_layout.addLayout(configuration_layout)
+        self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
 
-        global_option = ConfigGlobal(title='Handshape global options', parent=self)
-        configuration_layout.addWidget(global_option, 0, 0, 2, 1)
+        self.transcription_scroll = HandTranscriptionPanel(parent=self)
+        self.transcription_scroll.config1.slot_on_focus.connect(self.update_status_bar)
+        self.transcription_scroll.config1.slot_num_on_focus.connect(self.update_hand_illustration)
+        self.transcription_scroll.config1.slot_leave.connect(self.status_bar.clearMessage)
+        self.transcription_scroll.config1.slot_leave.connect(self.illustration_scroll.set_neutral_img)
 
-        #transcription_layout = QVBoxLayout()
-        #transcription_layout.addStretch()
-        #transcription_layout.setSpacing(5)
-        #configuration_layout.addLayout(transcription_layout, 0, 1, 1, 1)
+        self.transcription_scroll.config2.slot_on_focus.connect(self.update_status_bar)
+        self.transcription_scroll.config2.slot_num_on_focus.connect(self.update_hand_illustration)
+        self.transcription_scroll.config2.slot_leave.connect(self.status_bar.clearMessage)
+        self.transcription_scroll.config2.slot_leave.connect(self.illustration_scroll.set_neutral_img)
 
-        self.config1 = Config(1, 'Configuration 1', parent=self)
-        self.config1.slot_on_focus.connect(self.update_status_bar)
-        self.config1.slot_num_on_focus.connect(self.update_hand_illustration)
-        self.config1.slot_leave.connect(self.status_bar.clearMessage)
-        self.config1.slot_leave.connect(lambda: self.hand_illustration.setPixmap(
-            neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio)))
-        configuration_layout.addWidget(self.config1, 0, 1, 1, 2)
+        self.parameter_scroll = ParameterPanel(dict(), self.app_ctx, parent=self)
 
-        self.config2 = Config(2, 'Configuration 2', parent=self)
-        self.config2.slot_on_focus.connect(self.update_status_bar)
-        self.config2.slot_num_on_focus.connect(self.update_hand_illustration)
-        self.config2.slot_leave.connect(self.status_bar.clearMessage)
-        self.config2.slot_leave.connect(lambda: self.hand_illustration.setPixmap(
-            neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio)))
-        configuration_layout.addWidget(self.config2, 1, 1, 1, 2)
+        top_splitter.addWidget(self.lexical_scroll)
+        top_splitter.addWidget(self.transcription_scroll)
+        bottom_splitter.addWidget(self.illustration_scroll)
+        bottom_splitter.addWidget(self.parameter_scroll)
 
-        # lower layout
-        lower_layout = QHBoxLayout()
-        right_layout.addLayout(lower_layout)
+        central_splitter.addWidget(corpus_scroll)
+        central_splitter.addWidget(right_splitter)
 
-        self.parameter = ParameterView('Parameter', parent=self)
-        lower_layout.addWidget(self.parameter)
-
-        # hand image
-        self.hand_illustration = QLabel()
-        self.hand_illustration.setFixedSize(QSize(400, 400))
-        neutral_img = QPixmap(self.app_ctx.hand_illustrations['neutral'])
-        self.hand_illustration.setPixmap(
-            neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
-        lower_layout.addWidget(self.hand_illustration)
+        self.setCentralWidget(central_splitter)
 
         self.open_initialization_window()
 
     def open_initialization_window(self):
-        initialization = InitializationDialog(self.app_ctx, self.on_action_new_corpus, self.on_action_load_corpus, parent=self)
+        initialization = InitializationDialog(self.app_ctx, self.on_action_new_corpus, self.on_action_load_corpus, self.app_settings['metadata']['coder'], parent=self)
         response = initialization.exec_()
         if not response:  # close the window or press cancel
-            self.on_action_new_sign()
+            self.on_action_new_corpus(False)
+
+    def handle_sign_selected(self, gloss):
+        selected_sign = self.corpus.get_sign_by_gloss(gloss)
+        self.current_sign = selected_sign
+        self.lexical_scroll.set_value(selected_sign.lexical_information)
+        self.transcription_scroll.set_value(selected_sign.global_handshape_information,
+                                            selected_sign.handshape_transcription)
+        self.parameter_scroll.set_value(selected_sign.location)
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -244,6 +228,9 @@ class MainWindow(QMainWindow):
                                        application='Sign Language Phonetic Annotator and Analyzer')
 
         self.app_qsettings.beginGroup('storage')
+        self.app_settings['storage']['recent_folder'] = self.app_qsettings.value(
+            'recent_folder',
+            defaultValue=os.path.expanduser('~/Documents'))
         self.app_settings['storage']['corpora'] = self.app_qsettings.value('corpora',
                                                                            defaultValue=os.path.normpath(
                                                                                os.path.join(
@@ -263,6 +250,10 @@ class MainWindow(QMainWindow):
         self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True)
         self.app_qsettings.endGroup()
 
+        self.app_qsettings.beginGroup('metadata')
+        self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue=getuser())
+        self.app_qsettings.endGroup()
+
     def check_storage(self):
         if not os.path.exists(self.app_settings['storage']['corpora']):
             os.makedirs(self.app_settings['storage']['corpora'])
@@ -275,6 +266,7 @@ class MainWindow(QMainWindow):
                                        application='Sign Language Phonetic Annotator and Analyzer')
 
         self.app_qsettings.beginGroup('storage')
+        self.app_qsettings.setValue('recent_folder', self.app_settings['storage']['recent_folder'])
         self.app_qsettings.setValue('corpora', self.app_settings['storage']['corpora'])
         self.app_qsettings.setValue('image', self.app_settings['storage']['image'])
         self.app_qsettings.endGroup()
@@ -286,28 +278,61 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
         self.app_qsettings.endGroup()
 
+        self.app_qsettings.beginGroup('metadata')
+        self.app_qsettings.setValue('coder', self.app_settings['metadata']['coder'])
+        self.app_qsettings.endGroup()
+
     def on_action_define_location(self):
-        location_definer = LocationDefinerDialog(self.locations, self.app_settings, self.app_ctx, parent=self)
+        location_definer = LocationDefinerDialog(self.corpus.location_definition, self.app_settings, self.app_ctx, parent=self)
         location_definer.saved_locations.connect(self.save_new_locations)
         location_definer.exec_()
 
     def save_new_locations(self, new_locations):
         #TODO: need to reimplement this once corpus class is there
-        self.locations = new_locations
+        self.corpus.location_definition = new_locations
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
 
     def update_status_bar(self, text):
         self.status_bar.showMessage(text)
 
     def update_hand_illustration(self, num):
         hand_img = QPixmap(self.app_ctx.hand_illustrations['slot' + str(num)])
-        self.hand_illustration.setPixmap(
-            hand_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
-        self.hand_illustration.repaint()
+        self.illustration_scroll.set_img(hand_img)
 
+    @check_duplicated_gloss
+    @check_unsaved_corpus
     def on_action_save(self, clicked):
+        lexical_info = self.lexical_scroll.get_value()
+        location_transcription_info = self.parameter_scroll.location_layout.get_location_value()
+        global_hand_info = self.transcription_scroll.global_info.get_value()
+        configs = [self.transcription_scroll.config1.get_value(),
+                   self.transcription_scroll.config2.get_value()]
 
-        print(HandshapeTranscription([self.config1.get_value(), self.config2.get_value()]))
+        # if missing then some of them will be none
+        if lexical_info and location_transcription_info and global_hand_info and configs:
+            if self.current_sign:
+                response = QMessageBox.question(self, 'Overwrite the current sign',
+                                                'Do you want to overwrite the existing transcriptions?')
+                if response == QMessageBox.Yes:
+                    self.corpus.remove_sign(self.current_sign)
+                else:
+                    return
 
+            new_sign = Sign(lexical_info, global_hand_info, configs, location_transcription_info)
+            self.corpus.add_sign(new_sign)
+            self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), new_sign.lexical_information.gloss)
+            self.current_sign = new_sign
+
+            self.corpus.name = self.corpus_view.corpus_title.text()
+            self.save_corpus_binary()
+
+    def save_corpus_binary(self):
+        with open(self.corpus.path, 'wb') as f:
+            pickle.dump(self.corpus, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def load_corpus_binary(self, path):
+        with open(path, 'rb') as f:
+            return pickle.load(f)
 
     def on_action_copy(self, clicked):
         pass
@@ -318,11 +343,29 @@ class MainWindow(QMainWindow):
         #TODO: implement
 
     def on_action_new_corpus(self, clicked):
-        print('new_corpus', clicked)
-        #TODO: implement
+        self.current_sign = None
+        self.corpus = Corpus(signs=None, location_definition=SAMPLE_LOCATIONS)
+
+        self.corpus_view.clear()
+        self.lexical_scroll.clear(self.app_settings['metadata']['coder'])
+        self.transcription_scroll.clear()
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
 
     def on_action_load_corpus(self, clicked):
-        print('load_corpus', clicked)
+        file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Corpus'), self.app_settings['storage']['recent_folder'],
+                                                           self.tr('SLAP-AA Corpus (*.slpaa)'))
+        folder, _ = os.path.split(file_name)
+        if folder:
+            self.app_settings['storage']['recent_folder'] = folder
+
+        self.corpus = self.load_corpus_binary(file_name)
+
+        first = self.corpus.get_sign_glosses()[0]
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
+        self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
+        self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
+
+        return bool(self.corpus)
         #TODO: implement
 
     def on_action_close(self, clicked):
@@ -330,49 +373,15 @@ class MainWindow(QMainWindow):
         #TODO: implement
 
     def on_action_new_sign(self, clicked):
-        pass
-        #TODO: implement
+        self.current_sign = None
 
+        self.lexical_scroll.clear(self.app_settings['metadata']['coder'])
+        self.transcription_scroll.clear()
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
+
+        self.corpus_view.corpus_view.clearSelection()
+
+    @check_unsaved_change
     def closeEvent(self, event):
         self.save_app_settings()
         super().closeEvent(event)
-
-
-class TestMainWindow(QMainWindow):
-    def __init__(self, app_ctx):
-        super().__init__()
-        self.app_ctx = app_ctx
-
-        # app title
-        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
-
-        central_splitter = QSplitter(Qt.Horizontal, parent=self)
-        right_splitter = QSplitter(Qt.Vertical, parent=self)
-        top_splitter = QSplitter(Qt.Horizontal, parent=self)
-        bottom_splitter = QSplitter(Qt.Horizontal, parent=self)
-
-        right_splitter.addWidget(top_splitter)
-        right_splitter.addWidget(bottom_splitter)
-
-        corpus_view = QListView(parent=self)
-        corpus_view.resize(QSize(100, 1000))
-
-        corpus_scroll = QScrollArea(parent=self)
-        corpus_scroll.resize(QSize(100, 1000))
-        corpus_scroll.setWidgetResizable(True)
-        corpus_scroll.setWidget(corpus_view)
-
-        lexical_scroll = LexicalInformationPanel(parent=self)
-        transcription_scroll = HandTranscriptionPanel(parent=self)
-        illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
-        parameter_scroll = ParameterPanel(self.app_ctx, parent=self)
-
-        top_splitter.addWidget(lexical_scroll)
-        top_splitter.addWidget(transcription_scroll)
-        bottom_splitter.addWidget(illustration_scroll)
-        bottom_splitter.addWidget(parameter_scroll)
-
-        central_splitter.addWidget(corpus_scroll)
-        central_splitter.addWidget(right_splitter)
-
-        self.setCentralWidget(central_splitter)

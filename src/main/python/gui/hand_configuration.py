@@ -16,8 +16,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QCheckBox,
     QAction,
-    QMenu,
-    QFrame
+    QMenu
 )
 
 from itertools import chain

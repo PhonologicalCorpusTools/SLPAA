@@ -23,10 +23,8 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QGraphicsScene,
     QGraphicsPixmapItem,
-    QGraphicsItemGroup,
     QGraphicsEllipseItem,
-    QGraphicsTextItem,
-    QSizePolicy
+    QGraphicsTextItem
 )
 
 from PyQt5.QtGui import (
@@ -110,9 +108,6 @@ class SingleLocationViewer(QGraphicsView):
         for loc_polys in self.locations.values():
             for loc_poly in loc_polys:
                 self._scene.addItem(loc_poly)
-
-    def set_value(self, value):
-        pass
 
     def has_photo(self):
         return not self._empty
