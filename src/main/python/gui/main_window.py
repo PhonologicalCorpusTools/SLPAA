@@ -24,16 +24,18 @@ from PyQt5.QtGui import (
     QKeySequence,
     QPixmap
 )
-from .initialization_dialog import InitializationDialog
-from .corpus_view import CorpusView
-from .location_definer import LocationDefinerDialog
-from .panel import (
+
+# Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
+from gui.initialization_dialog import InitializationDialog
+from gui.corpus_view import CorpusView
+from gui.location_definer import LocationDefinerDialog
+from gui.panel import (
     LexicalInformationPanel,
     HandTranscriptionPanel,
     HandIllustrationPanel,
     ParameterPanel
 )
-from .decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
+from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
     Corpus,

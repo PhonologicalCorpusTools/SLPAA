@@ -35,9 +35,9 @@ from PyQt5.QtGui import (
     QPolygonF
 )
 
-from .hand_configuration import ConfigGlobal, Config
-from .helper_widget import CollapsibleSection, ToggleSwitch
-from .decorator import check_date_format, check_empty_gloss
+from gui.hand_configuration import ConfigGlobal, Config
+from gui.helper_widget import CollapsibleSection, ToggleSwitch
+from gui.decorator import check_date_format, check_empty_gloss
 
 
 class LocationPolygon(QGraphicsPolygonItem):
