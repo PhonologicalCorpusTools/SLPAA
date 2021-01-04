@@ -21,7 +21,7 @@ class AppContext(ApplicationContext):
             'paste': self.get_resource('icons/paste.png'),
             'plus': self.get_resource('icons/plus.png'),
             'save': self.get_resource('icons/disk.png'),
-            'new_sign': self.get_resource('icons/hand.png')
+            'hand': self.get_resource('icons/hand.png')
         }
 
     @cached_property
@@ -73,7 +73,6 @@ class AppContext(ApplicationContext):
             '4': self.get_resource('predefined/4.png'),
             '5': self.get_resource('predefined/5.png'),
             '6': self.get_resource('predefined/6.png'),
-            '7': self.get_resource('predefined/7.png'),
             '8': self.get_resource('predefined/8.png'),
             'A': self.get_resource('predefined/A.png'),
             'adducted-F': self.get_resource('predefined/adducted-F.png'),
@@ -115,7 +114,7 @@ class AppContext(ApplicationContext):
             'closed-A-index': self.get_resource('predefined/closed-A-index.png'),
             'closed-bent-D': self.get_resource('predefined/closed-bent-D.png'),
             'closed-double-modified-G': self.get_resource('predefined/closed-double-modified-G.png'),
-            'closed-modified-G': self.get_resource('predefined/closed-modified-G.png'),
+            'closed-G': self.get_resource('predefined/closed-G.png'),
             'closed-V': self.get_resource('predefined/closed-V.png'),
             'closed-W': self.get_resource('predefined/closed-W.png'),
             'closed-X': self.get_resource('predefined/closed-X.png'),
@@ -141,7 +140,6 @@ class AppContext(ApplicationContext):
             'crooked-C': self.get_resource('predefined/crooked-C.png'),
             'crooked-extended-B': self.get_resource('predefined/crooked-extended-B.png'),
             'crooked-extended-V': self.get_resource('predefined/crooked-extended-V.png'),
-            'crooked-F': self.get_resource('predefined/crooked-F.png'),
             'crooked-L': self.get_resource('predefined/crooked-L.png'),
             'crooked-slanted-5': self.get_resource('predefined/crooked-slanted-5.png'),
             'crooked-U': self.get_resource('predefined/crooked-U.png'),
@@ -177,7 +175,6 @@ class AppContext(ApplicationContext):
             'modified-5': self.get_resource('predefined/modified-5.png'),
             'modified-A': self.get_resource('predefined/modified-A.png'),
             'modified-D': self.get_resource('predefined/modified-D.png'),
-            'modified-F': self.get_resource('predefined/modified-F.png'),
             'modified-G': self.get_resource('predefined/modified-G.png'),
             'modified-O': self.get_resource('predefined/modified-O.png'),
             'modified-Y': self.get_resource('predefined/modified-Y.png'),
@@ -199,7 +196,6 @@ class AppContext(ApplicationContext):
             'S': self.get_resource('predefined/S.png'),
             'slanted-4': self.get_resource('predefined/slanted-4.png'),
             'slanted-5': self.get_resource('predefined/slanted-5.png'),
-            'slanted-B': self.get_resource('predefined/slanted-B.png'),
             'slanted-extended-B': self.get_resource('predefined/slanted-extended-B.png'),
             'slanted-F': self.get_resource('predefined/slanted-F.png'),
             'slanted-V': self.get_resource('predefined/slanted-V.png'),

@@ -36,6 +36,7 @@ from gui.panel import (
     ParameterPanel
 )
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
+from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
     Corpus,
@@ -52,6 +53,8 @@ class MainWindow(QMainWindow):
 
         self.corpus = None
         self.current_sign = None
+
+        self.predefined_handshape_dialog = None
 
         # hand setting-related stuff
         self.handle_app_settings()
@@ -124,11 +127,18 @@ class MainWindow(QMainWindow):
         action_close.setCheckable(False)
 
         # new sign
-        action_new_sign = QAction(QIcon(self.app_ctx.icons['new_sign']), 'New sign', parent=self)
+        action_new_sign = QAction(QIcon(self.app_ctx.icons['plus']), 'New sign', parent=self)
         action_new_sign.setStatusTip('Create a new sign')
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_N))
         action_new_sign.triggered.connect(self.on_action_new_sign)
         action_new_sign.setCheckable(False)
+
+        # predefined handshape
+        action_predefined_handshape = QAction(QIcon(self.app_ctx.icons['hand']), 'Predefined handshape', parent=self)
+        action_predefined_handshape.setStatusTip('Open predefined handshape window')
+        action_predefined_handshape.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
+        action_predefined_handshape.triggered.connect(self.on_action_predefined_handshape)
+        action_predefined_handshape.setCheckable(False)
 
         toolbar.addAction(action_new_sign)
         toolbar.addSeparator()
@@ -136,6 +146,8 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addAction(action_copy)
         toolbar.addAction(action_paste)
+        toolbar.addSeparator()
+        toolbar.addAction(action_predefined_handshape)
 
         # status bar
         self.status_bar = QStatusBar(parent=self)
@@ -382,6 +394,14 @@ class MainWindow(QMainWindow):
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
 
         self.corpus_view.corpus_view.clearSelection()
+
+    def on_action_predefined_handshape(self, clicked):
+        if self.predefined_handshape_dialog is None:
+            self.predefined_handshape_dialog = PredefinedHandshapeDialog(self.app_ctx.predefined, parent=self)
+            self.predefined_handshape_dialog.show()
+        else:
+            #self.predefined_handshape_dialog.deleteLater()
+            self.predefined_handshape_dialog.raise_()
 
     @check_unsaved_change
     def closeEvent(self, event):
