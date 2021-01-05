@@ -62,8 +62,6 @@ class MainWindow(QMainWindow):
         self.resize(self.app_settings['display']['size'])
         self.move(self.app_settings['display']['position'])
 
-        #self.open_initialization_window()
-
         # date information
         self.today = date.today()
 
@@ -302,7 +300,7 @@ class MainWindow(QMainWindow):
         location_definer.exec_()
 
     def save_new_locations(self, new_locations):
-        #TODO: need to reimplement this once corpus class is there
+        # TODO: need to reimplement this once corpus class is there
         self.corpus.location_definition = new_locations
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
 
@@ -350,11 +348,11 @@ class MainWindow(QMainWindow):
 
     def on_action_copy(self, clicked):
         pass
-        #TODO: implement
+        # TODO: implement
 
     def on_action_paste(self, clicked):
         pass
-        #TODO: implement
+        # TODO: implement
 
     def on_action_new_corpus(self, clicked):
         self.current_sign = None
@@ -380,11 +378,9 @@ class MainWindow(QMainWindow):
         self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
 
         return bool(self.corpus)
-        #TODO: implement
 
     def on_action_close(self, clicked):
-        pass
-        #TODO: implement
+        self.close()
 
     def on_action_new_sign(self, clicked):
         self.current_sign = None
@@ -398,10 +394,24 @@ class MainWindow(QMainWindow):
     def on_action_predefined_handshape(self, clicked):
         if self.predefined_handshape_dialog is None:
             self.predefined_handshape_dialog = PredefinedHandshapeDialog(self.app_ctx.predefined, parent=self)
+            self.predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
+            self.predefined_handshape_dialog.rejected.connect(self.handle_predefined_close)
             self.predefined_handshape_dialog.show()
+
+            self.insert_predefined_buttons()
         else:
-            #self.predefined_handshape_dialog.deleteLater()
             self.predefined_handshape_dialog.raise_()
+
+    def handle_set_predefined(self, transcription_list):
+        self.transcription_scroll.set_predefined(transcription_list)
+
+    def insert_predefined_buttons(self):
+        self.transcription_scroll.insert_radio_button()
+
+    def handle_predefined_close(self):
+        self.transcription_scroll.remove_radio_button()
+        self.predefined_handshape_dialog.deleteLater()
+        self.predefined_handshape_dialog = None
 
     @check_unsaved_change
     def closeEvent(self, event):

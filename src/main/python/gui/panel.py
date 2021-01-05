@@ -24,7 +24,8 @@ from PyQt5.QtWidgets import (
     QGraphicsScene,
     QGraphicsPixmapItem,
     QGraphicsEllipseItem,
-    QGraphicsTextItem
+    QGraphicsTextItem,
+    QButtonGroup
 )
 
 from PyQt5.QtGui import (
@@ -354,6 +355,32 @@ class HandTranscriptionPanel(QScrollArea):
         self.global_info.set_value(global_handshape_info)
         self.config1.set_value(hand_transcription.config1)
         self.config2.set_value(hand_transcription.config2)
+
+    def insert_radio_button(self):
+        self.selected_hand_group = QButtonGroup(parent=self)
+        button1, button2 = self.config1.insert_radio_button()
+        button3, button4 = self.config2.insert_radio_button()
+        button1.setChecked(True)
+        self.selected_hand_group.addButton(button1, 1)
+        self.selected_hand_group.addButton(button2, 2)
+        self.selected_hand_group.addButton(button3, 3)
+        self.selected_hand_group.addButton(button4, 4)
+
+    def remove_radio_button(self):
+        self.config1.remove_radio_button()
+        self.config2.remove_radio_button()
+        self.selected_hand_group.deleteLater()
+
+    def set_predefined(self, transcription_list):
+        hand = self.selected_hand_group.checkedId()
+        if hand == 1:
+            self.config1.hand1.set_predefined(transcription_list)
+        elif hand == 2:
+            self.config1.hand2.set_predefined(transcription_list)
+        elif hand == 3:
+            self.config2.hand1.set_predefined(transcription_list)
+        elif hand == 4:
+            self.config2.hand2.set_predefined(transcription_list)
 
 
 class HandIllustrationPanel(QScrollArea):

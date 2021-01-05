@@ -653,6 +653,8 @@ class PredefinedTableModel(QAbstractTableModel):
         value = self.get_value(index)
         if role == Qt.DisplayRole:# or role == Qt.EditRole:
             return PREDEFINED_MAP[value].name if value in PREDEFINED_MAP.keys() else None
+        elif role == Qt.AccessibleTextRole:
+            return value if value else None
         #elif role == Qt.TextAlignmentRole:
         #    return Qt.AlignCenter
         elif role == Qt.DecorationRole:
@@ -791,9 +793,6 @@ class PredefinedHandshapeView(QTableView):
                 self.horizontalHeader().resizeSection(col, 125)
                 self.frozen_table_view.setColumnHidden(col, True)
 
-        #self.frozen_table_view.show()
-        #self.updateFrozenTableGeometry()
-
         # connect the headers and scrollbars of both tableviews together
         self.horizontalHeader().sectionResized.connect(self.update_section_width)
         self.verticalHeader().sectionResized.connect(self.update_section_height)
@@ -848,7 +847,7 @@ class PredefinedHandshapeView(QTableView):
                                              self.columnWidth(0),
                                              self.viewport().height() + self.horizontalHeader().height())
 
-    #https://stackoverflow.com/questions/37496320/pyqt-dragging-item-from-list-view-and-dropping-to-table-view-the-drop-index-is
+    # Ref: https://stackoverflow.com/questions/37496320/pyqt-dragging-item-from-list-view-and-dropping-to-table-view-the-drop-index-is
     def mouseMoveEvent(self, e):
         if self.dragEnabled():
             self.startDrag(e)
@@ -902,6 +901,8 @@ class PredefinedHandshapeView(QTableView):
 
 
 class PredefinedHandshapeDialog(QDialog):
+    transcription = pyqtSignal(tuple)
+
     def __init__(self, predefined_images, **kwargs):
         super().__init__(**kwargs)
         self.resize(750, 750)
@@ -910,33 +911,15 @@ class PredefinedHandshapeDialog(QDialog):
 
         # create table view
         self.table_view = PredefinedHandshapeView(predefined_images, parent=self)
-
-        #self.table_view.clicked.connect(self.fillSlots)
-        #self.table_view.frozenTableView.clicked.connect(self.fillSlots)
-        #table.itemClicked.connect(self.fillSlots)
+        self.table_view.clicked.connect(self.emit_transcription)
+        self.table_view.frozen_table_view.clicked.connect(self.emit_transcription)
 
         # layout
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.table_view)
         self.setLayout(main_layout)
 
-    def fillSlots(self, clicked):
-        #TODO
-        config1 = self.parent().configTabs.widget(0)
-        config2 = self.parent().configTabs.widget(1)
-        selected = self.parent().selected.checkedId()
-
-        if selected == 1:
-            transcription = config1.hand1Transcription
-        elif selected == 2:
-            transcription = config1.hand2Transcription
-        elif selected == 3:
-            transcription = config2.hand1Transcription
-        elif selected == 4:
-            transcription = config2.hand2Transcription
-
-        for slot, symbol in zip(transcription.slots, PredefinedHandshapeDialog.handshape_mapping.get(clicked.data(), HandshapeEmpty).canonical):
-            if slot.num == 1:
-                slot.setChecked(False)
-            else:
-                slot.setText(symbol)
+    def emit_transcription(self, clicked):
+        predefined = clicked.data(role=Qt.AccessibleTextRole)
+        if predefined in PREDEFINED_MAP:
+            self.transcription.emit(PREDEFINED_MAP[predefined].canonical)

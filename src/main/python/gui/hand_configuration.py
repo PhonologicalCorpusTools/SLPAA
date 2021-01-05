@@ -16,7 +16,8 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QCheckBox,
     QAction,
-    QMenu
+    QMenu,
+    QRadioButton
 )
 
 from itertools import chain
@@ -758,6 +759,18 @@ class ConfigHand(QWidget):
         self.field7.slot_leave.connect(self.slot_leave.emit)
         self.main_layout.addWidget(self.field7)
 
+    def insert_radio_button(self):
+        button = QRadioButton(parent=self)
+        self.main_layout.insertWidget(0, button)
+        return button
+
+    def remove_radio_button(self):
+        self.main_layout.takeAt(0).widget().deleteLater()
+
+    def set_predefined(self, transcription_list):
+        for symbol, slot in zip(transcription_list, self.__iter__()):
+            slot.setText(symbol)
+
     def get_value(self):
         return {
             'hand_number': self.hand_number,
@@ -807,6 +820,15 @@ class Config(QGroupBox):
     def set_value(self, config):
         self.hand1.set_value(config.hand1)
         self.hand2.set_value(config.hand2)
+
+    def insert_radio_button(self):
+        button1 = self.hand1.insert_radio_button()
+        button2 = self.hand2.insert_radio_button()
+        return button1, button2
+
+    def remove_radio_button(self):
+        self.hand1.remove_radio_button()
+        self.hand2.remove_radio_button()
 
     def clear(self):
         self.hand1.clear()
