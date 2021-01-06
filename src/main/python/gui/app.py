@@ -68,6 +68,9 @@ class AppContext(ApplicationContext):
     @cached_property
     def predefined(self):
         return {
+            'no-match': self.get_resource('predefined/no-match.png'),
+            'empty': self.get_resource('predefined/empty.png'),
+
             '1': self.get_resource('predefined/1.png'),
             '3': self.get_resource('predefined/3.png'),
             '4': self.get_resource('predefined/4.png'),

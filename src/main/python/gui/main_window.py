@@ -194,7 +194,7 @@ class MainWindow(QMainWindow):
 
         self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
 
-        self.transcription_scroll = HandTranscriptionPanel(parent=self)
+        self.transcription_scroll = HandTranscriptionPanel(self.app_ctx.predefined, parent=self)
         self.transcription_scroll.config1.slot_on_focus.connect(self.update_status_bar)
         self.transcription_scroll.config1.slot_num_on_focus.connect(self.update_hand_illustration)
         self.transcription_scroll.config1.slot_leave.connect(self.status_bar.clearMessage)

@@ -326,7 +326,7 @@ class LexicalInformationPanel(QScrollArea):
 
 
 class HandTranscriptionPanel(QScrollArea):
-    def __init__(self, **kwargs):
+    def __init__(self, predefined_ctx, **kwargs):
         super().__init__(**kwargs)
 
         self.setFrameStyle(QFrame.StyledPanel)
@@ -338,10 +338,10 @@ class HandTranscriptionPanel(QScrollArea):
         self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
         main_layout.addWidget(self.global_info, 0, 0, 2, 1)
 
-        self.config1 = Config(1, 'Configuration 1', parent=self)
+        self.config1 = Config(1, 'Configuration 1', predefined_ctx, parent=self)
         main_layout.addWidget(self.config1, 0, 1, 1, 2)
 
-        self.config2 = Config(2, 'Configuration 2', parent=self)
+        self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
         main_layout.addWidget(self.config2, 1, 1, 1, 2)
 
         self.setWidget(main_frame)

@@ -1,5 +1,4 @@
-from constant import NULL
-
+NULL = '\u2205'
 
 class PredefinedHandshape:
     def __init__(self, name, filename, canonical):
@@ -30,6 +29,11 @@ class PredefinedHandshape:
     @filename.setter
     def filename(self, new_filename):
         self._filename = new_filename
+
+
+class HandshapeNoMatch(PredefinedHandshape):
+    def __init__(self, name='no match', filename='no-match', canonical=None):
+        super().__init__(name, filename, canonical)
 
 
 class HandshapeEmpty(PredefinedHandshape):
