@@ -125,12 +125,6 @@ class SingleLocationViewer(QGraphicsView):
             self._photo.setPixmap(QPixmap())
         self.fitInView()
 
-    def toggleDragMode(self):
-        if self.dragMode() == QGraphicsView.ScrollHandDrag:
-            self.setDragMode(QGraphicsView.NoDrag)
-        elif not self._photo.pixmap().isNull():
-            self.setDragMode(QGraphicsView.ScrollHandDrag)
-
     def remove_clicked_group(self):
         if self.hand == 'D':
             if self.text_D.scene() and self.point_D.scene():
@@ -186,6 +180,10 @@ class SingleLocationViewer(QGraphicsView):
                 # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
             self._zoom = 0
+
+    def enterEvent(self, event):
+        self.viewport().setCursor(Qt.CrossCursor)
+        super().enterEvent(event)
 
     def wheelEvent(self, event):
         if self.has_photo():
