@@ -35,6 +35,7 @@ from gui.panel import (
     HandIllustrationPanel,
     ParameterPanel
 )
+from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
 from constant import SAMPLE_LOCATIONS
@@ -138,6 +139,12 @@ class MainWindow(QMainWindow):
         action_predefined_handshape.triggered.connect(self.on_action_predefined_handshape)
         action_predefined_handshape.setCheckable(False)
 
+        # preferences
+        action_edit_preference = QAction('Preferences...', parent=self)
+        action_edit_preference.setStatusTip('Open preference window')
+        action_edit_preference.triggered.connect(self.on_action_edit_preference)
+        action_edit_preference.setCheckable(False)
+
         toolbar.addAction(action_new_sign)
         toolbar.addSeparator()
         toolbar.addAction(action_save)
@@ -155,7 +162,7 @@ class MainWindow(QMainWindow):
         main_menu = self.menuBar()
 
         menu_option = main_menu.addMenu('&Settings')
-        menu_option.addAction(action_new_corpus)
+        menu_option.addAction(action_edit_preference)
 
         menu_file = main_menu.addMenu('&File')
         menu_file.addAction(action_new_corpus)
@@ -258,12 +265,16 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('display')
         self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(1200, 1000))
         self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(50, 50))
-        self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=3)
+        self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2)
         self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True)
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('metadata')
         self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue=getuser())
+        self.app_qsettings.endGroup()
+
+        self.app_qsettings.beginGroup('reminder')
+        self.app_settings['reminder']['overwrite'] = self.app_qsettings.value('overwrite', defaultValue=True)
         self.app_qsettings.endGroup()
 
     def check_storage(self):
@@ -294,6 +305,10 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('coder', self.app_settings['metadata']['coder'])
         self.app_qsettings.endGroup()
 
+        self.app_qsettings.beginGroup('reminder')
+        self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
+        self.app_qsettings.endGroup()
+
     def on_action_define_location(self):
         location_definer = LocationDefinerDialog(self.corpus.location_definition, self.app_settings, self.app_ctx, parent=self)
         location_definer.saved_locations.connect(self.save_new_locations)
@@ -310,6 +325,11 @@ class MainWindow(QMainWindow):
     def update_hand_illustration(self, num):
         hand_img = QPixmap(self.app_ctx.hand_illustrations['slot' + str(num)])
         self.illustration_scroll.set_img(hand_img)
+
+    def on_action_edit_preference(self):
+        pref_dialog = PreferenceDialog(self.app_settings, parent=self)
+        pref_dialog.exec_()
+        #self.app_settings
 
     @check_duplicated_gloss
     @check_unsaved_corpus
