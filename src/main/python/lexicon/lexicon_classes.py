@@ -1,5 +1,7 @@
 from shapely.geometry import Point
+from itertools import chain
 
+NULL = '\u2205'
 
 class LexicalInformation:
     def __init__(self, lexical_info):
@@ -206,7 +208,20 @@ class HandshapeTranscriptionHand:
         self._hand_number = new_hand_number
 
     def __iter__(self):
-        return [self.field2, self.field3, self.field4, self.field5, self.field6, self.field7].__iter__()
+        return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
+
+    def get_hand_transcription_list(self):
+        return [slot.symbol for slot in self.__iter__()]
+
+    def is_empty(self):
+        return self.get_hand_transcription_list() == [
+            '', '', '', '',
+            '', '', NULL, '/', '', '', '', '', '', '',
+            '1', '', '', '',
+            '', '2', '', '', '',
+            '', '3', '', '', '',
+            '', '4', '', '', ''
+        ]
 
 
 class HandshapeTranscriptionConfig:
@@ -222,6 +237,19 @@ class HandshapeTranscriptionConfig:
     def config_number(self, new_config_number):
         self._config_number = new_config_number
 
+    def is_empty(self):
+        return self.hand1.is_empty() and self.hand2.is_empty()
+
+    def find_handedness(self):
+        if self.hand1.is_empty() and self.hand2.is_empty():
+            return 0
+        elif not self.hand1.is_empty() and self.hand2.is_empty():
+            return 1
+        elif self.hand1.is_empty() and not self.hand2.is_empty():
+            return 2
+        elif not self.hand1.is_empty() and not self.hand2.is_empty():
+            return 3
+
     def __iter__(self):
         return [self.hand1, self.hand2].__iter__()
 
@@ -230,9 +258,39 @@ class HandshapeTranscription:
     def __init__(self, configs):
         self.configs = configs
         self.config1, self.config2 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs]
+        self.find_properties()
 
     def __repr__(self):
         return repr(self.configs)
+
+    def find_properties(self):
+        # one-handed vs. two-handed
+        self.handedness = self.find_handedness()
+
+        # one-config vs. two-config
+        self.config = self.find_config()
+
+    def find_handedness(self):
+        if self.config1.is_empty() and self.config2.is_empty():
+            return 0
+        elif self.config1.find_handedness() == 3 or self.config2.find_handedness() == 3:
+            return 2
+        elif self.config1.find_handedness() == 1 and self.config2.find_handedness() == 2:
+            return 2
+        elif self.config2.find_handedness() == 1 and self.config1.find_handedness() == 2:
+            return 2
+        else:
+            return 1
+
+    def find_config(self):
+        if self.config1.is_empty() and self.config2.is_empty():
+            return 0
+        elif self.config1.is_empty() and not self.config2.is_empty():
+            return 2
+        elif not self.config1.is_empty() and self.config2.is_empty():
+            return 1
+        else:
+            return 3
 
 
 class LocationPoint:
