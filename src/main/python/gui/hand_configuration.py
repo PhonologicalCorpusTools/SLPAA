@@ -30,6 +30,7 @@ from lexicon.predefined_handshape import HandshapeNoMatch
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
+
 class ConfigSlot(QLineEdit):
     slot_num_on_focus = pyqtSignal(str)
     slot_on_focus = pyqtSignal(str)
