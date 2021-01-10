@@ -3,6 +3,7 @@ from itertools import chain
 
 NULL = '\u2205'
 
+
 class LexicalInformation:
     def __init__(self, lexical_info):
         self._gloss = lexical_info['gloss']
