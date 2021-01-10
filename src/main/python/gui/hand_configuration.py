@@ -35,6 +35,7 @@ class ConfigSlot(QLineEdit):
     slot_num_on_focus = pyqtSignal(str)
     slot_on_focus = pyqtSignal(str)
     slot_leave = pyqtSignal()
+    slot_changed = pyqtSignal(dict)
 
     def __init__(self, completer_options, descriptions, **kwargs):
         super().__init__(**kwargs)
@@ -104,12 +105,14 @@ class ConfigSlot(QLineEdit):
     def flag_estimate(self):
         self.estimate = self.flag_estimate_action.isChecked()
         self.setProperty('Estimate', self.estimate)
+        self.slot_changed.emit(self.get_value())
 
         self.setStyle(self.style())
 
     def flag_uncertain(self):
         self.uncertain = self.flag_uncertain_action.isChecked()
         self.setProperty('Uncertain', self.uncertain)
+        self.slot_changed.emit(self.get_value())
 
         self.setStyle(self.style())
 
@@ -146,6 +149,7 @@ class ConfigSlot(QLineEdit):
 
     def on_text_changed(self, text):
         self.setText(text.split(sep=' ')[0])
+        self.slot_changed.emit(self.get_value())
         self.repaint()
 
     def enterEvent(self, event):
@@ -165,7 +169,7 @@ class ConfigField(QWidget):
     slot_num_on_focus = pyqtSignal(str)
     slot_on_focus = pyqtSignal(str)
     slot_leave = pyqtSignal()
-    slot_changed = pyqtSignal()
+    slot_changed = pyqtSignal(dict)
 
     def __init__(self, field_number, parent=None):
         super().__init__(parent=parent)
@@ -293,6 +297,10 @@ class ConfigField(QWidget):
         elif self.field_number == 7:
             return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
 
+    def append_info_to_slot_changed(self, field_number, slot_dict):
+        slot_dict['field_number'] = field_number
+        self.slot_changed.emit(slot_dict)
+
     def generate_slots(self):
         if self.field_number == 2:
             self.slot2 = ConfigSlot(['L [lateral]', 'U [unopposed]', 'O [opposed]', '? [unestimatable]'],
@@ -301,7 +309,7 @@ class ConfigField(QWidget):
             self.slot2.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot2.slot_leave.connect(self.slot_leave.emit)
-            self.slot2.textChanged.connect(self.slot_changed.emit)
+            self.slot2.slot_changed.connect(lambda d: self.append_info_to_slot_changed(2, d))
             self.insert_slot(self.slot2)
 
             self.slot3 = ConfigSlot(['{ [full abduction]', '< [neutral]', '= [adducted]', '? [unestimatable]'],
@@ -310,7 +318,7 @@ class ConfigField(QWidget):
             self.slot3.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot3.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot3.slot_leave.connect(self.slot_leave.emit)
-            self.slot3.textChanged.connect(self.slot_changed.emit)
+            self.slot3.slot_changed.connect(lambda d: self.append_info_to_slot_changed(2, d))
             self.insert_slot(self.slot3)
 
             self.slot4 = ConfigSlot(['H [hyperextended]', 'E [fully extended]', 'e [somewhat extended]', 'i [clearly intermediate]', 'F [fully flexed]', 'f [somewhat flexed]', '? [unestimatable]'],
@@ -319,7 +327,7 @@ class ConfigField(QWidget):
             self.slot4.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot4.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot4.slot_leave.connect(self.slot_leave.emit)
-            self.slot4.textChanged.connect(self.slot_changed.emit)
+            self.slot4.slot_changed.connect(lambda d: self.append_info_to_slot_changed(2, d))
             self.insert_slot(self.slot4)
 
             self.slot5 = ConfigSlot(['H [hyperextended]', 'E [fully extended]', 'e [somewhat extended]', 'i [clearly intermediate]', 'F [fully flexed]', 'f [somewhat flexed]', '? [unestimatable]'],
@@ -328,7 +336,7 @@ class ConfigField(QWidget):
             self.slot5.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot5.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot5.slot_leave.connect(self.slot_leave.emit)
-            self.slot5.textChanged.connect(self.slot_changed.emit)
+            self.slot5.slot_changed.connect(lambda d: self.append_info_to_slot_changed(2, d))
             self.insert_slot(self.slot5)
 
         elif self.field_number == 3:
@@ -338,7 +346,7 @@ class ConfigField(QWidget):
             self.slot6.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot6.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot6.slot_leave.connect(self.slot_leave.emit)
-            self.slot6.textChanged.connect(self.slot_changed.emit)
+            self.slot6.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot6)
 
             self.slot7 = ConfigSlot(
@@ -348,7 +356,7 @@ class ConfigField(QWidget):
             self.slot7.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot7.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot7.slot_leave.connect(self.slot_leave.emit)
-            self.slot7.textChanged.connect(self.slot_changed.emit)
+            self.slot7.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot7)
 
             self.slot8 = ConfigSlot(
@@ -359,7 +367,6 @@ class ConfigField(QWidget):
             self.slot8.setEnabled(False)
             self.slot8.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot8.slot_leave.connect(self.slot_leave.emit)
-            self.slot8.textChanged.connect(self.slot_changed.emit)
             self.insert_slot(self.slot8)
 
             self.slot9 = ConfigSlot(
@@ -370,7 +377,6 @@ class ConfigField(QWidget):
             self.slot9.setEnabled(False)
             self.slot9.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot9.slot_leave.connect(self.slot_leave.emit)
-            self.slot9.textChanged.connect(self.slot_changed.emit)
             self.insert_slot(self.slot9)
 
             self.slot10 = ConfigSlot(['- [no contact]', 't [tip]', 'fr [friction surface]', 'b [back surface]', 'r [radial surface]', 'u [ulnar surface]', '? [unestimatable]'],
@@ -379,7 +385,7 @@ class ConfigField(QWidget):
             self.slot10.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot10.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot10.slot_leave.connect(self.slot_leave.emit)
-            self.slot10.textChanged.connect(self.slot_changed.emit)
+            self.slot10.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot10)
 
             self.slot11 = ConfigSlot(
@@ -389,7 +395,7 @@ class ConfigField(QWidget):
             self.slot11.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot11.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot11.slot_leave.connect(self.slot_leave.emit)
-            self.slot11.textChanged.connect(self.slot_changed.emit)
+            self.slot11.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot11)
 
             self.slot12 = ConfigSlot(
@@ -399,7 +405,7 @@ class ConfigField(QWidget):
             self.slot12.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot12.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot12.slot_leave.connect(self.slot_leave.emit)
-            self.slot12.textChanged.connect(self.slot_changed.emit)
+            self.slot12.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot12)
 
             self.slot13 = ConfigSlot(
@@ -409,7 +415,7 @@ class ConfigField(QWidget):
             self.slot13.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot13.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot13.slot_leave.connect(self.slot_leave.emit)
-            self.slot13.textChanged.connect(self.slot_changed.emit)
+            self.slot13.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot13)
 
             self.slot14 = ConfigSlot(
@@ -419,7 +425,7 @@ class ConfigField(QWidget):
             self.slot14.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot14.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot14.slot_leave.connect(self.slot_leave.emit)
-            self.slot14.textChanged.connect(self.slot_changed.emit)
+            self.slot14.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot14)
 
             self.slot15 = ConfigSlot(
@@ -429,7 +435,7 @@ class ConfigField(QWidget):
             self.slot15.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot15.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot15.slot_leave.connect(self.slot_leave.emit)
-            self.slot15.textChanged.connect(self.slot_changed.emit)
+            self.slot15.slot_changed.connect(lambda d: self.append_info_to_slot_changed(3, d))
             self.insert_slot(self.slot15)
 
         elif self.field_number == 4:
@@ -441,7 +447,6 @@ class ConfigField(QWidget):
             self.slot16.setEnabled(False)
             self.slot16.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot16.slot_leave.connect(self.slot_leave.emit)
-            self.slot16.textChanged.connect(self.slot_changed.emit)
             self.insert_slot(self.slot16)
 
             self.slot17 = ConfigSlot(
@@ -452,7 +457,7 @@ class ConfigField(QWidget):
             self.slot17.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot17.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot17.slot_leave.connect(self.slot_leave.emit)
-            self.slot17.textChanged.connect(self.slot_changed.emit)
+            self.slot17.slot_changed.connect(lambda d: self.append_info_to_slot_changed(4, d))
             self.insert_slot(self.slot17)
 
             self.slot18 = ConfigSlot(
@@ -463,7 +468,7 @@ class ConfigField(QWidget):
             self.slot18.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot18.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot18.slot_leave.connect(self.slot_leave.emit)
-            self.slot18.textChanged.connect(self.slot_changed.emit)
+            self.slot18.slot_changed.connect(lambda d: self.append_info_to_slot_changed(4, d))
             self.insert_slot(self.slot18)
 
             self.slot19 = ConfigSlot(
@@ -474,7 +479,7 @@ class ConfigField(QWidget):
             self.slot19.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot19.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot19.slot_leave.connect(self.slot_leave.emit)
-            self.slot19.textChanged.connect(self.slot_changed.emit)
+            self.slot19.slot_changed.connect(lambda d: self.append_info_to_slot_changed(4, d))
             self.insert_slot(self.slot19)
 
         elif self.field_number == 5:
@@ -486,7 +491,7 @@ class ConfigField(QWidget):
             self.slot20.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot20.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot20.slot_leave.connect(self.slot_leave.emit)
-            self.slot20.textChanged.connect(self.slot_changed.emit)
+            self.slot20.slot_changed.connect(lambda d: self.append_info_to_slot_changed(5, d))
             self.insert_slot(self.slot20)
 
             self.slot21 = ConfigSlot(
@@ -497,7 +502,6 @@ class ConfigField(QWidget):
             self.slot21.setEnabled(False)
             self.slot21.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot21.slot_leave.connect(self.slot_leave.emit)
-            self.slot21.textChanged.connect(self.slot_changed.emit)
             self.insert_slot(self.slot21)
 
             self.slot22 = ConfigSlot(
@@ -508,7 +512,7 @@ class ConfigField(QWidget):
             self.slot22.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot22.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot22.slot_leave.connect(self.slot_leave.emit)
-            self.slot22.textChanged.connect(self.slot_changed.emit)
+            self.slot22.slot_changed.connect(lambda d: self.append_info_to_slot_changed(5, d))
             self.insert_slot(self.slot22)
 
             self.slot23 = ConfigSlot(
@@ -519,7 +523,7 @@ class ConfigField(QWidget):
             self.slot23.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot23.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot23.slot_leave.connect(self.slot_leave.emit)
-            self.slot23.textChanged.connect(self.slot_changed.emit)
+            self.slot23.slot_changed.connect(lambda d: self.append_info_to_slot_changed(5, d))
             self.insert_slot(self.slot23)
 
             self.slot24 = ConfigSlot(
@@ -530,7 +534,7 @@ class ConfigField(QWidget):
             self.slot24.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot24.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot24.slot_leave.connect(self.slot_leave.emit)
-            self.slot24.textChanged.connect(self.slot_changed.emit)
+            self.slot24.slot_changed.connect(lambda d: self.append_info_to_slot_changed(5, d))
             self.insert_slot(self.slot24)
 
         elif self.field_number == 6:
@@ -543,7 +547,7 @@ class ConfigField(QWidget):
             self.slot25.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot25.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot25.slot_leave.connect(self.slot_leave.emit)
-            self.slot25.textChanged.connect(self.slot_changed.emit)
+            self.slot25.slot_changed.connect(lambda d: self.append_info_to_slot_changed(6, d))
             self.insert_slot(self.slot25)
 
             self.slot26 = ConfigSlot(
@@ -554,7 +558,6 @@ class ConfigField(QWidget):
             self.slot26.setEnabled(False)
             self.slot26.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot26.slot_leave.connect(self.slot_leave.emit)
-            self.slot26.textChanged.connect(self.slot_changed.emit)
             self.insert_slot(self.slot26)
 
             self.slot27 = ConfigSlot(
@@ -565,7 +568,7 @@ class ConfigField(QWidget):
             self.slot27.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot27.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot27.slot_leave.connect(self.slot_leave.emit)
-            self.slot27.textChanged.connect(self.slot_changed.emit)
+            self.slot27.slot_changed.connect(lambda d: self.append_info_to_slot_changed(6, d))
             self.insert_slot(self.slot27)
 
             self.slot28 = ConfigSlot(
@@ -576,7 +579,7 @@ class ConfigField(QWidget):
             self.slot28.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot28.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot28.slot_leave.connect(self.slot_leave.emit)
-            self.slot28.textChanged.connect(self.slot_changed.emit)
+            self.slot28.slot_changed.connect(lambda d: self.append_info_to_slot_changed(6, d))
             self.insert_slot(self.slot28)
 
             self.slot29 = ConfigSlot(
@@ -587,7 +590,7 @@ class ConfigField(QWidget):
             self.slot29.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot29.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot29.slot_leave.connect(self.slot_leave.emit)
-            self.slot29.textChanged.connect(self.slot_changed.emit)
+            self.slot29.slot_changed.connect(lambda d: self.append_info_to_slot_changed(6, d))
             self.insert_slot(self.slot29)
 
         elif self.field_number == 7:
@@ -600,7 +603,7 @@ class ConfigField(QWidget):
             self.slot30.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot30.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot30.slot_leave.connect(self.slot_leave.emit)
-            self.slot30.textChanged.connect(self.slot_changed.emit)
+            self.slot30.slot_changed.connect(lambda d: self.append_info_to_slot_changed(7, d))
             self.insert_slot(self.slot30)
 
             self.slot31 = ConfigSlot(
@@ -611,7 +614,6 @@ class ConfigField(QWidget):
             self.slot31.setEnabled(False)
             self.slot31.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot31.slot_leave.connect(self.slot_leave.emit)
-            self.slot31.textChanged.connect(self.slot_changed.emit)
             self.insert_slot(self.slot31)
 
             self.slot32 = ConfigSlot(
@@ -622,7 +624,7 @@ class ConfigField(QWidget):
             self.slot32.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot32.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot32.slot_leave.connect(self.slot_leave.emit)
-            self.slot32.textChanged.connect(self.slot_changed.emit)
+            self.slot32.slot_changed.connect(lambda d: self.append_info_to_slot_changed(7, d))
             self.insert_slot(self.slot32)
 
             self.slot33 = ConfigSlot(
@@ -633,7 +635,7 @@ class ConfigField(QWidget):
             self.slot33.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot33.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot33.slot_leave.connect(self.slot_leave.emit)
-            self.slot33.textChanged.connect(self.slot_changed.emit)
+            self.slot33.slot_changed.connect(lambda d: self.append_info_to_slot_changed(7, d))
             self.insert_slot(self.slot33)
 
             self.slot34 = ConfigSlot(
@@ -644,7 +646,7 @@ class ConfigField(QWidget):
             self.slot34.slot_on_focus.connect(self.slot_on_focus.emit)
             self.slot34.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
             self.slot34.slot_leave.connect(self.slot_leave.emit)
-            self.slot34.textChanged.connect(self.slot_changed.emit)
+            self.slot34.slot_changed.connect(lambda d: self.append_info_to_slot_changed(7, d))
             self.insert_slot(self.slot34)
 
     def get_value(self):
@@ -723,6 +725,7 @@ class ConfigHand(QWidget):
     slot_num_on_focus = pyqtSignal(str)
     slot_on_focus = pyqtSignal(str)
     slot_leave = pyqtSignal()
+    slot_changed = pyqtSignal(dict)
 
     def __init__(self, hand_number, predefined_ctx, parent=None):
         super().__init__(parent=parent)
@@ -786,7 +789,7 @@ class ConfigHand(QWidget):
         self.field6.clear()
         self.field7.clear()
 
-    def update_predefined_image_text(self):
+    def update_predefined_image_text(self, d):
         transcription = tuple(self.get_hand_transcription_list())
         image = QPixmap(self.predefined_ctx[PREDEFINED_MAP.get(transcription, HandshapeNoMatch()).filename])
         name = PREDEFINED_MAP.get(transcription, HandshapeNoMatch()).name
@@ -798,12 +801,17 @@ class ConfigHand(QWidget):
         )
         self.repaint()
 
+    def append_info_to_slot_changed(self, slot_dict):
+        slot_dict['hand_number'] = self.hand_number
+        self.slot_changed.emit(slot_dict)
+
     def generate_fields(self):
         self.field2 = ConfigField(2, parent=self)
         self.field2.slot_on_focus.connect(self.slot_on_focus.emit)
         self.field2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field2.slot_leave.connect(self.slot_leave.emit)
         self.field2.slot_changed.connect(self.update_predefined_image_text)
+        self.field2.slot_changed.connect(self.append_info_to_slot_changed)
         self.main_layout.addWidget(self.field2)
 
         self.field3 = ConfigField(3, parent=self)
@@ -811,6 +819,7 @@ class ConfigHand(QWidget):
         self.field3.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field3.slot_leave.connect(self.slot_leave.emit)
         self.field3.slot_changed.connect(self.update_predefined_image_text)
+        self.field3.slot_changed.connect(self.append_info_to_slot_changed)
         self.main_layout.addWidget(self.field3)
 
         self.field4 = ConfigField(4, parent=self)
@@ -818,6 +827,7 @@ class ConfigHand(QWidget):
         self.field4.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field4.slot_leave.connect(self.slot_leave.emit)
         self.field4.slot_changed.connect(self.update_predefined_image_text)
+        self.field4.slot_changed.connect(self.append_info_to_slot_changed)
         self.main_layout.addWidget(self.field4)
 
         self.field5 = ConfigField(5, parent=self)
@@ -825,6 +835,7 @@ class ConfigHand(QWidget):
         self.field5.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field5.slot_leave.connect(self.slot_leave.emit)
         self.field5.slot_changed.connect(self.update_predefined_image_text)
+        self.field5.slot_changed.connect(self.append_info_to_slot_changed)
         self.main_layout.addWidget(self.field5)
 
         self.field6 = ConfigField(6, parent=self)
@@ -832,6 +843,7 @@ class ConfigHand(QWidget):
         self.field6.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field6.slot_leave.connect(self.slot_leave.emit)
         self.field6.slot_changed.connect(self.update_predefined_image_text)
+        self.field6.slot_changed.connect(self.append_info_to_slot_changed)
         self.main_layout.addWidget(self.field6)
 
         self.field7 = ConfigField(7, parent=self)
@@ -839,6 +851,7 @@ class ConfigHand(QWidget):
         self.field7.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field7.slot_leave.connect(self.slot_leave.emit)
         self.field7.slot_changed.connect(self.update_predefined_image_text)
+        self.field7.slot_changed.connect(self.append_info_to_slot_changed)
         self.main_layout.addWidget(self.field7)
 
     def insert_radio_button(self):
@@ -871,6 +884,7 @@ class Config(QGroupBox):
     slot_num_on_focus = pyqtSignal(str)
     slot_on_focus = pyqtSignal(str)
     slot_leave = pyqtSignal()
+    slot_changed = pyqtSignal(dict)
 
     def __init__(self, config_number, title, predefined_ctx, **kwargs):
         super().__init__(title=title, **kwargs)
@@ -887,15 +901,22 @@ class Config(QGroupBox):
 
         self.generate_hands()
 
+    def append_info_to_slot_changed(self, slot_dict):
+        slot_dict['config_number'] = self.config_number
+        self.slot_changed.emit(slot_dict)
+
     def generate_hands(self):
         self.hand1 = ConfigHand(1, self.predefined_ctx, parent=self)
         self.hand1.slot_on_focus.connect(self.slot_on_focus.emit)
         self.hand1.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.hand1.slot_leave.connect(self.slot_leave.emit)
+        self.hand1.slot_changed.connect(self.append_info_to_slot_changed)
+
         self.hand2 = ConfigHand(2, self.predefined_ctx, parent=self)
         self.hand2.slot_on_focus.connect(self.slot_on_focus.emit)
         self.hand2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.hand2.slot_leave.connect(self.slot_leave.emit)
+        self.hand2.slot_changed.connect(self.append_info_to_slot_changed)
 
         self.main_layout.addWidget(self.hand1)
         self.main_layout.addWidget(self.hand2)
