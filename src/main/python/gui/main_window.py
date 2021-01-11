@@ -86,6 +86,24 @@ class MainWindow(QMainWindow):
         action_save.triggered.connect(self.on_action_save)
         action_save.setCheckable(False)
 
+        # undo
+        action_undo = QAction(QIcon(self.app_ctx.icons['undo']), 'Undo', parent=self)
+        action_undo.setEnabled(False)
+        self.undostack.canUndoChanged.connect(lambda b: action_undo.setEnabled(b))
+        action_undo.setStatusTip('Undo')
+        action_undo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Z))
+        action_undo.triggered.connect(lambda: self.undostack.undo())
+        action_undo.setCheckable(False)
+
+        # redo
+        action_redo = QAction(QIcon(self.app_ctx.icons['redo']), 'Redo', parent=self)
+        action_redo.setEnabled(False)
+        self.undostack.canRedoChanged.connect(lambda b: action_redo.setEnabled(b))
+        action_redo.setStatusTip('Undo')
+        action_redo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Y))
+        action_redo.triggered.connect(lambda: self.undostack.redo())
+        action_redo.setCheckable(False)
+
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
         action_copy.setStatusTip('Copy the current sign')
@@ -149,6 +167,9 @@ class MainWindow(QMainWindow):
         toolbar.addAction(action_new_sign)
         toolbar.addSeparator()
         toolbar.addAction(action_save)
+        toolbar.addSeparator()
+        toolbar.addAction(action_undo)
+        toolbar.addAction(action_redo)
         toolbar.addSeparator()
         toolbar.addAction(action_copy)
         toolbar.addAction(action_paste)

@@ -21,7 +21,9 @@ class AppContext(ApplicationContext):
             'paste': self.get_resource('icons/paste.png'),
             'plus': self.get_resource('icons/plus.png'),
             'save': self.get_resource('icons/disk.png'),
-            'hand': self.get_resource('icons/hand.png')
+            'hand': self.get_resource('icons/hand.png'),
+            'redo': self.get_resource('icons/redo.png'),
+            'undo': self.get_resource('icons/undo.png')
         }
 
     @cached_property
