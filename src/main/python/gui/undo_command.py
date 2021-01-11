@@ -34,3 +34,16 @@ class PredefinedUndoCommand(QUndoCommand):
 
     def undo(self):
         self.transcription.set_predefined(self.old_trans, hand=self.hand)
+
+
+class LexicalUndoCommand(QUndoCommand):
+    def __init__(self, lexical_field, **kwargs):
+        super().__init__(**kwargs)
+
+        self.lexical_field = lexical_field
+
+    def redo(self):
+        self.lexical_field.redo()
+
+    def undo(self):
+        self.lexical_field.undo()

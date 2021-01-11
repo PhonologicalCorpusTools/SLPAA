@@ -10,6 +10,7 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtWidgets import (
+    QWidget,
     QScrollArea,
     QVBoxLayout,
     QFrame,
@@ -244,7 +245,21 @@ class SingleLocationViewer(QGraphicsView):
             self._scene.addItem(self.point_W)
 
 
+class LexicalNote(QPlainTextEdit):
+    focus_out = pyqtSignal()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def focusOutEvent(self, event):
+        # use focusOutEvent as the proxy for finishing editing
+        self.focus_out.emit()
+        super().focusInEvent(event)
+
+
 class LexicalInformationPanel(QScrollArea):
+    finish_edit = pyqtSignal(QWidget)
+
     def __init__(self, coder, update, **kwargs):
         super().__init__(**kwargs)
 
@@ -266,14 +281,23 @@ class LexicalInformationPanel(QScrollArea):
 
         self.gloss_edit = QLineEdit(parent=self)
         self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
+        self.gloss_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.gloss_edit))
+
         self.freq_edit = QLineEdit('1.0', parent=self)
+        self.freq_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.freq_edit))
+
         self.coder_edit = QLineEdit(parent=self)
         self.coder_edit.setText(coder)
+        self.coder_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.coder_edit))
+
         self.update_edit = QLineEdit(parent=self)
         self.update_edit.setPlaceholderText('YYYY-MM-DD')
         self.update_edit.setText(str(update))
-        self.note_edit = QPlainTextEdit(parent=self)
+        self.update_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.update_edit))
+
+        self.note_edit = LexicalNote(parent=self)
         self.note_edit.setPlaceholderText('Enter note here...')
+        self.note_edit.focus_out.connect(lambda: self.finish_edit.emit(self.note_edit))
 
         main_layout.addWidget(gloss_label)
         main_layout.addWidget(self.gloss_edit)
