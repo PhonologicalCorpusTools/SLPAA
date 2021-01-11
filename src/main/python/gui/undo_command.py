@@ -18,3 +18,19 @@ class TranscriptionUndoCommand(QUndoCommand):
 
     def undo(self):
         self.slot.set_value_from_dict(self.old_prop)
+
+
+class PredefinedUndoCommand(QUndoCommand):
+    def __init__(self, transcription, transcription_list, **kwargs):
+        super().__init__(**kwargs)
+
+        self.transcription = transcription
+        self.old_trans = transcription.get_hand_transcription()
+        self.new_trans = transcription_list
+        self.hand = transcription.selected_hand_group.checkedId()
+
+    def redo(self):
+        self.transcription.set_predefined(self.new_trans, hand=self.hand)
+
+    def undo(self):
+        self.transcription.set_predefined(self.old_trans, hand=self.hand)

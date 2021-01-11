@@ -128,7 +128,7 @@ class ConfigSlot(QLineEdit):
             self.flag_uncertain_action.setChecked(False)
             self.flag_estimate()
             self.flag_uncertain()
-            self.repaint()
+            #self.repaint()
 
     def set_value_from_dict(self, d):
         self.setText(d['symbol'])
@@ -136,7 +136,7 @@ class ConfigSlot(QLineEdit):
         self.flag_uncertain_action.setChecked(d['uncertain'])
         self.flag_estimate()
         self.flag_uncertain()
-        self.repaint()
+        #self.repaint()
 
     def set_value(self, slot):
         self.setText(slot.symbol)
@@ -144,7 +144,7 @@ class ConfigSlot(QLineEdit):
         self.flag_uncertain_action.setChecked(slot.uncertain)
         self.flag_estimate()
         self.flag_uncertain()
-        self.repaint()
+        #self.repaint()
 
     def contextMenuEvent(self, event):
         self.flag_menu.exec_(event.globalPos())
@@ -162,7 +162,7 @@ class ConfigSlot(QLineEdit):
 
     def on_text_changed(self, text):
         self.setText(text.split(sep=' ')[0])
-        self.repaint()
+        #self.repaint()
 
     def enterEvent(self, event):
         self.slot_on_focus.emit(self.description)
@@ -875,6 +875,7 @@ class ConfigHand(QWidget):
         self.field3.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field3.slot_leave.connect(self.slot_leave.emit)
         self.field3.slot_changed.connect(self.update_predefined_image_text)
+        self.field3.slot_finish_edit.connect(self.slot_finish_edit.emit)
         self.main_layout.addWidget(self.field3)
 
         self.field4 = ConfigField(4, parent=self)
@@ -882,6 +883,7 @@ class ConfigHand(QWidget):
         self.field4.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field4.slot_leave.connect(self.slot_leave.emit)
         self.field4.slot_changed.connect(self.update_predefined_image_text)
+        self.field4.slot_finish_edit.connect(self.slot_finish_edit.emit)
         self.main_layout.addWidget(self.field4)
 
         self.field5 = ConfigField(5, parent=self)
@@ -889,6 +891,7 @@ class ConfigHand(QWidget):
         self.field5.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field5.slot_leave.connect(self.slot_leave.emit)
         self.field5.slot_changed.connect(self.update_predefined_image_text)
+        self.field5.slot_finish_edit.connect(self.slot_finish_edit.emit)
         self.main_layout.addWidget(self.field5)
 
         self.field6 = ConfigField(6, parent=self)
@@ -896,6 +899,7 @@ class ConfigHand(QWidget):
         self.field6.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field6.slot_leave.connect(self.slot_leave.emit)
         self.field6.slot_changed.connect(self.update_predefined_image_text)
+        self.field6.slot_finish_edit.connect(self.slot_finish_edit.emit)
         self.main_layout.addWidget(self.field6)
 
         self.field7 = ConfigField(7, parent=self)
@@ -903,6 +907,7 @@ class ConfigHand(QWidget):
         self.field7.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field7.slot_leave.connect(self.slot_leave.emit)
         self.field7.slot_changed.connect(self.update_predefined_image_text)
+        self.field7.slot_finish_edit.connect(self.slot_finish_edit.emit)
         self.main_layout.addWidget(self.field7)
 
     def insert_radio_button(self):
@@ -963,6 +968,7 @@ class Config(QGroupBox):
         self.hand2.slot_on_focus.connect(self.slot_on_focus.emit)
         self.hand2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.hand2.slot_leave.connect(self.slot_leave.emit)
+        self.hand2.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
         self.main_layout.addWidget(self.hand1)
         self.main_layout.addWidget(self.hand2)

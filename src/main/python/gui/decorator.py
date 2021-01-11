@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
 def check_unsaved_change(func):
     @functools.wraps(func)
     def wrapper_check_unsaved_change(self, event, *args, **kwargs):
-        if self.unsaved_changes:
+        if not self.undostack.isClean():
             response = QMessageBox.question(self, 'Unsaved Changes', 'You have unsaved changes')
             if response == QMessageBox.No:
                 return event.ignore()

@@ -39,7 +39,7 @@ from gui.panel import (
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
-from gui.undo_command import TranscriptionUndoCommand
+from gui.undo_command import TranscriptionUndoCommand, PredefinedUndoCommand
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
     Corpus,
@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
         self.corpus = None
         self.current_sign = None
 
-        self.transcription_undostack = QUndoStack(parent=self)
+        self.undostack = QUndoStack(parent=self)
 
         self.predefined_handshape_dialog = None
 
@@ -69,10 +69,6 @@ class MainWindow(QMainWindow):
 
         # date information
         self.today = date.today()
-
-        # track unsaved changes
-        # TODO: need to remove this once undo stack is implemented
-        self.unsaved_changes = True
 
         # app title
         self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
@@ -211,12 +207,13 @@ class MainWindow(QMainWindow):
         self.transcription_scroll.config1.slot_num_on_focus.connect(self.update_hand_illustration)
         self.transcription_scroll.config1.slot_leave.connect(self.status_bar.clearMessage)
         self.transcription_scroll.config1.slot_leave.connect(self.illustration_scroll.set_neutral_img)
-        self.transcription_scroll.config1.slot_finish_edit.connect(self.print)
+        self.transcription_scroll.config1.slot_finish_edit.connect(self.handle_slot_edit)
 
         self.transcription_scroll.config2.slot_on_focus.connect(self.update_status_bar)
         self.transcription_scroll.config2.slot_num_on_focus.connect(self.update_hand_illustration)
         self.transcription_scroll.config2.slot_leave.connect(self.status_bar.clearMessage)
         self.transcription_scroll.config2.slot_leave.connect(self.illustration_scroll.set_neutral_img)
+        self.transcription_scroll.config2.slot_finish_edit.connect(self.handle_slot_edit)
 
         self.parameter_scroll = ParameterPanel(dict(), self.app_ctx, parent=self)
 
@@ -232,16 +229,16 @@ class MainWindow(QMainWindow):
 
         self.open_initialization_window()
 
-    def print(self, slot, old_prop, new_prop):
+    def handle_slot_edit(self, slot, old_prop, new_prop):
         undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
-        self.transcription_undostack.push(undo_command)
+        self.undostack.push(undo_command)
 
     def keyPressEvent(self, event):
         # TODO: create action for this
         if event.key() == (Qt.Key_Control and Qt.Key_Y):
-            self.transcription_undostack.redo()
+            self.undostack.redo()
         if event.key() == (Qt.Key_Control and Qt.Key_Z):
-            self.transcription_undostack.undo()
+            self.undostack.undo()
 
         super().keyPressEvent(event)
 
@@ -377,6 +374,8 @@ class MainWindow(QMainWindow):
             self.corpus.name = self.corpus_view.corpus_title.text()
             self.save_corpus_binary()
 
+            self.undostack.clear()
+
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
             pickle.dump(self.corpus, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -442,7 +441,8 @@ class MainWindow(QMainWindow):
             self.predefined_handshape_dialog.raise_()
 
     def handle_set_predefined(self, transcription_list):
-        self.transcription_scroll.set_predefined(transcription_list)
+        undo_command = PredefinedUndoCommand(self.transcription_scroll, transcription_list)
+        self.undostack.push(undo_command)
 
     def insert_predefined_buttons(self):
         self.transcription_scroll.insert_radio_button()
