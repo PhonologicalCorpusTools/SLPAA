@@ -97,7 +97,11 @@ class ConfigSlot(QLineEdit):
         self.current_prop = self.get_value()
         self.textChanged.connect(self.on_text_changed)
 
-        self.editingFinished.connect(lambda: self.slot_finish_edit.emit(self, self.current_prop, self.get_value()))
+        self.editingFinished.connect(self.handle_editing_finished)
+
+    def handle_editing_finished(self):
+        self.slot_finish_edit.emit(self, self.current_prop, self.get_value())
+        self.current_prop = self.get_value()
 
     def create_flag_menu(self):
         self.flag_menu = QMenu(parent=self)

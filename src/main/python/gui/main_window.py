@@ -39,7 +39,7 @@ from gui.panel import (
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
-from gui.undo_command import TranscriptionUndoCommand, PredefinedUndoCommand
+from gui.undo_command import TranscriptionUndoCommand, PredefinedUndoCommand, LexicalUndoCommand
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
     Corpus,
@@ -85,6 +85,24 @@ class MainWindow(QMainWindow):
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
         action_save.triggered.connect(self.on_action_save)
         action_save.setCheckable(False)
+
+        # undo
+        action_undo = QAction(QIcon(self.app_ctx.icons['undo']), 'Undo', parent=self)
+        action_undo.setEnabled(False)
+        self.undostack.canUndoChanged.connect(lambda b: action_undo.setEnabled(b))
+        action_undo.setStatusTip('Undo')
+        action_undo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Z))
+        action_undo.triggered.connect(lambda: self.undostack.undo())
+        action_undo.setCheckable(False)
+
+        # redo
+        action_redo = QAction(QIcon(self.app_ctx.icons['redo']), 'Redo', parent=self)
+        action_redo.setEnabled(False)
+        self.undostack.canRedoChanged.connect(lambda b: action_redo.setEnabled(b))
+        action_redo.setStatusTip('Undo')
+        action_redo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Y))
+        action_redo.triggered.connect(lambda: self.undostack.redo())
+        action_redo.setCheckable(False)
 
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
@@ -150,6 +168,9 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addAction(action_save)
         toolbar.addSeparator()
+        toolbar.addAction(action_undo)
+        toolbar.addAction(action_redo)
+        toolbar.addSeparator()
         toolbar.addAction(action_copy)
         toolbar.addAction(action_paste)
         toolbar.addSeparator()
@@ -199,6 +220,7 @@ class MainWindow(QMainWindow):
         corpus_scroll.setWidget(self.corpus_view)
 
         self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.today, parent=self)
+        self.lexical_scroll.finish_edit.connect(self.handle_lexical_edit)
 
         self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
 
@@ -229,18 +251,13 @@ class MainWindow(QMainWindow):
 
         self.open_initialization_window()
 
+    def handle_lexical_edit(self, lexical_field):
+        undo_command = LexicalUndoCommand(lexical_field)
+        self.undostack.push(undo_command)
+
     def handle_slot_edit(self, slot, old_prop, new_prop):
         undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
         self.undostack.push(undo_command)
-
-    def keyPressEvent(self, event):
-        # TODO: create action for this
-        if event.key() == (Qt.Key_Control and Qt.Key_Y):
-            self.undostack.redo()
-        if event.key() == (Qt.Key_Control and Qt.Key_Z):
-            self.undostack.undo()
-
-        super().keyPressEvent(event)
 
     def open_initialization_window(self):
         initialization = InitializationDialog(self.app_ctx, self.on_action_new_corpus, self.on_action_load_corpus, self.app_settings['metadata']['coder'], parent=self)
