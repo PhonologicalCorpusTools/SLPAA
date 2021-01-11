@@ -369,8 +369,23 @@ class HandTranscriptionPanel(QScrollArea):
         self.config2.remove_radio_button()
         self.selected_hand_group.deleteLater()
 
-    def set_predefined(self, transcription_list):
-        hand = self.selected_hand_group.checkedId()
+    def get_hand_transcription(self, hand=None):
+        if hand is None:
+            hand = self.selected_hand_group.checkedId()
+
+        if hand == 1:
+            return self.config1.hand1.get_hand_transcription_list()
+        elif hand == 2:
+            return self.config1.hand2.get_hand_transcription_list()
+        elif hand == 3:
+            return self.config2.hand1.get_hand_transcription_list()
+        elif hand == 4:
+            return self.config2.hand2.get_hand_transcription_list()
+
+    def set_predefined(self, transcription_list, hand=None):
+        if hand is None:
+            hand = self.selected_hand_group.checkedId()
+
         if hand == 1:
             self.config1.hand1.set_predefined(transcription_list)
         elif hand == 2:
