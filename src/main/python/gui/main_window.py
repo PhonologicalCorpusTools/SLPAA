@@ -17,7 +17,8 @@ from PyQt5.QtWidgets import (
     QStatusBar,
     QSplitter,
     QScrollArea,
-    QMessageBox
+    QMessageBox,
+    QUndoStack
 )
 from PyQt5.QtGui import (
     QIcon,
@@ -38,12 +39,12 @@ from gui.panel import (
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
+from gui.undo_command import TranscriptionUndoCommand
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
     Corpus,
     Sign
 )
-from pprint import pprint
 
 
 # TODO: add undo/redo stack: https://doc.qt.io/qt-5/qtwidgets-tools-undoframework-example.html
@@ -55,7 +56,8 @@ class MainWindow(QMainWindow):
 
         self.corpus = None
         self.current_sign = None
-        self.current_states = None
+
+        self.transcription_undostack = QUndoStack(parent=self)
 
         self.predefined_handshape_dialog = None
 
@@ -67,6 +69,10 @@ class MainWindow(QMainWindow):
 
         # date information
         self.today = date.today()
+
+        # track unsaved changes
+        # TODO: need to remove this once undo stack is implemented
+        self.unsaved_changes = True
 
         # app title
         self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
@@ -205,7 +211,7 @@ class MainWindow(QMainWindow):
         self.transcription_scroll.config1.slot_num_on_focus.connect(self.update_hand_illustration)
         self.transcription_scroll.config1.slot_leave.connect(self.status_bar.clearMessage)
         self.transcription_scroll.config1.slot_leave.connect(self.illustration_scroll.set_neutral_img)
-        self.transcription_scroll.config1.slot_changed.connect(self.check_unsaved_config1)
+        self.transcription_scroll.config1.slot_finish_edit.connect(self.print)
 
         self.transcription_scroll.config2.slot_on_focus.connect(self.update_status_bar)
         self.transcription_scroll.config2.slot_num_on_focus.connect(self.update_hand_illustration)
@@ -226,28 +232,18 @@ class MainWindow(QMainWindow):
 
         self.open_initialization_window()
 
-        # track unsaved changes
-        self.unsaved_changes = False
+    def print(self, slot, old_prop, new_prop):
+        undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
+        self.transcription_undostack.push(undo_command)
 
-    def check_unsaved_config1(self, d):
-        if self.current_states is None:
-            self.unsaved_changes = True
-            return
+    def keyPressEvent(self, event):
+        # TODO: create action for this
+        if event.key() == (Qt.Key_Control and Qt.Key_Y):
+            self.transcription_undostack.redo()
+        if event.key() == (Qt.Key_Control and Qt.Key_Z):
+            self.transcription_undostack.undo()
 
-        for slot in self.current_states['configs'][0]['hands'][d['hand_number']-1]['fields'][d['field_number']-2]['slots']:
-            if slot['slot_number'] == d['slot_number']:
-                self.unsaved_changes = slot['estimate'] != d['estimate'] or slot['uncertain'] != d['uncertain'] or slot['symbol'] != d['symbol']
-                return
-
-    def check_unsaved_config2(self, d):
-        if self.current_states is None:
-            self.unsaved_changes = True
-            return
-
-        for slot in self.current_states['configs'][1]['hands'][d['hand_number']-1]['fields'][d['field_number']-2]['slots']:
-            if slot['slot_number'] == d['slot_number']:
-                self.unsaved_changes = slot['estimate'] != d['estimate'] or slot['uncertain'] != d['uncertain'] or slot['symbol'] != d['symbol']
-                return
+        super().keyPressEvent(event)
 
     def open_initialization_window(self):
         initialization = InitializationDialog(self.app_ctx, self.on_action_new_corpus, self.on_action_load_corpus, self.app_settings['metadata']['coder'], parent=self)
@@ -354,20 +350,6 @@ class MainWindow(QMainWindow):
         pref_dialog.exec_()
         #self.app_settings
 
-    def get_current_states(self):
-        lexical_info = self.lexical_scroll.get_value()
-        location_transcription_info = self.parameter_scroll.location_layout.get_location_value()
-        global_hand_info = self.transcription_scroll.global_info.get_value()
-        configs = [self.transcription_scroll.config1.get_value(),
-                   self.transcription_scroll.config2.get_value()]
-
-        return {
-            'lexical_info': lexical_info,
-            'location_transcription_info': location_transcription_info,
-            'global_hand_info': global_hand_info,
-            'configs': configs
-        }
-
     @check_duplicated_gloss
     @check_unsaved_corpus
     def on_action_save(self, clicked):
@@ -394,9 +376,6 @@ class MainWindow(QMainWindow):
 
             self.corpus.name = self.corpus_view.corpus_title.text()
             self.save_corpus_binary()
-
-            self.current_states = self.get_current_states()
-            self.unsaved_changes = False
 
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
@@ -436,8 +415,6 @@ class MainWindow(QMainWindow):
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
         self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
         self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
-
-        self.current_states = self.get_current_states()
 
         return bool(self.corpus)
 
