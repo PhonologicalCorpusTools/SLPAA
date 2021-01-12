@@ -1,4 +1,3 @@
-from shapely.geometry import Point
 from itertools import chain
 
 NULL = '\u2205'
