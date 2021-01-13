@@ -238,7 +238,7 @@ class LocationDefinitionPanel(QFrame):
         self.set_image_button = QPushButton('Change image', parent=self)
         self.define_button = QPushButton('Draw', parent=self)
         self.add_button = QPushButton('+', parent=self)
-        self.save_button = QPushButton('Save', parent=self)
+        self.save_button = QPushButton('Add', parent=self)
         self.delete_button = QPushButton('Delete', parent=self)
 
         main_layout.addWidget(self.set_image_button, 0, 0, 1, 3)
