@@ -390,7 +390,8 @@ class LocationDefinerPage(QWidget):
 
 
 class LocationDefinerTabWidget(QTabWidget):
-    def __init__(self, location_specifications, app_settings, app_ctx, **kwargs):
+    # TODO: need to have unsaved change warning, so that the added/deleted changed can be reflected...
+    def __init__(self, default_location_specifications, app_settings, app_ctx, **kwargs):
         """
 
         :param location_specifications: a Location object
@@ -398,10 +399,10 @@ class LocationDefinerTabWidget(QTabWidget):
         :param kwargs:
         """
         super().__init__(**kwargs)
+
+        self.default_location_specifications = default_location_specifications
         self.app_settings = app_settings
         self.app_ctx = app_ctx
-
-        self.number_pages = 3
 
         self.setDocumentMode(True)
         self.setMovable(True)
@@ -412,10 +413,16 @@ class LocationDefinerTabWidget(QTabWidget):
         self.setTabBar(self.tabbar)
 
         self.location_definer_pages = list()
-        for loc_identifier, loc_param in location_specifications.items():
+
+        self.add_default_location_tabs()
+
+        self.tabCloseRequested.connect(self.close_handler)
+
+    def add_default_location_tabs(self):
+        for loc_identifier, loc_param in self.default_location_specifications.items():
             loc_page = LocationDefinerPage(
-                app_settings,
-                app_ctx,
+                self.app_settings,
+                self.app_ctx,
                 image_path=loc_param.image_path,
                 locations=loc_param.location_polygons,
                 default=loc_param.default,
@@ -424,10 +431,9 @@ class LocationDefinerTabWidget(QTabWidget):
             self.addTab(loc_page, loc_param.name)
             self.location_definer_pages.append(loc_page)
 
-        self.addTab(QWidget(), QIcon(app_ctx.icons['plus']), 'Add location')
-
+        self.number_pages = len(self.location_definer_pages)
+        self.addTab(QWidget(), QIcon(self.app_ctx.icons['plus']), 'Add location')
         self.tabbar.tabButton(3, QTabBar.LeftSide).hide()
-        self.tabCloseRequested.connect(self.close_handler)
 
     def add_location_tab(self, index):
         self.number_pages += 1
@@ -437,11 +443,33 @@ class LocationDefinerTabWidget(QTabWidget):
         self.insertTab(index, new, 'New location')
         self.setCurrentIndex(index)
 
+    def remove_non_default_images(self):
+        for page in self.location_definer_pages:
+            if not page.default:
+                os.remove(page.image_path)
+
+    def remove_all_pages(self):
+        self.remove_non_default_images()
+
+        while self.count():
+            widget = self.widget(0)
+
+            if widget:
+                widget.deleteLater()
+
+            self.removeTab(0)
+
+        self.location_definer_pages.clear()
+        self.number_pages = 0
+
     # Ref: https://stackoverflow.com/questions/57013483/dynamically-created-tabs-destroy-object-when-tab-closed
     def close_handler(self, index):
         widget = self.widget(index)
 
         if widget:
+            if not widget.default:
+                os.remove(widget.image_path)
+
             widget.deleteLater()
 
         self.removeTab(index)
@@ -475,9 +503,15 @@ class LocationDefinerDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.Save | QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
+
+        import_button = self.button_box.addButton('Import', QDialogButtonBox.ActionRole)
+        import_button.setProperty('ActionRole', 'Import')
+
+        export_button = self.button_box.addButton('Export', QDialogButtonBox.ActionRole)
+        export_button.setProperty('ActionRole', 'Export')
 
         # Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
@@ -495,8 +529,19 @@ class LocationDefinerDialog(QDialog):
             self.accept()
         elif standard == QDialogButtonBox.Cancel:
             self.reject()
+        elif standard == QDialogButtonBox.RestoreDefaults:
+            self.location_tab.remove_all_pages()
+            self.location_tab.add_default_location_tabs()
         elif standard == QDialogButtonBox.Save:
             self.save_new_images()
             self.saved_locations.emit(self.location_tab.get_locations())
 
             QMessageBox.information(self, 'Locations Saved', 'New locations have been successfully saved!')
+        elif standard == QDialogButtonBox.NoButton:
+            # TODO
+            action_role = button.property('ActionRole')
+            if action_role == 'Export':
+                print(self.location_tab.get_locations())
+            elif action_role == 'Import':
+                # TODO
+                pass
