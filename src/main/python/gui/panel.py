@@ -575,7 +575,7 @@ class ParameterPanel(QScrollArea):
         self.orientation_section = CollapsibleSection(title='Orientation', parent=self)
         self.orientation_section.setContentLayout(self.orientation_layout)
 
-        main_layout.addWidget(QLabel('label'))
+        main_layout.addWidget(QLabel('Location'))
         main_layout.addLayout(self.location_layout)
         main_layout.addWidget(self.orientation_section)
 
