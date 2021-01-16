@@ -1,4 +1,5 @@
 import os
+import json
 from PyQt5.QtWidgets import (
     QGraphicsPolygonItem,
     QGraphicsView,
@@ -541,7 +542,18 @@ class LocationDefinerDialog(QDialog):
             # TODO
             action_role = button.property('ActionRole')
             if action_role == 'Export':
-                print(self.location_tab.get_locations())
+                file_name, file_type = QFileDialog.getSaveFileName(self,
+                                                                   self.tr('Export Locations'),
+                                                                   os.path.join(
+                                                                       self.app_settings['storage']['recent_folder'],
+                                                                       'locations.json'),
+                                                                   self.tr('JSON Files (*.json)'))
+
+                if file_name:
+                    with open(file_name, 'w') as f:
+                        json.dump(self.location_tab.get_locations().get_attr_dict(), f, sort_keys=True, indent=4)
+
+                    QMessageBox.information(self, 'Locations Exported', 'Locations have been successfully exported!')
             elif action_role == 'Import':
                 # TODO
                 pass
