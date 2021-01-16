@@ -415,6 +415,7 @@ class LocationDefinerTabWidget(QTabWidget):
         self.setTabBar(self.tabbar)
 
         self.location_definer_pages = list()
+        self.number_pages = 0
 
         self.add_default_location_tabs()
 
@@ -445,13 +446,13 @@ class LocationDefinerTabWidget(QTabWidget):
         self.insertTab(index, new, 'New location')
         self.setCurrentIndex(index)
 
-    def remove_non_default_images(self):
+    def delete_non_default_images(self):
         for page in self.location_definer_pages:
             if not page.default:
                 os.remove(page.image_path)
 
     def remove_all_pages(self):
-        self.remove_non_default_images()
+        self.delete_non_default_images()
 
         while self.count():
             widget = self.widget(0)
@@ -463,6 +464,23 @@ class LocationDefinerTabWidget(QTabWidget):
 
         self.location_definer_pages.clear()
         self.number_pages = 0
+
+    def import_locations(self, imported_locations):
+        self.default_location_specifications = imported_locations
+
+        # remove all current location pages
+        while self.count():
+            widget = self.widget(0)
+
+            if widget:
+                widget.deleteLater()
+
+            self.removeTab(0)
+
+        self.location_definer_pages.clear()
+        self.number_pages = 0
+
+        self.add_default_location_tabs()
 
     # Ref: https://stackoverflow.com/questions/57013483/dynamically-created-tabs-destroy-object-when-tab-closed
     def close_handler(self, index):
@@ -505,7 +523,7 @@ class LocationDefinerDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Close
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
 
@@ -527,10 +545,11 @@ class LocationDefinerDialog(QDialog):
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
-        if standard == QDialogButtonBox.Ok:
-            self.accept()
-        elif standard == QDialogButtonBox.Cancel:
-            self.reject()
+        if standard == QDialogButtonBox.Close:
+            response = QMessageBox.question(self, 'Warning', 'If you close the window, any unsaved changes will be lost. Continue?')
+            if response == QMessageBox.Yes:
+                self.accept()
+
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.location_tab.remove_all_pages()
             self.location_tab.add_default_location_tabs()
@@ -540,7 +559,6 @@ class LocationDefinerDialog(QDialog):
 
             QMessageBox.information(self, 'Locations Saved', 'New locations have been successfully saved!')
         elif standard == QDialogButtonBox.NoButton:
-            # TODO
             action_role = button.property('ActionRole')
             if action_role == 'Export':
                 file_name, file_type = QFileDialog.getSaveFileName(self,
@@ -556,5 +574,18 @@ class LocationDefinerDialog(QDialog):
 
                     QMessageBox.information(self, 'Locations Exported', 'Locations have been successfully exported!')
             elif action_role == 'Import':
-                # TODO
-                pass
+                file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Import Locations'),
+                                                                   self.app_settings['storage']['recent_folder'],
+                                                                   self.tr('JSON Corpus (*.json)'))
+                if file_name:
+                    with open(file_name, 'r') as f:
+                        location_json = json.load(f)
+                        imported_locations = Locations(
+                            {loc_id: LocationParameter(name=param['name'],
+                                                       image_path=param['image_path'],
+                                                       location_polygons=param['location_polygons'],
+                                                       default=param['default'])
+                             for loc_id, param in location_json.items()}
+                        )
+                        self.location_tab.import_locations(imported_locations)
+                        self.saved_locations.emit(self.location_tab.get_locations())
