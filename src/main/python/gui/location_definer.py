@@ -1,4 +1,5 @@
 import os
+import json
 from PyQt5.QtWidgets import (
     QGraphicsPolygonItem,
     QGraphicsView,
@@ -293,7 +294,8 @@ class LocationDefinerPage(QWidget):
         self.setLayout(main_layout)
 
     def set_image(self):
-        file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'), '',
+        file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'),
+                                                           self.app_settings['storage']['recent_folder'],
                                                            self.tr('Image Files (*.png *.jpg *.bmp)'))
         _, basename = os.path.split(file_name)
         self.image_path = os.path.join(self.app_settings['storage']['image'], basename)
@@ -467,7 +469,7 @@ class LocationDefinerTabWidget(QTabWidget):
         widget = self.widget(index)
 
         if widget:
-            if not widget.default:
+            if not widget.default and widget.image_path:
                 os.remove(widget.image_path)
 
             widget.deleteLater()
@@ -541,7 +543,18 @@ class LocationDefinerDialog(QDialog):
             # TODO
             action_role = button.property('ActionRole')
             if action_role == 'Export':
-                print(self.location_tab.get_locations())
+                file_name, file_type = QFileDialog.getSaveFileName(self,
+                                                                   self.tr('Export Locations'),
+                                                                   os.path.join(
+                                                                       self.app_settings['storage']['recent_folder'],
+                                                                       'locations.json'),
+                                                                   self.tr('JSON Files (*.json)'))
+
+                if file_name:
+                    with open(file_name, 'w') as f:
+                        json.dump(self.location_tab.get_locations().get_attr_dict(), f, sort_keys=True, indent=4)
+
+                    QMessageBox.information(self, 'Locations Exported', 'Locations have been successfully exported!')
             elif action_role == 'Import':
                 # TODO
                 pass

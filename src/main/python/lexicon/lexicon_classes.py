@@ -351,6 +351,14 @@ class LocationParameter:
         self.location_polygons = location_polygons
         self.default = default
 
+    def get_attr_dict(self):
+        return {
+            'name': self.name,
+            'image_path': self.image_path,
+            'location_polygons': self.location_polygons,
+            'default': self.default
+        }
+
 
 class Locations:
     """
@@ -362,6 +370,9 @@ class Locations:
         locations = {'location_identifier': LocationParameter}
         """
         self.locations = location_specification
+
+    def get_attr_dict(self):
+        return {loc_identifier: location_param.get_attr_dict() for loc_identifier, location_param in self.locations.items()}
 
     # Ref: https://stackoverflow.com/questions/4014621/a-python-class-that-acts-like-dict
     def __setitem__(self, location_identifier, location_parameter):
