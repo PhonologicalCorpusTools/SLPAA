@@ -294,7 +294,8 @@ class LocationDefinerPage(QWidget):
         self.setLayout(main_layout)
 
     def set_image(self):
-        file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'), '',
+        file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'),
+                                                           self.app_settings['storage']['recent_folder'],
                                                            self.tr('Image Files (*.png *.jpg *.bmp)'))
         _, basename = os.path.split(file_name)
         self.image_path = os.path.join(self.app_settings['storage']['image'], basename)
@@ -468,7 +469,7 @@ class LocationDefinerTabWidget(QTabWidget):
         widget = self.widget(index)
 
         if widget:
-            if not widget.default:
+            if not widget.default and widget.image_path:
                 os.remove(widget.image_path)
 
             widget.deleteLater()
