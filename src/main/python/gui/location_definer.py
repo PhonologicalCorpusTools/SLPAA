@@ -523,7 +523,7 @@ class LocationDefinerDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Close
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
 
@@ -545,10 +545,11 @@ class LocationDefinerDialog(QDialog):
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
-        if standard == QDialogButtonBox.Ok:
-            self.accept()
-        elif standard == QDialogButtonBox.Cancel:
-            self.reject()
+        if standard == QDialogButtonBox.Close:
+            response = QMessageBox.question(self, 'Warning', 'If you close the window, any unsaved changes will be lost. Continue?')
+            if response == QMessageBox.Yes:
+                self.accept()
+
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.location_tab.remove_all_pages()
             self.location_tab.add_default_location_tabs()
