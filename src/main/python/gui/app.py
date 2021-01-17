@@ -15,9 +15,11 @@ class AppContext(ApplicationContext):
     def icons(self):
         return {
             'blank': self.get_resource('icons/blank.png'),
+            'blank16': self.get_resource('icons/blank16.png'),
             'copy': self.get_resource('icons/copy.png'),
             'delete': self.get_resource('icons/delete.png'),
             'load': self.get_resource('icons/load.png'),
+            'load16': self.get_resource('icons/load16.png'),
             'paste': self.get_resource('icons/paste.png'),
             'plus': self.get_resource('icons/plus.png'),
             'save': self.get_resource('icons/disk.png'),
