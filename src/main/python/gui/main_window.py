@@ -151,6 +151,14 @@ class MainWindow(QMainWindow):
         action_new_sign.triggered.connect(self.on_action_new_sign)
         action_new_sign.setCheckable(False)
 
+        # delete sign
+        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign', parent=self)
+        self.action_delete_sign.setEnabled(False)
+        self.action_delete_sign.setStatusTip('Delete the selected sign')
+        self.action_delete_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Delete))
+        self.action_delete_sign.triggered.connect(self.on_action_delete_sign)
+        self.action_delete_sign.setCheckable(False)
+
         # predefined handshape
         action_predefined_handshape = QAction(QIcon(self.app_ctx.icons['hand']), 'Predefined handshape', parent=self)
         action_predefined_handshape.setStatusTip('Open predefined handshape window')
@@ -165,6 +173,7 @@ class MainWindow(QMainWindow):
         action_edit_preference.setCheckable(False)
 
         toolbar.addAction(action_new_sign)
+        toolbar.addAction(self.action_delete_sign)
         toolbar.addSeparator()
         toolbar.addAction(action_save)
         toolbar.addSeparator()
@@ -267,7 +276,10 @@ class MainWindow(QMainWindow):
 
     def handle_sign_selected(self, gloss):
         selected_sign = self.corpus.get_sign_by_gloss(gloss)
+
         self.current_sign = selected_sign
+        self.action_delete_sign.setEnabled(True)
+
         self.lexical_scroll.set_value(selected_sign.lexical_information)
         self.transcription_scroll.set_value(selected_sign.global_handshape_information,
                                             selected_sign.handshape_transcription)
@@ -387,6 +399,7 @@ class MainWindow(QMainWindow):
             self.corpus.add_sign(new_sign)
             self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), new_sign.lexical_information.gloss)
             self.current_sign = new_sign
+            self.action_delete_sign.setEnabled(True)
 
             self.corpus.name = self.corpus_view.corpus_title.text()
             self.save_corpus_binary()
@@ -411,6 +424,8 @@ class MainWindow(QMainWindow):
 
     def on_action_new_corpus(self, clicked):
         self.current_sign = None
+        self.action_delete_sign.setEnabled(False)
+
         self.corpus = Corpus(signs=None, location_definition=SAMPLE_LOCATIONS)
 
         self.corpus_view.clear()
@@ -439,12 +454,24 @@ class MainWindow(QMainWindow):
 
     def on_action_new_sign(self, clicked):
         self.current_sign = None
+        self.action_delete_sign.setEnabled(False)
 
         self.lexical_scroll.clear(self.app_settings['metadata']['coder'])
         self.transcription_scroll.clear()
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
 
         self.corpus_view.corpus_view.clearSelection()
+
+    def on_action_delete_sign(self, clicked):
+        response = QMessageBox.question(self, 'Delete the selected sign',
+                                        'Do you want to delete the selected sign?')
+        if response == QMessageBox.Yes:
+            previous = self.corpus.get_previous_sign(self.current_sign.lexical_information.gloss)
+
+            self.corpus.remove_sign(self.current_sign)
+            self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), previous.lexical_information.gloss)
+
+            self.handle_sign_selected(previous.lexical_information.gloss)
 
     def on_action_predefined_handshape(self, clicked):
         if self.predefined_handshape_dialog is None:

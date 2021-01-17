@@ -388,7 +388,7 @@ class ConfigField(QWidget):
 
             self.slot8 = ConfigSlot(
                 [],
-                ['thumb/finger contact', '8', 'what?'],
+                ['thumb/finger contact', '8', ''],
                 parent=self)
             self.slot8.setText(NULL)
             self.slot8.setEnabled(False)
@@ -400,7 +400,7 @@ class ConfigField(QWidget):
 
             self.slot9 = ConfigSlot(
                 [],
-                ['thumb/finger contact', '9', 'what?'],
+                ['thumb/finger contact', '9', ''],
                 parent=self)
             self.slot9.setText('/')
             self.slot9.setEnabled(False)
@@ -480,7 +480,7 @@ class ConfigField(QWidget):
         elif self.field_number == 4:
             self.slot16 = ConfigSlot(
                 [],
-                ['index finger', '16', 'what?'],
+                ['index finger', '16', ''],
                 parent=self)
             self.slot16.setText('1')
             self.slot16.setEnabled(False)
@@ -542,7 +542,7 @@ class ConfigField(QWidget):
 
             self.slot21 = ConfigSlot(
                 [],
-                ['middle finger', '21', 'what?'],
+                ['middle finger', '21', ''],
                 parent=self)
             self.slot21.setText('2')
             self.slot21.setEnabled(False)
@@ -604,7 +604,7 @@ class ConfigField(QWidget):
 
             self.slot26 = ConfigSlot(
                 [],
-                ['ring finger', '26', 'what?'],
+                ['ring finger', '26', ''],
                 parent=self)
             self.slot26.setText('3')
             self.slot26.setEnabled(False)
@@ -666,7 +666,7 @@ class ConfigField(QWidget):
 
             self.slot31 = ConfigSlot(
                 [],
-                ['pinky finger', '31', 'what?'],
+                ['pinky finger', '31', ''],
                 parent=self)
             self.slot31.setText('4')
             self.slot31.setEnabled(False)

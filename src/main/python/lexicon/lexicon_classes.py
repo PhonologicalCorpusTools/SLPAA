@@ -435,6 +435,15 @@ class Corpus:
     def get_sign_glosses(self):
         return sorted([sign.lexical_information.gloss for sign in self.signs])
 
+    def get_previous_sign(self, gloss):
+        sign_glosses = self.get_sign_glosses()
+        current_index = sign_glosses.index(gloss)
+
+        # if the very first sign is selected, then return the one after it, otherwise the previous one
+        previous_gloss = sign_glosses[current_index-1] if current_index-1 >= 0 else sign_glosses[1]
+
+        return self.get_sign_by_gloss(previous_gloss)
+
     def get_sign_by_gloss(self, gloss):
         # Every sign has a unique gloss, so this function will always return one sign
         for sign in self.signs:
