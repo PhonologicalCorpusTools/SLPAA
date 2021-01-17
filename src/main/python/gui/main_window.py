@@ -125,13 +125,13 @@ class MainWindow(QMainWindow):
         action_define_location.setCheckable(False)
 
         # new corpus
-        action_new_corpus = QAction('New corpus', parent=self)
+        action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), 'New corpus', parent=self)
         action_new_corpus.setStatusTip('Create a new corpus')
         action_new_corpus.triggered.connect(self.on_action_new_corpus)
         action_new_corpus.setCheckable(False)
 
         # load corpus
-        action_load_corpus = QAction('Load corpus...', parent=self)
+        action_load_corpus = QAction(QIcon(self.app_ctx.icons['load16']), 'Load corpus...', parent=self)
         action_load_corpus.setStatusTip('Load a .corpus file')
         action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
@@ -203,6 +203,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(action_save)
         menu_file.addSeparator()
         menu_file.addAction(action_new_sign)
+        menu_file.addAction(self.action_delete_sign)
 
         menu_edit = main_menu.addMenu('&Edit')
         menu_edit.addAction(action_copy)
