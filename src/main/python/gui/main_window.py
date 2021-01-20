@@ -61,7 +61,10 @@ class MainWindow(QMainWindow):
 
         self.predefined_handshape_dialog = None
 
-        # hand setting-related stuff
+        # system-default locations
+        self.system_default_locations = SAMPLE_LOCATIONS
+
+        # handle setting-related stuff
         self.handle_app_settings()
         self.check_storage()
         self.resize(self.app_settings['display']['size'])
