@@ -290,10 +290,15 @@ class MainWindow(QMainWindow):
         self.main_mdi.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
         self.sub_parameter = self.main_mdi.addSubWindow(self.parameter_scroll)
+        self.sub_parameter.setWindowTitle('Parameter')
         self.sub_illustration = self.main_mdi.addSubWindow(self.illustration_scroll)
+        self.sub_illustration.setWindowTitle('Slot illustration')
         self.sub_transcription = self.main_mdi.addSubWindow(self.transcription_scroll)
+        self.sub_transcription.setWindowTitle('Hand transcription')
         self.sub_lexical = self.main_mdi.addSubWindow(self.lexical_scroll)
+        self.sub_lexical.setWindowTitle('Lexical information')
         self.sub_corpus = self.main_mdi.addSubWindow(corpus_scroll)
+        self.sub_corpus.setWindowTitle('Sign list')
 
         self.main_mdi.tileSubWindows()
         self.setCentralWidget(self.main_mdi)
