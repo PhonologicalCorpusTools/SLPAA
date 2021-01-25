@@ -7,7 +7,8 @@ from PyQt5.QtCore import (
     Qt,
     QSize,
     QSettings,
-    QPoint
+    QPoint,
+    pyqtSignal
 )
 from PyQt5.QtWidgets import (
     QFileDialog,
@@ -15,11 +16,12 @@ from PyQt5.QtWidgets import (
     QToolBar,
     QAction,
     QStatusBar,
-    QSplitter,
     QScrollArea,
     QMessageBox,
     QUndoStack,
-    QMdiArea
+    QMdiArea,
+    QMdiSubWindow,
+    QWidget
 )
 from PyQt5.QtGui import (
     QIcon,
@@ -46,6 +48,19 @@ from lexicon.lexicon_classes import (
     Corpus,
     Sign
 )
+
+
+class SubWindow(QMdiSubWindow):
+    subwindow_closed = pyqtSignal(QWidget)
+
+    def __init__(self, sub_name, widget, **kwargs):
+        super().__init__(**kwargs)
+
+        self.setWindowTitle(sub_name)
+        self.setWidget(widget)
+
+    def closeEvent(self, closeEvent):
+        self.subwindow_closed.emit(self.widget())
 
 
 # TODO: add undo/redo stack: https://doc.qt.io/qt-5/qtwidgets-tools-undoframework-example.html
@@ -261,9 +276,9 @@ class MainWindow(QMainWindow):
         self.corpus_view = CorpusView('Untitled', parent=self)
         self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
 
-        corpus_scroll = QScrollArea(parent=self)
-        corpus_scroll.setWidgetResizable(True)
-        corpus_scroll.setWidget(self.corpus_view)
+        self.corpus_scroll = QScrollArea(parent=self)
+        self.corpus_scroll.setWidgetResizable(True)
+        self.corpus_scroll.setWidget(self.corpus_view)
 
         self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.today, parent=self)
         self.lexical_scroll.finish_edit.connect(self.handle_lexical_edit)
@@ -289,16 +304,47 @@ class MainWindow(QMainWindow):
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.main_mdi.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
-        self.sub_parameter = self.main_mdi.addSubWindow(self.parameter_scroll)
-        self.sub_illustration = self.main_mdi.addSubWindow(self.illustration_scroll)
-        self.sub_transcription = self.main_mdi.addSubWindow(self.transcription_scroll)
-        self.sub_lexical = self.main_mdi.addSubWindow(self.lexical_scroll)
-        self.sub_corpus = self.main_mdi.addSubWindow(corpus_scroll)
+        self.sub_parameter = SubWindow('Parameter', self.parameter_scroll, parent=self)
+        self.sub_parameter.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_parameter)
+
+        self.sub_illustration = SubWindow('Slot illustration', self.illustration_scroll, parent=self)
+        self.sub_illustration.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_illustration)
+
+        self.sub_transcription = SubWindow('Hand transcription', self.transcription_scroll, parent=self)
+        self.sub_transcription.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_transcription)
+
+        self.sub_lexical = SubWindow('Lexical information', self.lexical_scroll, parent=self)
+        self.sub_lexical.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_lexical)
+
+        self.sub_corpus = SubWindow('Corpus', self.corpus_scroll, parent=self)
+        self.sub_corpus.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_corpus)
 
         self.main_mdi.tileSubWindows()
         self.setCentralWidget(self.main_mdi)
 
         self.open_initialization_window()
+
+    def on_subwindow_manually_closed(self, widget):
+        if widget == self.corpus_scroll:
+            self.action_show_sub_corpus.setChecked(False)
+            self.on_action_show_sub_corpus()
+        elif widget == self.lexical_scroll:
+            self.action_show_sub_lexical.setChecked(False)
+            self.on_action_show_sub_lexical()
+        elif widget == self.transcription_scroll:
+            self.action_show_sub_transcription.setChecked(False)
+            self.on_action_show_sub_transcription()
+        elif widget == self.illustration_scroll:
+            self.action_show_sub_illustration.setChecked(False)
+            self.on_action_show_sub_illustration()
+        elif widget == self.parameter_scroll:
+            self.action_show_sub_parameter.setChecked(False)
+            self.on_action_show_sub_parameter()
 
     def on_action_show_sub_corpus(self):
         if self.action_show_sub_corpus.isChecked():
