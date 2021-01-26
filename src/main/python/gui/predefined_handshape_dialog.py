@@ -539,9 +539,9 @@ class PredefinedHandshapeView(QTableView):
         super().__init__(**kwargs)
 
         self.predefined_images = predefined_images
-        self.setDragEnabled(drag_enabled)
         self.setDragDropMode(QAbstractItemView.DragOnly)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setDragEnabled(drag_enabled)
 
         # set the table model
         predefined_model = PredefinedTableModel(predefined_images, parent=self)
