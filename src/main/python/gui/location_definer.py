@@ -438,9 +438,9 @@ class LocationDefinerTabWidget(QTabWidget):
         self.addTab(QWidget(), QIcon(self.app_ctx.icons['plus']), 'Add location')
         # hide close button for the '' tab. The location of the close button is OS-dependent.
         if os.name == 'nt':  # For Windows, buttons appear on the right
-            self.tabbar.tabButton(3, QTabBar.RightSide).hide()
+            self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.RightSide).hide()
         elif os.name == 'posix':  # For Linux and MacOS, they are on the left
-            self.tabbar.tabButton(3, QTabBar.LeftSide).hide()
+            self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.LeftSide).hide()
 
     def add_location_tab(self, index):
         self.number_pages += 1
