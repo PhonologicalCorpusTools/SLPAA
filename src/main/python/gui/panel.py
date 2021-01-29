@@ -378,11 +378,20 @@ class HandTranscriptionPanel(QScrollArea):
         self.config1.set_value(hand_transcription.config1)
         self.config2.set_value(hand_transcription.config2)
 
-    def insert_radio_button(self):
+    def insert_radio_button(self, focused_hand):
         self.selected_hand_group = QButtonGroup(parent=self)
         button1, button2 = self.config1.insert_radio_button()
         button3, button4 = self.config2.insert_radio_button()
-        button1.setChecked(True)
+
+        if focused_hand == 1:
+            button1.setChecked(True)
+        elif focused_hand == 2:
+            button2.setChecked(True)
+        elif focused_hand == 3:
+            button3.setChecked(True)
+        elif focused_hand == 4:
+            button4.setChecked(True)
+
         self.selected_hand_group.addButton(button1, 1)
         self.selected_hand_group.addButton(button2, 2)
         self.selected_hand_group.addButton(button3, 3)

@@ -596,12 +596,13 @@ class MainWindow(QMainWindow):
 
     def on_action_predefined_handshape(self, clicked):
         if self.predefined_handshape_dialog is None:
+            self.insert_predefined_buttons()
+            
             self.predefined_handshape_dialog = PredefinedHandshapeDialog(self.app_ctx.predefined, parent=self)
             self.predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
             self.predefined_handshape_dialog.rejected.connect(self.handle_predefined_close)
             self.predefined_handshape_dialog.show()
 
-            self.insert_predefined_buttons()
         else:
             self.predefined_handshape_dialog.raise_()
 
@@ -610,7 +611,16 @@ class MainWindow(QMainWindow):
         self.undostack.push(undo_command)
 
     def insert_predefined_buttons(self):
-        self.transcription_scroll.insert_radio_button()
+        focused_hands = [
+            self.transcription_scroll.config1.hand1.hasFocus(), self.transcription_scroll.config1.hand2.hasFocus(),
+            self.transcription_scroll.config2.hand1.hasFocus(), self.transcription_scroll.config2.hand2.hasFocus()
+        ]
+        if any(focused_hands):
+            focused_hand = focused_hands.index(True) + 1
+        else:
+            focused_hand = 1
+
+        self.transcription_scroll.insert_radio_button(focused_hand)
 
     def handle_predefined_close(self):
         self.transcription_scroll.remove_radio_button()

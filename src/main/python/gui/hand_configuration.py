@@ -301,6 +301,9 @@ class ConfigField(QWidget):
             self.slot33.set_value(field.slot33)
             self.slot34.set_value(field.slot34)
 
+    def hasFocus(self):
+        return any(slot.hasFocus() for slot in self.__iter__())
+
     def __iter__(self):
         if self.field_number == 2:
             return [self.slot2, self.slot3, self.slot4, self.slot5].__iter__()
@@ -826,6 +829,9 @@ class ConfigHand(QWidget):
         clear_button.setContentsMargins(0, 0, 0, 0)
         clear_button.clicked.connect(self.clear)
         self.main_layout.addWidget(clear_button)
+
+    def hasFocus(self):
+        return any(field.hasFocus() for field in self.__iter__())
 
     def __iter__(self):
         return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6),
