@@ -348,6 +348,8 @@ class LexicalInformationPanel(QScrollArea):
 
 
 class HandTranscriptionPanel(QScrollArea):
+    selected_hand = pyqtSignal(int)
+
     def __init__(self, predefined_ctx, **kwargs):
         super().__init__(**kwargs)
 
@@ -378,24 +380,39 @@ class HandTranscriptionPanel(QScrollArea):
         self.config1.set_value(hand_transcription.config1)
         self.config2.set_value(hand_transcription.config2)
 
+    def change_hand_selection(self, hand):
+        if hand == 1:
+            self.button1.setChecked(True)
+        elif hand == 2:
+            self.button2.setChecked(True)
+        elif hand == 3:
+            self.button3.setChecked(True)
+        elif hand == 4:
+            self.button4.setChecked(True)
+
     def insert_radio_button(self, focused_hand):
         self.selected_hand_group = QButtonGroup(parent=self)
-        button1, button2 = self.config1.insert_radio_button()
-        button3, button4 = self.config2.insert_radio_button()
+        self.button1, self.button2 = self.config1.insert_radio_button()
+        self.button3, self.button4 = self.config2.insert_radio_button()
+
+        self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
+        self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
+        self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
+        self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
 
         if focused_hand == 1:
-            button1.setChecked(True)
+            self.button1.setChecked(True)
         elif focused_hand == 2:
-            button2.setChecked(True)
+            self.button2.setChecked(True)
         elif focused_hand == 3:
-            button3.setChecked(True)
+            self.button3.setChecked(True)
         elif focused_hand == 4:
-            button4.setChecked(True)
+            self.button4.setChecked(True)
 
-        self.selected_hand_group.addButton(button1, 1)
-        self.selected_hand_group.addButton(button2, 2)
-        self.selected_hand_group.addButton(button3, 3)
-        self.selected_hand_group.addButton(button4, 4)
+        self.selected_hand_group.addButton(self.button1, 1)
+        self.selected_hand_group.addButton(self.button2, 2)
+        self.selected_hand_group.addButton(self.button3, 3)
+        self.selected_hand_group.addButton(self.button4, 4)
 
     def remove_radio_button(self):
         self.config1.remove_radio_button()

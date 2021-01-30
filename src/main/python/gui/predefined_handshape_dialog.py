@@ -1,7 +1,7 @@
 from PyQt5.QtCore import (
     Qt,
     QSize,
-    QSettings,
+    pyqtSlot,
     QPoint,
     QAbstractTableModel,
     pyqtSignal,
@@ -9,11 +9,14 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtWidgets import (
     QVBoxLayout,
+    QHBoxLayout,
     QDialog,
     QTableView,
     QAction,
     QAbstractItemView,
-    QMenu
+    QMenu,
+    QFrame,
+    QRadioButton
 )
 from PyQt5.QtGui import (
     QIcon,
@@ -705,8 +708,9 @@ class PredefinedHandshapeView(QTableView):
 
 class PredefinedHandshapeDialog(QDialog):
     transcription = pyqtSignal(tuple)
+    selected_hand = pyqtSignal(int)
 
-    def __init__(self, predefined_images, **kwargs):
+    def __init__(self, predefined_images, focused_hand, **kwargs):
         super().__init__(**kwargs)
         self.resize(750, 750)
         self.setWindowTitle('Predefined Handshapes')
@@ -722,7 +726,47 @@ class PredefinedHandshapeDialog(QDialog):
         main_layout.addWidget(self.table_view)
         self.setLayout(main_layout)
 
+        hand_selection_widget = QFrame(parent=self)
+        hand_selection_layout = QHBoxLayout()
+        hand_selection_widget.setLayout(hand_selection_layout)
+
+        self.c1h1_radio = QRadioButton('Config1 Hand1', parent=hand_selection_widget)
+        self.c1h1_radio.clicked.connect(lambda : self.selected_hand.emit(1))
+        self.c1h2_radio = QRadioButton('Config1 Hand2', parent=hand_selection_widget)
+        self.c1h2_radio.clicked.connect(lambda: self.selected_hand.emit(2))
+        self.c2h1_radio = QRadioButton('Config2 Hand1', parent=hand_selection_widget)
+        self.c2h1_radio.clicked.connect(lambda: self.selected_hand.emit(3))
+        self.c2h2_radio = QRadioButton('Config2 Hand2', parent=hand_selection_widget)
+        self.c2h2_radio.clicked.connect(lambda: self.selected_hand.emit(4))
+
+        if focused_hand == 1:
+            self.c1h1_radio.setChecked(True)
+        elif focused_hand == 2:
+            self.c1h2_radio.setChecked(True)
+        elif focused_hand == 3:
+            self.c2h1_radio.setChecked(True)
+        elif focused_hand == 4:
+            self.c2h2_radio.setChecked(True)
+
+        hand_selection_layout.addWidget(self.c1h1_radio)
+        hand_selection_layout.addWidget(self.c1h2_radio)
+        hand_selection_layout.addWidget(self.c2h1_radio)
+        hand_selection_layout.addWidget(self.c2h2_radio)
+
+        self.layout().setMenuBar(hand_selection_widget)
+
     def emit_transcription(self, clicked):
         predefined = clicked.data(role=Qt.AccessibleTextRole)
         if predefined in PREDEFINED_MAP:
             self.transcription.emit(PREDEFINED_MAP[predefined].canonical)
+
+    @pyqtSlot(int)
+    def change_hand_selection(self, hand):
+        if hand == 1:
+            self.c1h1_radio.setChecked(True)
+        elif hand == 2:
+            self.c1h2_radio.setChecked(True)
+        elif hand == 3:
+            self.c2h1_radio.setChecked(True)
+        elif hand == 4:
+            self.c2h2_radio.setChecked(True)
