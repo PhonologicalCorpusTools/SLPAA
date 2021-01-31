@@ -39,6 +39,8 @@ NULL = '\u2205'
 ESTIMATE_BORDER = '2px dashed black'
 UNCERTAIN_BACKGROUND = 'pink'
 
+DEFAULT_LOCATION_POINTS = [('start', 'red', ''), ('mid', 'blue', 'some notes'), ('end', 'green', '')]
+
 DEFAULT_HEAD_LOCATIONS = {'location1': [[(883, 685), (882, 750), (867, 781), (874, 801), (850, 835), (867, 846),
                                          (887, 836), (1007, 862), (1075, 854), (1110, 851), (1178, 848), (1195, 836),
                                          (1188, 819), (1192, 804), (1174, 765), (1178, 680), (1033, 672)]]}
