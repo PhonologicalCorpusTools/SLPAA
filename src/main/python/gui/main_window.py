@@ -1,5 +1,6 @@
 import os
 import pickle
+import json
 from collections import defaultdict
 from getpass import getuser
 from datetime import date
@@ -227,6 +228,16 @@ class MainWindow(QMainWindow):
         self.action_show_sub_parameter.setChecked(True)
         self.action_show_sub_parameter.setChecked(self.app_settings['display']['sub_parameter_show'])
 
+        # export subwindow config
+        action_export_subwindow_config = QAction('Export subwindow configuration...', parent=self)
+        action_export_subwindow_config.setStatusTip('Export subwindow configuration')
+        action_export_subwindow_config.triggered.connect(self.on_action_export_subwindow_config)
+
+        # import subwindow config
+        action_import_subwindow_config = QAction('Import subwindow configuration...', parent=self)
+        action_import_subwindow_config.setStatusTip('Import subwindow configuration')
+        action_import_subwindow_config.triggered.connect(self.on_action_import_subwindow_config)
+
         # go back to default view
         action_default_view = QAction('Restore default view', parent=self)
         action_default_view.setStatusTip('Show the default view')
@@ -272,11 +283,15 @@ class MainWindow(QMainWindow):
 
         menu_edit = main_menu.addMenu('&View')
         menu_edit.addAction(action_default_view)
+        menu_edit.addSeparator()
         menu_edit.addAction(self.action_show_sub_corpus)
         menu_edit.addAction(self.action_show_sub_lexical)
         menu_edit.addAction(self.action_show_sub_transcription)
         menu_edit.addAction(self.action_show_sub_illustration)
         menu_edit.addAction(self.action_show_sub_parameter)
+        menu_edit.addSeparator()
+        menu_edit.addAction(action_export_subwindow_config)
+        menu_edit.addAction(action_import_subwindow_config)
 
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
@@ -315,32 +330,95 @@ class MainWindow(QMainWindow):
         self.sub_parameter = SubWindow('Parameter', self.parameter_scroll, parent=self)
         self.sub_parameter.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_parameter)
-        self.sub_parameter.setHidden(not self.app_settings['display']['sub_parameter_show'])
 
         self.sub_illustration = SubWindow('Slot illustration', self.illustration_scroll, parent=self)
         self.sub_illustration.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_illustration)
-        self.sub_illustration.setHidden(not self.app_settings['display']['sub_illustration_show'])
 
         self.sub_transcription = SubWindow('Hand transcription', self.transcription_scroll, parent=self)
         self.sub_transcription.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_transcription)
-        self.sub_transcription.setHidden(not self.app_settings['display']['sub_transcription_show'])
 
         self.sub_lexical = SubWindow('Lexical information', self.lexical_scroll, parent=self)
         self.sub_lexical.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_lexical)
-        self.sub_lexical.setHidden(not self.app_settings['display']['sub_lexical_show'])
 
         self.sub_corpus = SubWindow('Corpus', self.corpus_scroll, parent=self)
         self.sub_corpus.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_corpus)
-        self.sub_corpus.setHidden(not self.app_settings['display']['sub_corpus_show'])
-        
+
+        self.show_hide_subwindows()
         self.arrange_subwindows()
         self.setCentralWidget(self.main_mdi)
 
         self.open_initialization_window()
+
+    def show_hide_subwindows(self):
+        self.sub_parameter.setHidden(not self.app_settings['display']['sub_parameter_show'])
+        self.sub_illustration.setHidden(not self.app_settings['display']['sub_illustration_show'])
+        self.sub_transcription.setHidden(not self.app_settings['display']['sub_transcription_show'])
+        self.sub_lexical.setHidden(not self.app_settings['display']['sub_lexical_show'])
+        self.sub_corpus.setHidden(not self.app_settings['display']['sub_corpus_show'])
+
+    def on_action_export_subwindow_config(self):
+        file_name, file_type = QFileDialog.getSaveFileName(self,
+                                                           self.tr('Export Subwindow Configuration'),
+                                                           os.path.join(
+                                                               self.app_settings['storage']['recent_folder'],
+                                                               'subwindow_config.json'),
+                                                           self.tr('JSON Config (*.json)'))
+
+        if file_name:
+            subwindow_config_dict = {
+                'size': (self.size().width(), self.size().height()),
+                'position': (self.pos().x(), self.pos().y()),
+                'sub_corpus_show': not self.sub_corpus.isHidden(),
+                'sub_corpus_pos': (self.sub_corpus.pos().x(), self.sub_corpus.pos().y()),
+                'sub_corpus_size': (self.sub_corpus.size().width(), self.sub_corpus.size().height()),
+                'sub_lexical_show': not self.sub_lexical.isHidden(),
+                'sub_lexical_pos': (self.sub_lexical.pos().x(), self.sub_lexical.pos().y()),
+                'sub_lexical_size': (self.sub_lexical.size().width(), self.sub_lexical.size().height()),
+                'sub_transcription_show': not self.sub_transcription.isHidden(),
+                'sub_transcription_pos': (self.sub_transcription.pos().x(), self.sub_transcription.pos().y()),
+                'sub_transcription_size': (self.sub_transcription.size().width(), self.sub_transcription.size().height()),
+                'sub_illustration_show': not self.sub_illustration.isHidden(),
+                'sub_illustration_pos': (self.sub_illustration.pos().x(), self.sub_illustration.pos().y()),
+                'sub_illustration_size': (self.sub_illustration.size().width(), self.sub_illustration.size().height()),
+                'sub_parameter_show': not self.sub_parameter.isHidden(),
+                'sub_parameter_pos': (self.sub_parameter.pos().x(), self.sub_parameter.pos().y()),
+                'sub_parameter_size': (self.sub_parameter.size().width(), self.sub_parameter.size().height())
+            }
+            with open(file_name, 'w') as f:
+                json.dump(subwindow_config_dict, f, sort_keys=True, indent=4)
+
+            QMessageBox.information(self, 'Subwindow Configuration Exported', 'Subwindow Configuration has been successfully exported!')
+
+    def on_action_import_subwindow_config(self):
+        file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Import Subwindow Configuration'),
+                                                           self.app_settings['storage']['recent_folder'],
+                                                           self.tr('JSON Config (*.json)'))
+
+        folder, _ = os.path.split(file_name)
+        if folder:
+            self.app_settings['storage']['recent_folder'] = folder
+
+        if file_name:
+            with open(file_name, 'r') as f:
+                subwindow_json = json.load(f)
+                for sub, config in subwindow_json.items():
+                    if sub in {'size', 'sub_corpus_size', 'sub_lexical_size', 'sub_transcription_size',
+                               'sub_illustration_size', 'sub_parameter_size'}:
+                        self.app_settings['display'][sub] = QSize(*config)
+                    elif sub in {'position', 'sub_corpus_pos', 'sub_lexical_pos', 'sub_transcription_pos',
+                                 'sub_illustration_pos', 'sub_parameter_pos'}:
+                        self.app_settings['display'][sub] = QPoint(*config)
+                    else:
+                        self.app_settings['display'][sub] = bool(config)
+
+            self.show_hide_subwindows()
+            self.arrange_subwindows()
+            self.resize(self.app_settings['display']['size'])
+            self.move(self.app_settings['display']['position'])
 
     def arrange_subwindows(self):
         self.sub_corpus.resize(self.app_settings['display']['sub_corpus_size'])
@@ -357,6 +435,8 @@ class MainWindow(QMainWindow):
 
         self.sub_parameter.resize(self.app_settings['display']['sub_parameter_size'])
         self.sub_parameter.move(self.app_settings['display']['sub_parameter_pos'])
+
+        self.repaint()
 
     def on_action_default_view(self):
         self.sub_corpus.show()
