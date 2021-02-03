@@ -26,7 +26,15 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QGraphicsEllipseItem,
     QGraphicsTextItem,
-    QButtonGroup
+    QButtonGroup,
+    QGroupBox,
+    QPushButton,
+    QColorDialog,
+    QTableWidget,
+    QTableWidgetItem,
+    QAbstractItemView,
+    QMenu,
+    QAction
 )
 
 from PyQt5.QtGui import (
@@ -40,6 +48,7 @@ from PyQt5.QtGui import (
 from gui.hand_configuration import ConfigGlobal, Config
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 from gui.decorator import check_date_format, check_empty_gloss
+from constant import DEFAULT_LOCATION_POINTS
 
 
 class LocationPolygon(QGraphicsPolygonItem):
@@ -477,13 +486,16 @@ class HandIllustrationPanel(QScrollArea):
 
 
 class LocationGroupLayout(QHBoxLayout):
-    def __init__(self, location_specifications, app_ctx, **kwargs):
+    def __init__(self, name, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
+
+        self.layout_name = QLineEdit(name)
 
         self.contact_button = QCheckBox('Contact?')
         self.contact_button.setTristate(True)
         self.location_viewers = dict()
 
+        self.addWidget(self.layout_name)
         self.addWidget(self.contact_button)
         self.add_loc_viewers(location_specifications, app_ctx)
 
@@ -520,7 +532,7 @@ class LocationGroupLayout(QHBoxLayout):
         self.contact_button.setCheckState(Qt.Unchecked)
         self.location_viewers.clear()
 
-        while self.count() >= 2:
+        while self.count() >= 3:
             child = self.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
@@ -581,12 +593,159 @@ class LocationSpecificationLayout(QVBoxLayout):
         self.end_location_group_layout.set_value(value.end)
 
 
+class LocationPointTable(QTableWidget):
+    def __init__(self, default_points, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.default_points = default_points
+
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.viewport().setAcceptDrops(True)
+        self.setDragDropOverwriteMode(False)
+        self.setDropIndicatorShown(True)
+
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+
+        self.horizontalHeader().setStretchLastSection(True)
+
+        # insert default location points
+        self.setRowCount(len(default_points))
+        self.setColumnCount(2)
+        self.setHorizontalHeaderLabels(['Point', 'Note'])
+
+        for i, (name, color, note) in enumerate(default_points):
+            name_item = QTableWidgetItem(name)
+            name_item.setCheckState(Qt.Checked)
+            name_item.setForeground(QBrush(QColor(color)))
+            name_item.setData(Qt.UserRole, 'name')
+
+            self.setItem(i, 0, name_item)
+            self.setItem(i, 1, QTableWidgetItem(note))
+
+        self.create_context_menu()
+        self.itemChanged.connect(self.on_item_changed)
+
+    def create_context_menu(self):
+        self.context_menu = QMenu(parent=self)
+        remove_action = QAction('Remove location point', parent=self, triggered=lambda: self.removeRow(self.currentRow()))
+        self.context_menu.addAction(remove_action)
+
+    def contextMenuEvent(self, event):
+        self.context_menu.exec_(event.globalPos())
+
+    def add_location_point(self, name, color, note):
+        name_item = QTableWidgetItem(name)
+        name_item.setCheckState(Qt.Checked)
+        name_item.setForeground(QBrush(QColor(color)))
+        name_item.setData(Qt.UserRole, 'name')
+
+        row_insertion_position = self.rowCount()
+        self.insertRow(row_insertion_position)
+
+        self.setItem(row_insertion_position, 0, name_item)
+        self.setItem(row_insertion_position, 1, QTableWidgetItem(note))
+
+    def on_item_changed(self, item):
+        if item.data(Qt.UserRole) == 'name':
+            print(item.checkState())
+
+    def dropEvent(self, event):
+        if not event.isAccepted() and event.source() == self:
+            drop_row = self.drop_on(event)
+
+            rows = sorted(set(item.row() for item in self.selectedItems()))
+            rows_to_move = [[QTableWidgetItem(self.item(row_index, column_index)) for column_index in range(self.columnCount())]
+                            for row_index in rows]
+
+            for row_index in reversed(rows):
+                self.removeRow(row_index)
+                if row_index < drop_row:
+                    drop_row -= 1
+
+            for row_index, data in enumerate(rows_to_move):
+                row_index += drop_row
+                self.insertRow(row_index)
+                for column_index, column_data in enumerate(data):
+                    self.setItem(row_index, column_index, column_data)
+            event.accept()
+
+            for row_index in range(len(rows_to_move)):
+                self.item(drop_row + row_index, 0).setSelected(True)
+                self.item(drop_row + row_index, 1).setSelected(True)
+        super().dropEvent(event)
+
+    def drop_on(self, event):
+        index = self.indexAt(event.pos())
+        if not index.isValid():
+            return self.rowCount()
+
+        return index.row() + 1 if self.is_below(event.pos(), index) else index.row()
+
+    def is_below(self, pos, index):
+        rect = self.visualRect(index)
+        margin = 2
+        if pos.y() - rect.top() < margin:
+            return False
+        elif rect.bottom() - pos.y() < margin:
+            return True
+        # noinspection PyTypeChecker
+        return rect.contains(pos, True) and not (int(self.model().flags(index)) & Qt.ItemIsDropEnabled) and pos.y() >= rect.center().y()
+
+
+class LocationPointPanel(QGroupBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        main_layout = QVBoxLayout()
+        self.setLayout(main_layout)
+
+        self.point_table = LocationPointTable(DEFAULT_LOCATION_POINTS, parent=self)
+        main_layout.addWidget(self.point_table)
+
+        new_point_layout = QHBoxLayout()
+        new_point_layout.addWidget(QLabel('New:', parent=self))
+
+        self.new_point_name_edit = QLineEdit(parent=self)
+        self.new_point_name_edit.setPlaceholderText('Name')
+        new_point_layout.addWidget(self.new_point_name_edit)
+
+        new_point_color_button = QPushButton('color', parent=self)
+        new_point_color_button.clicked.connect(self.set_color)
+        new_point_layout.addWidget(new_point_color_button)
+
+        self.new_point_note_edit = QLineEdit(parent=self)
+        self.new_point_note_edit.setPlaceholderText('Note...')
+        new_point_layout.addWidget(self.new_point_note_edit)
+
+        new_point_add_button = QPushButton('Add', parent=self)
+        new_point_add_button.clicked.connect(self.add_location_point)
+        new_point_layout.addWidget(new_point_add_button)
+
+        main_layout.addLayout(new_point_layout)
+
+    def set_color(self):
+        color = QColorDialog(parent=self).getColor()
+        if color.isValid():
+            self.new_point_name_edit.setStyleSheet('color: {}'.format(color.name()))
+            self.new_point_name_edit.repaint()
+            self.new_point_name_edit.setProperty('text_color', color.name())
+
+    def add_location_point(self):
+        self.point_table.add_location_point(self.new_point_name_edit.text(),
+                                            self.new_point_name_edit.property('text_color'),
+                                            self.new_point_note_edit.text())
+
+
 class ParameterPanel(QScrollArea):
     def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
+
         #TODO: need to fingure out how to do this...
         main_frame.setFixedSize(1000, 1000)
 
