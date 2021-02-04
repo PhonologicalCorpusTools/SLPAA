@@ -486,16 +486,16 @@ class HandIllustrationPanel(QScrollArea):
 
 
 class LocationGroupLayout(QHBoxLayout):
-    def __init__(self, name, location_specifications, app_ctx, **kwargs):
+    def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
-        self.layout_name = QLineEdit(name)
+        #self.layout_name = QLineEdit(name)
 
         self.contact_button = QCheckBox('Contact?')
         self.contact_button.setTristate(True)
         self.location_viewers = dict()
 
-        self.addWidget(self.layout_name)
+        #self.addWidget(self.layout_name)
         self.addWidget(self.contact_button)
         self.add_loc_viewers(location_specifications, app_ctx)
 
@@ -532,7 +532,7 @@ class LocationGroupLayout(QHBoxLayout):
         self.contact_button.setCheckState(Qt.Unchecked)
         self.location_viewers.clear()
 
-        while self.count() >= 3:
+        while self.count() >= 2:
             child = self.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
