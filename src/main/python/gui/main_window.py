@@ -2,7 +2,7 @@ import os
 import pickle
 import json
 from collections import defaultdict
-from getpass import getuser
+#from getpass import getuser
 from datetime import date
 from PyQt5.QtCore import (
     Qt,
@@ -597,7 +597,8 @@ class MainWindow(QMainWindow):
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('metadata')
-        self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue=getuser())
+        #self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue=getuser())
+        self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue='NEWUSERNAME')
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('reminder')
