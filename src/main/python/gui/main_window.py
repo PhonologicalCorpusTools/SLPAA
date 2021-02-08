@@ -197,28 +197,28 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setStatusTip('Show/hide corpus list')
         self.action_show_sub_corpus.triggered.connect(self.on_action_show_sub_corpus)
         self.action_show_sub_corpus.setCheckable(True)
-        self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
+        self.action_show_sub_corpus.setChecked(bool(self.app_settings['display']['sub_corpus_show']))
 
         # show/hide lexical subwindow
         self.action_show_sub_lexical = QAction('Show lexical information', parent=self)
         self.action_show_sub_lexical.setStatusTip('Show/hide lexical information')
         self.action_show_sub_lexical.triggered.connect(self.on_action_show_sub_lexical)
         self.action_show_sub_lexical.setCheckable(True)
-        self.action_show_sub_lexical.setChecked(self.app_settings['display']['sub_lexical_show'])
+        self.action_show_sub_lexical.setChecked(bool(self.app_settings['display']['sub_lexical_show']))
 
         # show/hide transcription subwindow
         self.action_show_sub_transcription = QAction('Show transcription', parent=self)
         self.action_show_sub_transcription.setStatusTip('Show/hide transcription')
         self.action_show_sub_transcription.triggered.connect(self.on_action_show_sub_transcription)
         self.action_show_sub_transcription.setCheckable(True)
-        self.action_show_sub_transcription.setChecked(self.app_settings['display']['sub_transcription_show'])
+        self.action_show_sub_transcription.setChecked(bool(self.app_settings['display']['sub_transcription_show']))
 
         # show/hide illustration subwindow
         self.action_show_sub_illustration = QAction('Show hand illustration', parent=self)
         self.action_show_sub_illustration.setStatusTip('Show/hide hand illustration')
         self.action_show_sub_illustration.triggered.connect(self.on_action_show_sub_illustration)
         self.action_show_sub_illustration.setCheckable(True)
-        self.action_show_sub_illustration.setChecked(self.app_settings['display']['sub_illustration_show'])
+        self.action_show_sub_illustration.setChecked(bool(self.app_settings['display']['sub_illustration_show']))
 
         # show/hide parameter subwindow
         self.action_show_sub_parameter = QAction('Show parameter specifier', parent=self)
@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
         self.action_show_sub_parameter.triggered.connect(self.on_action_show_sub_parameter)
         self.action_show_sub_parameter.setCheckable(True)
         self.action_show_sub_parameter.setChecked(True)
-        self.action_show_sub_parameter.setChecked(self.app_settings['display']['sub_parameter_show'])
+        self.action_show_sub_parameter.setChecked(bool(self.app_settings['display']['sub_parameter_show']))
 
         # export subwindow config
         action_export_subwindow_config = QAction('Export subwindow configuration...', parent=self)
