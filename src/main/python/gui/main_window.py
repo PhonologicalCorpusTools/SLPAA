@@ -197,28 +197,28 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setStatusTip('Show/hide corpus list')
         self.action_show_sub_corpus.triggered.connect(self.on_action_show_sub_corpus)
         self.action_show_sub_corpus.setCheckable(True)
-        self.action_show_sub_corpus.setChecked(bool(self.app_settings['display']['sub_corpus_show']))
+        self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
         # show/hide lexical subwindow
         self.action_show_sub_lexical = QAction('Show lexical information', parent=self)
         self.action_show_sub_lexical.setStatusTip('Show/hide lexical information')
         self.action_show_sub_lexical.triggered.connect(self.on_action_show_sub_lexical)
         self.action_show_sub_lexical.setCheckable(True)
-        self.action_show_sub_lexical.setChecked(bool(self.app_settings['display']['sub_lexical_show']))
+        self.action_show_sub_lexical.setChecked(self.app_settings['display']['sub_lexical_show'])
 
         # show/hide transcription subwindow
         self.action_show_sub_transcription = QAction('Show transcription', parent=self)
         self.action_show_sub_transcription.setStatusTip('Show/hide transcription')
         self.action_show_sub_transcription.triggered.connect(self.on_action_show_sub_transcription)
         self.action_show_sub_transcription.setCheckable(True)
-        self.action_show_sub_transcription.setChecked(bool(self.app_settings['display']['sub_transcription_show']))
+        self.action_show_sub_transcription.setChecked(self.app_settings['display']['sub_transcription_show'])
 
         # show/hide illustration subwindow
         self.action_show_sub_illustration = QAction('Show hand illustration', parent=self)
         self.action_show_sub_illustration.setStatusTip('Show/hide hand illustration')
         self.action_show_sub_illustration.triggered.connect(self.on_action_show_sub_illustration)
         self.action_show_sub_illustration.setCheckable(True)
-        self.action_show_sub_illustration.setChecked(bool(self.app_settings['display']['sub_illustration_show']))
+        self.action_show_sub_illustration.setChecked(self.app_settings['display']['sub_illustration_show'])
 
         # show/hide parameter subwindow
         self.action_show_sub_parameter = QAction('Show parameter specifier', parent=self)
@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
         self.action_show_sub_parameter.triggered.connect(self.on_action_show_sub_parameter)
         self.action_show_sub_parameter.setCheckable(True)
         self.action_show_sub_parameter.setChecked(True)
-        self.action_show_sub_parameter.setChecked(bool(self.app_settings['display']['sub_parameter_show']))
+        self.action_show_sub_parameter.setChecked(self.app_settings['display']['sub_parameter_show'])
 
         # export subwindow config
         action_export_subwindow_config = QAction('Export subwindow configuration...', parent=self)
@@ -572,28 +572,28 @@ class MainWindow(QMainWindow):
         self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(1280, 755))
         self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(0, 23))
 
-        self.app_settings['display']['sub_corpus_show'] = self.app_qsettings.value('sub_corpus_show', defaultValue=True)
+        self.app_settings['display']['sub_corpus_show'] = bool(self.app_qsettings.value('sub_corpus_show', defaultValue=True))
         self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 0))
         self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(180, 700))
 
-        self.app_settings['display']['sub_lexical_show'] = self.app_qsettings.value('sub_lexical_show', defaultValue=True)
+        self.app_settings['display']['sub_lexical_show'] = bool(self.app_qsettings.value('sub_lexical_show', defaultValue=True))
         self.app_settings['display']['sub_lexical_pos'] = self.app_qsettings.value('sub_lexical_pos', defaultValue=QPoint(180, 0))
         self.app_settings['display']['sub_lexical_size'] = self.app_qsettings.value('sub_lexical_size', defaultValue=QSize(300, 350))
 
-        self.app_settings['display']['sub_transcription_show'] = self.app_qsettings.value('sub_transcription_show', defaultValue=True)
+        self.app_settings['display']['sub_transcription_show'] = bool(self.app_qsettings.value('sub_transcription_show', defaultValue=True))
         self.app_settings['display']['sub_transcription_pos'] = self.app_qsettings.value('sub_transcription_pos', defaultValue=QPoint(480, 0))
         self.app_settings['display']['sub_transcription_size'] = self.app_qsettings.value('sub_transcription_size', defaultValue=QSize(800, 350))
 
-        self.app_settings['display']['sub_illustration_show'] = self.app_qsettings.value('sub_illustration_show', defaultValue=True)
+        self.app_settings['display']['sub_illustration_show'] = bool(self.app_qsettings.value('sub_illustration_show', defaultValue=True))
         self.app_settings['display']['sub_illustration_pos'] = self.app_qsettings.value('sub_illustration_pos', defaultValue=QPoint(180, 350))
         self.app_settings['display']['sub_illustration_size'] = self.app_qsettings.value('sub_illustration_size', defaultValue=QSize(400, 350))
 
-        self.app_settings['display']['sub_parameter_show'] = self.app_qsettings.value('sub_parameter_show', defaultValue=True)
+        self.app_settings['display']['sub_parameter_show'] = bool(self.app_qsettings.value('sub_parameter_show', defaultValue=True))
         self.app_settings['display']['sub_parameter_pos'] = self.app_qsettings.value('sub_parameter_pos', defaultValue=QPoint(580, 350))
         self.app_settings['display']['sub_parameter_size'] = self.app_qsettings.value('sub_parameter_size', defaultValue=QSize(700, 350))
 
         self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2)
-        self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True)
+        self.app_settings['display']['tooltips'] = bool(self.app_qsettings.value('tooltips', defaultValue=True))
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('metadata')
@@ -602,7 +602,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('reminder')
-        self.app_settings['reminder']['overwrite'] = self.app_qsettings.value('overwrite', defaultValue=True)
+        self.app_settings['reminder']['overwrite'] = bool(self.app_qsettings.value('overwrite', defaultValue=True))
         self.app_qsettings.endGroup()
 
     def check_storage(self):
