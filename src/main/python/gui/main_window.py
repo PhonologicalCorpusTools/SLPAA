@@ -2,6 +2,7 @@ import os
 import pickle
 import json
 from collections import defaultdict
+import csv
 #from getpass import getuser
 from datetime import date
 from PyQt5.QtCore import (
@@ -164,6 +165,10 @@ class MainWindow(QMainWindow):
         action_close.triggered.connect(self.on_action_close)
         action_close.setCheckable(False)
 
+        # output handshape transcription to csv
+        action_export_handshape_transcription_csv = QAction('Export handshape transcription as CSV', parent=self)
+        action_export_handshape_transcription_csv.triggered.connect(self.on_action_export_handshape_transcription_csv)
+
         # new sign
         action_new_sign = QAction(QIcon(self.app_ctx.icons['plus']), 'New sign', parent=self)
         action_new_sign.setStatusTip('Create a new sign')
@@ -271,6 +276,8 @@ class MainWindow(QMainWindow):
         menu_file.addAction(action_new_corpus)
         menu_file.addAction(action_load_corpus)
         menu_file.addSeparator()
+        menu_file.addAction(action_export_handshape_transcription_csv)
+        menu_file.addSeparator()
         menu_file.addAction(action_close)
         menu_file.addAction(action_save)
         menu_file.addSeparator()
@@ -352,6 +359,35 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_mdi)
 
         self.open_initialization_window()
+
+    def on_action_export_handshape_transcription_csv(self):
+        file_name, file_type = QFileDialog.getSaveFileName(self,
+                                                           self.tr('Export Handshape Transcriptions'),
+                                                           os.path.join(
+                                                               self.app_settings['storage']['recent_folder'],
+                                                               'handshape_transcriptions.csv'),
+                                                           self.tr('CSV Files (*.csv)'))
+
+        if file_name:
+            with open(file_name, 'w') as f:
+                transcription_writer = csv.writer(f, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+                transcription_writer.writerow(['GLOSS', 'FREQUENCY', 'CODER', 'LAST_UPDATED', 'NOTES', 'FOREARM', 'ESTIMATED', 'UNCERTAIN', 'INCOMPLETE', 'FINGERSPELLED', 'INITIALIZED',
+                                               'C1H1_S2', 'C1H1_S3', 'C1H1_S4', 'C1H1_S5', 'C1H1_S6', 'C1H1_S7', 'C1H1_S8', 'C1H1_S9', 'C1H1_S10', 'C1H1_S11', 'C1H1_S12', 'C1H1_S13', 'C1H1_S14', 'C1H1_S15', 'C1H1_S16', 'C1H1_S17', 'C1H1_S18', 'C1H1_S19', 'C1H1_S20', 'C1H1_S21', 'C1H1_S22', 'C1H1_S23', 'C1H1_S24', 'C1H1_S25', 'C1H1_S26', 'C1H1_S27', 'C1H1_S28', 'C1H1_S29', 'C1H1_S30', 'C1H1_S31', 'C1H1_S32', 'C1H1_S33', 'C1H1_S34',
+                                               'C1H2_S2', 'C1H2_S3', 'C1H2_S4', 'C1H2_S5', 'C1H2_S6', 'C1H2_S7', 'C1H2_S8', 'C1H2_S9', 'C1H2_S10', 'C1H2_S11', 'C1H2_S12', 'C1H2_S13', 'C1H2_S14', 'C1H2_S15', 'C1H2_S16', 'C1H2_S17', 'C1H2_S18', 'C1H2_S19', 'C1H2_S20', 'C1H2_S21', 'C1H2_S22', 'C1H2_S23', 'C1H2_S24', 'C1H2_S25', 'C1H2_S26', 'C1H2_S27', 'C1H2_S28', 'C1H2_S29', 'C1H2_S30', 'C1H2_S31', 'C1H2_S32', 'C1H2_S33', 'C1H2_S34',
+                                               'C2H1_S2', 'C2H1_S3', 'C2H1_S4', 'C2H1_S5', 'C2H1_S6', 'C2H1_S7', 'C2H1_S8', 'C2H1_S9', 'C2H1_S10', 'C2H1_S11', 'C2H1_S12', 'C2H1_S13', 'C2H1_S14', 'C2H1_S15', 'C2H1_S16', 'C2H1_S17', 'C2H1_S18', 'C2H1_S19', 'C2H1_S20', 'C2H1_S21', 'C2H1_S22', 'C2H1_S23', 'C2H1_S24', 'C2H1_S25', 'C2H1_S26', 'C2H1_S27', 'C2H1_S28', 'C2H1_S29', 'C2H1_S30', 'C2H1_S31', 'C2H1_S32', 'C2H1_S33', 'C2H1_S34',
+                                               'C2H2_S2', 'C2H2_S3', 'C2H2_S4', 'C2H2_S5', 'C2H2_S6', 'C2H2_S7', 'C2H2_S8', 'C2H2_S9', 'C2H2_S10', 'C2H2_S11', 'C2H2_S12', 'C2H2_S13', 'C2H2_S14', 'C2H2_S15', 'C2H2_S16', 'C2H2_S17', 'C2H2_S18', 'C2H2_S19', 'C2H2_S20', 'C2H2_S21', 'C2H2_S22', 'C2H2_S23', 'C2H2_S24', 'C2H2_S25', 'C2H2_S26', 'C2H2_S27', 'C2H2_S28', 'C2H2_S29', 'C2H2_S30', 'C2H2_S31', 'C2H2_S32', 'C2H2_S33', 'C2H2_S34'
+                                               ])
+
+                for sign in self.corpus:
+                    info = [sign.lexical_information.gloss, sign.lexical_information.frequency, sign.lexical_information.coder, str(sign.lexical_information.update_date), sign.lexical_information.note,
+                            sign.global_handshape_information.forearm, sign.global_handshape_information.estimated, sign.global_handshape_information.uncertain, sign.global_handshape_information.incomplete, sign.global_handshape_information.fingerspelled, sign.global_handshape_information.initialized]
+                    info.extend(sign.handshape_transcription.config1.hand1.get_hand_transcription_list())
+                    info.extend(sign.handshape_transcription.config1.hand2.get_hand_transcription_list())
+                    info.extend(sign.handshape_transcription.config2.hand1.get_hand_transcription_list())
+                    info.extend(sign.handshape_transcription.config2.hand2.get_hand_transcription_list())
+                    transcription_writer.writerow(info)
+
+            QMessageBox.information(self, 'Handshape Transcriptions Exported', 'Handshape transcriptions have been successfully exported!')
 
     def show_hide_subwindows(self):
         self.sub_parameter.setHidden(not self.app_settings['display']['sub_parameter_show'])
