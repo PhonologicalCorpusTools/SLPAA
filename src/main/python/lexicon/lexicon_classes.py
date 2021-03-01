@@ -1,6 +1,14 @@
 from itertools import chain
+from copy import deepcopy
 
 NULL = '\u2205'
+
+def empty_copy(obj):
+    class Empty(obj.__class__):
+        def __init__(self): pass
+    new_copy = Empty(  )
+    new_copy.__class__ = obj.__class__
+    return new_copy
 
 
 class LexicalInformation:
@@ -213,6 +221,9 @@ class HandshapeTranscriptionHand:
     def get_hand_transcription_list(self):
         return [slot.symbol for slot in self.__iter__()]
 
+    def get_hand_transcription_string(self):
+        return ''.join(self.get_hand_transcription_list())
+
     def is_empty(self):
         return self.get_hand_transcription_list() == [
             '', '', '', '',
@@ -311,6 +322,8 @@ class LocationTranscription:
     def __init__(self, location_transcription_info):
         self.start = LocationHand(location_transcription_info['start'])
         self.end = LocationHand(location_transcription_info['end'])
+
+        #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
 
 # TODO: need to think about duplicated signs
