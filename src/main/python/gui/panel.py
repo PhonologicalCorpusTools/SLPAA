@@ -486,16 +486,16 @@ class HandIllustrationPanel(QScrollArea):
 
 
 class LocationGroupLayout(QHBoxLayout):
-    def __init__(self, location_specifications, app_ctx, **kwargs):
+    def __init__(self, name, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
-        #self.layout_name = QLineEdit(name)
+        self.layout_name = QLineEdit(name)
 
         self.contact_button = QCheckBox('Contact?')
         self.contact_button.setTristate(True)
         self.location_viewers = dict()
 
-        #self.addWidget(self.layout_name)
+        self.addWidget(self.layout_name)
         self.addWidget(self.contact_button)
         self.add_loc_viewers(location_specifications, app_ctx)
 
@@ -563,10 +563,12 @@ class LocationSpecificationLayout(QVBoxLayout):
         self.hand_switch = ToggleSwitch()
         self.hand_switch.setChecked(True)
         self.hand_switch.clicked.connect(self.change_hand)
-        self.start_location_group_layout = LocationGroupLayout(location_specifications, app_ctx)
-        self.end_location_group_layout = LocationGroupLayout(location_specifications, app_ctx)
+        self.start_location_group_layout = LocationGroupLayout('start', location_specifications, app_ctx)
+        self.end_location_group_layout = LocationGroupLayout('end', location_specifications, app_ctx)
+        self.location_point_panel = LocationPointPanel('Location points')
 
         self.addWidget(self.hand_switch)
+        #self.addWidget(self.location_point_panel)
         self.addLayout(self.start_location_group_layout)
         self.addLayout(self.end_location_group_layout)
 

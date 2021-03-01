@@ -1,8 +1,9 @@
 import os
 import pickle
 import json
-from collections import defaultdict
 import csv
+from collections import defaultdict
+from copy import deepcopy
 #from getpass import getuser
 from datetime import date
 from PyQt5.QtCore import (
@@ -35,6 +36,8 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusView
 from gui.location_definer import LocationDefinerDialog
+from gui.corpus_summary_dialog import CorpusSummaryDialog
+from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import (
     LexicalInformationPanel,
     HandTranscriptionPanel,
@@ -80,7 +83,7 @@ class MainWindow(QMainWindow):
         self.predefined_handshape_dialog = None
 
         # system-default locations
-        self.system_default_locations = SAMPLE_LOCATIONS
+        self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
 
         # handle setting-related stuff
         self.handle_app_settings()
@@ -166,7 +169,7 @@ class MainWindow(QMainWindow):
         action_close.setCheckable(False)
 
         # output handshape transcription to csv
-        action_export_handshape_transcription_csv = QAction('Export handshape transcription as CSV', parent=self)
+        action_export_handshape_transcription_csv = QAction('Export handshape transcription as CSV...', parent=self)
         action_export_handshape_transcription_csv.triggered.connect(self.on_action_export_handshape_transcription_csv)
 
         # new sign
@@ -361,33 +364,92 @@ class MainWindow(QMainWindow):
         self.open_initialization_window()
 
     def on_action_export_handshape_transcription_csv(self):
-        file_name, file_type = QFileDialog.getSaveFileName(self,
-                                                           self.tr('Export Handshape Transcriptions'),
-                                                           os.path.join(
-                                                               self.app_settings['storage']['recent_folder'],
-                                                               'handshape_transcriptions.csv'),
-                                                           self.tr('CSV Files (*.csv)'))
+        export_csv_dialog = ExportCSVDialog(self.app_settings, parent=self)
+        if export_csv_dialog.exec_():
+            file_name = export_csv_dialog.location_group.get_file_path()
+            option = export_csv_dialog.transcription_option_group.get_selected_option()
+            if file_name:
+                with open(file_name, 'w') as f:
+                    transcription_writer = csv.writer(f, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+                    if option == 'individual':
+                        transcription_writer.writerow(
+                            ['GLOSS', 'FREQUENCY', 'CODER', 'LAST_UPDATED', 'NOTES', 'FOREARM', 'ESTIMATED',
+                             'UNCERTAIN',
+                             'INCOMPLETE', 'FINGERSPELLED', 'INITIALIZED',
+                             'C1H1_S2', 'C1H1_S3', 'C1H1_S4', 'C1H1_S5', 'C1H1_S6', 'C1H1_S7', 'C1H1_S8', 'C1H1_S9',
+                             'C1H1_S10', 'C1H1_S11', 'C1H1_S12', 'C1H1_S13', 'C1H1_S14', 'C1H1_S15', 'C1H1_S16',
+                             'C1H1_S17',
+                             'C1H1_S18', 'C1H1_S19', 'C1H1_S20', 'C1H1_S21', 'C1H1_S22', 'C1H1_S23', 'C1H1_S24',
+                             'C1H1_S25',
+                             'C1H1_S26', 'C1H1_S27', 'C1H1_S28', 'C1H1_S29', 'C1H1_S30', 'C1H1_S31', 'C1H1_S32',
+                             'C1H1_S33',
+                             'C1H1_S34',
+                             'C1H2_S2', 'C1H2_S3', 'C1H2_S4', 'C1H2_S5', 'C1H2_S6', 'C1H2_S7', 'C1H2_S8', 'C1H2_S9',
+                             'C1H2_S10', 'C1H2_S11', 'C1H2_S12', 'C1H2_S13', 'C1H2_S14', 'C1H2_S15', 'C1H2_S16',
+                             'C1H2_S17',
+                             'C1H2_S18', 'C1H2_S19', 'C1H2_S20', 'C1H2_S21', 'C1H2_S22', 'C1H2_S23', 'C1H2_S24',
+                             'C1H2_S25',
+                             'C1H2_S26', 'C1H2_S27', 'C1H2_S28', 'C1H2_S29', 'C1H2_S30', 'C1H2_S31', 'C1H2_S32',
+                             'C1H2_S33',
+                             'C1H2_S34',
+                             'C2H1_S2', 'C2H1_S3', 'C2H1_S4', 'C2H1_S5', 'C2H1_S6', 'C2H1_S7', 'C2H1_S8', 'C2H1_S9',
+                             'C2H1_S10', 'C2H1_S11', 'C2H1_S12', 'C2H1_S13', 'C2H1_S14', 'C2H1_S15', 'C2H1_S16',
+                             'C2H1_S17',
+                             'C2H1_S18', 'C2H1_S19', 'C2H1_S20', 'C2H1_S21', 'C2H1_S22', 'C2H1_S23', 'C2H1_S24',
+                             'C2H1_S25',
+                             'C2H1_S26', 'C2H1_S27', 'C2H1_S28', 'C2H1_S29', 'C2H1_S30', 'C2H1_S31', 'C2H1_S32',
+                             'C2H1_S33',
+                             'C2H1_S34',
+                             'C2H2_S2', 'C2H2_S3', 'C2H2_S4', 'C2H2_S5', 'C2H2_S6', 'C2H2_S7', 'C2H2_S8', 'C2H2_S9',
+                             'C2H2_S10', 'C2H2_S11', 'C2H2_S12', 'C2H2_S13', 'C2H2_S14', 'C2H2_S15', 'C2H2_S16',
+                             'C2H2_S17',
+                             'C2H2_S18', 'C2H2_S19', 'C2H2_S20', 'C2H2_S21', 'C2H2_S22', 'C2H2_S23', 'C2H2_S24',
+                             'C2H2_S25',
+                             'C2H2_S26', 'C2H2_S27', 'C2H2_S28', 'C2H2_S29', 'C2H2_S30', 'C2H2_S31', 'C2H2_S32',
+                             'C2H2_S33',
+                             'C2H2_S34'
+                             ])
 
-        if file_name:
-            with open(file_name, 'w') as f:
-                transcription_writer = csv.writer(f, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-                transcription_writer.writerow(['GLOSS', 'FREQUENCY', 'CODER', 'LAST_UPDATED', 'NOTES', 'FOREARM', 'ESTIMATED', 'UNCERTAIN', 'INCOMPLETE', 'FINGERSPELLED', 'INITIALIZED',
-                                               'C1H1_S2', 'C1H1_S3', 'C1H1_S4', 'C1H1_S5', 'C1H1_S6', 'C1H1_S7', 'C1H1_S8', 'C1H1_S9', 'C1H1_S10', 'C1H1_S11', 'C1H1_S12', 'C1H1_S13', 'C1H1_S14', 'C1H1_S15', 'C1H1_S16', 'C1H1_S17', 'C1H1_S18', 'C1H1_S19', 'C1H1_S20', 'C1H1_S21', 'C1H1_S22', 'C1H1_S23', 'C1H1_S24', 'C1H1_S25', 'C1H1_S26', 'C1H1_S27', 'C1H1_S28', 'C1H1_S29', 'C1H1_S30', 'C1H1_S31', 'C1H1_S32', 'C1H1_S33', 'C1H1_S34',
-                                               'C1H2_S2', 'C1H2_S3', 'C1H2_S4', 'C1H2_S5', 'C1H2_S6', 'C1H2_S7', 'C1H2_S8', 'C1H2_S9', 'C1H2_S10', 'C1H2_S11', 'C1H2_S12', 'C1H2_S13', 'C1H2_S14', 'C1H2_S15', 'C1H2_S16', 'C1H2_S17', 'C1H2_S18', 'C1H2_S19', 'C1H2_S20', 'C1H2_S21', 'C1H2_S22', 'C1H2_S23', 'C1H2_S24', 'C1H2_S25', 'C1H2_S26', 'C1H2_S27', 'C1H2_S28', 'C1H2_S29', 'C1H2_S30', 'C1H2_S31', 'C1H2_S32', 'C1H2_S33', 'C1H2_S34',
-                                               'C2H1_S2', 'C2H1_S3', 'C2H1_S4', 'C2H1_S5', 'C2H1_S6', 'C2H1_S7', 'C2H1_S8', 'C2H1_S9', 'C2H1_S10', 'C2H1_S11', 'C2H1_S12', 'C2H1_S13', 'C2H1_S14', 'C2H1_S15', 'C2H1_S16', 'C2H1_S17', 'C2H1_S18', 'C2H1_S19', 'C2H1_S20', 'C2H1_S21', 'C2H1_S22', 'C2H1_S23', 'C2H1_S24', 'C2H1_S25', 'C2H1_S26', 'C2H1_S27', 'C2H1_S28', 'C2H1_S29', 'C2H1_S30', 'C2H1_S31', 'C2H1_S32', 'C2H1_S33', 'C2H1_S34',
-                                               'C2H2_S2', 'C2H2_S3', 'C2H2_S4', 'C2H2_S5', 'C2H2_S6', 'C2H2_S7', 'C2H2_S8', 'C2H2_S9', 'C2H2_S10', 'C2H2_S11', 'C2H2_S12', 'C2H2_S13', 'C2H2_S14', 'C2H2_S15', 'C2H2_S16', 'C2H2_S17', 'C2H2_S18', 'C2H2_S19', 'C2H2_S20', 'C2H2_S21', 'C2H2_S22', 'C2H2_S23', 'C2H2_S24', 'C2H2_S25', 'C2H2_S26', 'C2H2_S27', 'C2H2_S28', 'C2H2_S29', 'C2H2_S30', 'C2H2_S31', 'C2H2_S32', 'C2H2_S33', 'C2H2_S34'
-                                               ])
+                        for sign in self.corpus:
+                            info = [sign.lexical_information.gloss, sign.lexical_information.frequency,
+                                    sign.lexical_information.coder, str(sign.lexical_information.update_date),
+                                    sign.lexical_information.note,
+                                    sign.global_handshape_information.forearm,
+                                    sign.global_handshape_information.estimated,
+                                    sign.global_handshape_information.uncertain,
+                                    sign.global_handshape_information.incomplete,
+                                    sign.global_handshape_information.fingerspelled,
+                                    sign.global_handshape_information.initialized]
+                            info.extend(sign.handshape_transcription.config1.hand1.get_hand_transcription_list())
+                            info.extend(sign.handshape_transcription.config1.hand2.get_hand_transcription_list())
+                            info.extend(sign.handshape_transcription.config2.hand1.get_hand_transcription_list())
+                            info.extend(sign.handshape_transcription.config2.hand2.get_hand_transcription_list())
+                            transcription_writer.writerow(info)
+                    elif option == 'single':
+                        transcription_writer.writerow(
+                            ['GLOSS', 'FREQUENCY', 'CODER', 'LAST_UPDATED', 'NOTES', 'FOREARM', 'ESTIMATED',
+                             'UNCERTAIN',
+                             'INCOMPLETE', 'FINGERSPELLED', 'INITIALIZED',
+                             'C1H1', 'C1H2', 'C2H1', 'C2H2'])
 
-                for sign in self.corpus:
-                    info = [sign.lexical_information.gloss, sign.lexical_information.frequency, sign.lexical_information.coder, str(sign.lexical_information.update_date), sign.lexical_information.note,
-                            sign.global_handshape_information.forearm, sign.global_handshape_information.estimated, sign.global_handshape_information.uncertain, sign.global_handshape_information.incomplete, sign.global_handshape_information.fingerspelled, sign.global_handshape_information.initialized]
-                    info.extend(sign.handshape_transcription.config1.hand1.get_hand_transcription_list())
-                    info.extend(sign.handshape_transcription.config1.hand2.get_hand_transcription_list())
-                    info.extend(sign.handshape_transcription.config2.hand1.get_hand_transcription_list())
-                    info.extend(sign.handshape_transcription.config2.hand2.get_hand_transcription_list())
-                    transcription_writer.writerow(info)
+                        for sign in self.corpus:
+                            info = [sign.lexical_information.gloss, sign.lexical_information.frequency,
+                                    sign.lexical_information.coder, str(sign.lexical_information.update_date),
+                                    sign.lexical_information.note,
+                                    sign.global_handshape_information.forearm,
+                                    sign.global_handshape_information.estimated,
+                                    sign.global_handshape_information.uncertain,
+                                    sign.global_handshape_information.incomplete,
+                                    sign.global_handshape_information.fingerspelled,
+                                    sign.global_handshape_information.initialized,
+                                    sign.handshape_transcription.config1.hand1.get_hand_transcription_string(),
+                                    sign.handshape_transcription.config1.hand2.get_hand_transcription_string(),
+                                    sign.handshape_transcription.config2.hand1.get_hand_transcription_string(),
+                                    sign.handshape_transcription.config2.hand2.get_hand_transcription_string()]
+                            transcription_writer.writerow(info)
 
-            QMessageBox.information(self, 'Handshape Transcriptions Exported', 'Handshape transcriptions have been successfully exported!')
+                QMessageBox.information(self, 'Handshape Transcriptions Exported',
+                                        'Handshape transcriptions have been successfully exported!')
 
     def show_hide_subwindows(self):
         self.sub_parameter.setHidden(not self.app_settings['display']['sub_parameter_show'])
@@ -694,7 +756,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.endGroup()
 
     def on_action_define_location(self):
-        location_definer = LocationDefinerDialog(self.corpus.location_definition, self.app_settings, self.app_ctx, parent=self)
+        location_definer = LocationDefinerDialog(self.system_default_locations, self.corpus.location_definition, self.app_settings, self.app_ctx, parent=self)
         location_definer.saved_locations.connect(self.save_new_locations)
         location_definer.exec_()
 
@@ -765,7 +827,7 @@ class MainWindow(QMainWindow):
         self.current_sign = None
         self.action_delete_sign.setEnabled(False)
 
-        self.corpus = Corpus(signs=None, location_definition=SAMPLE_LOCATIONS)
+        self.corpus = Corpus(signs=None, location_definition=deepcopy(SAMPLE_LOCATIONS))
 
         self.corpus_view.clear()
         self.lexical_scroll.clear(self.app_settings['metadata']['coder'])

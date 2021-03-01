@@ -18,7 +18,8 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QTabBar,
     QDialogButtonBox,
-    QMessageBox
+    QMessageBox,
+    QSlider
 )
 
 from PyQt5.QtGui import (
@@ -40,6 +41,9 @@ from PyQt5.QtCore import (
 
 from .helper_widget import EditableTabBar
 from constant import LocationParameter, Locations
+from constant import SAMPLE_LOCATIONS
+from copy import copy, deepcopy
+from pprint import pprint
 
 
 #reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
@@ -88,7 +92,7 @@ class LocationViewer(QGraphicsView):
         self.pen_width = pen_width
         self.pen_color = pen_color
 
-        self._zoom = 0
+        #self._zoom = 0
         self._empty = True
         self._scene = QGraphicsScene(parent=self)
         self._photo = QGraphicsPixmapItem()
@@ -144,15 +148,15 @@ class LocationViewer(QGraphicsView):
                 unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
                 self.scale(1 / unity.width(), 1 / unity.height())
                 scenerect = self.transform().mapRect(rect)
-                factor = min(self.viewer_size / scenerect.width(),
-                             self.viewer_size / scenerect.height())
+                factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
+                self.factor = factor
                 # viewrect = self.viewport().rect()
                 # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
-            self._zoom = 0
+            #self._zoom = 0
 
     def set_photo(self, pixmap=None):
-        self._zoom = 0
+        #self._zoom = 0
         if pixmap and not pixmap.isNull():
             self._empty = False
             self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -163,20 +167,21 @@ class LocationViewer(QGraphicsView):
             self._photo.setPixmap(QPixmap())
         self.fitInView()
 
-    def wheelEvent(self, event):
-        if self.has_photo():
-            if event.angleDelta().y() > 0:
-                factor = 1.25
-                self._zoom += 1
-            else:
-                factor = 0.8
-                self._zoom -= 1
-            if self._zoom > 0:
-                self.scale(factor, factor)
-            elif self._zoom == 0:
-                self.fitInView()
-            else:
-                self._zoom = 0
+    # def wheelEvent(self, event):
+    #     if self.has_photo():
+    #         if event.angleDelta().y() > 0:
+    #             factor = 1.25
+    #             self._zoom += 1
+    #         else:
+    #             factor = 0.8
+    #             self._zoom -= 1
+    #
+    #         if self._zoom > 0:
+    #             self.scale(factor, factor)
+    #         elif self._zoom == 0:
+    #             self.fitInView()
+    #         else:
+    #             self._zoom = 0
 
     def toggleDragMode(self):
         if self.dragMode() == QGraphicsView.ScrollHandDrag:
@@ -254,7 +259,7 @@ class LocationDefinitionPanel(QFrame):
 
 
 class LocationDefinerPage(QWidget):
-    def __init__(self, app_settings, app_ctx, image_path=None, locations=None, default=True, viewer_size=500, **kwargs):
+    def __init__(self, app_settings, app_ctx, image_basename=None, image_path=None, locations=None, default=True, viewer_size=500, **kwargs):
         super().__init__(**kwargs)
 
         self.app_settings = app_settings
@@ -262,6 +267,7 @@ class LocationDefinerPage(QWidget):
             locations = dict()
         self.is_defining = False
         self.locations = locations
+        self.image_base = image_basename
         self.image_path = image_path
         self.default = default
 
@@ -291,14 +297,30 @@ class LocationDefinerPage(QWidget):
 
         main_layout.addWidget(self.location_viewer)
 
+        zoom_slider = QSlider(Qt.Vertical, parent=self)
+        zoom_slider.setMinimum(1)
+        zoom_slider.setMaximum(10)
+        zoom_slider.setValue(0)
+        zoom_slider.valueChanged.connect(self.zoom)
+
+        main_layout.addWidget(zoom_slider)
+
         self.setLayout(main_layout)
+
+    def zoom(self, scale):
+        if self.location_viewer.has_photo():
+            trans_matrix = self.location_viewer.transform()
+            trans_matrix.reset()
+            trans_matrix = trans_matrix.scale(scale * self.location_viewer.factor, scale * self.location_viewer.factor)
+            self.location_viewer.setTransform(trans_matrix)
 
     def set_image(self):
         file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'),
                                                            self.app_settings['storage']['recent_folder'],
                                                            self.tr('Image Files (*.png *.jpg *.bmp)'))
         _, basename = os.path.split(file_name)
-        self.image_path = os.path.join(self.app_settings['storage']['image'], basename)
+
+        self.image_base = basename
 
         self.default = False
         self.location_viewer.set_photo(QPixmap(file_name))
@@ -393,7 +415,9 @@ class LocationDefinerPage(QWidget):
 
 class LocationDefinerTabWidget(QTabWidget):
     # TODO: need to have unsaved change warning, so that the added/deleted changed can be reflected...
-    def __init__(self, default_location_specifications, app_settings, app_ctx, **kwargs):
+    # TODO: need to make default location associated with the application and another location for the Corpus class
+    def __init__(self, system_default_location_specifications, corpus_location_specifications,
+                 app_settings, app_ctx, **kwargs):
         """
 
         :param location_specifications: a Location object
@@ -402,7 +426,8 @@ class LocationDefinerTabWidget(QTabWidget):
         """
         super().__init__(**kwargs)
 
-        self.default_location_specifications = default_location_specifications
+        self.system_default_location_specifications = system_default_location_specifications
+        self.corpus_location_specifications = corpus_location_specifications
         self.app_settings = app_settings
         self.app_ctx = app_ctx
 
@@ -421,8 +446,10 @@ class LocationDefinerTabWidget(QTabWidget):
 
         self.tabCloseRequested.connect(self.close_handler)
 
-    def add_default_location_tabs(self):
-        for loc_identifier, loc_param in self.default_location_specifications.items():
+    def add_default_location_tabs(self, is_system_default=False):
+        locations = deepcopy(self.system_default_location_specifications) if is_system_default else self.corpus_location_specifications
+
+        for loc_identifier, loc_param in locations.items():
             loc_page = LocationDefinerPage(
                 self.app_settings,
                 self.app_ctx,
@@ -436,6 +463,7 @@ class LocationDefinerTabWidget(QTabWidget):
 
         self.number_pages = len(self.location_definer_pages)
         self.addTab(QWidget(), QIcon(self.app_ctx.icons['plus']), 'Add location')
+
         # hide close button for the '' tab. The location of the close button is OS-dependent.
         if os.name == 'nt':  # For Windows, buttons appear on the right
             self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.RightSide).hide()
@@ -452,7 +480,7 @@ class LocationDefinerTabWidget(QTabWidget):
 
     def delete_non_default_images(self):
         for page in self.location_definer_pages:
-            if not page.default:
+            if (not page.default) and page.image_path:
                 os.remove(page.image_path)
 
     def remove_all_pages(self):
@@ -470,7 +498,7 @@ class LocationDefinerTabWidget(QTabWidget):
         self.number_pages = 0
 
     def import_locations(self, imported_locations):
-        self.default_location_specifications = imported_locations
+        self.corpus_location_specifications = imported_locations
 
         # remove all current location pages
         while self.count():
@@ -484,7 +512,7 @@ class LocationDefinerTabWidget(QTabWidget):
         self.location_definer_pages.clear()
         self.number_pages = 0
 
-        self.add_default_location_tabs()
+        self.add_default_location_tabs(is_system_default=False)
 
     # Ref: https://stackoverflow.com/questions/57013483/dynamically-created-tabs-destroy-object-when-tab-closed
     def close_handler(self, index):
@@ -512,14 +540,15 @@ class LocationDefinerTabWidget(QTabWidget):
 class LocationDefinerDialog(QDialog):
     saved_locations = pyqtSignal(Locations)
 
-    def __init__(self, location_specifications, app_settings, app_ctx, **kwargs):
+    def __init__(self, system_default_location_specifications, location_specifications, app_settings, app_ctx, **kwargs):
         super().__init__(**kwargs)
         self.app_settings = app_settings
+        self.system_default_location_specifications = system_default_location_specifications
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        self.location_tab = LocationDefinerTabWidget(location_specifications, app_settings, app_ctx, parent=self)
+        self.location_tab = LocationDefinerTabWidget(system_default_location_specifications, location_specifications, app_settings, app_ctx, parent=self)
         main_layout.addWidget(self.location_tab)
 
         separate_line = QFrame()
@@ -545,7 +574,9 @@ class LocationDefinerDialog(QDialog):
     def save_new_images(self):
         for page in self.location_tab.location_definer_pages:
             if not page.default:
+                page.image_path = os.path.join(self.app_settings['storage']['image'], page.basename)
                 page.location_viewer.get_photo().save(page.image_path)
+                page.basename = None
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -556,7 +587,7 @@ class LocationDefinerDialog(QDialog):
 
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.location_tab.remove_all_pages()
-            self.location_tab.add_default_location_tabs()
+            self.location_tab.add_default_location_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
             self.save_new_images()
             self.saved_locations.emit(self.location_tab.get_locations())
