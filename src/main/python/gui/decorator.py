@@ -11,7 +11,7 @@ def check_unsaved_change(func):
     @functools.wraps(func)
     def wrapper_check_unsaved_change(self, event, *args, **kwargs):
         if not self.undostack.isClean():
-            response = QMessageBox.question(self, 'Unsaved Changes', 'You have unsaved changes')
+            response = QMessageBox.question(self, 'Unsaved Changes', 'You have unsaved changes. Are you sure you want to close the app?')
             if response == QMessageBox.No:
                 return event.ignore()
         func(self, event, *args, **kwargs)
