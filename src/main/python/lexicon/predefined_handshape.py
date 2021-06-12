@@ -66,7 +66,7 @@ class Handshape3(PredefinedHandshape):
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
             '{', '2', 'E', 'E', 'E',
-            '{', '3', 'F', 'F', 'E',
+            '<', '3', 'F', 'F', 'E',
             '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -74,7 +74,7 @@ class Handshape3(PredefinedHandshape):
 
 class Handshape4(PredefinedHandshape):
     def __init__(self, name='4', filename='4', canonical=(
-            'O', '=', 'i', 'F',
+            'O', '=', 'i', 'i',
             'u', 'd', NULL, '/', 'fr', 'M', '-', '-', '3', '-',
             '1', 'E', 'E', 'E',
             '{', '2', 'E', 'E', 'E',
@@ -111,10 +111,10 @@ class Handshape6(PredefinedHandshape):
 class Handshape8(PredefinedHandshape):
     def __init__(self, name='8', filename='8', canonical=(
             'O', '{', 'i', 'i',
-            't', 'd', NULL, '/', 't', 'd', '-', '2', '-', '-',
+            'fr', 'd', NULL, '/', 'fr', 'd', '-', '2', '-', '-',
             '1', 'E', 'E', 'E',
-            '{', '2', 'i', 'i', 'i',
-            '<', '3', 'E', 'E', 'E',
+            '{', '2', 'i', 'i', 'E',
+            '<', '3', 'i', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -133,11 +133,12 @@ class HandshapeA(PredefinedHandshape):
 
 
 class HandshapeAdductedF(PredefinedHandshape):
+    # fontmap: m
     def __init__(self, name='adducted F', filename='adducted-F', canonical=(
             'O', '{', 'i', 'i',
             't', 'd', NULL, '/', 't', 'd', '1', '-', '-', '-',
             '1', 'i', 'i', 'i',
-            '=', '2', 'E', 'E', 'E',
+            '=', '2', 'i', 'E', 'E',
             '=', '3', 'E', 'E', 'E',
             '=', '4', 'E', 'E', 'E'
     )):
@@ -170,7 +171,7 @@ class HandshapeB2(PredefinedHandshape):
 
 class HandshapeBase(PredefinedHandshape):
     def __init__(self, name='base', filename='base', canonical=(
-            'U', '{', 'E', 'E',
+            'U', '<', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'i', 'E', 'E',
             '=', '2', 'i', 'E', 'E',
@@ -185,7 +186,7 @@ class HandshapeBent1(PredefinedHandshape):
             'O', '=', 'i', 'i',
             'fr', 'd', NULL, '/', 'b', 'm', '-', '2', '-', '-',
             '1', 'F', 'E', 'E',
-            '<', '2', 'F', 'F', 'F',
+            '=', '2', 'F', 'F', 'F',
             '=', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
     )):
@@ -194,8 +195,8 @@ class HandshapeBent1(PredefinedHandshape):
 
 class HandshapeBent4(PredefinedHandshape):
     def __init__(self, name='bent 4', filename='bent-4', canonical=(
-            'O', '=', 'F', 'i',
-            'b', 'd', NULL, '/', 'fr', 'p', '-', '-', '-', '4',
+            'O', '=', 'i', 'i',
+            'b', 'd', NULL, '/', 'fr', 'p', '-', '-', '3', '-',
             '1', 'F', 'E', 'E',
             '{', '2', 'F', 'E', 'E',
             '{', '3', 'F', 'E', 'E',
@@ -218,8 +219,8 @@ class HandshapeBent5(PredefinedHandshape):
 
 class HandshapeBentB(PredefinedHandshape):
     def __init__(self, name='bent B', filename='bent-B', canonical=(
-            'O', '=', 'F', 'i',
-            'b', 'd', NULL, '/', 'fr', 'm', '-', '-', '-', '4',
+            'O', '=', 'i', 'i',
+            'b', 'd', NULL, '/', 'fr', 'p', '-', '-', '-', '4',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'E', 'E',
             '=', '3', 'F', 'E', 'E',
@@ -230,7 +231,7 @@ class HandshapeBentB(PredefinedHandshape):
 
 class HandshapeBentCombinedIPlus1(PredefinedHandshape):
     def __init__(self, name='bent combined I+1', filename='bent-combined-I+1', canonical=(
-            'O', '=', 'i', 'F',
+            'O', '=', 'i', 'i',
             'fr', 'd', NULL, '/', 'b', 'm', '-', '2', '-', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'F', 'E',
@@ -241,6 +242,7 @@ class HandshapeBentCombinedIPlus1(PredefinedHandshape):
 
 
 class HandshapeBentExtendedB(PredefinedHandshape):
+    # fontmap: :
     def __init__(self, name='bent extended B', filename='bent-extended-B', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -258,7 +260,7 @@ class HandshapeBentExtendedU(PredefinedHandshape):
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
+            '=', '3', 'F', 'F', 'E',
             '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -270,16 +272,17 @@ class HandshapeBentExtendedV(PredefinedHandshape):
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'F', 'E', 'E',
             '{', '2', 'F', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
+            '=', '3', 'F', 'F', 'E',
             '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeBentI(PredefinedHandshape):
+    # fontmap: Q
     def __init__(self, name='bent I', filename='bent-I', canonical=(
-            'O', '=', 'i', 'F',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '2', '-', '-',
+            'O', '=', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'm', '1', '-', '-', '-',
             '1', 'F', 'F', 'E',
             '=', '2', 'F', 'F', 'E',
             '=', '3', 'F', 'F', 'E',
@@ -306,7 +309,7 @@ class HandshapeBentMidfinger5(PredefinedHandshape):
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
             '{', '2', 'F', 'E', 'E',
-            '{', '3', 'E', 'E', 'E',
+            '{', '3', 'i', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -337,11 +340,12 @@ class HandshapeBentR(PredefinedHandshape):
 
 
 class HandshapeBentThumbL(PredefinedHandshape):
+    # fontmap: F
     def __init__(self, name='bent thumb L', filename='bent-thumb-L', canonical=(
-            'L', '{', 'E', 'F',
+            'L', '<', 'i', 'F',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
-            '=', '2', 'F', 'F', 'F',
+            '<', '2', 'F', 'F', 'F',
             '=', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
     )):
@@ -350,24 +354,25 @@ class HandshapeBentThumbL(PredefinedHandshape):
 
 class HandshapeBentU(PredefinedHandshape):
     def __init__(self, name='bent U', filename='bent-U', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '=', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeBentV(PredefinedHandshape):
+    # fontmap: a
     def __init__(self, name='bent V', filename='bent-V', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'F', 'E', 'E',
             '{', '2', 'F', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '=', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
@@ -376,19 +381,20 @@ class HandshapeC(PredefinedHandshape):
     def __init__(self, name='C', filename='C', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'i', 'i', 'i',
-            '=', '2', 'i', 'i', 'i',
-            '=', '3', 'i', 'i', 'i',
-            '=', '4', 'i', 'i', 'i'
+            '1', 'E', 'i', 'i',
+            '=', '2', 'E', 'i', 'i',
+            '=', '3', 'E', 'i', 'i',
+            '=', '4', 'E', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeCIndex(PredefinedHandshape):
+    # fontmap: L
     def __init__(self, name='C index', filename='C-index', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'i', 'i', 'i',
+            '1', 'E', 'i', 'i',
             '<', '2', 'F', 'F', 'F',
             '=', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
@@ -409,12 +415,13 @@ class HandshapeClawed1(PredefinedHandshape):
 
 
 class HandshapeClawed3(PredefinedHandshape):
+    # fontmap: @
     def __init__(self, name='clawed 3', filename='clawed-3', canonical=(
-            'L', '{', 'E', 'F',
+            'L', '{', 'i', 'F',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '{', '2', 'E', 'F', 'F',
-            '{', '3', 'F', 'F', 'E',
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
+            '<', '3', 'F', 'F', 'E',
             '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -422,58 +429,74 @@ class HandshapeClawed3(PredefinedHandshape):
 
 class HandshapeClawed4(PredefinedHandshape):
     def __init__(self, name='clawed 4', filename='clawed-4', canonical=(
-            'O', '=', 'i', 'F',
-            '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '{', '2', 'E', 'F', 'F',
-            '{', '3', 'E', 'F', 'F',
-            '{', '4', 'E', 'F', 'F'
+            'O', '=', 'i', 'i',
+            'u', 'd', NULL, '/', 'fr', 'M', '-', '-', '3', '-',
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
+            '{', '3', 'E', 'F', 'i',
+            '{', '4', 'E', 'F', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
-class HandshapeClawed5(PredefinedHandshape):
-    def __init__(self, name='clawed 5', filename='clawed-5', canonical=(
-            'L', '{', 'E', 'F',
+class HandshapeClawedExtended5(PredefinedHandshape):
+    def __init__(self, name='clawed extended 5', filename='clawed-extended-5', canonical=(
+            'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '{', '2', 'E', 'F', 'F',
-            '{', '3', 'E', 'F', 'F',
-            '{', '4', 'E', 'F', 'F'
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
+            '{', '3', 'E', 'F', 'i',
+            '{', '4', 'E', 'F', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClawedC(PredefinedHandshape):
+    # fontmap: /
     def __init__(self, name='clawed C', filename='clawed-C', canonical=(
-            'O', '{', 'E', 'F',
+            'O', '{', 'i', 'F',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '<', '2', 'E', 'F', 'F',
-            '<', '3', 'E', 'F', 'F',
-            '<', '4', 'E', 'F', 'F'
+            '1', 'E', 'F', 'i',
+            '=', '2', 'E', 'F', 'i',
+            '=', '3', 'E', 'F', 'i',
+            '=', '4', 'E', 'F', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClawedExtendedB(PredefinedHandshape):
+    # fontmap: =
     def __init__(self, name='clawed extended B', filename='clawed-extended-B', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '=', '2', 'E', 'F', 'F',
-            '=', '3', 'E', 'F', 'F',
-            '=', '4', 'E', 'F', 'F'
+            '1', 'E', 'F', 'i',
+            '=', '2', 'E', 'F', 'i',
+            '=', '3', 'E', 'F', 'i',
+            '=', '4', 'E', 'F', 'i'
+    )):
+        super().__init__(name, filename, canonical)
+
+
+class HandshapeClawedExtendedL(PredefinedHandshape):
+    # fontmap: E
+    def __init__(self, name='clawed extended L', filename='clawed-extended-L', canonical=(
+            'L', '{', 'E', 'E',
+            '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
+            '1', 'E', 'F', 'i',
+            '<', '2', 'F', 'F', 'F',
+            '=', '3', 'F', 'F', 'F',
+            '=', '4', 'F', 'F', 'F'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClawedExtendedV(PredefinedHandshape):
+    # fontmap: c
     def __init__(self, name='clawed extended V', filename='clawed-extended-V', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '{', '2', 'E', 'F', 'F',
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
             '<', '3', 'F', 'F', 'E',
             '=', '4', 'F', 'F', 'E'
     )):
@@ -481,25 +504,27 @@ class HandshapeClawedExtendedV(PredefinedHandshape):
 
 
 class HandshapeClawedF(PredefinedHandshape):
+    # fontmap: O
     def __init__(self, name='clawed F', filename='clawed-F', canonical=(
             'O', '{', 'i', 'i',
             't', 'd', NULL, '/', 't', 'd', '1', '-', '-', '-',
             '1', 'i', 'i', 'i',
-            '{', '2', 'E', 'F', 'F',
-            '{', '3', 'E', 'F', 'F',
-            '{', '4', 'E', 'F', 'F'
+            '{', '2', 'E', 'F', 'i',
+            '{', '3', 'E', 'F', 'i',
+            '{', '4', 'E', 'F', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClawedI(PredefinedHandshape):
+    # fontmap: R
     def __init__(self, name='clawed I', filename='clawed-I', canonical=(
-            'O', '=', 'i', 'F',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '2', '-', '-',
+            'O', '=', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'm', '1', '-', '-', '-',
             '1', 'F', 'F', 'E',
             '=', '2', 'F', 'F', 'E',
             '=', '3', 'F', 'F', 'E',
-            '<', '4', 'E', 'F', 'F'
+            '=', '4', 'E', 'F', 'i'
     )):
         super().__init__(name, filename, canonical)
 
@@ -517,58 +542,62 @@ class HandshapeClawedL(PredefinedHandshape):
 
 
 class HandshapeClawedSpreadC(PredefinedHandshape):
+    # fontmap: )
     def __init__(self, name='clawed spread C', filename='clawed-spread-C', canonical=(
-            'O', '{', 'E', 'F',
+            'O', '{', 'i', 'F',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '{', '2', 'E', 'F', 'F',
-            '{', '3', 'E', 'F', 'F',
-            '{', '4', 'E', 'F', 'F'
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
+            '{', '3', 'E', 'F', 'i',
+            '{', '4', 'E', 'F', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClawedU(PredefinedHandshape):
     def __init__(self, name='clawed U', filename='clawed-U', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
-            '1', 'E', 'F', 'F',
-            '=', '2', 'E', 'F', 'F',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
+            '1', 'E', 'F', 'i',
+            '=', '2', 'E', 'F', 'i',
+            '<', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClawedV(PredefinedHandshape):
+    # fontmap: b
     def __init__(self, name='clawed V', filename='clawed-V', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
-            '1', 'E', 'F', 'F',
-            '{', '2', 'E', 'F', 'F',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
+            '<', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClawedW(PredefinedHandshape):
+    # fontmap: k
     def __init__(self, name='clawed W', filename='clawed-W', canonical=(
             'O', '{', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '-', '4',
-            '1', 'E', 'F', 'F',
-            '{', '2', 'E', 'F', 'F',
-            '{', '3', 'E', 'F', 'F',
+            'fr', 'd', NULL, '/', 'fr', 'd', '-', '-', '-', '4',
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
+            '{', '3', 'E', 'F', 'i',
             '<', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeClosedAIndex(PredefinedHandshape):
+    # fontmap: 3
     def __init__(self, name='closed A index', filename='closed-A-index', canonical=(
             'U', '=', 'E', 'E',
             'fr', 'd', NULL, '/', 'r', 'm', '1', '-', '-', '-',
-            '1', 'i', 'i', 'E',
+            '1', 'i', 'F', 'i',
             '=', '2', 'F', 'F', 'F',
             '=', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
@@ -581,7 +610,7 @@ class HandshapeClosedBentD(PredefinedHandshape):
             'O', '{', 'E', 'E',
             't', 'd', NULL, '/', 't', 'd', '1', '2', '-', '-',
             '1', 'F', 'E', 'E',
-            '=', '2', 'F', 'E', 'E',
+            '=', '2', 'i', 'i', 'i',
             '=', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
     )):
@@ -589,19 +618,21 @@ class HandshapeClosedBentD(PredefinedHandshape):
 
 
 class HandshapeClosedDoubleModifiedG(PredefinedHandshape):
+    # fontmap: U
     def __init__(self, name='closed double modified G', filename='closed-double-modified-G', canonical=(
             'O', '{', 'E', 'E',
             'fr', 'd', NULL, '/', 'fr', 'd', '1', '2', '-', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'E', 'E',
-            '=', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '=', '3', 'F', 'F', 'F',
+            '=', '4', 'F', 'F', 'F'
     )):
         super().__init__(name, filename, canonical)
 
 
-class HandshapeClosedG(PredefinedHandshape):
-    def __init__(self, name='closed G', filename='closed-G', canonical=(
+class HandshapeClosedModifiedG(PredefinedHandshape):
+    # fontmap: I
+    def __init__(self, name='closed modified G', filename='closed-modified-G', canonical=(
             'O', '{', 'E', 'E',
             'fr', 'd', NULL, '/', 'fr', 'd', '1', '-', '-', '-',
             '1', 'F', 'E', 'E',
@@ -616,8 +647,8 @@ class HandshapeClosedV(PredefinedHandshape):
     def __init__(self, name='closed V', filename='closed-V', canonical=(
             'O', '=', 'i', 'i',
             'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
-            '1', 'i', 'i', 'F',
-            '=', '2', 'i', 'i', 'F',
+            '1', 'i', 'F', 'F',
+            '{', '2', 'i', 'F', 'F',
             '<', '3', 'F', 'F', 'E',
             '=', '4', 'F', 'F', 'E'
     )):
@@ -625,9 +656,10 @@ class HandshapeClosedV(PredefinedHandshape):
 
 
 class HandshapeClosedW(PredefinedHandshape):
+    # fontmap: l
     def __init__(self, name='closed W', filename='closed-W', canonical=(
             'O', '{', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '-', '4',
+            'fr', 'd', NULL, '/', 'fr', 'd', '-', '-', '-', '4',
             '1', 'E', 'E', 'E',
             '=', '2', 'E', 'E', 'E',
             '=', '3', 'E', 'E', 'E',
@@ -649,12 +681,13 @@ class HandshapeClosedX(PredefinedHandshape):
 
 
 class HandshapeCombinedIPlus1(PredefinedHandshape):
+    # fontmap: g
     def __init__(self, name='combined I+1', filename='combined-I+1', canonical=(
-            'O', '{', 'i', 'F',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '2', '3', '-',
+            'O', '=', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'm', '-', '2', '-', '-',
             '1', 'E', 'E', 'E',
-            '=', '2', 'F', 'F', 'i',
-            '=', '3', 'F', 'F', 'i',
+            '<', '2', 'F', 'F', 'E',
+            '=', '3', 'F', 'F', 'E',
             '=', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -673,6 +706,7 @@ class HandshapeCombinedIPlusA(PredefinedHandshape):
 
 
 class HandshapeCombinedILY(PredefinedHandshape):
+    # fontmap: h
     def __init__(self, name='combined ILY', filename='combined-ILY', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -684,14 +718,14 @@ class HandshapeCombinedILY(PredefinedHandshape):
         super().__init__(name, filename, canonical)
 
 
-class HandshapeCombinedUAndY(PredefinedHandshape):
-    def __init__(self, name='combined U&Y', filename='combined-U&Y', canonical=(
+class HandshapeCombinedYAndU(PredefinedHandshape):
+    def __init__(self, name='combined Y&U', filename='combined-Y&U', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
             '=', '2', 'E', 'E', 'E',
             '<', '3', 'F', 'F', 'E',
-            '{', '4', 'E', 'E', 'E'
+            '<', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
 
@@ -700,9 +734,9 @@ class HandshapeCombinedYAndMiddle(PredefinedHandshape):
     def __init__(self, name='combined Y&middle', filename='combined-Y&middle', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'F', 'F', 'E',
-            '<', '2', 'E', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
+            '1', 'E', 'F', 'F',
+            '=', '2', 'E', 'E', 'E',
+            '<', '3', 'i', 'F', 'E',
             '<', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -714,13 +748,14 @@ class HandshapeContracted3(PredefinedHandshape):
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'i', 'E', 'E',
             '{', '2', 'i', 'E', 'E',
-            '{', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'E', 'E'
+            '<', '3', 'F', 'F', 'E',
+            '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeContracted5(PredefinedHandshape):
+    # fontmap: 5
     def __init__(self, name='contracted 5', filename='contracted-5', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -735,7 +770,7 @@ class HandshapeContracted5(PredefinedHandshape):
 class HandshapeContractedB(PredefinedHandshape):
     def __init__(self, name='contracted B', filename='contracted-B', canonical=(
             'O', '=', 'E', 'E',
-            't', 'd', NULL, '/', 'fr', 'm', '-', '2', '-', '-',
+            'u', 'd', NULL, '/', 'fr', 'm', '-', '2', '-', '-',
             '1', 'i', 'E', 'E',
             '=', '2', 'i', 'E', 'E',
             '=', '3', 'i', 'E', 'E',
@@ -745,6 +780,7 @@ class HandshapeContractedB(PredefinedHandshape):
 
 
 class HandshapeContractedC(PredefinedHandshape):
+    # fontmap: ;
     def __init__(self, name='contracted C', filename='contracted-C', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -770,46 +806,49 @@ class HandshapeContractedL(PredefinedHandshape):
 
 class HandshapeContractedU(PredefinedHandshape):
     def __init__(self, name='contracted U', filename='contracted-U', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'i', 'E', 'E',
             '=', '2', 'i', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '<', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeContractedUIndex(PredefinedHandshape):
+    # fontmap: }
     def __init__(self, name='contracted U index', filename='contracted-U-index', canonical=(
-            'O', '{', 'E', 'i',
-            't', 'd', NULL, '/', 't', 'd', '-', '-', '3', '4',
-            '1', 'E', 'E', 'E',
-            '{', '2', 'E', 'E', 'E',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
+            '1', 'E', 'F', 'E',
+            '=', '2', 'E', 'E', 'E',
             '<', '3', 'i', 'i', 'i',
-            '<', '4', 'i', 'i', 'i'
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeCovered8(PredefinedHandshape):
+    # fontmap: s
     def __init__(self, name='covered 8', filename='covered-8', canonical=(
-            'O', '{', 'i', 'i',
+            'O', '{', 'i', 'F',
             'fr', 'd', NULL, '/', 'b', 'd', '-', '2', '-', '-',
             '1', 'E', 'E', 'E',
             '{', '2', 'i', 'i', 'F',
-            '<', '3', 'E', 'E', 'E',
+            '<', '3', 'i', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeCoveredF(PredefinedHandshape):
+    # fontmap: n
     def __init__(self, name='covered F', filename='covered-F', canonical=(
             'O', '{', 'i', 'F',
             'fr', 'd', NULL, '/', 'b', 'd', '1', '-', '-', '-',
-            '1', 'F', 'F', 'F',
-            '{', '2', 'E', 'E', 'E',
+            '1', 'F', 'F', 'i',
+            '{', '2', 'i', 'E', 'E',
             '{', '3', 'E', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
@@ -819,7 +858,7 @@ class HandshapeCoveredF(PredefinedHandshape):
 class HandshapeCoveredO(PredefinedHandshape):
     def __init__(self, name='covered O', filename='covered-O', canonical=(
             'O', '=', 'i', 'E',
-            'u', 'd', NULL, '/', 't', 'd', '-', '-', '3', '-',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'i', 'i', 'i',
             '=', '2', 'i', 'i', 'i',
             '=', '3', 'i', 'i', 'i',
@@ -832,10 +871,22 @@ class HandshapeCoveredT(PredefinedHandshape):
     def __init__(self, name='covered T', filename='covered-T', canonical=(
             'O', '=', 'E', 'E',
             't', 'd', NULL, '/', 'fr', 'm', '1', '-', '-', '-',
-            '1', 'E', 'F', 'F',
-            '<', '2', 'F', 'F', 'E',
-            '=', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '1', 'i', 'F', 'F',
+            '<', '2', 'F', 'F', 'F',
+            '=', '3', 'F', 'F', 'F',
+            '=', '4', 'F', 'F', 'F'
+    )):
+        super().__init__(name, filename, canonical)
+
+
+class HandshapeCoveredW(PredefinedHandshape):
+    def __init__(self, name='covered W', filename='covered-W', canonical=(
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '-', '4',
+            '1', 'E', 'E', 'E',
+            '{', '2', 'E', 'E', 'E',
+            '{', '3', 'E', 'E', 'E',
+            '<', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
@@ -854,7 +905,7 @@ class HandshapeCrooked1(PredefinedHandshape):
 
 class HandshapeCrooked4(PredefinedHandshape):
     def __init__(self, name='crooked 4', filename='crooked-4', canonical=(
-            'O', '=', 'i', 'F',
+            'O', '=', 'i', 'i',
             'u', 'd', NULL, '/', 'fr', 'M', '-', '-', '3', '-',
             '1', 'E', 'i', 'i',
             '{', '2', 'E', 'i', 'i',
@@ -866,7 +917,7 @@ class HandshapeCrooked4(PredefinedHandshape):
 
 class HandshapeCrooked5(PredefinedHandshape):
     def __init__(self, name='crooked 5', filename='crooked-5', canonical=(
-            'L', '{', 'E', 'i',
+            'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'i', 'i',
             '{', '2', 'E', 'i', 'i',
@@ -938,32 +989,33 @@ class HandshapeCrookedSlanted5(PredefinedHandshape):
 
 class HandshapeCrookedU(PredefinedHandshape):
     def __init__(self, name='crooked U', filename='crooked-U', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'E', 'i', 'i',
             '=', '2', 'E', 'i', 'i',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '<', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeCrookedV(PredefinedHandshape):
     def __init__(self, name='crooked V', filename='crooked-V', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'E', 'i', 'i',
             '{', '2', 'E', 'i', 'i',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '<', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeCrookedW(PredefinedHandshape):
+    # fontmap: _
     def __init__(self, name='crooked W', filename='crooked-W', canonical=(
             'O', '{', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '-', '4',
+            'fr', 'd', NULL, '/', 'fr', 'd', '-', '-', '-', '4',
             '1', 'E', 'i', 'i',
             '{', '2', 'E', 'i', 'i',
             '{', '3', 'E', 'i', 'i',
@@ -985,12 +1037,13 @@ class HandshapeD(PredefinedHandshape):
 
 
 class HandshapeDoubleCIndex(PredefinedHandshape):
+    # fontmap: q
     def __init__(self, name='double C index', filename='double-C-index', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'i', 'i', 'i',
+            '1', 'E', 'i', 'i',
             '<', '2', 'i', 'i', 'i',
-            '{', '3', 'F', 'F', 'F',
+            '<', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
     )):
         super().__init__(name, filename, canonical)
@@ -1009,21 +1062,22 @@ class HandshapeDoubleContractedL(PredefinedHandshape):
 
 
 class HandshapeDoubleModifiedG(PredefinedHandshape):
+    # fontmap: V
     def __init__(self, name='double modified G', filename='double-modified-G', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'E', 'E',
-            '=', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '=', '3', 'F', 'F', 'F',
+            '=', '4', 'F', 'F', 'F'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeE(PredefinedHandshape):
     def __init__(self, name='E', filename='E', canonical=(
-            'O', '=', 'F', 'i',
-            'b', 'd', NULL, '/', 't', 'd', '-', '-', '-', '4',
+            'O', '<', 'F', 'i',
+            'b', 'd', NULL, '/', 't', 'd', '-', '-', '3', '-',
             '1', 'i', 'F', 'F',
             '=', '2', 'i', 'F', 'F',
             '=', '3', 'i', 'F', 'F',
@@ -1033,18 +1087,20 @@ class HandshapeE(PredefinedHandshape):
 
 
 class HandshapeExtended8(PredefinedHandshape):
+    # fontmap: r
     def __init__(self, name='extended 8', filename='extended-8', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
-            '{', '2', 'i', 'i', 'i',
-            '<', '3', 'E', 'E', 'E',
+            '{', '2', 'i', 'i', 'E',
+            '<', '3', 'i', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeExtendedA(PredefinedHandshape):
+    # fontmap: 2
     def __init__(self, name='extended A', filename='extended-A', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -1057,6 +1113,7 @@ class HandshapeExtendedA(PredefinedHandshape):
 
 
 class HandshapeExtendedB(PredefinedHandshape):
+    # fontmap: x
     def __init__(self, name='extended B', filename='extended-B', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -1072,10 +1129,10 @@ class HandshapeExtendedC(PredefinedHandshape):
     def __init__(self, name='extended C', filename='extended-C', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'i', 'E',
-            '=', '2', 'E', 'i', 'E',
-            '=', '3', 'E', 'i', 'E',
-            '=', '4', 'E', 'i', 'E'
+            '1', 'E', 'i', 'i',
+            '=', '2', 'E', 'i', 'i',
+            '=', '3', 'E', 'i', 'i',
+            '=', '4', 'E', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1087,7 +1144,7 @@ class HandshapeExtendedK(PredefinedHandshape):
             '1', 'E', 'E', 'E',
             '<', '2', 'F', 'E', 'E',
             '=', '3', 'F', 'F', 'E',
-            '<', '4', 'F', 'F', 'E'
+            '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1105,6 +1162,7 @@ class HandshapeExtendedR(PredefinedHandshape):
 
 
 class HandshapeExtendedU(PredefinedHandshape):
+    # fontmap: W
     def __init__(self, name='extended U', filename='extended-U', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -1116,11 +1174,11 @@ class HandshapeExtendedU(PredefinedHandshape):
         super().__init__(name, filename, canonical)
 
 
-class HandshapeExtendedX(PredefinedHandshape):
-    def __init__(self, name='extended X', filename='extended-X', canonical=(
+class HandshapeAIndex(PredefinedHandshape):
+    def __init__(self, name='A index', filename='A-index', canonical=(
             'U', '<', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'F',
+            '1', 'i', 'F', 'i',
             '=', '2', 'F', 'F', 'F',
             '=', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
@@ -1133,7 +1191,7 @@ class HandshapeF(PredefinedHandshape):
             'O', '{', 'i', 'i',
             't', 'd', NULL, '/', 't', 'd', '1', '-', '-', '-',
             '1', 'i', 'i', 'i',
-            '{', '2', 'E', 'E', 'E',
+            '{', '2', 'i', 'E', 'E',
             '{', '3', 'E', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
@@ -1141,6 +1199,7 @@ class HandshapeF(PredefinedHandshape):
 
 
 class HandshapeFlatC(PredefinedHandshape):
+    # fontmap: z
     def __init__(self, name='flat C', filename='flat-C', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -1157,21 +1216,22 @@ class HandshapeFlatClawedF(PredefinedHandshape):
             'O', '{', 'E', 'E',
             'fr', 'd', NULL, '/', 'fr', 'd', '1', '-', '-', '-',
             '1', 'F', 'E', 'E',
-            '{', '2', 'E', 'F', 'F',
-            '{', '3', 'E', 'F', 'F',
-            '{', '4', 'E', 'F', 'F'
+            '{', '2', 'E', 'F', 'i',
+            '{', '3', 'E', 'F', 'i',
+            '{', '4', 'E', 'F', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeFlatCombinedIPlus1(PredefinedHandshape):
+    # fontmap: i
     def __init__(self, name='flat combined I+1', filename='flat-combined-I+1', canonical=(
             'O', '{', 'E', 'E',
             'fr', 'd', NULL, '/', 'fr', 'd', '-', '2', '3', '-',
             '1', 'E', 'E', 'E',
             '<', '2', 'F', 'E', 'E',
             '=', '3', 'F', 'E', 'E',
-            '<', '4', 'E', 'E', 'E'
+            '=', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1181,7 +1241,7 @@ class HandshapeFlatF(PredefinedHandshape):
             'O', '{', 'E', 'E',
             'fr', 'd', NULL, '/', 'fr', 'd', '1', '-', '-', '-',
             '1', 'F', 'E', 'E',
-            '{', '2', 'E', 'E', 'E',
+            '{', '2', 'i', 'E', 'E',
             '{', '3', 'E', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
@@ -1195,7 +1255,7 @@ class HandshapeFlatM(PredefinedHandshape):
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'E', 'E',
             '=', '3', 'F', 'E', 'E',
-            '<', '4', 'F', 'F', 'E'
+            '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1226,8 +1286,8 @@ class HandshapeFlatOpenF(PredefinedHandshape):
 
 class HandshapeG(PredefinedHandshape):
     def __init__(self, name='G', filename='G', canonical=(
-            'O', '{', 'E', 'E',
-            '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
+            'U', '=', 'E', 'E',
+            'fr', 'p', NULL, '/', 'r', 'p', '1', '-', '-', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'F', 'F',
             '=', '3', 'F', 'F', 'F',
@@ -1238,8 +1298,8 @@ class HandshapeG(PredefinedHandshape):
 
 class HandshapeI(PredefinedHandshape):
     def __init__(self, name='I', filename='I', canonical=(
-            'O', '=', 'i', 'F',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '2', '-', '-',
+            'O', '=', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'm', '1', '-', '-', '-',
             '1', 'F', 'F', 'E',
             '=', '2', 'F', 'F', 'E',
             '=', '3', 'F', 'F', 'E',
@@ -1255,7 +1315,7 @@ class HandshapeK(PredefinedHandshape):
             '1', 'E', 'E', 'E',
             '<', '2', 'F', 'E', 'E',
             '=', '3', 'F', 'F', 'E',
-            '<', '4', 'F', 'F', 'E'
+            '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1265,9 +1325,9 @@ class HandshapeL(PredefinedHandshape):
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
-            '<', '2', 'F', 'F', 'E',
-            '=', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '<', '2', 'F', 'F', 'F',
+            '=', '3', 'F', 'F', 'F',
+            '=', '4', 'F', 'F', 'F'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1276,22 +1336,23 @@ class HandshapeM(PredefinedHandshape):
     def __init__(self, name='M', filename='M', canonical=(
             'O', '=', 'F', 'i',
             'fr', 'd', NULL, '/', 'r', 'p', '-', '-', '-', '4',
-            '1', 'F', 'F', 'E',
-            '=', '2', 'F', 'F', 'E',
-            '=', '3', 'F', 'F', 'E',
-            '<', '4', 'F', 'F', 'E'
+            '1', 'F', 'i', 'i',
+            '=', '2', 'F', 'i', 'i',
+            '=', '3', 'F', 'i', 'i',
+            '=', '4', 'F', 'F', 'E'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeMiddleFinger(PredefinedHandshape):
+    # fontmap: N
     def __init__(self, name='middle finger', filename='middle-finger', canonical=(
             'O', '{', 'i', 'i',
-            't', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
-            '1', 'F', 'F', 'E',
-            '<', '2', 'E', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
+            '1', 'i', 'F', 'F',
+            '<', '2', 'i', 'E', 'E',
+            '<', '3', 'i', 'F', 'F',
+            '=', '4', 'i', 'F', 'F'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1321,9 +1382,10 @@ class HandshapeModifiedA(PredefinedHandshape):
 
 
 class HandshapeModifiedD(PredefinedHandshape):
+    # fontmap: G
     def __init__(self, name='modified D', filename='modified-D', canonical=(
             'O', '{', 'i', 'i',
-            't', 'd', NULL, '/', 't', 'd', '-', '2', '-', '-',
+            't', 'd', NULL, '/', 't', 'd', '-', '2', '3', '-',
             '1', 'E', 'E', 'E',
             '<', '2', 'i', 'i', 'i',
             '=', '3', 'i', 'i', 'i',
@@ -1334,7 +1396,7 @@ class HandshapeModifiedD(PredefinedHandshape):
 
 class HandshapeModifiedG(PredefinedHandshape):
     def __init__(self, name='modified G', filename='modified-G', canonical=(
-            'L', '{', 'E', 'E',
+            'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'F', 'F', 'F',
@@ -1347,7 +1409,7 @@ class HandshapeModifiedG(PredefinedHandshape):
 class HandshapeModifiedO(PredefinedHandshape):
     def __init__(self, name='modified-O', filename='modified O', canonical=(
             'O', '{', 'E', 'E',
-            'fr', 'd', NULL, '/', 'fr', 'd', '1', '2', '-', '-',
+            'fr', 'd', NULL, '/', 't', 'd', '1', '2', '-', '-',
             '1', 'F', 'i', 'i',
             '=', '2', 'F', 'i', 'i',
             '=', '3', 'F', 'i', 'i',
@@ -1372,8 +1434,8 @@ class HandshapeN(PredefinedHandshape):
     def __init__(self, name='N', filename='N', canonical=(
             'O', '=', 'i', 'i',
             'fr', 'd', NULL, '/', 'r', 'p', '-', '-', '3', '-',
-            '1', 'F', 'F', 'E',
-            '=', '2', 'F', 'F', 'E',
+            '1', 'F', 'i', 'i',
+            '=', '2', 'F', 'i', 'i',
             '<', '3', 'F', 'F', 'E',
             '=', '4', 'F', 'F', 'E'
     )):
@@ -1393,6 +1455,7 @@ class HandshapeO(PredefinedHandshape):
 
 
 class HandshapeOIndex(PredefinedHandshape):
+    # fontmap: M
     def __init__(self, name='O index', filename='O-index', canonical=(
             'O', '{', 'i', 'i',
             't', 'd', NULL, '/', 't', 'd', '1', '-', '-', '-',
@@ -1419,7 +1482,7 @@ class HandshapeOffsetF(PredefinedHandshape):
 class HandshapeOffsetO(PredefinedHandshape):
     def __init__(self, name='offset O', filename='offset-O', canonical=(
             'O', '{', 'E', 'E',
-            'fr', 'p', NULL, '/', 'r', 'm', '1', '-', '-', '-',
+            'fr', 'p', NULL, '/', 'r', 'd', '1', '-', '-', '-',
             '1', 'F', 'i', 'i',
             '=', '2', 'F', 'i', 'i',
             '=', '3', 'F', 'i', 'i',
@@ -1429,12 +1492,13 @@ class HandshapeOffsetO(PredefinedHandshape):
 
 
 class HandshapeOpen8(PredefinedHandshape):
+    # fontmap: t
     def __init__(self, name='open 8', filename='open-8', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
             '{', '2', 'F', 'E', 'E',
-            '<', '3', 'E', 'E', 'E',
+            '<', '3', 'i', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
@@ -1453,8 +1517,9 @@ class HandshapeOpenA(PredefinedHandshape):
 
 
 class HandshapeOpenE(PredefinedHandshape):
+    # fontmap: 0
     def __init__(self, name='open E', filename='open-E', canonical=(
-            'O', '<', 'F', 'F',
+            'O', '<', 'F', 'i',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'F', 'F',
             '=', '2', 'E', 'F', 'F',
@@ -1465,11 +1530,12 @@ class HandshapeOpenE(PredefinedHandshape):
 
 
 class HandshapeOpenF(PredefinedHandshape):
+    # fontmap: o
     def __init__(self, name='open F', filename='open-F', canonical=(
             'O', '{', 'i', 'i',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'i', 'i', 'i',
-            '{', '2', 'E', 'E', 'E',
+            '{', '2', 'i', 'E', 'E',
             '{', '3', 'E', 'E', 'E',
             '{', '4', 'E', 'E', 'E'
     )):
@@ -1500,8 +1566,8 @@ class HandshapeOpenPalm(PredefinedHandshape):
         super().__init__(name, filename, canonical)
 
 
-class HandshapeOpenSpreadO(PredefinedHandshape):
-    def __init__(self, name='open spread O', filename='open-spread-O', canonical=(
+class HandshapeSpreadOpenO(PredefinedHandshape):
+    def __init__(self, name='spread open O', filename='spread-open-O', canonical=(
             'O', '{', 'i', 'i',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'i', 'i', 'i',
@@ -1517,7 +1583,7 @@ class HandshapePartiallyBentD(PredefinedHandshape):
             'O', '{', 'i', 'i',
             't', 'd', NULL, '/', 't', 'd', '-', '2', '-', '-',
             '1', 'i', 'E', 'E',
-            '<', '2', 'i', 'i', 'i',
+            '=', '2', 'i', 'i', 'i',
             '=', '3', 'F', 'F', 'F',
             '=', '4', 'F', 'F', 'F'
     )):
@@ -1537,6 +1603,7 @@ class HandshapeR(PredefinedHandshape):
 
 
 class HandshapeRelaxedContracted5(PredefinedHandshape):
+    # fontmap: ?
     def __init__(self, name='relaxed contracted 5', filename='relaxed-contracted-5', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
@@ -1562,10 +1629,10 @@ class HandshapeS(PredefinedHandshape):
 
 class HandshapeSlanted4(PredefinedHandshape):
     def __init__(self, name='slanted 4', filename='slanted-4', canonical=(
-            'O', '=', 'i', 'F',
+            'O', '=', 'i', 'i',
             'u', 'd', NULL, '/', 'fr', 'M', '-', '-', '3', '-',
             '1', 'E', 'E', 'E',
-            '{', '2', 'E', 'i', 'i',
+            '{', '2', 'i', 'E', 'E',
             '{', '3', 'i', 'E', 'E',
             '{', '4', 'F', 'E', 'E'
     )):
@@ -1577,7 +1644,7 @@ class HandshapeSlanted5(PredefinedHandshape):
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
-            '{', '2', 'E', 'i', 'i',
+            '{', '2', 'i', 'E', 'E',
             '{', '3', 'i', 'E', 'E',
             '{', '4', 'F', 'E', 'E'
     )):
@@ -1585,37 +1652,39 @@ class HandshapeSlanted5(PredefinedHandshape):
 
 
 class HandshapeSlantedExtendedB(PredefinedHandshape):
+    # fontmap: (
     def __init__(self, name='slanted extended B', filename='slanted-extended-B', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
-            '=', '2', 'i', 'E', 'E',
-            '=', '3', 'i', 'E', 'E',
-            '=', '4', 'i', 'E', 'E'
+            'x-', '2', 'i', 'E', 'E',
+            'x-', '3', 'i', 'E', 'E',
+            'x-', '4', 'i', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeSlantedF(PredefinedHandshape):
+    # fontmap: %
     def __init__(self, name='slanted F', filename='slanted-F', canonical=(
             'O', '{', 'i', 'i',
             't', 'd', NULL, '/', 't', 'd', '1', '-', '-', '-',
             '1', 'i', 'i', 'i',
-            '{', '2', 'E', 'E', 'i',
+            '{', '2', 'i', 'E', 'E',
             '{', '3', 'i', 'E', 'E',
-            '{', '4', 'i', 'i', 'E'
+            '{', '4', 'F', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeSlantedV(PredefinedHandshape):
     def __init__(self, name='slanted V', filename='slanted-V', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
-            '1', 'E', 'E', 'E',
-            '{', '2', 'i', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
+            '1', 'i', 'E', 'E',
+            '{', '2', 'F', 'E', 'E',
+            '=', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1624,10 +1693,10 @@ class HandshapeSpreadC(PredefinedHandshape):
     def __init__(self, name='spread C', filename='spread-C', canonical=(
             'O', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
-            '1', 'E', 'F', 'i',
-            '{', '2', 'E', 'F', 'i',
-            '{', '3', 'E', 'F', 'i',
-            '{', '4', 'E', 'F', 'i'
+            '1', 'E', 'i', 'i',
+            '{', '2', 'E', 'i', 'i',
+            '{', '3', 'E', 'i', 'i',
+            '{', '4', 'E', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1648,34 +1717,34 @@ class HandshapeT(PredefinedHandshape):
     def __init__(self, name='T', filename='T', canonical=(
             'O', '=', 'i', 'E',
             'fr', 'd', NULL, '/', 'r', 'p', '-', '2', '-', '-',
-            '1', 'F', 'F', 'E',
-            '<', '2', 'F', 'F', 'E',
-            '=', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '1', 'i', 'F', 'i',
+            '<', '2', 'F', 'F', 'F',
+            '=', '3', 'F', 'F', 'F',
+            '=', '4', 'F', 'F', 'F'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeU(PredefinedHandshape):
     def __init__(self, name='U', filename='U', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'E', 'E', 'E',
             '=', '2', 'E', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '<', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
 
 class HandshapeV(PredefinedHandshape):
     def __init__(self, name='V', filename='V', canonical=(
-            'O', '=', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'm', '-', '-', '3', '-',
+            'O', '{', 'i', 'i',
+            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '3', '-',
             '1', 'E', 'E', 'E',
             '{', '2', 'E', 'E', 'E',
-            '<', '3', 'F', 'F', 'E',
-            '=', '4', 'F', 'F', 'E'
+            '<', '3', 'i', 'i', 'i',
+            '=', '4', 'i', 'i', 'i'
     )):
         super().__init__(name, filename, canonical)
 
@@ -1683,7 +1752,7 @@ class HandshapeV(PredefinedHandshape):
 class HandshapeW(PredefinedHandshape):
     def __init__(self, name='W', filename='W', canonical=(
             'O', '{', 'i', 'i',
-            'fr', 'd', NULL, '/', 'b', 'd', '-', '-', '-', '4',
+            'fr', 'd', NULL, '/', 'fr', 'd', '-', '-', '-', '4',
             '1', 'E', 'E', 'E',
             '{', '2', 'E', 'E', 'E',
             '{', '3', 'E', 'E', 'E',
@@ -1711,6 +1780,6 @@ class HandshapeY(PredefinedHandshape):
             '1', 'F', 'F', 'E',
             '=', '2', 'F', 'F', 'E',
             '=', '3', 'F', 'F', 'E',
-            '{', '4', 'E', 'E', 'E'
+            '<', '4', 'E', 'E', 'E'
     )):
         super().__init__(name, filename, canonical)
