@@ -5,10 +5,10 @@ from lexicon.predefined_handshape import (
     Handshape3, HandshapeClawed3, HandshapeContracted3,
     Handshape4, HandshapeBent4, HandshapeClawed4, HandshapeCrooked4, HandshapeSlanted4,
     Handshape5, HandshapeBent5, HandshapeBentMidfinger5, HandshapeClawedExtended5, HandshapeContracted5, HandshapeRelaxedContracted5, HandshapeCrooked5, HandshapeCrookedSlanted5, HandshapeModified5, HandshapeSlanted5,
-    Handshape6,
     Handshape8, HandshapeCovered8, HandshapeExtended8, HandshapeOpen8,
     HandshapeA, HandshapeClosedAIndex, HandshapeExtendedA, HandshapeAIndex, HandshapeModifiedA, HandshapeOpenA,
-    HandshapeB1, HandshapeBentB, HandshapeBentExtendedB, HandshapeClawedExtendedB, HandshapeContractedB, HandshapeCrookedExtendedB, HandshapeExtendedB, HandshapeSlantedExtendedB,
+    HandshapeB1, HandshapeBentB, HandshapeBentExtendedB, HandshapeClawedExtendedB, HandshapeContractedB, HandshapeExtendedB, HandshapeSlantedExtendedB,
+    HandshapeB2,
     HandshapeC, HandshapeClawedC, HandshapeClawedSpreadC, HandshapeContractedC, HandshapeExtendedC, HandshapeFlatC, HandshapeCIndex, HandshapeDoubleCIndex, HandshapeSpreadC,
     HandshapeD, HandshapePartiallyBentD, HandshapeClosedBentD, HandshapeModifiedD,
     HandshapeE, HandshapeOpenE,
@@ -181,8 +181,6 @@ PREDEFINED_MAP = {
     'modified-5': HandshapeModified5(),
     'slanted-5': HandshapeSlanted5(),
 
-    '6': Handshape6(),
-
     '8': Handshape8(),
     'covered-8': HandshapeCovered8(),
     'extended-8': HandshapeExtended8(),
@@ -200,9 +198,10 @@ PREDEFINED_MAP = {
     'bent-extended-B': HandshapeBentExtendedB(),
     'clawed-extended-B': HandshapeClawedExtendedB(),
     'contracted-B': HandshapeContractedB(),
-    'crooked-extended-B': HandshapeCrookedExtendedB(),
     'extended-B': HandshapeExtendedB(),
     'slanted-extended-B': HandshapeSlantedExtendedB(),
+
+    'B2': HandshapeB2(),
 
     'C': HandshapeC(),
     'clawed-C': HandshapeClawedC(),
@@ -314,5 +313,5 @@ PREDEFINED_MAP = {
 
     'Y': HandshapeY(),
     'combined-Y&middle': HandshapeCombinedYAndMiddle(),
-    'combined-Y&U': HandshapeCombinedYAndU,
+    'combined-Y&U': HandshapeCombinedYAndU(),
 }

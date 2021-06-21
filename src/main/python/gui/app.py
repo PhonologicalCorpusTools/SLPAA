@@ -120,9 +120,10 @@ class AppContext(ApplicationContext):
             'bent-extended-B': self.get_resource('predefined/bent-extended-B.png'),
             'clawed-extended-B': self.get_resource('predefined/clawed-extended-B.png'),
             'contracted-B': self.get_resource('predefined/contracted-B.png'),
-            'crooked-extended-B': self.get_resource('predefined/crooked-extended-B.png'),
             'extended-B': self.get_resource('predefined/extended-B.png'),
             'slanted-extended-B': self.get_resource('predefined/slanted-extended-B.png'),
+
+            'B2': self.get_resource('predefined/B2.png'),
 
             'C': self.get_resource('predefined/C.png'),
             'clawed-C': self.get_resource('predefined/clawed-C.png'),

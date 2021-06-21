@@ -608,7 +608,7 @@ class HandshapeClosedAIndex(PredefinedHandshape):
 class HandshapeClosedBentD(PredefinedHandshape):
     def __init__(self, name='closed bent D', filename='closed-bent-D', canonical=(
             'O', '{', 'E', 'E',
-            't', 'd', NULL, '/', 't', 'd', '1', '2', '-', '-',
+            't', 'd', NULL, '/', 't', 'd', '-', '2', '-', '-',
             '1', 'F', 'E', 'E',
             '=', '2', 'i', 'i', 'i',
             '=', '3', 'F', 'F', 'F',
@@ -1077,7 +1077,7 @@ class HandshapeDoubleModifiedG(PredefinedHandshape):
 class HandshapeE(PredefinedHandshape):
     def __init__(self, name='E', filename='E', canonical=(
             'O', '<', 'F', 'i',
-            'b', 'd', NULL, '/', 't', 'd', '-', '-', '3', '-',
+            'b', 'd', NULL, '/', 't', 'd', '1', '2', '3', '-',
             '1', 'i', 'F', 'F',
             '=', '2', 'i', 'F', 'F',
             '=', '3', 'i', 'F', 'F',
