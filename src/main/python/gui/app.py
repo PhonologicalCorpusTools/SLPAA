@@ -100,9 +100,7 @@ class AppContext(ApplicationContext):
             'crooked-slanted-5': self.get_resource('predefined/crooked-slanted-5.png'),
             'modified-5': self.get_resource('predefined/modified-5.png'),
             'slanted-5': self.get_resource('predefined/slanted-5.png'),
-
-            '6': self.get_resource('predefined/6.png'),
-
+            
             '8': self.get_resource('predefined/8.png'),
             'covered-8': self.get_resource('predefined/covered-8.png'),
             'extended-8': self.get_resource('predefined/extended-8.png'),
