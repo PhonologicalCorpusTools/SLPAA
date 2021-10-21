@@ -6,9 +6,10 @@
 Welcome to Sign Language Phonetic - Annotator & Analyzer's documentation!
 =========================================================================
 
+Contents:
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
     manage_corpus.rst
     predefined_handshapes.rst
