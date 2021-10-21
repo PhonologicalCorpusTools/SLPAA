@@ -242,14 +242,14 @@ Combined
 - **Prototypical coding:** N/A
 
 Contracted
-~~~~~~
+~~~~~~~~~~
 - **Dictionary description:** “The fingers contract as the description suggests, but the fingers involved remain straight”
 - **Generic description:** Selected fingers are extended from palm, with bottom joint curved. If the thumb is not in contact with any fingers, it will be extended forward from the palm in an opposed position (e.g., “contracted-C”). If the thumb is in contact with fingers that are contracted, it maintains contact and otherwise follows the preceding description for the thumb (this happens only in “contracted-B”). If the thumb is in contact with fingers that are not themselves contracted, the thumb is not affected (this happens only in  “contracted-U” and “contracted-U-index”). 
 - **SLP coding description:** For each contracted finger, the proximal joint is i. The thumb is E-E, opposed (O), and maximally abducted (except if thumb has contact with another bone, as in “contracted-B”, “contracted-U” & “contracted-U-index”) 
 - **Prototypical coding:** i-E-E for each contracted finger and E-E for thumb. Thumb opposed (O) and maximally abducted ({), except for “contracted-B”, “contracted-U” & “contracted-U-index”.
 
 Covered
-~~~~~~
+~~~~~~~
 - **Dictionary description:** Fingers overlap slightly
 - **Generic description:** Thumb and selected fingers make contact and overlap 
 - **SLP coding description:** Thumb is opposed, and distal joint of thumb makes contact with selected finger(s) (except for “covered-T” -- see description above) 
@@ -284,7 +284,7 @@ Index
 - **Prototypical coding:** Generally follows the transcription of its base handshape but selecting only finger 1 (or fingers 1&2 in the case of “double-C-index”), and remaining fingers are often [F-F-F] (exceptions: see above for descriptions of “A-index” and “contracted-U-index”)
 
 Modified
-~~~~~~
+~~~~~~~~
 - **Dictionary description:** “Has a slightly different look about it”
 - **Generic description:** Every modified handshape is different based on the type of modification it has
 - **SLP coding description:**  See specific descriptions above under the baseline handshape header.
@@ -306,14 +306,14 @@ Open
 
 
 Relaxed
-~~~~~~
+~~~~~~~
 - **Dictionary description:** N/A
 - **Generic description:** In a relaxed handshape, the main distinction is that the fingers are not tensed and are primarily influenced by gravity. “Relaxed-contracted-5'' is currently the only handshape with this description. 
 - **SLP coding description:** “relaxed-contracted-5” differs from “contracted-5” in that the fingers are not tensed and their position is primarily influenced by gravity. The fingers are not forcefully curved, but this handshape is transcribed with medial joints curved (i) to systematically distinguish the transcription from “contracted-5,” where medial joints are extended (E), as in the description of "contracted". 
 - **Prototypical coding:** i-i-E for extended fingers
 
 Slanted
-~~~~~~
+~~~~~~~
 - **Dictionary description:** A slightly askew handshape
 - **Generic description:** Selected fingers are slanted from its baseline handshape, with the bottom joints of each finger becoming more flexed as you move from the first finger to the fourth finger
 - **SLP coding description:** The fingers become progressively more flexed as you move towards finger 4. The proximal, medial, and distal joint for the first finger is extended, except for “slanted-F” (because the index finger has contact with the thumb) and “slanted-V” (because the index finger is slightly bent).
@@ -334,7 +334,7 @@ Spread
 
 
 4. Images of the Predefined Handshapes
-`````````````````
+```````````````````````````````````````
 The predefined handshapes are organized in a grid where the rows are organized by base handshape and the columns are organized by derivation type. In other words, each row starts on the left with the base handshape and continues to the right with the derived versions of that base handshape organized under their appropriate column. Both the rows and the columns are organized alphabetically. 
 
 

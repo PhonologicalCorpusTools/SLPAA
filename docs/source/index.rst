@@ -11,13 +11,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-    manage_corpus.rst
-    predefined_handshapes.rst
-    setting_preferences.rst
-    terminology.rst
-    transcription_process.rst
-
-
+   manage_corpus.rst
+   predefined_handshapes.rst
+   setting_preferences.rst
+   terminology.rst
+   transcription_process.rst
 
 
 

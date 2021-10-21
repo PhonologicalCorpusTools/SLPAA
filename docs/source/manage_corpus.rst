@@ -38,7 +38,7 @@ sign listed in the "Corpus" column on the right. You can then load another corpu
 .. _save_corpus:
 
 Duplicating a corpus
-`````````````````
+````````````````````
 To duplicate a corpus and save it with a different file name, go to "Menu" and select "Save corpus as...". A new window opens, 
 titled "Save Corpus File As". 
 
@@ -52,7 +52,7 @@ Type in a file name for your new corpus, specify a saving location, and click "S
 .. _export_corpus:
 
 Exporting a corpus
-`````````````````
+``````````````````
 To export a corpus, go to Menu and select "Export corpus as csv..." A new window titled "Export corpus" will appear.
 
 .. image:: static/export.png
