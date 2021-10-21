@@ -3,7 +3,7 @@
 /workspace.xml
 
 # Documentation
-docs_imported/
-docs/build/
+docs_imported/*
+docs/build/*
 docs/source/generate/
 docs/source/generated/
