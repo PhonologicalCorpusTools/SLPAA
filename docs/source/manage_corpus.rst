@@ -1,14 +1,14 @@
 .. _manage_corpus:
 
-***************
+*****************
 Managing a corpus
-***************
+*****************
 
 
 .. _add_signs:
 
 Adding signs to an existing corpus
-`````````````````
+``````````````````````````````````
 To add new signs to an existing corpus, go to "Menu" and select "Load corpus...". This allows you to search your
 computer. Only files with the extension ".corpus" are available for selection. Click on a corpus that you would like to
 work on, and click "Open".
@@ -29,7 +29,7 @@ a confirmation message and that a deleted sign cannot be recovered.
 .. _new_corpus:
 
 Switching to another corpus
-`````````````````
+```````````````````````````
 If you once started transcribing signs in one corpus but would like to switch to another corpus and continue on transcribing
 your next sign, go to Menu and select "New corpus". This function refreshes the program, and you will see that there is no 
 sign listed in the "Corpus" column on the right. You can then load another corpus (see :ref:`load_corpus`).

@@ -2,14 +2,14 @@
 .. _predefined_handshapes:
 
 
-***************
+*********************
 Predefined Handshapes
-***************
+*********************
 
 .. _select_handshape:
 
 1. Selecting a Predefined Handshape
-`````````````````
+```````````````````````````````````
 To select a predefined handshape click on the hand icon on the menu bar at the top left. A new window will open. The predefined handshapes are organized vertically by base handshape and horizontally by modification type. For example, if you are searching for 'clawed-F', you can find it in the 'F' row and the 'clawed' column. (see :ref:`handshape_images`)
 
 The configuration and hand for which you are selecting the handshape will default to the one that has already been selected in the 'handshape transcription' window, but it can be changed on the top bar of the predefined handshapes window. For example, if you want to select a predefined handshape for
@@ -21,14 +21,14 @@ Once you have selected a predefined handshape, the transcription will be filled 
 .. _make_changes:
 
 2. Making Specific Changes
-`````````````````
+``````````````````````````
 Once a predefined handshape has been selected, you can change individual slots of the transcription by clicking on a slot and either selecting an option from the dropdown menu or typing in the appropriate symbol. Once changes are made, the name and image of the predefined handshape will no longer appear to the right of the transcription. (For more detailed explanation of the transcription process, see :ref:`transcription_process.rst`).
 
 
 .. _handshape_conventions:
 
 3. Conventions for How Predefined Handshapes were Coded
-`````````````````
+```````````````````````````````````````````````````````
 -- *Note: Kathleen to add to/edit this part*
 
 The transcription system for the predefined handshapes is based on the system outlined by Johnson & Lidell (2011, 2012). Specific changes to this system were made for the predefined handshapes used in SLPAA. The conventions are organized in three main parts: I) General Conventions :ref:`general_conventions` II) Baseline Handshapes :ref:`baseline_handshapes` III) Derived Handshapes :ref:`derived_handshapes`
@@ -37,13 +37,13 @@ The transcription system for the predefined handshapes is based on the system ou
 .. _general_conventions: 
 
 I. General Conventions
-===================
+======================
 
 This section describes the general conventions that were used when coding the handshapes. These general conventions are organized in two groups: a) conventions regarding the labels and images of the predefined handshapes b) conventions regarding the transcriptions of the predefined handshapes. 
 
 
 a) Labels and Images of Handshapes:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Naming of handshapes
     - Names for handshapes typically follow the names given by *The Canadian Dictionary of ASL*. In some cases, there are other possible names for a given handshape that we did not use, even if there are more concise possibilities (e.g. the handshape "bent-extended-V"could have alternatively been labeled "bent-3"). 
@@ -63,7 +63,7 @@ a) Labels and Images of Handshapes:
 
 
 b) Transcription of Handshapes:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Using only F, E, i (not f, e)
     - [F] was used for a fully bent joint, [i] was used to achieve a slightly bent joint, and [E] was used for a straight extended joint. [f] and [e] were avoided. 
@@ -93,7 +93,7 @@ b) Transcription of Handshapes:
 .. _baseline_handshapes:
 
 II. Baseline Handshapes
-===================
+=======================
 
 This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section (III) :ref:`derived_handshapes`. All "modified" handshapes are described in this section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. 
 

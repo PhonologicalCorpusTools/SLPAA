@@ -1,8 +1,8 @@
 .. _setting_preferences:
 
-***************
+*******************
 Setting Preferences
-***************
+*******************
 
 Transcription preferences can be changed using the menu bar at the top of the screen.
 You can look through them beforehand for intra-corpus consistency, or you can adjust 

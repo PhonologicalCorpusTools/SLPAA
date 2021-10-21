@@ -1,8 +1,8 @@
 .. _transcription_process:
 
-***************
+*********************
 Transcription process
-***************
+*********************
 
       Note that if you already have a corpus that you would like to continue on expanding, you can load the corpus at this point (see :ref:`add_signs`)
 
@@ -108,7 +108,7 @@ Note that any existing symbols in the Config will be overwritten.
 .. _check_global_handshape:
 
 5. Checking Global handshape options
-`````````````````
+````````````````````````````````````
 Global handshape options (see :ref:`global_handshape_options`) can be checked by simply cliking the box next to a description.
 The options "Estimated" and "Uncertain" can be thought of as a global counterpart of the slot options "Flag as estimate" 
 and "Flag as uncertain," respectively (see :ref:`flag_slot`).
@@ -119,7 +119,7 @@ to a whole sign or a whole field(s) rather than individual slots.
 .. _other_parameters:
 
 6. Transcribing other parameters
-`````````````````
+````````````````````````````````
 To transcribe parameters other than handshapes, click on "View Parameters" button at the top right corner. A new window will
 appear, and you can select relevant values. To transcribe handshapes and parameters at the same time, see :ref:`options`.
 
@@ -131,7 +131,7 @@ appear, and you can select relevant values. To transcribe handshapes and paramet
 .. _add_sign_notes:
 
 7. Adding Sign and Corpus notes
-`````````````````
+```````````````````````````````
 To add a note to a sign that you are transcribing, go to "Notes" in the menu bar and click on "Edit sign notes..." A new 
 window will appear, and you can type in your comments. 
 
@@ -148,14 +148,14 @@ Similarly, "Notes" > "Edit corpus notes..." will allow you to add a note to the 
 .. _check_transcription:
 
 8. Checking transcription
-`````````````````
+`````````````````````````
 To check your transcription against your selected constraints (see :ref:`constraints`), click on "Check transcription" button.
 
 
 .. _visualize_transcription:
 
 9. Visualizing transcription
-`````````````````
+````````````````````````````
 To see a graphic image of transcribed handshapes, click on "Visualize transcription" button. A new window titled 
 "Handshape visualization" appears. Select a combination of Config and Hand you would like to visualize, and click "OK".
 
@@ -167,7 +167,7 @@ To see a graphic image of transcribed handshapes, click on "Visualize transcript
 .. _save_sign:
 
 10. Saving a sign to a corpus
-`````````````````
+`````````````````````````````
 Note that each sign should be saved before a next sign can be transcribed. To save a sign, either click on "Save word to
 corpus" button or go to "File" in the menu bar and select "Save current word". You will get a message 
 "Corpus successfully updated!" if "Show save alert" is selected in your setting (see :ref:`options`).
@@ -199,7 +199,7 @@ If this is the first time the sign is transcribed in the corpus, the latter opti
 .. _next_sign:
 
 11. Transcribing the next sign
-`````````````````
+``````````````````````````````
 Once a sign has been saved, if you would like to continue on transcribing a next sign, you can either click on 
 the "New gloss" button or go to "File" and select "New gloss".
 
