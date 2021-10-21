@@ -1,0 +1,9 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+
+# Documentation
+docs_imported/
+docs/build/
+docs/source/generate/
+docs/source/generated/
