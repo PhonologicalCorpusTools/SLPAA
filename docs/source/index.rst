@@ -10,11 +10,11 @@ Welcome to Sign Language Phonetic - Annotator & Analyzer's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-    manage_corpus
-    predefined_handshapes
-    setting_preferences
-    terminology
-    transcription_process
+    manage_corpus.rst
+    predefined_handshapes.rst
+    setting_preferences.rst
+    terminology.rst
+    transcription_process.rst
 
 
 
