@@ -2,6 +2,9 @@
 /shelf/
 /workspace.xml
 
+*.pyc
+.idea/*
+
 # Documentation
 docs_imported/*
 docs/build/*
