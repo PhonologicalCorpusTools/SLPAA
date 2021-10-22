@@ -121,11 +121,11 @@ to a whole sign or a whole field(s) rather than individual slots.
 6. Transcribing other parameters
 `````````````````````````````````
 To transcribe parameters other than handshapes, click on "View Parameters" button at the top right corner. A new window will
-appear, and you can select relevant values. To transcribe handshapes and parameters at the same time, see (TODO what image is meant to be below???) :ref:`options`.
+appear, and you can select relevant values. To transcribe handshapes and parameters at the same time, see :ref:`options`.
 
-dotdot imagecoloncolon static/.png
-      colonwidth: 90%
-      colonalign: center
+.. image:: static/placeholder.png
+      :width: 90%
+      :align: center
 
 
 .. _add_sign_notes:
