@@ -15,7 +15,7 @@ single file with the extention ".corpus".
 .. _global_handshape_options:
 
 Global handshape options
-------------------
+--------------------------
 
 Global handshape options encode information about the whole sign. 
 They can be checked when relevant.
