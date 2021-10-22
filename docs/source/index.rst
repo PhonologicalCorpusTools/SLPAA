@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+
    manage_corpus.rst
    predefined_handshapes.rst
    setting_preferences.rst
