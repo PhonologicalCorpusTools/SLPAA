@@ -42,7 +42,7 @@ Duplicating a corpus
 To duplicate a corpus and save it with a different file name, go to "Menu" and select "Save corpus as...". A new window opens, 
 titled "Save Corpus File As". 
 
-.. image:: static/save_corpus.png
+.. image:: images/save_corpus.png
    :width: 90%
    :align: center
 
@@ -55,7 +55,7 @@ Exporting a corpus
 ``````````````````
 To export a corpus, go to Menu and select "Export corpus as csv..." A new window titled "Export corpus" will appear.
 
-.. image:: static/export.png
+.. image:: images/export.png
    :width: 90%
    :align: center
 
@@ -63,7 +63,7 @@ If you mouse over the check box next to "Include fields in transcription?", you 
 transctiptions will be delimited by square brackets and numbers representing fields. If not checked, transcriptions will be one 
 long string." See also :ref:`field_and_slot`
 
-.. image:: static/mouse_over.png
+.. image:: images/mouse_over.png
    :width: 90%
    :align: center
 
@@ -82,7 +82,7 @@ If you click on the "Select save location..." button, another window will open, 
 Specify a file name and a saving location for your CSV file, and click "Save". This will take you back to 
 the "Export Corpus" window, and you will find that the saving location is automatically entered.
 
-.. image:: static/save_location.png
+.. image:: images/save_location.png
    :width: 90%
    :align: center
 

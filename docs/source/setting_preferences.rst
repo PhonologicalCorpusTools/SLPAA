@@ -19,7 +19,7 @@ appears, titled "Select constraints". You can switch pages between "Transcriptio
 like to apply to your corpus, or use the "Select all" and "Unselect all" buttons. Click "OK".
 
 
-.. image:: static/select_constraints.png
+.. image:: images/select_constraints.png
    :width: 90%
    :align: center
 

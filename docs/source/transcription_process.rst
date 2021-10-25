@@ -39,13 +39,13 @@ You can optionally flag individual slots. "Flag as uncertain" will colour the sl
 
 To do this, control-click or rightclick a slot. A pull-down menu will appear, and you can select or unselect these options:
 
-.. image:: static/flag.png
+.. image:: images/flag.png
    :width: 90%
    :align: center
 
 Alternatively, go to "Transcription" in the menu bar and select "Set transcription flags...". A new window will appear. You can expand and scroll through the window to flag any slot in any Config. Click "OK".
 
-.. image:: static/set_flag.png
+.. image:: images/set_flag.png
    :width: 90%
    :align: center
 
@@ -55,7 +55,7 @@ knowledge of hand anatomy, a preceeding hand configuration, the other hand in a 
 Therefore, it is certainly possible to use these two options simultaneously when the transcriber is uncertain about their
 estimation.
 
-.. image:: static/use_both.png
+.. image:: images/use_both.png
    :width: 90%
    :align: center
 
@@ -83,7 +83,7 @@ Note that any existing symbols in the Config will be overwritten.
    
    First, click on the Copy button. In the new window, select Config 1, Hand 1, and click OK.
    
-   .. image:: static/copy.png
+   .. image:: images/copy.png
       :width: 90%
       :align: center
 
@@ -92,7 +92,7 @@ Note that any existing symbols in the Config will be overwritten.
    introduced by    "The currently copied transcription is". Make sure that it is the correct one. 
    Then select "Config 1, Hand 2", and click "OK".
       
-   .. image:: static/paste.png
+   .. image:: images/paste.png
       :width: 90%
       :align: center
    
@@ -100,7 +100,7 @@ Note that any existing symbols in the Config will be overwritten.
    This function may be particularly useful for transcribing symmetrical signs or assymmetrical signs in which
    only the dominant hand changes its handshape.
    
-   .. image:: static/paste_result.png
+   .. image:: images/paste_result.png
       :width: 90%
       :align: center
       
@@ -123,7 +123,7 @@ to a whole sign or a whole field(s) rather than individual slots.
 To transcribe parameters other than handshapes, click on "View Parameters" button at the top right corner. A new window will
 appear, and you can select relevant values. To transcribe handshapes and parameters at the same time, see :ref:`options`.
 
-.. image:: static/placeholder.png
+.. image:: images/placeholder.png
       :width: 90%
       :align: center
 
@@ -135,7 +135,7 @@ appear, and you can select relevant values. To transcribe handshapes and paramet
 To add a note to a sign that you are transcribing, go to "Notes" in the menu bar and click on "Edit sign notes..." A new 
 window will appear, and you can type in your comments. 
 
-.. image:: static/sign_notes.png
+.. image:: images/sign_notes.png
       :width: 90%
       :align: center
         
@@ -159,7 +159,7 @@ To check your transcription against your selected constraints (see :ref:`constra
 To see a graphic image of transcribed handshapes, click on "Visualize transcription" button. A new window titled 
 "Handshape visualization" appears. Select a combination of Config and Hand you would like to visualize, and click "OK".
 
-.. image:: static/visualization.png
+.. image:: images/visualization.png
       :width: 90%
       :align: center
 
@@ -176,7 +176,7 @@ corpus" button or go to "File" in the menu bar and select "Save current word". Y
 If you do not have a corpus loaded beforehand, you will get a warning message: "You must have a corpus loaded before you can
 save words. What woule you like to do?". You can either "Create a new corpus" or "Add this word to an existing corpus".
 
-.. image:: static/corpus_warning.png
+.. image:: images/corpus_warning.png
       :width: 90%
       :align: center
 
@@ -185,7 +185,7 @@ If you have a sign with the same gloss already saved in the same corpus and "War
 setting (see :ref:`options`), you will get a warning message: "A word with the gloss XXX already exists in your corpus. What do you want to do?".
 You can either "Go back and edit the gloss" or "Overwrite existing word".
 
-.. image:: static/duplicate_warning.png
+.. image:: images/duplicate_warning.png
       :width: 90%
       :align: center
 
