@@ -108,19 +108,21 @@ This section provides an overall list of all the baseline handshapes. If relevan
 
 .. rst-class::  clear-both
 
-.. sidebar:: mandatory_title. Use can use image caption here
+
+
+.. sidebar:: A
 
     .. figure:: images/C.png
         :figwidth: 10%
-        :align: left
+        :align: right
     
     .. figure:: images/C.png
         :figwidth: 10%
-        :align: left
+        :align: right
     
     .. figure:: images/C.png
         :figwidth: 10%
-        :align: left
+        :align: right
     
 
 A
