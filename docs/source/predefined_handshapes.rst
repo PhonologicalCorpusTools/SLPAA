@@ -110,9 +110,11 @@ B
    .. image:: images/handshape_grid_test.png 
       :width: 10%
       :align: left   
+      
    .. image:: images/handshape_grid_test.png
       :width: 10%
       :align: center   
+      
       C
 ~
 
