@@ -101,10 +101,13 @@ This section provides an overall list of all the baseline handshapes. If relevan
 .. figure:: images/A.png
    :alt:  HS_A
    :class: with-shadow float-left
+   :width: 10%
 
 Some text ... (will be displayed on the right of the image)
 
-.. rst-class::  clear-both      
+.. rst-class::  clear-both     
+
+A
 ~      
 - In “modified-A”  the fingers are extended down to touch the palm (rather than tucked as for baseline “A”).
 - “A-index” differs from the baseline “A” handshape in that the index finger is raised and curved rather than tucked, and the thumb has a neutral abduction (<) rather than full adduction (=). In this case, the handshape does not follow the description of the ‘index’ derivation.
