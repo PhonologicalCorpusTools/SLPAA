@@ -106,16 +106,16 @@ This section provides an overall list of all the baseline handshapes. If relevan
 
 (image label)
 
-
-..  figure:: images/C.png
+.. sidebar:: mandatory_title. Use can use image caption here
+.. figure:: images/C.png
     :figwidth: 40%
     :align: right
     
-..  figure:: images/C.png
+.. figure:: images/C.png
     :figwidth: 30%
     :align: right
     
-..  figure:: images/C.png
+.. figure:: images/C.png
     :figwidth: 20%
     :align: right
     
