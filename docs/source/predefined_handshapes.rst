@@ -103,8 +103,10 @@ This section provides an overall list of all the baseline handshapes. If relevan
    :class: float-right
    :align: left
    :width: 10%
-
+   
 (image label)
+
+.. rst-class::  clear-both
 
 .. sidebar:: mandatory_title. Use can use image caption here
 .. figure:: images/C.png
