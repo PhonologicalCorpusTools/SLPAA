@@ -107,14 +107,15 @@ B
 ~    
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
 
-   .. image:: images/handshape_grid_test.png
+   .. image:: images/handshape_grid_test.png 
       :width: 10%
       :align: left   
-      C
-~
    .. image:: images/handshape_grid_test.png
       :width: 10%
       :align: center   
+      C
+~
+
 D
 ~
 - “Modified-D” has fingers 2, 3 & 4 creating the body of the D (as opposed to baseline “D”, which makes the body of the D using only the middle finger and tucks fingers 3 & 4 against palm). 
