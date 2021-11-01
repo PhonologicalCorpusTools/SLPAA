@@ -101,13 +101,10 @@ This section provides an overall list of all the baseline handshapes. If relevan
 .. figure:: images/A.png
    :alt:  HS_A
    :class: float-right
-   :text-align: left
    :align: left 
    :width: 10%
    
-(image label)
-
-.. rst-class::  clear-both
+(image label 'A')
 
 
 
@@ -122,6 +119,19 @@ This section provides an overall list of all the baseline handshapes. If relevan
         :align: right
     
     .. figure:: images/C.png
+        :figwidth: 10%
+        :align: right
+        
+
+.. figure:: images/A.png
+        :figwidth: 10%
+        :align: right
+    
+.. figure:: images/A.png
+        :figwidth: 10%
+        :align: right
+    
+.. figure:: images/A.png
         :figwidth: 10%
         :align: right
     
