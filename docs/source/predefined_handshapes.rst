@@ -135,15 +135,6 @@ This section provides an overall list of all the baseline handshapes. If relevan
         :figwidth: 10%
         :align: right
         
-   
-   
-   
-   
-.. sidebar:: (example: 'index handshapes') 
-
-.. figure:: images/C-index.png
-        :figwidth: 10%
-        :align: right
 
 
     
