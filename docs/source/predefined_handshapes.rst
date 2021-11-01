@@ -108,17 +108,17 @@ This section provides an overall list of all the baseline handshapes. If relevan
 
 
 
-.. sidebar:: A
 
-    .. figure:: images/C.png
+
+.. figure:: images/C.png
         :figwidth: 10%
         :align: right
     
-    .. figure:: images/C.png
+.. figure:: images/C.png
         :figwidth: 10%
         :align: right
     
-    .. figure:: images/C.png
+.. figure:: images/C.png
         :figwidth: 10%
         :align: right
         
