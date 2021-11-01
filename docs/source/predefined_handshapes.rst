@@ -118,8 +118,7 @@ This section provides an overall list of all the baseline handshapes. If relevan
 ..  figure:: images/C.png
     :figwidth: 20%
     :align: right
-
-``` 
+    
 
 A
 ~      
