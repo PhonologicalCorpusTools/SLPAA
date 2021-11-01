@@ -100,7 +100,7 @@ This section provides an overall list of all the baseline handshapes. If relevan
      
 .. figure:: images/A.png
    :alt:  HS_A
-   :class: float-left
+   :class: float-right
    :align: left
    :width: 10%
    
