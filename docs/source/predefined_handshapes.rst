@@ -343,6 +343,12 @@ The predefined handshapes are organized in a grid where the rows are organized b
    .. image:: images/handshape_grid_test.png
       :width: 90%
       :align: center
+      
+      
+      
+   .. image:: images/handshape_grid_test.png
+      :width: 20%
+      :align: left
 
 
 
