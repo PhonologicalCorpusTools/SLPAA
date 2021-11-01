@@ -104,7 +104,20 @@ This section provides an overall list of all the baseline handshapes. If relevan
    :align: left
    :width: 10%
 
-Some text ... AAAAAA
+(image label)
+
+
+..  figure:: images/C.png
+    :figwidth: 40%
+    :align: right
+    
+..  figure:: images/C.png
+    :figwidth: 30%
+    :align: right
+    
+..  figure:: images/C.png
+    :figwidth: 20%
+    :align: right
 
 ``` 
 
