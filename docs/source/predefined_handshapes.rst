@@ -104,10 +104,7 @@ A
 
 .. image:: images/A.png
         :width: 5%
-        :class: float-left
         :align: left
-        
-.. rst-class::  clear-both 
         
 
 - In “modified-A”  the fingers are extended down to touch the palm (rather than tucked as for baseline “A”).
