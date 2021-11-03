@@ -115,7 +115,6 @@ B
 
 .. image:: images/C.png
         :width: 7%
-        :class: float-left
         :align: left
         
 
