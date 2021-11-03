@@ -138,6 +138,11 @@ D
 ~
 - “Modified-D” has fingers 2, 3 & 4 creating the body of the D (as opposed to baseline “D”, which makes the body of the D using only the middle finger and tucks fingers 3 & 4 against palm). 
 
+
+.. image:: images/C.png
+        :width: 7%
+        :class: float-left
+        :align: left
 E
 ~
 
