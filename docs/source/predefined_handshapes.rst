@@ -101,7 +101,7 @@ This section provides an overall list of all the baseline handshapes. If relevan
 A
 ~   
 .. image:: images/A.png
-        :width: 7%
+        :width: 5%
         :align: left 
         
 - In “modified-A”  the fingers are extended down to touch the palm (rather than tucked as for baseline “A”).
@@ -110,7 +110,7 @@ A
 B   
 ~    
 .. image:: images/C.png
-        :width: 5%
+        :width: 7%
         :align: left 
         
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
