@@ -116,10 +116,10 @@ B
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
 
 C
+~
 .. image:: images/C-index.png
         :width: 10%
         :align: left 
-~
 
 D
 ~
