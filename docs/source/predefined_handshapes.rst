@@ -114,7 +114,7 @@ B
 ~    
 
 .. image:: images/C.png
-        :width: 7%
+        :width: 5%
         :align: left
         
 
@@ -125,7 +125,7 @@ C
 ~
 
 .. image:: images/C-index.png
-        :width: 10%
+        :width: 5%
         :align: left 
 
         
@@ -133,7 +133,7 @@ D
 ~
 
 .. image:: images/C.png
-        :width: 7%
+        :width: 5%
         :class: float-left
         :align: left
         
