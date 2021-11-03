@@ -134,7 +134,6 @@ D
 
 .. image:: images/C.png
         :width: 5%
-        :class: float-left
         :align: left
         
         
