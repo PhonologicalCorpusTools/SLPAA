@@ -98,16 +98,13 @@ II. Baseline Handshapes
 This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section (III) :ref:`derived_handshapes`. All "modified" handshapes are described in this section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. 
 
 
-.. image:: images/A.png
-        :width: 5%
-        :align: center  
         
 A
 ~   
 
 .. image:: images/A.png
         :width: 5%
-        :align: left 
+        :float: left 
         
 - In “modified-A”  the fingers are extended down to touch the palm (rather than tucked as for baseline “A”).
 - “A-index” differs from the baseline “A” handshape in that the index finger is raised and curved rather than tucked, and the thumb has a neutral abduction (<) rather than full adduction (=). In this case, the handshape does not follow the description of the ‘index’ derivation.
