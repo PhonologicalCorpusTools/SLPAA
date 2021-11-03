@@ -97,12 +97,14 @@ II. Baseline Handshapes
 
 This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section (III) :ref:`derived_handshapes`. All "modified" handshapes are described in this section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. 
 
+
 .. image:: images/A.png
         :width: 5%
-        :align: left 
+        :align: center  
         
 A
 ~   
+
 .. image:: images/A.png
         :width: 5%
         :align: left 
@@ -112,14 +114,16 @@ A
 
 B   
 ~    
+
 .. image:: images/C.png
         :width: 7%
         :align: left 
-        
+
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
 
 C
 ~
+
 .. image:: images/C-index.png
         :width: 10%
         :align: left 
