@@ -121,7 +121,6 @@ B
         :class: float-left
         :align: left
         
-.. rst-class::  clear-both 
 
 
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
@@ -132,8 +131,8 @@ C
 .. image:: images/C-index.png
         :width: 10%
         :align: left 
-        
 
+        
 D
 ~
 - “Modified-D” has fingers 2, 3 & 4 creating the body of the D (as opposed to baseline “D”, which makes the body of the D using only the middle finger and tucks fingers 3 & 4 against palm). 
