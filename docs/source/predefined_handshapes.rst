@@ -95,7 +95,7 @@ b) Transcription of Handshapes:
 II. Baseline Handshapes
 =======================
 
-This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST
+This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST2
 
 
         
@@ -106,6 +106,7 @@ A
         :width: 5%
         :align: left
 |
+|
 - In “modified-A”  the fingers are extended down to touch the palm (rather than tucked as for baseline “A”).
 - “A-index” differs from the baseline “A” handshape in that the index finger is raised and curved rather than tucked, and the thumb has a neutral abduction (<) rather than full adduction (=). In this case, the handshape does not follow the description of the ‘index’ derivation.
 |
@@ -115,6 +116,7 @@ B
 .. image:: images/C.png
         :width: 5%
         :align: left
+|
 |
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
 |
@@ -132,6 +134,7 @@ D
 .. image:: images/C.png
         :width: 5%
         :align: left
+|
 |
 - “Modified-D” has fingers 2, 3 & 4 creating the body of the D (as opposed to baseline “D”, which makes the body of the D using only the middle finger and tucks fingers 3 & 4 against palm). 
 |
