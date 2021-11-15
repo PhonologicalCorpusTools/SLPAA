@@ -131,7 +131,7 @@ C
 D
 ~
 
-.. image:: images/C.png
+.. image:: predefined/B.png
         :width: 5%
         :align: left
 |
