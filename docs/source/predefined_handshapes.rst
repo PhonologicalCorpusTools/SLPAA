@@ -131,7 +131,7 @@ C
 D
 ~
 
-.. image:: images/C.png
+.. image:: images/8.png
         :width: 5%
         :align: left
 |
