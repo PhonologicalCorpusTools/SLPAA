@@ -131,7 +131,7 @@ C
 D
 ~
 
-.. image:: predefined/B.png
+.. image:: SLPAA/src/main/resources/base/predefined/1.png
         :width: 5%
         :align: left
 |
