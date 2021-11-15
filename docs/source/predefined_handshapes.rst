@@ -113,7 +113,7 @@ A
 B   
 ~    
 
-.. image:: images/C.png
+.. image:: images/1.png
         :width: 5%
         :align: left
 |
