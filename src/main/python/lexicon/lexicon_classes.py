@@ -362,6 +362,15 @@ class LocationTranscription:
         #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
 
+# TODO comments
+class MovementBox:
+    def __init__(self):
+        # TODO
+        pass
+
+
+
+
 # TODO: need to think about duplicated signs
 class Sign:
     """
@@ -407,6 +416,19 @@ class LocationParameter:
             'location_polygons': self.location_polygons,
             'default': self.default
         }
+
+
+class Movements:
+    """
+    This class is intended for the Corpus class to specify corpus-level movement definition
+    """
+    # TODO KV see Locations below... copying
+
+    def __init__(self, movement_specification):
+        """
+        movements = {'movement_identifier': MovementParameter}
+        """
+        self.movements = movement_specification
 
 
 class Locations:

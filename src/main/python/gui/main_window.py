@@ -215,9 +215,7 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
         # show/hide sign-level subwindow
-        # TODO KV delete: self.action_show_sub_lexical = QAction('Show lexical information', parent=self)
         self.action_show_sub_lexical = QAction('Show sign-level information', parent=self)
-        # TODO KV delete: self.action_show_sub_lexical.setStatusTip('Show/hide lexical information')
         self.action_show_sub_lexical.setStatusTip('Show/hide sign-level information')
         self.action_show_sub_lexical.triggered.connect(self.on_action_show_sub_lexical)
         self.action_show_sub_lexical.setCheckable(True)
@@ -327,7 +325,7 @@ class MainWindow(QMainWindow):
         self.corpus_scroll.setWidgetResizable(True)
         self.corpus_scroll.setWidget(self.corpus_view)
 
-        self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.today, parent=self)
+        self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
         self.lexical_scroll.finish_edit.connect(self.handle_lexical_edit)
 
         self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
@@ -718,6 +716,10 @@ class MainWindow(QMainWindow):
         self.app_settings['reminder']['overwrite'] = bool(self.app_qsettings.value('overwrite', defaultValue=True))
         self.app_qsettings.endGroup()
 
+        self.app_qsettings.beginGroup('signdefaults')
+        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
+        self.app_qsettings.endGroup()
+
     def check_storage(self):
         if not os.path.exists(self.app_settings['storage']['corpora']):
             os.makedirs(self.app_settings['storage']['corpora'])
@@ -768,6 +770,10 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('reminder')
         self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
+        self.app_qsettings.endGroup()
+
+        self.app_qsettings.beginGroup('signdefaults')
+        self.app_qsettings.setValue('handdominance', self.app_settings['signdefaults']['handdominance'])
         self.app_qsettings.endGroup()
 
     def on_action_define_location(self):
