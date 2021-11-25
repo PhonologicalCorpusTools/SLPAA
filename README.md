@@ -1,6 +1,4 @@
-# SLP-AA_new
-
-# SLP-Annotator
+# SLP-Annotator/Analyzer
 
 One of the barriers to conducting corpus-based phonetic and phonological research on signed languages is the lack of tools for 
 streamlining phonetic annotation in a way that is then compatible with other corpus-analysis resources. SLP-Annotator/Analyzer is a free, open-
