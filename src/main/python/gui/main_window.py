@@ -148,6 +148,13 @@ class MainWindow(QMainWindow):
         action_define_location.triggered.connect(self.on_action_define_location)
         action_define_location.setCheckable(False)
 
+        # define movement
+        # TODO KV think about naming/wording
+        action_define_movement = QAction('Define movement...', parent=self)
+        action_define_movement.setStatusTip('Open define movement window')
+        action_define_movement.triggered.connect(self.on_action_define_movement)
+        action_define_movement.setCheckable(False)
+
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), 'New corpus', parent=self)
         action_new_corpus.setStatusTip('Create a new corpus')
@@ -207,9 +214,11 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setCheckable(True)
         self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
-        # show/hide lexical subwindow
-        self.action_show_sub_lexical = QAction('Show lexical information', parent=self)
-        self.action_show_sub_lexical.setStatusTip('Show/hide lexical information')
+        # show/hide sign-level subwindow
+        # TODO KV delete: self.action_show_sub_lexical = QAction('Show lexical information', parent=self)
+        self.action_show_sub_lexical = QAction('Show sign-level information', parent=self)
+        # TODO KV delete: self.action_show_sub_lexical.setStatusTip('Show/hide lexical information')
+        self.action_show_sub_lexical.setStatusTip('Show/hide sign-level information')
         self.action_show_sub_lexical.triggered.connect(self.on_action_show_sub_lexical)
         self.action_show_sub_lexical.setCheckable(True)
         self.action_show_sub_lexical.setChecked(self.app_settings['display']['sub_lexical_show'])
@@ -306,6 +315,11 @@ class MainWindow(QMainWindow):
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
 
+        # TODO KV - put this in a more logical spot
+        menu_location = main_menu.addMenu('&Movement')
+        menu_location.addAction(action_define_movement)
+
+        # TODO KV - the corpus name should persist (save / reload)
         self.corpus_view = CorpusView('Untitled', parent=self)
         self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
 
@@ -349,7 +363,8 @@ class MainWindow(QMainWindow):
         self.sub_transcription.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_transcription)
 
-        self.sub_lexical = SubWindow('Lexical information', self.lexical_scroll, parent=self)
+        # TODO KV delete: self.sub_lexical = SubWindow('Lexical information', self.lexical_scroll, parent=self)
+        self.sub_lexical = SubWindow('Sign-level information', self.lexical_scroll, parent=self)
         self.sub_lexical.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_lexical)
 
@@ -764,6 +779,13 @@ class MainWindow(QMainWindow):
         # TODO: need to reimplement this once corpus class is there
         self.corpus.location_definition = new_locations
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
+
+    def on_action_define_movement(self):
+        # TODO KV
+        pass
+        # movement_definer = MovementDefinerDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
+        # movement_definer.saved_movements.connect(self.save_new_movements)
+        # movement_definer.exec_()
 
     def update_status_bar(self, text):
         self.status_bar.showMessage(text)

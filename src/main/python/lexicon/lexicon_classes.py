@@ -14,10 +14,14 @@ def empty_copy(obj):
 class LexicalInformation:
     def __init__(self, lexical_info):
         self._gloss = lexical_info['gloss']
+        self._lemma = lexical_info['lemma']
+        self._source = lexical_info['source']
         self._frequency = lexical_info['frequency']
         self._coder = lexical_info['coder']
         self._update_date = lexical_info['date']
         self._note = lexical_info['note']
+        self._signtype = lexical_info['signtype']
+        self._handdominance = lexical_info['handdominance']
 
     @property
     def gloss(self):
@@ -26,6 +30,22 @@ class LexicalInformation:
     @gloss.setter
     def gloss(self, new_gloss):
         self._gloss = new_gloss
+
+    @property
+    def lemma(self):
+        return self._lemma
+
+    @lemma.setter
+    def lemma(self, new_lemma):
+        self._lemma = new_lemma
+
+    @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, new_source):
+        self._source = new_source
 
     @property
     def frequency(self):
@@ -58,6 +78,22 @@ class LexicalInformation:
     @note.setter
     def note(self, new_note):
         self._note = new_note
+
+    @property
+    def signtype(self):
+        return self._signtype
+
+    @signtype.setter
+    def signtype(self, new_signtype):
+        self._signtype = new_signtype
+
+    @property
+    def handdominance(self):
+        return self._handdominance
+
+    @handdominance.setter
+    def handdominance(self, new_handdominance):
+        self._handdominance = new_handdominance
 
 
 class GlobalHandshapeInformation:
