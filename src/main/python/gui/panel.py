@@ -35,7 +35,10 @@ from PyQt5.QtWidgets import (
     QAbstractItemView,
     QMenu,
     QAction,
-    QRadioButton
+    QRadioButton,
+    QComboBox,
+    QCompleter,
+    QTreeView
 )
 
 from PyQt5.QtGui import (
@@ -47,6 +50,7 @@ from PyQt5.QtGui import (
 )
 
 from gui.hand_configuration import ConfigGlobal, Config
+from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
@@ -438,7 +442,7 @@ class LexicalInformationPanel(QScrollArea):
     def get_gloss(self):
         return self.gloss_edit.text()
 
-    def clear(self, coder):
+    def clear(self, coder, defaulthand):
         self.gloss_edit.clear()
         self.lemma_edit.clear()
         self.source_edit.clear()
@@ -449,7 +453,8 @@ class LexicalInformationPanel(QScrollArea):
         # reset to default (unspecified)
         self.signtype_unspec_radio.setChecked(True)
         # reset to default from global settings
-        # TODO KV - potential to override global default with code default?
+        # TODO KV - potential to override global default with coder default?
+        self.defaulthand = defaulthand
         for button in self.handdominance_buttongroup.buttons():
             if button.property('hand') == self.defaulthand:
                 button.setChecked(True)
@@ -744,6 +749,102 @@ class LocationSpecificationLayout(QVBoxLayout):
         self.end_location_group_layout.set_value(value.end)
 
 
+# TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
+# class MovementSpecificationLayout(QHBoxLayout):
+#     def __init__(self, movement_specifications, app_ctx, **kwargs):
+#         super().__init__(**kwargs)
+#
+#         self.treemodel = MovementTreeModel(movementparameters=movement_specifications)
+#         self.rootNode = self.treemodel.invisibleRootItem()
+#         self.treemodel.populate(self.rootNode)
+#
+#         self.listmodel = MovementListModel(self.treemodel)
+#
+#         self.comboproxymodel = MovementPathsProxyModel(wantselected=False) #, parent=self.listmodel
+#         self.comboproxymodel.setSourceModel(self.listmodel)
+#
+#         self.listproxymodel = MovementPathsProxyModel(wantselected=True)
+#         self.listproxymodel.setSourceModel(self.listmodel)
+#
+#         selection_layout = QVBoxLayout()
+#         search_layout = QHBoxLayout()
+#         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
+#
+#         self.combobox = TreeSearchComboBox(self)
+#         self.combobox.setModel(self.comboproxymodel)
+#         self.combobox.setCurrentIndex(-1)
+#         self.combobox.adjustSize()
+#         self.combobox.setEditable(True)
+#         self.combobox.setInsertPolicy(QComboBox.NoInsert)
+#         self.combobox.setFocusPolicy(Qt.StrongFocus)
+#         self.combobox.setEnabled(True)
+#         self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
+#         self.combobox.completer().setFilterMode(Qt.MatchContains)
+#         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
+#         # tct = TreeClickTracker(self)  todo kv
+#         # self.combobox.installEventFilter(tct)
+#         search_layout.addWidget(self.combobox)
+#
+#         selection_layout.addLayout(search_layout)
+#
+#         self.treedisplay = QTreeView()
+#         self.treedisplay.setHeaderHidden(True)
+#         self.treedisplay.setModel(self.treemodel)
+#         self.treedisplay.setMinimumWidth(500)
+#
+#         selection_layout.addWidget(self.treedisplay)
+#         self.addLayout(selection_layout)
+#
+#         self.pathslistview = TreeListView()
+#         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
+#         self.pathslistview.setModel(self.listproxymodel)
+#         self.pathslistview.setMinimumWidth(500)
+#
+#         self.addWidget(self.pathslistview)
+#
+#         # central_widget.setLayout(mainlayout)
+#         # self.setCentralWidget(central_widget)  # Install the central widget
+#
+#         # from location version
+#         # self.hand_switch = ToggleSwitch()
+#         # self.hand_switch.setChecked(True)
+#         # self.hand_switch.clicked.connect(self.change_hand)
+#         # self.start_location_group_layout = LocationGroupLayout('start', location_specifications, app_ctx)
+#         # self.end_location_group_layout = LocationGroupLayout('end', location_specifications, app_ctx)
+#         # self.location_point_panel = LocationPointPanel('Location points')
+#         #
+#         # self.addWidget(self.hand_switch)
+#         # #self.addWidget(self.location_point_panel)
+#         # self.addLayout(self.start_location_group_layout)
+#         # self.addLayout(self.end_location_group_layout)
+#
+#     # todo kv
+#     # def change_hand(self):
+#     #     hand = 'D' if self.hand_switch.isChecked() else 'W'
+#     #     self.start_location_group_layout.change_hand(hand)
+#     #     self.end_location_group_layout.change_hand(hand)
+#
+#     def get_movement_value(self):
+#         movement_value_dict = {
+#             # 'start': self.start_location_group_layout.get_location_value(),
+#             # 'end': self.end_location_group_layout.get_location_value()
+#         }
+#
+#         return movement_value_dict
+#
+#     # todo kv
+#     def clear(self, movement_specifications, app_ctx):
+#         pass
+#         # self.hand_switch.setChecked(True)
+#         # self.start_location_group_layout.clear(location_specifications, app_ctx)
+#         # self.end_location_group_layout.clear(location_specifications, app_ctx)
+#
+#     # todo kv
+#     # def set_value(self, value):
+#     #     self.start_location_group_layout.set_value(value.start)
+#     #     self.end_location_group_layout.set_value(value.end)
+
+
 class LocationPointTable(QTableWidget):
     def __init__(self, default_points, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -891,19 +992,26 @@ class LocationPointPanel(QGroupBox):
 
 
 class ParameterPanel(QScrollArea):
-    def __init__(self, location_specifications, app_ctx, **kwargs):
+    def __init__(self, location_specifications, app_ctx, **kwargs):  # TODO KV movement_specifications,
         super().__init__(**kwargs)
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
 
-        #TODO: need to fingure out how to do this...
+        #TODO: need to figure out how to do this...
         main_frame.setFixedSize(1000, 1000)
 
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
 
         self.location_layout = LocationSpecificationLayout(location_specifications, app_ctx)
+        self.location_section = CollapsibleSection(title='Location', parent=self)
+        self.location_section.setContentLayout(self.location_layout)
+
+        ## TODO KV delete
+        # self.movement_layout = MovementSpecificationLayout(movement_specifications, app_ctx)
+        # self.movement_section = CollapsibleSection(title='Movement', parent=self)
+        # self.movement_section.setContentLayout(self.movement_layout)
 
         self.orientation_layout = QVBoxLayout()
         orientation_label = QLabel('Coming soon...')
@@ -911,14 +1019,18 @@ class ParameterPanel(QScrollArea):
         self.orientation_section = CollapsibleSection(title='Orientation', parent=self)
         self.orientation_section.setContentLayout(self.orientation_layout)
 
-        main_layout.addWidget(QLabel('Location'))
-        main_layout.addLayout(self.location_layout)
+        # main_layout.addWidget(QLabel('Location'))
+        # main_layout.addLayout(self.location_layout)
+        main_layout.addWidget(self.location_section)
+        # main_layout.addWidget(self.movement_section)  # TODO KV
         main_layout.addWidget(self.orientation_section)
 
         self.setWidget(main_frame)
 
-    def clear(self, location_specifications, app_ctx):
+    def clear(self, location_specifications, app_ctx):  # TODO KV movement_specifications,
         self.location_layout.clear(location_specifications, app_ctx)
+        # self.movement_layout.clear(movement_specifications, app_ctx) # TODO KV
 
     def set_value(self, value):
         self.location_layout.set_value(value)
+        # self.movement_layout.set_value(value)

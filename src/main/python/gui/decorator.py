@@ -75,7 +75,7 @@ def check_unsaved_corpus(func):
                                                        self.tr('Save Corpus'),
                                                        os.path.join(self.app_settings['storage']['recent_folder'],
                                                                     'corpus.slpaa'),
-                                                       self.tr('SLAP-AA Corpus (*.slpaa)'))
+                                                       self.tr('SLP-AA Corpus (*.slpaa)'))
             if file_name:
                 self.corpus.path = file_name
                 folder, _ = os.path.split(file_name)
