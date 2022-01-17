@@ -194,7 +194,7 @@ class ConfigField(QWidget):
         self.field_number = field_number
 
         # styling
-        self.setStyleSheet('QWidget{margin: 0; padding: 0}')
+        self.setStyleSheet('QWidget{margin: 0; padding: 0;}')
 
         self.main_layout = QHBoxLayout()
         self.main_layout.setSpacing(0)
@@ -208,15 +208,24 @@ class ConfigField(QWidget):
         left_bracket.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(left_bracket)
 
-        right_bracket = QLabel(']{}'.format(self.field_number))
-        right_bracket.setFixedSize(QSize(15, 20))
+        #right_bracket = QLabel(']{}'.format(self.field_number))
+        right_bracket = QLabel(']')
+        right_number = QLabel(str(self.field_number))
+        right_number.setStyleSheet('QLabel{border:1px solid rgb(0, 255, 0);}')
+        right_bracket.setFixedSize(QSize(5, 20))
+        right_number.setFixedSize(QSize(10, 20))
         right_bracket.setAlignment(Qt.AlignHCenter)
+        right_number.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(right_bracket)
+        self.main_layout.addWidget(right_number)
 
         self.generate_slots()
 
+        # styling
+        #self.setStyleSheet('QWidget{margin: 0; padding: 0; border:1px solid rgb(0, 255, 0);}')
+
     def insert_slot(self, slot):
-        position = self.main_layout.count() - 1
+        position = self.main_layout.count() - 2
         self.main_layout.insertWidget(position, slot)
 
     def clear(self):

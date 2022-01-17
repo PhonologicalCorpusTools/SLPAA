@@ -4,7 +4,7 @@ import json
 import csv
 from collections import defaultdict
 from copy import deepcopy
-#from getpass import getuser
+# from getpass import getuser
 from datetime import date
 from PyQt5.QtCore import (
     Qt,
@@ -36,6 +36,7 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusView
 from gui.location_definer import LocationDefinerDialog
+from gui.movement_definer import MovementDefinerDialog
 from gui.corpus_summary_dialog import CorpusSummaryDialog
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import (
@@ -84,6 +85,10 @@ class MainWindow(QMainWindow):
 
         # system-default locations
         self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
+
+        # system-default locations
+        # TODO kv keep? - ust coiped from location
+        self.system_default_movement = None  # deepcopy(SAMPLE_LOCATIONS)
 
         # handle setting-related stuff
         self.handle_app_settings()
@@ -148,6 +153,13 @@ class MainWindow(QMainWindow):
         action_define_location.triggered.connect(self.on_action_define_location)
         action_define_location.setCheckable(False)
 
+        # define movement
+        # TODO KV think about naming/wording
+        action_define_movement = QAction('Define movement...', parent=self)
+        action_define_movement.setStatusTip('Open define movement window')
+        action_define_movement.triggered.connect(self.on_action_define_movement)
+        action_define_movement.setCheckable(False)
+
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), 'New corpus', parent=self)
         action_new_corpus.setStatusTip('Create a new corpus')
@@ -207,9 +219,9 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setCheckable(True)
         self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
-        # show/hide lexical subwindow
-        self.action_show_sub_lexical = QAction('Show lexical information', parent=self)
-        self.action_show_sub_lexical.setStatusTip('Show/hide lexical information')
+        # show/hide sign-level subwindow
+        self.action_show_sub_lexical = QAction('Show sign-level information', parent=self)
+        self.action_show_sub_lexical.setStatusTip('Show/hide sign-level information')
         self.action_show_sub_lexical.triggered.connect(self.on_action_show_sub_lexical)
         self.action_show_sub_lexical.setCheckable(True)
         self.action_show_sub_lexical.setChecked(self.app_settings['display']['sub_lexical_show'])
@@ -306,6 +318,11 @@ class MainWindow(QMainWindow):
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
 
+        # TODO KV - put this in a more logical spot
+        menu_location = main_menu.addMenu('&Movement')
+        menu_location.addAction(action_define_movement)
+
+        # TODO KV - the corpus name should persist (save / reload)
         self.corpus_view = CorpusView('Untitled', parent=self)
         self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
 
@@ -313,7 +330,7 @@ class MainWindow(QMainWindow):
         self.corpus_scroll.setWidgetResizable(True)
         self.corpus_scroll.setWidget(self.corpus_view)
 
-        self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.today, parent=self)
+        self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
         self.lexical_scroll.finish_edit.connect(self.handle_lexical_edit)
 
         self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
@@ -331,7 +348,7 @@ class MainWindow(QMainWindow):
         self.transcription_scroll.config2.slot_leave.connect(self.illustration_scroll.set_neutral_img)
         self.transcription_scroll.config2.slot_finish_edit.connect(self.handle_slot_edit)
 
-        self.parameter_scroll = ParameterPanel(dict(), self.app_ctx, parent=self)
+        self.parameter_scroll = ParameterPanel(dict(), self.app_ctx, parent=self)  # TODO KV movement dict(),
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -349,7 +366,8 @@ class MainWindow(QMainWindow):
         self.sub_transcription.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_transcription)
 
-        self.sub_lexical = SubWindow('Lexical information', self.lexical_scroll, parent=self)
+        # TODO KV delete: self.sub_lexical = SubWindow('Lexical information', self.lexical_scroll, parent=self)
+        self.sub_lexical = SubWindow('Sign-level information', self.lexical_scroll, parent=self)
         self.sub_lexical.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_lexical)
 
@@ -703,6 +721,10 @@ class MainWindow(QMainWindow):
         self.app_settings['reminder']['overwrite'] = bool(self.app_qsettings.value('overwrite', defaultValue=True))
         self.app_qsettings.endGroup()
 
+        self.app_qsettings.beginGroup('signdefaults')
+        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
+        self.app_qsettings.endGroup()
+
     def check_storage(self):
         if not os.path.exists(self.app_settings['storage']['corpora']):
             os.makedirs(self.app_settings['storage']['corpora'])
@@ -755,6 +777,10 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
         self.app_qsettings.endGroup()
 
+        self.app_qsettings.beginGroup('signdefaults')
+        self.app_qsettings.setValue('handdominance', self.app_settings['signdefaults']['handdominance'])
+        self.app_qsettings.endGroup()
+
     def on_action_define_location(self):
         location_definer = LocationDefinerDialog(self.system_default_locations, self.corpus.location_definition, self.app_settings, self.app_ctx, parent=self)
         location_definer.saved_locations.connect(self.save_new_locations)
@@ -764,6 +790,13 @@ class MainWindow(QMainWindow):
         # TODO: need to reimplement this once corpus class is there
         self.corpus.location_definition = new_locations
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
+
+    def on_action_define_movement(self):
+        # TODO KV
+        pass
+        movement_definer = MovementDefinerDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
+        # movement_definer.saved_movements.connect(self.save_new_movements)
+        movement_definer.exec_()
 
     def update_status_bar(self, text):
         self.status_bar.showMessage(text)
@@ -830,13 +863,13 @@ class MainWindow(QMainWindow):
         self.corpus = Corpus(signs=None, location_definition=deepcopy(SAMPLE_LOCATIONS))
 
         self.corpus_view.clear()
-        self.lexical_scroll.clear(self.app_settings['metadata']['coder'])
+        self.lexical_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         self.transcription_scroll.clear()
-        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)  # todo kv dict(),
 
     def on_action_load_corpus(self, clicked):
         file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Corpus'), self.app_settings['storage']['recent_folder'],
-                                                           self.tr('SLAP-AA Corpus (*.slpaa)'))
+                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
         folder, _ = os.path.split(file_name)
         if folder:
             self.app_settings['storage']['recent_folder'] = folder
@@ -844,7 +877,7 @@ class MainWindow(QMainWindow):
         self.corpus = self.load_corpus_binary(file_name)
 
         first = self.corpus.get_sign_glosses()[0]
-        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
+        self.parameter_scroll.clear(self.corpus.location_definition, dict(), self.app_ctx) # todo kv
         self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
         self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
 
@@ -857,9 +890,9 @@ class MainWindow(QMainWindow):
         self.current_sign = None
         self.action_delete_sign.setEnabled(False)
 
-        self.lexical_scroll.clear(self.app_settings['metadata']['coder'])
+        self.lexical_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         self.transcription_scroll.clear()
-        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
+        self.parameter_scroll.clear(self.corpus.location_definition, dict(), self.app_ctx) # todo kv
 
         self.corpus_view.corpus_view.clearSelection()
 

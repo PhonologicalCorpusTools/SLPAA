@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
     QDialog,
     QWidget,
     QVBoxLayout,
+    QHBoxLayout,
     QFormLayout,
     QTabWidget,
     QSpinBox,
@@ -10,7 +11,9 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QDialogButtonBox,
     QLineEdit,
-    QLabel
+    QLabel,
+    QRadioButton,
+    QButtonGroup
 )
 #from PyQt5.QtGui import ()
 
@@ -59,6 +62,34 @@ class ReminderTab(QWidget):
         self.settings['reminder']['overwrite'] = self.overwrite_reminder.isChecked()
 
 
+class SignDefaultsTab(QWidget):
+    def __init__(self, settings, **kwargs):
+        super().__init__(**kwargs)
+        self.settings = settings
+
+        main_layout = QFormLayout()
+        self.setLayout(main_layout)
+
+        self.handdominance_layout = QHBoxLayout()
+        self.handdominance_group = QButtonGroup(parent=self)
+        self.handdominance_l_radio = QRadioButton('Left')
+        self.handdominance_l_radio.setProperty('hand', 'L')
+        self.handdominance_group.addButton(self.handdominance_l_radio)
+        self.handdominance_layout.addWidget(self.handdominance_l_radio)
+        self.handdominance_r_radio = QRadioButton('Right')
+        self.handdominance_r_radio.setProperty('hand', 'R')
+        self.handdominance_group.addButton(self.handdominance_r_radio)
+        self.handdominance_layout.addWidget(self.handdominance_r_radio)
+        for button in self.handdominance_group.buttons():
+            if self.settings['signdefaults']['handdominance'] == button.property('hand'):
+                button.setChecked(True)
+                break
+        main_layout.addRow(QLabel('Default hand dominance:'), self.handdominance_layout)
+
+    def save_settings(self):
+        self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
+
+
 class PreferenceDialog(QDialog):
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
@@ -77,6 +108,9 @@ class PreferenceDialog(QDialog):
         self.reminder_tab = ReminderTab(settings, parent=self)
         tabs.addTab(self.reminder_tab, 'Reminder')
 
+        self.signdefaults_tab = SignDefaultsTab(settings, parent=self)
+        tabs.addTab(self.signdefaults_tab, 'Sign')
+
         buttons = QDialogButtonBox.Save | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
         main_layout.addWidget(self.button_box)
@@ -91,6 +125,7 @@ class PreferenceDialog(QDialog):
         elif standard == QDialogButtonBox.Save:
             self.display_tab.save_settings()
             self.reminder_tab.save_settings()
+            self.signdefaults_tab.save_settings()
 
             QMessageBox.information(self, 'Preferences Saved', 'New preferences saved!')
             self.accept()

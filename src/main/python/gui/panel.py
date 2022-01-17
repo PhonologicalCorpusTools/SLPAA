@@ -34,7 +34,11 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
     QAbstractItemView,
     QMenu,
-    QAction
+    QAction,
+    QRadioButton,
+    QComboBox,
+    QCompleter,
+    QTreeView
 )
 
 from PyQt5.QtGui import (
@@ -46,6 +50,7 @@ from PyQt5.QtGui import (
 )
 
 from gui.hand_configuration import ConfigGlobal, Config
+from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
@@ -269,10 +274,11 @@ class LexicalNote(QPlainTextEdit):
 class LexicalInformationPanel(QScrollArea):
     finish_edit = pyqtSignal(QWidget)
 
-    def __init__(self, coder, update, **kwargs):
+    def __init__(self, coder, defaulthand, update, **kwargs):
         super().__init__(**kwargs)
 
         self.coder = coder
+        self.defaulthand = defaulthand
         self.update = update
 
         self.setFrameStyle(QFrame.StyledPanel)
@@ -283,14 +289,25 @@ class LexicalInformationPanel(QScrollArea):
         main_frame.setLayout(main_layout)
 
         gloss_label = QLabel('Gloss:', parent=self)
+        lemma_label = QLabel('Lemma:', parent=self)
+        source_label = QLabel('Source:', parent=self)
         freq_label = QLabel('Frequency:', parent=self)
         coder_label = QLabel('Coder:', parent=self)
         update_label = QLabel('Last updated:', parent=self)
         note_label = QLabel('Notes:', parent=self)
+        # TODO KV delete
+        # signtype_label = QLabel('Sign type:', parent=self)
+        # handdominance_label = QLabel('Hand dominance:', parent=self)
 
         self.gloss_edit = QLineEdit(parent=self)
         self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
         self.gloss_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.gloss_edit))
+
+        self.lemma_edit = QLineEdit(parent=self)
+        self.lemma_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.lemma_edit))
+
+        self.source_edit = QLineEdit(parent=self)
+        self.source_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.source_edit))
 
         self.freq_edit = QLineEdit('1.0', parent=self)
         self.freq_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.freq_edit))
@@ -308,8 +325,92 @@ class LexicalInformationPanel(QScrollArea):
         self.note_edit.setPlaceholderText('Enter note here...')
         self.note_edit.focus_out.connect(lambda: self.finish_edit.emit(self.note_edit))
 
+        self.signtype_buttongroup = QButtonGroup(parent=self)
+        self.signtype_unspec_radio = QRadioButton('Unspecified')
+        self.signtype_unspec_radio.setProperty('signtype', 0)
+        self.signtype_1h_radio = QRadioButton('One-handed')
+        self.signtype_1h_radio.setProperty('signtype', 1)
+        self.signtype_2hu_noh2_radio = QRadioButton('H2 doesn\'t move')
+        self.signtype_2hu_noh2_radio.setProperty('signtype', 2)
+        self.signtype_2hu_h2withh1_radio = QRadioButton('H2 moves with H1')
+        self.signtype_2hu_h2withh1_radio.setProperty('signtype', 3)
+        self.signtype_2hb_nonaltsim_radio = QRadioButton('Non-alternating, simultaneous')
+        self.signtype_2hb_nonaltsim_radio.setProperty('signtype', 4)
+        self.signtype_2hb_altsim_radio = QRadioButton('Alternating, simultaneous')
+        self.signtype_2hb_altsim_radio.setProperty('signtype', 5)
+        self.signtype_2hb_altseq_radio = QRadioButton('Alternating, sequential')
+        self.signtype_2hb_altseq_radio.setProperty('signtype', 6)
+
+        self.signtype_buttongroup.addButton(self.signtype_unspec_radio)
+        self.signtype_buttongroup.addButton(self.signtype_1h_radio)
+        self.signtype_buttongroup.addButton(self.signtype_2hu_noh2_radio)
+        self.signtype_buttongroup.addButton(self.signtype_2hu_h2withh1_radio)
+        self.signtype_buttongroup.addButton(self.signtype_2hb_nonaltsim_radio)
+        self.signtype_buttongroup.addButton(self.signtype_2hb_altsim_radio)
+        self.signtype_buttongroup.addButton(self.signtype_2hb_altseq_radio)
+
+        self.signtype_layout = QVBoxLayout()
+        self.signtype_box = QGroupBox('Sign type')
+        self.signtype_layout.addWidget(self.signtype_unspec_radio)
+        # TODO KV delete
+        # self.signtype_1h_layout = QVBoxLayout()
+        # self.signtype_1h_box = QGroupBox('1H', parent=self)
+        # self.signtype_1h_layout.addWidget(self.signtype_1h_radio)
+        self.signtype_layout.addWidget(QLabel('1H'))
+        self.signtype_layout.addWidget(self.signtype_1h_radio)
+        # self.signtype_1h_box.setLayout(self.signtype_1h_layout)
+
+        # TODO KV delete
+        # self.signtype_2hu_layout = QVBoxLayout()
+        # self.signtype_2hu_box = QGroupBox('2HU', parent=self)
+        # self.signtype_2hu_layout.addWidget(QLabel("test label"))
+        # self.signtype_2hu_layout.addWidget(self.signtype_2hu_noh2_radio)
+        # self.signtype_2hu_layout.addWidget(self.signtype_2hu_h2withh1_radio)
+        # self.signtype_2hu_box.setLayout(self.signtype_2hu_layout)
+        self.signtype_layout.addWidget(QLabel('2HU'))
+        self.signtype_layout.addWidget(self.signtype_2hu_noh2_radio)
+        self.signtype_layout.addWidget(self.signtype_2hu_h2withh1_radio)
+
+        # TODO KV delete
+        # self.signtype_2hb_layout = QVBoxLayout()
+        # self.signtype_2hb_box = QGroupBox('2HB', parent=self)
+        # self.signtype_2hb_layout.addWidget(self.signtype_2hb_nonaltsim_radio)
+        # self.signtype_2hb_layout.addWidget(self.signtype_2hb_altsim_radio)
+        # self.signtype_2hb_layout.addWidget(self.signtype_2hb_altseq_radio)
+        # self.signtype_2hb_box.setLayout(self.signtype_2hb_layout)
+        self.signtype_layout.addWidget(QLabel('2HB'))
+        self.signtype_layout.addWidget(self.signtype_2hb_nonaltsim_radio)
+        self.signtype_layout.addWidget(self.signtype_2hb_altsim_radio)
+        self.signtype_layout.addWidget(self.signtype_2hb_altseq_radio)
+
+        self.signtype_box.setLayout(self.signtype_layout)
+
+        # TODO KV delete
+        # self.signtype_layout.addWidget(self.signtype_unspec_radio)
+        # self.signtype_layout.addWidget(self.signtype_1h_box)
+        # self.signtype_layout.addWidget(self.signtype_2hu_box)
+        # self.signtype_layout.addWidget(self.signtype_2hb_box)
+
+        self.handdominance_buttongroup = QButtonGroup(parent=self)
+        self.handdominance_l_radio = QRadioButton('Left')
+        self.handdominance_l_radio.setProperty('hand', 'L')
+        self.handdominance_r_radio = QRadioButton('Right')
+        self.handdominance_r_radio.setProperty('hand', 'R')
+        self.handdominance_buttongroup.addButton(self.handdominance_l_radio)
+        self.handdominance_buttongroup.addButton(self.handdominance_r_radio)
+
+        self.handdominance_layout = QHBoxLayout()
+        self.handdominance_box = QGroupBox('Hand dominance')
+        self.handdominance_layout.addWidget(self.handdominance_l_radio)
+        self.handdominance_layout.addWidget(self.handdominance_r_radio)
+        self.handdominance_box.setLayout(self.handdominance_layout)
+
         main_layout.addWidget(gloss_label)
         main_layout.addWidget(self.gloss_edit)
+        main_layout.addWidget(lemma_label)
+        main_layout.addWidget(self.lemma_edit)
+        main_layout.addWidget(source_label)
+        main_layout.addWidget(self.source_edit)
         main_layout.addWidget(freq_label)
         main_layout.addWidget(self.freq_edit)
         main_layout.addWidget(coder_label)
@@ -318,6 +419,17 @@ class LexicalInformationPanel(QScrollArea):
         main_layout.addWidget(self.update_edit)
         main_layout.addWidget(note_label)
         main_layout.addWidget(self.note_edit)
+        # TODO KV delete
+        # main_layout.addWidget(signtype_label)
+        # main_layout.addWidget(self.signtype_unspec_radio)
+        # main_layout.addWidget(self.signtype_1h_box)
+        # main_layout.addWidget(self.signtype_2hu_box)
+        # main_layout.addWidget(self.signtype_2hb_box)
+        main_layout.addWidget(self.signtype_box)
+        # TODO KV delete
+        # main_layout.addWidget(handdominance_label)
+        # main_layout.addLayout(self.handdominance_layout)
+        main_layout.addWidget(self.handdominance_box)
 
         self.setWidget(main_frame)
 
@@ -330,29 +442,71 @@ class LexicalInformationPanel(QScrollArea):
     def get_gloss(self):
         return self.gloss_edit.text()
 
-    def clear(self, coder):
+    def clear(self, coder, defaulthand):
         self.gloss_edit.clear()
+        self.lemma_edit.clear()
+        self.source_edit.clear()
         self.freq_edit.setText('1.0')
         self.coder_edit.setText(coder)
         self.update_edit.setText(str(date.today()))
         self.note_edit.clear()
+        # reset to default (unspecified)
+        self.signtype_unspec_radio.setChecked(True)
+        # reset to default from global settings
+        # TODO KV - potential to override global default with coder default?
+        self.defaulthand = defaulthand
+        for button in self.handdominance_buttongroup.buttons():
+            if button.property('hand') == self.defaulthand:
+                button.setChecked(True)
+                break
 
     def set_value(self, lexical_info):
         self.gloss_edit.setText(lexical_info.gloss)
+        self.lemma_edit.setText(lexical_info.lemma)
+        self.source_edit.setText(lexical_info.source)
         self.freq_edit.setText(str(lexical_info.frequency))
         self.coder_edit.setText(lexical_info.coder)
         self.update_edit.setText(str(lexical_info.update_date))
         if lexical_info.note:
             self.note_edit.setPlainText(lexical_info.note)
+        self.set_signtype(lexical_info.signtype)
+        self.set_handdominance(lexical_info.handdominance)
+
+    def set_signtype(self, signtype):
+        for button in self.signtype_buttongroup.buttons():
+            if button.property('signtype') == signtype:
+                button.setChecked(True)
+                break
+
+    def get_signtype(self):
+        signtype = 0
+        for button in self.signtype_buttongroup.buttons():
+            if button.isChecked():
+                signtype = button.property('signtype')
+                return signtype
+        return signtype
+
+    def set_handdominance(self, handdominance):
+        if handdominance == 'R':
+            self.handdominance_r_radio.setChecked(True)
+        elif handdominance == 'L':
+            self.handdominance_l_radio.setChecked(True)
+
+    def get_handdominance(self):
+        return 'R' if self.handdominance_r_radio.isChecked() else 'L'
 
     def get_value(self):
         if self.get_date() and self.get_gloss():
             return {
                 'gloss': self.get_gloss(),
+                'lemma': self.lemma_edit.text(),
+                'source': self.source_edit.text(),
                 'frequency': float(self.freq_edit.text()),
                 'coder': self.coder_edit.text(),
                 'date': self.get_date(),
-                'note': self.note_edit.toPlainText()
+                'note': self.note_edit.toPlainText(),
+                'signtype': self.get_signtype(),
+                'handdominance': self.get_handdominance()
             }
 
 
@@ -595,6 +749,102 @@ class LocationSpecificationLayout(QVBoxLayout):
         self.end_location_group_layout.set_value(value.end)
 
 
+# TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
+# class MovementSpecificationLayout(QHBoxLayout):
+#     def __init__(self, movement_specifications, app_ctx, **kwargs):
+#         super().__init__(**kwargs)
+#
+#         self.treemodel = MovementTreeModel(movementparameters=movement_specifications)
+#         self.rootNode = self.treemodel.invisibleRootItem()
+#         self.treemodel.populate(self.rootNode)
+#
+#         self.listmodel = MovementListModel(self.treemodel)
+#
+#         self.comboproxymodel = MovementPathsProxyModel(wantselected=False) #, parent=self.listmodel
+#         self.comboproxymodel.setSourceModel(self.listmodel)
+#
+#         self.listproxymodel = MovementPathsProxyModel(wantselected=True)
+#         self.listproxymodel.setSourceModel(self.listmodel)
+#
+#         selection_layout = QVBoxLayout()
+#         search_layout = QHBoxLayout()
+#         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
+#
+#         self.combobox = TreeSearchComboBox(self)
+#         self.combobox.setModel(self.comboproxymodel)
+#         self.combobox.setCurrentIndex(-1)
+#         self.combobox.adjustSize()
+#         self.combobox.setEditable(True)
+#         self.combobox.setInsertPolicy(QComboBox.NoInsert)
+#         self.combobox.setFocusPolicy(Qt.StrongFocus)
+#         self.combobox.setEnabled(True)
+#         self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
+#         self.combobox.completer().setFilterMode(Qt.MatchContains)
+#         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
+#         # tct = TreeClickTracker(self)  todo kv
+#         # self.combobox.installEventFilter(tct)
+#         search_layout.addWidget(self.combobox)
+#
+#         selection_layout.addLayout(search_layout)
+#
+#         self.treedisplay = QTreeView()
+#         self.treedisplay.setHeaderHidden(True)
+#         self.treedisplay.setModel(self.treemodel)
+#         self.treedisplay.setMinimumWidth(500)
+#
+#         selection_layout.addWidget(self.treedisplay)
+#         self.addLayout(selection_layout)
+#
+#         self.pathslistview = TreeListView()
+#         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
+#         self.pathslistview.setModel(self.listproxymodel)
+#         self.pathslistview.setMinimumWidth(500)
+#
+#         self.addWidget(self.pathslistview)
+#
+#         # central_widget.setLayout(mainlayout)
+#         # self.setCentralWidget(central_widget)  # Install the central widget
+#
+#         # from location version
+#         # self.hand_switch = ToggleSwitch()
+#         # self.hand_switch.setChecked(True)
+#         # self.hand_switch.clicked.connect(self.change_hand)
+#         # self.start_location_group_layout = LocationGroupLayout('start', location_specifications, app_ctx)
+#         # self.end_location_group_layout = LocationGroupLayout('end', location_specifications, app_ctx)
+#         # self.location_point_panel = LocationPointPanel('Location points')
+#         #
+#         # self.addWidget(self.hand_switch)
+#         # #self.addWidget(self.location_point_panel)
+#         # self.addLayout(self.start_location_group_layout)
+#         # self.addLayout(self.end_location_group_layout)
+#
+#     # todo kv
+#     # def change_hand(self):
+#     #     hand = 'D' if self.hand_switch.isChecked() else 'W'
+#     #     self.start_location_group_layout.change_hand(hand)
+#     #     self.end_location_group_layout.change_hand(hand)
+#
+#     def get_movement_value(self):
+#         movement_value_dict = {
+#             # 'start': self.start_location_group_layout.get_location_value(),
+#             # 'end': self.end_location_group_layout.get_location_value()
+#         }
+#
+#         return movement_value_dict
+#
+#     # todo kv
+#     def clear(self, movement_specifications, app_ctx):
+#         pass
+#         # self.hand_switch.setChecked(True)
+#         # self.start_location_group_layout.clear(location_specifications, app_ctx)
+#         # self.end_location_group_layout.clear(location_specifications, app_ctx)
+#
+#     # todo kv
+#     # def set_value(self, value):
+#     #     self.start_location_group_layout.set_value(value.start)
+#     #     self.end_location_group_layout.set_value(value.end)
+
+
 class LocationPointTable(QTableWidget):
     def __init__(self, default_points, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -742,13 +992,13 @@ class LocationPointPanel(QGroupBox):
 
 
 class ParameterPanel(QScrollArea):
-    def __init__(self, location_specifications, app_ctx, **kwargs):
+    def __init__(self, location_specifications, app_ctx, **kwargs):  # TODO KV movement_specifications,
         super().__init__(**kwargs)
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
 
-        #TODO: need to fingure out how to do this...
+        #TODO: need to figure out how to do this...
         main_frame.setFixedSize(1000, 1000)
 
         main_layout = QVBoxLayout()
@@ -771,8 +1021,10 @@ class ParameterPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
-    def clear(self, location_specifications, app_ctx):
+    def clear(self, location_specifications, app_ctx):  # TODO KV movement_specifications,
         self.location_layout.clear(location_specifications, app_ctx)
+        # self.movement_layout.clear(movement_specifications, app_ctx) # TODO KV
 
     def set_value(self, value):
         self.location_layout.set_value(value)
+        # self.movement_layout.set_value(value)

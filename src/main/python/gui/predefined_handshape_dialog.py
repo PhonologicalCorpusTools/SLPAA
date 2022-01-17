@@ -45,33 +45,33 @@ class PredefinedTableModel(QAbstractTableModel):
         self.data_cached = [
             ['A',
              '',  # bent
-             '', '', '', '', '', '', '',  # clawed, closed, combined, contracted, covered, crooked, curved
+             '', 'closed-A-index', '', '', '', '', '',  # clawed, closed, combined, contracted, covered, crooked, curved
              'extended-A',  # extended
              '',  # flat
-             '',  # index
+             'A-index',  # index
              'modified-A',  # modified
              '', 'open-A',  # offset, open
              '', ''],  # slanted, spread
-            ['',
-             '',  # bent
-             '', '', '', '', '', '', '',  # clawed, closed, combined, contracted, covered, crooked, curved
-             '',  # extended
-             '',  # flat
-             'closed-A-index',  # index
-             '',  # modified
-             '', '',  # offset, open
-             '', ''],  # slanted, spread
             ['B1',
              'bent-B',  # bent
-             'clawed-extended-B', '', '', 'contracted-B', '', 'crooked-extended-B', '',  # 7 slots
+             'clawed-extended-B', '', '', 'contracted-B', '', '', '',  # 7 slots
              'extended-B',  # extended
              '',  # flat
              '',  # index
              '',  # modified
              '', '',  # offset, open
              'slanted-extended-B', ''],  # slanted, spread
-            ['B2',
+            ['',
              'bent-extended-B',  # bent
+             '', '', '', '', '', '', '',  # 7 slots
+             '',  # extended
+             '',  # flat
+             '',  # index
+             '',  # modified
+             '', '',  # offset, open
+             '', ''],  # slanted, spread
+            ['B2',
+             '',  # bent
              '', '', '', '', '', '', '',  # 7 slots
              '',  # extended
              '',  # flat
@@ -81,7 +81,7 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['C',
              '',  # bent
-             'clawed-C', '', '', 'contracted-C', '', 'crooked-C', '',  # 7 slots
+             'clawed-C', '', '', 'contracted-C', '', '', '',  # 7 slots
              'extended-C',  # extended
              'flat-C',  # flat
              'C-index',  # index
@@ -96,7 +96,7 @@ class PredefinedTableModel(QAbstractTableModel):
              'double-C-index',  # index
              '',  # modified
              '', '',  # offset, open
-             '', 'spread-extended-C'],  # slanted, spread
+             '', ''],  # slanted, spread
             ['D',
              'partially-bent-D',  # bent
              '', 'closed-bent-D', '', '', '', '', '',  # 7 slots
@@ -104,15 +104,6 @@ class PredefinedTableModel(QAbstractTableModel):
              '',  # flat
              '',  # index
              'modified-D',  # modified
-             '', '',  # offset, open
-             '', ''],  # slanted, spread
-            ['',
-             'closed-bent-D',  # bent
-             '', '', '', '', '', '', '',  # 7 slots
-             '',  # extended
-             '',  # flat
-             '',  # index
-             '',  # modified
              '', '',  # offset, open
              '', ''],  # slanted, spread
             ['E',
@@ -137,7 +128,7 @@ class PredefinedTableModel(QAbstractTableModel):
              '',  # bent
              '', '', '', '', '', '', '',  # 7 slots
              '',  # extended
-             'flat-open-F',  # flat
+             'flat-clawed-F',  # flat
              '',  # index
              '',  # modified
              '', '',  # offset, open
@@ -146,14 +137,14 @@ class PredefinedTableModel(QAbstractTableModel):
              '',  # bent
              '', '', '', '', '', '', '',  # 7 slots
              '',  # extended
-             'flat-clawed-F',  # flat
+             'flat-open-F',  # flat
              '',  # index
              '',  # modified
              '', '',  # offset, open
              '', ''],  # slanted, spread
             ['G',
              '',  # bent
-             'closed-G', 'closed-modified-G', '', '', '', '', '',  # 7 slots
+             '', 'closed-modified-G', '', '', '', '', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
@@ -207,7 +198,7 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['L',
              'bent-L',  # bent
-             'clawed-L', '', '', 'contracted-L', '', 'crooked-L', '',  # 7 slots
+             'clawed-extended-L', '', '', 'contracted-L', '', 'crooked-L', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
@@ -248,8 +239,8 @@ class PredefinedTableModel(QAbstractTableModel):
              'flat-O',  # flat
              'O-index',  # index
              'modified-O',  # modified
-             'offset-O', 'open-spread-O',  # offset, open
-             '', ''],  # slanted, spread
+             'offset-O', '',  # offset, open
+             '', 'spread-open-O'],  # slanted, spread
             ['',
              '',  # bent
              '', '', '', '', '', '', '',  # 7 slots
@@ -288,7 +279,7 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['U',
              'bent-U',  # bent
-             'clawed-U', '', 'combined-U&Y', 'contracted-U', '', 'crooked-U', '',  # 7 slots
+             'clawed-U', '', '', 'contracted-U', '', 'crooked-U', '',  # 7 slots
              'extended-U',  # extended
              '',  # flat
              '',  # index
@@ -324,7 +315,7 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['W',
              '',  # bent
-             'clawed-W', 'closed-W', '', '', '', 'crooked-W', '',  # 7 slots
+             'clawed-W', 'closed-W', '', '', 'covered-W', 'crooked-W', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
@@ -333,8 +324,8 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['X',
              '',  # bent
-             'closed-X', '', '', '', '', '', '',  # 7 slots
-             'extended-X',  # extended
+             '', 'closed-X', '', '', '', '', '',  # 7 slots
+             '',  # extended
              '',  # flat
              '',  # index
              '',  # modified
@@ -346,22 +337,21 @@ class PredefinedTableModel(QAbstractTableModel):
              '',  # extended
              '',  # flat
              '',  # index
-             'modified-Y',  # modified
+             '',  # modified
              '', '',  # offset, open
              '', ''],  # slanted, spread
-
-            ['1',
-             'bent-1',  # bent
-             'clawed-1', '', '', '', '', 'crooked-1', '',  # clawed, closed, combined, contracted, covered, crooked, curved (7 slots)
+            ['',
+             '',  # bent
+             '', '', 'combined-Y&U', '', '', '', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
              '',  # modified
              '', '',  # offset, open
              '', ''],  # slanted, spread
-            ['',
-             'bent-offset-1',  # bent
-             '', '', '', '', '', '', '', # clawed, closed, combined, contracted, covered, crooked, curved (7 slots)
+            ['1',
+             'bent-1',  # bent
+             '', '', '', '', '', 'crooked-1', '',  # clawed, closed, combined, contracted, covered, crooked, curved (7 slots)
              '',  # extended
              '',  # flat
              '',  # index
@@ -388,7 +378,7 @@ class PredefinedTableModel(QAbstractTableModel):
              'slanted-4', ''],  # slanted, spread
             ['5',
              'bent-5',  # bent
-             'clawed-5', '', '', 'contracted-5', '', 'crooked-5', '',  # 7 slots
+             'clawed-extended-5', '', '', 'contracted-5', '', 'crooked-5', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
@@ -398,15 +388,6 @@ class PredefinedTableModel(QAbstractTableModel):
             ['',
              'bent-midfinger-5',  # bent
              '', '', '', 'relaxed-contracted-5', '', 'crooked-slanted-5', '',  # 7 slots
-             '',  # extended
-             '',  # flat
-             '',  # index
-             '',  # modified
-             '', '',  # offset, open
-             '', ''],  # slanted, spread
-            ['6',
-             '',  # bent
-             '', '', '', '', '', '', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
