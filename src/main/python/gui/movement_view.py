@@ -4,7 +4,8 @@ from PyQt5.QtCore import (
     pyqtSignal,
     QModelIndex,
     QItemSelectionModel,
-    QSortFilterProxyModel
+    QSortFilterProxyModel,
+    QDateTime
 )
 
 from PyQt5.Qt import (
@@ -18,8 +19,11 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QListView,
     QVBoxLayout,
-    QComboBox
+    QComboBox,
+    QTreeView,
+    QStyle
 )
+
 
 #from PyQt5.QtGui import ()
 
@@ -30,236 +34,268 @@ selectedrole = 0
 pathdisplayrole = 1
 mutuallyexclusiverole = 2
 texteditrole = 3
+lastingrouprole = 4
+finalsubgrouprole = 5
+subgroupnamerole = 6
+nodedisplayrole = 7
+timestamprole = 8
 
-# strDict = {
-#     "Animal": {
-#         "mammal": {
-#             "anteater": {},
-#             "whale": {},
-#             "wolf": {}
-#         },
-#         "insect": {
-#             "ant": {},
-#             "wasp": {},
-#         },
-#     },
-#     "Plant": {
-#         "tree": {
-#             "Oak": {},
-#             "Western Red Cedar": {},
-#             "Alder": {}
-#         },
-#         "flower": {
-#             "margeurite": {},
-#             "foxglove": {},
-#             "hydrangea": {},
-#         },
-#         "algae": {},
-#     },
-#     "Fungus": {
-#         "mushroom": {
-#             "oyster": {},
-#             "morel": {},
-#             "portobello": {}
-#         },
-#         "yeast": {},
-#     },
-#     "Awesome": {
-#         "rainbow": {},
-#         "aurora": {},
-#         "meteor": {},
-#         "wolf": {},
-#     },
-# }
+rb = "radio button"  # ie mutually exclusive in group / at this level
+cb = "checkbox"  # ie not mutually exlusive
+na = "not applicable"
+subgroup = "subgroup"
 
 mvmtOptionsDict = {
-    "No movement": {},
-    "Perceptual shape": {
-        "Straight": {
-            "Interacts with subsequent straight movement": {
-                "Movement contours cross (e.g. X)": {},
-                "Subsequent movement starts at end of first movement (e.g. ↘↗)": {},
-                "Subsequent movement starts in same location as start of first movement (e.g. ↖↗)": {},
-                "Subsequent movement ends in same location as end of first movement (e.g. ↘↙)": {}
+    ("No movement", rb): {},
+    ("Movement type", cb): {
+        ("Perceptual shape", cb): {
+            ("Shape", cb): {  # KV TODO all mutually exclusive (straight vs arc vs ...)
+                (subgroup, 0): {
+                    ("Straight", rb): {
+                        ("Interacts with subsequent straight movement", rb): {
+                            ("Movement contours cross (e.g. X)", rb): {},
+                            ("Subsequent movement starts at end of first (e.g. ↘↗)", rb): {},
+                            ("Subsequent movement starts in same location as start of first (e.g. ↖↗)", rb): {},
+                            ("Subsequent movement ends in same location as end of first (e.g. ↘↙)", rb): {}
+                        },
+                        ("Doesn't interact with subsequent straight movement", rb): {}
+                    },
+                    ("Arc", rb): {},
+                    ("Circle", rb): {},
+                    ("Zigzag", rb): {},
+                    ("Loop (travelling circles)", rb): {},
+                    ("None of these", rb): {}
+                }
             },
-            "Doesn't interact with subsequent straight movement": {}
+            ("Axis direction", cb): {  # KV TODO Choose up to one from each column to get the complete direction
+                (subgroup, 0): {
+                    ("Up", rb): {},
+                    ("Down", rb): {}
+                },
+                (subgroup, 1): {
+                    ("Distal", rb): {},
+                    ("Proximal", rb): {}
+                },
+                (subgroup, 2): {
+                    ("Right", rb): {},
+                    ("Left", rb): {}
+                },
+                ("Not relevant", rb): {}
+            },
+            ("Plane", cb): {  # KV TODO choose as many as needed, but only one direction per plane
+                ("Mid-sagittal", cb): {
+                    (subgroup, 0): {
+                        ("Clockwise", rb): {},
+                        ("Counterclockwise", rb): {}
+                    },
+                },
+                ("Horizontal", cb): {
+                    (subgroup, 0): {
+                        ("Clockwise", rb): {},
+                        ("Counterclockwise", rb): {}
+                    },
+                },
+                ("Vertical", cb): {
+                    (subgroup, 0): {
+                        ("Clockwise", rb): {},
+                        ("Counterclockwise", rb): {}
+                    },
+                },
+                ("Not relevant", rb): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
+            },
         },
-        "Arc": {},
-        "Circle": {},
-        "Zigzag": {},
-        "Loop (travelling circles)": {},
-        "None of these": {}
-    },
-    "Joint-specific movements": {
-        "Nodding/un-nodding": {
-            "Nodding": {},  # TODO KV autofills to flexion of wrist
-            "Un-nodding": {}  # TODO KV autofills to extension of wrist
-        },
-        "Pivoting": {
-            "Radial": {},  # TODO KV autofills to wrist radial deviation
-            "Ulnar": {}  # TODO KV autofills to wrist ulnar deviation
-        },
-        "Twisting": {
-            "Pronation": {},  # TODO KV autofills to Proximal radioulnar pronation
-            "Supination": {}  # TODO KV autofills to Proximal radioulnar supination
-        },
-        "Closing/Opening": {
-            "Closing": {},  # TODO KV autofills to flexion of [selected finger, all joints]
-            "Opening": {}  # TODO KV autofills to extension of [selected finger, all joints]
-        },
-        "Pinching/unpinching": {
-            "Pinching (Morgan 2017)": {},  # TODO KV autofills to adduction of thumb base joint
-            "Unpinching": {}  # TODO KV autofills to (abduction of thumb base joint? - not specific in google doc)
-        },
-        "Flattening/Straightening": {
-            "Flattening/hinging": {},  # TODO KV autofills to flexion of [selected finger base joints]
-            "Straightening": {}  # TODO KV autofills to extension of [selected finger base joints]
-        },
-        "Hooking/Unhooking": {
-            "Hooking/clawing": {},  # TODO KV autofills to flexion of [selected finger non-base joints]
-            "Unhooking": {}  # TODO KV autofills to extension of [selected finger non-base joints]
-        },
-        "Spreading/Unspreading": {
-            "Spreading": {},  # TODO KV autofills to abduction of [selected finger base joints]
-            "Unspreading": {}  # TODO KV autofills to adduction of [selected finger base joints]
-        },
-        "Rubbing": {
-            "Thumb crossing over palm": {},  # TODO KV autofills to TBD
-            "Thumb moving away from palm": {}  # TODO KV autofills to TBD
-        },
-        "Wiggling/Fluttering": {},  # TODO KV autofills to both flexion and extension of selected finger base joints
-        "None of these": {}
-    },
-    "Joint movements": {
-        "Complex / multi-joint": {},  # from Yurika: if this is selected, the expectation is that nothing else below would be selected, though I guess people could...
-        "Shoulder": {
-            "Flexion": {},
-            "Extension": {},
-            "Abduction": {},
-            "Adduction": {},
-            "Posterior rotation": {},
-            "Anterior rotation": {},
-            "Protraction": {},  # (like when we do ‘shoulder’ push ups with straight arms)
-            "Retraction": {},  # (like when we do ‘shoulder’ push ups with straight arms)
-            "Depression": {},
-            "Elevation": {},
-            "Circumduction": {}
-        },
-        "Elbow": {
-            "Flexion": {},
-            "Extension": {},
-            "Circumduction": {}
-        },
-        "Radio-ulnar": {
-            "Pronation": {},
-            "Supination": {}
-        },
-        "Wrist": {
-            "Flexion": {},
-            "Extension": {},
-            "Radial deviation": {},
-            "Ulnar deviation": {},
-            "Circumduction": {}
-        },
-        "Thumb base / metacarpophalangeal": {
-            "Flexion": {},
-            "Extension": {},
-            "Abduction": {},
-            "Adduction": {},
-            "Circumduction": {},
-            "Opposition": {}
-        },
-        "Thumb non-base / interphalangeal": {
-            "Flexion": {},
-            "Extension": {}
-        },
-        "Finger base / metacarpophalangeal": {
-            "Flexion": {},
-            "Extension": {},
-            "Abduction": {},
-            "Adduction": {},
-            "Circumduction": {}
-        },
-        "Finger non-base / interphalangeal": {
-            "Flexion": {},
-            "Extension": {}
+        # KV TODO mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
+        ("Joint-specific movements", cb): {
+            ("Nodding/un-nodding", rb): {
+                (subgroup, 0): {
+                    ("Nodding", rb): {},  # TODO KV autofills to flexion of wrist (but *ask* before auto-unfilling if nodding is unchecked)
+                    ("Un-nodding", rb): {}  # TODO KV autofills to extension of wrist
+                }
+            },
+            ("Pivoting", rb): {
+                (subgroup, 0): {
+                    ("Radial", rb): {},  # TODO KV autofills to wrist radial deviation
+                    ("Ulnar", rb): {}  # TODO KV autofills to wrist ulnar deviation
+                }
+            },
+            ("Twisting", rb): {
+                (subgroup, 0): {
+                    ("Pronation", rb): {},  # TODO KV autofills to Proximal radioulnar pronation
+                    ("Supination", rb): {}  # TODO KV autofills to Proximal radioulnar supination
+                }
+            },
+            ("Closing/Opening", rb): {
+                (subgroup, 0): {
+                    ("Closing", rb): {},  # TODO KV autofills to flexion of [selected finger, all joints]
+                    ("Opening", rb): {}  # TODO KV autofills to extension of [selected finger, all joints]
+                }
+            },
+            ("Pinching/unpinching", rb): {
+                (subgroup, 0): {
+                    ("Pinching (Morgan 2017)", rb): {},  # TODO KV autofills to adduction of thumb base joint
+                    ("Unpinching", rb): {}  # TODO KV autofills to (abduction of thumb base joint? - not specific in google doc)
+                }
+            },
+            ("Flattening/Straightening", rb): {
+                (subgroup, 0): {
+                    ("Flattening/hinging", rb): {},  # TODO KV autofills to flexion of [selected finger base joints]
+                    ("Straightening", rb): {}  # TODO KV autofills to extension of [selected finger base joints]
+                }
+            },
+            ("Hooking/Unhooking", rb): {
+                (subgroup, 0): {
+                    ("Hooking/clawing", rb): {},  # TODO KV autofills to flexion of [selected finger non-base joints]
+                    ("Unhooking", rb): {}  # TODO KV autofills to extension of [selected finger non-base joints]
+                }
+            },
+            ("Spreading/Unspreading", rb): {
+                (subgroup, 0): {
+                    ("Spreading", rb): {},  # TODO KV autofills to abduction of [selected finger base joints]
+                    ("Unspreading", rb): {}  # TODO KV autofills to adduction of [selected finger base joints]
+                }
+            },
+            ("Rubbing", rb): {
+                (subgroup, 0): {
+                    ("Thumb crossing over palm", rb): {},  # TODO KV autofills to TBD
+                    ("Thumb moving away from palm", rb): {}  # TODO KV autofills to TBD
+                }
+            },
+            ("Wiggling/Fluttering", rb): {},  # TODO KV autofills to both flexion and extension of selected finger base joints
+            ("None of these", rb): {}
         }
     },
-    "Axis, direction, and plane": {  # TODO KV only coded if 1. Perceptual shape is coded. If not, auto-fill everything as ‘not relevant’
-        # "Axis direction": {  # Choose up to one from each column to get the complete direction
-        #     # TODO KV three columns x 2 rows
-        #     "Up": {},
-        #     "Down": {},
-        #     "Distal": {},
-        #     "Proximal": {},
-        #     "Right": {},
-        #     "Left": {},
-        #     "Not relevant": {}
-        # },
-        "Axis direction": {
-            "subgroups1": [
-                {
-                    "Up": {},
-                    "Down": {}
-                },
-                {
-                    "Distal": {},
-                    "Proximal": {}
-                },
-                {
-                    "Right": {},
-                    "Left": {}
-                }
-            ],
-            "Not relevant": {}
+    ("Joint movements", cb): {
+        ("Complex / multi-joint", cb): {},  # from Yurika: if this is selected, the expectation is that nothing else below would be selected, though I guess people could...
+        ("Shoulder", cb): {
+            (subgroup, 0): {
+                ("Flexion", rb): {},
+                ("Extension", rb): {},
+            },
+            (subgroup, 1): {
+                ("Abduction", rb): {},
+                ("Adduction", rb): {},
+            },
+            (subgroup, 2): {
+                ("Posterior rotation", rb): {},
+                ("Anterior rotation", rb): {},
+            },
+            (subgroup, 3): {
+                ("Protraction", rb): {},  # (like when we do ‘shoulder’ push ups with straight arms)
+                ("Retraction", rb): {},  # (like when we do ‘shoulder’ push ups with straight arms)
+            },
+            (subgroup, 4): {
+                ("Depression", rb): {},
+                ("Elevation", rb): {},
+            },
+            (subgroup, 5): {
+                ("Circumduction", cb): {}
+            },
         },
-        "Plane": {  # TODO KV choose as many as needed, but only one direction per plane
-            "Mid-sagittal": {
-                "Clockwise": {},
-                "Counterclockwise": {}
+        ("Elbow", cb): {
+            (subgroup, 0): {
+                ("Flexion", rb): {},
+                ("Extension", rb): {},
             },
-            "Horizontal": {
-                "Clockwise": {},
-                "Counterclockwise": {}
+            (subgroup, 1): {
+                ("Circumduction", cb): {}
             },
-            "Vertical": {
-                "Clockwise": {},
-                "Counterclockwise": {}
-            },
-            "Not relevant": {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
         },
-        # "Plane direction": {  # TODO KV choose only one (radio button)
-        #     "Clockwise": {},
-        #     "Counterclockwise": {},
-        #     "Not relevant": {}  # TODO KV Auto-select this if ‘not relevant’ is selected for plane
-        # }
+        ("Radio-ulnar", cb): {
+            (subgroup, 0): {
+                ("Pronation", rb): {},
+                ("Supination", rb): {},
+            }
+        },
+        ("Wrist", cb): {
+            (subgroup, 0): {
+                ("Flexion", rb): {},
+                ("Extension", rb): {},
+            },
+            (subgroup, 1): {
+                ("Radial deviation", rb): {},
+                ("Ulnar deviation", rb): {},
+            },
+            (subgroup, 2): {
+                ("Circumduction", cb): {}
+            },
+        },
+        ("Thumb base / metacarpophalangeal", cb): {
+            (subgroup, 0): {
+                ("Flexion", rb): {},
+                ("Extension", rb): {},
+            },
+            (subgroup, 1): {
+                ("Abduction", rb): {},
+                ("Adduction", rb): {},
+            },
+            (subgroup, 2): {
+                ("Circumduction", cb): {},
+                ("Opposition", cb): {}
+            }
+        },
+        ("Thumb non-base / interphalangeal", cb): {
+            (subgroup, 0): {
+                ("Flexion", rb): {},
+                ("Extension", rb): {},
+            }
+        },
+        ("Finger base / metacarpophalangeal", cb): {
+            (subgroup, 0): {
+                ("Flexion", rb): {},
+                ("Extension", rb): {},
+            },
+            (subgroup, 1): {
+                ("Abduction", rb): {},
+                ("Adduction", rb): {},
+            },
+            (subgroup, 2): {
+                ("Circumduction", cb): {}
+            },
+        },
+        ("Finger non-base / interphalangeal", cb): {
+            (subgroup, 0): {
+                ("Flexion", rb): {},
+                ("Extension", rb): {},
+            }
+        }
     },
-    "Movement characteristics": {
-        "Repetition": {
-            "Single": {},
-            "Repeated": {
-                "How many": {},  # TODO KV
-                "Location of repetition": {
-                    "Same location": {},
-                    "Different location": {  # Choose up to one from each column as needed
-                        # TODO KV three columns x 2 rows
-                        "Up": {},
-                        "Down": {},
-                        "Distal": {},
-                        "Proximal": {},
-                        "Right": {},
-                        "Left": {}
-                    },
+    ("Movement characteristics", cb): {
+        ("Repetition", cb): {
+            ("Single", rb): {},
+            ("Repeated", rb): {
+                ("Number of repetitions", cb): {
+                    ("#", cb): {}
+                },  # TODO KV
+                ("Location of repetition", cb): {
+                    ("Same location", rb): {},
+                    ("Different location", rb): {  # Choose up to one from each column as needed
+                        (subgroup, 0): {
+                            ("Up", rb): {},
+                            ("Down", rb): {}
+                        },
+                        (subgroup, 1): {
+                            ("Distal", rb): {},
+                            ("Proximal", rb): {}
+                        },
+                        (subgroup, 2): {
+                            ("Right", rb): {},
+                            ("Left", rb): {}
+                        }
+                    }
                 }
             }
         },
-        "Trill": {
-            "Not trilled": {},
-            "Trilled": {}
+        ("Trill", cb): {
+            (subgroup, 0): {
+                ("Not trilled", rb): {},
+                ("Trilled", rb): {}
+            }
         },
-        "Directionality": {
-            "Unidirectional": {},
-            "Bidirectional": {}
+        ("Directionality", cb): {
+            (subgroup, 0): {
+                ("Unidirectional", rb): {},
+                ("Bidirectional", rb): {}
+            }
         }
     }
 }
@@ -344,6 +380,11 @@ class MovementTreeModel(QStandardItemModel):
         self.movementparameters = movementparameters  # TODO KV   or [] (or {} or...)
         self.listmodel = None
         self.itemChanged.connect(self.updateCheckState)
+        self.dataChanged.connect(self.updatelistdata)
+
+    def updatelistdata(self, topLeft, bottomRight):
+        startitem = self.itemFromIndex(topLeft)
+        startitem.updatelistdata()
 
     def setListmodel(self, listmod):
         self.listmodel = listmod
@@ -369,36 +410,41 @@ class MovementTreeModel(QStandardItemModel):
         # else:
         #     item.uncheck()
 
-    def populate(self, parentnode, structure={}, pathsofar=""):
+    def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         if structure == {} and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
         elif structure == {} and pathsofar == "":
             # no parameters; build a tree from the default structure
-            self.setColumnCount(countColumns(mvmtOptionsDict))
-            self.populate(parentnode, structure=mvmtOptionsDict, pathsofar="")  # TODO KV define a default structure somewhere (see constant.py)
+            # TODO KV define a default structure somewhere (see constant.py)
+            self.populate(parentnode, structure=mvmtOptionsDict, pathsofar="")
         elif structure != {}:
             # internal node with substructure
-            for label in structure.keys():
-                if label.startswith("subgroups"):
-                    # should be followed by a list of dictionaries, each of which will get their own column
-                    colnum = 0
-                    for subgroup in structure[label]:
-                        # make a column for this list of entries
-                        # assume no further structure to populate within each node
-                        thecolumn = []
-                        for sublabel in subgroup.keys():
-                            thistreenode = MovementTreeItem(sublabel, mutuallyexclusive=True)
-                            thistreenode.setData(pathsofar + sublabel, role=Qt.UserRole+pathdisplayrole)
-                            thecolumn.append(thistreenode)
-                        parentnode.appendColumn(thecolumn)
-                        colnum += 1
+            numentriesatthislevel = len(structure.keys())
+            for idx, labelclassifierpair in enumerate(structure.keys()):
+                label = labelclassifierpair[0]
+                classifier = labelclassifierpair[1]
+                ismutuallyexclusive = classifier == rb
+                if label == subgroup:
+
+                    # make the tree items in the subgroup and whatever nested structure they have
+                    isfinal = False
+                    if idx + 1 >= numentriesatthislevel:
+                        # if there are no more items at this level
+                        isfinal = True
+                    self.populate(parentnode, structure=structure[labelclassifierpair], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
+
                 else:
                     # parentnode.setColumnCount(1)
-                    thistreenode = MovementTreeItem(label)
-                    # thistreenode.setData(False, Qt.UserRole+selectedrole) moved to MovementTreeItem.__init__()
+                    thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
+                    # thistreenode.setData(False, Qt.UserRole+selectedrole)  #  moved to MovementTreeItem.__init__()
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole + pathdisplayrole)
-                    self.populate(thistreenode, structure=structure[label], pathsofar=pathsofar+label+delimiter)
+                    if issubgroup:
+                        thistreenode.setData(subgroupname, role=Qt.UserRole+subgroupnamerole)
+                        if idx + 1 == numentriesatthislevel:
+                            thistreenode.setData(True, role=Qt.UserRole + lastingrouprole)
+                            thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + finalsubgrouprole)
+                    self.populate(thistreenode, structure=structure[labelclassifierpair], pathsofar=pathsofar+label+delimiter)
                     parentnode.appendRow([thistreenode])
 
     def listmodel(self):
@@ -416,6 +462,26 @@ class MovementTreeModel(QStandardItemModel):
     #     return len(self.glosses)
 
 
+class MovementTreeView(QTreeView):
+
+    # adapted from https://stackoverflow.com/questions/68069548/checkbox-with-persistent-editor
+    def edit(self, index, trigger, event):
+        # if the edit involves an index change, there's no event
+        if (event and index.column() == 0 and index.flags() & Qt.ItemIsUserCheckable and event.type() in (event.MouseButtonPress, event.MouseButtonDblClick) and event.button() == Qt.LeftButton and self.isPersistentEditorOpen(index)):
+            opt = self.viewOptions()
+            opt.rect = self.visualRect(index)
+            opt.features |= opt.HasCheckIndicator
+            checkRect = self.style().subElementRect(
+                QStyle.SE_ItemViewItemCheckIndicator,
+                opt, self)
+            if event.pos() in checkRect:
+                if index.data(Qt.CheckStateRole):
+                    self.model().itemFromIndex(index).uncheck()
+                else:
+                    self.model().itemFromIndex(index).check()
+        return super().edit(index, trigger, event)
+
+
 class MovementTreeItem(QStandardItem):
 
     def __init__(self, txt="", listit=None, mutuallyexclusive=False):
@@ -428,11 +494,13 @@ class MovementTreeItem(QStandardItem):
         self.setUserTristate(False)
         self.setData(False, Qt.UserRole + selectedrole)
         self.setData(False, Qt.UserRole + texteditrole)
+        self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
 
-        # TODO KV do this somewhere/somehow better
-        if mutuallyexclusive or txt in ["No movement", "Trilled", "Not trilled", "Unidirectional", "Bidirectional", "Clockwise", "Counterclockwise"]:
+        if mutuallyexclusive:
             self.setData(True, Qt.UserRole+mutuallyexclusiverole)
-        elif txt == "How many":
+        # elif txt == "How many":
+        #     self.setEditable(True)
+        elif self.parent() and self.parent().text() == "Number of repetitions":
             self.setEditable(True)
         else:
             self.setData(False, Qt.UserRole+mutuallyexclusiverole)
@@ -442,59 +510,62 @@ class MovementTreeItem(QStandardItem):
         if listit is not None:
             self.listitem.treeitem = self
 
+    def updatelistdata(self):
+        if self.parent() and "Number of repetitions" in self.parent().data():
+            previouslistitemtext = self.listitem.text()
+            parentname = self.parent().text()
+            updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
+            if delimiter in previouslistitemtext[updatetextstartindex:]:
+                updatetextstopindex = previouslistitemtext.index(delimiter, updatetextstartindex)
+            else:
+                updatetextstopindex = len(previouslistitemtext)+1
+            selftext = self.text()
+            self.listitem.updatetext(previouslistitemtext[:updatetextstartindex] + selftext + previouslistitemtext[updatetextstopindex:])
+
     def check(self, fully=True):
-        tempitemname = self.text()
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
         self.listitem.setData(fully, Qt.UserRole+selectedrole)
-        # self.setData(fully, Qt.UserRole+selectedrole)  # TODO KV causes infinite recursion
+        if fully:
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
+            self.listitem.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
         self.checkancestors()
 
         # gather siblings in order to deal with mutual exclusivity (radio buttons)
-
-        # siblings = []
-        # siblingnames = []
         siblings = self.collectsiblings()
-        siblingnames = [sib.text() for sib in siblings]
 
         # if this is a radio button item, make sure none of its siblings are checked
         if self.data(Qt.UserRole+mutuallyexclusiverole):
             for sib in siblings:
                 sib.uncheck(force=True)
-            # TODO KV
-            # numsiblingsincludingself = self.parent().rowCount()
-            # for snum in range(numsiblingsincludingself):
-            #     sibling = self.parent().child(snum, 0)
-            #     if sibling.index() != self.index():  # ie, it's actually a sibling
-            #         sibling.uncheck()
         else:  # or if it has radio button siblings, make sure they are unchecked
             for me_sibling in [s for s in siblings if s.data(Qt.UserRole+mutuallyexclusiverole)]:
                 me_sibling.uncheck(force=True)
 
     def collectsiblings(self):
-        # TODO KV: if I'm mutually exclusive, collect siblings from my column and also column 0 (ok, but actually? what if there are two sets of subgroups?)
-        # if I'm not ME, collect siblings from my column and also any ME ones from other columns
-        thiscolnum = self.column()
+
         siblings = []
         parent = self.parent()
-        if parent is None:
+        if not parent:
             parent = self.model().invisibleRootItem()
         numsiblingsincludingself = parent.rowCount()
-        tempthisnodetext = self.text()
-        if self.data(Qt.UserRole+mutuallyexclusiverole):
-            for snum in range(numsiblingsincludingself):
-                sibling = parent.child(snum, thiscolnum)
-                if sibling is None:
-                    sibling = parent.child(snum, 0)
-                siblingtext = sibling.text()
-                if sibling.index() != self.index():  # ie, it's actually a sibling
-                    siblings.append(sibling)
-        else:  # I'm not ME but my siblings might be
-            for rownum in range(numsiblingsincludingself):
-                for colnum in range(parent.columnCount()):
-                    sibling = parent.child(rownum, colnum)
-                    if sibling is not None and sibling.index() != self.index():
-                        siblings.append(sibling)
-        return siblings
+        for snum in range(numsiblingsincludingself):
+            sibling = parent.child(snum, 0)
+            if sibling.index() != self.index():  # ie, it's actually a sibling
+                siblings.append(sibling)
+
+        mysubgroup = self.data(Qt.UserRole+subgroupnamerole)
+        subgrouporgeneralsiblings = [sib for sib in siblings if sib.data(Qt.UserRole+subgroupnamerole) == mysubgroup or not sib.data(Qt.UserRole+subgroupnamerole)]
+
+        # if I'm ME and in a subgroup, collect siblings from my subgroup and also those at my level but not in any subgroup
+        if self.data(Qt.UserRole+mutuallyexclusiverole) and mysubgroup:
+            return subgrouporgeneralsiblings
+        # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
+        elif self.data(Qt.UserRole+mutuallyexclusiverole):
+            return siblings
+        # if I'm *not* ME, collect all siblings from my level (in subgroups or no)
+        # I'm not ME but my siblings might be
+        else:
+            return siblings
 
     def checkancestors(self):
         if self.checkState() == Qt.Unchecked:
@@ -533,15 +604,6 @@ class MovementTreeItem(QStandardItem):
         elif True:  # has a mutually exclusive sibling
             pass
             # might one of those sibling need to be checked, if none of the boxes are?
-    #
-    # def forceuncheck(self):
-    #
-    #     self.setCheckState(Qt.Unchecked)
-    #     # force-uncheck all descendants
-    #     if self.hascheckedchild():
-    #         for r in range(self.rowCount()):
-    #             self.child(r, 0).forceuncheck()
-    #
 
     def uncheckancestors(self):
         if self.checkState() == Qt.PartiallyChecked and not self.hascheckedchild():
@@ -567,16 +629,21 @@ class MovementTreeItem(QStandardItem):
 
 class MovementListItem(QStandardItem):
 
-    def __init__(self, txt="", treeit=None):
+    def __init__(self, pathtxt="", nodetxt="", treeit=None):
         super().__init__()
 
         self.setEditable(False)
-        self.setText(txt)
+        self.setText(pathtxt)
+        self.setData(nodetxt, Qt.UserRole+nodedisplayrole)
+        self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
         self.setCheckable(False)
         self.treeitem = treeit
         if treeit is not None:
             self.treeitem.listitem = self
         self.setData(False, Qt.UserRole+selectedrole)
+
+    def updatetext(self, txt=""):
+        self.setText(txt)
 
     def unselectpath(self):
         self.treeitem.uncheck()
@@ -590,6 +657,7 @@ class MovementPathsProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None, wantselected=None):
         super(MovementPathsProxyModel, self).__init__(parent)
         self.wantselected = wantselected
+        self.setSortCaseSensitivity(Qt.CaseInsensitive)
 
     def filterAcceptsRow(self, source_row, source_parent):
         if self.wantselected is None:
@@ -602,6 +670,21 @@ class MovementPathsProxyModel(QSortFilterProxyModel):
             path = source_index.data(role=Qt.UserRole+pathdisplayrole)
             text = self.sourceModel().index(source_row, 0, source_parent).data()
             return self.wantselected == isselected
+
+    def updatesorttype(self, sortbytext=""):
+        if "alpha" in sortbytext and "path" in sortbytext:
+            self.setSortRole(Qt.DisplayRole)
+            self.sort(0)
+        elif "alpha" in sortbytext and "node" in sortbytext:
+            self.setSortRole(Qt.UserRole+nodedisplayrole)
+            self.sort(0)
+        elif "tree" in sortbytext:
+            self.sort(-1)  # returns to sort order of underlying model
+        elif "select" in sortbytext:
+            self.setSortRole(Qt.UserRole+timestamprole)
+            self.sort(0)
+        else:
+            pass
 
 
 class MovementListModel(QStandardItemModel):
@@ -618,26 +701,14 @@ class MovementListModel(QStandardItemModel):
     def populate(self, treenode):
         colcount = treenode.columnCount()
         for r in range(treenode.rowCount()):
-            if colcount == 0:
-                # TODO KV the if might not ever get used (assuming we're using multi columns for axis direction pairs)
-                print("TODO KV colcount is zero")
-                treechild = treenode.child(r, 0)
-                path = treechild.data(role=Qt.UserRole+pathdisplayrole)
-                listitem = MovementListItem(txt=path, treeit=treechild)  # also sets treeitem's listitem
-                self.appendRow(listitem)
-                self.populate(treechild)
-            else:
-                # there are multiple columns; none have further descendants
-                for colnum in range(colcount):
-                    treechild = treenode.child(r, colnum)
-                    if treechild is not None:
-                        path = treechild.data(role=Qt.UserRole+pathdisplayrole)
-                        listitem = MovementListItem(txt=path, treeit=treechild)  # also sets treeitem's listitem
-                        self.appendRow(listitem)
-                        self.populate(treechild)
-                        # not necessary because shouldn't go any deeper
-                        # self.populate(treechild)
-
+            for colnum in range(colcount):
+                treechild = treenode.child(r, colnum)
+                if treechild is not None:
+                    pathtext = treechild.data(role=Qt.UserRole+pathdisplayrole)
+                    nodetext = treechild.data(Qt.DisplayRole)
+                    listitem = MovementListItem(pathtxt=pathtext, nodetxt=nodetext, treeit=treechild)  # also sets treeitem's listitem
+                    self.appendRow(listitem)
+                    self.populate(treechild)
 
     def setTreemodel(self, treemod):
         self.treemodel = treemod
@@ -651,7 +722,6 @@ class TreeListView(QListView):
     # def selectionChanged(self, selected, deselected):
     #     allselectedindexes = self.selectionModel().selectedIndexes()
     #     # print("all selected", [i.data() for i in allselectedindexes])
-
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -736,7 +806,7 @@ def findvaliditemspaths(pathitemslists):
                 if lastitem.parent() == secondlastitem:
                     higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
                     for higherpath in higherpaths:
-                        if len(higherpath) == len(pathitemslists)-1:  # TODO
+                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
                             validpaths.append(higherpath + [lastitem])
     elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
         for lastitem in pathitemslists[0]:
@@ -744,18 +814,6 @@ def findvaliditemspaths(pathitemslists):
             validpaths.append([lastitem])
     else:
         validpaths = []
-        # TODO pass?
+        # TODO KV pass?
         # nothing to add to paths - this case shouldn't ever happen
     return validpaths
-
-
-def countColumns(dictionary):
-    maxcols = 0
-    for k in dictionary.keys():
-        if k.startswith("subgroups"):
-            numcols = len(dictionary[k])
-            maxcols = max([maxcols, numcols])
-        else:
-            maxbelow = countColumns(dictionary[k])
-            maxcols = max([maxcols, maxbelow])
-    return maxcols

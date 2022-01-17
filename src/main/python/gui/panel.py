@@ -1008,11 +1008,6 @@ class ParameterPanel(QScrollArea):
         self.location_section = CollapsibleSection(title='Location', parent=self)
         self.location_section.setContentLayout(self.location_layout)
 
-        ## TODO KV delete
-        # self.movement_layout = MovementSpecificationLayout(movement_specifications, app_ctx)
-        # self.movement_section = CollapsibleSection(title='Movement', parent=self)
-        # self.movement_section.setContentLayout(self.movement_layout)
-
         self.orientation_layout = QVBoxLayout()
         orientation_label = QLabel('Coming soon...')
         self.orientation_layout.addWidget(orientation_label)
@@ -1022,7 +1017,6 @@ class ParameterPanel(QScrollArea):
         # main_layout.addWidget(QLabel('Location'))
         # main_layout.addLayout(self.location_layout)
         main_layout.addWidget(self.location_section)
-        # main_layout.addWidget(self.movement_section)  # TODO KV
         main_layout.addWidget(self.orientation_section)
 
         self.setWidget(main_frame)

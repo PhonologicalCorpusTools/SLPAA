@@ -29,7 +29,9 @@ from PyQt5.QtWidgets import (
     QStyle,
     QStyleOptionButton,
     QApplication,
-    QHeaderView
+    QHeaderView,
+    QStyleOptionFrame,
+    QErrorMessage
 )
 
 from PyQt5.QtGui import (
@@ -47,11 +49,12 @@ from PyQt5.QtCore import (
     QRectF,
     QAbstractListModel,
     pyqtSignal,
-    QSize
+    QSize,
+    QEvent
 )
 
 from .helper_widget import EditableTabBar
-from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, texteditrole
+from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, texteditrole, lastingrouprole, finalsubgrouprole, subgroupnamerole, MovementTreeView, MovementTreeItem
 from constant import LocationParameter, Locations # KV TODO , Movements
 from constant import SAMPLE_LOCATIONS
 from copy import copy, deepcopy
@@ -60,6 +63,78 @@ from pprint import pprint
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
 class Delegate(QStyledItemDelegate):
+
+    # # how to make sure this only gets used for # of repetitions?
+    # def createEditor(self, parent, option, index):
+    #     if index.parent().data(Qt.DisplayRole) == "Number of repetitions": # if index.data(Qt.DisplayRole) == "How many":
+    #         editor = RepEditor(parent)  # QLineEdit(parent)
+    #         # editor.setText("# reps")
+    #         return editor
+    #     else:
+    #         QStyledItemDelegate.createEditor(parent, option, index)
+
+    def createEditor(self, parent, option, index):
+        theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
+        # theeditor.__class__ = RepsEditor
+        theeditor.returnPressed.connect(self.returnkeypressed)
+        return theeditor
+
+    # # how to make sure this only gets used for # of repetitions?
+    # def setEditorData(self, editor, index):
+    #     if index.parent().data(Qt.DisplayRole) == "Number of repetitions": # if index.data(Qt.DisplayRole) == "How many":
+    #         value = index.data(index, Qt.EditRole)
+    #         editor.setText(value)
+    #     else:
+    #         QStyledItemDelegate.setEditorData(editor, index)
+    #
+    # def setModelData(self, editor, model, index):
+    #     if index.parent().data(Qt.DisplayRole) == "Number of repetitions": # if index.data(Qt.DisplayRole) == "How many":
+    #         value = editor.text()
+    #         model.setData(index, value, Qt.EditRole)
+    #     else:
+    #         QStyledItemDelegate.setModelData(editor, model, index)
+    #
+    # def updateEditorGeometry(self, editor, option, index):
+    #     editor.setGeometry(option.rect)
+
+    def __init__(self):
+        super().__init__()
+        self.commitData.connect(self.validatedata)
+    #
+    def returnkeypressed(self):
+        print("return pressed")
+        return True
+
+
+    def validatedata(self, editor):
+        # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
+        valstring = editor.text()
+        isanumber = False
+        if valstring.isnumeric():
+            isanumber = True
+            valnum = int(valstring)
+        elif valstring.replace(".", "").isnumeric():
+            isanumber = True
+            valnum = float(valstring)
+        if valstring not in ["", "#"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
+            errordialog = QErrorMessage(editor.parent())
+            errordialog.showMessage("Number of repetitions must be at least 1 and also a multiple of 0.5")
+            editor.setText("#")
+            # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
+            # editor.setFocus()  # this creates an infinite loop
+
+        # print("editor is", editor)  # qlineedit
+        # prt = editor.parent()
+        # print("editor's parent is", prt)  # qwidget
+        # if isinstance(prt, MovementTreeView):
+        #     print("parent is instance of MovementTreeView")
+        # elif isinstance(prt, MovementTreeModel):
+        #     print("parent is instance of MovementTreeModel")
+        # elif isinstance(prt, MovementTreeItem):
+        #     print("parent is instance of MovementTreeItem")
+        # elif isinstance(prt, MovementDefinerDialog):
+        #     print("parent is instance of MovementDefinerDialog")
+
     def paint(self, painter, option, index):
         if index.data(Qt.UserRole+mutuallyexclusiverole):
             widget = option.widget
@@ -69,26 +144,28 @@ class Delegate(QStyledItemDelegate):
             opt.text = index.data()
             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
+            if index.data(Qt.UserRole + lastingrouprole) and not index.data(Qt.UserRole + finalsubgrouprole):
+                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-        # TODO KV delete
-        # if not index.parent().isValid():
-        #     QStyledItemDelegate.paint(self, painter, option, index)
-        # else:
-        #     widget = option.widget
-        #     style = widget.style() if widget else QApplication.style()
-        #     opt = QStyleOptionButton()
-        #     opt.rect = option.rect
-        #     opt.text = index.data()
-        #     opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
-        #     style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
+            if index.data(Qt.UserRole + lastingrouprole) and not index.data(Qt.UserRole + finalsubgrouprole):
+                opt = QStyleOptionFrame()
+                opt.rect = option.rect
+                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+
+#
+# class RepsEditor(QLineEdit):
+#
+#     def returnPressed(self):
+#         print("return pressed")  # ... and hopefully nothing else happens!
+#         # super().returnPressed()
 
 
-# TODO KV - add sorting options, clear button, undo, ...
+# TODO KV - add sorting options, undo, ...
 
 
 # TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
-class MovementSpecificationLayout(QHBoxLayout):
+class MovementSpecificationLayout(QVBoxLayout):
     def __init__(self, movement_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
@@ -104,7 +181,6 @@ class MovementSpecificationLayout(QHBoxLayout):
         self.listproxymodel = MovementPathsProxyModel(wantselected=True)
         self.listproxymodel.setSourceModel(self.listmodel)
 
-        selection_layout = QVBoxLayout()
         search_layout = QHBoxLayout()
         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
 
@@ -123,68 +199,131 @@ class MovementSpecificationLayout(QHBoxLayout):
         # self.combobox.installEventFilter(tct)
         search_layout.addWidget(self.combobox)
 
-        selection_layout.addLayout(search_layout)
+        self.addLayout(search_layout)
 
-        self.treedisplay = QTreeView()
+        selection_layout = QHBoxLayout()
+
+        self.treedisplay = MovementTreeView()
         self.treedisplay.setItemDelegate(Delegate())
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
-        # self.treedisplay.resizeColumnToContents(0)  # TODO KV more columns?
-        # self.treedisplay.header().setSectionResizeMode(QHeaderView.Interactive)
+        # TODO KV figure out adding number selector
+        items = self.treemodel.findItems("Number of repetitions", Qt.MatchRecursive)
+        repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
+        self.treedisplay.openPersistentEditor(repsindex)
+        self.treedisplay.installEventFilter(self)
         self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.treedisplay.setMinimumWidth(500)
+        self.treedisplay.setMinimumWidth(400)
 
         selection_layout.addWidget(self.treedisplay)
-        self.addLayout(selection_layout)
+
+        list_layout = QVBoxLayout()
 
         self.pathslistview = TreeListView()
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
-        self.pathslistview.setMinimumWidth(500)
+        self.pathslistview.setMinimumWidth(400)
 
-        self.addWidget(self.pathslistview)
+        list_layout.addWidget(self.pathslistview)
 
-        # central_widget.setLayout(mainlayout)
-        # self.setCentralWidget(central_widget)  # Install the central widget
+        buttons_layout = QHBoxLayout()
 
-        # from location version
-        # self.hand_switch = ToggleSwitch()
-        # self.hand_switch.setChecked(True)
-        # self.hand_switch.clicked.connect(self.change_hand)
-        # self.start_location_group_layout = LocationGroupLayout('start', location_specifications, app_ctx)
-        # self.end_location_group_layout = LocationGroupLayout('end', location_specifications, app_ctx)
-        # self.location_point_panel = LocationPointPanel('Location points')
-        #
-        # self.addWidget(self.hand_switch)
-        # #self.addWidget(self.location_point_panel)
-        # self.addLayout(self.start_location_group_layout)
-        # self.addLayout(self.end_location_group_layout)
+        sortlabel = QLabel("Sort by:")
+        buttons_layout.addWidget(sortlabel)
 
-    # todo kv
-    # def change_hand(self):
-    #     hand = 'D' if self.hand_switch.isChecked() else 'W'
-    #     self.start_location_group_layout.change_hand(hand)
-    #     self.end_location_group_layout.change_hand(hand)
+        self.sortcombo = QComboBox()
+        self.sortcombo.addItems(["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
+        self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
+        # self.sortcombo.completer().setCompletionMode(QCompleter.PopupCompletion)
+        # self.sortcombo.currentTextChanged.connect(self.listproxymodel.sort(self.sortcombo.currentText()))
+        self.sortcombo.currentTextChanged.connect(self.sort)
+        buttons_layout.addWidget(self.sortcombo)
+        buttons_layout.addStretch()
 
-    def get_movement_value(self):
-        movement_value_dict = {
-            # 'start': self.start_location_group_layout.get_location_value(),
-            # 'end': self.end_location_group_layout.get_location_value()
-        }
+        self.clearbutton = QPushButton("Clear")
+        self.clearbutton.clicked.connect(self.clearlist)
+        buttons_layout.addWidget(self.clearbutton)
 
-        return movement_value_dict
+        list_layout.addLayout(buttons_layout)
+        selection_layout.addLayout(list_layout)
+        self.addLayout(selection_layout)
 
-    # todo kv
-    def clear(self, movement_specifications, app_ctx):
-        pass
-        # self.hand_switch.setChecked(True)
-        # self.start_location_group_layout.clear(location_specifications, app_ctx)
-        # self.end_location_group_layout.clear(location_specifications, app_ctx)
+    def sort(self):
+        self.listproxymodel.updatesorttype(self.sortcombo.currentText())
+
+    def eventFilter(self, source, event):
+        # adapted from https://stackoverflow.com/questions/26021808/how-can-i-intercept-when-a-widget-loses-its-focus
+        # if (event.type() == QEvent.FocusOut):  # and source is items[0].child(0, 0)):
+        #     print('TODO KV eventFilter: focus out', source)
+        #     # return true here to bypass default behaviour
+        # return super().eventFilter(source, event)
+
+        if event.type() == QEvent.KeyPress:
+            key = event.key()
+            if key == Qt.Key_Enter:
+                print("enter pressed")
+        return super().eventFilter(source, event)
+
+    def clearlist(self, button):
+        numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()
+        for rownum in range(numtoplevelitems):
+            self.treemodel.invisibleRootItem().child(rownum, 0).uncheck(force=True)
+
+    # TODO KV - from location
+    # def get_movement_value(self):
+    #     movement_value_dict = {
+    #         # 'start': self.start_location_group_layout.get_location_value(),
+    #         # 'end': self.end_location_group_layout.get_location_value()
+    #     }
+    #
+    #     return movement_value_dict
+
+    # todo kv - from location
+    # def clear(self, movement_specifications, app_ctx):
+    #     pass
+    #     # self.hand_switch.setChecked(True)
+    #     # self.start_location_group_layout.clear(location_specifications, app_ctx)
+    #     # self.end_location_group_layout.clear(location_specifications, app_ctx)
 
     # todo kv
     # def set_value(self, value):
     #     self.start_location_group_layout.set_value(value.start)
     #     self.end_location_group_layout.set_value(value.end)
+#
+# class RepSelectorWidget(QWidget):
+#
+#     def __init__(self, *args, **kwargs):
+#         super(RepSelectorWidget, self).__init__(*args, **kwargs)
+#
+#         layout = QHBoxLayout()
+#         self._label = QLabel("Number:")
+#         layout.addWidget(self._label)
+#
+#         self._text = QLineEdit("")
+#         layout.addWidget(self._text)
+#
+#         self.setLayout(layout)
+
+#
+# class RepEditor(QWidget):
+#
+#     def __init__(self, parent, *args, **kwargs):
+#         super().__init__(parent, *args, **kwargs)
+#
+#         layout = QHBoxLayout(self)
+#         self._label = QLabel("Number:")
+#         layout.addWidget(self._label)
+#
+#         self._text = QLineEdit("enter #")
+#         layout.addWidget(self._text)
+#
+#         self.setLayout(layout)
+#
+#     def text(self):
+#         return self._text.text()
+#
+#     def setText(self, text):
+#         self._text.setText(text)
 
 
 class MovementDefinerDialog(QDialog):
