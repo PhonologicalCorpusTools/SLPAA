@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import (
 
 
 # TODO KV - is this where I actually want to define these?
-delimiter = ">"  # TODO KV - should this be use-defined in global settings? or maybe even in the mvmt window?
+delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
 selectedrole = 0
 pathdisplayrole = 1
 mutuallyexclusiverole = 2
@@ -48,8 +48,8 @@ subgroup = "subgroup"
 mvmtOptionsDict = {
     ("No movement", rb): {},
     ("Movement type", cb): {
-        ("Perceptual shape", cb): {
-            ("Shape", cb): {  # KV TODO all mutually exclusive (straight vs arc vs ...)
+        ("Perceptual shape", rb): {
+            ("Shape", cb): {  # all mutually exclusive (straight vs arc vs ...)
                 (subgroup, 0): {
                     ("Straight", rb): {
                         ("Interacts with subsequent straight movement", rb): {
@@ -67,7 +67,7 @@ mvmtOptionsDict = {
                     ("None of these", rb): {}
                 }
             },
-            ("Axis direction", cb): {  # KV TODO Choose up to one from each column to get the complete direction
+            ("Axis direction", cb): {  # Choose up to one from each axis to get the complete direction
                 (subgroup, 0): {
                     ("Up", rb): {},
                     ("Down", rb): {}
@@ -82,7 +82,7 @@ mvmtOptionsDict = {
                 },
                 ("Not relevant", rb): {}
             },
-            ("Plane", cb): {  # KV TODO choose as many as needed, but only one direction per plane
+            ("Plane", cb): {  # choose as many as needed, but only one direction per plane
                 ("Mid-sagittal", cb): {
                     (subgroup, 0): {
                         ("Clockwise", rb): {},
@@ -104,8 +104,8 @@ mvmtOptionsDict = {
                 ("Not relevant", rb): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
         },
-        # KV TODO mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
-        ("Joint-specific movements", cb): {
+        # mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
+        ("Joint-specific movements", rb): {
             ("Nodding/un-nodding", rb): {
                 (subgroup, 0): {
                     ("Nodding", rb): {},  # TODO KV autofills to flexion of wrist (but *ask* before auto-unfilling if nodding is unchecked)
@@ -180,8 +180,8 @@ mvmtOptionsDict = {
                 ("Anterior rotation", rb): {},
             },
             (subgroup, 3): {
-                ("Protraction", rb): {},  # (like when we do ‘shoulder’ push ups with straight arms)
-                ("Retraction", rb): {},  # (like when we do ‘shoulder’ push ups with straight arms)
+                ("Protraction", rb): {},
+                ("Retraction", rb): {},
             },
             (subgroup, 4): {
                 ("Depression", rb): {},
@@ -683,8 +683,6 @@ class MovementPathsProxyModel(QSortFilterProxyModel):
         elif "select" in sortbytext:
             self.setSortRole(Qt.UserRole+timestamprole)
             self.sort(0)
-        else:
-            pass
 
 
 class MovementListModel(QStandardItemModel):
@@ -739,55 +737,6 @@ class TreeListView(QListView):
             # self.model().dataChanged.emit()
 
 
-# TODO KV fix up for movement
-# class MovementView(QWidget):
-#     # selected_gloss = pyqtSignal(str)
-#
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         main_layout = QVBoxLayout()
-#         self.setLayout(main_layout)
-#
-#         # TODO: maybe make this editable
-#         # self.corpus_title = QLineEdit(corpus_title, parent=self)
-#         main_layout.addWidget(self.corpus_title)
-#
-#         self.corpus_model = CorpusModel(parent=self)
-#         self.corpus_view = QListView(parent=self)
-#         self.corpus_view.setModel(self.corpus_model)
-#         self.corpus_view.clicked.connect(self.handle_selection)
-#         main_layout.addWidget(self.corpus_view)
-#
-#     def handle_selection(self, index):
-#         gloss = self.corpus_model.glosses[index.row()]
-#         self.selected_gloss.emit(gloss)
-#
-#     def updated_glosses(self, glosses, current_gloss):
-#         self.corpus_model.glosses.clear()
-#         self.corpus_model.glosses.extend(glosses)
-#         self.corpus_model.glosses.sort()
-#         self.corpus_model.layoutChanged.emit()
-#
-#         index = self.corpus_model.glosses.index(current_gloss)
-#
-#         # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
-#         self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
-#                                                           QItemSelectionModel.SelectCurrent)
-#
-#     def remove_gloss(self, gloss):
-#         self.corpus_model.glosses.remove(gloss)
-#         self.corpus_model.layoutChanged.emit()
-#         self.corpus_view.clearSelection()
-#
-#     def clear(self):
-#         self.corpus_title.setText('Untitled')
-#
-#         self.corpus_model.glosses.clear()
-#         self.corpus_model.layoutChanged.emit()
-#         self.corpus_view.clearSelection()
-
-
 def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     pathlist = pathstring.split(delim)
     pathitemslists = []
@@ -813,7 +762,8 @@ def findvaliditemspaths(pathitemslists):
             # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
             validpaths.append([lastitem])
     else:
+        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
+        # but just in case...
         validpaths = []
-        # TODO KV pass?
-        # nothing to add to paths - this case shouldn't ever happen
+
     return validpaths
