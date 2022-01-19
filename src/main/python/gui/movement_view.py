@@ -48,7 +48,7 @@ subgroup = "subgroup"
 mvmtOptionsDict = {
     ("No movement", rb): {},
     ("Movement type", cb): {
-        ("Perceptual shape", cb): {
+        ("Perceptual shape", rb): {
             ("Shape", cb): {  # KV TODO all mutually exclusive (straight vs arc vs ...)
                 (subgroup, 0): {
                     ("Straight", rb): {
@@ -105,7 +105,7 @@ mvmtOptionsDict = {
             },
         },
         # KV TODO mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
-        ("Joint-specific movements", cb): {
+        ("Joint-specific movements", rb): {
             ("Nodding/un-nodding", rb): {
                 (subgroup, 0): {
                     ("Nodding", rb): {},  # TODO KV autofills to flexion of wrist (but *ask* before auto-unfilling if nodding is unchecked)
