@@ -322,8 +322,11 @@ class MainWindow(QMainWindow):
         menu_location = main_menu.addMenu('&Movement')
         menu_location.addAction(action_define_movement)
 
-        # TODO KV - the corpus name should persist (save / reload)
-        self.corpus_view = CorpusView('Untitled', parent=self)
+        if self.corpus and self.corpus.name:
+            corpusname = self.corpus.name
+        else:
+            corpusname = 'Untitled'
+        self.corpus_view = CorpusView(corpusname, parent=self)
         self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
 
         self.corpus_scroll = QScrollArea(parent=self)
@@ -793,7 +796,6 @@ class MainWindow(QMainWindow):
 
     def on_action_define_movement(self):
         # TODO KV
-        pass
         movement_definer = MovementDefinerDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
         # movement_definer.saved_movements.connect(self.save_new_movements)
         movement_definer.exec_()
@@ -875,9 +877,10 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
+        self.corpus_view.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
 
         first = self.corpus.get_sign_glosses()[0]
-        self.parameter_scroll.clear(self.corpus.location_definition, dict(), self.app_ctx) # todo kv
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv  dict(),
         self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
         self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
 
@@ -892,7 +895,7 @@ class MainWindow(QMainWindow):
 
         self.lexical_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         self.transcription_scroll.clear()
-        self.parameter_scroll.clear(self.corpus.location_definition, dict(), self.app_ctx) # todo kv
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv  dict(),
 
         self.corpus_view.corpus_view.clearSelection()
 
