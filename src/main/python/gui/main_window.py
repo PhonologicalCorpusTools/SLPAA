@@ -36,7 +36,7 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusView
 from gui.location_definer import LocationDefinerDialog
-from gui.movement_definer import MovementDefinerDialog
+from gui.movement_definer import MovementSelectorDialog
 from gui.corpus_summary_dialog import CorpusSummaryDialog
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import (
@@ -793,8 +793,8 @@ class MainWindow(QMainWindow):
 
     def on_action_define_movement(self):
         # TODO KV
-        pass
-        movement_definer = MovementDefinerDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
+        movement_definer = MovementSelectorDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
+
         # movement_definer.saved_movements.connect(self.save_new_movements)
         movement_definer.exec_()
 

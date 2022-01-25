@@ -16,6 +16,7 @@ class LexicalInformation:
         self._gloss = lexical_info['gloss']
         self._lemma = lexical_info['lemma']
         self._source = lexical_info['source']
+        self._signer = lexical_info['signer']
         self._frequency = lexical_info['frequency']
         self._coder = lexical_info['coder']
         self._update_date = lexical_info['date']
@@ -46,6 +47,14 @@ class LexicalInformation:
     @source.setter
     def source(self, new_source):
         self._source = new_source
+
+    @property
+    def signer(self):
+        return self._signer
+
+    @signer.setter
+    def signer(self, new_signer):
+        self._signer = new_signer
 
     @property
     def frequency(self):
@@ -362,13 +371,98 @@ class LocationTranscription:
         #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
 
-# TODO comments
-class MovementBox:
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class MovementModule:
     def __init__(self):
-        # TODO
+        # TODO KV implement
+        pass
+        # gather all data from movement selector
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class TargetModule:
+    def __init__(self):
+        # TODO KV implement
         pass
 
 
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class LocationModule:
+    def __init__(self):
+        # TODO KV implement
+        pass
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class OrientationModule:
+    def __init__(self):
+        # TODO KV implement
+        pass
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+# ... should this *replace* handshapetranscriptionconfig instead of wrapping it?
+class HandshapeModule:
+    def __init__(self):
+        # TODO KV implement
+        self._handshapetranscriptionconfig = None
+
+        @property
+        def handshapetranscriptionconfig(self):
+            return self._handshapetranscriptionconfig
+
+        @handshapetranscriptionconfig.setter
+        def handshapetranscriptionconfig(self, new_handshapetranscriptionconfig):
+            self._handshapetranscriptionconfig = new_handshapetranscriptionconfig
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class TimingInterval:
+    def __init__(self):
+        # TODO KV implement
+        self._parametermodule = None
+        self._startpoint = None
+        self._endpoint = None
+
+    @property
+    def parametermodule(self):
+        return self.parametermodule
+
+    @parametermodule.setter
+    def parametermodule(self, parammodule):
+        self.parametermodule = parammodule
+
+    @property
+    def startpoint(self):
+        return self.startpoint
+
+    @startpoint.setter
+    def startpoint(self, startpt):
+        self.startpoint = startpt
+
+    @property
+    def endpoint(self):
+        return self.endpoint
+
+    @endpoint.setter
+    def endpoint(self, endpt):
+        self.endpoint = endpt
+
+    def points(self):
+        return [self.startpoint(), self.endpoint()]
+
+    def setinterval(self, startpt, endpt):
+        self.setstartpoint(startpt)
+        self.setendpoint(endpt)
+
+    def ispoint(self):
+        return self._startpoint == self._endpoint
 
 
 # TODO: need to think about duplicated signs
@@ -386,6 +480,13 @@ class Sign:
         self.handshape_transcription = HandshapeTranscription(configs)
         self.location = LocationTranscription(location_transcription_info)
 
+        # TODO KV - for parameter modules and x-slots
+        self.movementmodules = []
+        self.targetmodules = []
+        self.locationmodules = []
+        self.orientationmodules = []
+        self.handshapemodules = []
+
     def __hash__(self):
         return hash(self.lexical_information.gloss)
 
@@ -395,6 +496,22 @@ class Sign:
 
     def __repr__(self):
         return '<SIGN: ' + repr(self.lexical_information.gloss) + '>'
+
+    def addmovementmodule(self, movementmod):
+        self.movementmodules.append(movementmod)
+        print("movement modules list has been updated:", self.movementmodules)
+
+    def addtargetmodule(self, targetmod):
+        self.targetmodules.append(targetmod)
+
+    def addlocationmodule(self, locationmod):
+        self.locationmodules.append(locationmod)
+
+    def addorientationmodule(self, orientationmod):
+        self.orientationmodules.append(orientationmod)
+
+    def addhandshapemodule(self, handshapemod):
+        self.handshapemodules.append(handshapemod)
 
 
 class LocationParameter:

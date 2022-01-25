@@ -291,6 +291,7 @@ class LexicalInformationPanel(QScrollArea):
         gloss_label = QLabel('Gloss:', parent=self)
         lemma_label = QLabel('Lemma:', parent=self)
         source_label = QLabel('Source:', parent=self)
+        signer_label = QLabel('Signer:', parent=self)
         freq_label = QLabel('Frequency:', parent=self)
         coder_label = QLabel('Coder:', parent=self)
         update_label = QLabel('Last updated:', parent=self)
@@ -308,6 +309,9 @@ class LexicalInformationPanel(QScrollArea):
 
         self.source_edit = QLineEdit(parent=self)
         self.source_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.source_edit))
+
+        self.signer_edit = QLineEdit(parent=self)
+        self.signer_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.signer_edit))
 
         self.freq_edit = QLineEdit('1.0', parent=self)
         self.freq_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.freq_edit))
@@ -411,6 +415,8 @@ class LexicalInformationPanel(QScrollArea):
         main_layout.addWidget(self.lemma_edit)
         main_layout.addWidget(source_label)
         main_layout.addWidget(self.source_edit)
+        main_layout.addWidget(signer_label)
+        main_layout.addWidget(self.signer_edit)
         main_layout.addWidget(freq_label)
         main_layout.addWidget(self.freq_edit)
         main_layout.addWidget(coder_label)
@@ -446,6 +452,7 @@ class LexicalInformationPanel(QScrollArea):
         self.gloss_edit.clear()
         self.lemma_edit.clear()
         self.source_edit.clear()
+        self.signer_edit.clear()
         self.freq_edit.setText('1.0')
         self.coder_edit.setText(coder)
         self.update_edit.setText(str(date.today()))
@@ -464,6 +471,7 @@ class LexicalInformationPanel(QScrollArea):
         self.gloss_edit.setText(lexical_info.gloss)
         self.lemma_edit.setText(lexical_info.lemma)
         self.source_edit.setText(lexical_info.source)
+        self.signer_edit.setText(lexical_info.signer)
         self.freq_edit.setText(str(lexical_info.frequency))
         self.coder_edit.setText(lexical_info.coder)
         self.update_edit.setText(str(lexical_info.update_date))
@@ -501,6 +509,7 @@ class LexicalInformationPanel(QScrollArea):
                 'gloss': self.get_gloss(),
                 'lemma': self.lemma_edit.text(),
                 'source': self.source_edit.text(),
+                'signer': self.signer_edit.text(),
                 'frequency': float(self.freq_edit.text()),
                 'coder': self.coder_edit.text(),
                 'date': self.get_date(),
