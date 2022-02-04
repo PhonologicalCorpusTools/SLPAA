@@ -161,7 +161,7 @@ class Delegate(QStyledItemDelegate):
 #         # super().returnPressed()
 
 
-# TODO KV - add sorting options, undo, ...
+# TODO KV - add undo, ...
 
 
 # TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement

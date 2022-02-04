@@ -481,6 +481,7 @@ class Sign:
         self.location = LocationTranscription(location_transcription_info)
 
         # TODO KV - for parameter modules and x-slots
+        self.signtype = None
         self.movementmodules = []
         self.targetmodules = []
         self.locationmodules = []
@@ -496,6 +497,10 @@ class Sign:
 
     def __repr__(self):
         return '<SIGN: ' + repr(self.lexical_information.gloss) + '>'
+
+    def setsigntype(self, signtype):
+        self.signtype = signtype
+        print("sign type has been updated:", self.signtype)
 
     def addmovementmodule(self, movementmod):
         self.movementmodules.append(movementmod)
