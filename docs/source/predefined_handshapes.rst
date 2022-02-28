@@ -231,9 +231,10 @@ S
 |
 T
 ~
-.. image:: images/G.png
+.. image:: images/T.png
         :width: 60
         :align: left
+|
 |
 |
 |
@@ -241,7 +242,7 @@ T
 |
 U 
 ~
-.. image:: images/G.png
+.. image:: images/U.png
         :width: 60
         :align: left
 |
@@ -251,7 +252,7 @@ U
 |
 V
 ~
-.. image:: images/G.png
+.. image:: images/V.png
         :width: 60
         :align: left
 |
@@ -260,7 +261,7 @@ V
 
 W
 ~
-.. image:: images/G.png
+.. image:: images/W.png
         :width: 60
         :align: left
 |
@@ -269,7 +270,7 @@ W
 
 X
 ~
-.. image:: images/G.png
+.. image:: images/X.png
         :width: 60
         :align: left
 |
@@ -278,7 +279,7 @@ X
 
 Y
 ~
-.. image:: images/G.png
+.. image:: images/Y.png
         :width: 60
         :align: left
 |
