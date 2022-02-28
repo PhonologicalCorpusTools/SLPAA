@@ -50,15 +50,15 @@ def check_empty_gloss(func):
 def check_duplicated_gloss(func):
     @functools.wraps(func)
     def wrapper_duplicated_gloss(self, *args, **kwargs):
-        lexical_info = self.lexical_scroll.get_value()
-        if lexical_info is None:
+        signlevel_info = self.signlevelinfo_scroll.get_value()
+        if signlevel_info is None:
             return
         else:
             if self.current_sign:
-                if lexical_info['gloss'] == self.current_sign.lexical_information.gloss or lexical_info['gloss'] not in self.corpus.get_sign_glosses():
+                if signlevel_info['gloss'] == self.current_sign.signlevel_information.gloss or signlevel_info['gloss'] not in self.corpus.get_sign_glosses():
                     return func(self, *args, **kwargs)
 
-            if lexical_info['gloss'] in self.corpus.get_sign_glosses():
+            if signlevel_info['gloss'] in self.corpus.get_sign_glosses():
                 QMessageBox.critical(self, 'Duplicated Gloss',
                                      'Please use a different gloss. Duplicated glosses are not allowed.')
                 return

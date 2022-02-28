@@ -11,17 +11,17 @@ def empty_copy(obj):
     return new_copy
 
 
-class LexicalInformation:
-    def __init__(self, lexical_info):
-        self._gloss = lexical_info['gloss']
-        self._lemma = lexical_info['lemma']
-        self._source = lexical_info['source']
-        self._frequency = lexical_info['frequency']
-        self._coder = lexical_info['coder']
-        self._update_date = lexical_info['date']
-        self._note = lexical_info['note']
-        self._signtype = lexical_info['signtype']
-        self._handdominance = lexical_info['handdominance']
+class SignLevelInformation:
+    def __init__(self, signlevel_info):
+        self._gloss = signlevel_info['gloss']
+        self._lemma = signlevel_info['lemma']
+        self._source = signlevel_info['source']
+        self._signer = signlevel_info['signer']
+        self._frequency = signlevel_info['frequency']
+        self._coder = signlevel_info['coder']
+        self._update_date = signlevel_info['date']
+        self._note = signlevel_info['note']
+        self._handdominance = signlevel_info['handdominance']
 
     @property
     def gloss(self):
@@ -46,6 +46,14 @@ class LexicalInformation:
     @source.setter
     def source(self, new_source):
         self._source = new_source
+
+    @property
+    def signer(self):
+        return self._signer
+
+    @signer.setter
+    def signer(self, new_signer):
+        self._signer = new_signer
 
     @property
     def frequency(self):
@@ -362,39 +370,188 @@ class LocationTranscription:
         #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
 
-# TODO comments
-class MovementBox:
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class MovementModule:
     def __init__(self):
-        # TODO
+        # TODO KV implement
+        pass
+        # gather all data from movement selector
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class TargetModule:
+    def __init__(self):
+        # TODO KV implement
         pass
 
 
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class LocationModule:
+    def __init__(self):
+        # TODO KV implement
+        pass
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class OrientationModule:
+    def __init__(self):
+        # TODO KV implement
+        pass
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+# ... should this *replace* handshapetranscriptionconfig instead of wrapping it?
+class HandshapeModule:
+    def __init__(self):
+        # TODO KV implement
+        self._handshapetranscriptionconfig = None
+
+        @property
+        def handshapetranscriptionconfig(self):
+            return self._handshapetranscriptionconfig
+
+        @handshapetranscriptionconfig.setter
+        def handshapetranscriptionconfig(self, new_handshapetranscriptionconfig):
+            self._handshapetranscriptionconfig = new_handshapetranscriptionconfig
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class TimingInterval:
+    def __init__(self):
+        # TODO KV implement
+        self._parametermodule = None
+        self._startpoint = None
+        self._endpoint = None
+
+    @property
+    def parametermodule(self):
+        return self._parametermodule
+
+    @parametermodule.setter
+    def parametermodule(self, parammodule):
+        self._parametermodule = parammodule
+
+    @property
+    def startpoint(self):
+        return self._startpoint
+
+    @startpoint.setter
+    def startpoint(self, startpt):
+        self._startpoint = startpt
+
+    @property
+    def endpoint(self):
+        return self._endpoint
+
+    @endpoint.setter
+    def endpoint(self, endpt):
+        self._endpoint = endpt
+
+    def points(self):
+        return [self.startpoint(), self.endpoint()]
+
+    def setinterval(self, startpt, endpt):
+        self.setstartpoint(startpt)
+        self.setendpoint(endpt)
+
+    def ispoint(self):
+        return self.startpoint() == self.endpoint()
 
 
 # TODO: need to think about duplicated signs
 class Sign:
     """
-    Gloss in lexical_information is used as the unique key
+    Gloss in signlevel_information is used as the unique key
     """
     def __init__(self,
-                 lexical_info,
+                 signlevel_info,
                  global_hand_info,
                  configs,
                  location_transcription_info):
-        self.lexical_information = LexicalInformation(lexical_info)
-        self.global_handshape_information = GlobalHandshapeInformation(global_hand_info)
-        self.handshape_transcription = HandshapeTranscription(configs)
-        self.location = LocationTranscription(location_transcription_info)
+        self._signlevel_information = SignLevelInformation(signlevel_info)
+        self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
+        self._handshape_transcription = HandshapeTranscription(configs)
+        self._location = LocationTranscription(location_transcription_info)
+
+        # TODO KV - for parameter modules and x-slots
+        self._signtype = None
+        self.movementmodules = []
+        self.targetmodules = []
+        self.locationmodules = []
+        self.orientationmodules = []
+        self.handshapemodules = []
 
     def __hash__(self):
-        return hash(self.lexical_information.gloss)
+        return hash(self.signlevel_information.gloss)
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
     def __eq__(self, other):
-        return isinstance(other, Sign) and self.lexical_information.gloss == other.lexical_information.gloss
+        return isinstance(other, Sign) and self.signlevel_information.gloss == other.signlevel_information.gloss
 
     def __repr__(self):
-        return '<SIGN: ' + repr(self.lexical_information.gloss) + '>'
+        return '<SIGN: ' + repr(self.signlevel_information.gloss) + '>'
+
+    @property
+    def signlevel_information(self):
+        return self._signlevel_information
+
+    @signlevel_information.setter
+    def signlevel_information(self, signlevelinfo):
+        self._signlevel_information = SignLevelInformation(signlevelinfo)
+
+    @property
+    def global_handshape_information(self):
+        return self._global_handshape_information
+
+    @global_handshape_information.setter
+    def global_handshape_information(self, globalhandshapeinfo):
+        self._global_handshape_information = GlobalHandshapeInformation(globalhandshapeinfo)
+
+    @property
+    def handshape_transcription(self):
+        return self._handshape_transcription
+
+    @handshape_transcription.setter
+    def handshape_transcription(self, handshapetranscription):
+        self._handshape_transcription = HandshapeTranscription(handshapetranscription)
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, locn):
+        self._location = LocationTranscription(locn)
+
+    @property
+    def signtype(self):
+        return self._signtype
+
+    @signtype.setter
+    def signtype(self, stype):
+        self._signtype = stype
+
+    def addmovementmodule(self, movementmod):
+        self.movementmodules.append(movementmod)
+        print("TODO KV movement modules list has been updated:", self.movementmodules)
+
+    def addtargetmodule(self, targetmod):
+        self.targetmodules.append(targetmod)
+
+    def addlocationmodule(self, locationmod):
+        self.locationmodules.append(locationmod)
+
+    def addorientationmodule(self, orientationmod):
+        self.orientationmodules.append(orientationmod)
+
+    def addhandshapemodule(self, handshapemod):
+        self.handshapemodules.append(handshapemod)
 
 
 class LocationParameter:
@@ -505,7 +662,7 @@ class Corpus:
         self.path = path
 
     def get_sign_glosses(self):
-        return sorted([sign.lexical_information.gloss for sign in self.signs])
+        return sorted([sign.signlevel_information.gloss for sign in self.signs])
 
     def get_previous_sign(self, gloss):
         sign_glosses = self.get_sign_glosses()
@@ -519,7 +676,7 @@ class Corpus:
     def get_sign_by_gloss(self, gloss):
         # Every sign has a unique gloss, so this function will always return one sign
         for sign in self.signs:
-            if sign.lexical_information.gloss == gloss:
+            if sign.signlevel_information.gloss == gloss:
                 return sign
 
     def add_sign(self, new_sign):

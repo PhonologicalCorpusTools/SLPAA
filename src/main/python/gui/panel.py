@@ -259,7 +259,7 @@ class SingleLocationViewer(QGraphicsView):
             self._scene.addItem(self.point_W)
 
 
-class LexicalNote(QPlainTextEdit):
+class SignLevelNote(QPlainTextEdit):
     focus_out = pyqtSignal()
 
     def __init__(self, **kwargs):
@@ -271,7 +271,7 @@ class LexicalNote(QPlainTextEdit):
         super().focusInEvent(event)
 
 
-class LexicalInformationPanel(QScrollArea):
+class SignLevelInformationPanel(QScrollArea):
     finish_edit = pyqtSignal(QWidget)
 
     def __init__(self, coder, defaulthand, update, **kwargs):
@@ -291,13 +291,11 @@ class LexicalInformationPanel(QScrollArea):
         gloss_label = QLabel('Gloss:', parent=self)
         lemma_label = QLabel('Lemma:', parent=self)
         source_label = QLabel('Source:', parent=self)
+        signer_label = QLabel('Signer:', parent=self)
         freq_label = QLabel('Frequency:', parent=self)
         coder_label = QLabel('Coder:', parent=self)
         update_label = QLabel('Last updated:', parent=self)
         note_label = QLabel('Notes:', parent=self)
-        # TODO KV delete
-        # signtype_label = QLabel('Sign type:', parent=self)
-        # handdominance_label = QLabel('Hand dominance:', parent=self)
 
         self.gloss_edit = QLineEdit(parent=self)
         self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
@@ -308,6 +306,9 @@ class LexicalInformationPanel(QScrollArea):
 
         self.source_edit = QLineEdit(parent=self)
         self.source_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.source_edit))
+
+        self.signer_edit = QLineEdit(parent=self)
+        self.signer_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.signer_edit))
 
         self.freq_edit = QLineEdit('1.0', parent=self)
         self.freq_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.freq_edit))
@@ -321,75 +322,9 @@ class LexicalInformationPanel(QScrollArea):
         self.update_edit.setText(str(update))
         self.update_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.update_edit))
 
-        self.note_edit = LexicalNote(parent=self)
+        self.note_edit = SignLevelNote(parent=self)
         self.note_edit.setPlaceholderText('Enter note here...')
         self.note_edit.focus_out.connect(lambda: self.finish_edit.emit(self.note_edit))
-
-        self.signtype_buttongroup = QButtonGroup(parent=self)
-        self.signtype_unspec_radio = QRadioButton('Unspecified')
-        self.signtype_unspec_radio.setProperty('signtype', 0)
-        self.signtype_1h_radio = QRadioButton('One-handed')
-        self.signtype_1h_radio.setProperty('signtype', 1)
-        self.signtype_2hu_noh2_radio = QRadioButton('H2 doesn\'t move')
-        self.signtype_2hu_noh2_radio.setProperty('signtype', 2)
-        self.signtype_2hu_h2withh1_radio = QRadioButton('H2 moves with H1')
-        self.signtype_2hu_h2withh1_radio.setProperty('signtype', 3)
-        self.signtype_2hb_nonaltsim_radio = QRadioButton('Non-alternating, simultaneous')
-        self.signtype_2hb_nonaltsim_radio.setProperty('signtype', 4)
-        self.signtype_2hb_altsim_radio = QRadioButton('Alternating, simultaneous')
-        self.signtype_2hb_altsim_radio.setProperty('signtype', 5)
-        self.signtype_2hb_altseq_radio = QRadioButton('Alternating, sequential')
-        self.signtype_2hb_altseq_radio.setProperty('signtype', 6)
-
-        self.signtype_buttongroup.addButton(self.signtype_unspec_radio)
-        self.signtype_buttongroup.addButton(self.signtype_1h_radio)
-        self.signtype_buttongroup.addButton(self.signtype_2hu_noh2_radio)
-        self.signtype_buttongroup.addButton(self.signtype_2hu_h2withh1_radio)
-        self.signtype_buttongroup.addButton(self.signtype_2hb_nonaltsim_radio)
-        self.signtype_buttongroup.addButton(self.signtype_2hb_altsim_radio)
-        self.signtype_buttongroup.addButton(self.signtype_2hb_altseq_radio)
-
-        self.signtype_layout = QVBoxLayout()
-        self.signtype_box = QGroupBox('Sign type')
-        self.signtype_layout.addWidget(self.signtype_unspec_radio)
-        # TODO KV delete
-        # self.signtype_1h_layout = QVBoxLayout()
-        # self.signtype_1h_box = QGroupBox('1H', parent=self)
-        # self.signtype_1h_layout.addWidget(self.signtype_1h_radio)
-        self.signtype_layout.addWidget(QLabel('1H'))
-        self.signtype_layout.addWidget(self.signtype_1h_radio)
-        # self.signtype_1h_box.setLayout(self.signtype_1h_layout)
-
-        # TODO KV delete
-        # self.signtype_2hu_layout = QVBoxLayout()
-        # self.signtype_2hu_box = QGroupBox('2HU', parent=self)
-        # self.signtype_2hu_layout.addWidget(QLabel("test label"))
-        # self.signtype_2hu_layout.addWidget(self.signtype_2hu_noh2_radio)
-        # self.signtype_2hu_layout.addWidget(self.signtype_2hu_h2withh1_radio)
-        # self.signtype_2hu_box.setLayout(self.signtype_2hu_layout)
-        self.signtype_layout.addWidget(QLabel('2HU'))
-        self.signtype_layout.addWidget(self.signtype_2hu_noh2_radio)
-        self.signtype_layout.addWidget(self.signtype_2hu_h2withh1_radio)
-
-        # TODO KV delete
-        # self.signtype_2hb_layout = QVBoxLayout()
-        # self.signtype_2hb_box = QGroupBox('2HB', parent=self)
-        # self.signtype_2hb_layout.addWidget(self.signtype_2hb_nonaltsim_radio)
-        # self.signtype_2hb_layout.addWidget(self.signtype_2hb_altsim_radio)
-        # self.signtype_2hb_layout.addWidget(self.signtype_2hb_altseq_radio)
-        # self.signtype_2hb_box.setLayout(self.signtype_2hb_layout)
-        self.signtype_layout.addWidget(QLabel('2HB'))
-        self.signtype_layout.addWidget(self.signtype_2hb_nonaltsim_radio)
-        self.signtype_layout.addWidget(self.signtype_2hb_altsim_radio)
-        self.signtype_layout.addWidget(self.signtype_2hb_altseq_radio)
-
-        self.signtype_box.setLayout(self.signtype_layout)
-
-        # TODO KV delete
-        # self.signtype_layout.addWidget(self.signtype_unspec_radio)
-        # self.signtype_layout.addWidget(self.signtype_1h_box)
-        # self.signtype_layout.addWidget(self.signtype_2hu_box)
-        # self.signtype_layout.addWidget(self.signtype_2hb_box)
 
         self.handdominance_buttongroup = QButtonGroup(parent=self)
         self.handdominance_l_radio = QRadioButton('Left')
@@ -411,6 +346,8 @@ class LexicalInformationPanel(QScrollArea):
         main_layout.addWidget(self.lemma_edit)
         main_layout.addWidget(source_label)
         main_layout.addWidget(self.source_edit)
+        main_layout.addWidget(signer_label)
+        main_layout.addWidget(self.signer_edit)
         main_layout.addWidget(freq_label)
         main_layout.addWidget(self.freq_edit)
         main_layout.addWidget(coder_label)
@@ -419,19 +356,43 @@ class LexicalInformationPanel(QScrollArea):
         main_layout.addWidget(self.update_edit)
         main_layout.addWidget(note_label)
         main_layout.addWidget(self.note_edit)
-        # TODO KV delete
-        # main_layout.addWidget(signtype_label)
-        # main_layout.addWidget(self.signtype_unspec_radio)
-        # main_layout.addWidget(self.signtype_1h_box)
-        # main_layout.addWidget(self.signtype_2hu_box)
-        # main_layout.addWidget(self.signtype_2hb_box)
-        main_layout.addWidget(self.signtype_box)
-        # TODO KV delete
-        # main_layout.addWidget(handdominance_label)
-        # main_layout.addLayout(self.handdominance_layout)
+        # main_layout.addWidget(self.signtype_box)
         main_layout.addWidget(self.handdominance_box)
 
+        # TODO KV rejig the buttons once signlevel info is redone as a dialog
+        buttonlayout = QHBoxLayout()
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.handle_savebutton_click)
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.clicked.connect(self.handle_cancelbutton_click)
+        buttonlayout.addWidget(self.save_button)
+        buttonlayout.addWidget(self.cancel_button)
+        main_layout.addLayout(buttonlayout)
+
         self.setWidget(main_frame)
+
+    # save update sign-level info to corpus (but not file)
+    def handle_savebutton_click(self):
+        mainwindow = self.parent().parent().parent().parent()
+        if mainwindow.current_sign:
+            print("save to currentsign")
+            mainwindow.current_sign.signlevel_information = self.get_value()
+        elif mainwindow.new_sign:
+            mainwindow.new_sign.signlevel_information = self.get_value()
+            # TODO KV add to corpus
+        else:
+            mainwindow.update_new_sign()
+            # TODO KV add to corpus
+
+    # revert sign-level info to the last-saved values
+    def handle_cancelbutton_click(self):
+        mainwindow = self.parent().parent().parent().parent()
+        if mainwindow.current_sign:
+            self.set_value(mainwindow.current_sign.signlevel_information)
+        elif mainwindow.new_sign:
+            self.set_value(mainwindow.new_sign.signlevel_information)
+        else:
+            self.clear(self.coder, self.defaulthand)
 
     @check_date_format
     def get_date(self):
@@ -446,12 +407,13 @@ class LexicalInformationPanel(QScrollArea):
         self.gloss_edit.clear()
         self.lemma_edit.clear()
         self.source_edit.clear()
+        self.signer_edit.clear()
         self.freq_edit.setText('1.0')
         self.coder_edit.setText(coder)
         self.update_edit.setText(str(date.today()))
         self.note_edit.clear()
         # reset to default (unspecified)
-        self.signtype_unspec_radio.setChecked(True)
+        # self.handstype_unspec_radio.setChecked(True)
         # reset to default from global settings
         # TODO KV - potential to override global default with coder default?
         self.defaulthand = defaulthand
@@ -460,31 +422,16 @@ class LexicalInformationPanel(QScrollArea):
                 button.setChecked(True)
                 break
 
-    def set_value(self, lexical_info):
-        self.gloss_edit.setText(lexical_info.gloss)
-        self.lemma_edit.setText(lexical_info.lemma)
-        self.source_edit.setText(lexical_info.source)
-        self.freq_edit.setText(str(lexical_info.frequency))
-        self.coder_edit.setText(lexical_info.coder)
-        self.update_edit.setText(str(lexical_info.update_date))
-        if lexical_info.note:
-            self.note_edit.setPlainText(lexical_info.note)
-        self.set_signtype(lexical_info.signtype)
-        self.set_handdominance(lexical_info.handdominance)
-
-    def set_signtype(self, signtype):
-        for button in self.signtype_buttongroup.buttons():
-            if button.property('signtype') == signtype:
-                button.setChecked(True)
-                break
-
-    def get_signtype(self):
-        signtype = 0
-        for button in self.signtype_buttongroup.buttons():
-            if button.isChecked():
-                signtype = button.property('signtype')
-                return signtype
-        return signtype
+    def set_value(self, signlevel_info):
+        self.gloss_edit.setText(signlevel_info.gloss)
+        self.lemma_edit.setText(signlevel_info.lemma)
+        self.source_edit.setText(signlevel_info.source)
+        self.signer_edit.setText(signlevel_info.signer)
+        self.freq_edit.setText(str(signlevel_info.frequency))
+        self.coder_edit.setText(signlevel_info.coder)
+        self.update_edit.setText(str(signlevel_info.update_date))
+        self.note_edit.setPlainText(signlevel_info.note if signlevel_info.note is not None else "")
+        self.set_handdominance(signlevel_info.handdominance)
 
     def set_handdominance(self, handdominance):
         if handdominance == 'R':
@@ -501,11 +448,11 @@ class LexicalInformationPanel(QScrollArea):
                 'gloss': self.get_gloss(),
                 'lemma': self.lemma_edit.text(),
                 'source': self.source_edit.text(),
+                'signer': self.signer_edit.text(),
                 'frequency': float(self.freq_edit.text()),
                 'coder': self.coder_edit.text(),
                 'date': self.get_date(),
                 'note': self.note_edit.toPlainText(),
-                'signtype': self.get_signtype(),
                 'handdominance': self.get_handdominance()
             }
 

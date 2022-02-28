@@ -161,7 +161,7 @@ class Delegate(QStyledItemDelegate):
 #         # super().returnPressed()
 
 
-# TODO KV - add sorting options, undo, ...
+# TODO KV - add undo, ...
 
 
 # TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
@@ -326,7 +326,7 @@ class MovementSpecificationLayout(QVBoxLayout):
 #         self._text.setText(text)
 
 
-class MovementDefinerDialog(QDialog):
+class MovementSelectorDialog(QDialog):
     # saved_movements = pyqtSignal(Movements)
 
     def __init__(self, system_default_movement_specifications, movement_specifications, app_settings, app_ctx, **kwargs):
@@ -336,22 +336,23 @@ class MovementDefinerDialog(QDialog):
 
         self.movement_layout = MovementSpecificationLayout(movement_specifications, app_ctx)
 
-        # main_layout = QVBoxLayout()
-        self.setLayout(self.movement_layout)
-        self.setMinimumSize(QSize(500, 700))
-    #
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(self.movement_layout)
+
+    #   TODO KV from locationdefiner
     #     self.movement_tab = MovementDefinerTabWidget(system_default_movement_specifications, movement_specifications, app_settings, app_ctx, parent=self)
     #     main_layout.addWidget(self.movement_tab)
     #
-    #     separate_line = QFrame()
-    #     separate_line.setFrameShape(QFrame.HLine)
-    #     separate_line.setFrameShadow(QFrame.Sunken)
-    #     main_layout.addWidget(separate_line)
-    #
-    #     buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Close
-    #
-    #     self.button_box = QDialogButtonBox(buttons, parent=self)
-    #
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separate_line)
+
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+
+    #   TODO KV from locationdefiner
     #     import_button = self.button_box.addButton('Import', QDialogButtonBox.ActionRole)
     #     import_button.setProperty('ActionRole', 'Import')
     #
@@ -359,26 +360,38 @@ class MovementDefinerDialog(QDialog):
     #     export_button.setProperty('ActionRole', 'Export')
     #
     #     # TODO KV keep? from orig locationdefinerdialog: Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
-    #     self.button_box.clicked.connect(self.handle_button_click)
-    #
-    #     main_layout.addWidget(self.button_box)
-    #
-    # def handle_button_click(self, button):
-    #     standard = self.button_box.standardButton(button)
-    #     if standard == QDialogButtonBox.Close:
-    #         response = QMessageBox.question(self, 'Warning',
-    #                                         'If you close the window, any unsaved changes will be lost. Continue?')
-    #         if response == QMessageBox.Yes:
-    #             self.accept()
-    #
+        self.button_box.clicked.connect(self.handle_button_click)
+
+        main_layout.addWidget(self.button_box)
+
+        self.setLayout(main_layout)
+        self.setMinimumSize(QSize(500, 700))
+
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Cancel:
+            # response = QMessageBox.question(self, 'Warning',
+            #                                 'If you close the window, any unsaved changes will be lost. Continue?')
+            # if response == QMessageBox.Yes:
+            #     self.accept()
+
+            self.reject()
+
     #     elif standard == QDialogButtonBox.RestoreDefaults:
     #         self.movement_tab.remove_all_pages()
     #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
-    #     # elif standard == QDialogButtonBox.Save:
-    #     #     self.save_new_images()
-    #     #     self.saved_locations.emit(self.location_tab.get_locations())
-    #     #
-    #     #     QMessageBox.information(self, 'Locations Saved', 'New locations have been successfully saved!')
+        elif standard == QDialogButtonBox.Save:
+            # TODO KV implement
+            print("saving movement info (but not really...)")
+            print("current sign was", self.parent().current_sign)
+            self.parent().current_sign.addmovementmodule("TODO KV construct movement module")
+
+            # self.save_new_images()
+            # self.saved_locations.emit(self.location_tab.get_locations())
+            QMessageBox.information(self, 'Movement Saved', 'Movement module has been successfully saved!')
+
+            self.accept()
+
     #     # elif standard == QDialogButtonBox.NoButton:
     #     #     action_role = button.property('ActionRole')
     #     #     if action_role == 'Export':
@@ -413,4 +426,4 @@ class MovementDefinerDialog(QDialog):
     #     #                 self.location_tab.import_locations(imported_locations)
     #     #                 self.saved_locations.emit(self.location_tab.get_locations())
 
-        # TODO KV - continue copying from location version in location_definer
+        # TODO KV - continue copying from class LocationDefinerDialog in location_definer

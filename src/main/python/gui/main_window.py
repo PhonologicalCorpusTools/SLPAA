@@ -36,11 +36,12 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusView
 from gui.location_definer import LocationDefinerDialog
-from gui.movement_definer import MovementDefinerDialog
+from gui.movement_selector import MovementSelectorDialog
+from gui.signtype_selector import SigntypeSelectorDialog
 from gui.corpus_summary_dialog import CorpusSummaryDialog
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import (
-    LexicalInformationPanel,
+    SignLevelInformationPanel,
     HandTranscriptionPanel,
     HandIllustrationPanel,
     ParameterPanel
@@ -48,7 +49,7 @@ from gui.panel import (
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
-from gui.undo_command import TranscriptionUndoCommand, PredefinedUndoCommand, LexicalUndoCommand
+from gui.undo_command import TranscriptionUndoCommand, PredefinedUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
     Corpus,
@@ -78,17 +79,17 @@ class MainWindow(QMainWindow):
 
         self.corpus = None
         self.current_sign = None
+        self.new_sign = None
 
         self.undostack = QUndoStack(parent=self)
 
         self.predefined_handshape_dialog = None
 
-        # system-default locations
+        # system-defaults
         self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
-
-        # system-default locations
-        # TODO kv keep? - ust coiped from location
+        # TODO kv keep? - just copied from location
         self.system_default_movement = None  # deepcopy(SAMPLE_LOCATIONS)
+        self.system_default_signtype = ['unspecified']  # TODO KV not necessarily default...
 
         # handle setting-related stuff
         self.handle_app_settings()
@@ -155,10 +156,17 @@ class MainWindow(QMainWindow):
 
         # define movement
         # TODO KV think about naming/wording
-        action_define_movement = QAction('Define movement...', parent=self)
-        action_define_movement.setStatusTip('Open define movement window')
-        action_define_movement.triggered.connect(self.on_action_define_movement)
-        action_define_movement.setCheckable(False)
+        action_select_movement = QAction('Select movement...', parent=self)
+        action_select_movement.setStatusTip('Open movement selector window')
+        action_select_movement.triggered.connect(self.on_action_select_movement)
+        action_select_movement.setCheckable(False)
+
+        # define movement
+        # TODO KV think about naming/wording
+        action_select_signtype = QAction('Select sign type...', parent=self)
+        action_select_signtype.setStatusTip('Open sign type selector window')
+        action_select_signtype.triggered.connect(self.on_action_select_signtype)
+        action_select_signtype.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), 'New corpus', parent=self)
@@ -220,11 +228,11 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
         # show/hide sign-level subwindow
-        self.action_show_sub_lexical = QAction('Show sign-level information', parent=self)
-        self.action_show_sub_lexical.setStatusTip('Show/hide sign-level information')
-        self.action_show_sub_lexical.triggered.connect(self.on_action_show_sub_lexical)
-        self.action_show_sub_lexical.setCheckable(True)
-        self.action_show_sub_lexical.setChecked(self.app_settings['display']['sub_lexical_show'])
+        self.action_show_sub_signlevel = QAction('Show sign-level information', parent=self)
+        self.action_show_sub_signlevel.setStatusTip('Show/hide sign-level information')
+        self.action_show_sub_signlevel.triggered.connect(self.on_action_show_sub_signlevel)
+        self.action_show_sub_signlevel.setCheckable(True)
+        self.action_show_sub_signlevel.setChecked(self.app_settings['display']['sub_signlevel_show'])
 
         # show/hide transcription subwindow
         self.action_show_sub_transcription = QAction('Show transcription', parent=self)
@@ -307,7 +315,7 @@ class MainWindow(QMainWindow):
         menu_edit.addAction(action_default_view)
         menu_edit.addSeparator()
         menu_edit.addAction(self.action_show_sub_corpus)
-        menu_edit.addAction(self.action_show_sub_lexical)
+        menu_edit.addAction(self.action_show_sub_signlevel)
         menu_edit.addAction(self.action_show_sub_transcription)
         menu_edit.addAction(self.action_show_sub_illustration)
         menu_edit.addAction(self.action_show_sub_parameter)
@@ -319,8 +327,12 @@ class MainWindow(QMainWindow):
         menu_location.addAction(action_define_location)
 
         # TODO KV - put this in a more logical spot
-        menu_location = main_menu.addMenu('&Movement')
-        menu_location.addAction(action_define_movement)
+        menu_movement = main_menu.addMenu('&Movement')
+        menu_movement.addAction(action_select_movement)
+
+        # TODO KV - put this in a more logical spot
+        menu_signtype = main_menu.addMenu('&Sign type')
+        menu_signtype.addAction(action_select_signtype)
 
         if self.corpus and self.corpus.name:
             corpusname = self.corpus.name
@@ -333,8 +345,8 @@ class MainWindow(QMainWindow):
         self.corpus_scroll.setWidgetResizable(True)
         self.corpus_scroll.setWidget(self.corpus_view)
 
-        self.lexical_scroll = LexicalInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
-        self.lexical_scroll.finish_edit.connect(self.handle_lexical_edit)
+        self.signlevelinfo_scroll = SignLevelInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
+        self.signlevelinfo_scroll.finish_edit.connect(self.handle_signlevel_edit)
 
         self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
 
@@ -369,10 +381,9 @@ class MainWindow(QMainWindow):
         self.sub_transcription.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_transcription)
 
-        # TODO KV delete: self.sub_lexical = SubWindow('Lexical information', self.lexical_scroll, parent=self)
-        self.sub_lexical = SubWindow('Sign-level information', self.lexical_scroll, parent=self)
-        self.sub_lexical.subwindow_closed.connect(self.on_subwindow_manually_closed)
-        self.main_mdi.addSubWindow(self.sub_lexical)
+        self.sub_signlevel = SubWindow('Sign-level information', self.signlevelinfo_scroll, parent=self)
+        self.sub_signlevel.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_signlevel)
 
         self.sub_corpus = SubWindow('Corpus', self.corpus_scroll, parent=self)
         self.sub_corpus.subwindow_closed.connect(self.on_subwindow_manually_closed)
@@ -432,9 +443,9 @@ class MainWindow(QMainWindow):
                              ])
 
                         for sign in self.corpus:
-                            info = [sign.lexical_information.gloss, sign.lexical_information.frequency,
-                                    sign.lexical_information.coder, str(sign.lexical_information.update_date),
-                                    sign.lexical_information.note,
+                            info = [sign.signlevel_information.gloss, sign.signlevel_information.frequency,
+                                    sign.signlevel_information.coder, str(sign.signlevel_information.update_date),
+                                    sign.signlevel_information.note,
                                     sign.global_handshape_information.forearm,
                                     sign.global_handshape_information.estimated,
                                     sign.global_handshape_information.uncertain,
@@ -454,9 +465,9 @@ class MainWindow(QMainWindow):
                              'C1H1', 'C1H2', 'C2H1', 'C2H2'])
 
                         for sign in self.corpus:
-                            info = [sign.lexical_information.gloss, sign.lexical_information.frequency,
-                                    sign.lexical_information.coder, str(sign.lexical_information.update_date),
-                                    sign.lexical_information.note,
+                            info = [sign.signlevel_information.gloss, sign.signlevel_information.frequency,
+                                    sign.signlevel_information.coder, str(sign.signlevel_information.update_date),
+                                    sign.signlevel_information.note,
                                     sign.global_handshape_information.forearm,
                                     sign.global_handshape_information.estimated,
                                     sign.global_handshape_information.uncertain,
@@ -476,7 +487,7 @@ class MainWindow(QMainWindow):
         self.sub_parameter.setHidden(not self.app_settings['display']['sub_parameter_show'])
         self.sub_illustration.setHidden(not self.app_settings['display']['sub_illustration_show'])
         self.sub_transcription.setHidden(not self.app_settings['display']['sub_transcription_show'])
-        self.sub_lexical.setHidden(not self.app_settings['display']['sub_lexical_show'])
+        self.sub_signlevel.setHidden(not self.app_settings['display']['sub_signlevel_show'])
         self.sub_corpus.setHidden(not self.app_settings['display']['sub_corpus_show'])
 
     def on_action_export_subwindow_config(self):
@@ -494,9 +505,9 @@ class MainWindow(QMainWindow):
                 'sub_corpus_show': not self.sub_corpus.isHidden(),
                 'sub_corpus_pos': (self.sub_corpus.pos().x(), self.sub_corpus.pos().y()),
                 'sub_corpus_size': (self.sub_corpus.size().width(), self.sub_corpus.size().height()),
-                'sub_lexical_show': not self.sub_lexical.isHidden(),
-                'sub_lexical_pos': (self.sub_lexical.pos().x(), self.sub_lexical.pos().y()),
-                'sub_lexical_size': (self.sub_lexical.size().width(), self.sub_lexical.size().height()),
+                'sub_signlevel_show': not self.sub_signlevel.isHidden(),
+                'sub_signlevel_pos': (self.sub_signlevel.pos().x(), self.sub_signlevel.pos().y()),
+                'sub_signlevel_size': (self.sub_signlevel.size().width(), self.sub_signlevel.size().height()),
                 'sub_transcription_show': not self.sub_transcription.isHidden(),
                 'sub_transcription_pos': (self.sub_transcription.pos().x(), self.sub_transcription.pos().y()),
                 'sub_transcription_size': (self.sub_transcription.size().width(), self.sub_transcription.size().height()),
@@ -525,10 +536,10 @@ class MainWindow(QMainWindow):
             with open(file_name, 'r') as f:
                 subwindow_json = json.load(f)
                 for sub, config in subwindow_json.items():
-                    if sub in {'size', 'sub_corpus_size', 'sub_lexical_size', 'sub_transcription_size',
+                    if sub in {'size', 'sub_corpus_size', 'sub_signlevel_size', 'sub_transcription_size',
                                'sub_illustration_size', 'sub_parameter_size'}:
                         self.app_settings['display'][sub] = QSize(*config)
-                    elif sub in {'position', 'sub_corpus_pos', 'sub_lexical_pos', 'sub_transcription_pos',
+                    elif sub in {'position', 'sub_corpus_pos', 'sub_signlevel_pos', 'sub_transcription_pos',
                                  'sub_illustration_pos', 'sub_parameter_pos'}:
                         self.app_settings['display'][sub] = QPoint(*config)
                     else:
@@ -543,8 +554,8 @@ class MainWindow(QMainWindow):
         self.sub_corpus.resize(self.app_settings['display']['sub_corpus_size'])
         self.sub_corpus.move(self.app_settings['display']['sub_corpus_pos'])
 
-        self.sub_lexical.resize(self.app_settings['display']['sub_lexical_size'])
-        self.sub_lexical.move(self.app_settings['display']['sub_lexical_pos'])
+        self.sub_signlevel.resize(self.app_settings['display']['sub_signlevel_size'])
+        self.sub_signlevel.move(self.app_settings['display']['sub_signlevel_pos'])
 
         self.sub_transcription.resize(self.app_settings['display']['sub_transcription_size'])
         self.sub_transcription.move(self.app_settings['display']['sub_transcription_pos'])
@@ -559,13 +570,13 @@ class MainWindow(QMainWindow):
 
     def on_action_default_view(self):
         self.sub_corpus.show()
-        self.sub_lexical.show()
+        self.sub_signlevel.show()
         self.sub_transcription.show()
         self.sub_illustration.show()
         self.sub_parameter.show()
 
         self.action_show_sub_corpus.setChecked(True)
-        self.action_show_sub_lexical.setChecked(True)
+        self.action_show_sub_signlevel.setChecked(True)
         self.action_show_sub_transcription.setChecked(True)
         self.action_show_sub_illustration.setChecked(True)
         self.action_show_sub_parameter.setChecked(True)
@@ -576,8 +587,8 @@ class MainWindow(QMainWindow):
         self.sub_corpus.resize(QSize(180, 700))
         self.sub_corpus.move(QPoint(0, 0))
 
-        self.sub_lexical.resize(QSize(300, 350))
-        self.sub_lexical.move(QPoint(180, 0))
+        self.sub_signlevel.resize(QSize(300, 350))
+        self.sub_signlevel.move(QPoint(180, 0))
 
         self.sub_transcription.resize(QSize(800, 350))
         self.sub_transcription.move(QPoint(480, 0))
@@ -592,9 +603,9 @@ class MainWindow(QMainWindow):
         if widget == self.corpus_scroll:
             self.action_show_sub_corpus.setChecked(False)
             self.on_action_show_sub_corpus()
-        elif widget == self.lexical_scroll:
-            self.action_show_sub_lexical.setChecked(False)
-            self.on_action_show_sub_lexical()
+        elif widget == self.signlevelinfo_scroll:
+            self.action_show_sub_signlevel.setChecked(False)
+            self.on_action_show_sub_signlevel()
         elif widget == self.transcription_scroll:
             self.action_show_sub_transcription.setChecked(False)
             self.on_action_show_sub_transcription()
@@ -612,11 +623,11 @@ class MainWindow(QMainWindow):
             self.sub_corpus.hide()
         self.main_mdi.tileSubWindows()
 
-    def on_action_show_sub_lexical(self):
-        if self.action_show_sub_lexical.isChecked():
-            self.sub_lexical.show()
+    def on_action_show_sub_signlevel(self):
+        if self.action_show_sub_signlevel.isChecked():
+            self.sub_signlevel.show()
         else:
-            self.sub_lexical.hide()
+            self.sub_signlevel.hide()
         self.main_mdi.tileSubWindows()
 
     def on_action_show_sub_transcription(self):
@@ -640,8 +651,8 @@ class MainWindow(QMainWindow):
             self.sub_parameter.hide()
         self.main_mdi.tileSubWindows()
 
-    def handle_lexical_edit(self, lexical_field):
-        undo_command = LexicalUndoCommand(lexical_field)
+    def handle_signlevel_edit(self, signlevel_field):
+        undo_command = SignLevelUndoCommand(signlevel_field)
         self.undostack.push(undo_command)
 
     def handle_slot_edit(self, slot, old_prop, new_prop):
@@ -658,9 +669,10 @@ class MainWindow(QMainWindow):
         selected_sign = self.corpus.get_sign_by_gloss(gloss)
 
         self.current_sign = selected_sign
+        self.new_sign = selected_sign
         self.action_delete_sign.setEnabled(True)
 
-        self.lexical_scroll.set_value(selected_sign.lexical_information)
+        self.signlevelinfo_scroll.set_value(selected_sign.signlevel_information)
         self.transcription_scroll.set_value(selected_sign.global_handshape_information,
                                             selected_sign.handshape_transcription)
         self.parameter_scroll.set_value(selected_sign.location)
@@ -695,9 +707,9 @@ class MainWindow(QMainWindow):
         self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 0))
         self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(180, 700))
 
-        self.app_settings['display']['sub_lexical_show'] = bool(self.app_qsettings.value('sub_lexical_show', defaultValue=True))
-        self.app_settings['display']['sub_lexical_pos'] = self.app_qsettings.value('sub_lexical_pos', defaultValue=QPoint(180, 0))
-        self.app_settings['display']['sub_lexical_size'] = self.app_qsettings.value('sub_lexical_size', defaultValue=QSize(300, 350))
+        self.app_settings['display']['sub_signlevel_show'] = bool(self.app_qsettings.value('sub_signlevel_show', defaultValue=True))
+        self.app_settings['display']['sub_signlevel_pos'] = self.app_qsettings.value('sub_signlevel_pos', defaultValue=QPoint(180, 0))
+        self.app_settings['display']['sub_signlevel_size'] = self.app_qsettings.value('sub_signlevel_size', defaultValue=QSize(300, 350))
 
         self.app_settings['display']['sub_transcription_show'] = bool(self.app_qsettings.value('sub_transcription_show', defaultValue=True))
         self.app_settings['display']['sub_transcription_pos'] = self.app_qsettings.value('sub_transcription_pos', defaultValue=QPoint(480, 0))
@@ -752,9 +764,9 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('sub_corpus_pos', self.sub_corpus.pos())
         self.app_qsettings.setValue('sub_corpus_size', self.sub_corpus.size())
 
-        self.app_qsettings.setValue('sub_lexical_show', not self.sub_lexical.isHidden())
-        self.app_qsettings.setValue('sub_lexical_pos', self.sub_lexical.pos())
-        self.app_qsettings.setValue('sub_lexical_size', self.sub_lexical.size())
+        self.app_qsettings.setValue('sub_signlevel_show', not self.sub_signlevel.isHidden())
+        self.app_qsettings.setValue('sub_signlevel_pos', self.sub_signlevel.pos())
+        self.app_qsettings.setValue('sub_signlevel_size', self.sub_signlevel.size())
 
         self.app_qsettings.setValue('sub_transcription_show', not self.sub_transcription.isHidden())
         self.app_qsettings.setValue('sub_transcription_pos', self.sub_transcription.pos())
@@ -794,11 +806,27 @@ class MainWindow(QMainWindow):
         self.corpus.location_definition = new_locations
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
 
-    def on_action_define_movement(self):
+    def on_action_select_movement(self):
         # TODO KV
-        movement_definer = MovementDefinerDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
-        # movement_definer.saved_movements.connect(self.save_new_movements)
-        movement_definer.exec_()
+        movement_selector = MovementSelectorDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
+
+        # movement_selector.saved_movements.connect(self.save_new_movements)
+        movement_selector.exec_()
+
+    def on_action_select_signtype(self):
+        signtypespecs = self.system_default_signtype
+        if self.new_sign:
+            newsigntemp = self.new_sign
+            signtypespecs = self.new_sign.signtype
+        elif self.current_sign:
+            currentsigntemp = self.current_sign
+            self.new_sign = self.current_sign
+            signtypespecs = self.current_sign.signtype
+
+        signtype_selector = SigntypeSelectorDialog(signtypespecs, self.app_settings, self.app_ctx, parent=self)
+
+        # TODO KV delete? movement_selector.saved_movements.connect(self.save_new_movements)
+        signtype_selector.exec_()
 
     def update_status_bar(self, text):
         self.status_bar.showMessage(text)
@@ -812,17 +840,33 @@ class MainWindow(QMainWindow):
         pref_dialog.exec_()
         #self.app_settings
 
+    # TODO KV better name for this function
+    def update_new_sign(self):
+        signlevel_info = self.signlevelinfo_scroll.get_value()
+        location_transcription_info = self.parameter_scroll.location_layout.get_location_value()
+        global_hand_info = self.transcription_scroll.global_info.get_value()
+        configs = [self.transcription_scroll.config1.get_value(),
+                   self.transcription_scroll.config2.get_value()]
+
+        if self.new_sign:
+            self.new_sign.signlevel_information = signlevel_info
+            self.new_sign.global_handshape_information = global_hand_info
+            self.new_sign.handshape_transcription = configs
+            self.new_sign.location = location_transcription_info
+        else:
+            self.new_sign = Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
+
     @check_duplicated_gloss
     @check_unsaved_corpus
     def on_action_save(self, clicked):
-        lexical_info = self.lexical_scroll.get_value()
+        signlevel_info = self.signlevelinfo_scroll.get_value()
         location_transcription_info = self.parameter_scroll.location_layout.get_location_value()
         global_hand_info = self.transcription_scroll.global_info.get_value()
         configs = [self.transcription_scroll.config1.get_value(),
                    self.transcription_scroll.config2.get_value()]
 
         # if missing then some of them will be none
-        if lexical_info and location_transcription_info and global_hand_info and configs:
+        if signlevel_info and location_transcription_info and global_hand_info and configs:
             if self.current_sign:
                 response = QMessageBox.question(self, 'Overwrite the current sign',
                                                 'Do you want to overwrite the existing transcriptions?')
@@ -831,14 +875,17 @@ class MainWindow(QMainWindow):
                 else:
                     return
 
-            new_sign = Sign(lexical_info, global_hand_info, configs, location_transcription_info)
-            self.corpus.add_sign(new_sign)
-            self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), new_sign.lexical_information.gloss)
-            self.current_sign = new_sign
+            if not self.new_sign:
+                self.new_sign = Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
+            # new_sign = self.new_sign if self.new_sign else Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
+            self.corpus.add_sign(self.new_sign)
+            self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.new_sign.signlevel_information.gloss)
+            self.current_sign = self.new_sign
             self.action_delete_sign.setEnabled(True)
 
-            self.corpus.name = self.corpus_view.corpus_title.text()
-            self.save_corpus_binary()
+            if self.corpus.path:
+                self.corpus.name = self.corpus_view.corpus_title.text()
+                self.save_corpus_binary()
 
             self.undostack.clear()
 
@@ -865,7 +912,7 @@ class MainWindow(QMainWindow):
         self.corpus = Corpus(signs=None, location_definition=deepcopy(SAMPLE_LOCATIONS))
 
         self.corpus_view.clear()
-        self.lexical_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
+        self.signlevelinfo_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         self.transcription_scroll.clear()
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)  # todo kv dict(),
 
@@ -880,9 +927,10 @@ class MainWindow(QMainWindow):
         self.corpus_view.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
 
         first = self.corpus.get_sign_glosses()[0]
-        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv  dict(),
-        self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
-        self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).lexical_information.gloss)
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv dict(),
+        self.corpus_view.corpus_title.setText(self.corpus.name)
+        self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
+        self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
 
         return bool(self.corpus)
 
@@ -891,11 +939,12 @@ class MainWindow(QMainWindow):
 
     def on_action_new_sign(self, clicked):
         self.current_sign = None
+        self.new_sign = None
         self.action_delete_sign.setEnabled(False)
 
-        self.lexical_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
+        self.signlevelinfo_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         self.transcription_scroll.clear()
-        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv  dict(),
+        self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv dict(),
 
         self.corpus_view.corpus_view.clearSelection()
 
@@ -903,12 +952,12 @@ class MainWindow(QMainWindow):
         response = QMessageBox.question(self, 'Delete the selected sign',
                                         'Do you want to delete the selected sign?')
         if response == QMessageBox.Yes:
-            previous = self.corpus.get_previous_sign(self.current_sign.lexical_information.gloss)
+            previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
 
             self.corpus.remove_sign(self.current_sign)
-            self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), previous.lexical_information.gloss)
+            self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), previous.signlevel_information.gloss)
 
-            self.handle_sign_selected(previous.lexical_information.gloss)
+            self.handle_sign_selected(previous.signlevel_information.gloss)
 
     def on_action_predefined_handshape(self, clicked):
         if self.predefined_handshape_dialog is None:
