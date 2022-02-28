@@ -95,8 +95,7 @@ b) Transcription of Handshapes:
 II. Baseline Handshapes
 =======================
 
-This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST4 - B and C/D
-
+This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST5 
 
         
 A
@@ -104,6 +103,7 @@ A
 .. image:: images/A.png
         :width: 60
         :align: left
+|
 |
 |
 - In “modified-A”  the fingers are extended down to touch the palm (rather than tucked as for baseline “A”).
@@ -122,7 +122,7 @@ B
         :align: left
 |
 |
-      
+|     
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
 |
 C
@@ -134,7 +134,7 @@ C
         :align: left 
 |
 |
-
+|
 D
 ~
 |
@@ -148,7 +148,8 @@ D
 |
 E
 ~
-
+|
+|
 .. image:: images/E.png
         :width: 60
         :align: left
