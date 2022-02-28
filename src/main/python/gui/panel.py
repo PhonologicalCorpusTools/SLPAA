@@ -259,7 +259,7 @@ class SingleLocationViewer(QGraphicsView):
             self._scene.addItem(self.point_W)
 
 
-class LexicalNote(QPlainTextEdit):
+class SignLevelNote(QPlainTextEdit):
     focus_out = pyqtSignal()
 
     def __init__(self, **kwargs):
@@ -271,7 +271,7 @@ class LexicalNote(QPlainTextEdit):
         super().focusInEvent(event)
 
 
-class LexicalInformationPanel(QScrollArea):
+class SignLevelInformationPanel(QScrollArea):
     finish_edit = pyqtSignal(QWidget)
 
     def __init__(self, coder, defaulthand, update, **kwargs):
@@ -296,9 +296,6 @@ class LexicalInformationPanel(QScrollArea):
         coder_label = QLabel('Coder:', parent=self)
         update_label = QLabel('Last updated:', parent=self)
         note_label = QLabel('Notes:', parent=self)
-        # TODO KV delete
-        # signtype_label = QLabel('Sign type:', parent=self)
-        # handdominance_label = QLabel('Hand dominance:', parent=self)
 
         self.gloss_edit = QLineEdit(parent=self)
         self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
@@ -325,212 +322,9 @@ class LexicalInformationPanel(QScrollArea):
         self.update_edit.setText(str(update))
         self.update_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.update_edit))
 
-        self.note_edit = LexicalNote(parent=self)
+        self.note_edit = SignLevelNote(parent=self)
         self.note_edit.setPlaceholderText('Enter note here...')
         self.note_edit.focus_out.connect(lambda: self.finish_edit.emit(self.note_edit))
-
-        # self.handstype_2hmvmtmirror_radio = QRadioButton('Everything is mirrored / in phase except:')
-        # self.handstype_2hmvmtmirror_radio.setProperty('handstype', 18)
-        #
-        # self.handstype_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_unspec_radio = QRadioButton('Unspecified')
-        # self.handstype_unspec_radio.setProperty('handstype', 0)
-        # self.handstype_1h_radio = QRadioButton('1 hand')
-        # self.handstype_1h_radio.setProperty('handstype', 1)
-        # self.handstype_2h_radio = QRadioButton('2 hands')
-        # self.handstype_2h_radio.setProperty('handstype', 4)
-        # self.handstype_buttongroup.addButton(self.handstype_unspec_radio)
-        # self.handstype_buttongroup.addButton(self.handstype_1h_radio)
-        # self.handstype_buttongroup.addButton(self.handstype_2h_radio)
-        #
-        # self.handstype_1h_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_1hmove_radio = QRadioButton('The hand moves')
-        # self.handstype_1hmove_radio.setProperty('handstype', 2)
-        # self.handstype_1hnomove_radio = QRadioButton('The hand doesn\'t move')
-        # self.handstype_1hnomove_radio.setProperty('handstype', 3)
-        # self.handstype_1h_buttongroup.addButton(self.handstype_1hmove_radio)
-        # self.handstype_1h_buttongroup.addButton(self.handstype_1hnomove_radio)
-        #
-        # self.handstype_handshapereln_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_2hsameshapes_radio = QRadioButton('H1 and H2 use same set(s) of handshapes')
-        # self.handstype_2hsameshapes_radio.setProperty('handstype', 5)
-        # self.handstype_2hdiffshapes_radio = QRadioButton('H1 and H2 use different set(s) of handshapes')
-        # self.handstype_2hdiffshapes_radio.setProperty('handstype', 6)
-        # self.handstype_handshapereln_buttongroup.addButton(self.handstype_2hsameshapes_radio)
-        # self.handstype_handshapereln_buttongroup.addButton(self.handstype_2hdiffshapes_radio)
-        #
-        # self.handstype_contactreln_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_2hcontactyes_radio = QRadioButton('H1 and H2 maintain contact throughout sign')
-        # self.handstype_2hcontactyes_radio.setProperty('handstype', 7)
-        # self.handstype_2hcontactno_radio = QRadioButton('H1 and H2 do not maintain contact')
-        # self.handstype_2hcontactno_radio.setProperty('handstype', 8)
-        # self.handstype_contactreln_buttongroup.addButton(self.handstype_2hcontactyes_radio)
-        # self.handstype_contactreln_buttongroup.addButton(self.handstype_2hcontactno_radio)
-        #
-        # self.handstype_mvmtreln_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_2hmvmtneither_radio = QRadioButton('Neither hand moves')
-        # self.handstype_2hmvmtneither_radio.setProperty('handstype', 9)
-        # self.handstype_2hmvmtone_radio = QRadioButton('Only 1 hand moves')
-        # self.handstype_2hmvmtone_radio.setProperty('handstype', 10)
-        # self.handstype_2hmvmtboth_radio = QRadioButton('Both hands move')
-        # self.handstype_2hmvmtboth_radio.setProperty('handstype', 13)
-        # self.handstype_mvmtreln_buttongroup.addButton(self.handstype_2hmvmtneither_radio)
-        # self.handstype_mvmtreln_buttongroup.addButton(self.handstype_2hmvmtone_radio)
-        # self.handstype_mvmtreln_buttongroup.addButton(self.handstype_2hmvmtboth_radio)
-        #
-        # self.handstype_mvmtonehandreln_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_2hmvmtoneH1_radio = QRadioButton('Only H1 moves')
-        # self.handstype_2hmvmtoneH1_radio.setProperty('handstype', 11)
-        # self.handstype_2hmvmtoneH2_radio = QRadioButton('Only H2 moves')
-        # self.handstype_2hmvmtoneH2_radio.setProperty('handstype', 12)
-        # self.handstype_mvmtonehandreln_buttongroup.addButton(self.handstype_2hmvmtoneH1_radio)
-        # self.handstype_mvmtonehandreln_buttongroup.addButton(self.handstype_2hmvmtoneH2_radio)
-        #
-        # self.handstype_mvmtbothhandreln_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_2hmvmtbothdiff_radio = QRadioButton('H1 and H2 move differently')
-        # self.handstype_2hmvmtbothdiff_radio.setProperty('handstype', 14)
-        # self.handstype_2hmvmtbothsame_radio = QRadioButton('H1 and H2 move similarly')
-        # self.handstype_2hmvmtbothsame_radio.setProperty('handstype', 15)
-        # self.handstype_mvmtbothhandreln_buttongroup.addButton(self.handstype_2hmvmtbothdiff_radio)
-        # self.handstype_mvmtbothhandreln_buttongroup.addButton(self.handstype_2hmvmtbothsame_radio)
-        #
-        # self.handstype_mvmttimingreln_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_2hmvmtseq_radio = QRadioButton('Sequential')
-        # self.handstype_2hmvmtseq_radio.setProperty('handstype', 16)
-        # self.handstype_2hmvmtsimult_radio = QRadioButton('Simultaneous')
-        # self.handstype_2hmvmtsimult_radio.setProperty('handstype', 17)
-        # self.handstype_mvmttimingreln_buttongroup.addButton(self.handstype_2hmvmtseq_radio)
-        # self.handstype_mvmttimingreln_buttongroup.addButton(self.handstype_2hmvmtsimult_radio)
-        #
-        # # self.handstype_mvmtmirroredreln_buttongroup = QButtonGroup(parent=self)
-        # self.handstype_2hmvmtexceptloc_check = QCheckBox('Location')
-        # self.handstype_2hmvmtexceptloc_check.setProperty('handstype', 19)
-        # self.handstype_2hmvmtexceptshape_check = QCheckBox('Handshape')
-        # self.handstype_2hmvmtexceptshape_check.setProperty('handstype', 20)
-        # self.handstype_2hmvmtexceptorientn_check = QCheckBox('Orientation')
-        # self.handstype_2hmvmtexceptorientn_check.setProperty('handstype', 21)
-        # # self.handstype_2hmvmtexceptnothing_radio = QRadioButton('nothing (everything is in phase / mirrored)')
-        # # self.handstype_2hmvmtexceptnothing_radio.setProperty('handstype', 22)
-        # # self.handstype_mvmtmirroredreln_buttongroup.addButton(self.handstype_2hmvmtexceptloc_check)
-        # # self.handstype_mvmtmirroredreln_buttongroup.addButton(self.handstype_2hmvmtexceptshape_check)
-        # # self.handstype_mvmtmirroredreln_buttongroup.addButton(self.handstype_2hmvmtexceptorientn_check)
-        # # self.handstype_mvmtmirroredreln_buttongroup.addButton(self.handstype_2hmvmtexceptnothing_radio)
-        #
-        # self.signtype_layout = QVBoxLayout()
-        # self.signtype_box = QGroupBox('Sign type')
-        # self.signtype_layout.addWidget(self.handstype_unspec_radio)
-        # self.signtype_layout.addWidget(self.handstype_1h_radio)
-        # self.handstype_1h_layout = QHBoxLayout()
-        # # TODO KV why is the alignment justified?
-        # self.handstype_1h_layout.addWidget(QLabel("   "))  # , alignment=Qt.AlignLeft)
-        # self.handstype_1h_widget = QWidget()
-        # self.handstype_1h_sublayout = QVBoxLayout()
-        # self.handstype_1h_sublayout.addWidget(self.handstype_1hmove_radio)
-        # self.handstype_1h_sublayout.addWidget(self.handstype_1hnomove_radio)
-        # self.handstype_1h_widget.setLayout(self.handstype_1h_sublayout)
-        # self.handstype_1h_layout.addWidget(self.handstype_1h_widget)
-        # # self.handstype_1h_layout.addLayout(self.handstype_1h_sublayout)
-        # self.handstype_1h_radio.toggled.connect(lambda checked: self.handstype_1h_widget.setEnabled(checked))
-        # self.signtype_layout.addLayout(self.handstype_1h_layout)
-        #
-        # self.signtype_layout.addWidget(self.handstype_2h_radio)
-        # self.handstype_2h_layout = QHBoxLayout()
-        # self.handstype_2h_layout.addWidget(QLabel("   "))
-        # self.handstype_2h_widget = QWidget()
-        # self.handstype_2h_sublayout = QVBoxLayout()
-        #
-        # # self.handshapereln_layout = QHBoxLayout()
-        # self.handshapereln_sublayout = QVBoxLayout()
-        # self.handshapereln_sublayout.addWidget(self.handstype_2hsameshapes_radio)
-        # self.handshapereln_sublayout.addWidget(self.handstype_2hdiffshapes_radio)
-        # # self.handshapereln_layout.addWidget(QLabel("   "))
-        # self.handshapereln_box = QGroupBox('Handshape relation')
-        # self.handshapereln_box.setLayout(self.handshapereln_sublayout)
-        # # self.handshapereln_layout.addLayout(self.handshapereln_sublayout)
-        # # self.signtype_layout.addWidget(self.handshapereln_box)
-        # self.handstype_2h_sublayout.addWidget(self.handshapereln_box)
-        #
-        # # self.contactreln_layout = QHBoxLayout()
-        # self.contactreln_sublayout = QVBoxLayout()
-        # self.contactreln_sublayout.addWidget(self.handstype_2hcontactyes_radio)
-        # self.contactreln_sublayout.addWidget(self.handstype_2hcontactno_radio)
-        # # self.contactreln_layout.addWidget(QLabel("   "))
-        # self.contactreln_box = QGroupBox('Contact relation')
-        # self.contactreln_box.setLayout(self.contactreln_sublayout)
-        # # self.contactreln_layout.addLayout(self.contactreln_sublayout)
-        # # self.signtype_layout.addWidget(self.contactreln_box)
-        # self.handstype_2h_sublayout.addWidget(self.contactreln_box)
-        #
-        # # self.movementreln_layout = QHBoxLayout()
-        # self.movementreln_sublayout = QVBoxLayout()
-        # self.movementreln_sublayout.addWidget(self.handstype_2hmvmtneither_radio)
-        # self.movementreln_sublayout.addWidget(self.handstype_2hmvmtone_radio)
-        # self.movementreln_1h_layout = QHBoxLayout()
-        # # TODO KV why is the alignment justified?
-        # self.movementreln_1h_layout.addWidget(QLabel("   "))
-        # self.movementreln_1h_sublayout = QVBoxLayout()
-        # self.movementreln_1h_widget = QWidget()
-        # self.movementreln_1h_sublayout.addWidget(self.handstype_2hmvmtoneH1_radio)
-        # self.movementreln_1h_sublayout.addWidget(self.handstype_2hmvmtoneH2_radio)
-        # # self.movementreln_1h_layout.addLayout(self.movementreln_1h_sublayout)
-        # self.movementreln_1h_widget.setLayout(self.movementreln_1h_sublayout)
-        # self.movementreln_1h_layout.addWidget(self.movementreln_1h_widget)
-        # self.handstype_2hmvmtone_radio.toggled.connect(lambda checked: self.movementreln_1h_widget.setEnabled(checked))
-        # self.movementreln_sublayout.addLayout(self.movementreln_1h_layout)
-        # self.movementreln_sublayout.addWidget(self.handstype_2hmvmtboth_radio)
-        # self.movementreln_2h_layout = QHBoxLayout()
-        # # TODO KV why is the alignment justified?
-        # self.movementreln_2h_layout.addWidget(QLabel("   "))
-        # self.movementreln_2h_sublayout = QVBoxLayout()
-        # self.movementreln_2h_widget = QWidget()
-        # self.movementreln_2h_sublayout.addWidget(self.handstype_2hmvmtbothdiff_radio)
-        # self.movementreln_2h_sublayout.addWidget(self.handstype_2hmvmtbothsame_radio)
-        # self.timingreln_layout = QHBoxLayout()
-        # self.timingreln_sublayout = QVBoxLayout()
-        # self.timingreln_sublayout.addWidget(self.handstype_2hmvmtseq_radio)
-        # self.timingreln_sublayout.addWidget(self.handstype_2hmvmtsimult_radio)
-        # self.simultiming_layout = QHBoxLayout()
-        # # TODO KV why is the alignment justified?
-        # self.simultiming_layout.addWidget(QLabel("   "))
-        # self.simultiming_sublayout = QVBoxLayout()
-        # self.simultiming_sublayout.addWidget(QLabel("Everything is mirrored / in phase except:"))
-        # self.simultiming_sublayout.addWidget(self.handstype_2hmvmtexceptloc_check)
-        # self.simultiming_sublayout.addWidget(self.handstype_2hmvmtexceptshape_check)
-        # self.simultiming_sublayout.addWidget(self.handstype_2hmvmtexceptorientn_check)
-        # self.simultiming_widget = QWidget()
-        # self.simultiming_widget.setLayout(self.simultiming_sublayout)
-        # # self.simultiming_layout.addLayout(self.simultiming_sublayout)
-        # # self.timingreln_sublayout.addLayout(self.simultiming_layout)
-        # self.timingreln_sublayout.addWidget(self.simultiming_widget)
-        # self.handstype_2hmvmtsimult_radio.toggled.connect(lambda checked: self.simultiming_widget.setEnabled(checked))
-        # # TODO KV why is the alignment justified?
-        # self.timingreln_layout.addWidget(QLabel("   "))
-        # self.timingreln_box = QGroupBox('Movement timing relation')
-        # self.timingreln_box.setLayout(self.timingreln_sublayout)
-        # # self.contactreln_layout.addLayout(self.contactreln_sublayout)
-        # # self.signtype_layout.addWidget(self.contactreln_box)
-        # self.timingreln_layout.addWidget(self.timingreln_box)
-        # self.handstype_2hmvmtbothsame_radio.toggled.connect(lambda checked: self.timingreln_box.setEnabled(checked))
-        # self.movementreln_2h_sublayout.addLayout(self.timingreln_layout)
-        #
-        # # self.movementreln_2h_layout.addLayout(self.movementreln_2h_sublayout)
-        # self.movementreln_2h_widget.setLayout(self.movementreln_2h_sublayout)
-        # # self.movementreln_sublayout.addLayout(self.movementreln_2h_layout)
-        # self.movementreln_sublayout.addWidget(self.movementreln_2h_widget)
-        # self.movementreln_box = QGroupBox('Movement relation')
-        # self.movementreln_box.setLayout(self.movementreln_sublayout)
-        # # self.movementreln_layout.addLayout(self.movementreln_sublayout)
-        # # self.signtype_layout.addWidget(self.movementreln_box)
-        # self.handstype_2h_sublayout.addWidget(self.movementreln_box)
-        #
-        # # self.handstype_2h_layout.addLayout(self.handstype_2h_sublayout)
-        # self.handstype_2h_widget.setLayout(self.handstype_2h_sublayout)
-        # self.handstype_2h_layout.addWidget(self.handstype_2h_widget)
-        # self.handstype_2hmvmtboth_radio.toggled.connect(lambda checked: self.movementreln_2h_widget.setEnabled(checked))
-        # self.handstype_2h_radio.toggled.connect(lambda checked: self.handstype_2h_widget.setEnabled(checked))
-        # self.signtype_layout.addLayout(self.handstype_2h_layout)
-        #
-        # self.signtype_box.setLayout(self.signtype_layout)
 
         self.handdominance_buttongroup = QButtonGroup(parent=self)
         self.handdominance_l_radio = QRadioButton('Left')
@@ -565,7 +359,40 @@ class LexicalInformationPanel(QScrollArea):
         # main_layout.addWidget(self.signtype_box)
         main_layout.addWidget(self.handdominance_box)
 
+        # TODO KV rejig the buttons once signlevel info is redone as a dialog
+        buttonlayout = QHBoxLayout()
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.handle_savebutton_click)
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.clicked.connect(self.handle_cancelbutton_click)
+        buttonlayout.addWidget(self.save_button)
+        buttonlayout.addWidget(self.cancel_button)
+        main_layout.addLayout(buttonlayout)
+
         self.setWidget(main_frame)
+
+    # save update sign-level info to corpus (but not file)
+    def handle_savebutton_click(self):
+        mainwindow = self.parent().parent().parent().parent()
+        if mainwindow.current_sign:
+            print("save to currentsign")
+            mainwindow.current_sign.signlevel_information = self.get_value()
+        elif mainwindow.new_sign:
+            mainwindow.new_sign.signlevel_information = self.get_value()
+            # TODO KV add to corpus
+        else:
+            mainwindow.update_new_sign()
+            # TODO KV add to corpus
+
+    # revert sign-level info to the last-saved values
+    def handle_cancelbutton_click(self):
+        mainwindow = self.parent().parent().parent().parent()
+        if mainwindow.current_sign:
+            self.set_value(mainwindow.current_sign.signlevel_information)
+        elif mainwindow.new_sign:
+            self.set_value(mainwindow.new_sign.signlevel_information)
+        else:
+            self.clear(self.coder, self.defaulthand)
 
     @check_date_format
     def get_date(self):
@@ -595,32 +422,16 @@ class LexicalInformationPanel(QScrollArea):
                 button.setChecked(True)
                 break
 
-    def set_value(self, lexical_info):
-        self.gloss_edit.setText(lexical_info.gloss)
-        self.lemma_edit.setText(lexical_info.lemma)
-        self.source_edit.setText(lexical_info.source)
-        self.signer_edit.setText(lexical_info.signer)
-        self.freq_edit.setText(str(lexical_info.frequency))
-        self.coder_edit.setText(lexical_info.coder)
-        self.update_edit.setText(str(lexical_info.update_date))
-        if lexical_info.note:
-            self.note_edit.setPlainText(lexical_info.note)
-        # self.set_signtype(lexical_info.signtype)
-        self.set_handdominance(lexical_info.handdominance)
-    #
-    # def set_signtype(self, signtype):
-    #     for button in self.signtype_buttongroup.buttons():
-    #         if button.property('signtype') == signtype:
-    #             button.setChecked(True)
-    #             break
-    #
-    # def get_signtype(self):
-    #     signtype = 0
-    #     for button in self.signtype_buttongroup.buttons():
-    #         if button.isChecked():
-    #             signtype = button.property('signtype')
-    #             return signtype
-    #     return signtype
+    def set_value(self, signlevel_info):
+        self.gloss_edit.setText(signlevel_info.gloss)
+        self.lemma_edit.setText(signlevel_info.lemma)
+        self.source_edit.setText(signlevel_info.source)
+        self.signer_edit.setText(signlevel_info.signer)
+        self.freq_edit.setText(str(signlevel_info.frequency))
+        self.coder_edit.setText(signlevel_info.coder)
+        self.update_edit.setText(str(signlevel_info.update_date))
+        self.note_edit.setPlainText(signlevel_info.note if signlevel_info.note is not None else "")
+        self.set_handdominance(signlevel_info.handdominance)
 
     def set_handdominance(self, handdominance):
         if handdominance == 'R':
@@ -642,7 +453,6 @@ class LexicalInformationPanel(QScrollArea):
                 'coder': self.coder_edit.text(),
                 'date': self.get_date(),
                 'note': self.note_edit.toPlainText(),
-                # 'signtype': self.get_signtype(),
                 'handdominance': self.get_handdominance()
             }
 

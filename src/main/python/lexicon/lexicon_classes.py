@@ -11,18 +11,17 @@ def empty_copy(obj):
     return new_copy
 
 
-class LexicalInformation:
-    def __init__(self, lexical_info):
-        self._gloss = lexical_info['gloss']
-        self._lemma = lexical_info['lemma']
-        self._source = lexical_info['source']
-        self._signer = lexical_info['signer']
-        self._frequency = lexical_info['frequency']
-        self._coder = lexical_info['coder']
-        self._update_date = lexical_info['date']
-        self._note = lexical_info['note']
-        self._signtype = lexical_info['signtype']
-        self._handdominance = lexical_info['handdominance']
+class SignLevelInformation:
+    def __init__(self, signlevel_info):
+        self._gloss = signlevel_info['gloss']
+        self._lemma = signlevel_info['lemma']
+        self._source = signlevel_info['source']
+        self._signer = signlevel_info['signer']
+        self._frequency = signlevel_info['frequency']
+        self._coder = signlevel_info['coder']
+        self._update_date = signlevel_info['date']
+        self._note = signlevel_info['note']
+        self._handdominance = signlevel_info['handdominance']
 
     @property
     def gloss(self):
@@ -432,27 +431,27 @@ class TimingInterval:
 
     @property
     def parametermodule(self):
-        return self.parametermodule
+        return self._parametermodule
 
     @parametermodule.setter
     def parametermodule(self, parammodule):
-        self.parametermodule = parammodule
+        self._parametermodule = parammodule
 
     @property
     def startpoint(self):
-        return self.startpoint
+        return self._startpoint
 
     @startpoint.setter
     def startpoint(self, startpt):
-        self.startpoint = startpt
+        self._startpoint = startpt
 
     @property
     def endpoint(self):
-        return self.endpoint
+        return self._endpoint
 
     @endpoint.setter
     def endpoint(self, endpt):
-        self.endpoint = endpt
+        self._endpoint = endpt
 
     def points(self):
         return [self.startpoint(), self.endpoint()]
@@ -462,26 +461,26 @@ class TimingInterval:
         self.setendpoint(endpt)
 
     def ispoint(self):
-        return self._startpoint == self._endpoint
+        return self.startpoint() == self.endpoint()
 
 
 # TODO: need to think about duplicated signs
 class Sign:
     """
-    Gloss in lexical_information is used as the unique key
+    Gloss in signlevel_information is used as the unique key
     """
     def __init__(self,
-                 lexical_info,
+                 signlevel_info,
                  global_hand_info,
                  configs,
                  location_transcription_info):
-        self.lexical_information = LexicalInformation(lexical_info)
-        self.global_handshape_information = GlobalHandshapeInformation(global_hand_info)
-        self.handshape_transcription = HandshapeTranscription(configs)
-        self.location = LocationTranscription(location_transcription_info)
+        self._signlevel_information = SignLevelInformation(signlevel_info)
+        self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
+        self._handshape_transcription = HandshapeTranscription(configs)
+        self._location = LocationTranscription(location_transcription_info)
 
         # TODO KV - for parameter modules and x-slots
-        self.signtype = None
+        self._signtype = None
         self.movementmodules = []
         self.targetmodules = []
         self.locationmodules = []
@@ -489,22 +488,58 @@ class Sign:
         self.handshapemodules = []
 
     def __hash__(self):
-        return hash(self.lexical_information.gloss)
+        return hash(self.signlevel_information.gloss)
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
     def __eq__(self, other):
-        return isinstance(other, Sign) and self.lexical_information.gloss == other.lexical_information.gloss
+        return isinstance(other, Sign) and self.signlevel_information.gloss == other.signlevel_information.gloss
 
     def __repr__(self):
-        return '<SIGN: ' + repr(self.lexical_information.gloss) + '>'
+        return '<SIGN: ' + repr(self.signlevel_information.gloss) + '>'
 
-    def setsigntype(self, signtype):
-        self.signtype = signtype
-        print("sign type has been updated:", self.signtype)
+    @property
+    def signlevel_information(self):
+        return self._signlevel_information
+
+    @signlevel_information.setter
+    def signlevel_information(self, signlevelinfo):
+        self._signlevel_information = SignLevelInformation(signlevelinfo)
+
+    @property
+    def global_handshape_information(self):
+        return self._global_handshape_information
+
+    @global_handshape_information.setter
+    def global_handshape_information(self, globalhandshapeinfo):
+        self._global_handshape_information = GlobalHandshapeInformation(globalhandshapeinfo)
+
+    @property
+    def handshape_transcription(self):
+        return self._handshape_transcription
+
+    @handshape_transcription.setter
+    def handshape_transcription(self, handshapetranscription):
+        self._handshape_transcription = HandshapeTranscription(handshapetranscription)
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, locn):
+        self._location = LocationTranscription(locn)
+
+    @property
+    def signtype(self):
+        return self._signtype
+
+    @signtype.setter
+    def signtype(self, stype):
+        self._signtype = stype
 
     def addmovementmodule(self, movementmod):
         self.movementmodules.append(movementmod)
-        print("movement modules list has been updated:", self.movementmodules)
+        print("TODO KV movement modules list has been updated:", self.movementmodules)
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)
@@ -627,7 +662,7 @@ class Corpus:
         self.path = path
 
     def get_sign_glosses(self):
-        return sorted([sign.lexical_information.gloss for sign in self.signs])
+        return sorted([sign.signlevel_information.gloss for sign in self.signs])
 
     def get_previous_sign(self, gloss):
         sign_glosses = self.get_sign_glosses()
@@ -641,7 +676,7 @@ class Corpus:
     def get_sign_by_gloss(self, gloss):
         # Every sign has a unique gloss, so this function will always return one sign
         for sign in self.signs:
-            if sign.lexical_information.gloss == gloss:
+            if sign.signlevel_information.gloss == gloss:
                 return sign
 
     def add_sign(self, new_sign):
