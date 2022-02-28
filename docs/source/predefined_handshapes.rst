@@ -95,7 +95,7 @@ b) Transcription of Handshapes:
 II. Baseline Handshapes
 =======================
 
-This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST3
+This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST4 - B and C/D
 
 
         
@@ -120,12 +120,15 @@ B
 .. image:: images/B2.png
         :width: 60
         :align: left
+|
+|
       
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
 |
 C
 ~
-
+|
+|
 .. image:: images/C.png
         :width: 60
         :align: left 
@@ -134,7 +137,8 @@ C
 
 D
 ~
-
+|
+|
 .. image:: images/D.png
         :width: 60
         :align: left
