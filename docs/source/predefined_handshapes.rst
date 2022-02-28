@@ -118,7 +118,7 @@ B
         :align: left
 |
 |
-.. image:: images/B1.png
+.. image:: images/B2.png
         :width: 5%
         :align: left
 |
@@ -147,28 +147,73 @@ D
 E
 ~
 
+.. image:: images/E.png
+        :width: 5%
+        :align: left
+|
+|
+
 F
 ~
 
+.. image:: images/F.png
+        :width: 5%
+        :align: left
+|
+|
+
 G
 ~
+
+.. image:: images/G.png
+        :width: 5%
+        :align: left
+|
+|
 - “Modified-G” has the thumb extended parallel to the index finger (rather than the thumb sticking up at roughly a 90 degree angle from the index finger as in baseline “G”).
 
 K
 ~
 
+.. image:: images/K.png
+        :width: 5%
+        :align: left
+|
+|
+
 L 
 ~
+
+.. image:: images/L.png
+        :width: 5%
+        :align: left
+|
+|
 - “Bent-thumb-L” has i for proximal joint and F for distal joint of thumb, but finger 1 is extended as in baseline “L”. This differs from “bent-L” which has finger 1 bent and the thumb extended. 
     
 M
 ~
+.. image:: images/M.png
+        :width: 5%
+        :align: left
+|
+|
 
 N
 ~
+.. image:: images/N.png
+        :width: 5%
+        :align: left
+|
+|
 
 O 
 ~
+.. image:: images/O.png
+        :width: 5%
+        :align: left
+|
+|
 - “Modified-O” appears to be a slightly flattened shape compared to baseline “O”, which has all joints of all fingers and thumb curved. In “modified-O”, the fingers are still curved at the medial and distal joints, with the proximal joint flexed (F). The thumb is extended forward from the palm in an opposed position (O) with no joints curved. This handshape is used in the ASL sign TEACH.
 
 R
