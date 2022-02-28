@@ -221,10 +221,8 @@ R
 |
 |
 |
-
 S 
 ~
-|
 .. image:: images/S.png
         :width: 60
         :align: left
@@ -308,7 +306,6 @@ Y
 |
 |
 |
-
 4
 ~
 .. image:: images/4.png
@@ -317,7 +314,6 @@ Y
 |
 |
 |
-
 5
 ~
 .. image:: images/5.png
