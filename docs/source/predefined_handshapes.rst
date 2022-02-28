@@ -224,7 +224,7 @@ R
 
 S 
 ~
-
+|
 .. image:: images/S.png
         :width: 60
         :align: left
