@@ -113,7 +113,7 @@ A
 B   
 ~    
 
-.. image:: images/1.png
+.. image:: images/B.png
         :width: 5%
         :align: left
 |
@@ -123,7 +123,7 @@ B
 C
 ~
 
-.. image:: images/C-index.png
+.. image:: images/C.png
         :width: 5%
         :align: left 
 |
@@ -131,7 +131,7 @@ C
 D
 ~
 
-.. image:: images/8.png
+.. image:: images/D.png
         :width: 5%
         :align: left
 |
