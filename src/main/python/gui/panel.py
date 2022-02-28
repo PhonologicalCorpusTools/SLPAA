@@ -51,6 +51,7 @@ from PyQt5.QtGui import (
 
 from gui.hand_configuration import ConfigGlobal, Config
 from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView
+from gui.signtype_selector import SigntypeSelectorDialog
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
@@ -269,6 +270,80 @@ class SignLevelNote(QPlainTextEdit):
         # use focusOutEvent as the proxy for finishing editing
         self.focus_out.emit()
         super().focusInEvent(event)
+
+
+class SignSummaryPanel(QScrollArea):
+
+    def __init__(self, sign, mainwindow, **kwargs):
+        super().__init__(**kwargs)
+
+        self.mainwindow = mainwindow
+
+        self.setFrameStyle(QFrame.StyledPanel)
+        main_frame = QFrame(parent=self)
+
+        main_layout = QVBoxLayout()
+        main_frame.setLayout(main_layout)
+
+        self.sign = sign
+        self.system_default_signtype = mainwindow.system_default_signtype
+
+        self.signlevel_button = QPushButton("Sign-level information")
+        self.signlevel_button.clicked.connect(self.handle_signlevelbutton_click)
+        self.signtype_button = QPushButton("Sign type selection")
+        self.signtype_button.clicked.connect(self.handle_signtypebutton_click)
+        self.movement_button = QPushButton("Movement selection")
+        self.movement_button.clicked.connect(self.handle_movementbutton_click)
+        self.handshape_button = QPushButton("Handshape selection")
+        self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
+        self.orientation_button = QPushButton("Orientation selection")
+        self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
+        self.location_button = QPushButton("Location selection")
+        self.location_button.clicked.connect(self.handle_locationbutton_click)
+
+        main_layout.addWidget(self.signlevel_button)
+        main_layout.addWidget(self.signtype_button)
+        main_layout.addWidget(self.movement_button)
+        main_layout.addWidget(self.handshape_button)
+        main_layout.addWidget(self.orientation_button)
+        main_layout.addWidget(self.location_button)
+
+        self.setWidget(main_frame)
+
+    def handle_signlevelbutton_click(self):
+        # TODO KV
+        pass
+
+    def handle_signtypebutton_click(self):
+        # TODO KV
+        # signtypespecs = self.parent().system_default_signtype
+        # if self.new_sign:
+        #     newsigntemp = self.new_sign
+        #     signtypespecs = self.new_sign.signtype
+        # elif self.current_sign:
+        #     currentsigntemp = self.current_sign
+        #     self.new_sign = self.current_sign
+        #     signtypespecs = self.current_sign.signtype
+
+        signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow, parent=self)  # TODO KV delete , self.parent().parent().parent().parent().app_settings, self.parent().parent().parent().parent().app_ctx,
+        signtype_selector.exec_()
+
+
+    def handle_movementbutton_click(self):
+        # TODO KV
+        pass
+
+    def handle_handshapebutton_click(self):
+        # TODO KV
+        pass
+
+    def handle_orientationbutton_click(self):
+        # TODO KV
+        pass
+
+    def handle_locationbutton_click(self):
+        # TODO KV
+        pass
 
 
 class SignLevelInformationPanel(QScrollArea):

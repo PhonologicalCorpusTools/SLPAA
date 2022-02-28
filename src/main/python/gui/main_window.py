@@ -44,7 +44,8 @@ from gui.panel import (
     SignLevelInformationPanel,
     HandTranscriptionPanel,
     HandIllustrationPanel,
-    ParameterPanel
+    ParameterPanel,
+    SignSummaryPanel
 )
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
@@ -345,6 +346,9 @@ class MainWindow(QMainWindow):
         self.corpus_scroll.setWidgetResizable(True)
         self.corpus_scroll.setWidget(self.corpus_view)
 
+        # TODO KV
+        self.sign_summary = SignSummaryPanel(sign=None, mainwindow=self, parent=self)
+
         self.signlevelinfo_scroll = SignLevelInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
         self.signlevelinfo_scroll.finish_edit.connect(self.handle_signlevel_edit)
 
@@ -388,6 +392,11 @@ class MainWindow(QMainWindow):
         self.sub_corpus = SubWindow('Corpus', self.corpus_scroll, parent=self)
         self.sub_corpus.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_corpus)
+
+        self.sub_signsummary = SubWindow('Sign', self.sign_summary, parent=self)
+        self.sub_signsummary.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_signsummary)
+
 
         self.show_hide_subwindows()
         self.arrange_subwindows()
@@ -603,6 +612,9 @@ class MainWindow(QMainWindow):
         if widget == self.corpus_scroll:
             self.action_show_sub_corpus.setChecked(False)
             self.on_action_show_sub_corpus()
+        elif widget == self.sign_summary:
+            self.action_show_sub_signsummary.setChecked(False)
+            self.on_action_show_sub_signsummary()
         elif widget == self.signlevelinfo_scroll:
             self.action_show_sub_signlevel.setChecked(False)
             self.on_action_show_sub_signlevel()
@@ -621,6 +633,13 @@ class MainWindow(QMainWindow):
             self.sub_corpus.show()
         else:
             self.sub_corpus.hide()
+        self.main_mdi.tileSubWindows()
+
+    def on_action_show_sub_signsummary(self):
+        if self.action_show_sub_signsummary.isChecked():
+            self.sub_signsummary.show()
+        else:
+            self.sub_signsummary.hide()
         self.main_mdi.tileSubWindows()
 
     def on_action_show_sub_signlevel(self):
@@ -676,6 +695,8 @@ class MainWindow(QMainWindow):
         self.transcription_scroll.set_value(selected_sign.global_handshape_information,
                                             selected_sign.handshape_transcription)
         self.parameter_scroll.set_value(selected_sign.location)
+
+        self.sign_summary.sign = selected_sign
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -823,7 +844,7 @@ class MainWindow(QMainWindow):
             self.new_sign = self.current_sign
             signtypespecs = self.current_sign.signtype
 
-        signtype_selector = SigntypeSelectorDialog(signtypespecs, self.app_settings, self.app_ctx, parent=self)
+        signtype_selector = SigntypeSelectorDialog(signtypespecs, self, parent=self)  # TODO KV delete self.app_settings, self.app_ctx, parent=self)
 
         # TODO KV delete? movement_selector.saved_movements.connect(self.save_new_movements)
         signtype_selector.exec_()

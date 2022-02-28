@@ -67,7 +67,7 @@ from pprint import pprint
 
 
 class SigntypeSpecificationLayout(QVBoxLayout):
-    def __init__(self, app_ctx, **kwargs):
+    def __init__(self, **kwargs):  # TODO KV delete  app_ctx,
         super().__init__(**kwargs)
 
         self.buttongroups = []
@@ -429,13 +429,14 @@ class SigntypeCheckBox(QCheckBox):
 class SigntypeSelectorDialog(QDialog):
     # saved_movements = pyqtSignal(Movements)
 
-    def __init__(self, signtype_specifications, app_settings, app_ctx, **kwargs):
+    def __init__(self, signtype_specifications, mainwindow, **kwargs):  # TODO KV delete  app_settings, app_ctx,
         super().__init__(**kwargs)
-        self.signtype_specs = signtype_specifications if signtype_specifications else self.parent().system_default_signtype
+        self.signtype_specs = signtype_specifications if signtype_specifications else mainwindow.system_default_signtype  # TODO KV delete self.parent().system_default_signtype
             
-        self.app_settings = app_settings
+        # TODO KV delete self.app_settings = app_settings
+        self.mainwindow = mainwindow
         
-        self.signtype_layout = SigntypeSpecificationLayout(app_ctx)
+        self.signtype_layout = SigntypeSpecificationLayout()  # TODO KV delete app_ctx)
         self.signtype_layout.setspecs(self.signtype_specs)
 
         main_layout = QVBoxLayout()
@@ -477,8 +478,8 @@ class SigntypeSelectorDialog(QDialog):
             # if cursign:
             #     cursign.signtype = signtypespecs
             # else:
-            self.parent().update_new_sign()
-            self.parent().new_sign.signtype = signtypespecs
+            self.mainwindow.update_new_sign()
+            self.mainwindow.new_sign.signtype = signtypespecs
 
             # self.save_new_images()
             # self.saved_locations.emit(self.location_tab.get_locations())
@@ -487,4 +488,4 @@ class SigntypeSelectorDialog(QDialog):
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            self.signtype_layout.setspecs(self.parent().system_default_signtype)
+            self.signtype_layout.setspecs(self.mainwindow.system_default_signtype)
