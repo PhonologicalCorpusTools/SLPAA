@@ -101,7 +101,6 @@ This section provides an overall list of all the baseline handshapes. If relevan
         
 A
 ~   
-
 .. image:: images/A.png
         :width: 100
         :align: left
@@ -114,12 +113,12 @@ B
 ~    
 
 .. image:: images/B1.png
-        :width: 5%
+        :width: 100
         :align: left
 |
 |
 .. image:: images/B2.png
-        :width: 5%
+        :width: 100
         :align: left
 |
 |
@@ -130,7 +129,7 @@ C
 ~
 
 .. image:: images/C.png
-        :width: 5%
+        :width: 100
         :align: left 
 |
 |
