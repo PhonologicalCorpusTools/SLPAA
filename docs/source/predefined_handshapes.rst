@@ -112,7 +112,6 @@ A
 
 B   
 ~    
-
 .. image:: images/B1.png
         :width: 60
         :align: left
@@ -127,8 +126,6 @@ B
 |
 C
 ~
-|
-|
 .. image:: images/C.png
         :width: 60
         :align: left 
@@ -137,59 +134,55 @@ C
 |
 D
 ~
-|
-|
 .. image:: images/D.png
         :width: 60
         :align: left
+|
 |
 |
 - “Modified-D” has fingers 2, 3 & 4 creating the body of the D (as opposed to baseline “D”, which makes the body of the D using only the middle finger and tucks fingers 3 & 4 against palm). 
 |
 E
 ~
-|
-|
 .. image:: images/E.png
         :width: 60
         :align: left
 |
 |
-
+|
 F
 ~
-
 .. image:: images/F.png
         :width: 60
         :align: left
 |
 |
-
+|
 G
 ~
-
 .. image:: images/G.png
         :width: 60
         :align: left
+|
 |
 |
 - “Modified-G” has the thumb extended parallel to the index finger (rather than the thumb sticking up at roughly a 90 degree angle from the index finger as in baseline “G”).
 
 K
 ~
-
 .. image:: images/K.png
         :width: 60
         :align: left
 |
 |
-
+|
 L 
 ~
 
 .. image:: images/L.png
         :width: 5%
         :align: left
+|
 |
 |
 - “Bent-thumb-L” has i for proximal joint and F for distal joint of thumb, but finger 1 is extended as in baseline “L”. This differs from “bent-L” which has finger 1 bent and the thumb extended. 
@@ -201,7 +194,7 @@ M
         :align: left
 |
 |
-
+|
 N
 ~
 .. image:: images/N.png
@@ -209,7 +202,7 @@ N
         :align: left
 |
 |
-
+|
 O 
 ~
 .. image:: images/O.png
@@ -217,34 +210,82 @@ O
         :align: left
 |
 |
+|
 - “Modified-O” appears to be a slightly flattened shape compared to baseline “O”, which has all joints of all fingers and thumb curved. In “modified-O”, the fingers are still curved at the medial and distal joints, with the proximal joint flexed (F). The thumb is extended forward from the palm in an opposed position (O) with no joints curved. This handshape is used in the ASL sign TEACH.
 
 R
 ~
-
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 S 
 ~
-
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 T
 ~
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 - “Covered-T” has the medial joint of the index finger contacting the tip of the thumb, curving over the tip and covering the thumb. This differs from the description of "covered" which generally describes the friction distal part of the thumb touching the back distal part of the selected finger(s).
-
+|
 U 
 ~
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 - “Contracted-U-index” has the index finger in a half-folded position beside a fully extended middle finger. In this case, the index finger does not follow the [i-E-E] pattern of the other “contracted” handshapes.
-
+|
 V
 ~
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 W
 ~
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 X
 ~
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 Y
 ~
+.. image:: images/G.png
+        :width: 60
+        :align: left
+|
+|
+|
 - “Modified-Y”  was not included in the predefined handshapes. Although this handshape occurs in *The Canadian Dictionary of ASL*, there are only three entries of signs that use it and there is no consistency between the depictions of the handshape. 
+|
 
 1
 ~
