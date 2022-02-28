@@ -221,6 +221,7 @@ R
 |
 |
 |
+
 S 
 ~
 .. image:: images/S.png
@@ -245,6 +246,7 @@ U
 .. image:: images/U.png
         :width: 60
         :align: left
+|
 |
 |
 |
