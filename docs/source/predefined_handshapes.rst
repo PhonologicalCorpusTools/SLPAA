@@ -221,6 +221,7 @@ R
 |
 |
 |
+
 S 
 ~
 .. image:: images/G.png
