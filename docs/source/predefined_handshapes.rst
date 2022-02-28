@@ -292,25 +292,67 @@ Y
 
 1
 ~
+.. image:: images/1.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 3
 ~
+.. image:: images/3.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 4
 ~
+.. image:: images/4.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 5
 ~
+.. image:: images/5.png
+        :width: 60
+        :align: left
+|
+|
+|
 - “Modified-5” has the thumb extended forward from the palm in an opposed position (O), as opposed to baseline 5, which has the thumb extended away from the side of the palm (L)
 
 8
 ~
+.. image:: images/8.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 Middle Finger
 ~~~~~~~~~~~~~
+.. image:: images/mid-finger.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 Standard Base
 ~~~~~~~~~~~~~
+.. image:: images/base.png
+        :width: 60
+        :align: left
+|
+|
+|
 - This handshape occurs in *The Canadian Dictionary of ASL*. 
 - All fingers are adducted (=) and have proximal joints slightly bent (i), and medial and distal joints extended (E). Thumb is unopposed (U) and has neutral abduction (<). 
 
