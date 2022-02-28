@@ -334,8 +334,11 @@ class MainWindow(QMainWindow):
         menu_signtype = main_menu.addMenu('&Sign type')
         menu_signtype.addAction(action_select_signtype)
 
-        # TODO KV - the corpus name should persist (save / reload)
-        self.corpus_view = CorpusView('Untitled', parent=self)
+        if self.corpus and self.corpus.name:
+            corpusname = self.corpus.name
+        else:
+            corpusname = 'Untitled'
+        self.corpus_view = CorpusView(corpusname, parent=self)
         self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
 
         self.corpus_scroll = QScrollArea(parent=self)
@@ -921,6 +924,7 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
+        self.corpus_view.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
 
         first = self.corpus.get_sign_glosses()[0]
         self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv dict(),
