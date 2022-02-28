@@ -95,7 +95,7 @@ b) Transcription of Handshapes:
 II. Baseline Handshapes
 =======================
 
-This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST2
+This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST3
 
 
         
@@ -140,7 +140,7 @@ D
 ~
 
 .. image:: images/D.png
-        :width: 5%
+        :width: 60
         :align: left
 |
 |
@@ -150,7 +150,7 @@ E
 ~
 
 .. image:: images/E.png
-        :width: 5%
+        :width: 60
         :align: left
 |
 |
@@ -159,7 +159,7 @@ F
 ~
 
 .. image:: images/F.png
-        :width: 5%
+        :width: 60
         :align: left
 |
 |
@@ -168,7 +168,7 @@ G
 ~
 
 .. image:: images/G.png
-        :width: 5%
+        :width: 60
         :align: left
 |
 |
@@ -178,7 +178,7 @@ K
 ~
 
 .. image:: images/K.png
-        :width: 5%
+        :width: 60
         :align: left
 |
 |
