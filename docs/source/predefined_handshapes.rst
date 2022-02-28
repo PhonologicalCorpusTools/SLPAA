@@ -95,7 +95,7 @@ b) Transcription of Handshapes:
 II. Baseline Handshapes
 =======================
 
-This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST6 R-S
+This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST7 
 
         
 A
