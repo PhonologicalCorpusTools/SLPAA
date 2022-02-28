@@ -103,7 +103,7 @@ A
 ~   
 
 .. image:: images/A.png
-        :width: 5%
+        :width: 100
         :align: left
 |
 |
