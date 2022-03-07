@@ -167,6 +167,7 @@ G
 |
 |
 |
+|
 - “Modified-G” has the thumb extended parallel to the index finger (rather than the thumb sticking up at roughly a 90 degree angle from the index finger as in baseline “G”).
 
 K
