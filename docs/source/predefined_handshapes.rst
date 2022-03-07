@@ -222,6 +222,8 @@ R
 |
 |
 |
+|
+|
 S 
 ~
 .. image:: images/S.png
@@ -260,6 +262,8 @@ V
 |
 |
 |
+|
+|
 W
 ~
 .. image:: images/W.png
@@ -268,7 +272,8 @@ W
 |
 |
 |
-
+|
+|
 X
 ~
 .. image:: images/X.png
@@ -277,12 +282,15 @@ X
 |
 |
 |
-
+|
+|
 Y
 ~
 .. image:: images/Y.png
         :width: 80
         :align: left
+|
+|
 |
 |
 |
@@ -305,11 +313,15 @@ Y
 |
 |
 |
+|
+|
 4
 ~
 .. image:: images/4.png
         :width: 60
         :align: left
+|
+|
 |
 |
 |
@@ -334,7 +346,7 @@ Y
 
 Middle Finger
 ~~~~~~~~~~~~~
-.. image:: images/mid-finger.png
+.. image:: images/midfinger.png
         :width: 60
         :align: left
 |
