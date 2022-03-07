@@ -341,7 +341,6 @@ class SignSummaryPanel(QScrollArea):
         self.signgloss_label.setText("Sign: ")
 
     def handle_signlevelbutton_click(self):
-        # TODO KV
         signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, self.mainwindow, self.mainwindow.app_settings, parent=self)
         signlevelinfo_selector.saved_signlevelinfo.connect(self.handle_save_signlevelinfo)
         signlevelinfo_selector.exec_()
@@ -361,20 +360,12 @@ class SignSummaryPanel(QScrollArea):
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(newsign)
+            self.mainwindow.handle_sign_selected(self.sign.signlevel_information.gloss)
 
         self.mainwindow.corpus_view.updated_glosses(self.mainwindow.corpus.get_sign_glosses(), self.sign.signlevel_information.gloss)
 
     def handle_signtypebutton_click(self):
-
-        # signtype = self.mainwindow.system_default_signtype
-        # if self.mainwindow.new_sign:
-        #     newsigntemp = self.mainwindow.new_sign
-        #     signtype = self.mainwindow.new_sign.signtype
-        # elif self.mainwindow.current_sign:
-        #     currentsigntemp = self.mainwindow.current_sign
-        #     self.mainwindow.new_sign = self.mainwindow.current_sign
-        #     signtype = self.mainwindow.current_sign.signtype
-        signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow, parent=self)  # TODO KV delete , self.parent().parent().parent().parent().app_settings, self.parent().parent().parent().parent().app_ctx,
+        signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow, parent=self)
         signtype_selector.saved_signtype.connect(self.handle_save_signtype)
         signtype_selector.exec_()
 
@@ -386,9 +377,6 @@ class SignSummaryPanel(QScrollArea):
             # TODO KV this is a new sign
             #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist
             pass
-
-
-
 
     def handle_movementbutton_click(self):
         # TODO KV
