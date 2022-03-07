@@ -461,9 +461,9 @@ Offset
 Open
 ~~~~~~
 - **Dictionary description:** A less tucked handshape
-- **Generic description:** Selected fingers have no contact with the thumb
-- **SLP coding description:** The thumb is distanced from the selected fingers, with no contact between thumb and fingers
-- **Prototypical coding:** No contact between thumb & fingers (e.g. “open-F”, “open-O”) and sometimes the overall handshape may be ‘looser’ and fingers less tucked (e.g. “open-E”, “open-A”)
+- **Generic description:** Selected fingers less tucked and have no contact with the thumb.
+- **SLP coding description:** Selected fingers are distanced from their point of contact on thumb (e.g. "open-E", “open-F”, “open-O”). The overall handshape may be ‘looser’ and fingers less flexed (e.g.“open-A”). 
+- **Prototypical coding:** No contact between thumb & fingers. Joints that are fully flexed [F] in the baseline handshape have [i] in the "open" handshape. 
 
 
 Relaxed
