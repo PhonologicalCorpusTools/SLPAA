@@ -38,7 +38,8 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QComboBox,
     QCompleter,
-    QTreeView
+    QTreeView,
+    QMessageBox
 )
 
 from PyQt5.QtGui import (
@@ -52,9 +53,12 @@ from PyQt5.QtGui import (
 from gui.hand_configuration import ConfigGlobal, Config
 from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView
 from gui.signtype_selector import SigntypeSelectorDialog
+from gui.signlevelinfo_selector import SignlevelinfoSelectorDialog
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
+from gui.movement_selector import MovementSelectorDialog
+from lexicon.lexicon_classes import Sign
 
 
 class LocationPolygon(QGraphicsPolygonItem):
@@ -285,22 +289,31 @@ class SignSummaryPanel(QScrollArea):
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
 
-        self.sign = sign
+        self._sign = sign
         self.system_default_signtype = mainwindow.system_default_signtype
+        self.module_buttons = []
 
+        self.signgloss_label = QLabel("Sign: " + sign.signlevel_information.gloss if sign else "")
         self.signlevel_button = QPushButton("Sign-level information")
         self.signlevel_button.clicked.connect(self.handle_signlevelbutton_click)
         self.signtype_button = QPushButton("Sign type selection")
         self.signtype_button.clicked.connect(self.handle_signtypebutton_click)
+        self.module_buttons.append(self.signtype_button)
         self.movement_button = QPushButton("Movement selection")
         self.movement_button.clicked.connect(self.handle_movementbutton_click)
+        self.module_buttons.append(self.movement_button)
         self.handshape_button = QPushButton("Handshape selection")
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
+        self.module_buttons.append(self.handshape_button)
         self.orientation_button = QPushButton("Orientation selection")
         self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
+        self.module_buttons.append(self.orientation_button)
         self.location_button = QPushButton("Location selection")
         self.location_button.clicked.connect(self.handle_locationbutton_click)
+        self.module_buttons.append(self.location_button)
+        self.enable_module_buttons(False)
 
+        main_layout.addWidget(self.signgloss_label)
         main_layout.addWidget(self.signlevel_button)
         main_layout.addWidget(self.signtype_button)
         main_layout.addWidget(self.movement_button)
@@ -310,28 +323,78 @@ class SignSummaryPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
+    def enable_module_buttons(self, yesorno):
+        for btn in self.module_buttons:
+            btn.setEnabled(yesorno)
+
+    @property
+    def sign(self):
+        return self._sign
+
+    @sign.setter
+    def sign(self, sign):
+        self._sign = sign
+        self.signgloss_label.setText("Sign: " + sign.signlevel_information.gloss if sign else "")
+
+    def clear(self):
+        self._sign = None
+        self.signgloss_label.setText("Sign: ")
+
     def handle_signlevelbutton_click(self):
         # TODO KV
-        pass
+        signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, self.mainwindow, self.mainwindow.app_settings, parent=self)
+        signlevelinfo_selector.saved_signlevelinfo.connect(self.handle_save_signlevelinfo)
+        signlevelinfo_selector.exec_()
+
+    def handle_save_signlevelinfo(self, signlevelinfo):
+        if self.sign:
+            # an existing sign is highlighted; update it
+            self.sign.signlevel_information = signlevelinfo
+        else:
+            # this is a new sign
+            if signlevelinfo.gloss in self.mainwindow.corpus.get_sign_glosses():
+                QMessageBox.critical(self, 'Duplicated Gloss',
+                                     'Please use a different gloss. Duplicated glosses are not allowed.')
+                # TODO KV don't want the signlevel info to close if the gloss is rejected--
+                #  make the user choose a new one instead
+                return
+            newsign = Sign(signlevelinfo)
+            self.sign = newsign
+            self.mainwindow.corpus.add_sign(newsign)
+
+        self.mainwindow.corpus_view.updated_glosses(self.mainwindow.corpus.get_sign_glosses(), self.sign.signlevel_information.gloss)
 
     def handle_signtypebutton_click(self):
-        # TODO KV
-        # signtypespecs = self.parent().system_default_signtype
-        # if self.new_sign:
-        #     newsigntemp = self.new_sign
-        #     signtypespecs = self.new_sign.signtype
-        # elif self.current_sign:
-        #     currentsigntemp = self.current_sign
-        #     self.new_sign = self.current_sign
-        #     signtypespecs = self.current_sign.signtype
 
+        # signtype = self.mainwindow.system_default_signtype
+        # if self.mainwindow.new_sign:
+        #     newsigntemp = self.mainwindow.new_sign
+        #     signtype = self.mainwindow.new_sign.signtype
+        # elif self.mainwindow.current_sign:
+        #     currentsigntemp = self.mainwindow.current_sign
+        #     self.mainwindow.new_sign = self.mainwindow.current_sign
+        #     signtype = self.mainwindow.current_sign.signtype
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow, parent=self)  # TODO KV delete , self.parent().parent().parent().parent().app_settings, self.parent().parent().parent().parent().app_ctx,
+        signtype_selector.saved_signtype.connect(self.handle_save_signtype)
         signtype_selector.exec_()
+
+    def handle_save_signtype(self, signtype):
+        if self.sign:
+            # an existing sign is highlighted; update it
+            self.sign.signtype = signtype
+        else:
+            # TODO KV this is a new sign
+            #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist
+            pass
+
+
 
 
     def handle_movementbutton_click(self):
         # TODO KV
-        pass
+
+        movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, parent=self)
+        movement_selector.exec_()
 
     def handle_handshapebutton_click(self):
         # TODO KV

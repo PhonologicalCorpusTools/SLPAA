@@ -1,5 +1,6 @@
 from itertools import chain
 from copy import deepcopy
+from datetime import date
 
 NULL = '\u2205'
 
@@ -22,6 +23,18 @@ class SignLevelInformation:
         self._update_date = signlevel_info['date']
         self._note = signlevel_info['note']
         self._handdominance = signlevel_info['handdominance']
+
+    # TODO KV is anyone using htis??
+    # def __init__(self, coder, defaulthand):
+    #     self._gloss = ""
+    #     self._lemma = ""
+    #     self._source = ""
+    #     self._signer = ""
+    #     self._frequency = '1.0'
+    #     self._coder = coder
+    #     self._update_date = date.today()
+    #     self._note = ""
+    #     self._handdominance = defaulthand
 
     @property
     def gloss(self):
@@ -474,7 +487,7 @@ class Sign:
                  global_hand_info,
                  configs,
                  location_transcription_info):
-        self._signlevel_information = SignLevelInformation(signlevel_info)
+        self._signlevel_information = signlevel_info  # SignLevelInformation(signlevel_info)
         self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
         self._handshape_transcription = HandshapeTranscription(configs)
         self._location = LocationTranscription(location_transcription_info)
@@ -482,7 +495,27 @@ class Sign:
         # TODO KV - for parameter modules and x-slots
         self._signtype = None
         self.movementmodules = []
-        self.targetmodules = []
+        # self.targetmodules = []
+        self.locationmodules = []
+        self.orientationmodules = []
+        self.handshapemodules = []
+
+    def __init__(self, signlevel_info):
+        self._signlevel_information = signlevel_info
+        # if isinstance(signlevel_info, SignLevelInformation):
+        #     self._signlevel_information = signlevel_info
+        # else:
+        #     self._signlevel_information = SignLevelInformation(signlevel_info)
+
+
+        # self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
+        # self._handshape_transcription = HandshapeTranscription(configs)
+        # self._location = LocationTranscription(location_transcription_info)
+
+        # TODO KV - for parameter modules and x-slots
+        self._signtype = None
+        self.movementmodules = []
+        # self.targetmodules = []
         self.locationmodules = []
         self.orientationmodules = []
         self.handshapemodules = []
@@ -503,7 +536,7 @@ class Sign:
 
     @signlevel_information.setter
     def signlevel_information(self, signlevelinfo):
-        self._signlevel_information = SignLevelInformation(signlevelinfo)
+        self._signlevel_information = signlevelinfo  # SignLevelInformation(signlevelinfo)
 
     @property
     def global_handshape_information(self):
@@ -535,11 +568,16 @@ class Sign:
 
     @signtype.setter
     def signtype(self, stype):
+        # TODO KV - validate?
         self._signtype = stype
 
     def addmovementmodule(self, movementmod):
         self.movementmodules.append(movementmod)
-        print("TODO KV movement modules list has been updated:", self.movementmodules)
+        print("TODO KV movement modules list has been updated (addition):", self.movementmodules)
+
+    def removemovementmodule(self, movementmod):
+        self.movementmodules.remove(movementmod)
+        print("TODO KV movement modules list has been updated (removal):", self.movementmodules)
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)
@@ -654,11 +692,11 @@ class Locations:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name='Untitled', signs=None, location_definition=None, movement_definition=None, path=None):
+    def __init__(self, name='Untitled', signs=None, location_definition=None, path=None):  # movement_definition=None,
         self.name = name
         self.signs = signs if signs else set()
         self.location_definition = location_definition
-        self.movement_definition = movement_definition
+        # self.movement_definition = movement_definition
         self.path = path
 
     def get_sign_glosses(self):

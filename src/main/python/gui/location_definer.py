@@ -40,7 +40,7 @@ from PyQt5.QtCore import (
 )
 
 from .helper_widget import EditableTabBar
-from constant import LocationParameter, Locations # KV TODO , Movements
+from constant import LocationParameter, Locations  # KV TODO , Movements
 from constant import SAMPLE_LOCATIONS
 from copy import copy, deepcopy
 from pprint import pprint

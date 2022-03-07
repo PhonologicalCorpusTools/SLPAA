@@ -1,10 +1,6 @@
 import os
 import json
 from PyQt5.QtWidgets import (
-    QGraphicsPolygonItem,
-    QGraphicsView,
-    QGraphicsScene,
-    QGraphicsPixmapItem,
     QFrame,
     QGridLayout,
     QLineEdit,
@@ -343,23 +339,38 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         # TODO KV keep this? or does loadspecs preclude it?
         # self.handstype_unspec_radio.toggle()
 
-
-    def setspecs(self, signtype_specs):
+    def setsigntype(self, signtype):
         allbuttons = [btn for btngrp in self.buttongroups for btn in btngrp.buttons()]
         buttonproperties = [btn.property('signtype') for btn in allbuttons]
-        for spec in signtype_specs:
+        tempspecs = signtype.specs
+        for spec in tempspecs:
             if spec in buttonproperties:
                 btnidx = buttonproperties.index(spec)
                 allbuttons[btnidx].setChecked(True)
 
 
-    def getspecs(self):
+    def getsigntype(self):
         allbuttons = [btn for btngrp in self.buttongroups for btn in btngrp.buttons()]
 
         # when saving, only use options that are both checked AND enabled!
-        specs = [btn.property('signtype') for btn in allbuttons if btn.isChecked() and btn.isEnabled()]
+        specslist = [btn.property('signtype') for btn in allbuttons if btn.isChecked() and btn.isEnabled()]
+        signtype = Signtype(specslist)
 
-        return specs
+        return signtype
+
+
+class Signtype:
+
+    def __init__(self, specslist):
+        self._specs = specslist
+
+    @property
+    def specs(self):
+        return self._specs
+
+    @specs.setter
+    def setspecs(self, specslist):
+        self._specs = specslist
 
 
 # parent can be widget or layout
@@ -427,17 +438,20 @@ class SigntypeCheckBox(QCheckBox):
 
 
 class SigntypeSelectorDialog(QDialog):
-    # saved_movements = pyqtSignal(Movements)
+    saved_signtype = pyqtSignal(Signtype)
 
-    def __init__(self, signtype_specifications, mainwindow, **kwargs):  # TODO KV delete  app_settings, app_ctx,
+    def __init__(self, signtype, mainwindow, **kwargs):  # TODO KV delete  app_settings, app_ctx,
         super().__init__(**kwargs)
-        self.signtype_specs = signtype_specifications if signtype_specifications else mainwindow.system_default_signtype  # TODO KV delete self.parent().system_default_signtype
+        if signtype is not None:
+            self.signtype = signtype
+        else:
+            self.signtype = mainwindow.system_default_signtype  # TODO KV delete self.parent().system_default_signtype
             
         # TODO KV delete self.app_settings = app_settings
         self.mainwindow = mainwindow
         
         self.signtype_layout = SigntypeSpecificationLayout()  # TODO KV delete app_ctx)
-        self.signtype_layout.setspecs(self.signtype_specs)
+        self.signtype_layout.setsigntype(self.signtype)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(self.signtype_layout)
@@ -456,7 +470,7 @@ class SigntypeSelectorDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
-        self.setMinimumSize(QSize(500, 850))
+        # self.setMinimumSize(QSize(500, 1100))  # 500, 850
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -472,20 +486,8 @@ class SigntypeSelectorDialog(QDialog):
     #         self.movement_tab.remove_all_pages()
     #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
-            signtypespecs = self.signtype_layout.getspecs()
-            # TODO KV delete
-            # cursign = self.parent().current_sign
-            # if cursign:
-            #     cursign.signtype = signtypespecs
-            # else:
-            self.mainwindow.update_new_sign()
-            self.mainwindow.new_sign.signtype = signtypespecs
-
-            # self.save_new_images()
-            # self.saved_locations.emit(self.location_tab.get_locations())
-            QMessageBox.information(self, 'Sign Type Saved', 'Sign type has been successfully saved!')
-
+            self.saved_signtype.emit(self.signtype_layout.getsigntype())
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            self.signtype_layout.setspecs(self.mainwindow.system_default_signtype)
+            self.signtype_layout.setsigntype(self.mainwindow.system_default_signtype)

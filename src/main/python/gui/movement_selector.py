@@ -1,10 +1,6 @@
 import os
 import json
 from PyQt5.QtWidgets import (
-    QGraphicsPolygonItem,
-    QGraphicsView,
-    QGraphicsScene,
-    QGraphicsPixmapItem,
     QFrame,
     QGridLayout,
     QLineEdit,
@@ -34,31 +30,15 @@ from PyQt5.QtWidgets import (
     QErrorMessage
 )
 
-from PyQt5.QtGui import (
-    QBrush,
-    QColor,
-    QPen,
-    QPolygonF,
-    QPixmap,
-    QIcon
-)
-
 from PyQt5.QtCore import (
     Qt,
-    QPoint,
-    QRectF,
     QAbstractListModel,
     pyqtSignal,
     QSize,
     QEvent
 )
 
-from .helper_widget import EditableTabBar
 from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, texteditrole, lastingrouprole, finalsubgrouprole, subgroupnamerole, MovementTreeView, MovementTreeItem
-from constant import LocationParameter, Locations # KV TODO , Movements
-from constant import SAMPLE_LOCATIONS
-from copy import copy, deepcopy
-from pprint import pprint
 
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
@@ -100,11 +80,10 @@ class Delegate(QStyledItemDelegate):
     def __init__(self):
         super().__init__()
         self.commitData.connect(self.validatedata)
-    #
+
     def returnkeypressed(self):
         print("return pressed")
         return True
-
 
     def validatedata(self, editor):
         # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
@@ -122,18 +101,6 @@ class Delegate(QStyledItemDelegate):
             editor.setText("#")
             # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
             # editor.setFocus()  # this creates an infinite loop
-
-        # print("editor is", editor)  # qlineedit
-        # prt = editor.parent()
-        # print("editor's parent is", prt)  # qwidget
-        # if isinstance(prt, MovementTreeView):
-        #     print("parent is instance of MovementTreeView")
-        # elif isinstance(prt, MovementTreeModel):
-        #     print("parent is instance of MovementTreeModel")
-        # elif isinstance(prt, MovementTreeItem):
-        #     print("parent is instance of MovementTreeItem")
-        # elif isinstance(prt, MovementDefinerDialog):
-        #     print("parent is instance of MovementDefinerDialog")
 
     def paint(self, painter, option, index):
         if index.data(Qt.UserRole+mutuallyexclusiverole):
@@ -166,10 +133,10 @@ class Delegate(QStyledItemDelegate):
 
 # TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
 class MovementSpecificationLayout(QVBoxLayout):
-    def __init__(self, movement_specifications, app_ctx, **kwargs):
+    def __init__(self, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
 
-        self.treemodel = MovementTreeModel(movementparameters=movement_specifications)
+        self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
         self.rootNode = self.treemodel.invisibleRootItem()
         self.treemodel.populate(self.rootNode)
 
@@ -327,22 +294,20 @@ class MovementSpecificationLayout(QVBoxLayout):
 
 
 class MovementSelectorDialog(QDialog):
-    # saved_movements = pyqtSignal(Movements)
+    # saved_movement = pyqtSignal(Movements)
 
-    def __init__(self, system_default_movement_specifications, movement_specifications, app_settings, app_ctx, **kwargs):
+    def __init__(self, mainwindow, **kwargs):  #  movement_specifications,
+    # TODO KV def __init__(self, system_default_movement_specifications, movement_specifications, app_settings, app_ctx, **kwargs):
         super().__init__(**kwargs)
-        self.app_settings = app_settings
-        self.system_default_movement_specifications = system_default_movement_specifications
+        self.mainwindow = mainwindow
+        # TODO KV self.app_settings = app_settings
+        self.system_default_movement_specifications = mainwindow.system_default_movement
 
-        self.movement_layout = MovementSpecificationLayout(movement_specifications, app_ctx)
+        self.movement_layout = MovementSpecificationLayout()  # movement_specifications)  # TODO KV , app_ctx)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(self.movement_layout)
 
-    #   TODO KV from locationdefiner
-    #     self.movement_tab = MovementDefinerTabWidget(system_default_movement_specifications, movement_specifications, app_settings, app_ctx, parent=self)
-    #     main_layout.addWidget(self.movement_tab)
-    #
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
         separate_line.setFrameShadow(QFrame.Sunken)
@@ -352,13 +317,6 @@ class MovementSelectorDialog(QDialog):
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
 
-    #   TODO KV from locationdefiner
-    #     import_button = self.button_box.addButton('Import', QDialogButtonBox.ActionRole)
-    #     import_button.setProperty('ActionRole', 'Import')
-    #
-    #     export_button = self.button_box.addButton('Export', QDialogButtonBox.ActionRole)
-    #     export_button.setProperty('ActionRole', 'Export')
-    #
     #     # TODO KV keep? from orig locationdefinerdialog: Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
 
@@ -383,8 +341,8 @@ class MovementSelectorDialog(QDialog):
         elif standard == QDialogButtonBox.Save:
             # TODO KV implement
             print("saving movement info (but not really...)")
-            print("current sign was", self.parent().current_sign)
-            self.parent().current_sign.addmovementmodule("TODO KV construct movement module")
+            print("current sign was", self.mainwindow.current_sign)
+            self.mainwindow.current_sign.addmovementmodule("TODO KV construct movement module")
 
             # self.save_new_images()
             # self.saved_locations.emit(self.location_tab.get_locations())

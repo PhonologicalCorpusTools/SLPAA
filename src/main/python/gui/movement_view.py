@@ -375,9 +375,9 @@ class TreeSearchComboBox(QComboBox):
 
 class MovementTreeModel(QStandardItemModel):
 
-    def __init__(self, movementparameters=None, **kwargs):
+    def __init__(self, **kwargs):  #  movementparameters=None,
         super().__init__(**kwargs)
-        self.movementparameters = movementparameters  # TODO KV   or [] (or {} or...)
+        # self.movementparameters = movementparameters  # TODO KV   or [] (or {} or...)
         self.listmodel = None
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
