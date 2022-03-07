@@ -388,6 +388,9 @@ Adducted
 - **SLP coding description:** full adduction between each finger
 - **Prototypical coding:** [=] between each adducted finger
 
+
+
+
 Bent
 ~~~~
 - **Dictionary description:** Handshape is compressed to take on a flat appearance
