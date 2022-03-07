@@ -346,7 +346,7 @@ Y
 
 Middle Finger
 ~~~~~~~~~~~~~
-.. image:: images/midfinger.png
+.. image:: images/middle-finger.png
         :width: 60
         :align: left
 |
