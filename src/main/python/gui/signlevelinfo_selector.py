@@ -59,8 +59,8 @@ class SignLevelInfoLayout(QVBoxLayout):
     def __init__(self, signlevelinfo, mainwindow, app_settings, **kwargs):
         super().__init__(**kwargs)
 
-        coder = app_settings['metadata']['coder']
-        defaulthand = app_settings['signdefaults']['handdominance']
+        self.coder = app_settings['metadata']['coder']
+        self.defaulthand = app_settings['signdefaults']['handdominance']
 
         self.signlevelinfo = signlevelinfo
 
@@ -76,19 +76,14 @@ class SignLevelInfoLayout(QVBoxLayout):
         update_label = QLabel('Last updated:') #  , parent=self)
         note_label = QLabel('Notes:') #  , parent=self)
 
-        self.gloss_edit = QLineEdit()  # parent=self)
-        self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
-        self.lemma_edit = QLineEdit()  # parent=self)
-        self.source_edit = QLineEdit()  # parent=self)
-        self.signer_edit = QLineEdit()  # parent=self)
-        self.freq_edit = QLineEdit('1.0')  # , parent=self)
-        self.coder_edit = QLineEdit()  # parent=self)
-        self.coder_edit.setText(coder)
-        self.update_edit = QLineEdit()  # parent=self)
-        self.update_edit.setPlaceholderText('YYYY-MM-DD')
-        self.update_edit.setText(str(date.today()))
-        self.note_edit = QPlainTextEdit()  # parent=self)
-        self.note_edit.setPlaceholderText('Enter note here...')
+        self.gloss_edit = QLineEdit()
+        self.lemma_edit = QLineEdit()
+        self.source_edit = QLineEdit()
+        self.signer_edit = QLineEdit()
+        self.freq_edit = QLineEdit()
+        self.coder_edit = QLineEdit()
+        self.update_edit = QLineEdit()
+        self.note_edit = QPlainTextEdit()
 
         self.handdominance_buttongroup = QButtonGroup()  # parent=self)
         self.handdominance_l_radio = QRadioButton('Left')
@@ -104,7 +99,7 @@ class SignLevelInfoLayout(QVBoxLayout):
         self.handdominance_layout.addWidget(self.handdominance_r_radio)
         self.handdominance_box.setLayout(self.handdominance_layout)
 
-        self.set_handdominance(defaulthand)
+        self.clear()
 
         main_layout.addWidget(gloss_label)
         main_layout.addWidget(self.gloss_edit)
@@ -143,8 +138,17 @@ class SignLevelInfoLayout(QVBoxLayout):
             self.set_handdominance(signlevelinfo.handdominance)
 
     def clear(self):
-        # TODO KV
-        pass
+        self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
+        self.lemma_edit.setText("")
+        self.source_edit.setText("")
+        self.signer_edit.setText("")
+        self.freq_edit.setText('1.0')
+        self.coder_edit.setText(self.coder)
+        self.update_edit.setPlaceholderText('YYYY-MM-DD')
+        # self.update_edit.setText(str(date.today()))  TODO KV
+        # self.note_edit = QPlainTextEdit()  # parent=self)
+        self.note_edit.setPlaceholderText('Enter note here...')
+        self.set_handdominance(self.defaulthand)
 
     def set_handdominance(self, handdominance):
         if handdominance == 'R':
