@@ -100,7 +100,7 @@ This section provides an overall list of all the baseline handshapes. If relevan
         
 A
 ~   
-.. image:: images/A.png
+.. image:: images/pdhs_A.png
         :width: 60
         :align: left
 |
@@ -112,11 +112,11 @@ A
 
 B   
 ~    
-.. image:: images/B1.png
+.. image:: images/pdhs_B1.png
         :width: 60
         :align: left
 
-.. image:: images/B2.png
+.. image:: images/pdhs_B2.png
         :width: 60
         :align: left
 |
@@ -126,7 +126,7 @@ B
 |
 C
 ~
-.. image:: images/C.png
+.. image:: images/pdhs_C.png
         :width: 60
         :align: left 
 |
@@ -134,7 +134,7 @@ C
 |
 D
 ~
-.. image:: images/D.png
+.. image:: images/pdhs_D.png
         :width: 60
         :align: left
 |
@@ -144,7 +144,7 @@ D
 |
 E
 ~
-.. image:: images/E.png
+.. image:: images/pdhs_E.png
         :width: 60
         :align: left
 |
@@ -152,7 +152,7 @@ E
 |
 F
 ~
-.. image:: images/F.png
+.. image:: images/pdhs_F.png
         :width: 60
         :align: left
 |
@@ -160,7 +160,7 @@ F
 |
 G
 ~
-.. image:: images/G.png
+.. image:: images/pdhs_G.png
         :width: 60
         :align: left
 |
@@ -172,7 +172,7 @@ G
 
 K
 ~
-.. image:: images/K.png
+.. image:: images/pdhs_K.png
         :width: 60
         :align: left
 |
@@ -181,7 +181,7 @@ K
 L 
 ~
 
-.. image:: images/L.png
+.. image:: images/pdhs_L.png
         :width: 5%
         :align: left
 |
@@ -191,7 +191,7 @@ L
     
 M
 ~
-.. image:: images/M.png
+.. image:: images/pdhs_M.png
         :width: 5%
         :align: left
 |
@@ -199,7 +199,7 @@ M
 |
 N
 ~
-.. image:: images/N.png
+.. image:: images/pdhs_N.png
         :width: 5%
         :align: left
 |
@@ -207,7 +207,7 @@ N
 |
 O 
 ~
-.. image:: images/O.png
+.. image:: images/pdhs_O.png
         :width: 5%
         :align: left
 |
@@ -217,7 +217,7 @@ O
 
 R
 ~
-.. image:: images/R.png
+.. image:: images/pdhs_R.png
         :width: 40
         :align: left
 |
@@ -227,7 +227,7 @@ R
 |
 S 
 ~
-.. image:: images/S.png
+.. image:: images/pdhs_S.png
         :width: 60
         :align: left
 |
@@ -235,7 +235,7 @@ S
 |
 T
 ~
-.. image:: images/T.png
+.. image:: images/pdhs_T.png
         :width: 60
         :align: left
 |
@@ -246,7 +246,7 @@ T
 |
 U 
 ~
-.. image:: images/U.png
+.. image:: images/pdhs_U.png
         :width: 40
         :align: left
 |
@@ -257,7 +257,7 @@ U
 |
 V
 ~
-.. image:: images/V.png
+.. image:: images/pdhs_V.png
         :width: 60
         :align: left
 |
@@ -267,7 +267,7 @@ V
 |
 W
 ~
-.. image:: images/W.png
+.. image:: images/pdhs_W.png
         :width: 80
         :align: left
 |
@@ -277,7 +277,7 @@ W
 |
 X
 ~
-.. image:: images/X.png
+.. image:: images/pdhs_X.png
         :width: 60
         :align: left
 |
@@ -300,7 +300,7 @@ Y
 
 1
 ~
-.. image:: images/1.png
+.. image:: images/pdhs_1.png
         :width: 60
         :align: left
 |
@@ -308,7 +308,7 @@ Y
 |
 3
 ~
-.. image:: images/3.png
+.. image:: images/pdhs_3.png
         :width: 60
         :align: left
 |
@@ -318,7 +318,7 @@ Y
 |
 4
 ~
-.. image:: images/4.png
+.. image:: images/pdhs_4.png
         :width: 60
         :align: left
 |
@@ -328,7 +328,7 @@ Y
 |
 5
 ~
-.. image:: images/5.png
+.. image:: images/pdhs_5.png
         :width: 60
         :align: left
 |
@@ -338,7 +338,7 @@ Y
 
 8
 ~
-.. image:: images/8.png
+.. image:: images/pdhs_8.png
         :width: 60
         :align: left
 |
@@ -347,7 +347,7 @@ Y
 
 Middle Finger
 ~~~~~~~~~~~~~
-.. image:: images/middle-finger.png
+.. image:: images/pdhs_middle-finger.png
         :width: 60
         :align: left
 |
@@ -358,7 +358,7 @@ Middle Finger
 
 Standard Base
 ~~~~~~~~~~~~~
-.. image:: images/base.png
+.. image:: images/pdhs_base.png
         :width: 60
         :align: left
 |
@@ -518,7 +518,7 @@ The predefined handshapes are organized in a grid where the rows are organized b
 
 -- *Note: The below image is a placeholder for a future image that shows the whole grid (may need to piece together separate screenshots of each section)*
    
-   .. image:: images/handshape_grid_test.png
+   .. image:: images/pdhs_handshape_grid_test.png
       :width: 90%
       :align: center
      
