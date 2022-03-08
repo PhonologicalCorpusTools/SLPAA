@@ -95,124 +95,275 @@ b) Transcription of Handshapes:
 II. Baseline Handshapes
 =======================
 
-This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST2
-
+This section provides an overall list of all the baseline handshapes. If relevant, a baseline handshape may have one or more bullet points describing handshapes derived from that base which may require special notes in addition to the overall descrpitions in section :ref:`derived_handshapes`. All "modified" handshapes are described in the current section. For images of all base handshapes see :ref:`handshape_images`. The base handshapes are listed along the leftmost column of the grid. TEST1
 
         
 A
 ~   
-
-.. image:: images/A.png
-        :width: 5%
+.. image:: images/pdhs_A.png
+        :width: 60
         :align: left
+|
 |
 |
 - In “modified-A”  the fingers are extended down to touch the palm (rather than tucked as for baseline “A”).
 - “A-index” differs from the baseline “A” handshape in that the index finger is raised and curved rather than tucked, and the thumb has a neutral abduction (<) rather than full adduction (=). In this case, the handshape does not follow the description of the ‘index’ derivation.
 |
+
 B   
 ~    
+.. image:: images/pdhs_B1.png
+        :width: 60
+        :align: left
 
-.. image:: images/1.png
-        :width: 5%
+.. image:: images/pdhs_B2.png
+        :width: 60
         :align: left
 |
 |
+|     
 - “B1” has the thumb crossed in front of the palm, while “B2” has the thumb adjacent to the index finger.
 |
 C
 ~
-
-.. image:: images/C-index.png
-        :width: 5%
+.. image:: images/pdhs_C.png
+        :width: 60
         :align: left 
+|
 |
 |
 D
 ~
-
-.. image:: images/8.png
-        :width: 5%
+.. image:: images/pdhs_D.png
+        :width: 60
         :align: left
+|
 |
 |
 - “Modified-D” has fingers 2, 3 & 4 creating the body of the D (as opposed to baseline “D”, which makes the body of the D using only the middle finger and tucks fingers 3 & 4 against palm). 
 |
 E
 ~
-
+.. image:: images/pdhs_E.png
+        :width: 60
+        :align: left
+|
+|
+|
 F
 ~
-
+.. image:: images/pdhs_F.png
+        :width: 60
+        :align: left
+|
+|
+|
 G
 ~
+.. image:: images/pdhs_G.png
+        :width: 60
+        :align: left
+|
+|
+|
+|
+|
 - “Modified-G” has the thumb extended parallel to the index finger (rather than the thumb sticking up at roughly a 90 degree angle from the index finger as in baseline “G”).
 
 K
 ~
-
+.. image:: images/pdhs_K.png
+        :width: 60
+        :align: left
+|
+|
+|
 L 
 ~
+
+.. image:: images/pdhs_L.png
+        :width: 5%
+        :align: left
+|
+|
+|
 - “Bent-thumb-L” has i for proximal joint and F for distal joint of thumb, but finger 1 is extended as in baseline “L”. This differs from “bent-L” which has finger 1 bent and the thumb extended. 
     
 M
 ~
-
+.. image:: images/pdhs_M.png
+        :width: 5%
+        :align: left
+|
+|
+|
 N
 ~
-
+.. image:: images/pdhs_N.png
+        :width: 5%
+        :align: left
+|
+|
+|
 O 
 ~
+.. image:: images/pdhs_O.png
+        :width: 5%
+        :align: left
+|
+|
+|
 - “Modified-O” appears to be a slightly flattened shape compared to baseline “O”, which has all joints of all fingers and thumb curved. In “modified-O”, the fingers are still curved at the medial and distal joints, with the proximal joint flexed (F). The thumb is extended forward from the palm in an opposed position (O) with no joints curved. This handshape is used in the ASL sign TEACH.
 
 R
 ~
-
+.. image:: images/pdhs_R.png
+        :width: 40
+        :align: left
+|
+|
+|
+|
+|
 S 
 ~
-
+.. image:: images/pdhs_S.png
+        :width: 60
+        :align: left
+|
+|
+|
 T
 ~
+.. image:: images/pdhs_T.png
+        :width: 60
+        :align: left
+|
+|
+|
+|
 - “Covered-T” has the medial joint of the index finger contacting the tip of the thumb, curving over the tip and covering the thumb. This differs from the description of "covered" which generally describes the friction distal part of the thumb touching the back distal part of the selected finger(s).
-
+|
 U 
 ~
+.. image:: images/pdhs_U.png
+        :width: 40
+        :align: left
+|
+|
+|
+|
 - “Contracted-U-index” has the index finger in a half-folded position beside a fully extended middle finger. In this case, the index finger does not follow the [i-E-E] pattern of the other “contracted” handshapes.
-
+|
 V
 ~
-
+.. image:: images/pdhs_V.png
+        :width: 60
+        :align: left
+|
+|
+|
+|
+|
 W
 ~
-
+.. image:: images/pdhs_W.png
+        :width: 80
+        :align: left
+|
+|
+|
+|
+|
 X
 ~
-
+.. image:: images/pdhs_X.png
+        :width: 60
+        :align: left
+|
+|
+|
+|
+|
 Y
 ~
+.. image:: images/pdhs_Y.png
+        :width: 80
+        :align: left
+|
+|
+|
+|
+|
 - “Modified-Y”  was not included in the predefined handshapes. Although this handshape occurs in *The Canadian Dictionary of ASL*, there are only three entries of signs that use it and there is no consistency between the depictions of the handshape. 
+|
 
 1
 ~
-
+.. image:: images/pdhs_1.png
+        :width: 60
+        :align: left
+|
+|
+|
 3
 ~
-
+.. image:: images/pdhs_3.png
+        :width: 60
+        :align: left
+|
+|
+|
+|
+|
 4
 ~
-
+.. image:: images/pdhs_4.png
+        :width: 60
+        :align: left
+|
+|
+|
+|
+|
 5
 ~
+.. image:: images/pdhs_5.png
+        :width: 60
+        :align: left
+|
+|
+|
 - “Modified-5” has the thumb extended forward from the palm in an opposed position (O), as opposed to baseline 5, which has the thumb extended away from the side of the palm (L)
 
 8
 ~
+.. image:: images/pdhs_8.png
+        :width: 60
+        :align: left
+|
+|
+|
 
 Middle Finger
 ~~~~~~~~~~~~~
+.. image:: images/pdhs_middle-finger.png
+        :width: 60
+        :align: left
+|
+|
+|
+|
+|
 
 Standard Base
 ~~~~~~~~~~~~~
+.. image:: images/pdhs_base.png
+        :width: 60
+        :align: left
+|
+|
+|
 - This handshape occurs in *The Canadian Dictionary of ASL*. 
 - All fingers are adducted (=) and have proximal joints slightly bent (i), and medial and distal joints extended (E). Thumb is unopposed (U) and has neutral abduction (<). 
 
@@ -236,6 +387,9 @@ Adducted
 - **Generic description:** Fingers are adducted
 - **SLP coding description:** full adduction between each finger
 - **Prototypical coding:** [=] between each adducted finger
+
+
+
 
 Bent
 ~~~~
@@ -324,9 +478,9 @@ Offset
 Open
 ~~~~~~
 - **Dictionary description:** A less tucked handshape
-- **Generic description:** Selected fingers have no contact with the thumb
-- **SLP coding description:** The thumb is distanced from the selected fingers, with no contact between thumb and fingers
-- **Prototypical coding:** No contact between thumb & fingers (e.g. “open-F”, “open-O”) and sometimes the overall handshape may be ‘looser’ and fingers less tucked (e.g. “open-E”, “open-A”)
+- **Generic description:** Selected fingers less tucked and have no contact with the thumb.
+- **SLP coding description:** Selected fingers are distanced from their point of contact on thumb (e.g. "open-E", “open-F”, “open-O”). The overall handshape may be ‘looser’ and fingers less flexed (e.g.“open-A”). 
+- **Prototypical coding:** No contact between thumb & fingers. Joints that are fully flexed [F] in the baseline handshape have [i] in the "open" handshape. 
 
 
 Relaxed
@@ -364,7 +518,7 @@ The predefined handshapes are organized in a grid where the rows are organized b
 
 -- *Note: The below image is a placeholder for a future image that shows the whole grid (may need to piece together separate screenshots of each section)*
    
-   .. image:: images/handshape_grid_test.png
+   .. image:: images/pdhs_handshape_grid_test.png
       :width: 90%
       :align: center
      
