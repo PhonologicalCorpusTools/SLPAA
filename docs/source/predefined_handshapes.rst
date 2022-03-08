@@ -287,7 +287,7 @@ X
 |
 Y
 ~
-.. image:: images/Y.png
+.. image:: images/pdhs_Y.png
         :width: 80
         :align: left
 |
