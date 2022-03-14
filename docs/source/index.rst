@@ -17,6 +17,7 @@ Contents:
    setting_preferences.rst
    terminology.rst
    transcription_process.rst
+   sign_level_info.rst
 
 
 
