@@ -145,7 +145,7 @@ class SignLevelInfoLayout(QVBoxLayout):
         self.freq_edit.setText('1.0')
         self.coder_edit.setText(self.coder)
         self.update_edit.setPlaceholderText('YYYY-MM-DD')
-        # self.update_edit.setText(str(date.today()))  TODO KV
+        self.update_edit.setText(str(date.today()))
         # self.note_edit = QPlainTextEdit()  # parent=self)
         self.note_edit.setPlaceholderText('Enter note here...')
         self.set_handdominance(self.defaulthand)

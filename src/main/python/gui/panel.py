@@ -384,17 +384,28 @@ class SignSummaryPanel(QScrollArea):
         movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, parent=self)
         movement_selector.exec_()
 
+    def hand_save_movement(self, movementoptions):
+        if self.sign:
+            # an existing sign is highlighted; update it
+            # TODO KV
+            self.sign.signtype = movementoptions
+        else:
+            # TODO KV this is a new sign
+            #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist
+            pass
+
+
     def handle_handshapebutton_click(self):
         # TODO KV
-        pass
+        QMessageBox.information(self, 'Not Available', 'Handshape module functionality not yet linked.')
 
     def handle_orientationbutton_click(self):
         # TODO KV
-        pass
+        QMessageBox.information(self, 'Not Available', 'Orientation module functionality not yet linked.')
 
     def handle_locationbutton_click(self):
         # TODO KV
-        pass
+        QMessageBox.information(self, 'Not Available', 'Location module functionality not yet linked.')
 
 
 class SignLevelInformationPanel(QScrollArea):
