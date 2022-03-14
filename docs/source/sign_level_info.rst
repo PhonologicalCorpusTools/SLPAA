@@ -39,7 +39,10 @@ Write the name of the source **(conventions for format here?)**
 
 4. Signer
 ``````````
-Write the name of the signer in the video. If unknown, **write "unknown"**.
+Select from dropdown menu.
+
+
+https://docs.google.com/document/d/1ZnwGCyqFXdSEDSKJy8HoeKEFXee-FMmk2uT5LPqZ8WQ/edit#heading=h.oqxx3lbrqst6 
 
 
 .. _frequency:
