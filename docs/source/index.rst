@@ -18,7 +18,7 @@ Contents:
    terminology.rst
    transcription_process.rst
    sign_level_info.rst
-   perceptual_shape.rst
+   movement_selection.rst
 
 
 
