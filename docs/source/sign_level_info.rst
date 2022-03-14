@@ -72,7 +72,7 @@ Write the name of the coder who coded the sign.
 
 8. Notes
 ``````````
-These notes will be attached to the particular sign. 
+These notes will be attached to the particular sign in the corpus.
 (images)
 
 .._hand_dominance:
