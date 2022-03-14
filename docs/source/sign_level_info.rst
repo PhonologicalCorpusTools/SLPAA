@@ -1,5 +1,7 @@
 .. _sign_level_info:
 
+**add overall description of what this section is for**
+
 *********************
 Sign Level Information
 *********************
@@ -12,7 +14,6 @@ Sign Level Information
 
 Write the gloss for the sign **(sign lang convention is to put in CAPS?)**. This is a word, or set of words, used to identify the sign in a spoken/written language so as to be able to talk about the sign. **(link to definition in glossary?)**
 
-(images)
 
 
 
@@ -21,7 +22,6 @@ Write the gloss for the sign **(sign lang convention is to put in CAPS?)**. This
 2. Lemma
 ``````````
 Write the lemma for the sign (in CAPS or lowercase?). The lemma is a unique identifyer for the target sign **(link to glossary definition)**
-(images)
 
 
 
@@ -31,7 +31,6 @@ Write the lemma for the sign (in CAPS or lowercase?). The lemma is a unique iden
 ``````````
 Write the name of the source **(conventions for format here?)**
 
-(images)
 
 
 
@@ -40,7 +39,6 @@ Write the name of the source **(conventions for format here?)**
 4. Signer
 ``````````
 Write the name of the signer in the video. If unknown, **write "unknown"**.
-(images)
 
 
 .. _frequency:
@@ -48,9 +46,6 @@ Write the name of the signer in the video. If unknown, **write "unknown"**.
 5. Frequency
 ``````````
 **what is this?**
-
-(images)
-
 
 
 .. _coder:
@@ -66,18 +61,21 @@ Write the name of the coder who coded the sign.
 ``````````
 **what does this mean**
 
-(images)
 
 .. _notes:
 
 8. Notes
 ``````````
 These notes will be attached to the particular sign in the corpus.
-(images)
+
 
 .._hand_dominance:
 
 9. Hand Dominance
 ``````````
 Choose from one of the options L or R for the signer. **If unknown, default is R.**
-(images)
+
+
+
+
+**insert image of sign_level_information box: give it filled out as an example sign**
