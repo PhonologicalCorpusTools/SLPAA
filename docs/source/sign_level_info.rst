@@ -1,10 +1,11 @@
 .. _sign_level_info:
 
-**add overall description of what this section is for**
 
 *********************
 Sign Level Information
 *********************
+
+**add overall description of what this section is for**
 
 
 .. _gloss:
