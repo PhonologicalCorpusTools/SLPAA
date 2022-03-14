@@ -30,7 +30,7 @@ Write the lemma for the sign (in CAPS or lowercase?). The lemma is a unique iden
 
 3. Source
 ``````````
-Write the name of the source **(conventions for format here?)**
+Write the name of the source **meta-data**
 
 
 
@@ -49,8 +49,7 @@ https://docs.google.com/document/d/1ZnwGCyqFXdSEDSKJy8HoeKEFXee-FMmk2uT5LPqZ8WQ/
 
 5. Frequency
 ``````````
-**what is this?**
-
+Include how often the sign occurs in the corpus.
 
 .. _coder:
 
@@ -63,7 +62,7 @@ Write the name of the coder who coded the sign.
 
 7. Last Updated
 ``````````
-**what does this mean**
+Filled in automatically when you change any element of the sign.
 
 
 .. _notes:
@@ -77,7 +76,7 @@ These notes will be attached to the particular sign in the corpus.
 
 9. Hand Dominance
 ``````````
-Choose from one of the options L or R for the signer. **If unknown, default is R.**
+Choose from one of the options L or R for the signer. **If unknown, default is R.** -- see "global options" for this
 
 
 
