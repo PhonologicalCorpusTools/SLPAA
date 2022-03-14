@@ -79,4 +79,4 @@ Choose from one of the options L or R for the signer. **If unknown, default is R
 
 
 
-**insert image of sign_level_information box: give it filled out as an example sign**
+**insert image of sign_level_information box: give it filled out as an example sign** 
