@@ -13,7 +13,7 @@ Sign Level Information
 
 
 
-.._lemma:
+.._lemma_:
 
 2. Lemma
 ``````````
@@ -21,7 +21,7 @@ Sign Level Information
 
 
 
-.._source:
+.._source_:
 
 3. Source
 ``````````
@@ -29,7 +29,7 @@ Sign Level Information
 
 
 
-.._signer:
+.._signer_:
 
 4. Signer
 ``````````
