@@ -13,7 +13,7 @@ Sign Level Information
 1. Gloss
 ``````````
 
-Write the gloss for the sign **(sign lang convention is to put in CAPS?)**. This is a word, or set of words, used to identify the sign in a spoken/written language so as to be able to talk about the sign. **(link to definition in glossary?)**
+Write the [gloss]_ for the sign **(sign lang convention is to put in CAPS?)**. This is a word, or set of words, used to identify the sign in a spoken/written language so as to be able to talk about the sign. **(link to definition in glossary?)**
 
 
 
