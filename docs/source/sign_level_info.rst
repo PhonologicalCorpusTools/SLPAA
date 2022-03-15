@@ -7,6 +7,8 @@ Sign Level Information
 
 **add overall description of what this section is for**
 
+Testing the references [Morgan2017]_ -- does that work?
+
 
 .. _gloss:
 
