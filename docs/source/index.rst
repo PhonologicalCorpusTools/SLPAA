@@ -19,6 +19,8 @@ Contents:
    transcription_process.rst
    sign_level_info.rst
    movement_selection.rst
+   glossary.rst
+   references.rst
 
 
 
