@@ -4,14 +4,14 @@
 Glossary
 **********
 
-.. [Entry_ID] xx
+.. [entry_ID] xx
 
-.. [Glossary] xx
+.. [gloss] xx
 
-.. [Handshape] holistic, pre-defined transcriptions for standard (phonological) handshapes.
+.. [handshape] holistic, pre-defined transcriptions for standard (phonological) handshapes.
 
-.. [Hand_configuration] phonetic shapes of the hand coded in the hand configuration module.
+.. [hand_configuration] phonetic shapes of the hand coded in the hand configuration module.
 
-.. [Lemma] xx
+.. [lemma] xx
 
 
