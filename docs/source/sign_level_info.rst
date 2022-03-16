@@ -9,6 +9,9 @@ Sign Level Information
 
 Testing the references [Morgan2017]_ -- does that work?
 
+0. Entry ID
+``````````
+The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_options` for how to set preferences.
 
 .. _gloss:
 
