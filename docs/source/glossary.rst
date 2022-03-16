@@ -6,35 +6,35 @@ Glossary
 
 .. _entry_ID: 
 
-Entry ID
+entry ID
 ========
 A unique identifier for each entry in a corpus. Note that if an entry is deleted, the old entry ID will not be re-used for any other entry.
 
 
 .. _gloss: 
 
-Gloss
+gloss
 ======
 add here
 
 
 .. _handshape: 
 
-Handshape
+handshape
 ======
 holistic, pre-defined transcriptions for standard (phonological) handshapes
 
 
 .. _hand_configuration: 
 
-Hand Configuration
+hand configuration
 ======
 phonetic shapes of the hand coded in the hand configuration module
 
 
 .. _lemma: 
 
-Lemma
+lemma
 ======
 add here
 
@@ -44,13 +44,13 @@ add here
 
 .. _sample: 
 
-Sample
+sample
 ======
 testing1
 
 .. _sample_2:
 
-Sample 2
+sample 2
 ========
 testing2
 
