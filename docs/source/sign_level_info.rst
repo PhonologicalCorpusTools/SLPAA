@@ -9,7 +9,7 @@ Sign Level Information
 
 Here's an example reference [Morgan2017]_; note that the reference is in square brackets and ends with an underscore. On ReadtheDocs, it will be a blue linked text, but the text will match the exact material in the square brackets.
 
-Here's an sample of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will be blue linked text, but the actual text that is the 'section heading' ('Sample 2') will be used instead of the name of the link ('sample_2'), which allows for nicer formatting and multi-word glossary items.
+Here's an example of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will be blue linked text, but the actual text that is the 'section heading' ('Sample 2') will be used instead of the name of the link ('sample_2'), which allows for nicer formatting and multi-word glossary items.
 
 0. Entry ID
 ``````````
