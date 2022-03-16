@@ -13,7 +13,7 @@ Here's an sample of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will be
 
 0. Entry ID
 ``````````
-The :ref:`entry_ID` will be generated automatically by SLP-AA. See `global_options`_ for how to set preferences.
+The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_options` for how to set preferences.
 
 .. _gloss:
 
