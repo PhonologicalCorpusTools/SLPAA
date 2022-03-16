@@ -11,7 +11,7 @@ Testing the references [Morgan2017]_ -- does that work?
 
 0. Entry ID
 ``````````
-The `entry_ID`_ will be generated automatically by SLP-AA. See `global_options`_ for how to set preferences.
+The :ref:`entry_ID` will be generated automatically by SLP-AA. See `global_options`_ for how to set preferences.
 
 .. _gloss:
 
