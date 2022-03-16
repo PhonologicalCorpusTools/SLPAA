@@ -15,7 +15,7 @@ Testing the references [Morgan2017]_ -- does that work?
 1. Gloss
 ``````````
 
-Write the gloss_ for the sign **(sign lang convention is to put in CAPS?)**. This is a word, or set of words, used to identify the sign in a spoken/written language so as to be able to talk about the sign. **(link to definition in glossary?)** [Note to April: given that we will be defining in the glossary and linking to that definition, this is a place where you don't need to re-define it in the documentation. Rule of thumb is to write information only once. :) --Kathleen (and you can delete this comment when you're done with it] v2
+Write the [gloss]_ for the sign **(sign lang convention is to put in CAPS?)**. This is a word, or set of words, used to identify the sign in a spoken/written language so as to be able to talk about the sign. **(link to definition in glossary?)** [Note to April: given that we will be defining in the glossary and linking to that definition, this is a place where you don't need to re-define it in the documentation. Rule of thumb is to write information only once. :) --Kathleen (and you can delete this comment when you're done with it] 
 
 
 
