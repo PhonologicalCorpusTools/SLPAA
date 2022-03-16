@@ -35,7 +35,7 @@ III. Plane
 
 **(Describe the default options for clockwise directionality. Note that the option to
 select a plane is not necessary for straight paths, but the option is not disabled for straight
-paths (?))**
+paths (?))** [Note for Nico: you can use a cross-reference to the global options in order to actual describe the default options, e.g., "See :ref:`global_options` to set preferences." --Kathleen]
 
 2. Movement type - Joint-specific movements
 ```````````````````````````````````````````
