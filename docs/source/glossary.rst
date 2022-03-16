@@ -1,4 +1,4 @@
-.. Glossary:
+.. glossary:
 
 **********
 Glossary
@@ -8,7 +8,7 @@ Glossary
 
 Entry ID
 ========
-A unique identifier for each entry in a corpus.
+A unique identifier for each entry in a corpus. Note that if an entry is deleted, the old entry ID will not be re-used for any other entry.
 
 
 .. _gloss: 
