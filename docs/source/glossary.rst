@@ -4,21 +4,43 @@
 Glossary
 **********
 
-.. [entry ID] xx
-
-.. [gloss] xx
-
-.. [handshape] holistic, pre-defined transcriptions for standard (phonological) handshapes
-
-.. [hand configuration] phonetic shapes of the hand coded in the hand configuration module
-
-.. [lemma] xx
-
 .. _entry_ID: 
 
 Entry ID
 ========
 A unique identifier for each entry in a corpus.
+
+
+.. _gloss: 
+
+Gloss
+======
+add here
+
+
+.. _handshape: 
+
+Handshape
+======
+holistic, pre-defined transcriptions for standard (phonological) handshapes
+
+
+.. _hand_configuration: 
+
+Hand Configuration
+======
+phonetic shapes of the hand coded in the hand configuration module
+
+
+.. _lemma: 
+
+Lemma
+======
+add here
+
+
+
+
 
 .. _sample: 
 
