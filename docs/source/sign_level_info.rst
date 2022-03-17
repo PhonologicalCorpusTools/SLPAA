@@ -15,7 +15,9 @@ Here's an example of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will b
 ``````````
 The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_options` for how to set preferences.
 
-.. _gloss:
+.. _gloss_entry:    
+
+# [Note to April: because 'gloss' is also an entry in the glossary, it will have the plain .. _gloss: label as its reference target. Let's use .._xx_entry to mark reference targets for the same named elements but in the description of where users enter the information.]
 
 1. Gloss
 ``````````
@@ -25,7 +27,7 @@ Write the [gloss]_ for the sign **(sign lang convention is to put in CAPS?)**. T
 
 
 
-.. _lemma:
+.. _lemma_entry:
 
 2. Lemma
 ``````````
