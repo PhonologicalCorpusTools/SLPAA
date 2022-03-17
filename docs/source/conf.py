@@ -43,7 +43,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'numpydoc',
+    # 'numpydoc',  # debugging docs build
     'corpustools.sphinx.ipatexescape'
 ]
 
