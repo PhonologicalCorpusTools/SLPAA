@@ -18,7 +18,8 @@ Contents:
    terminology.rst
    transcription_process.rst
    sign_level_info.rst
-   movement_selection.rst
+   movement_module.rst
+   global_options.rst
    glossary.rst
    references.rst
 
