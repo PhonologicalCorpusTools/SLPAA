@@ -22,7 +22,7 @@ The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_
 1. Gloss
 ``````````
 
-Write the [gloss]_ for the sign **(sign lang convention is to put in CAPS?)**. This is a word, or set of words, used to identify the sign in a spoken/written language so as to be able to talk about the sign. **(link to definition in glossary?)** [Note to April: given that we will be defining in the glossary and linking to that definition, this is a place where you don't need to re-define it in the documentation. Rule of thumb is to write information only once. :) --Kathleen (and you can delete this comment when you're done with it] 
+Write the :ref:`gloss` for the sign **(sign lang convention is to put in CAPS?)**. [Note to April: this is an internal convention, not a requirement of the software.] This is a word, or set of words, used to identify the sign in a spoken/written language so as to be able to talk about the sign. **(link to definition in glossary?)** [Note to April: given that we will be defining in the glossary and linking to that definition, this is a place where you don't need to re-define it in the documentation. Rule of thumb is to write information only once. :) --Kathleen (and you can delete this comment when you're done with it] 
 
 
 
@@ -31,7 +31,7 @@ Write the [gloss]_ for the sign **(sign lang convention is to put in CAPS?)**. T
 
 2. Lemma
 ``````````
-Write the lemma for the sign (in CAPS or lowercase?). The lemma is a unique identifyer for the target sign **(link to glossary definition)**
+Write the :ref:`lemma` for the sign (in CAPS or lowercase?). The lemma is a unique identifyer for the target sign **(link to glossary definition)** [Note to April: don't worry about caps / lowercase -- that's an internal convention.]
 
 
 
