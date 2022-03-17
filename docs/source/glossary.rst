@@ -8,7 +8,7 @@ Glossary
 
 entry ID
 ========
-A unique identifier for each entry in a corpus. 
+A unique identifier for each entry in a corpus. Choices for how these are defined are set within the :ref:`global_options` section.
 
 
 .. _gloss: 
@@ -22,14 +22,14 @@ add here
 
 handshape
 ======
-holistic, pre-defined transcriptions for standard (phonological) handshapes
+Holistic description of a standard phonological handshape, e.g., the B handshape in ASL. In SLP-AA, there are 'pre-defined' handshapes whose full :ref:`hand_configuration` is already specified in the :ref:`hand_configuration_module`.
 
 
 .. _hand_configuration: 
 
 hand configuration
 ======
-phonetic shapes of the hand coded in the hand configuration module
+Phonetic shapes of the hand coded in the :ref:`hand_configuration_module`. May include variation from a standard :ref:`handshape`.
 
 
 .. _lemma: 
