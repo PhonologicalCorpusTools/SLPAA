@@ -1,5 +1,5 @@
 ******************
-Movement Selection
+Movement Module
 ******************
 
 **(What this module is used for and how it works. Mention especially that this should be the 
