@@ -299,8 +299,14 @@ class SignSummaryPanel(QScrollArea):
         self.signtype_button = QPushButton("Sign type selection")
         self.signtype_button.clicked.connect(self.handle_signtypebutton_click)
         self.module_buttons.append(self.signtype_button)
+
+        self.movement_layout = QHBoxLayout()
         self.movement_button = QPushButton("Movement selection")
+        self.movement_button.setProperty("existingmodule", False)
         self.movement_button.clicked.connect(self.handle_movementbutton_click)
+        self.movement_layout.addWidget(self.movement_button)
+        self.movementmodule_buttons = []
+        self.update_movementmodulebuttons()
         self.module_buttons.append(self.movement_button)
         self.handshape_button = QPushButton("Handshape selection")
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
@@ -316,12 +322,23 @@ class SignSummaryPanel(QScrollArea):
         main_layout.addWidget(self.signgloss_label)
         main_layout.addWidget(self.signlevel_button)
         main_layout.addWidget(self.signtype_button)
-        main_layout.addWidget(self.movement_button)
+        main_layout.addLayout(self.movement_layout)
         main_layout.addWidget(self.handshape_button)
         main_layout.addWidget(self.orientation_button)
         main_layout.addWidget(self.location_button)
 
         self.setWidget(main_frame)
+
+    def update_movementmodulebuttons(self):
+        if self.sign:
+            existing_buttonkeys = [b.text() for b in self.movementmodule_buttons]
+            for mvmtmodulekey in [k for k in self._sign.movementmodules.keys() if k not in existing_buttonkeys]:
+                movementmodulebutton = QPushButton(mvmtmodulekey)
+                movementmodulebutton.setProperty("existingmodule", True)
+                movementmodulebutton.clicked.connect(self.handle_movementbutton_click)
+                self.movement_layout.addWidget(movementmodulebutton)
+                self.movementmodule_buttons.append(movementmodulebutton)
+                self.module_buttons.append(movementmodulebutton)
 
     def enable_module_buttons(self, yesorno):
         for btn in self.module_buttons:
@@ -379,16 +396,33 @@ class SignSummaryPanel(QScrollArea):
             pass
 
     def handle_movementbutton_click(self):
+        print("handle_movementbutton_click")
+        button = self.sender()
         # TODO KV
-
-        movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, parent=self)
+        editing_existing = button.property("existingmodule")
+        print("     module does ", "" if editing_existing else "not", "exist already")
+        existing_key = None
+        moduletoload = None
+        if editing_existing:
+            existing_key = button.text()
+            print("     ... "+existing_key)
+            moduletoload = self.sign.movementmodules[existing_key]
+        movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
+        movement_selector.saved_movement.connect(lambda movementtree: self.handle_save_movement(movementtree, existing_key))
         movement_selector.exec_()
 
-    def hand_save_movement(self, movementoptions):
+    def handle_save_movement(self, movementtree, existing_key):
         if self.sign:
             # an existing sign is highlighted; update it
             # TODO KV
-            self.sign.signtype = movementoptions
+            print("handle_save_movement with movementtree = ", movementtree, "and existing_key = ", existing_key)
+            if existing_key is None or existing_key not in self.sign.movementmodules.keys():
+                # self.sign.addmovementmodule(movementtree)  # TODO KV MovementTreeModel can't be pickled
+                print("     added movementmodule to sign")
+            else:
+                self.sign.movementmodules[existing_key] = movementtree
+                print("     updated movementmodule within sign (already exists)")
+            self.update_movementmodulebuttons()
         else:
             # TODO KV this is a new sign
             #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist

@@ -214,31 +214,13 @@ class SignlevelinfoSelectorDialog(QDialog):
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
-        if standard == QDialogButtonBox.Cancel:
-            # response = QMessageBox.question(self, 'Warning',
-            #                                 'If you close the window, any unsaved changes will be lost. Continue?')
-            # if response == QMessageBox.Yes:
-            #     self.accept()
 
+        if standard == QDialogButtonBox.Cancel:
             self.reject()
 
-    #     elif standard == QDialogButtonBox.RestoreDefaults:
-    #         self.movement_tab.remove_all_pages()
-    #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
             signlevelinfo = self.signlevelinfo_layout.get_value()
-            # TODO KV delete
-            # cursign = self.parent().current_sign
-            # if cursign:
-            #     cursign.signtype = signtypespecs
-            # else:
-
             self.saved_signlevelinfo.emit(SignLevelInformation(signlevelinfo))
-            # self.mainwindow.update_new_sign()
-            # self.mainwindow.new_sign.signtype = signtypespecs
-
-            # QMessageBox.information(self, 'Sign-level info saved', 'Sign-level info has been successfully saved!')
-
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:

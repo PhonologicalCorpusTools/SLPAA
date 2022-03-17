@@ -494,7 +494,7 @@ class Sign:
 
         # TODO KV - for parameter modules and x-slots
         self._signtype = None
-        self.movementmodules = []
+        self.movementmodules = {}
         # self.targetmodules = []
         self.locationmodules = []
         self.orientationmodules = []
@@ -514,7 +514,7 @@ class Sign:
 
         # TODO KV - for parameter modules and x-slots
         self._signtype = None
-        self.movementmodules = []
+        self.movementmodules = {}
         # self.targetmodules = []
         self.locationmodules = []
         self.orientationmodules = []
@@ -571,13 +571,17 @@ class Sign:
         # TODO KV - validate?
         self._signtype = stype
 
-    def addmovementmodule(self, movementmod):
-        self.movementmodules.append(movementmod)
-        print("TODO KV movement modules list has been updated (addition):", self.movementmodules)
+    def addmovementmodule(self, movementtree, mvmtid=None):
+        if mvmtid is None:
+            existingkeys = [k[1:] for k in self.movementmodules.keys()] + [0]
+            nextinteger = max([int(k) for k in existingkeys]) + 1
+            mvmtid = str("M" + str(nextinteger))
+        self.movementmodules[mvmtid] = movementtree
+        print("TODO KV movement modules list has been updated (addition):", mvmtid, " -->",  self.movementmodules.keys())
 
-    def removemovementmodule(self, movementmod):
-        self.movementmodules.remove(movementmod)
-        print("TODO KV movement modules list has been updated (removal):", self.movementmodules)
+    def removemovementmodule(self, mvmtid):
+        self.movementmodules.pop(mvmtid)
+        print("TODO KV movement modules list has been updated (removal):", mvmtid, " -->",  self.movementmodules.keys())
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)

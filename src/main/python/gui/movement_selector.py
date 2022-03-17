@@ -40,7 +40,6 @@ from PyQt5.QtCore import (
 
 from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, texteditrole, lastingrouprole, finalsubgrouprole, subgroupnamerole, MovementTreeView, MovementTreeItem
 
-
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
 class Delegate(QStyledItemDelegate):
 
@@ -133,12 +132,16 @@ class Delegate(QStyledItemDelegate):
 
 # TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
 class MovementSpecificationLayout(QVBoxLayout):
-    def __init__(self, **kwargs):  # TODO KV app_ctx, movement_specifications,
+    def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
 
+        print("loading movementspecificationlayout with", "brand new" if moduletoload is None else "existing", "model")
         self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
+        if moduletoload is not None:
+            self.treemodel = moduletoload
         self.rootNode = self.treemodel.invisibleRootItem()
-        self.treemodel.populate(self.rootNode)
+        if moduletoload is None:
+            self.treemodel.populate(self.rootNode)
 
         self.listmodel = MovementListModel(self.treemodel)
 
@@ -294,16 +297,14 @@ class MovementSpecificationLayout(QVBoxLayout):
 
 
 class MovementSelectorDialog(QDialog):
-    # saved_movement = pyqtSignal(Movements)
+    saved_movement = pyqtSignal(MovementTreeModel)
 
-    def __init__(self, mainwindow, **kwargs):  #  movement_specifications,
-    # TODO KV def __init__(self, system_default_movement_specifications, movement_specifications, app_settings, app_ctx, **kwargs):
+    def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
-        # TODO KV self.app_settings = app_settings
         self.system_default_movement_specifications = mainwindow.system_default_movement
 
-        self.movement_layout = MovementSpecificationLayout()  # movement_specifications)  # TODO KV , app_ctx)
+        self.movement_layout = MovementSpecificationLayout(moduletoload=moduletoload)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(self.movement_layout)
@@ -313,9 +314,19 @@ class MovementSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = None
+        applytext = ""
+        if enable_addnew:
+            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+            applytext = "Save and close"
+        else:
+            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+            applytext = "Save"
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
+        if enable_addnew:
+            self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
+        self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
 
     #     # TODO KV keep? from orig locationdefinerdialog: Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
@@ -327,27 +338,18 @@ class MovementSelectorDialog(QDialog):
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
-        if standard == QDialogButtonBox.Cancel:
-            # response = QMessageBox.question(self, 'Warning',
-            #                                 'If you close the window, any unsaved changes will be lost. Continue?')
-            # if response == QMessageBox.Yes:
-            #     self.accept()
 
+        if standard == QDialogButtonBox.Cancel:
             self.reject()
 
-    #     elif standard == QDialogButtonBox.RestoreDefaults:
-    #         self.movement_tab.remove_all_pages()
-    #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
-        elif standard == QDialogButtonBox.Save:
-            # TODO KV implement
-            print("saving movement info (but not really...)")
-            print("current sign was", self.mainwindow.current_sign)
-            self.mainwindow.current_sign.addmovementmodule("TODO KV construct movement module")
+        elif standard == QDialogButtonBox.Save:  # save and next
+            # save info and then refresh screen to enter next movemement module
+            self.saved_movement.emit(self.movement_layout.treemodel)
+            self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
 
-            # self.save_new_images()
-            # self.saved_locations.emit(self.location_tab.get_locations())
-            QMessageBox.information(self, 'Movement Saved', 'Movement module has been successfully saved!')
-
+        elif standard == QDialogButtonBox.Apply:  # save and close
+            # save info and then close dialog
+            self.saved_movement.emit(self.movement_layout.treemodel)
             self.accept()
 
     #     # elif standard == QDialogButtonBox.NoButton:
