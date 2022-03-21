@@ -354,8 +354,8 @@ class MainWindow(QMainWindow):
         self.corpus_scroll.setWidgetResizable(True)
         self.corpus_scroll.setWidget(self.corpus_view)
 
-        self.signlevelinfo_scroll = SignLevelInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
-        self.signlevelinfo_scroll.finish_edit.connect(self.handle_signlevel_edit)
+        # self.signlevelinfo_scroll = SignLevelInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
+        # self.signlevelinfo_scroll.finish_edit.connect(self.handle_signlevel_edit)
 
         # self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
         #
@@ -1015,7 +1015,7 @@ class MainWindow(QMainWindow):
         self.corpus_view.clear()
         self.sign_summary.clear()
         self.sign_summary.enable_module_buttons(False)
-        self.signlevelinfo_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
+        # self.signlevelinfo_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         # self.transcription_scroll.clear()
         # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)  # todo kv dict(),
 

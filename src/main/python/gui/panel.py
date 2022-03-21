@@ -51,7 +51,6 @@ from PyQt5.QtGui import (
 )
 
 from gui.hand_configuration import ConfigGlobal, Config
-from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView
 from gui.signtype_selector import SigntypeSelectorDialog
 from gui.signlevelinfo_selector import SignlevelinfoSelectorDialog
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
@@ -427,7 +426,6 @@ class SignSummaryPanel(QScrollArea):
             # TODO KV this is a new sign
             #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist
             pass
-
 
     def handle_handshapebutton_click(self):
         # TODO KV
