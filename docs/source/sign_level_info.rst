@@ -6,10 +6,11 @@ Sign Level Information
 *********************
 
 **add overall description of what this section is for**
+This module provides a place to tag the sign with relevant information, including information about the signer, the coder, the video, and the sign. This information may be used in searches to identify and group together signs based on shared sign level information.
 
-Here's an example reference [Morgan2017]_; note that the reference is in square brackets and ends with an underscore. On ReadtheDocs, it will be a blue linked text, but the text will match the exact material in the square brackets.
+#Here's an example reference [Morgan2017]_; note that the reference is in square brackets and ends with an underscore. On ReadtheDocs, it will be a blue linked text, but the text will match the exact material in the square brackets.
 
-Here's an example of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will be blue linked text, but the actual text that is the 'section heading' ('Sample 2') will be used instead of the name of the link ('sample_2'), which allows for nicer formatting and multi-word glossary items.
+#Here's an example of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will be blue linked text, but the actual text that is the 'section heading' ('Sample 2') will be used instead of the name of the link ('sample_2'), which allows for nicer formatting and multi-word glossary items.
 
 .. _entry_ID_entry:
 
