@@ -40,16 +40,19 @@ III. Plane
 select a plane is not necessary for straight paths, but the option is not disabled for straight
 paths (?))** [Note for Nico: you can use a cross-reference to the global options in order to actual describe the default options, e.g., "See :ref:`global_options` to set preferences." --Kathleen]
 
+.. _movement_type_joint_specific_movements:
 2. Movement type - Joint-specific movements
 ```````````````````````````````````````````
 
 ...
 
+.. _joint_movements:
 3. Joint movements
 ``````````````````
 
 ...
 
+.. _movement_characteristics:
 4. Movement characteristics
 ```````````````````````````
 
