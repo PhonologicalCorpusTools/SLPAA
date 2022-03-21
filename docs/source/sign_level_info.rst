@@ -46,8 +46,6 @@ Select source from dropdown menu after they have been specified in :ref:`source_
 Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`
 
 
-https://docs.google.com/document/d/1ZnwGCyqFXdSEDSKJy8HoeKEFXee-FMmk2uT5LPqZ8WQ/edit#heading=h.oqxx3lbrqst6 
-
 
 .. _frequency:
 
