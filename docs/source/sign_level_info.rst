@@ -5,8 +5,7 @@
 Sign Level Information
 *********************
 
-**add overall description of what this section is for**
-This module provides a place to tag the sign with relevant information, including information about the signer, the coder, the video, and the sign. This information may be used in searches to identify and group together signs based on shared sign level information.
+**This module provides a place to tag the particular corpus entry with relevant information, including information about the signer, the coder, the video, and the sign. This information may be used in searches to identify and group together signs based on shared sign level information.**
 
 #Here's an example reference [Morgan2017]_; note that the reference is in square brackets and ends with an underscore. On ReadtheDocs, it will be a blue linked text, but the text will match the exact material in the square brackets.
 
