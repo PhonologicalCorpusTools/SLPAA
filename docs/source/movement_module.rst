@@ -1,3 +1,6 @@
+.. _movement_module: 
+[note for Nico: remember to add reference tags for each section and sub-section that we may need to cross-reference at some point. Also I think each document title has a reference tage as well, like the one I just added above]
+
 ******************
 Movement Module
 ******************
