@@ -22,6 +22,8 @@ Contents:
    global_options.rst
    glossary.rst
    references.rst
+   sign_type.rst
+
 
 
 
