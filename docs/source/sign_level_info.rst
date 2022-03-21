@@ -36,14 +36,14 @@ Write the :ref:`lemma` for the sign.
 
 3. Source
 ``````````
-Select source from dropdown menu after they have been specified in :ref:`source_info_entry`.
+Select source from dropdown menu after they have been specified in :ref:`source_info_entry`
 
 
 .. _signer:
 
 4. Signer
 ``````````
-Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`.
+Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`
 
 
 https://docs.google.com/document/d/1ZnwGCyqFXdSEDSKJy8HoeKEFXee-FMmk2uT5LPqZ8WQ/edit#heading=h.oqxx3lbrqst6 
@@ -59,7 +59,7 @@ Include how often the sign occurs in the corpus.
 
 6. Coder
 ``````````
-Select source from dropdown menu after they have been specified in :ref:`coder_info_entry`.
+Select source from dropdown menu after they have been specified in :ref:`coder_info_entry`
 
 
 .. _last_updated:
@@ -76,7 +76,7 @@ This will be filled in automatically when you change any element of the sign.
 These notes will be attached to the particular sign in the corpus.
 
 
-.._hand_dominance:
+.. _hand_dominance:
 
 9. Hand Dominance
 ``````````
