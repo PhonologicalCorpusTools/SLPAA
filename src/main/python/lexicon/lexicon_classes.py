@@ -696,7 +696,7 @@ class Locations:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name='Untitled', signs=None, location_definition=None, path=None):  # movement_definition=None,
+    def __init__(self, name="", signs=None, location_definition=None, path=None):  # movement_definition=None,
         self.name = name
         self.signs = signs if signs else set()
         self.location_definition = location_definition

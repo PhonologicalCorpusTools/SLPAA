@@ -33,14 +33,14 @@ class CorpusModel(QAbstractListModel):
 class CorpusView(QWidget):
     selected_gloss = pyqtSignal(str)
 
-    def __init__(self, corpus_title='Untitled', **kwargs):
+    def __init__(self, corpus_title="", **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        # TODO: maybe make this editable
         self.corpus_title = QLineEdit(corpus_title, parent=self)
+        self.corpus_title.setPlaceholderText('Untitled')
         main_layout.addWidget(self.corpus_title)
 
         self.corpus_model = CorpusModel(parent=self)
@@ -71,7 +71,7 @@ class CorpusView(QWidget):
         self.corpus_view.clearSelection()
 
     def clear(self):
-        self.corpus_title.setText('Untitled')
+        self.corpus_title.setText("")
 
         self.corpus_model.glosses.clear()
         self.corpus_model.layoutChanged.emit()

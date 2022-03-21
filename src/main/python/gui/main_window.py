@@ -343,10 +343,9 @@ class MainWindow(QMainWindow):
         # menu_signtype = main_menu.addMenu('&Sign type')
         # menu_signtype.addAction(action_select_signtype)
 
+        corpusname = ""
         if self.corpus and self.corpus.name:
             corpusname = self.corpus.name
-        else:
-            corpusname = 'Untitled'
         self.corpus_view = CorpusView(corpusname, parent=self)
         self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
 
