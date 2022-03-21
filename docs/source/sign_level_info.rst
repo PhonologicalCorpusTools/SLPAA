@@ -80,7 +80,7 @@ These notes will be attached to the particular sign in the corpus.
 
 9. Hand Dominance
 ``````````
-Choose from one of the options L or R for the signer. Global settings for hand dominance **[make this link to .._global_options_hand_dominance]** can be specified by the user. 
+Choose from one of the options L or R for the signer. Global settings for hand dominance **[make this link to .._globalsettings_hand_dominance]** can be specified by the user. 
 
 
 **insert image of sign_level_information box: give it filled out as an example sign** 
