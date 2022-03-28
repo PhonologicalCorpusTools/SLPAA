@@ -6,7 +6,7 @@ Movement Module
 
 **(What this module is used for and how it works. Mention especially that this should be the first module coded other than sign-level and sign type, and that this is used to generate x-slots. Link to the section on/glossary definition of x-slots as well.)**
 
-Any individual movement component in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint_specific1c_movement`. **(More fine-grained articulatory detail can be added by specifying other joint movements involved in the production of each component...)**
+Any individual movement component in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint_specific_movement`. **(More fine-grained articulatory detail can be added by specifying other joint movements involved in the production of each component...)**
 
 .. _movement_type_perceptual_shape:
 
