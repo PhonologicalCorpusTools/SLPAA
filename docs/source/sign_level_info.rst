@@ -29,12 +29,12 @@ Write the :ref:`lemma` for the sign.
 
 3. Source
 ``````````
-Select source from dropdown menu after they have been specified in :ref:`source_info_entry`
+Select source from dropdown menu after they have been specified in :ref:`source_info_entry`(to link to metadate documentation)
 
 
 4. Signer
 ``````````
-Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`
+Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`(to link to metadate documentation)
 
 
 5. Frequency
@@ -44,7 +44,7 @@ Include how often the sign occurs in the corpus.
 
 6. Coder
 ``````````
-Select source from dropdown menu after they have been specified in :ref:`coder_info_entry` (to link to 
+Select source from dropdown menu after they have been specified in :ref:`coder_info_entry` (to link to metadate documentation)
 
 
 7. Last Updated
