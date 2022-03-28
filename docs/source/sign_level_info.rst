@@ -21,13 +21,15 @@ The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_
 Write the :ref:`gloss` for the sign. 
 
 
-**2. Lemma**
+2. Lemma
+~~~~~~~~~
 
 Write the :ref:`lemma` for the sign.
 
 
-3. Source
-``````````
+IV. Source
+==========
+
 Select source from dropdown menu after they have been specified in :ref:`source_info_entry`(to link to metadate documentation)
 
 
