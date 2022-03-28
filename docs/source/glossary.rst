@@ -32,6 +32,13 @@ hand configuration
 Phonetic shapes of the hand coded in the :ref:`hand_configuration_module`. May include variation from a standard :ref:`handshape`.
 
 
+.. _joint_specific_movement:
+
+joint-specific movement
+======
+add here
+
+
 .. _lemma: 
 
 lemma
@@ -39,7 +46,11 @@ lemma
 add here
 
 
+.. _perceptual_shape:
 
+perceptual shape
+======
+add here
 
 
 .. _sample: 
