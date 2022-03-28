@@ -10,9 +10,11 @@ This module is where users identify the overarching ‘kind’ of sign by select
 I.II. =====
 abc ~~~~~~~~~
 
+.. _signtype_number_hands: 
 
 1. Number of hands
 ```````````````````
+
 I. 1 hand
 =========
 This is selected if the sign only involved one hand, regardless of movement, contact etc. 
@@ -21,7 +23,7 @@ This is selected if the sign only involved one hand, regardless of movement, con
 
 - "The hand does not move" is selected if the hand is not nvolved in any movement, such as [ONE].
 
-2 hands
+II. 2 hands
 =========
 This is selected if both **hands** are involved in the sign in some way. **(add a note about what to do if the ARM is involved, such as WHALE, CRACKER, TRASH, and even TIME, where the wrist is involved. Signs where the forearm is parallel to the ground, this selection will be available in PDHS module)**
 
@@ -38,6 +40,7 @@ https://www.handspeak.com/word/search/index.php?id=2686
 b) Contact relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
+.. _signtype_movement_relation: 
 
 2. Movement relation
 ````````````````````
