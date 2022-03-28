@@ -22,13 +22,13 @@ Write the :ref:`gloss` for the sign.
 
 
 2. Lemma
-~~~~~~~~~
+========
 
 Write the :ref:`lemma` for the sign.
 
 
 IV. Source
-==========
+~~~~~~~~~~
 
 Select source from dropdown menu after they have been specified in :ref:`source_info_entry`(to link to metadate documentation)
 
