@@ -25,6 +25,8 @@ Write the :ref:`gloss` for the sign.
 b) Lemma
 ~~~~~~~~~~
 
+b) Lemma with === under
+======================
 Write the :ref:`lemma` for the sign.
 
 
