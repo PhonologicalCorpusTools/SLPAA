@@ -16,8 +16,10 @@ abc ~~~~~~~~~
 I.1 hand
 =========
 This is selected if the sign only involved one hand, regardless of movement, contact etc. 
-- "the hand moves" is selected if the hand is involved in either a perceptual shape [NORTH] or a joint-specific movement [APPLE]
-- "the hand does not move" is selected if the hand is not nvolved in any movement, such as [ONE].
+
+- "The hand moves" is selected if the hand is involved in either a perceptual shape [NORTH] or a joint-specific movement [APPLE]
+
+- "The hand does not move" is selected if the hand is not nvolved in any movement, such as [ONE].
 
 II.2 hands
 =========
