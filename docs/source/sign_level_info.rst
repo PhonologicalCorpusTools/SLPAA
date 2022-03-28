@@ -12,16 +12,16 @@ Sign Level Information
 #Here's an example of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will be blue linked text, but the actual text that is the 'section heading' ('Sample 2') will be used instead of the name of the link ('sample_2'), which allows for nicer formatting and multi-word glossary items.
 
 
-**Entry ID**
+**0. Entry ID**
 
 The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_options` for how to set preferences.
 
-**Gloss**
+**1. Gloss**
 
 Write the :ref:`gloss` for the sign. 
 
 
-**Lemma**
+**2. Lemma**
 
 Write the :ref:`lemma` for the sign.
 
