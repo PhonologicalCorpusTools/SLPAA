@@ -1,8 +1,8 @@
-.. _global_options:
+.. _global_settings:
 
 
 **************************
-Global Options
+Global Settings
 **************************
 
 **add overall description of what this section is for**
