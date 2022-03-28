@@ -13,7 +13,7 @@ Sign Level Information
 
 
 Entry ID
-=========
+~~~~~~~~~
 
 The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_options` for how to set preferences.
 
