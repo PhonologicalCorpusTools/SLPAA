@@ -2,6 +2,8 @@ from itertools import chain
 from copy import deepcopy
 from datetime import date
 
+from gui.movement_view import MovementTree
+
 NULL = '\u2205'
 
 def empty_copy(obj):
@@ -482,43 +484,74 @@ class Sign:
     """
     Gloss in signlevel_information is used as the unique key
     """
-    def __init__(self,
-                 signlevel_info,
-                 global_hand_info,
-                 configs,
-                 location_transcription_info):
-        self._signlevel_information = signlevel_info  # SignLevelInformation(signlevel_info)
-        self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
-        self._handshape_transcription = HandshapeTranscription(configs)
-        self._location = LocationTranscription(location_transcription_info)
+    # def __init__(self,
+    #              signlevel_info,
+    #              global_hand_info,
+    #              configs,
+    #              location_transcription_info):
+    #     self._signlevel_information = signlevel_info  # SignLevelInformation(signlevel_info)
+    #     self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
+    #     self._handshape_transcription = HandshapeTranscription(configs)
+    #     self._location = LocationTranscription(location_transcription_info)
+    #
+    #     # TODO KV - for parameter modules and x-slots
+    #     self._signtype = None
+    #     self.movementmodules = {}
+    #     # self.targetmodules = []
+    #     self.locationmodules = []
+    #     self.orientationmodules = []
+    #     self.handshapemodules = []
 
-        # TODO KV - for parameter modules and x-slots
-        self._signtype = None
-        self.movementmodules = {}
-        # self.targetmodules = []
-        self.locationmodules = []
-        self.orientationmodules = []
-        self.handshapemodules = []
+    def __init__(self, signlevel_info=None, serializedsign=None):
+        if serializedsign:
+            self._signlevel_information = serializedsign['signlevel']
+            self._signtype = serializedsign['type']
+            self.unserializemovementmodules(serializedsign['mov modules'])
+            self.locationmodules = serializedsign['loc modules']
+            self.orientationmodules = serializedsign['ori modules']
+            self.handshapemodules = serializedsign['han modules']
+        else:
+            self._signlevel_information = signlevel_info
+            # if isinstance(signlevel_info, SignLevelInformation):
+            #     self._signlevel_information = signlevel_info
+            # else:
+            #     self._signlevel_information = SignLevelInformation(signlevel_info)
 
-    def __init__(self, signlevel_info):
-        self._signlevel_information = signlevel_info
-        # if isinstance(signlevel_info, SignLevelInformation):
-        #     self._signlevel_information = signlevel_info
-        # else:
-        #     self._signlevel_information = SignLevelInformation(signlevel_info)
 
+            # self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
+            # self._handshape_transcription = HandshapeTranscription(configs)
+            # self._location = LocationTranscription(location_transcription_info)
 
-        # self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
-        # self._handshape_transcription = HandshapeTranscription(configs)
-        # self._location = LocationTranscription(location_transcription_info)
+            # TODO KV - for parameter modules and x-slots
+            self._signtype = None
+            self.movementmodules = {}
+            # self.targetmodules = []
+            self.locationmodules = []
+            self.orientationmodules = []
+            self.handshapemodules = []
 
-        # TODO KV - for parameter modules and x-slots
-        self._signtype = None
-        self.movementmodules = {}
-        # self.targetmodules = []
-        self.locationmodules = []
-        self.orientationmodules = []
-        self.handshapemodules = []
+    def serialize(self):
+        return {
+            'signlevel': self._signlevel_information,
+            'type': self._signtype,
+            'mov modules': self.serializemovementmodules(),
+            'loc modules': self.locationmodules,
+            'ori modules': self.orientationmodules,
+            'han modules': self.handshapemodules
+        }
+
+    def serializemovementmodules(self):
+        serialized = {}
+        for k in self.movementmodules.keys():
+            serialized[k] = MovementTree(self.movementmodules[k])
+        return serialized
+
+    def unserializemovementmodules(self, serialized_mvmtmodules):
+        unserialized = {}
+        for k in serialized_mvmtmodules.keys():
+            mvmttreemodel, rootnode = serialized_mvmtmodules[k].getMovementTreeModel()
+            unserialized[k] = mvmttreemodel
+        self.movementmodules = unserialized
 
     def __hash__(self):
         return hash(self.signlevel_information.gloss)
@@ -577,11 +610,9 @@ class Sign:
             nextinteger = max([int(k) for k in existingkeys]) + 1
             mvmtid = str("M" + str(nextinteger))
         self.movementmodules[mvmtid] = movementtree
-        print("TODO KV movement modules list has been updated (addition):", mvmtid, " -->",  self.movementmodules.keys())
 
     def removemovementmodule(self, mvmtid):
         self.movementmodules.pop(mvmtid)
-        print("TODO KV movement modules list has been updated (removal):", mvmtid, " -->",  self.movementmodules.keys())
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)
@@ -696,12 +727,27 @@ class Locations:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name="", signs=None, location_definition=None, path=None):  # movement_definition=None,
-        self.name = name
-        self.signs = signs if signs else set()
-        self.location_definition = location_definition
-        # self.movement_definition = movement_definition
-        self.path = path
+    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None):  # movement_definition=None,
+        if serializedcorpus:
+            self.name = serializedcorpus['name']
+            self.signs = set([Sign(serializedsign=s) for s in serializedcorpus['signs']])
+            self.location_definition = serializedcorpus['loc defn']
+            # self.movement_definition = serializedcorpus['mvmt defn']
+            self.path = serializedcorpus['path']
+        else:
+            self.name = name
+            self.signs = signs if signs else set()
+            self.location_definition = location_definition
+            # self.movement_definition = movement_definition
+            self.path = path
+
+    def serialize(self):
+        return {
+            'name': self.name,
+            'signs': [s.serialize() for s in list(self.signs)],
+            'loc defn': self.location_definition,
+            'path': self.path
+        }
 
     def get_sign_glosses(self):
         return sorted([sign.signlevel_information.gloss for sign in self.signs])

@@ -45,7 +45,8 @@ from gui.panel import (
     HandTranscriptionPanel,
     HandIllustrationPanel,
     ParameterPanel,
-    SignSummaryPanel
+    SignSummaryPanel,
+    XslotImagePanel
 )
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
@@ -335,19 +336,12 @@ class MainWindow(QMainWindow):
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
 
-        # TODO KV - put this in a more logical spot
-        # menu_movement = main_menu.addMenu('&Movement')
-        # menu_movement.addAction(action_select_movement)
-
-        # TODO KV - put this in a more logical spot
-        # menu_signtype = main_menu.addMenu('&Sign type')
-        # menu_signtype.addAction(action_select_signtype)
-
         corpusname = ""
         if self.corpus and self.corpus.name:
             corpusname = self.corpus.name
         self.corpus_view = CorpusView(corpusname, parent=self)
         self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
+        self.corpus_view.title_changed.connect(self.setCorpusName)
 
         self.corpus_scroll = QScrollArea(parent=self)
         self.corpus_scroll.setWidgetResizable(True)
@@ -385,6 +379,9 @@ class MainWindow(QMainWindow):
         # self.sign_summary = SignSummaryPanel(sign=self.new_sign, mainwindow=self, parent=self)
         self.sign_summary = SignSummaryPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
+        # TODO KV xslot mockup
+        self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
+
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.main_mdi.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -414,11 +411,20 @@ class MainWindow(QMainWindow):
         self.sub_signsummary.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_signsummary)
 
+        # TODO KV xslot mockup
+        self.sub_xslotimage = SubWindow('Summary', self.xslot_image, parent=self)
+        self.sub_xslotimage.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_xslotimage)
+
         self.show_hide_subwindows()
         self.arrange_subwindows()
         self.setCentralWidget(self.main_mdi)
 
         self.open_initialization_window()
+
+    def setCorpusName(self, newtitle):
+        if self.corpus:
+            self.corpus.name = newtitle
 
     def on_action_export_handshape_transcription_csv(self):
         export_csv_dialog = ExportCSVDialog(self.app_settings, parent=self)
@@ -991,11 +997,16 @@ class MainWindow(QMainWindow):
 
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
+            # pickle.dump(self.corpus, f, protocol=pickle.HIGHEST_PROTOCOL)
+            for s in self.corpus.signs:
+                s.movementmodules = {}
             pickle.dump(self.corpus, f, protocol=pickle.HIGHEST_PROTOCOL)
+            # pickle.dump(self.corpus.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_corpus_binary(self, path):
         with open(path, 'rb') as f:
             return pickle.load(f)
+            # return Corpus(serializedcorpus=pickle.load(f))
 
     def on_action_copy(self, clicked):
         pass

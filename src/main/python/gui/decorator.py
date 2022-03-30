@@ -71,10 +71,11 @@ def check_unsaved_corpus(func):
     @functools.wraps(func)
     def wrapper_check_unsaved_corpus(self, *args, **kwargs):
         if self.corpus.path is None:
+            name = self.corpus.name
             file_name, _ = QFileDialog.getSaveFileName(self,
                                                        self.tr('Save Corpus'),
                                                        os.path.join(self.app_settings['storage']['recent_folder'],
-                                                                    'corpus.slpaa'),
+                                                                    name + '.slpaa'),  # 'corpus.slpaa'),
                                                        self.tr('SLP-AA Corpus (*.slpaa)'))
             if file_name:
                 self.corpus.path = file_name

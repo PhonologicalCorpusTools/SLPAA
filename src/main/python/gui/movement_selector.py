@@ -38,7 +38,8 @@ from PyQt5.QtCore import (
     QEvent
 )
 
-from gui.movement_view import MovementTreeModel, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, texteditrole, lastingrouprole, finalsubgrouprole, subgroupnamerole, MovementTreeView, MovementTreeItem
+# TODO KV does texteditrole ever get used??
+from gui.movement_view import MovementTreeModel, MovementTree, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, texteditrole, lastingrouprole, finalsubgrouprole, subgroupnamerole, MovementTreeView, MovementTreeItem
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
 class Delegate(QStyledItemDelegate):
@@ -135,12 +136,17 @@ class MovementSpecificationLayout(QVBoxLayout):
     def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
 
-        print("loading movementspecificationlayout with", "brand new" if moduletoload is None else "existing", "model")
         self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
-        if moduletoload is not None:
-            self.treemodel = moduletoload
+        # if moduletoload is not None:
+        #     self.treemodel = moduletoload
         self.rootNode = self.treemodel.invisibleRootItem()
-        if moduletoload is None:
+        if moduletoload:
+            if isinstance(moduletoload, MovementTreeModel):
+                self.treemodel = moduletoload
+            elif isinstance(moduletoload, MovementTree):
+                # TODO KV - make sure listmodel & listitems are also populated
+                self.treemodel = moduletoload.getMovementTreeModel()
+        else:
             self.treemodel.populate(self.rootNode)
 
         self.listmodel = MovementListModel(self.treemodel)

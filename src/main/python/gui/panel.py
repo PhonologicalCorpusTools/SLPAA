@@ -275,6 +275,25 @@ class SignLevelNote(QPlainTextEdit):
         super().focusInEvent(event)
 
 
+# TODO KV xslot mockup
+class XslotImagePanel(QScrollArea):
+
+    def __init__(self, mainwindow, **kwargs):
+        super().__init__(**kwargs)
+
+        self.setFrameStyle(QFrame.StyledPanel)
+        main_frame = QFrame(parent=self)
+
+        main_layout = QVBoxLayout()
+
+        self.pixmap = QPixmap(mainwindow.app_ctx.xslotimage['xslot'])
+        self.lbl = QLabel()
+        self.lbl.setPixmap(self.pixmap)
+        main_layout.addWidget(self.lbl)
+        main_frame.setLayout(main_layout)
+
+        self.setWidget(main_frame)
+
 class SignSummaryPanel(QScrollArea):
 
     def __init__(self, sign, mainwindow, **kwargs):
@@ -307,15 +326,18 @@ class SignSummaryPanel(QScrollArea):
         self.movementmodule_buttons = []
         self.update_movementmodulebuttons()
         self.module_buttons.append(self.movement_button)
+        self.location_button = QPushButton("Location selection")
+        self.location_button.clicked.connect(self.handle_locationbutton_click)
+        self.module_buttons.append(self.location_button)
         self.handshape_button = QPushButton("Handshape selection")
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
         self.module_buttons.append(self.handshape_button)
         self.orientation_button = QPushButton("Orientation selection")
         self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
         self.module_buttons.append(self.orientation_button)
-        self.location_button = QPushButton("Location selection")
-        self.location_button.clicked.connect(self.handle_locationbutton_click)
-        self.module_buttons.append(self.location_button)
+        self.contact_button = QPushButton("Contact selection")
+        self.contact_button.clicked.connect(self.handle_contactbutton_click)
+        self.module_buttons.append(self.contact_button)
         self.enable_module_buttons(False)
 
         main_layout.addWidget(self.signgloss_label)
@@ -325,6 +347,7 @@ class SignSummaryPanel(QScrollArea):
         main_layout.addWidget(self.handshape_button)
         main_layout.addWidget(self.orientation_button)
         main_layout.addWidget(self.location_button)
+        main_layout.addWidget(self.contact_button)
 
         self.setWidget(main_frame)
 
@@ -395,16 +418,13 @@ class SignSummaryPanel(QScrollArea):
             pass
 
     def handle_movementbutton_click(self):
-        print("handle_movementbutton_click")
         button = self.sender()
         # TODO KV
         editing_existing = button.property("existingmodule")
-        print("     module does ", "" if editing_existing else "not", "exist already")
         existing_key = None
         moduletoload = None
         if editing_existing:
             existing_key = button.text()
-            print("     ... "+existing_key)
             moduletoload = self.sign.movementmodules[existing_key]
         movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
         movement_selector.saved_movement.connect(lambda movementtree: self.handle_save_movement(movementtree, existing_key))
@@ -414,13 +434,10 @@ class SignSummaryPanel(QScrollArea):
         if self.sign:
             # an existing sign is highlighted; update it
             # TODO KV
-            print("handle_save_movement with movementtree = ", movementtree, "and existing_key = ", existing_key)
             if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-                # self.sign.addmovementmodule(movementtree)  # TODO KV MovementTreeModel can't be pickled
-                print("     added movementmodule to sign")
+                self.sign.addmovementmodule(movementtree)  # TODO KV MovementTreeModel can't be pickled
             else:
                 self.sign.movementmodules[existing_key] = movementtree
-                print("     updated movementmodule within sign (already exists)")
             self.update_movementmodulebuttons()
         else:
             # TODO KV this is a new sign
@@ -430,6 +447,10 @@ class SignSummaryPanel(QScrollArea):
     def handle_handshapebutton_click(self):
         # TODO KV
         QMessageBox.information(self, 'Not Available', 'Handshape module functionality not yet linked.')
+
+    def handle_contactbutton_click(self):
+        # TODO KV
+        QMessageBox.information(self, 'Not Available', 'Contact module functionality not yet linked.')
 
     def handle_orientationbutton_click(self):
         # TODO KV
@@ -544,7 +565,6 @@ class SignLevelInformationPanel(QScrollArea):
     def handle_savebutton_click(self):
         mainwindow = self.parent().parent().parent().parent()
         if mainwindow.current_sign:
-            print("save to currentsign")
             mainwindow.current_sign.signlevel_information = self.get_value()
         elif mainwindow.new_sign:
             mainwindow.new_sign.signlevel_information = self.get_value()
