@@ -13,19 +13,18 @@ Contents:
 
 
    manage_corpus.rst
-   predefined_handshapes.rst
-   setting_preferences.rst
-   terminology.rst
+   global_settings.rst
    transcription_process.rst
    sign_level_info.rst
+   sign_type.rst
    movement_module.rst
-   global_options.rst
+   predefined_handshapes.rst
    glossary.rst
    references.rst
-   sign_type.rst
-
-
-
+   
+   setting_preferences.rst
+   terminology.rst
+   
 
 Indices and tables
 ==================
