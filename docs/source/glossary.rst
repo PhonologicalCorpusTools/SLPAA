@@ -32,7 +32,7 @@ hand configuration
 Phonetic shapes of the hand coded in the :ref:`hand_configuration_module`. May include variation from a standard :ref:`handshape`.
 
 
-.. _joint-specific_movement:
+.. _joint_specific_movement:
 
 joint-specific movement
 =======================
@@ -65,7 +65,7 @@ sample 2
 ========
 testing2
 
-.. _x-slot:
+.. _x_slot:
 
 x-slot
 ======
