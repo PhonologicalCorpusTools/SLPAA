@@ -1,10 +1,5 @@
-.. |Movement module overview| image:: images/placeholder.png
-    :width: 800
-    :align: center
-    :alt: Image description.
-
 .. todo::
-    build a targets for an x-slot glossary entry with the title _x-slot
+    insert image of the movement module
     think about where and how detailed information for program behaviour will be represented
     create a dummy page to link to for the signing space description
     
@@ -17,11 +12,16 @@
 Movement Module
 ***************
 
-The **movement module** is the first to be coded for each sign after :ref:`sign type<sign_type_module>`. The movement information is what is used to generate the appropriate number of :ref:`x-slots<x-slot>` for the sign. See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)**. 
+The **movement module** is the first to be coded for each sign after the :ref:`sign type module<sign_type_module>`. The movement information is what is used to generate the appropriate number of :ref:`x-slots<x-slot>` for the sign. See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)**. 
 
-|Movement module overview|
+Here's how the movement window looks in the program: 
 
-Any movement in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint_specific_movement`. When there are different (simultaneous or sequential) movements within one sign, each individual movement must be given its own module. The timing of the module(s) will be made clear in the ``x-slot visualization``.
+.. image:: images/placeholder.png
+    :width: 800
+    :align: center
+    :alt: Image description.
+
+Any movement in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint_specific_movement`. When there are different (simultaneous or sequential) movements within one sign, each individual movement must be given its own module. The timing of the module(s) will be made clear in the x-slot visualization.
 
 *More fine-grained articulatory detail can be added by specifying other joint movements involved in the production of each component ...*
 
@@ -46,8 +46,8 @@ An axis of movement (or a combination of axes) can be selected to describe the d
 
 The axis direction encodes the endpoint of the movement relative to the starting point… **(use example signs)**
 
-.. note::
-    This seems to lend more to convention than explicit description. Stick to the available options and what happens when you select each one.
+.. warning::
+    This seems to lend more to convention than explicit description. Stick to the available options and what happens in the program when you select them. Areas for flexibility of use can be mentioned after that.
 
 .. _plane_entry:
 
