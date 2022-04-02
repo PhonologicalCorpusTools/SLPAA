@@ -65,3 +65,8 @@ sample 2
 ========
 testing2
 
+.. _x-slot:
+
+x-slot
+======
+add here
