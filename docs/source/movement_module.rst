@@ -15,7 +15,7 @@
 Movement Module
 ***************
 
-The **movement module** is the first to be coded for each sign after the :ref:`sign type module<sign_type_module>`. The movement information is what is used to generate the appropriate number of :ref:`x-slots<x-slot>` for the sign. See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)** to learn more about this process. 
+The **movement module** is the first to be coded for each sign after the :ref:`sign type module<sign_type_module>`. The movement information is what is used to generate the appropriate number of :ref:`x-slots<x_slot>` for the sign. See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)** to learn more about this process. 
 
 Here's how the movement window looks in the program: 
 
@@ -25,7 +25,7 @@ Here's how the movement window looks in the program:
     :alt: Image description.
 
 
-Any movement in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint-specific_movement`. When there are different (simultaneous or sequential) movements within one sign, each individual movement must be given its own module. The timing of the module(s) can be adjusted in the x-slot visualization.
+Any movement in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint_specific_movement`. When there are different (simultaneous or sequential) movements within one sign, each individual movement must be given its own module. The timing of the module(s) can be adjusted in the x-slot visualization.
 
 .. _perceptual_shape_entry:
 
@@ -74,7 +74,7 @@ III. Plane
 3. Joint movements
 ``````````````````
 
-The **joint movements** section can be used to add more fine-grained detail about the specific joint articulations of the movement component described in the current module. This option is available for both :ref:`perceptual shapes<perceptual_shape>` and :ref:`joint-specific movements<joint-specific_movement>`. It is not necessary to manually code the joint movements that are predictable from any joint-specific movement, as this will be done ``automatically`` **(program functionality page? auto-generation and autofilling?)** by the program. **(add an example or two)**
+The **joint movements** section can be used to add more fine-grained detail about the specific joint articulations of the movement component described in the current module. This option is available for both :ref:`perceptual shapes<perceptual_shape>` and :ref:`joint-specific movements<joint_specific_movement>`. It is not necessary to manually code the joint movements that are predictable from any joint-specific movement, as this will be done ``automatically`` **(program functionality page? auto-generation and autofilling?)** by the program. **(add an example or two)**
 
 **(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 
