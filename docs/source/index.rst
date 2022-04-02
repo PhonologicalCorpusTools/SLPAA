@@ -13,8 +13,7 @@ Contents:
 
 
    manage_corpus.rst
-   global_options.rst
-   transcription_process.rst
+      transcription_process.rst
    sign_level_info.rst
    sign_type.rst
    movement_module.rst
