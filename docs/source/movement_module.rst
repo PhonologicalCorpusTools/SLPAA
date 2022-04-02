@@ -5,6 +5,9 @@
     
 .. comment::
     The places where I intend to add a link to another (currently non-existent) docs section are marked as a code block
+    
+.. comment::
+    I often use "describe" as a verb for adding detail about a sign. Would it be better to use e.g. "transcribe" or "code" instead?
 
 .. _movement_module: 
 
@@ -12,7 +15,7 @@
 Movement Module
 ***************
 
-The **movement module** is the first to be coded for each sign after the :ref:`sign type module<sign_type_module>`. The movement information is what is used to generate the appropriate number of :ref:`x-slots<x-slot>` for the sign. See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)**. 
+The **movement module** is the first to be coded for each sign after the :ref:`sign type module<sign_type_module>`. The movement information is what is used to generate the appropriate number of :ref:`x-slots<x-slot>` for the sign. See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)** to learn more about this process. 
 
 Here's how the movement window looks in the program: 
 
@@ -21,9 +24,8 @@ Here's how the movement window looks in the program:
     :align: center
     :alt: Image description.
 
-Any movement in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint_specific_movement`. When there are different (simultaneous or sequential) movements within one sign, each individual movement must be given its own module. The timing of the module(s) will be made clear in the x-slot visualization.
 
-*More fine-grained articulatory detail can be added by specifying other joint movements involved in the production of each component ...*
+Any movement in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint-specific_movement`. When there are different (simultaneous or sequential) movements within one sign, each individual movement must be given its own module. The timing of the module(s) can be adjusted in the x-slot visualization.
 
 .. _perceptual_shape_entry:
 
@@ -54,11 +56,11 @@ The axis direction encodes the endpoint of the movement relative to the starting
 III. Plane
 ==========
 
-**(Refer to the global options section for setting clockwise directionality. Note that the option to select a plane is not necessary for straight paths, but the option is not disabled for straight paths (?))** 
+**(Refer to the global settings section for checking/changing clockwise directionality. Note that the option to select a plane is not necessary for straight paths, but the option is not disabled for straight paths (?))** 
 
 .. comment::
     Note for Nico: you can use a cross-reference to the global options in order to actual describe the default options
-    e.g., "See :ref:`global_options` to set preferences." --Kathleen
+    e.g., "See :ref:`global_settings` to set preferences." --Kathleen
 
 .. _joint-specific_movement_entry:
 
@@ -72,7 +74,9 @@ III. Plane
 3. Joint movements
 ``````````````````
 
-**(Important to mention: this section can freely combine with either movement type, the applicable joint movements for any joint-specific movement is auto-filled)**
+The **joint movements** section can be used to add more fine-grained detail about the specific joint articulations of the movement component described in the current module. This option is available for both :ref:`perceptual shapes<perceptual_shape>` and :ref:`joint-specific movements<joint-specific_movement>`. It is not necessary to manually code the joint movements that are predictable from any joint-specific movement, as this will be done ``automatically`` **(program functionality page? auto-generation and autofilling?)** by the program. **(add an example or two)**
+
+**(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 
 .. _movement_characteristic_entry:
 
