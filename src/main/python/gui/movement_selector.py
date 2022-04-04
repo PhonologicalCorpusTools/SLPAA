@@ -2,21 +2,11 @@ import os
 import json
 from PyQt5.QtWidgets import (
     QFrame,
-    QGridLayout,
-    QLineEdit,
     QPushButton,
     QDialog,
     QHBoxLayout,
-    QListView,
     QVBoxLayout,
-    QFileDialog,
-    QWidget,
-    QTabWidget,
-    QTabBar,
     QDialogButtonBox,
-    QMessageBox,
-    QSlider,
-    QTreeView,
     QComboBox,
     QLabel,
     QCompleter,
@@ -32,7 +22,6 @@ from PyQt5.QtWidgets import (
 
 from PyQt5.QtCore import (
     Qt,
-    QAbstractListModel,
     pyqtSignal,
     QSize,
     QEvent
@@ -139,7 +128,7 @@ class MovementSpecificationLayout(QVBoxLayout):
         self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
         # if moduletoload is not None:
         #     self.treemodel = moduletoload
-        self.rootNode = self.treemodel.invisibleRootItem()
+        # self.rootNode = self.treemodel.invisibleRootItem()
         if moduletoload:
             if isinstance(moduletoload, MovementTreeModel):
                 self.treemodel = moduletoload
@@ -147,9 +136,10 @@ class MovementSpecificationLayout(QVBoxLayout):
                 # TODO KV - make sure listmodel & listitems are also populated
                 self.treemodel = moduletoload.getMovementTreeModel()
         else:
-            self.treemodel.populate(self.rootNode)
+            # self.treemodel.populate(self.rootNode)
+            self.treemodel.populate(self.treemodel.invisibleRootItem())
 
-        self.listmodel = MovementListModel(self.treemodel)
+        self.listmodel = self.treemodel.listmodel
 
         self.comboproxymodel = MovementPathsProxyModel(wantselected=False) #, parent=self.listmodel
         self.comboproxymodel.setSourceModel(self.listmodel)
@@ -239,6 +229,16 @@ class MovementSpecificationLayout(QVBoxLayout):
             if key == Qt.Key_Enter:
                 print("enter pressed")
         return super().eventFilter(source, event)
+
+    def refresh_treemodel(self):
+        self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
+        self.treemodel.populate(self.treemodel.invisibleRootItem())
+
+        self.listmodel = self.treemodel.listmodel
+
+        self.comboproxymodel.setSourceModel(self.listmodel)
+        self.listproxymodel.setSourceModel(self.listmodel)
+        self.treedisplay.setModel(self.treemodel)
 
     def clearlist(self, button):
         numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()
@@ -334,7 +334,8 @@ class MovementSelectorDialog(QDialog):
             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
 
-    #     # TODO KV keep? from orig locationdefinerdialog: Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
+        # TODO KV keep? from orig locationdefinerdialog:
+        #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
 
         main_layout.addWidget(self.button_box)
@@ -346,17 +347,23 @@ class MovementSelectorDialog(QDialog):
         standard = self.button_box.standardButton(button)
 
         if standard == QDialogButtonBox.Cancel:
+            # TODO KV if we are editing an already-existing movement module, this seems to save anyway
             self.reject()
 
         elif standard == QDialogButtonBox.Save:  # save and next
             # save info and then refresh screen to enter next movemement module
             self.saved_movement.emit(self.movement_layout.treemodel)
-            self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
+            # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
+            self.movement_layout.refresh_treemodel()
 
         elif standard == QDialogButtonBox.Apply:  # save and close
             # save info and then close dialog
             self.saved_movement.emit(self.movement_layout.treemodel)
             self.accept()
+
+        elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
+            # TODO KV -- where should the "defaults" be defined?
+            self.movement_layout.clearlist(button)
 
     #     # elif standard == QDialogButtonBox.NoButton:
     #     #     action_role = button.property('ActionRole')

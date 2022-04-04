@@ -351,16 +351,29 @@ class SignSummaryPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
+    def clear_movementmodulebuttons(self):
+        existing_buttonkeys = [b.text() for b in self.movementmodule_buttons]
+        for k in existing_buttonkeys:
+            buttontoremove = [button for button in self.movementmodule_buttons if button.text() == k][0]
+            self.movement_layout.removeWidget(buttontoremove)
+            self.module_buttons.remove(buttontoremove)
+            self.movementmodule_buttons.remove(buttontoremove)
+        # self.movementmodule_buttons = []
+
     def update_movementmodulebuttons(self):
         if self.sign:
-            existing_buttonkeys = [b.text() for b in self.movementmodule_buttons]
-            for mvmtmodulekey in [k for k in self._sign.movementmodules.keys() if k not in existing_buttonkeys]:
+            existing_buttonkeys = [btn.text() for btn in self.movementmodule_buttons]
+            for mvmtmodulekey in [k for k in self.sign.movementmodules.keys() if k not in existing_buttonkeys]:
                 movementmodulebutton = QPushButton(mvmtmodulekey)
                 movementmodulebutton.setProperty("existingmodule", True)
                 movementmodulebutton.clicked.connect(self.handle_movementbutton_click)
                 self.movement_layout.addWidget(movementmodulebutton)
                 self.movementmodule_buttons.append(movementmodulebutton)
                 self.module_buttons.append(movementmodulebutton)
+
+    def load_movementmodulebuttons(self):
+        self.clear_movementmodulebuttons()
+        self.update_movementmodulebuttons()
 
     def enable_module_buttons(self, yesorno):
         for btn in self.module_buttons:
@@ -409,13 +422,7 @@ class SignSummaryPanel(QScrollArea):
         signtype_selector.exec_()
 
     def handle_save_signtype(self, signtype):
-        if self.sign:
-            # an existing sign is highlighted; update it
-            self.sign.signtype = signtype
-        else:
-            # TODO KV this is a new sign
-            #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist
-            pass
+        self.sign.signtype = signtype
 
     def handle_movementbutton_click(self):
         button = self.sender()
@@ -431,18 +438,11 @@ class SignSummaryPanel(QScrollArea):
         movement_selector.exec_()
 
     def handle_save_movement(self, movementtree, existing_key):
-        if self.sign:
-            # an existing sign is highlighted; update it
-            # TODO KV
-            if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-                self.sign.addmovementmodule(movementtree)  # TODO KV MovementTreeModel can't be pickled
-            else:
-                self.sign.movementmodules[existing_key] = movementtree
-            self.update_movementmodulebuttons()
+        if existing_key is None or existing_key not in self.sign.movementmodules.keys():
+            self.sign.addmovementmodule(movementtree)
         else:
-            # TODO KV this is a new sign
-            #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist
-            pass
+            self.sign.movementmodules[existing_key] = movementtree
+        self.update_movementmodulebuttons()
 
     def handle_handshapebutton_click(self):
         # TODO KV
@@ -461,189 +461,187 @@ class SignSummaryPanel(QScrollArea):
         QMessageBox.information(self, 'Not Available', 'Location module functionality not yet linked.')
 
 
-class SignLevelInformationPanel(QScrollArea):
-    finish_edit = pyqtSignal(QWidget)
-
-    def __init__(self, coder, defaulthand, update, **kwargs):
-        super().__init__(**kwargs)
-
-        self.coder = coder
-        self.defaulthand = defaulthand
-        self.update = update
-
-        self.setFrameStyle(QFrame.StyledPanel)
-        main_frame = QFrame(parent=self)
-
-        main_layout = QVBoxLayout()
-        main_layout.setSpacing(5)
-        main_frame.setLayout(main_layout)
-
-        gloss_label = QLabel('Gloss:', parent=self)
-        lemma_label = QLabel('Lemma:', parent=self)
-        source_label = QLabel('Source:', parent=self)
-        signer_label = QLabel('Signer:', parent=self)
-        freq_label = QLabel('Frequency:', parent=self)
-        coder_label = QLabel('Coder:', parent=self)
-        update_label = QLabel('Last updated:', parent=self)
-        note_label = QLabel('Notes:', parent=self)
-
-        self.gloss_edit = QLineEdit(parent=self)
-        self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
-        self.gloss_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.gloss_edit))
-
-        self.lemma_edit = QLineEdit(parent=self)
-        self.lemma_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.lemma_edit))
-
-        self.source_edit = QLineEdit(parent=self)
-        self.source_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.source_edit))
-
-        self.signer_edit = QLineEdit(parent=self)
-        self.signer_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.signer_edit))
-
-        self.freq_edit = QLineEdit('1.0', parent=self)
-        self.freq_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.freq_edit))
-
-        self.coder_edit = QLineEdit(parent=self)
-        self.coder_edit.setText(coder)
-        self.coder_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.coder_edit))
-
-        self.update_edit = QLineEdit(parent=self)
-        self.update_edit.setPlaceholderText('YYYY-MM-DD')
-        self.update_edit.setText(str(update))
-        self.update_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.update_edit))
-
-        self.note_edit = SignLevelNote(parent=self)
-        self.note_edit.setPlaceholderText('Enter note here...')
-        self.note_edit.focus_out.connect(lambda: self.finish_edit.emit(self.note_edit))
-
-        self.handdominance_buttongroup = QButtonGroup(parent=self)
-        self.handdominance_l_radio = QRadioButton('Left')
-        self.handdominance_l_radio.setProperty('hand', 'L')
-        self.handdominance_r_radio = QRadioButton('Right')
-        self.handdominance_r_radio.setProperty('hand', 'R')
-        self.handdominance_buttongroup.addButton(self.handdominance_l_radio)
-        self.handdominance_buttongroup.addButton(self.handdominance_r_radio)
-
-        self.handdominance_layout = QHBoxLayout()
-        self.handdominance_box = QGroupBox('Hand dominance')
-        self.handdominance_layout.addWidget(self.handdominance_l_radio)
-        self.handdominance_layout.addWidget(self.handdominance_r_radio)
-        self.handdominance_box.setLayout(self.handdominance_layout)
-
-        main_layout.addWidget(gloss_label)
-        main_layout.addWidget(self.gloss_edit)
-        main_layout.addWidget(lemma_label)
-        main_layout.addWidget(self.lemma_edit)
-        main_layout.addWidget(source_label)
-        main_layout.addWidget(self.source_edit)
-        main_layout.addWidget(signer_label)
-        main_layout.addWidget(self.signer_edit)
-        main_layout.addWidget(freq_label)
-        main_layout.addWidget(self.freq_edit)
-        main_layout.addWidget(coder_label)
-        main_layout.addWidget(self.coder_edit)
-        main_layout.addWidget(update_label)
-        main_layout.addWidget(self.update_edit)
-        main_layout.addWidget(note_label)
-        main_layout.addWidget(self.note_edit)
-        # main_layout.addWidget(self.signtype_box)
-        main_layout.addWidget(self.handdominance_box)
-
-        # TODO KV rejig the buttons once signlevel info is redone as a dialog
-        buttonlayout = QHBoxLayout()
-        self.save_button = QPushButton("Save")
-        self.save_button.clicked.connect(self.handle_savebutton_click)
-        self.cancel_button = QPushButton("Cancel")
-        self.cancel_button.clicked.connect(self.handle_cancelbutton_click)
-        buttonlayout.addWidget(self.save_button)
-        buttonlayout.addWidget(self.cancel_button)
-        main_layout.addLayout(buttonlayout)
-
-        self.setWidget(main_frame)
-
-    # save update sign-level info to corpus (but not file)
-    def handle_savebutton_click(self):
-        mainwindow = self.parent().parent().parent().parent()
-        if mainwindow.current_sign:
-            mainwindow.current_sign.signlevel_information = self.get_value()
-        elif mainwindow.new_sign:
-            mainwindow.new_sign.signlevel_information = self.get_value()
-            # TODO KV add to corpus
-        else:
-            mainwindow.update_new_sign()
-            # TODO KV add to corpus
-
-    # revert sign-level info to the last-saved values
-    def handle_cancelbutton_click(self):
-        mainwindow = self.parent().parent().parent().parent()
-        if mainwindow.current_sign:
-            self.set_value(mainwindow.current_sign.signlevel_information)
-        elif mainwindow.new_sign:
-            self.set_value(mainwindow.new_sign.signlevel_information)
-        else:
-            self.clear(self.coder, self.defaulthand)
-
-    @check_date_format
-    def get_date(self):
-        year, month, day = self.update_edit.text().split(sep='-')
-        return date(int(year), int(month), int(day))
-
-    @check_empty_gloss
-    def get_gloss(self):
-        return self.gloss_edit.text()
-
-    def clear(self, coder, defaulthand):
-        self.gloss_edit.clear()
-        self.lemma_edit.clear()
-        self.source_edit.clear()
-        self.signer_edit.clear()
-        self.freq_edit.setText('1.0')
-        self.coder_edit.setText(coder)
-        self.update_edit.setText(str(date.today()))
-        self.note_edit.clear()
-        # reset to default (unspecified)
-        # self.handstype_unspec_radio.setChecked(True)
-        # reset to default from global settings
-        # TODO KV - potential to override global default with coder default?
-        self.defaulthand = defaulthand
-        for button in self.handdominance_buttongroup.buttons():
-            if button.property('hand') == self.defaulthand:
-                button.setChecked(True)
-                break
-
-    def set_value(self, signlevel_info):
-        self.gloss_edit.setText(signlevel_info.gloss)
-        self.lemma_edit.setText(signlevel_info.lemma)
-        self.source_edit.setText(signlevel_info.source)
-        self.signer_edit.setText(signlevel_info.signer)
-        self.freq_edit.setText(str(signlevel_info.frequency))
-        self.coder_edit.setText(signlevel_info.coder)
-        self.update_edit.setText(str(signlevel_info.update_date))
-        self.note_edit.setPlainText(signlevel_info.note if signlevel_info.note is not None else "")
-        self.set_handdominance(signlevel_info.handdominance)
-
-    def set_handdominance(self, handdominance):
-        if handdominance == 'R':
-            self.handdominance_r_radio.setChecked(True)
-        elif handdominance == 'L':
-            self.handdominance_l_radio.setChecked(True)
-
-    def get_handdominance(self):
-        return 'R' if self.handdominance_r_radio.isChecked() else 'L'
-
-    def get_value(self):
-        if self.get_date() and self.get_gloss():
-            return {
-                'gloss': self.get_gloss(),
-                'lemma': self.lemma_edit.text(),
-                'source': self.source_edit.text(),
-                'signer': self.signer_edit.text(),
-                'frequency': float(self.freq_edit.text()),
-                'coder': self.coder_edit.text(),
-                'date': self.get_date(),
-                'note': self.note_edit.toPlainText(),
-                'handdominance': self.get_handdominance()
-            }
+# TODO KV no longer used
+# class SignLevelInformationPanel(QScrollArea):
+#     finish_edit = pyqtSignal(QWidget)
+#
+#     def __init__(self, coder, defaulthand, update, **kwargs):
+#         super().__init__(**kwargs)
+#
+#         self.coder = coder
+#         self.defaulthand = defaulthand
+#         self.update = update
+#
+#         self.setFrameStyle(QFrame.StyledPanel)
+#         main_frame = QFrame(parent=self)
+#
+#         main_layout = QVBoxLayout()
+#         main_layout.setSpacing(5)
+#         main_frame.setLayout(main_layout)
+#
+#         gloss_label = QLabel('Gloss:', parent=self)
+#         lemma_label = QLabel('Lemma:', parent=self)
+#         source_label = QLabel('Source:', parent=self)
+#         signer_label = QLabel('Signer:', parent=self)
+#         freq_label = QLabel('Frequency:', parent=self)
+#         coder_label = QLabel('Coder:', parent=self)
+#         update_label = QLabel('Last updated:', parent=self)
+#         note_label = QLabel('Notes:', parent=self)
+#
+#         self.gloss_edit = QLineEdit(parent=self)
+#         self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
+#         self.gloss_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.gloss_edit))
+#
+#         self.lemma_edit = QLineEdit(parent=self)
+#         self.lemma_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.lemma_edit))
+#
+#         self.source_edit = QLineEdit(parent=self)
+#         self.source_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.source_edit))
+#
+#         self.signer_edit = QLineEdit(parent=self)
+#         self.signer_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.signer_edit))
+#
+#         self.freq_edit = QLineEdit('1.0', parent=self)
+#         self.freq_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.freq_edit))
+#
+#         self.coder_edit = QLineEdit(parent=self)
+#         self.coder_edit.setText(coder)
+#         self.coder_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.coder_edit))
+#
+#         self.update_edit = QLineEdit(parent=self)
+#         self.update_edit.setPlaceholderText('YYYY-MM-DD')
+#         self.update_edit.setText(str(update))
+#         self.update_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.update_edit))
+#
+#         self.note_edit = SignLevelNote(parent=self)
+#         self.note_edit.setPlaceholderText('Enter note here...')
+#         self.note_edit.focus_out.connect(lambda: self.finish_edit.emit(self.note_edit))
+#
+#         self.handdominance_buttongroup = QButtonGroup(parent=self)
+#         self.handdominance_l_radio = QRadioButton('Left')
+#         self.handdominance_l_radio.setProperty('hand', 'L')
+#         self.handdominance_r_radio = QRadioButton('Right')
+#         self.handdominance_r_radio.setProperty('hand', 'R')
+#         self.handdominance_buttongroup.addButton(self.handdominance_l_radio)
+#         self.handdominance_buttongroup.addButton(self.handdominance_r_radio)
+#
+#         self.handdominance_layout = QHBoxLayout()
+#         self.handdominance_box = QGroupBox('Hand dominance')
+#         self.handdominance_layout.addWidget(self.handdominance_l_radio)
+#         self.handdominance_layout.addWidget(self.handdominance_r_radio)
+#         self.handdominance_box.setLayout(self.handdominance_layout)
+#
+#         main_layout.addWidget(gloss_label)
+#         main_layout.addWidget(self.gloss_edit)
+#         main_layout.addWidget(lemma_label)
+#         main_layout.addWidget(self.lemma_edit)
+#         main_layout.addWidget(source_label)
+#         main_layout.addWidget(self.source_edit)
+#         main_layout.addWidget(signer_label)
+#         main_layout.addWidget(self.signer_edit)
+#         main_layout.addWidget(freq_label)
+#         main_layout.addWidget(self.freq_edit)
+#         main_layout.addWidget(coder_label)
+#         main_layout.addWidget(self.coder_edit)
+#         main_layout.addWidget(update_label)
+#         main_layout.addWidget(self.update_edit)
+#         main_layout.addWidget(note_label)
+#         main_layout.addWidget(self.note_edit)
+#         # main_layout.addWidget(self.signtype_box)
+#         main_layout.addWidget(self.handdominance_box)
+#
+#         # TODO KV rejig the buttons once signlevel info is redone as a dialog
+#         buttonlayout = QHBoxLayout()
+#         self.save_button = QPushButton("Save")
+#         self.save_button.clicked.connect(self.handle_savebutton_click)
+#         self.cancel_button = QPushButton("Cancel")
+#         self.cancel_button.clicked.connect(self.handle_cancelbutton_click)
+#         buttonlayout.addWidget(self.save_button)
+#         buttonlayout.addWidget(self.cancel_button)
+#         main_layout.addLayout(buttonlayout)
+#
+#         self.setWidget(main_frame)
+#
+#     # save update sign-level info to corpus (but not file)
+#     def handle_savebutton_click(self):
+#         mainwindow = self.parent().parent().parent().parent()  # TODO KV too much ancestor business
+#         if mainwindow.current_sign:
+#             mainwindow.current_sign.signlevel_information = self.get_value()
+#         # elif mainwindow.new_sign:
+#         #     mainwindow.new_sign.signlevel_information = self.get_value()
+#         #     # TODO KV add to corpus
+#
+#     # revert sign-level info to the last-saved values
+#     def handle_cancelbutton_click(self):
+#         mainwindow = self.parent().parent().parent().parent()
+#         if mainwindow.current_sign:
+#             self.set_value(mainwindow.current_sign.signlevel_information)
+#         # elif mainwindow.new_sign:
+#         #     self.set_value(mainwindow.new_sign.signlevel_information)
+#         else:
+#             self.clear(self.coder, self.defaulthand)
+#
+#     @check_date_format
+#     def get_date(self):
+#         year, month, day = self.update_edit.text().split(sep='-')
+#         return date(int(year), int(month), int(day))
+#
+#     @check_empty_gloss
+#     def get_gloss(self):
+#         return self.gloss_edit.text()
+#
+#     def clear(self, coder, defaulthand):
+#         self.gloss_edit.clear()
+#         self.lemma_edit.clear()
+#         self.source_edit.clear()
+#         self.signer_edit.clear()
+#         self.freq_edit.setText('1.0')
+#         self.coder_edit.setText(coder)
+#         self.update_edit.setText(str(date.today()))
+#         self.note_edit.clear()
+#         # reset to default (unspecified)
+#         # self.handstype_unspec_radio.setChecked(True)
+#         # reset to default from global settings
+#         # TODO KV - potential to override global default with coder default?
+#         self.defaulthand = defaulthand
+#         for button in self.handdominance_buttongroup.buttons():
+#             if button.property('hand') == self.defaulthand:
+#                 button.setChecked(True)
+#                 break
+#
+#     def set_value(self, signlevel_info):
+#         self.gloss_edit.setText(signlevel_info.gloss)
+#         self.lemma_edit.setText(signlevel_info.lemma)
+#         self.source_edit.setText(signlevel_info.source)
+#         self.signer_edit.setText(signlevel_info.signer)
+#         self.freq_edit.setText(str(signlevel_info.frequency))
+#         self.coder_edit.setText(signlevel_info.coder)
+#         self.update_edit.setText(str(signlevel_info.update_date))
+#         self.note_edit.setPlainText(signlevel_info.note if signlevel_info.note is not None else "")
+#         self.set_handdominance(signlevel_info.handdominance)
+#
+#     def set_handdominance(self, handdominance):
+#         if handdominance == 'R':
+#             self.handdominance_r_radio.setChecked(True)
+#         elif handdominance == 'L':
+#             self.handdominance_l_radio.setChecked(True)
+#
+#     def get_handdominance(self):
+#         return 'R' if self.handdominance_r_radio.isChecked() else 'L'
+#
+#     def get_value(self):
+#         if self.get_date() and self.get_gloss():
+#             return {
+#                 'gloss': self.get_gloss(),
+#                 'lemma': self.lemma_edit.text(),
+#                 'source': self.source_edit.text(),
+#                 'signer': self.signer_edit.text(),
+#                 'frequency': float(self.freq_edit.text()),
+#                 'coder': self.coder_edit.text(),
+#                 'date': self.get_date(),
+#                 'note': self.note_edit.toPlainText(),
+#                 'handdominance': self.get_handdominance()
+#             }
 
 
 class HandTranscriptionPanel(QScrollArea):
@@ -883,102 +881,6 @@ class LocationSpecificationLayout(QVBoxLayout):
     def set_value(self, value):
         self.start_location_group_layout.set_value(value.start)
         self.end_location_group_layout.set_value(value.end)
-
-
-# TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
-# class MovementSpecificationLayout(QHBoxLayout):
-#     def __init__(self, movement_specifications, app_ctx, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         self.treemodel = MovementTreeModel(movementparameters=movement_specifications)
-#         self.rootNode = self.treemodel.invisibleRootItem()
-#         self.treemodel.populate(self.rootNode)
-#
-#         self.listmodel = MovementListModel(self.treemodel)
-#
-#         self.comboproxymodel = MovementPathsProxyModel(wantselected=False) #, parent=self.listmodel
-#         self.comboproxymodel.setSourceModel(self.listmodel)
-#
-#         self.listproxymodel = MovementPathsProxyModel(wantselected=True)
-#         self.listproxymodel.setSourceModel(self.listmodel)
-#
-#         selection_layout = QVBoxLayout()
-#         search_layout = QHBoxLayout()
-#         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
-#
-#         self.combobox = TreeSearchComboBox(self)
-#         self.combobox.setModel(self.comboproxymodel)
-#         self.combobox.setCurrentIndex(-1)
-#         self.combobox.adjustSize()
-#         self.combobox.setEditable(True)
-#         self.combobox.setInsertPolicy(QComboBox.NoInsert)
-#         self.combobox.setFocusPolicy(Qt.StrongFocus)
-#         self.combobox.setEnabled(True)
-#         self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
-#         self.combobox.completer().setFilterMode(Qt.MatchContains)
-#         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
-#         # tct = TreeClickTracker(self)  todo kv
-#         # self.combobox.installEventFilter(tct)
-#         search_layout.addWidget(self.combobox)
-#
-#         selection_layout.addLayout(search_layout)
-#
-#         self.treedisplay = QTreeView()
-#         self.treedisplay.setHeaderHidden(True)
-#         self.treedisplay.setModel(self.treemodel)
-#         self.treedisplay.setMinimumWidth(500)
-#
-#         selection_layout.addWidget(self.treedisplay)
-#         self.addLayout(selection_layout)
-#
-#         self.pathslistview = TreeListView()
-#         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
-#         self.pathslistview.setModel(self.listproxymodel)
-#         self.pathslistview.setMinimumWidth(500)
-#
-#         self.addWidget(self.pathslistview)
-#
-#         # central_widget.setLayout(mainlayout)
-#         # self.setCentralWidget(central_widget)  # Install the central widget
-#
-#         # from location version
-#         # self.hand_switch = ToggleSwitch()
-#         # self.hand_switch.setChecked(True)
-#         # self.hand_switch.clicked.connect(self.change_hand)
-#         # self.start_location_group_layout = LocationGroupLayout('start', location_specifications, app_ctx)
-#         # self.end_location_group_layout = LocationGroupLayout('end', location_specifications, app_ctx)
-#         # self.location_point_panel = LocationPointPanel('Location points')
-#         #
-#         # self.addWidget(self.hand_switch)
-#         # #self.addWidget(self.location_point_panel)
-#         # self.addLayout(self.start_location_group_layout)
-#         # self.addLayout(self.end_location_group_layout)
-#
-#     # todo kv
-#     # def change_hand(self):
-#     #     hand = 'D' if self.hand_switch.isChecked() else 'W'
-#     #     self.start_location_group_layout.change_hand(hand)
-#     #     self.end_location_group_layout.change_hand(hand)
-#
-#     def get_movement_value(self):
-#         movement_value_dict = {
-#             # 'start': self.start_location_group_layout.get_location_value(),
-#             # 'end': self.end_location_group_layout.get_location_value()
-#         }
-#
-#         return movement_value_dict
-#
-#     # todo kv
-#     def clear(self, movement_specifications, app_ctx):
-#         pass
-#         # self.hand_switch.setChecked(True)
-#         # self.start_location_group_layout.clear(location_specifications, app_ctx)
-#         # self.end_location_group_layout.clear(location_specifications, app_ctx)
-#
-#     # todo kv
-#     # def set_value(self, value):
-#     #     self.start_location_group_layout.set_value(value.start)
-#     #     self.end_location_group_layout.set_value(value.end)
 
 
 class LocationPointTable(QTableWidget):

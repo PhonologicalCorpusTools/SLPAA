@@ -549,7 +549,7 @@ class Sign:
     def unserializemovementmodules(self, serialized_mvmtmodules):
         unserialized = {}
         for k in serialized_mvmtmodules.keys():
-            mvmttreemodel, rootnode = serialized_mvmtmodules[k].getMovementTreeModel()
+            mvmttreemodel = serialized_mvmtmodules[k].getMovementTreeModel()
             unserialized[k] = mvmttreemodel
         self.movementmodules = unserialized
 

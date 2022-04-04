@@ -668,13 +668,13 @@ class MovementTree:
                     self.checkstates[pathtext] = checkstate
                 self.collectdata(treechild)
 
-
     def getMovementTreeModel(self):
         mvmttreemodel = MovementTreeModel()
         rootnode = mvmttreemodel.invisibleRootItem()
         mvmttreemodel.populate(rootnode)
+        makelistmodel = mvmttreemodel.listmodel
         self.setvalues(rootnode)
-        return mvmttreemodel, rootnode
+        return mvmttreemodel
 
     def setvalues(self, treenode):
         if treenode is not None:
@@ -693,16 +693,13 @@ class MovementTreeModel(QStandardItemModel):
 
     def __init__(self, **kwargs):  #  movementparameters=None,
         super().__init__(**kwargs)
-        self.listmodel = MovementListModel(self)  # None
+        self._listmodel = None  # MovementListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
 
     def updatelistdata(self, topLeft, bottomRight):
         startitem = self.itemFromIndex(topLeft)
         startitem.updatelistdata()
-
-    def setListmodel(self, listmod):
-        self.listmodel = listmod
 
     def updateCheckState(self, item):
         thestate = item.checkState()
@@ -764,10 +761,16 @@ class MovementTreeModel(QStandardItemModel):
                     self.populate(thistreenode, structure=structure[labelclassifierchecked_triple], pathsofar=pathsofar+label+delimiter)
                     parentnode.appendRow([thistreenode])
 
+    @property
     def listmodel(self):
-        if self.listmodel is None:
-            self.listmodel = MovementListModel(self)
-        return self.listmodel
+        if self._listmodel is None:
+            self._listmodel = MovementListModel(self)
+        return self._listmodel
+
+    @listmodel.setter
+    def listmodel(self, listmod):
+        self._listmodel = listmod
+
 
 ################# TODO KV below is copied from CorpusModel
     #
@@ -853,7 +856,7 @@ class MovementTreeItem(QStandardItem):
             'texteditrole': self.data(Qt.UserRole + texteditrole),
             'mutuallyexclusiverole': self.data(Qt.UserRole+mutuallyexclusiverole),
             'displayrole': self.data(Qt.DisplayRole),
-            'listitem': self.listitem.serialize()
+            # 'listitem': self.listitem.serialize()
         }
 
     def updatelistdata(self):
@@ -996,16 +999,16 @@ class MovementListItem(QStandardItem):
                 self.treeitem.listitem = self
             self.setData(False, Qt.UserRole+selectedrole)
 
-    def serialize(self):
-        serialized = {
-            'editable': self.isEditable(),
-            'text': self.text(),
-            'nodedisplayrole': self.data(Qt.UserRole+nodedisplayrole),
-            'timestamprole': self.data(Qt.UserRole+timestamprole),
-            'checkable': self.isCheckable(),
-            'selectedrole': self.data(Qt.UserRole+selectedrole)
-        }
-        return serialized
+    # def serialize(self):
+    #     serialized = {
+    #         'editable': self.isEditable(),
+    #         'text': self.text(),
+    #         'nodedisplayrole': self.data(Qt.UserRole+nodedisplayrole),
+    #         'timestamprole': self.data(Qt.UserRole+timestamprole),
+    #         'checkable': self.isCheckable(),
+    #         'selectedrole': self.data(Qt.UserRole+selectedrole)
+    #     }
+    #     return serialized
 
     def updatetext(self, txt=""):
         self.setText(txt)
@@ -1090,11 +1093,11 @@ class MovementListModel(QStandardItemModel):
             self.populate(treeparentnode)
             self.treemodel.listmodel = self
 
-    def serialize(self):
-        serialized = []
-        for rownum in range(self.rowCount()):
-            serialized.append(self.item(rownum, 0).serialize())
-        return serialized
+    # def serialize(self):
+    #     serialized = []
+    #     for rownum in range(self.rowCount()):
+    #         serialized.append(self.item(rownum, 0).serialize())
+    #     return serialized
 
     def populate(self, treenode):
         # colcount = 1  # TODO KV treenode.columnCount()

@@ -37,14 +37,14 @@ from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusView
 from gui.location_definer import LocationDefinerDialog
 from gui.movement_selector import MovementSelectorDialog
-from gui.signtype_selector import Signtype, SigntypeSelectorDialog
-from gui.corpus_summary_dialog import CorpusSummaryDialog
+from gui.signtype_selector import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import (
-    SignLevelInformationPanel,
-    HandTranscriptionPanel,
-    HandIllustrationPanel,
-    ParameterPanel,
+    # TODO KV no longer used
+    # SignLevelInformationPanel,
+    # HandTranscriptionPanel,
+    # HandIllustrationPanel,
+    # ParameterPanel,
     SignSummaryPanel,
     XslotImagePanel
 )
@@ -54,8 +54,7 @@ from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
 from gui.undo_command import TranscriptionUndoCommand, PredefinedUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import (
-    Corpus,
-    Sign
+    Corpus
 )
 
 
@@ -81,7 +80,6 @@ class MainWindow(QMainWindow):
 
         self.corpus = None
         self.current_sign = None
-        # self.new_sign = None
 
         self.undostack = QUndoStack(parent=self)
 
@@ -89,8 +87,7 @@ class MainWindow(QMainWindow):
 
         # system-defaults
         self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
-        # TODO kv keep? - just copied from location
-        self.system_default_movement = None  # deepcopy(SAMPLE_LOCATIONS)
+        self.system_default_movement = None
         self.system_default_signtype = Signtype(['unspecified'])  # TODO KV not necessarily default...
 
         # handle setting-related stuff
@@ -156,20 +153,6 @@ class MainWindow(QMainWindow):
         action_define_location.triggered.connect(self.on_action_define_location)
         action_define_location.setCheckable(False)
 
-        # define movement
-        # # TODO KV think about naming/wording
-        # action_select_movement = QAction('Select movement...', parent=self)
-        # action_select_movement.setStatusTip('Open movement selector window')
-        # action_select_movement.triggered.connect(self.on_action_select_movement)
-        # action_select_movement.setCheckable(False)
-
-        # # define movement
-        # # TODO KV think about naming/wording
-        # action_select_signtype = QAction('Select sign type...', parent=self)
-        # action_select_signtype.setStatusTip('Open sign type selector window')
-        # action_select_signtype.triggered.connect(self.on_action_select_signtype)
-        # action_select_signtype.setCheckable(False)
-
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), 'New corpus', parent=self)
         action_new_corpus.setStatusTip('Create a new corpus')
@@ -229,6 +212,7 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setCheckable(True)
         self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
+        # TODO KV no longer used
         # # show/hide sign-level subwindow
         # self.action_show_sub_signlevel = QAction('Show sign-level information', parent=self)
         # self.action_show_sub_signlevel.setStatusTip('Show/hide sign-level information')
@@ -243,6 +227,7 @@ class MainWindow(QMainWindow):
         self.action_show_sub_signsummary.setCheckable(True)
         self.action_show_sub_signsummary.setChecked(self.app_settings['display']['sub_signsummary_show'])
 
+        # TODO KV no longer used
         # # show/hide transcription subwindow
         # self.action_show_sub_transcription = QAction('Show transcription', parent=self)
         # self.action_show_sub_transcription.setStatusTip('Show/hide transcription')
@@ -250,6 +235,7 @@ class MainWindow(QMainWindow):
         # self.action_show_sub_transcription.setCheckable(True)
         # self.action_show_sub_transcription.setChecked(self.app_settings['display']['sub_transcription_show'])
         #
+        # TODO KV no longer used
         # # show/hide illustration subwindow
         # self.action_show_sub_illustration = QAction('Show hand illustration', parent=self)
         # self.action_show_sub_illustration.setStatusTip('Show/hide hand illustration')
@@ -257,6 +243,7 @@ class MainWindow(QMainWindow):
         # self.action_show_sub_illustration.setCheckable(True)
         # self.action_show_sub_illustration.setChecked(self.app_settings['display']['sub_illustration_show'])
         #
+        # TODO KV no longer used
         # # show/hide parameter subwindow
         # self.action_show_sub_parameter = QAction('Show parameter specifier', parent=self)
         # self.action_show_sub_parameter.setStatusTip('Show/hide parameter specifier')
@@ -367,16 +354,6 @@ class MainWindow(QMainWindow):
         #
         # self.parameter_scroll = ParameterPanel(dict(), self.app_ctx, parent=self)  # TODO KV movement dict(),
 
-        # TODO KV
-        # signtype = self.system_default_signtype
-        # if self.new_sign:
-        #     signtype = self.new_sign.signtype
-        # elif self.current_sign:
-        #     self.new_sign = self.current_sign
-        #     signtype = self.current_sign.signtype
-        # # else:
-        # #     self.update_new_sign()
-        # self.sign_summary = SignSummaryPanel(sign=self.new_sign, mainwindow=self, parent=self)
         self.sign_summary = SignSummaryPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         # TODO KV xslot mockup
@@ -423,7 +400,7 @@ class MainWindow(QMainWindow):
         self.open_initialization_window()
 
     def setCorpusName(self, newtitle):
-        if self.corpus:
+        if self.corpus is not None:
             self.corpus.name = newtitle
 
     def on_action_export_handshape_transcription_csv(self):
@@ -721,6 +698,8 @@ class MainWindow(QMainWindow):
         self.current_sign = selected_sign
         # self.new_sign = selected_sign
         self.action_delete_sign.setEnabled(True)
+        self.sign_summary.sign = selected_sign
+        self.sign_summary.load_movementmodulebuttons()
         self.sign_summary.enable_module_buttons(True)
 
         # self.signlevelinfo_scroll.set_value(selected_sign.signlevel_information)
@@ -728,7 +707,7 @@ class MainWindow(QMainWindow):
         #                                     selected_sign.handshape_transcription)
         # self.parameter_scroll.set_value(selected_sign.location)
 
-        self.sign_summary.sign = selected_sign
+
         # self.sign_summary.signgloss_label.setText("Gloss: " + selected_sign.signlevel_information.gloss if selected_sign else "")
 
     def handle_app_settings(self):
@@ -864,43 +843,6 @@ class MainWindow(QMainWindow):
         self.corpus.location_definition = new_locations
         # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)
 
-    # def on_action_select_movement(self):
-    #     # TODO KV
-    #     movement_selector = MovementSelectorDialog(self.system_default_movement, self.corpus.movement_definition, self.app_settings, self.app_ctx, parent=self)
-    #
-    #     # movement_selector.saved_movements.connect(self.save_new_movements)
-    #     movement_selector.exec_()
-
-    # TODO KV not used?
-    # def on_action_select_signtype(self):
-    #     signtype = self.system_default_signtype
-    #     if self.new_sign:
-    #         newsigntemp = self.new_sign
-    #         signtype = self.new_sign.signtype
-    #     elif self.current_sign:
-    #         currentsigntemp = self.current_sign
-    #         self.new_sign = self.current_sign
-    #         signtype = self.current_sign.signtype
-    #
-    #     signtype_selector = SigntypeSelectorDialog(signtype, self, parent=self)  # TODO KV delete self.app_settings, self.app_ctx, parent=self)
-    #     signtype_selector.saved_signtype.connect(self.handle_saved_signtype)  # update_new_sign())
-    #
-    #     # TODO KV delete? movement_selector.saved_movements.connect(self.save_new_movements)
-    #     signtype_selector.exec_()
-
-    # TODO KV is this being used?
-    # def handle_saved_signtype(self, signtype):
-    #     # self.update_new_sign()
-    #     # self.new_sign.signtype = signtype
-    #
-    #     if self.sign:
-    #         # an existing sign is highlighted; update it
-    #         self.sign.signtype = signtype
-    #     else:
-    #         # TODO KV this is a new sign
-    #         #  ... but we shouldn't be able to edit signtype info if the signlevel info doesn't yet exist
-    #         pass
-
     def update_status_bar(self, text):
         self.status_bar.showMessage(text)
 
@@ -913,23 +855,6 @@ class MainWindow(QMainWindow):
         pref_dialog.exec_()
         #self.app_settings
 
-    # TODO KV better name for this function
-    # is this even begin used?
-    # def update_new_sign(self):
-    #     signlevel_info = self.signlevelinfo_scroll.get_value()
-    #     location_transcription_info = self.parameter_scroll.location_layout.get_location_value()
-    #     global_hand_info = self.transcription_scroll.global_info.get_value()
-    #     configs = [self.transcription_scroll.config1.get_value(),
-    #                self.transcription_scroll.config2.get_value()]
-    #
-    #     if self.new_sign:
-    #         self.new_sign.signlevel_information = signlevel_info
-    #         self.new_sign.global_handshape_information = global_hand_info
-    #         self.new_sign.handshape_transcription = configs
-    #         self.new_sign.location = location_transcription_info
-    #     else:
-    #         self.new_sign = Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
-    #
     # @check_duplicated_gloss
     # @check_unsaved_corpus
     # def on_action_save(self, clicked):
@@ -998,15 +923,15 @@ class MainWindow(QMainWindow):
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
             # pickle.dump(self.corpus, f, protocol=pickle.HIGHEST_PROTOCOL)
-            for s in self.corpus.signs:
-                s.movementmodules = {}
-            pickle.dump(self.corpus, f, protocol=pickle.HIGHEST_PROTOCOL)
-            # pickle.dump(self.corpus.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
+            # for s in self.corpus.signs:
+            #     s.movementmodules = {}
+            # pickle.dump(self.corpus, f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.corpus.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_corpus_binary(self, path):
         with open(path, 'rb') as f:
-            return pickle.load(f)
-            # return Corpus(serializedcorpus=pickle.load(f))
+            # return pickle.load(f)
+            return Corpus(serializedcorpus=pickle.load(f))
 
     def on_action_copy(self, clicked):
         pass

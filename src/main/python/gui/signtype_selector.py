@@ -369,7 +369,7 @@ class Signtype:
         return self._specs
 
     @specs.setter
-    def setspecs(self, specslist):
+    def specs(self, specslist):
         self._specs = specslist
 
 
