@@ -70,6 +70,12 @@ class AppContext(ApplicationContext):
         }
 
     @cached_property
+    def xslotimage(self):
+        return {
+            'xslot': self.get_resource('xslotsample.png')
+        }
+
+    @cached_property
     def predefined(self):
         return {
             'base': self.get_resource('predefined/base.png'),
