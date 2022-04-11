@@ -17,7 +17,7 @@ Number of hands
 
 1. 1 hand
 =========
-This is selected if the sign only involved one hand, regardless of movement, contact etc. 
+Select this if the sign only involved one hand, regardless of movement, contact etc. 
 
 - "The hand moves" is selected if the hand is involved in either a perceptual shape [`NORTH <https://asl-lex.org/visualization/?sign=north>`_] or a joint-specific movement [`APPLE <https://asl-lex.org/visualization/?sign=apple>`_] **also includes finger spelled signs?** if yes, give example. 
 
@@ -25,23 +25,23 @@ This is selected if the sign only involved one hand, regardless of movement, con
 
 2. 2 hands
 =========
-This is selected if both **hands** are involved in the sign in some way. **(add a note about what to do if the ARM is involved, such as WHALE, CRACKER, TRASH, and even TIME, where the wrist is involved. Signs where the forearm is parallel to the ground, this selection will be available in PDHS module)**
+Select this if both **hands** are involved in the sign in some way. **(add a note about what to do if the ARM is involved, such as WHALE, CRACKER, TRASH, and even TIME, where the wrist is involved. Signs where the forearm is parallel to the ground, this selection will be available in PDHS module)**
 
 I. Handshape relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- "H1 and H2 involve the same set(s) of handshapes" is selected if the handshapes throughout the entire sign remain the same between both hands [`BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_]
+- "H1 and H2 involve the same set(s) of handshapes" should be selected if the handshapes throughout the entire sign remain the same between both hands [`BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_]
 
 
-- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign, such as [`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_, `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_, `SHOW <https://asl-lex.org/visualization/?sign=show>`_] 
+- "H1 and H2 involve different set(s) of handshapes " should be selected if the two hands have different handshapes from each other in at least one part of the sign, such as [`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_, `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_, `SHOW <https://asl-lex.org/visualization/?sign=show>`_] 
 
 
 
 II. Contact relation
 ~~~~~~~~~~~~~~~~~~~~~~
-- "H2 maintains contact with H1 throughout the sign" is selected if the contact is maintained throughout the duration of the sign, such as [`SHOW <https://asl-lex.org/visualization/?sign=show>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_]
+- "H2 maintains contact with H1 throughout the sign" should be selected if the contact is maintained throughout the duration of the sign, such as [`SHOW <https://asl-lex.org/visualization/?sign=show>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_]
 
-- "H1 and H2 do not maintain contact with each other" is selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands [`STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_] and signs that have momentary contact at a certain point in the sign [`CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_].
+- "H1 and H2 do not maintain contact with each other" should be selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands [`STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_] and signs that have momentary contact at a certain point in the sign [`CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_].
 
 
 .. _signtype_movement_relation: 
@@ -49,14 +49,14 @@ II. Contact relation
 III. Movement relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-a) "Neither H1 nor H2 moves" is selected if neither hand is involved in any movement (perceptual shape or joint-specific), such as [`SICK <https://asl-lex.org/visualization/?sign=sick>`_] 
+a) "Neither H1 nor H2 moves" should be selected if neither hand is involved in any movement (perceptual shape or joint-specific), such as [`SICK <https://asl-lex.org/visualization/?sign=sick>`_] 
 
-b) "Only one hand moves" is selected if only one hand is involved in a perceptual shape or joint-specific movement. If selected, further specification is needed below about which hand is involved in the movement.
+b) "Only one hand moves" should be selected if only one hand is involved in a perceptual shape or joint-specific movement. If selected, further specification is needed below about which hand is involved in the movement.
 
   - Only H1 moves [`WHEN <https://asl-lex.org/visualization/?sign=when>`_]
   - Only H2 moves [this version of `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_]
 
-c) "Both hands move" is selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands.
+c) "Both hands move" should be selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands.
 
   - **Movement direction relation:**
       - H1 and H2 have the same direction of movement. [e.g., WHEELCHAIR, BICYCLE, EXPERIMENT, CLOUD_1, CRUCIFY, HANDS, FOLD, FREE]
