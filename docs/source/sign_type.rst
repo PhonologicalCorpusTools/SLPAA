@@ -49,10 +49,11 @@ b) Contact relation
 
 2. Movement relation
 ````````````````````
-
-
-
-
+a) Neither H1 nor H2 moves [`SICK <https://asl-lex.org/visualization/?sign=sick>`_] 
+b) Only one hand moves
+- Only H1 moves [`WHEN <https://asl-lex.org/visualization/?sign=when>`_]
+- Only H2 moves [this version of `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_]
+c) Both hands move
 
 
 
