@@ -19,7 +19,7 @@ I. 1 hand
 =========
 This is selected if the sign only involved one hand, regardless of movement, contact etc. 
 
-- "The hand moves" is selected if the hand is involved in either a perceptual shape [NORTH] or a joint-specific movement [APPLE] **also includes finger spelled signs?** if yes, give example. 
+- "The hand moves" is selected if the hand is involved in either a perceptual shape [`NORTH <https://asl-lex.org/visualization/?sign=north>`_] or a joint-specific movement [`APPLE <https://asl-lex.org/visualization/?sign=apple>`_] **also includes finger spelled signs?** if yes, give example. 
 
 - "The hand does not move" is selected if the hand is not nvolved in any movement, such as [ONE].
 
