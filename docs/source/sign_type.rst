@@ -12,10 +12,10 @@ abc ~~~~~~~~~
 
 .. _signtype_number_hands: 
 
-1. Number of hands
-```````````````````
+Number of hands
+`````````````````
 
-I. 1 hand
+1. 1 hand
 =========
 This is selected if the sign only involved one hand, regardless of movement, contact etc. 
 
@@ -23,11 +23,11 @@ This is selected if the sign only involved one hand, regardless of movement, con
 
 - "The hand does not move" is selected if the hand is not nvolved in any movement, such as [`ONE <https://asl-lex.org/visualization/?sign=one>`_].
 
-II. 2 hands
+2. 2 hands
 =========
 This is selected if both **hands** are involved in the sign in some way. **(add a note about what to do if the ARM is involved, such as WHALE, CRACKER, TRASH, and even TIME, where the wrist is involved. Signs where the forearm is parallel to the ground, this selection will be available in PDHS module)**
 
-a) Handshape relation
+I. Handshape relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
 - "H1 and H2 involve the same set(s) of handshapes" is selected if the handshapes throughout the entire sign remain the same between both hands [`BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_]
@@ -37,23 +37,35 @@ a) Handshape relation
 
 
 
-b) Contact relation
+II. Contact relation
 ~~~~~~~~~~~~~~~~~~~~~~
 - "H2 maintains contact with H1 throughout the sign" is selected if the contact is maintained throughout the duration of the sign, such as [`SHOW <https://asl-lex.org/visualization/?sign=show>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_]
 
 - "H1 and H2 do not maintain contact with each other" is selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands [`STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_] and signs that have momentary contact at a certain point in the sign [`CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_].
 
 
-
 .. _signtype_movement_relation: 
 
-2. Movement relation
+III. Movement relation
 ````````````````````
-a) Neither H1 nor H2 moves [`SICK <https://asl-lex.org/visualization/?sign=sick>`_] 
-b) Only one hand moves
-- Only H1 moves [`WHEN <https://asl-lex.org/visualization/?sign=when>`_]
-- Only H2 moves [this version of `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_]
-c) Both hands move
+a) "Neither H1 nor H2 moves" is selected if neither hand is involved in any movement (perceptual shape or joint-specific), such as [`SICK <https://asl-lex.org/visualization/?sign=sick>`_] 
+
+b) "Only one hand moves" is selected if only one hand is involved in a perceptual shape or joint-specific movement. If selected, further specification is needed below about which hand is involved in the movement.
+
+  - Only H1 moves [`WHEN <https://asl-lex.org/visualization/?sign=when>`_]
+  - Only H2 moves [this version of `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_]
+
+c) "Both hands move" is selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands.
+
+**Movement timing relation:**
+
+
+
+
+
+
+
+NOTE:Movement direction relation and movement timing relation are specified only for signs where H1 and H2 ‘move similarly.’ Movement direction relation is relevant only for signs with a perceptual shape component to their movement. The classification of examples is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral) – the examples here assume a relative horizontal axis; see the Global Settings for more information.
 
 
 
