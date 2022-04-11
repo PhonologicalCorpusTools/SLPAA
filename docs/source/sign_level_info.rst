@@ -24,40 +24,32 @@ Write the :ref:`gloss` for the sign.
 
 Write the :ref:`lemma` for the sign.
 
-**Source**
+- **Source**
 
 Select source from dropdown menu after they have been specified in :ref:`source_info_entry`(to link to metadate documentation)
 
-- Signer
-~~~~~~~~~~~
+- **Signer**
 
 Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`(to link to metadate documentation)
 
 
-- Frequency
-~~~~~~~~~~~
+- **Frequency**
 
 Include how often the sign occurs in the corpus.
 
-- Coder
-~~~~~~~~~~~
+- **Coder**
 
 Select source from dropdown menu after they have been specified in :ref:`coder_info_entry` (to link to metadate documentation)
 
-- Last Updated
-~~~~~~~~~~~
+- **Last Updated**
 
 This will be filled in automatically when you change any element of the sign.
 
-
-- Notes
-~~~~~~~~~~~
-
+- **Notes**
 
 These notes will be attached to the particular sign in the corpus.
 
-- Hand Dominance
-~~~~~~~~~~~
+- **Hand Dominance**
 
 Choose from one of the options L or R for the signer. Global settings for hand dominance **[make this link to .._globalsettings_hand_dominance]** can be specified by the user. 
 
