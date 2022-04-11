@@ -12,68 +12,46 @@ Sign Level Information
 #Here's an example of a glossary item: :ref:`sample_2`. On ReadtheDocs, it will be blue linked text, but the actual text that is the 'section heading' ('Sample 2') will be used instead of the name of the link ('sample_2'), which allows for nicer formatting and multi-word glossary items.
 
 
-Entry ID
-========
+- Entry ID
 
 The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_options` for how to set preferences.
 
-Gloss
-========
+- Gloss
 
 Write the :ref:`gloss` for the sign. 
 
-
-Lemma
-========
+- Lemma
 
 Write the :ref:`lemma` for the sign.
 
-
-Source
-========
-
+- Source
 
 Select source from dropdown menu after they have been specified in :ref:`source_info_entry`(to link to metadate documentation)
 
-
-Signer
-========
-
+- Signer
 
 Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`(to link to metadate documentation)
 
 
-Frequency
-========
-
+- Frequency
 
 Include how often the sign occurs in the corpus.
 
-
-Coder
-========
-
+- Coder
 
 Select source from dropdown menu after they have been specified in :ref:`coder_info_entry` (to link to metadate documentation)
 
-
-Last Updated
-========
-
+- Last Updated
 
 This will be filled in automatically when you change any element of the sign.
 
 
-Notes
-========
+- Notes
 
 
 These notes will be attached to the particular sign in the corpus.
 
-
-Hand Dominance
-========
-
+- Hand Dominance
 
 Choose from one of the options L or R for the signer. Global settings for hand dominance **[make this link to .._globalsettings_hand_dominance]** can be specified by the user. 
 
