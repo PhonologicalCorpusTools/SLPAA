@@ -32,7 +32,7 @@ a) Handshape relation
 
 - "H1 and H2 involve the same set(s) of handshapes" is selected if the handshapes throughout the entire sign remain the same between both hands **[e.g....]**
 
-- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign **[`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_, `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_]** 
+- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign [`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_], [`MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_] 
 
 
 
