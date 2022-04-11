@@ -21,7 +21,7 @@ This is selected if the sign only involved one hand, regardless of movement, con
 
 - "The hand moves" is selected if the hand is involved in either a perceptual shape [`NORTH <https://asl-lex.org/visualization/?sign=north>`_] or a joint-specific movement [`APPLE <https://asl-lex.org/visualization/?sign=apple>`_] **also includes finger spelled signs?** if yes, give example. 
 
-- "The hand does not move" is selected if the hand is not nvolved in any movement, such as [ONE].
+- "The hand does not move" is selected if the hand is not nvolved in any movement, such as [`ONE <https://asl-lex.org/visualization/?sign=one>`_].
 
 II. 2 hands
 =========
@@ -32,8 +32,8 @@ a) Handshape relation
 
 - "H1 and H2 involve the same set(s) of handshapes" is selected if the handshapes throughout the entire sign remain the same between both hands **[e.g....]**
 
-- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign **[e.g EVERY-YEAR, MOUNTAIN]** https://www.signingsavvy.com/sign/EVERY+YEAR 
-https://www.handspeak.com/word/search/index.php?id=2686 
+- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign **[`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_, `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_]** 
+
 
 
 
