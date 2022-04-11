@@ -22,49 +22,31 @@ from PyQt5.QtWidgets import (
 
 from PyQt5.QtCore import (
     Qt,
-    pyqtSignal,
     QSize,
-    QEvent
+    QEvent,
+    pyqtSignal
 )
 
-# TODO KV does texteditrole ever get used??
-from gui.movement_view import MovementTreeModel, MovementTree, MovementListModel, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, texteditrole, lastingrouprole, finalsubgrouprole, subgroupnamerole, MovementTreeView, MovementTreeItem
+from gui.movement_view import MovementTreeModel, MovementTree, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, lastingrouprole, finalsubgrouprole, MovementTreeView, pathdisplayrole, delimiter
+
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-class Delegate(QStyledItemDelegate):
-
-    # # how to make sure this only gets used for # of repetitions?
-    # def createEditor(self, parent, option, index):
-    #     if index.parent().data(Qt.DisplayRole) == "Number of repetitions": # if index.data(Qt.DisplayRole) == "How many":
-    #         editor = RepEditor(parent)  # QLineEdit(parent)
-    #         # editor.setText("# reps")
-    #         return editor
-    #     else:
-    #         QStyledItemDelegate.createEditor(parent, option, index)
+class TreeItemDelegate(QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
-        # theeditor.__class__ = RepsEditor
         theeditor.returnPressed.connect(self.returnkeypressed)
         return theeditor
 
-    # # how to make sure this only gets used for # of repetitions?
-    # def setEditorData(self, editor, index):
-    #     if index.parent().data(Qt.DisplayRole) == "Number of repetitions": # if index.data(Qt.DisplayRole) == "How many":
-    #         value = index.data(index, Qt.EditRole)
-    #         editor.setText(value)
-    #     else:
-    #         QStyledItemDelegate.setEditorData(editor, index)
-    #
-    # def setModelData(self, editor, model, index):
-    #     if index.parent().data(Qt.DisplayRole) == "Number of repetitions": # if index.data(Qt.DisplayRole) == "How many":
-    #         value = editor.text()
-    #         model.setData(index, value, Qt.EditRole)
-    #     else:
-    #         QStyledItemDelegate.setModelData(editor, model, index)
-    #
-    # def updateEditorGeometry(self, editor, option, index):
-    #     editor.setGeometry(option.rect)
+    def setEditorData(self, editor, index):
+        editor.setText(index.data(role=Qt.DisplayRole))
+
+    def setModelData(self, editor, model, index):
+        model.itemFromIndex(index).setData(editor.text(), role=Qt.DisplayRole)
+        currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+pathdisplayrole)
+        newpathlevels = currentpath.split(delimiter)
+        newpathlevels[-1] = editor.text()
+        model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+pathdisplayrole)
 
     def __init__(self):
         super().__init__()
@@ -108,13 +90,6 @@ class Delegate(QStyledItemDelegate):
                 opt = QStyleOptionFrame()
                 opt.rect = option.rect
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-
-#
-# class RepsEditor(QLineEdit):
-#
-#     def returnPressed(self):
-#         print("return pressed")  # ... and hopefully nothing else happens!
-#         # super().returnPressed()
 
 
 # TODO KV - add undo, ...
@@ -170,7 +145,7 @@ class MovementSpecificationLayout(QVBoxLayout):
         selection_layout = QHBoxLayout()
 
         self.treedisplay = MovementTreeView()
-        self.treedisplay.setItemDelegate(Delegate())
+        self.treedisplay.setItemDelegate(TreeItemDelegate())
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
         # TODO KV figure out adding number selector
@@ -233,12 +208,17 @@ class MovementSpecificationLayout(QVBoxLayout):
     def refresh_treemodel(self):
         self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
         self.treemodel.populate(self.treemodel.invisibleRootItem())
+        # items = self.treemodel.findItems("Number of repetitions", Qt.MatchRecursive)
+        # repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
+        # self.treedisplay.openPersistentEditor(repsindex)
 
         self.listmodel = self.treemodel.listmodel
 
         self.comboproxymodel.setSourceModel(self.listmodel)
         self.listproxymodel.setSourceModel(self.listmodel)
         self.treedisplay.setModel(self.treemodel)
+
+        # self.combobox.clear()
 
     def clearlist(self, button):
         numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()
@@ -350,7 +330,7 @@ class MovementSelectorDialog(QDialog):
             # TODO KV if we are editing an already-existing movement module, this seems to save anyway
             self.reject()
 
-        elif standard == QDialogButtonBox.Save:  # save and next
+        elif standard == QDialogButtonBox.Save:  # save and add another
             # save info and then refresh screen to enter next movemement module
             self.saved_movement.emit(self.movement_layout.treemodel)
             # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?

@@ -42,517 +42,263 @@ timestamprole = 8
 
 rb = "radio button"  # ie mutually exclusive in group / at this level
 cb = "checkbox"  # ie not mutually exlusive
-na = "not applicable"
+ed = "editable" 
+fx = "fixed"  # ie not editable
 subgroup = "subgroup"
 
 c = True  # checked
 u = False  # unchecked
 
-mvmtOptionsDict_old = {
-    ("No movement", rb): {},
-    ("Movement type", cb): {
-        ("Perceptual shape", rb): {
-            ("Shape", cb): {  # all mutually exclusive (straight vs arc vs ...)
-                (subgroup, 0): {
-                    ("Straight", rb): {
-                        ("Interacts with subsequent straight movement", rb): {
-                            ("Movement contours cross (e.g. X)", rb): {},
-                            ("Subsequent movement starts at end of first (e.g. ↘↗)", rb): {},
-                            ("Subsequent movement starts in same location as start of first (e.g. ↖↗)", rb): {},
-                            ("Subsequent movement ends in same location as end of first (e.g. ↘↙)", rb): {}
-                        },
-                        ("Doesn't interact with subsequent straight movement", rb): {}
-                    },
-                    ("Arc", rb): {},
-                    ("Circle", rb): {},
-                    ("Zigzag", rb): {},
-                    ("Loop (travelling circles)", rb): {},
-                    ("None of these", rb): {}
-                }
-            },
-            ("Axis direction", cb): {  # Choose up to one from each axis to get the complete direction
-                (subgroup, 0): {
-                    ("Up", rb): {},
-                    ("Down", rb): {}
-                },
-                (subgroup, 1): {
-                    ("Distal", rb): {},
-                    ("Proximal", rb): {}
-                },
-                (subgroup, 2): {
-                    ("Right", rb): {},
-                    ("Left", rb): {}
-                },
-                ("Not relevant", rb): {}
-            },
-            ("Plane", cb): {  # choose as many as needed, but only one direction per plane
-                ("Mid-sagittal", cb): {
-                    (subgroup, 0): {
-                        ("Clockwise", rb): {},
-                        ("Counterclockwise", rb): {}
-                    },
-                },
-                ("Horizontal", cb): {
-                    (subgroup, 0): {
-                        ("Clockwise", rb): {},
-                        ("Counterclockwise", rb): {}
-                    },
-                },
-                ("Vertical", cb): {
-                    (subgroup, 0): {
-                        ("Clockwise", rb): {},
-                        ("Counterclockwise", rb): {}
-                    },
-                },
-                ("Not relevant", rb): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
-            },
-        },
-        # mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
-        ("Joint-specific movements", rb): {
-            ("Nodding/un-nodding", rb): {
-                (subgroup, 0): {
-                    ("Nodding", rb): {},  # TODO KV autofills to flexion of wrist (but *ask* before auto-unfilling if nodding is unchecked)
-                    ("Un-nodding", rb): {}  # TODO KV autofills to extension of wrist
-                }
-            },
-            ("Pivoting", rb): {
-                (subgroup, 0): {
-                    ("Radial", rb): {},  # TODO KV autofills to wrist radial deviation
-                    ("Ulnar", rb): {}  # TODO KV autofills to wrist ulnar deviation
-                }
-            },
-            ("Twisting", rb): {
-                (subgroup, 0): {
-                    ("Pronation", rb): {},  # TODO KV autofills to Proximal radioulnar pronation
-                    ("Supination", rb): {}  # TODO KV autofills to Proximal radioulnar supination
-                }
-            },
-            ("Closing/Opening", rb): {
-                (subgroup, 0): {
-                    ("Closing", rb): {},  # TODO KV autofills to flexion of [selected finger, all joints]
-                    ("Opening", rb): {}  # TODO KV autofills to extension of [selected finger, all joints]
-                }
-            },
-            ("Pinching/unpinching", rb): {
-                (subgroup, 0): {
-                    ("Pinching (Morgan 2017)", rb): {},  # TODO KV autofills to adduction of thumb base joint
-                    ("Unpinching", rb): {}  # TODO KV autofills to (abduction of thumb base joint? - not specific in google doc)
-                }
-            },
-            ("Flattening/Straightening", rb): {
-                (subgroup, 0): {
-                    ("Flattening/hinging", rb): {},  # TODO KV autofills to flexion of [selected finger base joints]
-                    ("Straightening", rb): {}  # TODO KV autofills to extension of [selected finger base joints]
-                }
-            },
-            ("Hooking/Unhooking", rb): {
-                (subgroup, 0): {
-                    ("Hooking/clawing", rb): {},  # TODO KV autofills to flexion of [selected finger non-base joints]
-                    ("Unhooking", rb): {}  # TODO KV autofills to extension of [selected finger non-base joints]
-                }
-            },
-            ("Spreading/Unspreading", rb): {
-                (subgroup, 0): {
-                    ("Spreading", rb): {},  # TODO KV autofills to abduction of [selected finger base joints]
-                    ("Unspreading", rb): {}  # TODO KV autofills to adduction of [selected finger base joints]
-                }
-            },
-            ("Rubbing", rb): {
-                (subgroup, 0): {
-                    ("Thumb crossing over palm", rb): {},  # TODO KV autofills to TBD
-                    ("Thumb moving away from palm", rb): {}  # TODO KV autofills to TBD
-                }
-            },
-            ("Wiggling/Fluttering", rb): {},  # TODO KV autofills to both flexion and extension of selected finger base joints
-            ("None of these", rb): {}
-        }
-    },
-    ("Joint movements", cb): {
-        ("Complex / multi-joint", cb): {},  # from Yurika: if this is selected, the expectation is that nothing else below would be selected, though I guess people could...
-        ("Shoulder", cb): {
-            (subgroup, 0): {
-                ("Flexion", rb): {},
-                ("Extension", rb): {},
-            },
-            (subgroup, 1): {
-                ("Abduction", rb): {},
-                ("Adduction", rb): {},
-            },
-            (subgroup, 2): {
-                ("Posterior rotation", rb): {},
-                ("Anterior rotation", rb): {},
-            },
-            (subgroup, 3): {
-                ("Protraction", rb): {},
-                ("Retraction", rb): {},
-            },
-            (subgroup, 4): {
-                ("Depression", rb): {},
-                ("Elevation", rb): {},
-            },
-            (subgroup, 5): {
-                ("Circumduction", cb): {}
-            },
-        },
-        ("Elbow", cb): {
-            (subgroup, 0): {
-                ("Flexion", rb): {},
-                ("Extension", rb): {},
-            },
-            (subgroup, 1): {
-                ("Circumduction", cb): {}
-            },
-        },
-        ("Radio-ulnar", cb): {
-            (subgroup, 0): {
-                ("Pronation", rb): {},
-                ("Supination", rb): {},
-            }
-        },
-        ("Wrist", cb): {
-            (subgroup, 0): {
-                ("Flexion", rb): {},
-                ("Extension", rb): {},
-            },
-            (subgroup, 1): {
-                ("Radial deviation", rb): {},
-                ("Ulnar deviation", rb): {},
-            },
-            (subgroup, 2): {
-                ("Circumduction", cb): {}
-            },
-        },
-        ("Thumb base / metacarpophalangeal", cb): {
-            (subgroup, 0): {
-                ("Flexion", rb): {},
-                ("Extension", rb): {},
-            },
-            (subgroup, 1): {
-                ("Abduction", rb): {},
-                ("Adduction", rb): {},
-            },
-            (subgroup, 2): {
-                ("Circumduction", cb): {},
-                ("Opposition", cb): {}
-            }
-        },
-        ("Thumb non-base / interphalangeal", cb): {
-            (subgroup, 0): {
-                ("Flexion", rb): {},
-                ("Extension", rb): {},
-            }
-        },
-        ("Finger base / metacarpophalangeal", cb): {
-            (subgroup, 0): {
-                ("Flexion", rb): {},
-                ("Extension", rb): {},
-            },
-            (subgroup, 1): {
-                ("Abduction", rb): {},
-                ("Adduction", rb): {},
-            },
-            (subgroup, 2): {
-                ("Circumduction", cb): {}
-            },
-        },
-        ("Finger non-base / interphalangeal", cb): {
-            (subgroup, 0): {
-                ("Flexion", rb): {},
-                ("Extension", rb): {},
-            }
-        }
-    },
-    ("Movement characteristics", cb): {
-        ("Repetition", cb): {
-            ("Single", rb): {},
-            ("Repeated", rb): {
-                ("Number of repetitions", cb): {
-                    ("#", cb): {}
-                },  # TODO KV
-                ("Location of repetition", cb): {
-                    ("Same location", rb): {},
-                    ("Different location", rb): {  # Choose up to one from each column as needed
-                        (subgroup, 0): {
-                            ("Up", rb): {},
-                            ("Down", rb): {}
-                        },
-                        (subgroup, 1): {
-                            ("Distal", rb): {},
-                            ("Proximal", rb): {}
-                        },
-                        (subgroup, 2): {
-                            ("Right", rb): {},
-                            ("Left", rb): {}
-                        }
-                    }
-                }
-            }
-        },
-        ("Trill", cb): {
-            (subgroup, 0): {
-                ("Not trilled", rb): {},
-                ("Trilled", rb): {}
-            }
-        },
-        ("Directionality", cb): {
-            (subgroup, 0): {
-                ("Unidirectional", rb): {},
-                ("Bidirectional", rb): {}
-            }
-        }
-    }
-}
-
 mvmtOptionsDict = {
-    ("No movement", rb, u): {},
-    ("Movement type", cb, u): {
-        ("Perceptual shape", rb, u): {
-            ("Shape", cb, u): {  # all mutually exclusive (straight vs arc vs ...)
-                (subgroup, 0, None): {
-                    ("Straight", rb, u): {
-                        ("Interacts with subsequent straight movement", rb, u): {
-                            ("Movement contours cross (e.g. X)", rb, u): {},
-                            ("Subsequent movement starts at end of first (e.g. ↘↗)", rb, u): {},
-                            ("Subsequent movement starts in same location as start of first (e.g. ↖↗)", rb, u): {},
-                            ("Subsequent movement ends in same location as end of first (e.g. ↘↙)", rb, u): {}
+    ("No movement", fx, rb, u): {},
+    ("Movement type", fx, cb, u): {
+        ("Perceptual shape", fx, rb, u): {
+            ("Shape", fx, cb, u): {  # all mutually exclusive (straight vs arc vs ...)
+                (subgroup, None, 0, None): {
+                    ("Straight", fx, rb, u): {
+                        ("Interacts with subsequent straight movement", fx, rb, u): {
+                            ("Movement contours cross (e.g. X)", fx, rb, u): {},
+                            ("Subsequent movement starts at end of first (e.g. ↘↗)", fx, rb, u): {},
+                            ("Subsequent movement starts in same location as start of first (e.g. ↖↗)", fx, rb, u): {},
+                            ("Subsequent movement ends in same location as end of first (e.g. ↘↙)", fx, rb, u): {}
                         },
-                        ("Doesn't interact with subsequent straight movement", rb, u): {}
+                        ("Doesn't interact with subsequent straight movement", fx, rb, u): {}
                     },
-                    ("Arc", rb, u): {},
-                    ("Circle", rb, u): {},
-                    ("Zigzag", rb, u): {},
-                    ("Loop (travelling circles)", rb, u): {},
-                    ("None of these", rb, u): {}
+                    ("Arc", fx, rb, u): {},
+                    ("Circle", fx, rb, u): {},
+                    ("Zigzag", fx, rb, u): {},
+                    ("Loop (travelling circles)", fx, rb, u): {},
+                    ("None of these", fx, rb, u): {}
                 }
             },
-            ("Axis direction", cb, u): {  # Choose up to one from each axis to get the complete direction
-                (subgroup, 0, None): {
-                    ("Up", rb, u): {},
-                    ("Down", rb, u): {}
+            ("Axis direction", fx, cb, u): {  # Choose up to one from each axis to get the complete direction
+                (subgroup, None, 0, None): {
+                    ("Up", fx, rb, u): {},
+                    ("Down", fx, rb, u): {}
                 },
-                (subgroup, 1, None): {
-                    ("Distal", rb, u): {},
-                    ("Proximal", rb, u): {}
+                (subgroup, None, 1, None): {
+                    ("Distal", fx, rb, u): {},
+                    ("Proximal", fx, rb, u): {}
                 },
-                (subgroup, 2, None): {
-                    ("Right", rb, u): {},
-                    ("Left", rb, u): {}
+                (subgroup, None, 2, None): {
+                    ("Right", fx, rb, u): {},
+                    ("Left", fx, rb, u): {}
                 },
-                ("Not relevant", rb, u): {}
+                ("Not relevant", fx, rb, u): {}
             },
-            ("Plane", cb, u): {  # choose as many as needed, but only one direction per plane
-                ("Mid-sagittal", cb, u): {
-                    (subgroup, 0, None): {
-                        ("Clockwise", rb, u): {},
-                        ("Counterclockwise", rb, u): {}
+            ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
+                ("Mid-sagittal", fx, cb, u): {
+                    (subgroup, None, 0, None): {
+                        ("Clockwise", fx, rb, u): {},
+                        ("Counterclockwise", fx, rb, u): {}
                     },
                 },
-                ("Horizontal", cb, u): {
-                    (subgroup, 0, None): {
-                        ("Clockwise", rb, u): {},
-                        ("Counterclockwise", rb, u): {}
+                ("Horizontal", fx, cb, u): {
+                    (subgroup, None, 0, None): {
+                        ("Clockwise", fx, rb, u): {},
+                        ("Counterclockwise", fx, rb, u): {}
                     },
                 },
-                ("Vertical", cb, u): {
-                    (subgroup, 0, None): {
-                        ("Clockwise", rb, u): {},
-                        ("Counterclockwise", rb, u): {}
+                ("Vertical", fx, cb, u): {
+                    (subgroup, None, 0, None): {
+                        ("Clockwise", fx, rb, u): {},
+                        ("Counterclockwise", fx, rb, u): {}
                     },
                 },
-                ("Not relevant", rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
+                ("Not relevant", fx, rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
         },
         # mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
-        ("Joint-specific movements", rb, u): {
-            ("Nodding/un-nodding", rb, u): {
-                (subgroup, 0, None): {
-                    ("Nodding", rb, u): {},  # TODO KV autofills to flexion of wrist (but *ask* before auto-unfilling if nodding is unchecked)
-                    ("Un-nodding", rb, u): {}  # TODO KV autofills to extension of wrist
+        ("Joint-specific movements", fx, rb, u): {
+            ("Nodding/un-nodding", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Nodding", fx, rb, u): {},  # TODO KV autofills to flexion of wrist (but *ask* before auto-unfilling if nodding is unchecked)
+                    ("Un-nodding", fx, rb, u): {}  # TODO KV autofills to extension of wrist
                 }
             },
-            ("Pivoting", rb, u): {
-                (subgroup, 0, None): {
-                    ("Radial", rb, u): {},  # TODO KV autofills to wrist radial deviation
-                    ("Ulnar", rb, u): {}  # TODO KV autofills to wrist ulnar deviation
+            ("Pivoting", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Radial", fx, rb, u): {},  # TODO KV autofills to wrist radial deviation
+                    ("Ulnar", fx, rb, u): {}  # TODO KV autofills to wrist ulnar deviation
                 }
             },
-            ("Twisting", rb, u): {
-                (subgroup, 0, None): {
-                    ("Pronation", rb, u): {},  # TODO KV autofills to Proximal radioulnar pronation
-                    ("Supination", rb, u): {}  # TODO KV autofills to Proximal radioulnar supination
+            ("Twisting", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Pronation", fx, rb, u): {},  # TODO KV autofills to Proximal radioulnar pronation
+                    ("Supination", fx, rb, u): {}  # TODO KV autofills to Proximal radioulnar supination
                 }
             },
-            ("Closing/Opening", rb, u): {
-                (subgroup, 0, None): {
-                    ("Closing", rb, u): {},  # TODO KV autofills to flexion of [selected finger, all joints]
-                    ("Opening", rb, u): {}  # TODO KV autofills to extension of [selected finger, all joints]
+            ("Closing/Opening", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Closing", fx, rb, u): {},  # TODO KV autofills to flexion of [selected finger, all joints]
+                    ("Opening", fx, rb, u): {}  # TODO KV autofills to extension of [selected finger, all joints]
                 }
             },
-            ("Pinching/unpinching", rb, u): {
-                (subgroup, 0, None): {
-                    ("Pinching (Morgan 2017)", rb, u): {},  # TODO KV autofills to adduction of thumb base joint
-                    ("Unpinching", rb, u): {}  # TODO KV autofills to (abduction of thumb base joint? - not specific in google doc)
+            ("Pinching/unpinching", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Pinching (Morgan 2017)", fx, rb, u): {},  # TODO KV autofills to adduction of thumb base joint
+                    ("Unpinching", fx, rb, u): {}  # TODO KV autofills to (abduction of thumb base joint? - not specific in google doc)
                 }
             },
-            ("Flattening/Straightening", rb, u): {
-                (subgroup, 0, None): {
-                    ("Flattening/hinging", rb, u): {},  # TODO KV autofills to flexion of [selected finger base joints]
-                    ("Straightening", rb, u): {}  # TODO KV autofills to extension of [selected finger base joints]
+            ("Flattening/Straightening", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Flattening/hinging", fx, rb, u): {},  # TODO KV autofills to flexion of [selected finger base joints]
+                    ("Straightening", fx, rb, u): {}  # TODO KV autofills to extension of [selected finger base joints]
                 }
             },
-            ("Hooking/Unhooking", rb, u): {
-                (subgroup, 0, None): {
-                    ("Hooking/clawing", rb, u): {},  # TODO KV autofills to flexion of [selected finger non-base joints]
-                    ("Unhooking", rb, u): {}  # TODO KV autofills to extension of [selected finger non-base joints]
+            ("Hooking/Unhooking", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Hooking/clawing", fx, rb, u): {},  # TODO KV autofills to flexion of [selected finger non-base joints]
+                    ("Unhooking", fx, rb, u): {}  # TODO KV autofills to extension of [selected finger non-base joints]
                 }
             },
-            ("Spreading/Unspreading", rb, u): {
-                (subgroup, 0, None): {
-                    ("Spreading", rb, u): {},  # TODO KV autofills to abduction of [selected finger base joints]
-                    ("Unspreading", rb, u): {}  # TODO KV autofills to adduction of [selected finger base joints]
+            ("Spreading/Unspreading", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Spreading", fx, rb, u): {},  # TODO KV autofills to abduction of [selected finger base joints]
+                    ("Unspreading", fx, rb, u): {}  # TODO KV autofills to adduction of [selected finger base joints]
                 }
             },
-            ("Rubbing", rb, u): {
-                (subgroup, 0, None): {
-                    ("Thumb crossing over palm", rb, u): {},  # TODO KV autofills to TBD
-                    ("Thumb moving away from palm", rb, u): {}  # TODO KV autofills to TBD
+            ("Rubbing", fx, rb, u): {
+                (subgroup, None, 0, None): {
+                    ("Thumb crossing over palm", fx, rb, u): {},  # TODO KV autofills to TBD
+                    ("Thumb moving away from palm", fx, rb, u): {}  # TODO KV autofills to TBD
                 }
             },
-            ("Wiggling/Fluttering", rb, u): {},  # TODO KV autofills to both flexion and extension of selected finger base joints
-            ("None of these", rb, u): {}
+            ("Wiggling/Fluttering", fx, rb, u): {},  # TODO KV autofills to both flexion and extension of selected finger base joints
+            ("None of these", fx, rb, u): {}
         }
     },
-    ("Joint movements", cb, u): {
-        ("Complex / multi-joint", cb, u): {},  # from Yurika: if this is selected, the expectation is that nothing else below would be selected, though I guess people could...
-        ("Shoulder", cb, u): {
-            (subgroup, 0, None): {
-                ("Flexion", rb, u): {},
-                ("Extension", rb, u): {},
+    ("Joint movements", fx, cb, u): {
+        ("Complex / multi-joint", fx, cb, u): {},  # from Yurika: if this is selected, the expectation is that nothing else below would be selected, though I guess people could...
+        ("Shoulder", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Flexion", fx, rb, u): {},
+                ("Extension", fx, rb, u): {},
             },
-            (subgroup, 1, None): {
-                ("Abduction", rb, u): {},
-                ("Adduction", rb, u): {},
+            (subgroup, None, 1, None): {
+                ("Abduction", fx, rb, u): {},
+                ("Adduction", fx, rb, u): {},
             },
-            (subgroup, 2, None): {
-                ("Posterior rotation", rb, u): {},
-                ("Anterior rotation", rb, u): {},
+            (subgroup, None, 2, None): {
+                ("Posterior rotation", fx, rb, u): {},
+                ("Anterior rotation", fx, rb, u): {},
             },
-            (subgroup, 3, None): {
-                ("Protraction", rb, u): {},
-                ("Retraction", rb, u): {},
+            (subgroup, None, 3, None): {
+                ("Protraction", fx, rb, u): {},
+                ("Retraction", fx, rb, u): {},
             },
-            (subgroup, 4, None): {
-                ("Depression", rb, u): {},
-                ("Elevation", rb, u): {},
+            (subgroup, None, 4, None): {
+                ("Depression", fx, rb, u): {},
+                ("Elevation", fx, rb, u): {},
             },
-            (subgroup, 5, None): {
-                ("Circumduction", cb, u): {}
-            },
-        },
-        ("Elbow", cb, u): {
-            (subgroup, 0, None): {
-                ("Flexion", rb, u): {},
-                ("Extension", rb, u): {},
-            },
-            (subgroup, 1, None): {
-                ("Circumduction", cb, u): {}
+            (subgroup, None, 5, None): {
+                ("Circumduction", fx, cb, u): {}
             },
         },
-        ("Radio-ulnar", cb, u): {
-            (subgroup, 0, None): {
-                ("Pronation", rb, u): {},
-                ("Supination", rb, u): {},
+        ("Elbow", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Flexion", fx, rb, u): {},
+                ("Extension", fx, rb, u): {},
+            },
+            (subgroup, None, 1, None): {
+                ("Circumduction", fx, cb, u): {}
+            },
+        },
+        ("Radio-ulnar", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Pronation", fx, rb, u): {},
+                ("Supination", fx, rb, u): {},
             }
         },
-        ("Wrist", cb, u): {
-            (subgroup, 0, None): {
-                ("Flexion", rb, u): {},
-                ("Extension", rb, u): {},
+        ("Wrist", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Flexion", fx, rb, u): {},
+                ("Extension", fx, rb, u): {},
             },
-            (subgroup, 1, None): {
-                ("Radial deviation", rb, u): {},
-                ("Ulnar deviation", rb, u): {},
+            (subgroup, None, 1, None): {
+                ("Radial deviation", fx, rb, u): {},
+                ("Ulnar deviation", fx, rb, u): {},
             },
-            (subgroup, 2, None): {
-                ("Circumduction", cb, u): {}
+            (subgroup, None, 2, None): {
+                ("Circumduction", fx, cb, u): {}
             },
         },
-        ("Thumb base / metacarpophalangeal", cb, u): {
-            (subgroup, 0, None): {
-                ("Flexion", rb, u): {},
-                ("Extension", rb, u): {},
+        ("Thumb base / metacarpophalangeal", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Flexion", fx, rb, u): {},
+                ("Extension", fx, rb, u): {},
             },
-            (subgroup, 1, None): {
-                ("Abduction", rb, u): {},
-                ("Adduction", rb, u): {},
+            (subgroup, None, 1, None): {
+                ("Abduction", fx, rb, u): {},
+                ("Adduction", fx, rb, u): {},
             },
-            (subgroup, 2, None): {
-                ("Circumduction", cb, u): {},
-                ("Opposition", cb, u): {}
+            (subgroup, None, 2, None): {
+                ("Circumduction", fx, cb, u): {},
+                ("Opposition", fx, cb, u): {}
             }
         },
-        ("Thumb non-base / interphalangeal", cb, u): {
-            (subgroup, 0, None): {
-                ("Flexion", rb, u): {},
-                ("Extension", rb, u): {},
+        ("Thumb non-base / interphalangeal", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Flexion", fx, rb, u): {},
+                ("Extension", fx, rb, u): {},
             }
         },
-        ("Finger base / metacarpophalangeal", cb, u): {
-            (subgroup, 0, None): {
-                ("Flexion", rb, u): {},
-                ("Extension", rb, u): {},
+        ("Finger base / metacarpophalangeal", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Flexion", fx, rb, u): {},
+                ("Extension", fx, rb, u): {},
             },
-            (subgroup, 1, None): {
-                ("Abduction", rb, u): {},
-                ("Adduction", rb, u): {},
+            (subgroup, None, 1, None): {
+                ("Abduction", fx, rb, u): {},
+                ("Adduction", fx, rb, u): {},
             },
-            (subgroup, 2, None): {
-                ("Circumduction", cb, u): {}
+            (subgroup, None, 2, None): {
+                ("Circumduction", fx, cb, u): {}
             },
         },
-        ("Finger non-base / interphalangeal", cb, u): {
-            (subgroup, 0, None): {
-                ("Flexion", rb, u): {},
-                ("Extension", rb, u): {},
+        ("Finger non-base / interphalangeal", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Flexion", fx, rb, u): {},
+                ("Extension", fx, rb, u): {},
             }
         }
     },
-    ("Movement characteristics", cb, u): {
-        ("Repetition", cb, u): {
-            ("Single", rb, u): {},
-            ("Repeated", rb, u): {
-                ("Number of repetitions", cb, u): {
-                    ("#", cb, u): {}
+    ("Movement characteristics", fx, cb, u): {
+        ("Repetition", fx, cb, u): {
+            ("Single", fx, rb, u): {},
+            ("Repeated", fx, rb, u): {
+                ("Number of repetitions", fx, cb, u): {
+                    ("#", ed, cb, u): {}
                 },  # TODO KV
-                ("Location of repetition", cb, u): {
-                    ("Same location", rb, u): {},
-                    ("Different location", rb, u): {  # Choose up to one from each column as needed
-                        (subgroup, 0, None): {
-                            ("Up", rb, u): {},
-                            ("Down", rb, u): {}
+                ("Location of repetition", fx, cb, u): {
+                    ("Same location", fx, rb, u): {},
+                    ("Different location", fx, rb, u): {  # Choose up to one from each column as needed
+                        (subgroup, None, 0, None): {
+                            ("Up", fx, rb, u): {},
+                            ("Down", fx, rb, u): {}
                         },
-                        (subgroup, 1, None): {
-                            ("Distal", rb, u): {},
-                            ("Proximal", rb, u): {}
+                        (subgroup, None, 1, None): {
+                            ("Distal", fx, rb, u): {},
+                            ("Proximal", fx, rb, u): {}
                         },
-                        (subgroup, 2, None): {
-                            ("Right", rb, u): {},
-                            ("Left", rb, u): {}
+                        (subgroup, None, 2, None): {
+                            ("Right", fx, rb, u): {},
+                            ("Left", fx, rb, u): {}
                         }
                     }
                 }
             }
         },
-        ("Trill", cb, u): {
-            (subgroup, 0, None): {
-                ("Not trilled", rb, u): {},
-                ("Trilled", rb, u): {}
+        ("Trill", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Not trilled", fx, rb, u): {},
+                ("Trilled", fx, rb, u): {}
             }
         },
-        ("Directionality", cb, u): {
-            (subgroup, 0, None): {
-                ("Unidirectional", rb, u): {},
-                ("Bidirectional", rb, u): {}
+        ("Directionality", fx, cb, u): {
+            (subgroup, None, 0, None): {
+                ("Unidirectional", fx, rb, u): {},
+                ("Bidirectional", fx, rb, u): {}
             }
         }
     }
@@ -562,7 +308,7 @@ mvmtOptionsDict = {
 class TreeSearchComboBox(QComboBox):
 
     def __init__(self, parentlayout=None):
-        super().__init__() #  todo kv parent)
+        super().__init__()
         self.refreshed = True
         self.lasttextentry = ""
         self.lastcompletedentry = ""
@@ -654,17 +400,14 @@ class MovementTree:
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + pathdisplayrole)
-                    parentpathtext = ""
-                    numericstring = ""
                     checkstate = treechild.checkState()
                     editable = treechild.isEditable()
-                    if editable and delimiter in pathtext:
-                        lastdelimindex = len(pathtext) - pathtext.reverse().index(delimiter) - 1
-                        parentpathtext = pathtext[:lastdelimindex]
-                        numericstring = pathtext[lastdelimindex + 1:]
-
                     if editable:
+                        pathsteps = pathtext.split(delimiter)
+                        parentpathtext = delimiter.join(pathsteps[:-1])
+                        numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
                         self.numvals[parentpathtext] = numericstring
+
                     self.checkstates[pathtext] = checkstate
                 self.collectdata(treechild)
 
@@ -683,9 +426,11 @@ class MovementTree:
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + pathdisplayrole)
                     parentpathtext = treenode.data(Qt.UserRole + pathdisplayrole)
-                    treechild.setCheckState(self.checkstates[pathtext])
                     if parentpathtext in self.numvals.keys():
                         treechild.setText(self.numvals[parentpathtext])
+                        treechild.setEditable(True)
+                        pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
+                    treechild.setCheckState(self.checkstates[pathtext])
                     self.setvalues(treechild)
 
 
@@ -733,11 +478,13 @@ class MovementTreeModel(QStandardItemModel):
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())
-            for idx, labelclassifierchecked_triple in enumerate(structure.keys()):
-                label = labelclassifierchecked_triple[0]
-                classifier = labelclassifierchecked_triple[1]
-                checked = labelclassifierchecked_triple[2]
+            for idx, labelclassifierchecked_4tuple in enumerate(structure.keys()):
+                label = labelclassifierchecked_4tuple[0]
+                editable = labelclassifierchecked_4tuple[1]
+                classifier = labelclassifierchecked_4tuple[2]
+                checked = labelclassifierchecked_4tuple[3]
                 ismutuallyexclusive = classifier == rb
+                iseditable = editable == ed
                 if label == subgroup:
 
                     # make the tree items in the subgroup and whatever nested structure they have
@@ -745,20 +492,21 @@ class MovementTreeModel(QStandardItemModel):
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, structure=structure[labelclassifierchecked_triple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
+                    self.populate(parentnode, structure=structure[labelclassifierchecked_4tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
 
                 else:
                     # parentnode.setColumnCount(1)
                     thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
                     # thistreenode.setData(False, Qt.UserRole+selectedrole)  #  moved to MovementTreeItem.__init__()
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole + pathdisplayrole)
+                    thistreenode.setEditable(iseditable)
                     thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
                     if issubgroup:
                         thistreenode.setData(subgroupname, role=Qt.UserRole+subgroupnamerole)
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole + lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + finalsubgrouprole)
-                    self.populate(thistreenode, structure=structure[labelclassifierchecked_triple], pathsofar=pathsofar+label+delimiter)
+                    self.populate(thistreenode, structure=structure[labelclassifierchecked_4tuple], pathsofar=pathsofar+label+delimiter)
                     parentnode.appendRow([thistreenode])
 
     @property
@@ -832,10 +580,6 @@ class MovementTreeItem(QStandardItem):
 
             if mutuallyexclusive:
                 self.setData(True, Qt.UserRole+mutuallyexclusiverole)
-            # elif txt == "How many":
-            #     self.setEditable(True)
-            elif self.parent() and self.parent().text() == "Number of repetitions":
-                self.setEditable(True)
             else:
                 self.setData(False, Qt.UserRole+mutuallyexclusiverole)
             # self.setData(mutuallyexclusive, Qt.UserRole+mutuallyexclusiverole)

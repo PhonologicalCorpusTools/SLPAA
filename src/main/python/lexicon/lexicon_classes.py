@@ -26,18 +26,6 @@ class SignLevelInformation:
         self._note = signlevel_info['note']
         self._handdominance = signlevel_info['handdominance']
 
-    # TODO KV is anyone using htis??
-    # def __init__(self, coder, defaulthand):
-    #     self._gloss = ""
-    #     self._lemma = ""
-    #     self._source = ""
-    #     self._signer = ""
-    #     self._frequency = '1.0'
-    #     self._coder = coder
-    #     self._update_date = date.today()
-    #     self._note = ""
-    #     self._handdominance = defaulthand
-
     @property
     def gloss(self):
         return self._gloss
