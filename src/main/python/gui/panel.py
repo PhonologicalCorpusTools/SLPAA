@@ -57,6 +57,7 @@ from gui.helper_widget import CollapsibleSection, ToggleSwitch
 from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
 from gui.movement_selector import MovementSelectorDialog
+from gui.handshape_selector import HandshapeSelectorDialog
 from lexicon.lexicon_classes import Sign
 
 
@@ -326,12 +327,20 @@ class SignSummaryPanel(QScrollArea):
         self.movementmodule_buttons = []
         self.update_movementmodulebuttons()
         self.module_buttons.append(self.movement_button)
+
         self.location_button = QPushButton("Location selection")
         self.location_button.clicked.connect(self.handle_locationbutton_click)
         self.module_buttons.append(self.location_button)
+
+        self.handshape_layout = QHBoxLayout()
         self.handshape_button = QPushButton("Handshape selection")
+        self.handshape_button.setProperty("existingmodule", False)
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
+        self.handshape_layout.addWidget(self.handshape_button)
+        self.handshapemodule_buttons = []
+        self.update_handshapemodulebuttons()
         self.module_buttons.append(self.handshape_button)
+
         self.orientation_button = QPushButton("Orientation selection")
         self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
         self.module_buttons.append(self.orientation_button)
@@ -344,12 +353,37 @@ class SignSummaryPanel(QScrollArea):
         main_layout.addWidget(self.signlevel_button)
         main_layout.addWidget(self.signtype_button)
         main_layout.addLayout(self.movement_layout)
-        main_layout.addWidget(self.handshape_button)
+        main_layout.addLayout(self.handshape_layout)
         main_layout.addWidget(self.orientation_button)
         main_layout.addWidget(self.location_button)
         main_layout.addWidget(self.contact_button)
 
         self.setWidget(main_frame)
+
+    # TODO KV - combine all of these specific functions into a general one
+    def clear_handshapemodulebuttons(self):
+        existing_buttonkeys = [b.text() for b in self.handshapemodule_buttons]
+        for k in existing_buttonkeys:
+            buttontoremove = [button for button in self.handshapemodule_buttons if button.text() == k][0]
+            self.handshape_layout.removeWidget(buttontoremove)
+            self.module_buttons.remove(buttontoremove)
+            self.handshapemodule_buttons.remove(buttontoremove)
+        # self.handshapemodule_buttons = []
+
+    def update_handshapemodulebuttons(self):
+        if self.sign:
+            existing_buttonkeys = [btn.text() for btn in self.handshapemodule_buttons]
+            for hsmodulekey in [k for k in self.sign.handshapemodules.keys() if k not in existing_buttonkeys]:
+                handshapemodulebutton = QPushButton(hsmodulekey)
+                handshapemodulebutton.setProperty("existingmodule", True)
+                handshapemodulebutton.clicked.connect(self.handle_handshapebutton_click)
+                self.handshape_layout.addWidget(handshapemodulebutton)
+                self.handshapemodule_buttons.append(handshapemodulebutton)
+                self.module_buttons.append(handshapemodulebutton)
+
+    def load_handshapemodulebuttons(self):
+        self.clear_handshapemodulebuttons()
+        self.update_handshapemodulebuttons()
 
     def clear_movementmodulebuttons(self):
         existing_buttonkeys = [b.text() for b in self.movementmodule_buttons]
@@ -445,8 +479,24 @@ class SignSummaryPanel(QScrollArea):
         self.update_movementmodulebuttons()
 
     def handle_handshapebutton_click(self):
+        button = self.sender()
         # TODO KV
-        QMessageBox.information(self, 'Not Available', 'Handshape module functionality not yet linked.')
+        editing_existing = button.property("existingmodule")
+        existing_key = None
+        moduletoload = None
+        if editing_existing:
+            existing_key = button.text()
+            moduletoload = self.sign.handshapemodules[existing_key]
+        handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
+        handshape_selector.saved_handshape.connect(lambda handshapetxn: self.handle_save_handshape(handshapetxn, existing_key))
+        handshape_selector.exec_()
+
+    def handle_save_handshape(self, handshapetxn, existing_key):
+        if existing_key is None or existing_key not in self.sign.handshapemodules.keys():
+            self.sign.addhandshapemodule(handshapetxn)
+        else:
+            self.sign.handshapemodules[existing_key] = handshapetxn
+        self.update_handshapemodulebuttons()
 
     def handle_contactbutton_click(self):
         # TODO KV
@@ -643,104 +693,104 @@ class SignSummaryPanel(QScrollArea):
 #                 'handdominance': self.get_handdominance()
 #             }
 
-
-class HandTranscriptionPanel(QScrollArea):
-    selected_hand = pyqtSignal(int)
-
-    def __init__(self, predefined_ctx, **kwargs):
-        super().__init__(**kwargs)
-
-        self.setFrameStyle(QFrame.StyledPanel)
-        main_frame = QFrame(parent=self)
-
-        main_layout = QGridLayout()
-        main_frame.setLayout(main_layout)
-
-        self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
-        main_layout.addWidget(self.global_info, 0, 0, 2, 1)
-
-        self.config1 = Config(1, 'Configuration 1', predefined_ctx, parent=self)
-        main_layout.addWidget(self.config1, 0, 1, 1, 2)
-
-        self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
-        main_layout.addWidget(self.config2, 1, 1, 1, 2)
-
-        self.setWidget(main_frame)
-
-    def clear(self):
-        self.global_info.clear()
-        self.config1.clear()
-        self.config2.clear()
-
-    def set_value(self, global_handshape_info, hand_transcription):
-        self.global_info.set_value(global_handshape_info)
-        self.config1.set_value(hand_transcription.config1)
-        self.config2.set_value(hand_transcription.config2)
-
-    def change_hand_selection(self, hand):
-        if hand == 1:
-            self.button1.setChecked(True)
-        elif hand == 2:
-            self.button2.setChecked(True)
-        elif hand == 3:
-            self.button3.setChecked(True)
-        elif hand == 4:
-            self.button4.setChecked(True)
-
-    def insert_radio_button(self, focused_hand):
-        self.selected_hand_group = QButtonGroup(parent=self)
-        self.button1, self.button2 = self.config1.insert_radio_button()
-        self.button3, self.button4 = self.config2.insert_radio_button()
-
-        self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
-        self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
-        self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
-        self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
-
-        if focused_hand == 1:
-            self.button1.setChecked(True)
-        elif focused_hand == 2:
-            self.button2.setChecked(True)
-        elif focused_hand == 3:
-            self.button3.setChecked(True)
-        elif focused_hand == 4:
-            self.button4.setChecked(True)
-
-        self.selected_hand_group.addButton(self.button1, 1)
-        self.selected_hand_group.addButton(self.button2, 2)
-        self.selected_hand_group.addButton(self.button3, 3)
-        self.selected_hand_group.addButton(self.button4, 4)
-
-    def remove_radio_button(self):
-        self.config1.remove_radio_button()
-        self.config2.remove_radio_button()
-        self.selected_hand_group.deleteLater()
-
-    def get_hand_transcription(self, hand=None):
-        if hand is None:
-            hand = self.selected_hand_group.checkedId()
-
-        if hand == 1:
-            return self.config1.hand1.get_hand_transcription_list()
-        elif hand == 2:
-            return self.config1.hand2.get_hand_transcription_list()
-        elif hand == 3:
-            return self.config2.hand1.get_hand_transcription_list()
-        elif hand == 4:
-            return self.config2.hand2.get_hand_transcription_list()
-
-    def set_predefined(self, transcription_list, hand=None):
-        if hand is None:
-            hand = self.selected_hand_group.checkedId()
-
-        if hand == 1:
-            self.config1.hand1.set_predefined(transcription_list)
-        elif hand == 2:
-            self.config1.hand2.set_predefined(transcription_list)
-        elif hand == 3:
-            self.config2.hand1.set_predefined(transcription_list)
-        elif hand == 4:
-            self.config2.hand2.set_predefined(transcription_list)
+#
+# class HandTranscriptionPanel(QScrollArea):
+#     selected_hand = pyqtSignal(int)
+#
+#     def __init__(self, predefined_ctx, **kwargs):
+#         super().__init__(**kwargs)
+#
+#         self.setFrameStyle(QFrame.StyledPanel)
+#         main_frame = QFrame(parent=self)
+#
+#         main_layout = QGridLayout()
+#         main_frame.setLayout(main_layout)
+#
+#         self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
+#         main_layout.addWidget(self.global_info, 0, 0, 2, 1)
+#
+#         self.config1 = Config(1, 'Configuration 1', predefined_ctx, parent=self)
+#         main_layout.addWidget(self.config1, 0, 1, 1, 2)
+#
+#         self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
+#         main_layout.addWidget(self.config2, 1, 1, 1, 2)
+#
+#         self.setWidget(main_frame)
+#
+#     def clear(self):
+#         self.global_info.clear()
+#         self.config1.clear()
+#         self.config2.clear()
+#
+#     def set_value(self, global_handshape_info, hand_transcription):
+#         self.global_info.set_value(global_handshape_info)
+#         self.config1.set_value(hand_transcription.config1)
+#         self.config2.set_value(hand_transcription.config2)
+#
+#     def change_hand_selection(self, hand):
+#         if hand == 1:
+#             self.button1.setChecked(True)
+#         elif hand == 2:
+#             self.button2.setChecked(True)
+#         elif hand == 3:
+#             self.button3.setChecked(True)
+#         elif hand == 4:
+#             self.button4.setChecked(True)
+#
+#     def insert_radio_button(self, focused_hand):
+#         self.selected_hand_group = QButtonGroup(parent=self)
+#         self.button1, self.button2 = self.config1.insert_radio_button()
+#         self.button3, self.button4 = self.config2.insert_radio_button()
+#
+#         self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
+#         self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
+#         self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
+#         self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
+#
+#         if focused_hand == 1:
+#             self.button1.setChecked(True)
+#         elif focused_hand == 2:
+#             self.button2.setChecked(True)
+#         elif focused_hand == 3:
+#             self.button3.setChecked(True)
+#         elif focused_hand == 4:
+#             self.button4.setChecked(True)
+#
+#         self.selected_hand_group.addButton(self.button1, 1)
+#         self.selected_hand_group.addButton(self.button2, 2)
+#         self.selected_hand_group.addButton(self.button3, 3)
+#         self.selected_hand_group.addButton(self.button4, 4)
+#
+#     def remove_radio_button(self):
+#         self.config1.remove_radio_button()
+#         self.config2.remove_radio_button()
+#         self.selected_hand_group.deleteLater()
+#
+#     def get_hand_transcription(self, hand=None):
+#         if hand is None:
+#             hand = self.selected_hand_group.checkedId()
+#
+#         if hand == 1:
+#             return self.config1.hand1.get_hand_transcription_list()
+#         elif hand == 2:
+#             return self.config1.hand2.get_hand_transcription_list()
+#         elif hand == 3:
+#             return self.config2.hand1.get_hand_transcription_list()
+#         elif hand == 4:
+#             return self.config2.hand2.get_hand_transcription_list()
+#
+#     def set_predefined(self, transcription_list, hand=None):
+#         if hand is None:
+#             hand = self.selected_hand_group.checkedId()
+#
+#         if hand == 1:
+#             self.config1.hand1.set_predefined(transcription_list)
+#         elif hand == 2:
+#             self.config1.hand2.set_predefined(transcription_list)
+#         elif hand == 3:
+#             self.config2.hand1.set_predefined(transcription_list)
+#         elif hand == 4:
+#             self.config2.hand2.set_predefined(transcription_list)
 
 
 class HandIllustrationPanel(QScrollArea):

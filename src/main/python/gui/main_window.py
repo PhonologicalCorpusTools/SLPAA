@@ -88,6 +88,7 @@ class MainWindow(QMainWindow):
         # system-defaults
         self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
         self.system_default_movement = None
+        self.system_default_handshape = None
         self.system_default_signtype = Signtype(['unspecified'])  # TODO KV not necessarily default...
 
         # handle setting-related stuff

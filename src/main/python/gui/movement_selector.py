@@ -327,7 +327,7 @@ class MovementSelectorDialog(QDialog):
         standard = self.button_box.standardButton(button)
 
         if standard == QDialogButtonBox.Cancel:
-            # TODO KV if we are editing an already-existing movement module, this seems to save anyway
+            # TODO KV - BUG? - if we are editing an already-existing movement module, this seems to save anyway
             self.reject()
 
         elif standard == QDialogButtonBox.Save:  # save and add another

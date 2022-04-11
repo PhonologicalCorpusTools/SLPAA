@@ -516,7 +516,7 @@ class Sign:
             # self.targetmodules = []
             self.locationmodules = []
             self.orientationmodules = []
-            self.handshapemodules = []
+            self.handshapemodules = {}
 
     def serialize(self):
         return {
@@ -611,8 +611,15 @@ class Sign:
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)
 
-    def addhandshapemodule(self, handshapemod):
-        self.handshapemodules.append(handshapemod)
+    def addhandshapemodule(self, handshapetranscription, hsid=None):
+        if hsid is None:
+            existingkeys = [k[1:] for k in self.handshapemodules.keys()] + [0]
+            nextinteger = max([int(k) for k in existingkeys]) + 1
+            hsid = str("H" + str(nextinteger))
+        self.handshapemodules[hsid] = handshapetranscription
+
+    def removehandshapemodule(self, hsid):
+        self.handshapemodules.pop(hsid)
 
 
 class LocationParameter:
