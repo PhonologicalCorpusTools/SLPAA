@@ -58,7 +58,21 @@ b) "Only one hand moves" is selected if only one hand is involved in a perceptua
 
 c) "Both hands move" is selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands.
 
-**Movement timing relation:**
+  - **Movement direction relation:**
+      - H1 and H2 have the same direction of movement. [e.g., WHEELCHAIR, BICYCLE, EXPERIMENT, CLOUD_1, CRUCIFY, HANDS, FOLD, FREE]
+      - H1 and H2 have different directions of movement. [e.g., SOCIAL, DECORATE_2, PHOTOGRAPHY, WINDSHIELD WIPERS, COMMUNICATION]
+      - Not relevant [e.g., BOWTIE, MANY, STICKY, CLAUSE, PAIN, CORN_3, COMPARE]
+      
+  - **Movement timing relation:**
+  
+      - Sequential [When one hand is moving, the other is not.] [CRUCIFY, HANDS, FOLD]
+      - Simultaneous [When one hand is moving (in any way), the other is too.]
+      - Everything is mirrored / in phase [WHEELCHAIR, STRUGGLE, SINCE, CLAUSE, DRESSER, BOWTIE, CLOUD_1, CORN_3, DECORATE_2, PHOTOGRAPHY, FREE, BOWTIE, MANY, STICKY]
+      - Everything is mirrored / in phase except (check as many or as few apply):
+      
+          - Location [BICYCLE, POPCORN, MILK, WINDSHIELD WIPERS, EXPERIMENT, SOCIAL, COMMUNICATION, KSL EVERYTHING, MANY-DIFFERENT-2 (Morgan 2017; Fig. 249)]
+          - Handshape [POPCORN, MILK]
+          - Orientation [DIE, PAIN, COMPARE]
 
 
 
