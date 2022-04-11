@@ -13,45 +13,55 @@ Sign Level Information
 
 
 - Entry ID
+~~~~~~~~~~~
 
 The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_options` for how to set preferences.
 
 - Gloss
+~~~~~~~~~~~
 
 Write the :ref:`gloss` for the sign. 
 
 - Lemma
+~~~~~~~~~~~
 
 Write the :ref:`lemma` for the sign.
 
 - Source
+~~~~~~~~~~~
 
 Select source from dropdown menu after they have been specified in :ref:`source_info_entry`(to link to metadate documentation)
 
 - Signer
+~~~~~~~~~~~
 
 Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`(to link to metadate documentation)
 
 
 - Frequency
+~~~~~~~~~~~
 
 Include how often the sign occurs in the corpus.
 
 - Coder
+~~~~~~~~~~~
 
 Select source from dropdown menu after they have been specified in :ref:`coder_info_entry` (to link to metadate documentation)
 
 - Last Updated
+~~~~~~~~~~~
 
 This will be filled in automatically when you change any element of the sign.
 
 
 - Notes
+~~~~~~~~~~~
 
 
 These notes will be attached to the particular sign in the corpus.
 
 - Hand Dominance
+~~~~~~~~~~~
 
 Choose from one of the options L or R for the signer. Global settings for hand dominance **[make this link to .._globalsettings_hand_dominance]** can be specified by the user. 
 
