@@ -47,7 +47,8 @@ II. Contact relation
 .. _signtype_movement_relation: 
 
 III. Movement relation
-````````````````````
+~~~~~~~~~~~~~~~~~~~~~~
+
 a) "Neither H1 nor H2 moves" is selected if neither hand is involved in any movement (perceptual shape or joint-specific), such as [`SICK <https://asl-lex.org/visualization/?sign=sick>`_] 
 
 b) "Only one hand moves" is selected if only one hand is involved in a perceptual shape or joint-specific movement. If selected, further specification is needed below about which hand is involved in the movement.
