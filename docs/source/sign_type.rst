@@ -30,20 +30,26 @@ This is selected if both **hands** are involved in the sign in some way. **(add 
 a) Handshape relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- "H1 and H2 involve the same set(s) of handshapes" is selected if the handshapes throughout the entire sign remain the same between both hands **[e.g....]**
+- "H1 and H2 involve the same set(s) of handshapes" is selected if the handshapes throughout the entire sign remain the same between both hands [`BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_]
 
-- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign [`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_], [`MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_] 
 
+- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign, such as [`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_, `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_, `SHOW <https://asl-lex.org/visualization/?sign=show>`_] 
 
 
 
 b) Contact relation
 ~~~~~~~~~~~~~~~~~~~~~~
+- "H2 maintains contact with H1 throughout the sign" is selected if the contact is maintained throughout the duration of the sign, such as [SHOW, CAREFUL, BOWTIE, HOLD HANDS]
+
+- "H1 and H2 do not maintain contact with each other" is selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands [`STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_] and signs that have momentary contact at a certain point in the sign [`CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_].
+
+
 
 .. _signtype_movement_relation: 
 
 2. Movement relation
 ````````````````````
+
 
 
 
