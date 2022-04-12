@@ -30,7 +30,7 @@ Select this if both **hands** are involved in the sign in some way. **(add a not
 I. Handshape relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- "H1 and H2 involve the same set(s) of handshapes" should be selected if the sets of handshapes used at any point during the sign are the same on both hands. This can be because the shapes never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), because the shapes alternate (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_), or because the shapes change at the same time as each other (e.g., _`BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
+- "H1 and H2 involve the same set(s) of handshapes" should be selected if the sets of handshapes used at any point during the sign are the same on both hands. This can be because the shapes never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), because the shapes alternate (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_), or because the shapes change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
 
 
 - "H1 and H2 involve different set(s) of handshapes" should be selected if the two hands have different handshapes from each other in at least one part of the sign. This could be because they never have the same handshape, as in `SHOW <https://asl-lex.org/visualization/?sign=show>`_, or because they share a handshape at only one part of the sign, as in `EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_. 
