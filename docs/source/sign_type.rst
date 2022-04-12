@@ -58,26 +58,21 @@ b) "Only one hand moves" should be selected if only one hand is involved in a pe
 
 c) "Both hands move" should be selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands. 
 
-Movement direction relation and movement timing relation are specified only for signs where H1 and H2 ‘move similarly.’ Movement direction relation is relevant only for signs with a perceptual shape component to their movement. 
+  - "H1 and H2 move differently from each other" should be selected if H1 and H2 have different movements________ (the movement of each hand is specified their own movement module) regardless of direction, for example [`STALK<https://www.handspeak.com/word/search/index.php?id=4168)as>`_]
+  - "H1 and H2 move similarly to each other" is selected if H1 and H2 have the same movement regardless of direction, for example [`COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]. An example of a sign under this category that dose not involve any perceptual shape component: [`COMPARE<https://www.handspeak.com/word/search/index.php?id=2563>`_]. 
 
-The classification of examples is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral) – the examples below assume a relative horizontal axis; see the :ref:`global_settings` for more information.
+
+Movement direction relation and movement timing relation are specified only for signs where H1 and H2 *‘move similarly.’* Movement direction relation is relevant only for signs with a *perceptual shape* component to their movement. 
+
+The classification of examples is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral) - the examples here assume a relative horizontal axis. The choices for direction parameters can be set in :ref:`global_settings`. 
 
 
   - **Movement direction relation:**
-      - "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction (right / left and clockwise / counterclockwise) or relative direction (ipsilateral / contralateral). The choices for direction parameters can be set in :ref:`global_settings`. If the user has chosen absolute directions, this option could be selected for signs where both hands move rightward and leftward [`WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_] or both hands are moving clockwise [ ].*  If the user has selected relative directions, this option could be selected 
-      
-      *choices for definitions of clockwise / counterclockwise can be specified in :ref:`global_settings`. 
-      
-      
-      
-      [e.g., WHEELCHAIR, BICYCLE, EXPERIMENT, CLOUD_1, CRUCIFY, HANDS, FOLD, FREE]
+      - "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction or relative direction, depending on the choices selected in :ref:`global_settings`. Some exmaples of signs encompassed by this selection, keeping in mind a relative horizontal axis, are [BICYCLE, EXPERIMENT, CRUCIFY, FREE]. If the user has chosen absolute directions, this option could be selected for signs where both hands move rightward and leftward [`WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_] or both hands are moving clockwise [`WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_]. Note that choices for definitions of clockwise / counterclockwise can also be specified in :ref:`global_settings`.
  
-      - "H1 and H2 have different directions of movement" should be selected if the two hands move in different directions.
+      - "H1 and H2 have different directions of movement" should be selected if the two hands move in either different absolute directions or different relative directions, depending on the choices selected in :ref:`global_settings`. Some exmaples of signs encompassed by this selection, keeping in mind a relative horizontal axis, are [`SOCIAL <https://asl-lex.org/visualization/?sign=social>`_, `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_, `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]
       
-      [e.g., SOCIAL, DECORATE_2, PHOTOGRAPHY, WINDSHIELD WIPERS, COMMUNICATION]
-      
-      
-      - Not relevant [e.g., BOWTIE, MANY, STICKY, CLAUSE, PAIN, CORN_3, COMPARE]
+      - "Not relevant" should be selected if the sign does not have a perceptual shape component to its movement [e.g., BOWTIE, MANY, COMPARE]
       
   - **Movement timing relation:**
   
