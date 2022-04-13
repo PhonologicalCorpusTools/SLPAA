@@ -58,8 +58,8 @@ b) "Only one hand moves" should be selected if only one hand is involved in a pe
 
 c) "Both hands move" should be selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands. 
 
-  - "H1 and H2 move differently from each other" should be selected if H1 and H2 have different movements________ (the movement of each hand is specified their own movement module) regardless of direction, for example [`STALK<https://www.handspeak.com/word/search/index.php?id=4168)as>`_]
-  - "H1 and H2 move similarly to each other" is selected if H1 and H2 have the same movement regardless of direction, for example [`COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]. An example of a sign under this category that dose not involve any perceptual shape component: [`COMPARE<https://www.handspeak.com/word/search/index.php?id=2563>`_]. 
+  - "H1 and H2 move differently from each other" should be selected if H1 and H2 have different movements________ regardless of direction, for example [`STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_]
+  - "H1 and H2 move similarly to each other" is selected if H1 and H2 have the same movement regardless of direction, for example [`COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]. An example of a sign under this category that dose not involve any perceptual shape component: [`COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_]. 
 
 
 Movement direction relation and movement timing relation are specified only for signs where H1 and H2 *‘move similarly.’* Movement direction relation is relevant only for signs with a *perceptual shape* component to their movement. 
@@ -68,6 +68,7 @@ The classification of examples is dependent on whether the horizontal axis is tr
 
 
   - **Movement direction relation:**
+  
       - "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction or relative direction, depending on the choices selected in :ref:`global_settings`. Some exmaples of signs encompassed by this selection, keeping in mind a relative horizontal axis, are [BICYCLE, EXPERIMENT, CRUCIFY, FREE]. If the user has chosen absolute directions, this option could be selected for signs where both hands move rightward and leftward [`WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_] or both hands are moving clockwise [`WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_]. Note that choices for definitions of clockwise / counterclockwise can also be specified in :ref:`global_settings`.
  
       - "H1 and H2 have different directions of movement" should be selected if the two hands move in either different absolute directions or different relative directions, depending on the choices selected in :ref:`global_settings`. Some exmaples of signs encompassed by this selection, keeping in mind a relative horizontal axis, are [`SOCIAL <https://asl-lex.org/visualization/?sign=social>`_, `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_, `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]
@@ -76,14 +77,15 @@ The classification of examples is dependent on whether the horizontal axis is tr
       
   - **Movement timing relation:**
   
-      - Sequential [When one hand is moving, the other is not.] [CRUCIFY, HANDS, FOLD]
-      - Simultaneous [When one hand is moving (in any way), the other is too.]
-      - Everything is mirrored / in phase [WHEELCHAIR, STRUGGLE, SINCE, CLAUSE, DRESSER, BOWTIE, CLOUD_1, CORN_3, DECORATE_2, PHOTOGRAPHY, FREE, BOWTIE, MANY, STICKY]
-      - Everything is mirrored / in phase except (check as many or as few apply):
+      - "Sequential" should be selected if the hands do not move at the same time; when one hand is moving, the other is not, such as [CRUCIFY, HANDS]
+      - "Simultaneous" should be selected if the hands move at the same time; when one hand is moving (in any way), the other is too. Further specifications can be made below.
+            - "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored/in phase. Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`where will this information be?` **edit ref link** for more information. Some examples under this category are: [WHEELCHAIR, DRESSER, FREE, BOWTIE]
+            - "Everything is mirrored / in phase except..." should be selected if some components are in phase but at least one component is out of phase. The user can check as many as apply to the sign. 
       
-          - Location [BICYCLE, POPCORN, MILK, WINDSHIELD WIPERS, EXPERIMENT, SOCIAL, COMMUNICATION, KSL EVERYTHING, MANY-DIFFERENT-2 (Morgan 2017; Fig. 249)]
-          - Handshape [POPCORN, MILK]
-          - Orientation [DIE, PAIN, COMPARE]
+                - "Location" should be selected for signs that are out of phase in terms of location, that is, if the two hands have the opposite specification for location at the same time (e.g., one hand is up while the other is down). For a circle, we consider location to be out of phase if the two hands would reach the top of the circle (as defined above) at the *different* times. Note that :ref:`global_settings` for absolute vs. relative directions apply here. Some signs that fall under this category, keeping in mind a relative horizontal axis, are: [POPCORN, WINDSHIELD WIPERS, EXPERIMENT, MILK_2]
+                
+                - "Handshape" should be selected for signs that are out of phase in terms of handshape, that is, if the two hands have different hand configurations at a given time. Some examples are: [POPCORN, MILK_2]
+                - "Orientation" should be selected for signs that are out of phase in terms of handshape, that is, if the two hands have different orientations at a given time. Some examples are: [DIE, PAIN, COMPARE].
 
 
 
