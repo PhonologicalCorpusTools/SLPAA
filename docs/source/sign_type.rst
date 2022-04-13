@@ -88,13 +88,4 @@ The classification of examples is dependent on whether the horizontal axis is tr
                 - "Orientation" should be selected for signs that are out of phase in terms of handshape, that is, if the two hands have different orientations at a given time. Some examples are: [DIE, PAIN, COMPARE].
 
 
-
-NOTE:Movement direction relation and movement timing relation are specified only for signs where H1 and H2 ‘move similarly.’ Movement direction relation is relevant only for signs with a perceptual shape component to their movement. 
-
-The classification of examples is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral) – the examples here assume a relative horizontal axis; see the Global Settings for more information.
-
-
-
-
-
 **add screenshot of sign type module filled out for particular example of a sign**
