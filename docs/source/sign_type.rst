@@ -30,10 +30,10 @@ Select this if both **hands** are involved in the sign in some way. **(add a not
 I. Handshape relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- "H1 and H2 involve the same set(s) of handshapes" should be selected if the sets of handshapes used at any point during the sign are the same on both hands. This can be because the shapes never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), because the shapes alternate (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_), or because the shapes change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
+- "H1 and H2 involve the same set(s) of handshapes" should be selected if all the handshapes used at any point during the sign are the shared between both hands. This can be because the handshapes never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), because the set of handshapes alternates (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_), or because the handshapes change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
 
 
-- "H1 and H2 involve different set(s) of handshapes" should be selected if the two hands have different handshapes from each other in at least one part of the sign. This could be because they never have the same handshape (e.g., `SHOW <https://asl-lex.org/visualization/?sign=show>`_), or because they share a handshape at only one part of the sign (e.g., `EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_). 
+- "H1 and H2 involve different set(s) of handshapes" should be selected if the two hands have at least one different handshapes from each other within the sign, that is, if a handshape that appears on one hand never appears on the other hand. This could be because they never have the same handshape (e.g., `SHOW <https://asl-lex.org/visualization/?sign=show>`_), or because they share a handshape at only one part of the sign (e.g., `EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_). 
 
 
 
@@ -58,8 +58,8 @@ b) "Only one hand moves" should be selected if only one hand is involved in a pe
 
 c) "Both hands move" should be selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands. 
 
-  - "H1 and H2 move differently from each other" should be selected if H1 and H2 have different movements (perceptual shape or joint-specific) regardless of direction, for example [`STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_]
-  - "H1 and H2 move similarly to each other" is selected if H1 and H2 have the same movement regardless of direction for example [`COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]. An example of a sign under this category that dose not involve any perceptual shape component, only a joint-specific movement: [`COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_]. Note that with this example the opposing directions/orientations of the joint-specific movement of each hand is disregarded. 
+  - "H1 and H2 move differently from each other" should be selected if H1 and H2 have different movements (perceptual shape or joint-specific), regardless of direction, for example [`STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_] or [`RUN <https://www.handspeak.com/word/search/index.php?id=1859h>`_]
+  - "H1 and H2 move similarly to each other" is selected if H1 and H2 have the same movement *throughout the entire sign*, regardless of direction for example [`COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]. An example of a sign under this category that dose not involve any perceptual shape component, only a joint-specific movement: [`COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_]. Note that with this example the opposing directions/orientations of the joint-specific movement of each hand is disregarded. 
 
 
 Movement direction relation and movement timing relation are specified only for signs where H1 and H2 *‘move similarly.’* Movement direction relation is relevant only for signs with a *perceptual shape* component to their movement. 
