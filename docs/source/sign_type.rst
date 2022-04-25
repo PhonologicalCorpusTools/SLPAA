@@ -90,5 +90,5 @@ The classification of examples is dependent on whether the horizontal axis is tr
 Example coding:
 
    .. image:: images/signtype_example_COMPARE.png
-      :width: 60%
+      :width: 80%
       :align: center
