@@ -37,7 +37,7 @@ Code the specifications for a movement with :ref:`perceptual_shape`.
 .. _shape_entry:
 
 **a) Shape**
-~~~~~~~~~~~~
+
 
 Select the shape of the movement.
 
