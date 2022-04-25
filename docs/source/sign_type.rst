@@ -18,7 +18,8 @@ Number of hands
 1. 1 hand
 ========= 
 
-Select this if the sign only involved one hand, regardless of movement, contact etc. If the forearm, elbow, or wrist of the H2 is involved, there are three ways this can be coded: (1) the user can decide to specify the sign as one-handed and include H2 in specifications of contact and location, (2) the user can specify the sign as one-handed and select "forearm involved" in the hand configuration module - this can only be selected if the arm of H2 is parallel to the ground, (3) the user can specify the sign as two-handed, later specifying that "only H1 moves". For example, the sign TABLE can be coded as (1) one-handed with..... **finish this example*** WHALE, CRACKER, TRASH, and even TIME, TABLE (special case???)
+Select this if the sign only involved one hand, regardless of movement, contact etc. If the forearm, elbow, or wrist of the H2 is involved, there are several ways this can be coded: (1) the user can decide to specify the sign as one-handed and include H2 in specifications of contact and location, (2) the user can specify the sign as one-handed and select "forearm involved" in the hand configuration module - this can only be selected if the arm of H2 is parallel to the ground, (3) the user can specify the sign as two-handed, later specifying that "only H1 moves". For example, the sign `CRACKER <https://asl-lex.org/visualization/?sign=cracker>`_ can be coded as (1) one-handed, with H1 making contact to H2 at the elbow, or (2) two-handed, with only H1 moving. The sign `TABLE <https://asl-lex.org/visualization/?sign=table>`_ can be coded as **finish this exmple**
+
 
 - "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_) **also includes finger spelled signs?** if yes, give example. 
 
