@@ -19,7 +19,7 @@ Number of hands
 =========
 Select this if the sign only involved one hand, regardless of movement, contact etc. If the forearm, elbow, or wrist of the other hand is involved, see :ref: `____make this section___` for options regarding how to code these signs.
 
-- "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g.,`NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_) **also includes finger spelled signs?** if yes, give example. 
+- "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_) **also includes finger spelled signs?** if yes, give example. 
 
 - "The hand does not move" should be selected if the hand is not nvolved in any movement, such as `ONE <https://www.handspeak.com/word/search/index.php?id=1554>`_.
 
@@ -73,7 +73,7 @@ The classification of examples is dependent on whether the horizontal axis is tr
  
       - "H1 and H2 have different directions of movement" should be selected if the two hands move in either different absolute directions or different relative directions, depending on the choices selected in :ref:`global_settings`. Some exmaples of signs encompassed by this selection, keeping in mind a relative horizontal axis, are [`SOCIAL <https://asl-lex.org/visualization/?sign=social>`_, `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_, `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_]**add in the descriptions for these examples**
       
-      - "Not relevant" should be selected if the sign does not have a perceptual shape component to its movement (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `MANY<https://asl-lex.org/visualization/?sign=many>`_, `COMPARE<https://www.handspeak.com/word/search/index.php?id=2563>`_)
+      - "Not relevant" should be selected if the sign does not have a perceptual shape component to its movement (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `MANY <https://asl-lex.org/visualization/?sign=many>`_, `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_)
       
   - **Movement timing relation:**
   
