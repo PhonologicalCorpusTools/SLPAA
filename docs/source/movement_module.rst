@@ -1,86 +1,107 @@
+.. comment::
+    The places where I intend to add a link to a currently non-existent docs section/page are marked as a code block temporarily
+    
 .. todo::
-    insert image of the movement module
-    think about where and how detailed information for program behaviour will be represented
-    create a dummy page to link to for the signing space description
-    
-.. comment::
-    The places where I intend to add a link to another (currently non-existent) docs section are marked as a code block
-    
-.. comment::
-    I often use "describe" as a verb for adding detail about a sign. Would it be better to use e.g. "transcribe" or "code" instead?
+    create some of the missing pages that would be linked here
+    create a dummy page to link to for the signing space description?
 
-.. _movement_module: 
+.. _movement:
 
 ***************
 Movement Module
 ***************
 
-The **movement module** is the first to be coded for each sign after the :ref:`sign type module<sign_type_module>`. The movement information is what is used to generate the appropriate number of :ref:`x-slots<x_slot>` for the sign. See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)** to learn more about this process. 
+After creating a sign and entering the :ref:`sign-level information<sign_level_info>` and coding the :ref:`sign type module<sign_type>`, code the **movement module(s)** for the sign first before moving on to other sign modules. The movement information is used by the program to generate the appropriate number of :ref:`x-slots<x_slot>` for the sign if auto-generation is enabled. (See the section on ``how x-slots are auto-generated`` **(program functionality page? auto-generation and autofilling?)** to learn more about this process. See the ``global options`` **(cannot currently see this page in the list)** for how to change the program's default auto-generation behaviour.) Whether x-slots are created automatically or manually, they are the timing basis that the sign modules build upon and must be built first.
 
-Here's how the movement window looks in the program: 
+When there are multiple (simultaneous and/or sequential) movements within one sign, give each movement its own module. The timing of the modules can then be adjusted in the x-slot visualization of the ``sign summary window`` **(no such section yet that I can see)**. 
 
-.. image:: images/placeholder.png
-    :width: 800
-    :align: center
-    :alt: Image description.
+.. _movement_type_entry:
 
+1. Movement type
+`````````````````
 
-Any movement in a sign can be described as either a :ref:`perceptual_shape` or a :ref:`joint_specific_movement`. When there are different (simultaneous or sequential) movements within one sign, each individual movement must be given its own module. The timing of the module(s) can be adjusted in the x-slot visualization.
+There is often some flexibility as to whether different components of movement could be counted as separate modules or part of the same one. At minimum, code any :ref:`joint-specific movements<joint_specific_movement>` separately from any movements with :ref:`perceptual_shape`, as these are mutually exclusive by design. Likewise, a module designated as a :ref:`handshape_change` cannot also have specifications for a joint-specific movement or a movement with perceptual shape. 
+
+.. note::
+    Give some example signs here with some broad discussion of which components of movement could (and must) be counted as a separate module.
+
+Keep in mind that you can add more detail on the joint articulations for any type of movement module in its :ref:`joint activity<joint_activity_entry>` section, and that the number of modules needed to describe a movement may depend on your specifications of its :ref:`movement characteristics<movement_chars>`.
 
 .. _perceptual_shape_entry:
 
-1. Movement type - Perceptual shape
-````````````````````````````````````
+I. Perceptual shape
+===================
+
+Code the specifications for a movement with :ref:`perceptual_shape`.
 
 .. _shape_entry:
 
-I. Shape
-=========
+a) Shape
+~~~~~~~~
 
-**(Describe the shape options, show some sample signs)**
+Select the shape of the movement.
+
+**(Note especially that combinations of straight movements will each get their own complete module, so code these in sequential order. Also note that the shape options are mutually exclusive, so something like circle+straight will need two sequential modules, each with perceptual shape. Does this case need the first shape signed to be the first coded as well? That seems intuitive to do anyway but I feel like it's also necessary for the x-slot linking process.)**
+
+.. note::
+    Give at least one example for each shape option.
 
 .. _axis_direction_entry:
 
-II. Axis direction
-===================
+b) Axis direction
+~~~~~~~~~~~~~~~~~
 
-An axis of movement (or a combination of axes) can be selected to describe the direction of any movement with perceptual shape. See ``the signing space`` for a visual description of these options. **(Link to a separate .rst file in the docs on planes, axes, and divisions of neutral space)** 
+Select an axis (or a combination of axes) that describe the direction of movement. For circular motions, select the direction that extends from the beginning of the movement toward the midpoint of the first cycle.
 
-The axis direction encodes the endpoint of the movement relative to the starting point… **(use example signs)**
+.. comment::
+    See a description of the ``signing space`` for a visual representation of these options. (Link to a separate .rst file in the docs on planes, axes, and       divisions of neutral space)
 
-.. warning::
-    This seems to lend more to convention than explicit description. Stick to the available options and what happens in the program when you select them. Areas for flexibility of use can be mentioned after that.
+.. note::
+    Insert examples here for a few signs. Include a pair of circles that have the *same* plane and clockwise directionality but *different* axis directions       to show how this works.
+
+See the ``global options`` page for how to switch between ``relative directions`` **(glossary)** and ``absolute positions`` **(glossary)** across the ``line of bilateral symmetry`` **(not sure if this is necessary, but I would like to include it for extra information! this phrasing can be altered, or a glossary entry can be inserted)**.
 
 .. _plane_entry:
 
-III. Plane
-==========
+c) Plane
+~~~~~~~~
 
-**(Refer to the global settings section for checking/changing clockwise directionality. Note that the option to select a plane is not necessary for straight paths, but the option is not disabled for straight paths (?))** 
+For any shape other than straight movements, select the plane (or a combination of planes) that fully contains the movement described in the current module. For each selected plane, you can also choose a directionality. 
 
 .. comment::
-    Note for Nico: you can use a cross-reference to the global options in order to actual describe the default options
-    e.g., "See :ref:`global_settings` to set preferences." --Kathleen
+    See a description of the ``signing space`` for a visual representation of these options. (Link to a separate .rst file in the docs on planes, axes, and       divisions of neutral space)
 
-.. _joint-specific_movement_entry:
+.. note::
+    Insert a few sign examples for different shapes, and include at least one or two that uses a combination of planes.
 
-2. Movement type - Joint-specific movements
-```````````````````````````````````````````
+See the ``global options`` page for the default clockwise directions for each plane, and how to change these. Also see ``global options`` for how to switch between ``relative directions`` **(glossary)** and ``absolute positions`` **(glossary)** across the ``line of bilateral symmetry`` **(not sure if this is necessary, but I would like to include it for extra information! this phrasing can be altered, or a glossary entry can be inserted)**.
+
+.. _joint_specific_movement_entry:
+
+II. Joint-specific movements
+============================
 
 ...
 
-.. _joint_movement_entry:
+.. _handshape_change_entry:
 
-3. Joint movements
+III. Handshape change
+=====================
+
+Code in this section whether the module describes a :ref:`handshape_change`. This selection cannot be combined with the selections for a :ref:`joint_specific_movement` or movement with :ref:`perceptual_shape`. **(is this accurate?)**
+
+.. _joint_activity_entry:
+
+2. Joint activity
 ``````````````````
 
-The **joint movements** section can be used to add more fine-grained detail about the specific joint articulations of the movement component described in the current module. This option is available for both :ref:`perceptual shapes<perceptual_shape>` and :ref:`joint-specific movements<joint_specific_movement>`. It is not necessary to manually code the joint movements that are predictable from any joint-specific movement, as this will be done ``automatically`` **(program functionality page? auto-generation and autofilling?)** by the program. **(add an example or two)**
+Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program will ``autofill`` **(program functionality page? auto-generation and autofilling?)** the joint movements that are predictable from the selections made earlier in the :ref:`movement type section<joint_specific_movement_entry>`. See ``global options`` for how to change the program's default autofill behaviour.
 
 **(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 
-.. _movement_characteristic_entry:
+.. _movement_chars:
 
-4. Movement characteristics
+3. Movement characteristics
 ```````````````````````````
 
 ...

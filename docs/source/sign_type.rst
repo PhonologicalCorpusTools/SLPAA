@@ -7,41 +7,40 @@ Sign Type
 This module is where users identify the overarching ‘kind’ of sign by selecting specifications for the behaviours of each hand (H1 & H2) in relation to each other. 
 
 
-I.II. =====
-abc ~~~~~~~~~
-
 .. _signtype_number_hands: 
 
 Number of hands
 `````````````````
 
 1. 1 hand
-=========
-This is selected if the sign only involved one hand, regardless of movement, contact etc. 
+========= 
 
-- "The hand moves" is selected if the hand is involved in either a perceptual shape [`NORTH <https://asl-lex.org/visualization/?sign=north>`_] or a joint-specific movement [`APPLE <https://asl-lex.org/visualization/?sign=apple>`_] **also includes finger spelled signs?** if yes, give example. 
+Select this if the sign only involved one hand, regardless of movement, contact etc. If the forearm, elbow, or wrist of the H2 is involved, there are several ways this can be coded: (1) the user can decide to specify the sign as one-handed and include H2 in specifications of contact and location, (2) the user can specify the sign as one-handed and select "forearm involved" in the hand configuration module - this can only be selected if the arm of H2 is parallel to the ground, (3) the user can specify the sign as two-handed, later specifying that "only H1 moves". For example, the sign `CRACKER <https://asl-lex.org/visualization/?sign=cracker>`_ can be coded as (1) one-handed, with H1 making contact to H2 at the elbow, or (2) two-handed, with only H1 moving. The sign `TABLE <https://asl-lex.org/visualization/?sign=table>`_ can be coded as **finish this exmple**
 
-- "The hand does not move" is selected if the hand is not nvolved in any movement, such as [`ONE <https://asl-lex.org/visualization/?sign=one>`_].
+
+- "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_) **also includes finger spelled signs?** if yes, give example. 
+
+- "The hand does not move" should be selected if the hand is not nvolved in any movement, such as `ONE <https://www.handspeak.com/word/search/index.php?id=1554>`_.
 
 2. 2 hands
 =========
-This is selected if both **hands** are involved in the sign in some way. **(add a note about what to do if the ARM is involved, such as WHALE, CRACKER, TRASH, and even TIME, where the wrist is involved. Signs where the forearm is parallel to the ground, this selection will be available in PDHS module)**
+Select this if both hands are involved in the sign. See note above if forearm, wrist, or elbow of the second hand are involved. 
 
 I. Handshape relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- "H1 and H2 involve the same set(s) of handshapes" is selected if the handshapes throughout the entire sign remain the same between both hands [`BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_]
+- "H1 and H2 involve the same set(s) of handshapes" should be selected if all the handshapes used at any point during the sign are the shared between both hands. This can be because the handshapes never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), because the set of handshapes alternates (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_), or because the handshapes change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
 
 
-- "H1 and H2 involve different set(s) of handshapes " is selected if the two hands have different handshapes from each other in at least one part of the sign, such as [`EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_, `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_, `SHOW <https://asl-lex.org/visualization/?sign=show>`_] 
+- "H1 and H2 involve different set(s) of handshapes" should be selected if the two hands have at least one different handshapes from each other within the sign, that is, if a handshape that appears on one hand never appears on the other hand. This could be because they never have the same handshape (e.g., `SHOW <https://asl-lex.org/visualization/?sign=show>`_), or because they share a handshape at only one part of the sign (e.g., `EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_). 
 
 
 
 II. Contact relation
 ~~~~~~~~~~~~~~~~~~~~~~
-- "H2 maintains contact with H1 throughout the sign" is selected if the contact is maintained throughout the duration of the sign, such as [`SHOW <https://asl-lex.org/visualization/?sign=show>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_]
+- "H2 maintains contact with H1 throughout the sign" should be selected if the contact is maintained throughout the duration of the sign, such as `SHOW <https://asl-lex.org/visualization/?sign=show>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, and `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_.
 
-- "H1 and H2 do not maintain contact with each other" is selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands [`STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_] and signs that have momentary contact at a certain point in the sign [`CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_].
+- "H1 and H2 do not maintain contact with each other" should be selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands (e.g., `STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) and signs that have momentary contact which is not maintained throughout the sign, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_.
 
 
 .. _signtype_movement_relation: 
@@ -49,41 +48,47 @@ II. Contact relation
 III. Movement relation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-a) "Neither H1 nor H2 moves" is selected if neither hand is involved in any movement (perceptual shape or joint-specific), such as [`SICK <https://asl-lex.org/visualization/?sign=sick>`_] 
+a) "Neither H1 nor H2 moves" should be selected if neither hand is involved in any movement (perceptual shape or joint-specific), such as `SICK <https://asl-lex.org/visualization/?sign=sick>`_. 
 
-b) "Only one hand moves" is selected if only one hand is involved in a perceptual shape or joint-specific movement. If selected, further specification is needed below about which hand is involved in the movement.
+b) "Only one hand moves" should be selected if only one hand is involved in a perceptual shape or joint-specific movement. If selected, further specification is needed below about which hand is involved in the movement.
 
-  - Only H1 moves [`WHEN <https://asl-lex.org/visualization/?sign=when>`_]
-  - Only H2 moves [this version of `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_]
+  - Only H1 moves (e.g., `WHEN <https://asl-lex.org/visualization/?sign=when>`_)
+  - Only H2 moves (e.g., this version of `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_)
 
-c) "Both hands move" is selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands.
+c) "Both hands move" should be selected if both hands are involved in perceptual shape and/or joint-specific movement. If selected, further specification is needed below regarding the movement relations between the two hands. 
+
+  - "H1 and H2 move differently from each other" should be selected if H1 and H2 have at least one movement (perceptual shape or joint-specific) that is not shared between the two hands, regardless of direction, orientation, and timing. For example `STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_ and `RUN <https://www.handspeak.com/word/search/index.php?id=1859h>`_ are both examples of signs where both hands are involved in the same perceptual shape movement but only H1 has an additional joint-specific movement, which is not shared by H2.
+  - "H1 and H2 move similarly to each other" should be selected if H1 and H2 share the same set of movements, regardless of direction, timing, and orientation. An example of a sign under this category that involves a perceptual shape movement: `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_. An example of a sign under this category that does not involve any perceptual shape component, only a joint-specific movement: `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_. Note that with this example the opposing directions/orientations of the joint-specific movement of each hand is disregarded. **add an example of a sign that has both percpetual shape and joint spec.**
+
+
+Movement direction relation and movement timing relation are specified only for signs where H1 and H2 *‘move similarly.’* Movement direction relation is relevant only for signs with a *perceptual shape* component to their movement. 
+
+The classification of examples is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral) - the examples here assume a relative horizontal axis. The choices for direction parameters can be set in :ref:`global_settings`. 
+
 
   - **Movement direction relation:**
-      - H1 and H2 have the same direction of movement. [e.g., WHEELCHAIR, BICYCLE, EXPERIMENT, CLOUD_1, CRUCIFY, HANDS, FOLD, FREE]
-      - H1 and H2 have different directions of movement. [e.g., SOCIAL, DECORATE_2, PHOTOGRAPHY, WINDSHIELD WIPERS, COMMUNICATION]
-      - Not relevant [e.g., BOWTIE, MANY, STICKY, CLAUSE, PAIN, CORN_3, COMPARE]
+  
+      - "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction or relative direction, depending on the choices selected in :ref:`global_settings`. Some exmaples of signs encompassed by this selection, keeping in mind a relative horizontal axis, are `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ (both hands are moving clockwise), `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_ (from the *top* of each hand's circle, both hands start the circle in a contrallateral direction), `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_ (each hand moves contrallaterally to touch the opposite palm), `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ (each hand moves ipsilaterally, separating away from each other). If the user has chosen absolute directions, this option could be selected for signs where both hands move rightward and leftward together, such as `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ or both hands are moving clockwise/counterclockwise, such as `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_. Note that perspective choices for definitions of clockwise / counterclockwise can also be specified in :ref:`global_settings`.
+ 
+      - "H1 and H2 have different directions of movement" should be selected if the two hands move in either different absolute directions or different relative directions, depending on the choices selected in :ref:`global_settings`. Some exmaples of signs encompassed by this selection, keeping in mind a relative horizontal axis, are `SOCIAL <https://asl-lex.org/visualization/?sign=social>`_ (from the top of the circle, the upper hand moves ipsilaterally and the lower hand moves contralaterally), `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ (from the top of the circle, the upper hand moves ipsilaterally and the lower hand moves contralaterally, but in this example the hands are in-phase for location), `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ (when one hand is moving ipsilaterally, the other is moving contralaterally and vice versa), `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_ (when one hand is moving distally, the other is moving proximally and vice versa).
+      
+      - "Not relevant" should be selected if the sign does not have a perceptual shape component to its movement (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `MANY <https://asl-lex.org/visualization/?sign=many>`_, `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_)
       
   - **Movement timing relation:**
   
-      - Sequential [When one hand is moving, the other is not.] [CRUCIFY, HANDS, FOLD]
-      - Simultaneous [When one hand is moving (in any way), the other is too.]
-      - Everything is mirrored / in phase [WHEELCHAIR, STRUGGLE, SINCE, CLAUSE, DRESSER, BOWTIE, CLOUD_1, CORN_3, DECORATE_2, PHOTOGRAPHY, FREE, BOWTIE, MANY, STICKY]
-      - Everything is mirrored / in phase except (check as many or as few apply):
+      - "Sequential" should be selected if the hands do not move at the same time; when one hand is moving, the other is not, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_ and `HANDS <https://asl-lex.org/visualization/?sign=hands>`_.
+      - "Simultaneous" should be selected if the hands move at the same time; when one hand is moving (in any way), the other is too. Further specifications can be made below.
+            - "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored/in phase. Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`where will this information be?` **edit ref link** for more information. Some examples where everything is mirrored / in phase are: `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ (keeping in mind a relative horisontal axis), and `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_. 
+            - "Everything is mirrored / in phase except..." should be selected if some components are in phase but at least one component is out of phase. The user can check as many as apply to the sign. 
       
-          - Location [BICYCLE, POPCORN, MILK, WINDSHIELD WIPERS, EXPERIMENT, SOCIAL, COMMUNICATION, KSL EVERYTHING, MANY-DIFFERENT-2 (Morgan 2017; Fig. 249)]
-          - Handshape [POPCORN, MILK]
-          - Orientation [DIE, PAIN, COMPARE]
+                - "Location" should be selected for signs that are out of phase in terms of location, that is, if the two hands have the opposite specification for location at the same time (e.g., one hand is up while the other is down). For a circle, we consider location to be out of phase if the two hands would reach the top of the circle (as defined above) at the *different* times. Note that :ref:`global_settings` for absolute vs. relative directions apply here. Some signs that fall under this category, keeping in mind a relative horizontal axis, are: `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_ (one hand is up while the other is down), `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ (one hand is ipsi while the other is contra,), and `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_ (the hands reach the top of the circle at different times).
+                
+                - "Handshape" should be selected for signs that are out of phase in terms of handshape, that is, if the two hands have different hand configurations at a given time. Some examples are: `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_, `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ (both signs involve two different hand configurations which are used by each hand at different times). 
+                
+                - "Orientation" should be selected for signs that are out of phase in terms of handshape, that is, if the two hands have different orientations at a given time. Some examples are: `DIE <https://asl-lex.org/visualization/?sign=die>`_ (one palm is facing upward when the other is facing downward), `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_ (one palm faces backwards when the other faces forwards), and `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ **note sure yet how to describe this oritentation**!!!
 
+Example coding:
 
-
-
-
-
-
-NOTE:Movement direction relation and movement timing relation are specified only for signs where H1 and H2 ‘move similarly.’ Movement direction relation is relevant only for signs with a perceptual shape component to their movement. The classification of examples is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral) – the examples here assume a relative horizontal axis; see the Global Settings for more information.
-
-
-
-
-
-**add screenshot of sign type module filled out for particular example of a sign**
+   .. image:: images/signtype_example_COMPARE.png
+      :width: 80%
+      :align: center
