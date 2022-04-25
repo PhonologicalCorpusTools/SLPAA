@@ -286,6 +286,7 @@ class XslotPanel(QScrollArea):
     def __init__(self, mainwindow, sign=None, **kwargs):
         super().__init__(**kwargs)
         self.sign = sign
+        self.mainwindow = mainwindow
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
@@ -326,7 +327,7 @@ class XslotPanel(QScrollArea):
             self.scene.removeItem(sceneitem)
 
         if sign.signtype is not None:
-            signtyperect = MyRect(self, text="sign type: "+";".join(sign.signtype.specs))
+            signtyperect = MyRect(self, text="sign type: "+";".join(sign.signtype.specs), sign=self.sign, mainwindow=self.mainwindow)
             signtyperect.setRect(0, 0, 640-(2*self.blackpen.width()), 50)
             signtyperect.setPen(self.blackpen)
             signtyperect.setBrush(self.greenbrush)
@@ -338,7 +339,7 @@ class XslotPanel(QScrollArea):
         if num_mvmtmods > 0:
             mvmt_width = 640 / num_mvmtmods
             for idx, m in enumerate(self.sign.movementmodules.keys()):
-                mvmtrect = MyRect(self, text=m)
+                mvmtrect = MyRect(self, text=m, sign=self.sign, mainwindow=self.mainwindow)
                 xloc = 0 + idx * mvmt_width - (2*self.blackpen.width())
                 mvmtrect.setRect(xloc, 75, mvmt_width, 50)
                 mvmtrect.setPen(self.blackpen)
@@ -351,7 +352,7 @@ class XslotPanel(QScrollArea):
         if num_hsmods > 0:
             hs_width = 640 / num_hsmods
             for idx, hs in enumerate(self.sign.handshapemodules.keys()):
-                hsrect = MyRect(self, text=hs)
+                hsrect = MyRect(self, text=hs, sign=self.sign, mainwindow=self.mainwindow)
                 xloc = 0 + idx * hs_width - (2*self.blackpen.width())
                 hsrect.setRect(xloc, 150, hs_width, 50)
                 hsrect.setPen(self.blackpen)
@@ -393,7 +394,7 @@ class MyText(QGraphicsTextItem):
 
 
 class MyRect(QGraphicsRectItem):
-    def __init__(self, parentwidget, text="", restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
+    def __init__(self, parentwidget, text="", sign=None, mainwindow=None, restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
         super().__init__()
         self.restingbrush = restingbrush
         self.hoverbrush = hoverbrush
@@ -401,10 +402,38 @@ class MyRect(QGraphicsRectItem):
         self.parentwidget = parentwidget
         self.text = text
         self.hover = False
+        self.sign = sign
+        self.mainwindow = mainwindow
 
     def mouseReleaseEvent(self, event):
         print("rectangle released")
-        QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
+        # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
+        self.handle_movementbutton_click()
+
+    # TODO KV don't want this duplicated (also in signsummarypanel)
+    def handle_movementbutton_click(self):
+        # button = self.sender()
+        # # TODO KV
+        editing_existing = True  # button.property("existingmodule")
+        existing_key = self.text
+        moduletoload = self.sign.movementmodules[existing_key]
+        # if editing_existing:
+        #     existing_key = button.text()
+        #     moduletoload = self.sign.movementmodules[existing_key]
+        movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload)  # , parent=self)
+        movement_selector.saved_movement.connect(lambda movementtree: self.handle_save_movement(movementtree, existing_key))
+        movement_selector.exec_()
+
+
+    def handle_save_movement(self, movementtree, existing_key):
+        if existing_key is None or existing_key not in self.sign.movementmodules.keys():
+            self.sign.addmovementmodule(movementtree)
+        else:
+            self.sign.movementmodules[existing_key] = movementtree
+        # TODO KV
+        # self.sign_updated.emit(self.sign)
+        # self.update_movementmodulebuttons()
+
 
     def mousePressEvent(self, event):
         print("rectangle pressed")
