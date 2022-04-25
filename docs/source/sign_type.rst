@@ -16,8 +16,10 @@ Number of hands
 `````````````````
 
 1. 1 hand
-=========
-Select this if the sign only involved one hand, regardless of movement, contact etc. If the forearm, elbow, or wrist of the other hand is involved, see :ref: `____make this section___` for options regarding how to code these signs.
+========= 
+**(add a note about what to do if the ARM is involved, such as WHALE, CRACKER, TRASH, and even TIME, TABLE (special case???) where the wrist is involved. Signs where the forearm is parallel to the ground, this selection will be available in PDHS module)** 
+
+Select this if the sign only involved one hand, regardless of movement, contact etc. If the forearm, elbow, or wrist of the H2 is involved, there are three ways this can be coded: (1) the user can decide to specify the sign as one-handed and include H2 in specifications of contact and location, (2) the user can specify the sign as one-handed and select "forearm involved" in the hand configuration module - this can only be selected if the arm of H2 is parallel to the ground, (3) the user can specify the sign as two-handed, later specifying that "only H1 moves". For example, the sign TABLE can be coded as (1) one-handed with..... **finish this example***
 
 - "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_) **also includes finger spelled signs?** if yes, give example. 
 
@@ -25,7 +27,7 @@ Select this if the sign only involved one hand, regardless of movement, contact 
 
 2. 2 hands
 =========
-Select this if both hands are involved in the sign in some way. **(add a note about what to do if the ARM is involved, such as WHALE, CRACKER, TRASH, and even TIME, TABLE (special case???) where the wrist is involved. Signs where the forearm is parallel to the ground, this selection will be available in PDHS module)** "If the forearm, elbow, or wrist of the other hand is involved, see :ref: `____make this section___` for options regarding how to code these signs."
+Select this if both hands are involved in the sign. See note above if forearm, wrist, or elbow of the second hand are involved. 
 
 I. Handshape relation
 ~~~~~~~~~~~~~~~~~~~~~~
