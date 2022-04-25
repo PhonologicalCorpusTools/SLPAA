@@ -25,7 +25,7 @@ There is often some flexibility as to whether different components of movement c
 .. note::
     Give some example signs here with some broad discussion of which components of movement could (and must) be counted as a separate module.
 
-Keep in mind that you can add more detail on the joint articulations for any type of movement module in its :ref:`joint_activity_entry` section, and that the number of modules needed to describe a movement may depend on your specifications of its :ref:`movement characteristics<movement_chars>`.
+Keep in mind that you can add more detail on the joint articulations for any type of movement module in its :ref:`joint activity<joint_activity_entry>` section, and that the number of modules needed to describe a movement may depend on your specifications of its :ref:`movement characteristics<movement_chars>`.
 
 .. _perceptual_shape_entry:
 
@@ -36,8 +36,8 @@ Code the specifications for a movement with :ref:`perceptual_shape`.
 
 .. _shape_entry:
 
-**a) Shape**
-
+a) Shape
+~~~~~~~~
 
 Select the shape of the movement.
 
