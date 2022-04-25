@@ -6,7 +6,8 @@ from PyQt5.QtCore import (
     QSize,
     QRectF,
     QPoint,
-    pyqtSignal
+    pyqtSignal,
+    QEvent
 )
 
 from PyQt5.QtWidgets import (
@@ -25,6 +26,7 @@ from PyQt5.QtWidgets import (
     QGraphicsScene,
     QGraphicsPixmapItem,
     QGraphicsEllipseItem,
+    QGraphicsRectItem,
     QGraphicsTextItem,
     QButtonGroup,
     QGroupBox,
@@ -47,7 +49,9 @@ from PyQt5.QtGui import (
     QColor,
     QPen,
     QBrush,
-    QPolygonF
+    QPolygonF,
+    QTextOption,
+    QFont
 )
 
 from gui.hand_configuration import ConfigGlobal, Config
@@ -276,6 +280,208 @@ class SignLevelNote(QPlainTextEdit):
         super().focusInEvent(event)
 
 
+# TODO KV xslot skeleton
+class XslotPanel(QScrollArea):
+
+    def __init__(self, mainwindow, sign=None, **kwargs):
+        super().__init__(**kwargs)
+        self.sign = sign
+
+        self.setFrameStyle(QFrame.StyledPanel)
+        main_frame = QFrame(parent=self)
+
+        main_layout = QVBoxLayout()
+
+        self.scene = QGraphicsScene()
+
+        self.greenbrush = QBrush(Qt.green)
+        self.bluebrush = QBrush(Qt.blue)
+        self.blackpen = QPen(Qt.black)
+        self.blackpen.setWidth(5)
+
+        if sign is None:
+
+            ellipse = MyEllipse(self, text="hello! how are you doing?")
+            ellipse.setRect(10, 20, 100, 100)
+            ellipse.setPen(self.blackpen)
+            ellipse.setBrush(self.greenbrush)
+            # print("ellipse bounding rect:", ellipse.boundingRect())
+            self.scene.addItem(ellipse)
+
+            # text = MyText("hi", self)
+            # text.setPos(10,10)
+            # # text.setBrush(greenbrush)
+            # scene.addItem(text)
+
+        else:
+            self.refreshsign(self.sign)
+        self.xslotview = MyGraphicsView(self.scene, self)
+        self.xslotview.setGeometry(0, 0, 640, 480)
+        # xslotview.setScene(scene)
+
+    def refreshsign(self, sign):
+        self.sign = sign
+        sceneitems = self.scene.items()
+        for sceneitem in sceneitems:
+            self.scene.removeItem(sceneitem)
+
+        if sign.signtype is not None:
+            signtyperect = MyRect(self, text="sign type: "+";".join(sign.signtype.specs))
+            signtyperect.setRect(0, 0, 640-(2*self.blackpen.width()), 50)
+            signtyperect.setPen(self.blackpen)
+            signtyperect.setBrush(self.greenbrush)
+            # print("ellipse bounding rect:", ellipse.boundingRect())
+            self.scene.addItem(signtyperect)
+
+        mvmtrects = {}
+        num_mvmtmods = len(self.sign.movementmodules)
+        if num_mvmtmods > 0:
+            mvmt_width = 640 / num_mvmtmods
+            for idx, m in enumerate(self.sign.movementmodules.keys()):
+                mvmtrect = MyRect(self, text=m)
+                xloc = 0 + idx * mvmt_width - (2*self.blackpen.width())
+                mvmtrect.setRect(xloc, 75, mvmt_width, 50)
+                mvmtrect.setPen(self.blackpen)
+                mvmtrect.setBrush(self.greenbrush)
+                mvmtrects[m] = mvmtrect
+                self.scene.addItem(mvmtrect)
+
+        hsrects = {}
+        num_hsmods = len(self.sign.handshapemodules)
+        if num_hsmods > 0:
+            hs_width = 640 / num_hsmods
+            for idx, hs in enumerate(self.sign.handshapemodules.keys()):
+                hsrect = MyRect(self, text=hs)
+                xloc = 0 + idx * hs_width - (2*self.blackpen.width())
+                hsrect.setRect(xloc, 150, hs_width, 50)
+                hsrect.setPen(self.blackpen)
+                hsrect.setBrush(self.greenbrush)
+                hsrects[m] = hsrect
+                self.scene.addItem(hsrect)
+
+
+class MyGraphicsView(QGraphicsView):
+    def __init__(self, scene, parent, **kwargs):
+        super().__init__(scene, parent, **kwargs)
+
+
+class MyText(QGraphicsTextItem):
+    def __init__(self, text, parentwidget, restingbrush=QBrush(Qt.blue), hoverbrush=QBrush(Qt.yellow)):
+        super().__init__()
+        self.setPlainText(text)
+        self.restingbrush = restingbrush
+        self.hoverbrush = hoverbrush
+        # self.setAcceptHoverEvents(True)
+        self.parentwidget = parentwidget
+
+    def mouseReleaseEvent(self, event):
+        print("text released")
+        QMessageBox.information(self.parentwidget, 'Text clicked', 'You clicked the text!')
+
+    def mousePressEvent(self, event):
+        print("text pressed")
+
+    # def hoverEnterEvent(self, event):
+    #     self.setBrush(self.hoverbrush)
+    #
+    # def hoverLeaveEvent(self, event):
+    #     self.setBrush(self.restingbrush)
+
+    def boundingRect(self):
+        # penWidth = self.pen().width()
+        return QRectF(5, 5, 50, 10)
+
+
+class MyRect(QGraphicsRectItem):
+    def __init__(self, parentwidget, text="", restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
+        super().__init__()
+        self.restingbrush = restingbrush
+        self.hoverbrush = hoverbrush
+        self.setAcceptHoverEvents(True)
+        self.parentwidget = parentwidget
+        self.text = text
+        self.hover = False
+
+    def mouseReleaseEvent(self, event):
+        print("rectangle released")
+        QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
+
+    def mousePressEvent(self, event):
+        print("rectangle pressed")
+
+    def hoverEnterEvent(self, event):
+        self.setBrush(self.hoverbrush)
+        self.hover = True
+
+    def hoverLeaveEvent(self, event):
+        self.setBrush(self.restingbrush)
+        self.hover = False
+
+    def paint(self, painter, option, widget):
+        # super().paint(painter, option, widget)
+        pen = painter.pen()
+        pen.setWidth(5)
+        pen.setColor(Qt.black)
+        painter.setPen(pen)
+        painter.setBrush(self.hoverbrush if self.hover else self.restingbrush)
+        painter.drawRect(self.rect())
+        textoption = QTextOption(Qt.AlignCenter)
+        # textoption.setAlignment(Qt.AlignCenter)
+
+        font = painter.font()
+        font.setPixelSize(35)
+        painter.setFont(font)
+        painter.drawText(self.rect(), self.text, textoption)
+
+    # def boundingRect(self):
+    #     penWidth = self.pen().width()
+    #     return QRectF(-radius - penWidth / 2, -radius - penWidth / 2,
+    #                   diameter + penWidth, diameter + penWidth)
+
+
+class MyEllipse(QGraphicsEllipseItem):
+    def __init__(self, parentwidget, text="", restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
+        super().__init__()
+        self.restingbrush = restingbrush
+        self.hoverbrush = hoverbrush
+        self.setAcceptHoverEvents(True)
+        self.parentwidget = parentwidget
+        self.text = text
+        self.hover = False
+
+    def mouseReleaseEvent(self, event):
+        print("ellipse released")
+        QMessageBox.information(self.parentwidget, 'Ellipse clicked', 'You clicked the ellipse!')
+
+    def mousePressEvent(self, event):
+        print("ellipse pressed")
+
+    def hoverEnterEvent(self, event):
+        self.setBrush(self.hoverbrush)
+        self.hover = True
+
+    def hoverLeaveEvent(self, event):
+        self.setBrush(self.restingbrush)
+        self.hover = False
+
+    def paint(self, painter, option, widget):
+        # super().paint(painter, option, widget)
+        pen = painter.pen()
+        pen.setWidth(5)
+        pen.setColor(Qt.black)
+        painter.setPen(pen)
+        painter.setBrush(self.hoverbrush if self.hover else self.restingbrush)
+        painter.drawEllipse(self.rect())
+        textoption = QTextOption(Qt.AlignCenter)
+        # textoption.setAlignment(Qt.AlignCenter)
+        painter.drawText(self.rect(), self.text, textoption)
+
+    # def boundingRect(self):
+    #     penWidth = self.pen().width()
+    #     return QRectF(-radius - penWidth / 2, -radius - penWidth / 2,
+    #                   diameter + penWidth, diameter + penWidth)
+
+
 # TODO KV xslot mockup
 class XslotImagePanel(QScrollArea):
 
@@ -296,6 +502,7 @@ class XslotImagePanel(QScrollArea):
         self.setWidget(main_frame)
 
 class SignSummaryPanel(QScrollArea):
+    sign_updated = pyqtSignal(Sign)
 
     def __init__(self, sign, mainwindow, **kwargs):
         super().__init__(**kwargs)
@@ -448,6 +655,7 @@ class SignSummaryPanel(QScrollArea):
             self.mainwindow.corpus.add_sign(newsign)
             self.mainwindow.handle_sign_selected(self.sign.signlevel_information.gloss)
 
+        self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_view.updated_glosses(self.mainwindow.corpus.get_sign_glosses(), self.sign.signlevel_information.gloss)
 
     def handle_signtypebutton_click(self):
@@ -457,6 +665,7 @@ class SignSummaryPanel(QScrollArea):
 
     def handle_save_signtype(self, signtype):
         self.sign.signtype = signtype
+        self.sign_updated.emit(self.sign)
 
     def handle_movementbutton_click(self):
         button = self.sender()
@@ -476,6 +685,7 @@ class SignSummaryPanel(QScrollArea):
             self.sign.addmovementmodule(movementtree)
         else:
             self.sign.movementmodules[existing_key] = movementtree
+        self.sign_updated.emit(self.sign)
         self.update_movementmodulebuttons()
 
     def handle_handshapebutton_click(self):
@@ -496,6 +706,7 @@ class SignSummaryPanel(QScrollArea):
             self.sign.addhandshapemodule(handshapetxn)
         else:
             self.sign.handshapemodules[existing_key] = handshapetxn
+        self.sign_updated.emit(self.sign)
         self.update_handshapemodulebuttons()
 
     def handle_contactbutton_click(self):

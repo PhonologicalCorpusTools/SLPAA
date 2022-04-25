@@ -46,7 +46,8 @@ from gui.panel import (
     # HandIllustrationPanel,
     # ParameterPanel,
     SignSummaryPanel,
-    XslotImagePanel
+    XslotImagePanel,
+    XslotPanel
 )
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus, check_duplicated_gloss
@@ -359,6 +360,8 @@ class MainWindow(QMainWindow):
 
         # TODO KV xslot mockup
         self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
+        self.xslot_panel = XslotPanel(mainwindow=self, sign=self.current_sign, parent=self)
+        self.sign_summary.sign_updated.connect(self.xslot_panel.refreshsign)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -393,6 +396,10 @@ class MainWindow(QMainWindow):
         self.sub_xslotimage = SubWindow('Summary', self.xslot_image, parent=self)
         self.sub_xslotimage.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_xslotimage)
+
+        self.sub_xslot = SubWindow('Xslots', self.xslot_panel, parent=self)
+        self.sub_xslot.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_xslot)
 
         self.show_hide_subwindows()
         self.arrange_subwindows()
@@ -607,6 +614,8 @@ class MainWindow(QMainWindow):
 
         self.sub_signsummary.resize(QSize(300, 350))
         self.sub_signsummary.move(QPoint(180, 0))
+
+        self.sub_xslot.resize(QSize(640,480))
 
         # self.sub_transcription.resize(QSize(800, 350))
         # self.sub_transcription.move(QPoint(480, 0))
