@@ -42,7 +42,7 @@ II. Contact relation
 ~~~~~~~~~~~~~~~~~~~~~~
 - "H2 maintains contact with H1 throughout the sign" should be selected if the contact is maintained throughout the duration of the sign, such as `SHOW <https://asl-lex.org/visualization/?sign=show>`_, `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, and `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_.
 
-- "H1 and H2 do not maintain contact with each other" should be selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands (e.g., `STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) and signs that have momentary contact which is not maintained throughout the sign, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`.
+- "H1 and H2 do not maintain contact with each other" should be selected if the contact is not maintained throughout the sign, such as signs that have no contact between the hands (e.g., `STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) and signs that have momentary contact which is not maintained throughout the sign, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_.
 
 
 .. _signtype_movement_relation: 
