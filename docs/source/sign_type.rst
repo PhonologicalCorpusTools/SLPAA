@@ -7,9 +7,6 @@ Sign Type
 This module is where users identify the overarching ‘kind’ of sign by selecting specifications for the behaviours of each hand (H1 & H2) in relation to each other. 
 
 
-I.II. =====
-abc ~~~~~~~~~
-
 .. _signtype_number_hands: 
 
 Number of hands
@@ -90,4 +87,9 @@ The classification of examples is dependent on whether the horizontal axis is tr
                 
                 - "Orientation" should be selected for signs that are out of phase in terms of handshape, that is, if the two hands have different orientations at a given time. Some examples are: `DIE <https://asl-lex.org/visualization/?sign=die>`_ (one palm is facing upward when the other is facing downward), `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_ (one palm faces backwards when the other faces forwards), and `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ **note sure yet how to describe this oritentation**!!!
 
-**add screenshot of sign type module filled out for particular example of a sign**
+Example coding:
+
+image:: signtype_example _COMPARE.png
+        :width: 5%
+        :align: left
+
