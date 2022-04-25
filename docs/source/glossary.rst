@@ -25,6 +25,12 @@ handshape
 Holistic description of a standard phonological handshape, e.g., the B handshape in ASL. In SLP-AA, there are 'pre-defined' handshapes whose full :ref:`hand_configuration` is already specified in the :ref:`hand_configuration_module`.
 
 
+.. _handshape_change:
+
+handshape change
+======
+add here
+
 .. _hand_configuration: 
 
 hand configuration
