@@ -126,7 +126,7 @@ b. Movement timing relation
                 
       - "Orientation" should be selected for signs that are out of phase in terms of absolute orientation, that is, if the two hands have different orientations at a given time. Some examples are: `DIE <https://asl-lex.org/visualization/?sign=die>`_ (one palm is facing upward when the other is facing downward), `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_ (one palm faces proximally when the other faces distally), and `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ (again, one palm faces proximally when the other faces distally). Note that this is typically a direct result of joint-specific movements going in different 'directions' at the same time, though such a difference is not intended to be additionally coded in the :ref:`Movement Direction Relation<signtype_movement_direction_relation>` section.
 
-Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_: **why is "both hands move" at the bottom of the menu?? image needs to be updated**
+Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_: **why is "both hands move" at the bottom of the menu?? image needs to be updated** [KCH: also: I'm not sure why location is marked as being not mirrored here -- that should only be true if we're also positing a perceptual shape component to the sign, in which case we would also need to specify a movement direction relation...]
 
    .. image:: images/signtype_example_COMPARE.png
       :width: 80%
