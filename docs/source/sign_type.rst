@@ -53,13 +53,13 @@ a) "Neither H1 nor H2 moves" should be selected if neither hand is involved in a
 
 b) "Only one hand moves" should be selected if only one hand is involved in movement. If selected, further specification is needed as described below about which hand is involved in the movement.
 
-  - Only H1 moves (e.g., `WHEN <https://asl-lex.org/visualization/?sign=when>`_)
-  - Only H2 moves (e.g., `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_)
+- Only H1 moves (e.g., `WHEN <https://asl-lex.org/visualization/?sign=when>`_)
+- Only H2 moves (e.g., `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_)
 
 c) "Both hands move" should be selected if both hands are involved in movement. If selected, further specification is needed as described below regarding the movement relations between the two hands. 
 
-  - "H1 and H2 move differently from each other" should be selected if H1 and H2 have at least one movement that is not shared between the two hands. For example `STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_ and `RUN <https://www.handspeak.com/word/search/index.php?id=1859h>`_ are both examples of signs where both hands are involved in the same perceptual shape movement but only H1 has an additional joint-specific movement, which is not shared by H2.
-  - "H1 and H2 move similarly to each other" should be selected if H1 and H2 share the same set of movements, regardless of direction and timing. For example, in _`WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, both hands perform the same joint-specific movement and also happen to have the same direction and timing. In `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, both hands perform the same joint-specific movement, although their orientations / directions of movement alternate in terms of timing. Similarly, in `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_, both hands perform the same perceptual shape movement, though their locations / directions alternate. The alternation or lack thereof is specified below; all of these examples would be marked as having the two hands move similarly to each other.  **add an example of a sign that has both percpetual shape and joint spec.**
+- "H1 and H2 move differently from each other" should be selected if H1 and H2 have at least one movement that is not shared between the two hands. For example `STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_ and `RUN <https://www.handspeak.com/word/search/index.php?id=1859h>`_ are both examples of signs where both hands are involved in the same perceptual shape movement but only H1 has an additional joint-specific movement, which is not shared by H2.
+- "H1 and H2 move similarly to each other" should be selected if H1 and H2 share the same set of movements, regardless of direction and timing. For example, in _`WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, both hands perform the same joint-specific movement and also happen to have the same direction and timing. In `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, both hands perform the same joint-specific movement, although their orientations / directions of movement alternate in terms of timing. Similarly, in `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_, both hands perform the same perceptual shape movement, though their locations / directions alternate. The alternation or lack thereof is specified below; all of these examples would be marked as having the two hands move similarly to each other.  **add an example of a sign that has both percpetual shape and joint spec.**
 
 
 The following sections on "movement direction relation" and "movement timing relation" should be specified only for signs where H1 and H2 *‘move similarly.’* 
@@ -67,17 +67,17 @@ The following sections on "movement direction relation" and "movement timing rel
 Note that the classification of examples below is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral). The choices for direction parameters can be set in :ref:`global_settings`. 
 
 
-  - **Movement direction relation:**
+- **Movement direction relation:**
   
 While users are free to interpret this as they like, our intention is for 'movement direction relation' to be specified only for signs with a *perceptual shape* component to their movement. It is true that certain joint-specific movements do also have 'directions' to their movements (e.g., twisting can be either pronating or supinating; pivoting can be toward the ulnar or the radial side), but these differences are more directly accounted for in the "Movement timing relation" section below, because they have direct consequences for whether the *orientations* of the hands are synchronized / in phase / non-alternating or not (see examples such as `DIE <https://asl-lex.org/visualization/?sign=die>`_, `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, or `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ below). However, with perceptual shape movements, there are more logical possibilities, such that both the direction and the phasing need to be considered. This is especially clear with circular movements, where for example we can have the following possible combinations:
 
-.. image:: static/signtype_circular_movements.png
+.. image:: images/signtype_circular_movements.png
    :width: 80%
    :align: center
   
 For completeness, consider the analogous situation for straight movements, which are somewhat more limited:
 
-.. image:: static/signtype_straight_movements.png
+.. image:: images/signtype_straight_movements.png
    :width: 80%
    :align: center
   
@@ -101,7 +101,7 @@ For completeness, consider the analogous situation for straight movements, which
       
       - "Not relevant" should be selected if the sign does not have a perceptual shape component to its movement (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `MANY <https://asl-lex.org/visualization/?sign=many>`_, or `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_), which all have only joint-specific movements.
       
-  - **Movement timing relation:**
+- **Movement timing relation:**
   
       - "Sequential" should be selected if the hands do not move at the same time; when one hand is moving, the other is not. This occurs in signs such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_ and `HANDS <https://asl-lex.org/visualization/?sign=hands>`_.
       
@@ -119,7 +119,7 @@ For completeness, consider the analogous situation for straight movements, which
                 
                 - "Orientation" should be selected for signs that are out of phase in terms of absolute orientation, that is, if the two hands have different orientations at a given time. Some examples are: `DIE <https://asl-lex.org/visualization/?sign=die>`_ (one palm is facing upward when the other is facing downward), `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_ (one palm faces proximally when the other faces distally), and `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ (again, one palm faces proximally when the other faces distally). 
 
-Example coding:
+Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_: **why is "both hands move" at the bottom of the menu?? needs to be updated**
 
    .. image:: images/signtype_example_COMPARE.png
       :width: 80%
