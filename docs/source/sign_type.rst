@@ -17,7 +17,7 @@ Number of hands
 
 Select this if the sign involves only one hand. 
 
-- "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, `STYLE <https://www.handspeak.com/word/search/index.php?id=4174>`_). 
+- "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, `STYLE <https://www.handspeak.com/word/search/index.php?id=4174>`_). **also include handshape change movement example**
 
 - "The hand does not move" should be selected if the hand is not involved in any movement, such as `ONE <https://www.handspeak.com/word/search/index.php?id=1554>`_.
 
