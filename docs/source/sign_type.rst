@@ -75,7 +75,8 @@ c) "Both hands move" should be selected if both hands are involved in movement. 
   .. image:: images/signtype_straight_movements.png
    :width: 80%
    :align: center
-
+  
+  Finally, note that another reason for **not** trying to code :ref:`Movement Direction Relation<signtype_movement_direction_relation>` for joint-specific movements is to avoid conflict in signs that have *both* perceptual shape movements and joint-specific movements. These types of movements have different types of consequences for other parameters, such as handshape, orientation, and location, all three of which can be coded separately in the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section. Currently, however, there is no way to specify a distinction between which movement element is being referred to in the :ref:`Movement Direction Relation<signtype_movement_direction_relation>`, as we assume only perceptual shape movements are coded here.
 
 .. _signtype_movement_direction_relation: 
 
