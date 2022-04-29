@@ -61,27 +61,28 @@ c) "Both hands move" should be selected if both hands are involved in movement. 
   - "H1 and H2 move differently from each other" should be selected if H1 and H2 have at least one movement that is not shared between the two hands. For example, `STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_ and `RUN <https://www.handspeak.com/word/search/index.php?id=1859h>`_ are both examples of signs where both hands are involved in the same perceptual shape movement but only H1 has an additional joint-specific movement, which is not shared by H2. This option would also be relevant for a sign where the two hands have completely different movements (e.g., patting the head and rubbing the belly), but we don't know of any lexical examples of this sort.
   - "H1 and H2 move similarly to each other" should be selected if H1 and H2 share the same set of movements, regardless of direction and timing. For example, in `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, both hands perform the same joint-specific movement and also happen to have the same direction and timing. In `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, however, both hands perform the same joint-specific movement, but their orientations / directions of movement alternate in terms of timing. Similarly, in `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_, both hands perform the same perceptual shape movement, though their locations / directions alternate. The alternation or lack thereof is specified below in the :ref:`movement_timing_relation` section; all of these examples would be marked as having the two hands move similarly to each other.  **add an example of a sign that has both percpetual shape and joint spec.**
 
+.. note::
+  The following sections on :ref:`movement_direction_relation` and :ref:`movement_timing_relation` should be specified only for signs where H1 and H2 *‘move similarly.’* 
 
-**Note**: The following sections on :ref:`movement_direction_relation` and :ref:`movement_timing_relation` should be specified only for signs where H1 and H2 *‘move similarly.’* 
+  While users are free to interpret both of these sections as they like, our intention is for :ref:`movement_direction_relation` to be specified only for signs with a *perceptual shape* component to their movement. It is true that certain joint-specific movements do also have 'directions' to their movements (e.g., twisting can be either pronating or supinating; pivoting can be toward the ulnar or the radial side), but these are not specifically coded as 'directions' in the :ref:`movement_module`. Instead, these differences are more directly accounted for in the :ref:`movement_timing_relation` section below, because they have direct consequences for whether the *orientations* of the hands are synchronized / in phase / non-alternating or not (see examples such as `DIE <https://asl-lex.org/visualization/?sign=die>`_, `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, or `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ below). However, with perceptual shape movements, the direction and synchronization / phasing are potentially separable, such that both need to be specified. This is especially clear with circular movements, where for example we can have the following possible combinations. For each one, both the :ref:`movement_direction_relation` and the :ref:`movement_timing_relation` are specified. Note that the directions themselves are often dependent on whether the horizontal axis is treated relatively (ipsilateral / contralateral) or absolutely (right / left and clockwise / counterclockwise). The choices for direction parameters can be set in :ref:`global_settings`; the examples below show both possibilities.
 
-Note that the classification of examples below is dependent on whether the horizontal axis is treated absolutely (right / left and clockwise / counterclockwise) or relatively (ipsilateral / contralateral). The choices for direction parameters can be set in :ref:`global_settings`. 
+  .. image:: images/signtype_circular_movements.png
+   :width: 80%
+   :align: center
+  
+  For completeness, consider the analogous situation for straight movements, which are somewhat more limited:
+
+  .. image:: images/signtype_straight_movements.png
+   :width: 80%
+   :align: center
+
 
 .. _signtype_movement_direction_relation: 
 
 a. Movement direction relation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-While users are free to interpret this as they like, our intention is for 'movement direction relation' to be specified only for signs with a *perceptual shape* component to their movement. It is true that certain joint-specific movements do also have 'directions' to their movements (e.g., twisting can be either pronating or supinating; pivoting can be toward the ulnar or the radial side), but these are not specifically coded as 'directions' in the :ref:`movement_module`. Instead, these differences are more directly accounted for in the "Movement timing relation" section below, because they have direct consequences for whether the *orientations* of the hands are synchronized / in phase / non-alternating or not (see examples such as `DIE <https://asl-lex.org/visualization/?sign=die>`_, `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, or `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ below). However, with perceptual shape movements, there are more logical possibilities, such that both the direction and the phasing need to be considered. This is especially clear with circular movements, where for example we can have the following possible combinations:
 
-.. image:: images/signtype_circular_movements.png
-   :width: 80%
-   :align: center
-  
-For completeness, consider the analogous situation for straight movements, which are somewhat more limited:
-
-.. image:: images/signtype_straight_movements.png
-   :width: 80%
-   :align: center
   
 - "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction or relative direction, depending on the choices selected in :ref:`global_settings`. 
       
