@@ -77,6 +77,7 @@ class SignLevelInfoLayout(QVBoxLayout):
         note_label = QLabel('Notes:') #  , parent=self)
 
         self.gloss_edit = QLineEdit()
+        self.gloss_edit.setFocusPolicy(Qt.StrongFocus)
         self.lemma_edit = QLineEdit()
         self.source_edit = QLineEdit()
         self.signer_edit = QLineEdit()
@@ -122,6 +123,9 @@ class SignLevelInfoLayout(QVBoxLayout):
         self.set_value()
 
         self.addLayout(main_layout)
+
+    def setStartingFocus(self):
+        self.gloss_edit.setFocus()
 
     def set_value(self, signlevelinfo=None):
         if not signlevelinfo:
@@ -210,6 +214,7 @@ class SignlevelinfoSelectorDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
+        self.signlevelinfo_layout.setStartingFocus()
         self.setMinimumSize(QSize(500, 850))
 
     def handle_button_click(self, button):
