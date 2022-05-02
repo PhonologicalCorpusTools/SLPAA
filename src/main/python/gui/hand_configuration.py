@@ -204,7 +204,7 @@ class ConfigField(QWidget):
 
         # testing...
         left_bracket = QLabel('[')
-        left_bracket.setFixedSize(QSize(10, 20))
+        left_bracket.setFixedSize(QSize(10, 40))
         left_bracket.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(left_bracket)
 
@@ -212,8 +212,8 @@ class ConfigField(QWidget):
         right_bracket = QLabel(']')
         right_number = QLabel(str(self.field_number))
         right_number.setStyleSheet('QLabel{border:1px solid rgb(0, 255, 0);}')
-        right_bracket.setFixedSize(QSize(5, 20))
-        right_number.setFixedSize(QSize(10, 20))
+        right_bracket.setFixedSize(QSize(5, 40))
+        right_number.setFixedSize(QSize(20, 40))
         right_bracket.setAlignment(Qt.AlignHCenter)
         right_number.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(right_bracket)
@@ -1026,9 +1026,10 @@ class ConfigGlobal(QGroupBox):
     def __init__(self, title='', **kwargs):
         super().__init__(title=title, **kwargs)
 
-        self.main_layout = QVBoxLayout()
+        # self.main_layout = QVBoxLayout()
+        self.main_layout = QHBoxLayout()
         self.main_layout.setSpacing(5)
-        self.main_layout.addStretch()
+        # self.main_layout.addStretch()
         self.setLayout(self.main_layout)
         self.add_slot1()
         self.add_options()
@@ -1036,11 +1037,11 @@ class ConfigGlobal(QGroupBox):
 
     def add_slot1(self):
         slot1_layout = QHBoxLayout()
-        slot1_layout.addStretch()
+        # slot1_layout.addStretch()
         self.main_layout.addLayout(slot1_layout)
 
         left_bracket = QLabel('[')
-        left_bracket.setFixedSize(QSize(10, 20))
+        left_bracket.setFixedSize(QSize(10, 40))
         left_bracket.setAlignment(Qt.AlignHCenter)
         slot1_layout.addWidget(left_bracket)
 
@@ -1048,15 +1049,17 @@ class ConfigGlobal(QGroupBox):
         slot1_layout.addWidget(self.slot1)
 
         right_bracket = QLabel(']1')
-        right_bracket.setFixedSize(QSize(15, 20))
+        right_bracket.setFixedSize(QSize(20, 40))
         right_bracket.setAlignment(Qt.AlignHCenter)
         slot1_layout.addWidget(right_bracket)
+
+        slot1_layout.addStretch()
 
     def add_options(self):
         option_frame = QGroupBox(parent=self)
         option_layout = QVBoxLayout()
         option_layout.setSpacing(5)
-        option_layout.addStretch()
+        # option_layout.addStretch()
         option_frame.setLayout(option_layout)
         self.main_layout.addWidget(option_frame)
         self.estimated = QCheckBox('Estimated', parent=self)
@@ -1070,7 +1073,7 @@ class ConfigGlobal(QGroupBox):
         other_group = QGroupBox(parent=self)
         other_layout = QVBoxLayout()
         other_layout.setSpacing(5)
-        other_layout.addStretch()
+        # other_layout.addStretch()
         other_group.setLayout(other_layout)
         self.main_layout.addWidget(other_group)
         self.fingerspelled = QCheckBox('Fingerspelled', parent=self)

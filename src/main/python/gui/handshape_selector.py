@@ -27,67 +27,79 @@ class HandTranscriptionPanel(QScrollArea):
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
 
-        main_layout = QGridLayout()
+        # main_layout = QGridLayout()
+        main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
 
         self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
-        main_layout.addWidget(self.global_info, 0, 0, 2, 1)
+        # main_layout.addWidget(self.global_info, 0, 0, 2, 1)
+        main_layout.addWidget(self.global_info)
 
         self.config1 = Config(1, 'Configuration 1', predefined_ctx, parent=self)
-        main_layout.addWidget(self.config1, 0, 1, 1, 2)
+        # main_layout.addWidget(self.config1, 0, 1, 1, 2)
+        main_layout.addWidget(self.config1)
 
-        self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
-        main_layout.addWidget(self.config2, 1, 1, 1, 2)
+        # TODO KV delete
+        # self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
+        # main_layout.addWidget(self.config2, 1, 1, 1, 2)
 
         self.setWidget(main_frame)
 
     def clear(self):
         self.global_info.clear()
         self.config1.clear()
-        self.config2.clear()
+        # TODO KV delete
+        # self.config2.clear()
 
     def set_value(self, global_handshape_info, hand_transcription):
         self.global_info.set_value(global_handshape_info)
         self.config1.set_value(hand_transcription.config1)
-        self.config2.set_value(hand_transcription.config2)
+        # TODO KV delete
+        # self.config2.set_value(hand_transcription.config2)
 
     def change_hand_selection(self, hand):
         if hand == 1:
             self.button1.setChecked(True)
         elif hand == 2:
             self.button2.setChecked(True)
-        elif hand == 3:
-            self.button3.setChecked(True)
-        elif hand == 4:
-            self.button4.setChecked(True)
+        # TODO KV delete
+        # elif hand == 3:
+        #     self.button3.setChecked(True)
+        # elif hand == 4:
+        #     self.button4.setChecked(True)
 
     def insert_radio_button(self, focused_hand):
         self.selected_hand_group = QButtonGroup(parent=self)
         self.button1, self.button2 = self.config1.insert_radio_button()
-        self.button3, self.button4 = self.config2.insert_radio_button()
+        # TODO KV delete
+        # self.button3, self.button4 = self.config2.insert_radio_button()
 
         self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
         self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
-        self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
-        self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
+        # TODO KV delete
+        # self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
+        # self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
 
         if focused_hand == 1:
             self.button1.setChecked(True)
         elif focused_hand == 2:
             self.button2.setChecked(True)
-        elif focused_hand == 3:
-            self.button3.setChecked(True)
-        elif focused_hand == 4:
-            self.button4.setChecked(True)
+        # TODO KV delete
+        # elif focused_hand == 3:
+        #     self.button3.setChecked(True)
+        # elif focused_hand == 4:
+        #     self.button4.setChecked(True)
 
         self.selected_hand_group.addButton(self.button1, 1)
         self.selected_hand_group.addButton(self.button2, 2)
-        self.selected_hand_group.addButton(self.button3, 3)
-        self.selected_hand_group.addButton(self.button4, 4)
+        # TODO KV delete
+        # self.selected_hand_group.addButton(self.button3, 3)
+        # self.selected_hand_group.addButton(self.button4, 4)
 
     def remove_radio_button(self):
         self.config1.remove_radio_button()
-        self.config2.remove_radio_button()
+        # TODO KV delete
+        # self.config2.remove_radio_button()
         self.selected_hand_group.deleteLater()
 
     def get_hand_transcription(self, hand=None):
@@ -98,10 +110,11 @@ class HandTranscriptionPanel(QScrollArea):
             return self.config1.hand1.get_hand_transcription_list()
         elif hand == 2:
             return self.config1.hand2.get_hand_transcription_list()
-        elif hand == 3:
-            return self.config2.hand1.get_hand_transcription_list()
-        elif hand == 4:
-            return self.config2.hand2.get_hand_transcription_list()
+        # TODO KV delete
+        # elif hand == 3:
+        #     return self.config2.hand1.get_hand_transcription_list()
+        # elif hand == 4:
+        #     return self.config2.hand2.get_hand_transcription_list()
 
     def set_predefined(self, transcription_list, hand=None):
         if hand is None:
@@ -111,10 +124,11 @@ class HandTranscriptionPanel(QScrollArea):
             self.config1.hand1.set_predefined(transcription_list)
         elif hand == 2:
             self.config1.hand2.set_predefined(transcription_list)
-        elif hand == 3:
-            self.config2.hand1.set_predefined(transcription_list)
-        elif hand == 4:
-            self.config2.hand2.set_predefined(transcription_list)
+        # TODO KV delete
+        # elif hand == 3:
+        #     self.config2.hand1.set_predefined(transcription_list)
+        # elif hand == 4:
+        #     self.config2.hand2.set_predefined(transcription_list)
 
 
 class HandshapeSpecificationLayout(QVBoxLayout):
@@ -257,7 +271,7 @@ class HandshapeSelectorDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
-        self.setMinimumSize(QSize(500, 700))
+        self.setMinimumSize(QSize(1350, 600))
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -268,14 +282,14 @@ class HandshapeSelectorDialog(QDialog):
 
         elif standard == QDialogButtonBox.Save:  # save and add another
             # save info and then refresh screen to enter next handshape module
-            configs = [self.handshape_layout.panel.config1.get_value(), self.handshape_layout.panel.config2.get_value()]
+            configs = [self.handshape_layout.panel.config1.get_value()]  # TODO KV delete  , self.handshape_layout.panel.config2.get_value()]
             self.saved_handshape.emit(HandshapeTranscription(configs))
             self.handshape_layout.clear()  # TODO KV should this use "restore defaults" instead?
             # self.handshape_layout.refresh_treemodel()
 
         elif standard == QDialogButtonBox.Apply:  # save and close
             # save info and then close dialog
-            configs = [self.handshape_layout.panel.config1.get_value(), self.handshape_layout.panel.config2.get_value()]
+            configs = [self.handshape_layout.panel.config1.get_value()]  # TODO KV delete , self.handshape_layout.panel.config2.get_value()]
             self.saved_handshape.emit(HandshapeTranscription(configs))
             self.accept()
 
