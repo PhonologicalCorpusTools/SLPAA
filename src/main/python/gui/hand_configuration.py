@@ -944,7 +944,7 @@ class ConfigHand(QWidget):
 
     def get_value(self):
         return {
-            'hand_number': self.hand_number,
+            # 'hand_number': self.hand_number,
             'fields': [
                 self.field2.get_value(),
                 self.field3.get_value(),
@@ -1028,14 +1028,15 @@ class Config(QGroupBox):
         # self.hand2.clear()
 
     def get_value(self):
-        return {
-            'config_number': self.config_number,
-            'hands': [
-                self.hand1.get_value(),
-                # TODO KV delete
-                # self.hand2.get_value()
-            ]
-        }
+        # return {
+        #     'config_number': self.config_number,
+        #     'hands': [
+        #         self.hand1.get_value(),
+        #         # TODO KV delete
+        #         # self.hand2.get_value()
+        #     ]
+        # }
+        return self.hand1.get_value()
 
 
 class ConfigGlobal(QGroupBox):

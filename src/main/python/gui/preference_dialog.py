@@ -86,8 +86,30 @@ class SignDefaultsTab(QWidget):
                 break
         main_layout.addRow(QLabel('Default hand dominance:'), self.handdominance_layout)
 
+        self.xslots_layout = QHBoxLayout()
+        self.xslots_group = QButtonGroup(parent=self)
+        self.xslots_none_radio = QRadioButton('None')
+        self.xslots_none_radio.setProperty('xslots', 'none')
+        self.xslots_group.addButton(self.xslots_none_radio)
+        self.xslots_layout.addWidget(self.xslots_none_radio)
+        self.xslots_manual_radio = QRadioButton('Manual')
+        self.xslots_manual_radio.setProperty('xslots', 'manual')
+        self.xslots_group.addButton(self.xslots_manual_radio)
+        self.xslots_layout.addWidget(self.xslots_manual_radio)
+        self.xslots_auto_radio = QRadioButton('Automatic')
+        self.xslots_auto_radio.setProperty('xslots', 'auto')
+        self.xslots_group.addButton(self.xslots_auto_radio)
+        self.xslots_layout.addWidget(self.xslots_auto_radio)
+
+        for button in self.xslots_group.buttons():
+            if self.settings['signdefaults']['xslot_generation'] == button.property('xslots'):
+                button.setChecked(True)
+                break
+        main_layout.addRow(QLabel('X-slot generation:'), self.xslots_layout)
+
     def save_settings(self):
         self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
+        self.settings['signdefaults']['xslot_generation'] = self.xslots_group.checkedButton().property('xslots')
 
 
 class PreferenceDialog(QDialog):

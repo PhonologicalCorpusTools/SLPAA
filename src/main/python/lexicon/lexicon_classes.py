@@ -250,17 +250,17 @@ class HandshapeTranscriptionField:
 
 
 class HandshapeTranscriptionHand:
-    def __init__(self, hand_number, fields):
-        self._hand_number = hand_number
+    def __init__(self, fields):  # hand_number, fields):
+        # self._hand_number = hand_number
         self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandshapeTranscriptionField(field['field_number'], field['slots']) for field in fields]
 
-    @property
-    def hand_number(self):
-        return self._hand_number
-
-    @hand_number.setter
-    def hand_number(self, new_hand_number):
-        self._hand_number = new_hand_number
+    # @property
+    # def hand_number(self):
+    #     return self._hand_number
+    #
+    # @hand_number.setter
+    # def hand_number(self, new_hand_number):
+    #     self._hand_number = new_hand_number
 
     def __iter__(self):
         return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
@@ -283,20 +283,21 @@ class HandshapeTranscriptionHand:
 
 
 class HandshapeTranscriptionConfig:
-    def __init__(self, config_number, hands):
-        self._config_number = config_number
-        self.hand1, self.hand2 = [HandshapeTranscriptionHand(hand['hand_number'], hand['fields']) for hand in hands]
+    def __init__(self, hand):  # config_number, hands):
+        # self._config_number = config_number
+        # self.hand1, self.hand2 = [HandshapeTranscriptionHand(hand['hand_number'], hand['fields']) for hand in hands]
+        self.hand1 = HandshapeTranscriptionHand(hand['fields'])
 
-    @property
-    def config_number(self):
-        return self._config_number
-
-    @config_number.setter
-    def config_number(self, new_config_number):
-        self._config_number = new_config_number
+    # @property
+    # def config_number(self):
+    #     return self._config_number
+    #
+    # @config_number.setter
+    # def config_number(self, new_config_number):
+    #     self._config_number = new_config_number
 
     def is_empty(self):
-        return self.hand1.is_empty() and self.hand2.is_empty()
+        return self.hand1.is_empty()  # and self.hand2.is_empty()
 
     def find_handedness(self):
         if self.hand1.is_empty() and self.hand2.is_empty():
@@ -315,15 +316,15 @@ class HandshapeTranscriptionConfig:
 class HandshapeTranscription:
     def __init__(self, config):  # s):
         # self.configs = configs
-        self.config = config
+        self.config = HandshapeTranscriptionConfig(config)  # config  # [0]
         # TODO KV delete
         # self.config1, self.config2 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs]
         # self.config1 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs][0]
-        self.config1 = HandshapeTranscriptionConfig(config['config_number'], config['hands'][0])
+        # self.config1 = HandshapeTranscriptionConfig(config)  # config['config_number'], config['hands'][0])
         # self.find_properties()
 
     def __repr__(self):
-        return repr(self.configs)
+        return repr(self.config)  #s)
 
     # TODO KV delete
     # def find_properties(self):
@@ -566,21 +567,21 @@ class Sign:
     def signlevel_information(self, signlevelinfo):
         self._signlevel_information = signlevelinfo  # SignLevelInformation(signlevelinfo)
 
-    @property
-    def global_handshape_information(self):
-        return self._global_handshape_information
+    # @property
+    # def global_handshape_information(self):
+    #     return self._global_handshape_information
+    #
+    # @global_handshape_information.setter
+    # def global_handshape_information(self, globalhandshapeinfo):
+    #     self._global_handshape_information = GlobalHandshapeInformation(globalhandshapeinfo)
 
-    @global_handshape_information.setter
-    def global_handshape_information(self, globalhandshapeinfo):
-        self._global_handshape_information = GlobalHandshapeInformation(globalhandshapeinfo)
-
-    @property
-    def handshape_transcription(self):
-        return self._handshape_transcription
-
-    @handshape_transcription.setter
-    def handshape_transcription(self, handshapetranscription):
-        self._handshape_transcription = HandshapeTranscription(handshapetranscription)
+    # @property
+    # def handshape_transcription(self):
+    #     return self._handshape_transcription
+    #
+    # @handshape_transcription.setter
+    # def handshape_transcription(self, handshapetranscription):
+    #     self._handshape_transcription = HandshapeTranscription(handshapetranscription)
 
     @property
     def location(self):
@@ -618,12 +619,12 @@ class Sign:
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)
 
-    def addhandshapemodule(self, handshapetranscription, hsid=None):
+    def addhandshapemodule(self, globalhandshapeinfo, handshapetranscription, hsid=None):
         if hsid is None:
             existingkeys = [k[1:] for k in self.handshapemodules.keys()] + [0]
             nextinteger = max([int(k) for k in existingkeys]) + 1
             hsid = str("H" + str(nextinteger))
-        self.handshapemodules[hsid] = handshapetranscription
+        self.handshapemodules[hsid] = [globalhandshapeinfo, handshapetranscription]
 
     def removehandshapemodule(self, hsid):
         self.handshapemodules.pop(hsid)

@@ -53,7 +53,7 @@ class HandTranscriptionPanel(QScrollArea):
 
     def set_value(self, global_handshape_info, hand_transcription):
         self.global_info.set_value(global_handshape_info)
-        self.config1.set_value(hand_transcription.config1)
+        self.config1.set_value(hand_transcription.config)  #1)
         # TODO KV delete
         # self.config2.set_value(hand_transcription.config2)
 
@@ -136,6 +136,8 @@ class HandshapeSpecificationLayout(QVBoxLayout):
         super().__init__(**kwargs)
 
         self.panel = HandTranscriptionPanel(predefined_ctx)
+        if moduletoload is not None:
+            self.panel.set_value(moduletoload[0], moduletoload[1])
         self.addWidget(self.panel)
         #
         # self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
@@ -233,7 +235,7 @@ class HandshapeSpecificationLayout(QVBoxLayout):
 
 #  TODO KV copied from movementselectordialog
 class HandshapeSelectorDialog(QDialog):
-    saved_handshape = pyqtSignal(HandshapeTranscription)
+    saved_handshape = pyqtSignal(ConfigGlobal, HandshapeTranscription)
 
     def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
@@ -282,17 +284,18 @@ class HandshapeSelectorDialog(QDialog):
 
         elif standard == QDialogButtonBox.Save:  # save and add another
             # save info and then refresh screen to enter next handshape module
-            configs = [self.handshape_layout.panel.config1.get_value()]  # TODO KV delete  , self.handshape_layout.panel.config2.get_value()]
-            self.saved_handshape.emit(HandshapeTranscription(configs))
+            config = self.handshape_layout.panel.config1.get_value()  # TODO KV delete  , self.handshape_layout.panel.config2.get_value()]
+            self.saved_handshape.emit(self.handshape_layout.panel.global_info, HandshapeTranscription(config))
             self.handshape_layout.clear()  # TODO KV should this use "restore defaults" instead?
             # self.handshape_layout.refresh_treemodel()
 
         elif standard == QDialogButtonBox.Apply:  # save and close
             # save info and then close dialog
-            configs = [self.handshape_layout.panel.config1.get_value()]  # TODO KV delete , self.handshape_layout.panel.config2.get_value()]
-            self.saved_handshape.emit(HandshapeTranscription(configs))
+            # configs = [self.handshape_layout.panel.config1.get_value()]  # TODO KV delete , self.handshape_layout.panel.config2.get_value()]
+            config = self.handshape_layout.panel.config1.get_value()
+            self.saved_handshape.emit(self.handshape_layout.panel.global_info, HandshapeTranscription(config)) # s))
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
             # TODO KV -- where should the "defaults" be defined?
-            self.handshape_layout.clear(button)
+            self.handshape_layout.clear()

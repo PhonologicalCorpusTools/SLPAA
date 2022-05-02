@@ -62,7 +62,7 @@ from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
 from gui.movement_selector import MovementSelectorDialog
 from gui.handshape_selector import HandshapeSelectorDialog
-from lexicon.lexicon_classes import Sign
+from lexicon.lexicon_classes import Sign, GlobalHandshapeInformation
 
 
 class LocationPolygon(QGraphicsPolygonItem):
@@ -317,7 +317,8 @@ class XslotPanel(QScrollArea):
         else:
             self.refreshsign(self.sign)
         self.xslotview = MyGraphicsView(self.scene, self)
-        self.xslotview.setGeometry(0, 0, 640, 480)
+        self.xslotview.setGeometry(0, 0, 1000, 1000)  #640, 480)
+        self.setMinimumSize(1000,1000)
         # xslotview.setScene(scene)
 
     def refreshsign(self, sign):
@@ -326,9 +327,13 @@ class XslotPanel(QScrollArea):
         for sceneitem in sceneitems:
             self.scene.removeItem(sceneitem)
 
+        current_x = 0
+        current_y = 0
+
         if sign.signtype is not None:
-            signtyperect = MyRect(self, text="sign type: "+";".join(sign.signtype.specs), sign=self.sign, mainwindow=self.mainwindow)
-            signtyperect.setRect(0, 0, 640-(2*self.blackpen.width()), 50)
+            signtyperect = MyRect(self, text="sign type: "+";".join(sign.signtype.specs), moduletype='signtype', sign=self.sign, mainwindow=self.mainwindow)
+            signtyperect.setRect(current_x, current_y*75, 640-(2*self.blackpen.width()), 50)
+            current_y += 1
             signtyperect.setPen(self.blackpen)
             signtyperect.setBrush(self.greenbrush)
             # print("ellipse bounding rect:", ellipse.boundingRect())
@@ -337,28 +342,51 @@ class XslotPanel(QScrollArea):
         mvmtrects = {}
         num_mvmtmods = len(self.sign.movementmodules)
         if num_mvmtmods > 0:
-            mvmt_width = 640 / num_mvmtmods
-            for idx, m in enumerate(self.sign.movementmodules.keys()):
-                mvmtrect = MyRect(self, text=m, sign=self.sign, mainwindow=self.mainwindow)
-                xloc = 0 + idx * mvmt_width - (2*self.blackpen.width())
-                mvmtrect.setRect(xloc, 75, mvmt_width, 50)
-                mvmtrect.setPen(self.blackpen)
-                mvmtrect.setBrush(self.greenbrush)
-                mvmtrects[m] = mvmtrect
-                self.scene.addItem(mvmtrect)
+            tempxslotsetting = self.mainwindow.app_settings['signdefaults']['xslot_generation']
+            if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+                for idx, m in enumerate(self.sign.movementmodules.keys()):
+                    mvmtrect = MyRect(self, text=m, moduletype='movement', sign=self.sign, mainwindow=self.mainwindow)
+                    mvmtrect.setRect(current_x, current_y*75, 640 - (2 * self.blackpen.width()), 50)
+                    current_y += 1
+                    mvmtrect.setPen(self.blackpen)
+                    mvmtrect.setBrush(self.greenbrush)
+                    mvmtrects[m] = mvmtrect
+                    self.scene.addItem(mvmtrect)
+            else:  # 'manual' or 'auto'
+                mvmt_width = 640 / num_mvmtmods
+                for idx, m in enumerate(self.sign.movementmodules.keys()):
+                    mvmtrect = MyRect(self, text=m, moduletype='movement', sign=self.sign, mainwindow=self.mainwindow)
+                    xloc = 0 + idx * mvmt_width - (2*self.blackpen.width())
+                    mvmtrect.setRect(xloc, current_y*75, mvmt_width, 50)
+                    mvmtrect.setPen(self.blackpen)
+                    mvmtrect.setBrush(self.greenbrush)
+                    mvmtrects[m] = mvmtrect
+                    self.scene.addItem(mvmtrect)
+                current_y += 1
 
         hsrects = {}
         num_hsmods = len(self.sign.handshapemodules)
         if num_hsmods > 0:
-            hs_width = 640 / num_hsmods
-            for idx, hs in enumerate(self.sign.handshapemodules.keys()):
-                hsrect = MyRect(self, text=hs, sign=self.sign, mainwindow=self.mainwindow)
-                xloc = 0 + idx * hs_width - (2*self.blackpen.width())
-                hsrect.setRect(xloc, 150, hs_width, 50)
-                hsrect.setPen(self.blackpen)
-                hsrect.setBrush(self.greenbrush)
-                hsrects[m] = hsrect
-                self.scene.addItem(hsrect)
+            if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+                for idx, hs in enumerate(self.sign.handshapemodules.keys()):
+                    hsrect = MyRect(self, text=hs, moduletype='handshape', sign=self.sign, mainwindow=self.mainwindow)
+                    hsrect.setRect(current_x, current_y*75, 640 - (2 * self.blackpen.width()), 50)
+                    current_y += 1
+                    hsrect.setPen(self.blackpen)
+                    hsrect.setBrush(self.greenbrush)
+                    hsrects[hs] = hsrect
+                    self.scene.addItem(hsrect)
+            else:  # 'manual' or 'auto'
+                hs_width = 640 / num_hsmods
+                for idx, hs in enumerate(self.sign.handshapemodules.keys()):
+                    hsrect = MyRect(self, text=hs, moduletype='handshape', sign=self.sign, mainwindow=self.mainwindow)
+                    xloc = 0 + idx * hs_width - (2*self.blackpen.width())
+                    hsrect.setRect(xloc, current_y*75, hs_width, 50)
+                    hsrect.setPen(self.blackpen)
+                    hsrect.setBrush(self.greenbrush)
+                    hsrects[hs] = hsrect
+                    self.scene.addItem(hsrect)
+                current_y += 1
 
 
 class MyGraphicsView(QGraphicsView):
@@ -394,13 +422,14 @@ class MyText(QGraphicsTextItem):
 
 
 class MyRect(QGraphicsRectItem):
-    def __init__(self, parentwidget, text="", sign=None, mainwindow=None, restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
+    def __init__(self, parentwidget, text="", moduletype=None, sign=None, mainwindow=None, restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
         super().__init__()
         self.restingbrush = restingbrush
         self.hoverbrush = hoverbrush
         self.setAcceptHoverEvents(True)
         self.parentwidget = parentwidget
         self.text = text
+        self.moduletype = moduletype
         self.hover = False
         self.sign = sign
         self.mainwindow = mainwindow
@@ -408,7 +437,12 @@ class MyRect(QGraphicsRectItem):
     def mouseReleaseEvent(self, event):
         print("rectangle released")
         # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
-        self.handle_movementbutton_click()
+        if self.moduletype == "signtype":
+            self.handle_signtypebutton_click()
+        elif self.moduletype == "movement":
+            self.handle_movementbutton_click()
+        elif self.moduletype == "handshape":
+            self.handle_handshapebutton_click()
 
     # TODO KV don't want this duplicated (also in signsummarypanel)
     def handle_movementbutton_click(self):
@@ -417,13 +451,9 @@ class MyRect(QGraphicsRectItem):
         editing_existing = True  # button.property("existingmodule")
         existing_key = self.text
         moduletoload = self.sign.movementmodules[existing_key]
-        # if editing_existing:
-        #     existing_key = button.text()
-        #     moduletoload = self.sign.movementmodules[existing_key]
         movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload)  # , parent=self)
         movement_selector.saved_movement.connect(lambda movementtree: self.handle_save_movement(movementtree, existing_key))
         movement_selector.exec_()
-
 
     def handle_save_movement(self, movementtree, existing_key):
         if existing_key is None or existing_key not in self.sign.movementmodules.keys():
@@ -434,6 +464,32 @@ class MyRect(QGraphicsRectItem):
         # self.sign_updated.emit(self.sign)
         # self.update_movementmodulebuttons()
 
+    # TODO KV don't want this duplicated (also in signsummarypanel)
+    def handle_signtypebutton_click(self):
+        signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow)  # , parent=self)
+        signtype_selector.saved_signtype.connect(self.handle_save_signtype)
+        signtype_selector.exec_()
+
+    def handle_save_signtype(self, signtype):
+        self.sign.signtype = signtype
+        self.sign_updated.emit(self.sign)
+
+    # TODO KV don't want this duplicated (also in signsummarypanel)
+    def handle_handshapebutton_click(self):
+        editing_existing = True  # button.property("existingmodule")
+        existing_key = self.text
+        moduletoload = self.sign.handshapemodules[existing_key]
+        handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload)  # , parent=self)
+        handshape_selector.saved_handshape.connect(lambda hs_global, hs_transcription: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, existing_key))
+        handshape_selector.exec_()
+
+    def handle_save_handshape(self, hs_globalinfo, hs_transcription, existing_key):
+        if existing_key is None or existing_key not in self.sign.handshapemodules.keys():
+            self.sign.addhandshapemodule(hs_globalinfo, hs_transcription)
+        else:
+            self.sign.handshapemodules[existing_key] = [hs_globalinfo, hs_transcription]
+        # self.sign_updated.emit(self.sign)
+        # self.update_handshapemodulebuttons()
 
     def mousePressEvent(self, event):
         print("rectangle pressed")
@@ -560,8 +616,8 @@ class SignSummaryPanel(QScrollArea):
         self.movement_button.setProperty("existingmodule", False)
         self.movement_button.clicked.connect(self.handle_movementbutton_click)
         self.movement_layout.addWidget(self.movement_button)
-        self.movementmodule_buttons = []
-        self.update_movementmodulebuttons()
+        # self.movementmodule_buttons = []
+        # self.update_movementmodulebuttons()
         self.module_buttons.append(self.movement_button)
 
         self.location_button = QPushButton("Location selection")
@@ -573,8 +629,8 @@ class SignSummaryPanel(QScrollArea):
         self.handshape_button.setProperty("existingmodule", False)
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
         self.handshape_layout.addWidget(self.handshape_button)
-        self.handshapemodule_buttons = []
-        self.update_handshapemodulebuttons()
+        # self.handshapemodule_buttons = []
+        # self.update_handshapemodulebuttons()
         self.module_buttons.append(self.handshape_button)
 
         self.orientation_button = QPushButton("Orientation selection")
@@ -596,54 +652,54 @@ class SignSummaryPanel(QScrollArea):
 
         self.setWidget(main_frame)
 
-    # TODO KV - combine all of these specific functions into a general one
-    def clear_handshapemodulebuttons(self):
-        existing_buttonkeys = [b.text() for b in self.handshapemodule_buttons]
-        for k in existing_buttonkeys:
-            buttontoremove = [button for button in self.handshapemodule_buttons if button.text() == k][0]
-            self.handshape_layout.removeWidget(buttontoremove)
-            self.module_buttons.remove(buttontoremove)
-            self.handshapemodule_buttons.remove(buttontoremove)
-        # self.handshapemodule_buttons = []
+    # # TODO KV - combine all of these specific functions into a general one
+    # def clear_handshapemodulebuttons(self):
+    #     existing_buttonkeys = [b.text() for b in self.handshapemodule_buttons]
+    #     for k in existing_buttonkeys:
+    #         buttontoremove = [button for button in self.handshapemodule_buttons if button.text() == k][0]
+    #         self.handshape_layout.removeWidget(buttontoremove)
+    #         self.module_buttons.remove(buttontoremove)
+    #         self.handshapemodule_buttons.remove(buttontoremove)
+    #     # self.handshapemodule_buttons = []
+    #
+    # def update_handshapemodulebuttons(self):
+    #     if self.sign:
+    #         existing_buttonkeys = [btn.text() for btn in self.handshapemodule_buttons]
+    #         for hsmodulekey in [k for k in self.sign.handshapemodules.keys() if k not in existing_buttonkeys]:
+    #             handshapemodulebutton = QPushButton(hsmodulekey)
+    #             handshapemodulebutton.setProperty("existingmodule", True)
+    #             handshapemodulebutton.clicked.connect(self.handle_handshapebutton_click)
+    #             self.handshape_layout.addWidget(handshapemodulebutton)
+    #             self.handshapemodule_buttons.append(handshapemodulebutton)
+    #             self.module_buttons.append(handshapemodulebutton)
 
-    def update_handshapemodulebuttons(self):
-        if self.sign:
-            existing_buttonkeys = [btn.text() for btn in self.handshapemodule_buttons]
-            for hsmodulekey in [k for k in self.sign.handshapemodules.keys() if k not in existing_buttonkeys]:
-                handshapemodulebutton = QPushButton(hsmodulekey)
-                handshapemodulebutton.setProperty("existingmodule", True)
-                handshapemodulebutton.clicked.connect(self.handle_handshapebutton_click)
-                self.handshape_layout.addWidget(handshapemodulebutton)
-                self.handshapemodule_buttons.append(handshapemodulebutton)
-                self.module_buttons.append(handshapemodulebutton)
+    # def load_handshapemodulebuttons(self):
+    #     self.clear_handshapemodulebuttons()
+    #     self.update_handshapemodulebuttons()
 
-    def load_handshapemodulebuttons(self):
-        self.clear_handshapemodulebuttons()
-        self.update_handshapemodulebuttons()
+    # def clear_movementmodulebuttons(self):
+    #     existing_buttonkeys = [b.text() for b in self.movementmodule_buttons]
+    #     for k in existing_buttonkeys:
+    #         buttontoremove = [button for button in self.movementmodule_buttons if button.text() == k][0]
+    #         self.movement_layout.removeWidget(buttontoremove)
+    #         self.module_buttons.remove(buttontoremove)
+    #         self.movementmodule_buttons.remove(buttontoremove)
+    #     # self.movementmodule_buttons = []
+    #
+    # def update_movementmodulebuttons(self):
+    #     if self.sign:
+    #         existing_buttonkeys = [btn.text() for btn in self.movementmodule_buttons]
+    #         for mvmtmodulekey in [k for k in self.sign.movementmodules.keys() if k not in existing_buttonkeys]:
+    #             movementmodulebutton = QPushButton(mvmtmodulekey)
+    #             movementmodulebutton.setProperty("existingmodule", True)
+    #             movementmodulebutton.clicked.connect(self.handle_movementbutton_click)
+    #             self.movement_layout.addWidget(movementmodulebutton)
+    #             self.movementmodule_buttons.append(movementmodulebutton)
+    #             self.module_buttons.append(movementmodulebutton)
 
-    def clear_movementmodulebuttons(self):
-        existing_buttonkeys = [b.text() for b in self.movementmodule_buttons]
-        for k in existing_buttonkeys:
-            buttontoremove = [button for button in self.movementmodule_buttons if button.text() == k][0]
-            self.movement_layout.removeWidget(buttontoremove)
-            self.module_buttons.remove(buttontoremove)
-            self.movementmodule_buttons.remove(buttontoremove)
-        # self.movementmodule_buttons = []
-
-    def update_movementmodulebuttons(self):
-        if self.sign:
-            existing_buttonkeys = [btn.text() for btn in self.movementmodule_buttons]
-            for mvmtmodulekey in [k for k in self.sign.movementmodules.keys() if k not in existing_buttonkeys]:
-                movementmodulebutton = QPushButton(mvmtmodulekey)
-                movementmodulebutton.setProperty("existingmodule", True)
-                movementmodulebutton.clicked.connect(self.handle_movementbutton_click)
-                self.movement_layout.addWidget(movementmodulebutton)
-                self.movementmodule_buttons.append(movementmodulebutton)
-                self.module_buttons.append(movementmodulebutton)
-
-    def load_movementmodulebuttons(self):
-        self.clear_movementmodulebuttons()
-        self.update_movementmodulebuttons()
+    # def load_movementmodulebuttons(self):
+    #     self.clear_movementmodulebuttons()
+    #     self.update_movementmodulebuttons()
 
     def enable_module_buttons(self, yesorno):
         for btn in self.module_buttons:
@@ -715,7 +771,7 @@ class SignSummaryPanel(QScrollArea):
         else:
             self.sign.movementmodules[existing_key] = movementtree
         self.sign_updated.emit(self.sign)
-        self.update_movementmodulebuttons()
+        # self.update_movementmodulebuttons()
 
     def handle_handshapebutton_click(self):
         button = self.sender()
@@ -727,16 +783,16 @@ class SignSummaryPanel(QScrollArea):
             existing_key = button.text()
             moduletoload = self.sign.handshapemodules[existing_key]
         handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
-        handshape_selector.saved_handshape.connect(lambda handshapetxn: self.handle_save_handshape(handshapetxn, existing_key))
+        handshape_selector.saved_handshape.connect(lambda hs_global, hs_transcription: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, existing_key))
         handshape_selector.exec_()
 
-    def handle_save_handshape(self, handshapetxn, existing_key):
+    def handle_save_handshape(self, hs_globalinfo, handshapetxn, existing_key):
         if existing_key is None or existing_key not in self.sign.handshapemodules.keys():
-            self.sign.addhandshapemodule(handshapetxn)
+            self.sign.addhandshapemodule(hs_globalinfo, handshapetxn)
         else:
-            self.sign.handshapemodules[existing_key] = handshapetxn
+            self.sign.handshapemodules[existing_key] = [hs_globalinfo, handshapetxn]
         self.sign_updated.emit(self.sign)
-        self.update_handshapemodulebuttons()
+        # self.update_handshapemodulebuttons()
 
     def handle_contactbutton_click(self):
         # TODO KV

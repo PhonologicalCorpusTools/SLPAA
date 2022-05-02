@@ -359,8 +359,8 @@ class MainWindow(QMainWindow):
         self.sign_summary = SignSummaryPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         # TODO KV xslot mockup
-        self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
         self.xslot_panel = XslotPanel(mainwindow=self, sign=self.current_sign, parent=self)
+        self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
         self.sign_summary.sign_updated.connect(self.xslot_panel.refreshsign)
 
         self.main_mdi = QMdiArea(parent=self)
@@ -393,13 +393,13 @@ class MainWindow(QMainWindow):
         self.main_mdi.addSubWindow(self.sub_signsummary)
 
         # TODO KV xslot mockup
-        self.sub_xslotimage = SubWindow('Summary', self.xslot_image, parent=self)
-        self.sub_xslotimage.subwindow_closed.connect(self.on_subwindow_manually_closed)
-        self.main_mdi.addSubWindow(self.sub_xslotimage)
-
         self.sub_xslot = SubWindow('Xslots', self.xslot_panel, parent=self)
         self.sub_xslot.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_xslot)
+
+        self.sub_xslotimage = SubWindow('Summary', self.xslot_image, parent=self)
+        self.sub_xslotimage.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_xslotimage)
 
         self.show_hide_subwindows()
         self.arrange_subwindows()
@@ -469,9 +469,9 @@ class MainWindow(QMainWindow):
                                     sign.global_handshape_information.fingerspelled,
                                     sign.global_handshape_information.initialized]
                             info.extend(sign.handshape_transcription.config1.hand1.get_hand_transcription_list())
-                            info.extend(sign.handshape_transcription.config1.hand2.get_hand_transcription_list())
-                            info.extend(sign.handshape_transcription.config2.hand1.get_hand_transcription_list())
-                            info.extend(sign.handshape_transcription.config2.hand2.get_hand_transcription_list())
+                            # info.extend(sign.handshape_transcription.config1.hand2.get_hand_transcription_list())
+                            # info.extend(sign.handshape_transcription.config2.hand1.get_hand_transcription_list())
+                            # info.extend(sign.handshape_transcription.config2.hand2.get_hand_transcription_list())
                             transcription_writer.writerow(info)
                     elif option == 'single':
                         transcription_writer.writerow(
@@ -709,7 +709,7 @@ class MainWindow(QMainWindow):
         # self.new_sign = selected_sign
         self.action_delete_sign.setEnabled(True)
         self.sign_summary.sign = selected_sign
-        self.sign_summary.load_movementmodulebuttons()
+        # self.sign_summary.load_movementmodulebuttons()
         self.sign_summary.enable_module_buttons(True)
 
         # self.signlevelinfo_scroll.set_value(selected_sign.signlevel_information)
@@ -785,6 +785,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('signdefaults')
         self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
+        self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none')
         self.app_qsettings.endGroup()
 
     def check_storage(self):
