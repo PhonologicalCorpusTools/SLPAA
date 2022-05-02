@@ -85,7 +85,7 @@ a. Movement direction relation
   
 
   
-- "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction or relative direction, depending on the choices selected in :ref:`global_settings`. 
+- "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction or relative direction during a perceptual shape movement (see note above), depending on the choices selected in :ref:`global_settings`. 
       
      - If the user has chosen relative directions on the horizontal axis, this option would be selected for signs where both hands move ipsilaterally or contralaterally, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_ (each hand moves contralaterally to touch the opposite palm) or `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ (each hand moves ipsilaterally, separating away from each other), or both hands circle in the same direction, as in `CLOUD <https://asl-lex.org/visualization/?sign=cloud_1>`_ and `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_ (in both signs, from the *top* of each hand's circle, both hands start the circle in a contralateral direction).  Note that other minimal differences among these signs will be covered by the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section below.
 
@@ -94,7 +94,7 @@ a. Movement direction relation
      - Finally, this option would also apply in cases that do not include the horizontal axis, like `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, where both hands are moving clockwise on the mid-sagittal plane (though again, they differ according to their :ref:`Movement Timing Relation<signtype_movement_timing_relation>`).
  
  
-- "H1 and H2 have different directions of movement" should be selected if the two hands move in either different absolute directions or different relative directions, depending on the choices selected in :ref:`global_settings`. 
+- "H1 and H2 have different directions of movement" should be selected if the two hands move in either different absolute directions or different relative directions during a perceptual shape movement (see note above), depending on the choices selected in :ref:`global_settings`. 
       
      - If the user has chosen relative directions on the horizontal axis, this option would be selected for signs where one hand moves ipsilaterally and one hand moves contralaterally, as in `SOCIAL <https://asl-lex.org/visualization/?sign=social>`_ (from the top of the circle, the upper hand moves contralaterally and the lower hand moves ipsilaterally), `DECORATE <https://asl-lex.org/visualization/?sign=decorate_2>`_ (from the top of the circle, the upper hand moves contralaterally and the lower hand moves ipsilaterally), and `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ (when one hand is moving ipsilaterally, the other is moving contralaterally and vice versa). Again, other minimal differences among these signs will be covered by the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section below.
       
@@ -103,7 +103,7 @@ a. Movement direction relation
      - Finally, this option would also apply in cases that do not include the horizontal axis, such as `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_ (when one hand is moving distally, the other is moving proximally and vice versa).
       
       
-- "Not relevant" should be selected if the sign does not have a perceptual shape component to its movement (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `MANY <https://asl-lex.org/visualization/?sign=many>`_, or `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_), which all have only joint-specific movements.
+- "Not relevant" should be selected if the sign does not have a perceptual shape component to its movement (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_, `MANY <https://asl-lex.org/visualization/?sign=many>`_, or `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_), which all have only joint-specific movements. (See note above.)
       
 .. _signtype_movement_timing_relation: 
 
