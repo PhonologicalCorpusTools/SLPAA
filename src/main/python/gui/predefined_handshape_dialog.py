@@ -691,7 +691,7 @@ class PredefinedHandshapeDialog(QDialog):
     transcription = pyqtSignal(tuple)
     selected_hand = pyqtSignal(int)
 
-    def __init__(self, predefined_images, focused_hand, **kwargs):
+    def __init__(self, predefined_images, **kwargs):  #focused_hand, **kwargs):
         super().__init__(**kwargs)
         self.resize(750, 750)
         self.setWindowTitle('Predefined Handshapes')
@@ -713,26 +713,29 @@ class PredefinedHandshapeDialog(QDialog):
 
         self.c1h1_radio = QRadioButton('Config1 Hand1', parent=hand_selection_widget)
         self.c1h1_radio.clicked.connect(lambda : self.selected_hand.emit(1))
-        self.c1h2_radio = QRadioButton('Config1 Hand2', parent=hand_selection_widget)
-        self.c1h2_radio.clicked.connect(lambda: self.selected_hand.emit(2))
-        self.c2h1_radio = QRadioButton('Config2 Hand1', parent=hand_selection_widget)
-        self.c2h1_radio.clicked.connect(lambda: self.selected_hand.emit(3))
-        self.c2h2_radio = QRadioButton('Config2 Hand2', parent=hand_selection_widget)
-        self.c2h2_radio.clicked.connect(lambda: self.selected_hand.emit(4))
+        # self.c1h2_radio = QRadioButton('Config1 Hand2', parent=hand_selection_widget)
+        # self.c1h2_radio.clicked.connect(lambda: self.selected_hand.emit(2))
+        # self.c2h1_radio = QRadioButton('Config2 Hand1', parent=hand_selection_widget)
+        # self.c2h1_radio.clicked.connect(lambda: self.selected_hand.emit(3))
+        # self.c2h2_radio = QRadioButton('Config2 Hand2', parent=hand_selection_widget)
+        # self.c2h2_radio.clicked.connect(lambda: self.selected_hand.emit(4))
 
-        if focused_hand == 1:
-            self.c1h1_radio.setChecked(True)
-        elif focused_hand == 2:
-            self.c1h2_radio.setChecked(True)
-        elif focused_hand == 3:
-            self.c2h1_radio.setChecked(True)
-        elif focused_hand == 4:
-            self.c2h2_radio.setChecked(True)
+        self.c1h1_radio.setChecked(True)
+        # TODO KV delete
+        # if focused_hand == 1:
+        #     self.c1h1_radio.setChecked(True)
+        # elif focused_hand == 2:
+        #     self.c1h2_radio.setChecked(True)
+        # elif focused_hand == 3:
+        #     self.c2h1_radio.setChecked(True)
+        # elif focused_hand == 4:
+        #     self.c2h2_radio.setChecked(True)
 
         hand_selection_layout.addWidget(self.c1h1_radio)
-        hand_selection_layout.addWidget(self.c1h2_radio)
-        hand_selection_layout.addWidget(self.c2h1_radio)
-        hand_selection_layout.addWidget(self.c2h2_radio)
+        # TODO KV delete
+        # hand_selection_layout.addWidget(self.c1h2_radio)
+        # hand_selection_layout.addWidget(self.c2h1_radio)
+        # hand_selection_layout.addWidget(self.c2h2_radio)
 
         self.layout().setMenuBar(hand_selection_widget)
 

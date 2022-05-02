@@ -27,6 +27,7 @@ from PyQt5.QtGui import (
 from itertools import chain
 from constant import NULL, X_IN_BOX, ESTIMATE_BORDER, UNCERTAIN_BACKGROUND, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeNoMatch
+from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
@@ -983,38 +984,56 @@ class Config(QGroupBox):
         self.hand1.slot_leave.connect(self.slot_leave.emit)
         self.hand1.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
-        self.hand2 = ConfigHand(2, self.predefined_ctx, parent=self)
-        self.hand2.slot_on_focus.connect(self.slot_on_focus.emit)
-        self.hand2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
-        self.hand2.slot_leave.connect(self.slot_leave.emit)
-        self.hand2.slot_finish_edit.connect(self.slot_finish_edit.emit)
+        # TODO KV delete
+        # self.hand2 = ConfigHand(2, self.predefined_ctx, parent=self)
+        # self.hand2.slot_on_focus.connect(self.slot_on_focus.emit)
+        # self.hand2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
+        # self.hand2.slot_leave.connect(self.slot_leave.emit)
+        # self.hand2.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
+        self.predefined_button = QPushButton('Load predefined handshape')
+        self.predefined_button.clicked.connect(self.load_predefined)
+        self.main_layout.addWidget(self.predefined_button)
         self.main_layout.addWidget(self.hand1)
-        self.main_layout.addWidget(self.hand2)
+        # TODO KV delete
+        # self.main_layout.addWidget(self.hand2)
+
+    def load_predefined(self):
+        predefined_handshape_dialog = PredefinedHandshapeDialog(self.predefined_ctx, parent=self)
+        predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
+        predefined_handshape_dialog.show()
+
+    def handle_set_predefined(self, transcription_list):
+        self.hand1.set_predefined(transcription_list)
 
     def set_value(self, config):
         self.hand1.set_value(config.hand1)
-        self.hand2.set_value(config.hand2)
+        # TODO KV delete
+        # self.hand2.set_value(config.hand2)
 
     def insert_radio_button(self):
         button1 = self.hand1.insert_radio_button()
-        button2 = self.hand2.insert_radio_button()
-        return button1, button2
+        # TODO KV delete
+        # button2 = self.hand2.insert_radio_button()
+        return button1  #, button2
 
     def remove_radio_button(self):
         self.hand1.remove_radio_button()
-        self.hand2.remove_radio_button()
+        # TODO KV delete
+        # self.hand2.remove_radio_button()
 
     def clear(self):
         self.hand1.clear()
-        self.hand2.clear()
+        # TODO KV delete
+        # self.hand2.clear()
 
     def get_value(self):
         return {
             'config_number': self.config_number,
             'hands': [
                 self.hand1.get_value(),
-                self.hand2.get_value()
+                # TODO KV delete
+                # self.hand2.get_value()
             ]
         }
 

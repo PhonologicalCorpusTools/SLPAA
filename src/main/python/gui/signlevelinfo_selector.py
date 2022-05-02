@@ -124,7 +124,7 @@ class SignLevelInfoLayout(QVBoxLayout):
 
         self.addLayout(main_layout)
 
-    def setStartingFocus(self):
+    def set_starting_focus(self):
         self.gloss_edit.setFocus()
 
     def set_value(self, signlevelinfo=None):
@@ -214,7 +214,7 @@ class SignlevelinfoSelectorDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
-        self.signlevelinfo_layout.setStartingFocus()
+        self.signlevelinfo_layout.set_starting_focus()
         self.setMinimumSize(QSize(500, 850))
 
     def handle_button_click(self, button):

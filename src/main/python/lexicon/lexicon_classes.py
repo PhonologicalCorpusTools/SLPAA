@@ -319,7 +319,7 @@ class HandshapeTranscription:
         # TODO KV delete
         # self.config1, self.config2 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs]
         # self.config1 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs][0]
-        self.config1 = HandshapeTranscriptionConfig(config['config_number'], config['hands'])
+        self.config1 = HandshapeTranscriptionConfig(config['config_number'], config['hands'][0])
         # self.find_properties()
 
     def __repr__(self):
