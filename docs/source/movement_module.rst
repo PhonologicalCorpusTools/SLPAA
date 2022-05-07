@@ -54,10 +54,10 @@ Select the shape of the movement.
 .. note::
     Give at least one example for each preset shape option.
 
-Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for :ref:`SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The modules will be assigned to the ``x-slot visualization`` in the order in which they're coded, so it's important to start with the first movement in the sequence and continue in order. Another way to capture the full movement is to create a new shape label. This may be a useful option for shapes that reappear in many signs.
+Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The modules will be assigned to the ``x-slot visualization`` in the order in which they're coded, so it's important to start with the first movement in the sequence and continue in order. Another way to capture the full movement is to create a new shape label. This may be a useful option for shapes that reappear in many signs.
 
 .. note::
-    For the special case of shape combinations where multiple straight movements are signed in sequence, as in :ref:`CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or :ref:`SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' This will mean that, once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified.
+    For the special case of shape combinations where multiple straight movements are signed in sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' This will mean that, once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified.
 
 .. _axis_direction_entry:
 
@@ -98,7 +98,7 @@ See a description of ``the signing space and the body`` for a visual representat
 II. Joint-specific movements
 ============================
 
-Code the specifications for a :ref:`joint_specific_movement`. This may be the only movement in a sign, as in :ref:`APPLE <https://asl-lex.org/visualization/?sign=apple>`_, or a single component of a more complex sign, like the closing and opening motions in `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_.
+Code the specifications for a :ref:`joint_specific_movement`. This may be the only movement in a sign, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, or a single component of a more complex sign, like the closing and opening motions in `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_.
 
 ...
 
@@ -107,7 +107,7 @@ Code the specifications for a :ref:`joint_specific_movement`. This may be the on
 III. Handshape change
 =====================
 
-Select whether the sign uses a :ref:`handshape_change`. This can apply for fingerspellings, compound signs (as in :ref:`DESERT <https://asl-lex.org/visualization/?sign=desert>`_), initialized signs (as in :ref:`HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_), or any other cases that involve a change in handshape during the production of the sign.
+Select whether the sign uses a :ref:`handshape_change`. This can apply for fingerspellings, compound signs (as in `DESERT <https://asl-lex.org/visualization/?sign=desert>`_), initialized signs (as in `HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_), or any other cases that involve a change in handshape during the production of the sign.
 
 As with the other movement types, a module with this specification cannot be combined with the selections for a :ref:`joint_specific_movement` or a movement with :ref:`perceptual_shape`. To code any information about other movements in the sign, add additional movement module(s) with the appropriate movement type(s). You can then adjust the timing of each module with respect to the others in the ``x-slot visualization window``.
 
