@@ -129,6 +129,6 @@ b. Movement timing relation
 
 Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_: **why is "both hands move" at the bottom of the menu?? image needs to be updated** [KCH: also: I'm not sure why location is marked as being not mirrored here -- that should only be true if we're also positing a perceptual shape component to the sign, in which case we would also need to specify a movement direction relation...]
 
-   .. image:: images/signtype_example_COMPARE.png
+   .. image:: images/signtype_COMPARE.png
       :width: 80%
       :align: center
