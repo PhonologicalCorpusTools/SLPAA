@@ -797,35 +797,6 @@ class MovementPathsProxyModel(QSortFilterProxyModel):
             self.sort(0)
 
 
-# class MovementList:
-#
-#     def __init__(self, listmodel):
-#
-#         if __name__ == '__main__':
-#             self.listentries = listmodel.serialize()
-#
-#     def getMovementListModel(self):
-#         mvmtlistmodel = MovementListModel()
-#
-#         rootnode = mvmttreemodel.invisibleRootItem()
-#         mvmttreemodel.populate(rootnode)
-#
-#         self.setvalues(rootnode)
-#         return mvmttreemodel, rootnode
-#
-#     def setvalues(self, treenode):
-#         if treenode is not None:
-#             for r in range(treenode.rowCount()):
-#                 treechild = treenode.child(r, 0)
-#                 if treechild is not None:
-#                     pathtext = treechild.data(Qt.UserRole + pathdisplayrole)
-#                     parentpathtext = treenode.data(Qt.UserRole + pathdisplayrole)
-#                     treechild.setCheckState(self.checkstates[pathtext])
-#                     if parentpathtext in self.numvals.keys():
-#                         treechild.setText(self.numvals[parentpathtext])
-#                     self.setvalues(treechild)
-
-
 class MovementListModel(QStandardItemModel):
 
     def __init__(self, treemodel=None):

@@ -62,6 +62,7 @@ from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
 from gui.movement_selector import MovementSelectorDialog
 from gui.handshape_selector import HandshapeSelectorDialog
+from gui.xslots_selector import XslotSelectorDialog
 from lexicon.lexicon_classes import Sign, GlobalHandshapeInformation
 
 
@@ -267,17 +268,17 @@ class SingleLocationViewer(QGraphicsView):
             self._scene.addItem(self.text_W)
             self._scene.addItem(self.point_W)
 
-
-class SignLevelNote(QPlainTextEdit):
-    focus_out = pyqtSignal()
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def focusOutEvent(self, event):
-        # use focusOutEvent as the proxy for finishing editing
-        self.focus_out.emit()
-        super().focusInEvent(event)
+# TODO KV no longer used
+# class SignLevelNote(QPlainTextEdit):
+#     focus_out = pyqtSignal()
+#
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#
+#     def focusOutEvent(self, event):
+#         # use focusOutEvent as the proxy for finishing editing
+#         self.focus_out.emit()
+#         super().focusInEvent(event)
 
 
 # TODO KV xslot skeleton
@@ -302,7 +303,7 @@ class XslotPanel(QScrollArea):
 
         if sign is None:
 
-            ellipse = MyEllipse(self, text="hello! how are you doing?")
+            ellipse = XslotEllipse(self, text="hello! how are you doing?")
             ellipse.setRect(10, 20, 100, 100)
             ellipse.setPen(self.blackpen)
             ellipse.setBrush(self.greenbrush)
@@ -316,7 +317,7 @@ class XslotPanel(QScrollArea):
 
         else:
             self.refreshsign(self.sign)
-        self.xslotview = MyGraphicsView(self.scene, self)
+        self.xslotview = QGraphicsView(self.scene, self)  # XslotGraphicsView(self.scene, self)
         self.xslotview.setGeometry(0, 0, 1000, 1000)  #640, 480)
         self.setMinimumSize(1000,1000)
         # xslotview.setScene(scene)
@@ -330,8 +331,15 @@ class XslotPanel(QScrollArea):
         current_x = 0
         current_y = 0
 
+        signlevelrect = XslotRect(self, text="Sign: " + sign.signlevel_information.gloss, moduletype='signlevel', sign=self.sign, mainwindow=self.mainwindow)
+        signlevelrect.setRect(current_x, current_y*75, 640-(2*self.blackpen.width()), 50)
+        current_y += 1
+        signlevelrect.setPen(self.blackpen)
+        signlevelrect.setBrush(self.greenbrush)
+        self.scene.addItem(signlevelrect)
+
         if sign.signtype is not None:
-            signtyperect = MyRect(self, text="sign type: "+";".join(sign.signtype.specs), moduletype='signtype', sign=self.sign, mainwindow=self.mainwindow)
+            signtyperect = XslotRect(self, text="Sign Type: " + ";".join(sign.signtype.specs), moduletype='signtype', sign=self.sign, mainwindow=self.mainwindow)
             signtyperect.setRect(current_x, current_y*75, 640-(2*self.blackpen.width()), 50)
             current_y += 1
             signtyperect.setPen(self.blackpen)
@@ -339,29 +347,56 @@ class XslotPanel(QScrollArea):
             # print("ellipse bounding rect:", ellipse.boundingRect())
             self.scene.addItem(signtyperect)
 
+        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and sign.xslotstructure is not None:
+            xslotrects = {}
+            numwholes = sign.xslotstructure.number
+            partial = max([int(f[0])/int(f[2]) for f in sign.xslotstructure.partials]+[0])
+            xslot_width = 640 / (numwholes + partial)
+            if numwholes + partial > 0:
+                for i in range(numwholes):
+                    xslotrect = XslotRect(self, text="x"+str(i+1), moduletype='xslot', sign=self.sign, mainwindow=self.mainwindow)
+                    xloc = 0 + i * xslot_width - (2 * self.blackpen.width())
+                    xslotrect.setRect(xloc, current_y * 75, xslot_width, 50)
+                    xslotrect.setPen(self.blackpen)
+                    xslotrect.setBrush(self.greenbrush)
+                    xslotrects["x"+str(i+1)] = xslotrect
+                    self.scene.addItem(xslotrect)
+                if partial > 0:
+                    xslotrect = XslotRect(self, text="x"+str(numwholes+1), moduletype='xslot', sign=self.sign, mainwindow=self.mainwindow)
+                    xloc = 0 + (numwholes) * xslot_width - (2 * self.blackpen.width())
+                    xslotrect.setRect(xloc, current_y * 75, xslot_width * partial, 50)
+                    xslotrect.setPen(self.blackpen)
+                    xslotrect.setBrush(self.greenbrush)
+                    xslotrects["x"+str(numwholes+1)] = xslotrect
+                    self.scene.addItem(xslotrect)
+            current_y += 1
+
         mvmtrects = {}
         num_mvmtmods = len(self.sign.movementmodules)
         if num_mvmtmods > 0:
-            tempxslotsetting = self.mainwindow.app_settings['signdefaults']['xslot_generation']
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 for idx, m in enumerate(self.sign.movementmodules.keys()):
-                    mvmtrect = MyRect(self, text=m, moduletype='movement', sign=self.sign, mainwindow=self.mainwindow)
-                    mvmtrect.setRect(current_x, current_y*75, 640 - (2 * self.blackpen.width()), 50)
-                    current_y += 1
-                    mvmtrect.setPen(self.blackpen)
-                    mvmtrect.setBrush(self.greenbrush)
-                    mvmtrects[m] = mvmtrect
-                    self.scene.addItem(mvmtrect)
+                    for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
+                        hand_abbr = hand  #[:3] TODO KV
+                        mvmtrect = XslotRect(self, text=hand_abbr + "." + m, moduletype='movement', sign=self.sign, mainwindow=self.mainwindow)
+                        mvmtrect.setRect(current_x, current_y*75, 640 - (2 * self.blackpen.width()), 50)
+                        current_y += 1
+                        mvmtrect.setPen(self.blackpen)
+                        mvmtrect.setBrush(self.greenbrush)
+                        mvmtrects[hand_abbr+"."+m] = mvmtrect
+                        self.scene.addItem(mvmtrect)
             else:  # 'manual' or 'auto'
                 mvmt_width = 640 / num_mvmtmods
                 for idx, m in enumerate(self.sign.movementmodules.keys()):
-                    mvmtrect = MyRect(self, text=m, moduletype='movement', sign=self.sign, mainwindow=self.mainwindow)
-                    xloc = 0 + idx * mvmt_width - (2*self.blackpen.width())
-                    mvmtrect.setRect(xloc, current_y*75, mvmt_width, 50)
-                    mvmtrect.setPen(self.blackpen)
-                    mvmtrect.setBrush(self.greenbrush)
-                    mvmtrects[m] = mvmtrect
-                    self.scene.addItem(mvmtrect)
+                    for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
+                        hand_abbr = hand[:3]
+                        mvmtrect = XslotRect(self, text=hand_abbr + "." + m, moduletype='movement', sign=self.sign, mainwindow=self.mainwindow)
+                        xloc = 0 + idx * mvmt_width - (2*self.blackpen.width())
+                        mvmtrect.setRect(xloc, current_y*75, mvmt_width, 50)
+                        mvmtrect.setPen(self.blackpen)
+                        mvmtrect.setBrush(self.greenbrush)
+                        mvmtrects[hand_abbr+"."+m] = mvmtrect
+                        self.scene.addItem(mvmtrect)
                 current_y += 1
 
         hsrects = {}
@@ -369,7 +404,7 @@ class XslotPanel(QScrollArea):
         if num_hsmods > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 for idx, hs in enumerate(self.sign.handshapemodules.keys()):
-                    hsrect = MyRect(self, text=hs, moduletype='handshape', sign=self.sign, mainwindow=self.mainwindow)
+                    hsrect = XslotRect(self, text=hs, moduletype='handshape', sign=self.sign, mainwindow=self.mainwindow)
                     hsrect.setRect(current_x, current_y*75, 640 - (2 * self.blackpen.width()), 50)
                     current_y += 1
                     hsrect.setPen(self.blackpen)
@@ -379,7 +414,7 @@ class XslotPanel(QScrollArea):
             else:  # 'manual' or 'auto'
                 hs_width = 640 / num_hsmods
                 for idx, hs in enumerate(self.sign.handshapemodules.keys()):
-                    hsrect = MyRect(self, text=hs, moduletype='handshape', sign=self.sign, mainwindow=self.mainwindow)
+                    hsrect = XslotRect(self, text=hs, moduletype='handshape', sign=self.sign, mainwindow=self.mainwindow)
                     xloc = 0 + idx * hs_width - (2*self.blackpen.width())
                     hsrect.setRect(xloc, current_y*75, hs_width, 50)
                     hsrect.setPen(self.blackpen)
@@ -388,40 +423,40 @@ class XslotPanel(QScrollArea):
                     self.scene.addItem(hsrect)
                 current_y += 1
 
+#  TODO KV delete
+# class XslotGraphicsView(QGraphicsView):
+#     def __init__(self, scene, parent, **kwargs):
+#         super().__init__(scene, parent, **kwargs)
 
-class MyGraphicsView(QGraphicsView):
-    def __init__(self, scene, parent, **kwargs):
-        super().__init__(scene, parent, **kwargs)
+#  TODO KV delete
+# class MyText(QGraphicsTextItem):
+#     def __init__(self, text, parentwidget, restingbrush=QBrush(Qt.blue), hoverbrush=QBrush(Qt.yellow)):
+#         super().__init__()
+#         self.setPlainText(text)
+#         self.restingbrush = restingbrush
+#         self.hoverbrush = hoverbrush
+#         # self.setAcceptHoverEvents(True)
+#         self.parentwidget = parentwidget
+#
+#     def mouseReleaseEvent(self, event):
+#         print("text released")
+#         QMessageBox.information(self.parentwidget, 'Text clicked', 'You clicked the text!')
+#
+#     def mousePressEvent(self, event):
+#         print("text pressed")
+#
+#     # def hoverEnterEvent(self, event):
+#     #     self.setBrush(self.hoverbrush)
+#     #
+#     # def hoverLeaveEvent(self, event):
+#     #     self.setBrush(self.restingbrush)
+#
+#     def boundingRect(self):
+#         # penWidth = self.pen().width()
+#         return QRectF(5, 5, 50, 10)
 
 
-class MyText(QGraphicsTextItem):
-    def __init__(self, text, parentwidget, restingbrush=QBrush(Qt.blue), hoverbrush=QBrush(Qt.yellow)):
-        super().__init__()
-        self.setPlainText(text)
-        self.restingbrush = restingbrush
-        self.hoverbrush = hoverbrush
-        # self.setAcceptHoverEvents(True)
-        self.parentwidget = parentwidget
-
-    def mouseReleaseEvent(self, event):
-        print("text released")
-        QMessageBox.information(self.parentwidget, 'Text clicked', 'You clicked the text!')
-
-    def mousePressEvent(self, event):
-        print("text pressed")
-
-    # def hoverEnterEvent(self, event):
-    #     self.setBrush(self.hoverbrush)
-    #
-    # def hoverLeaveEvent(self, event):
-    #     self.setBrush(self.restingbrush)
-
-    def boundingRect(self):
-        # penWidth = self.pen().width()
-        return QRectF(5, 5, 50, 10)
-
-
-class MyRect(QGraphicsRectItem):
+class XslotRect(QGraphicsRectItem):
     def __init__(self, parentwidget, text="", moduletype=None, sign=None, mainwindow=None, restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
         super().__init__()
         self.restingbrush = restingbrush
@@ -434,10 +469,17 @@ class MyRect(QGraphicsRectItem):
         self.sign = sign
         self.mainwindow = mainwindow
 
+    def mousePressEvent(self, event):
+        print("rectanlge pressed")
+
     def mouseReleaseEvent(self, event):
-        print("rectangle released")
+        # print("rectangle released")
         # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
-        if self.moduletype == "signtype":
+        if self.moduletype == "signlevel":
+            self.handle_signlevelbutton_click()
+        elif self.moduletype == "xslot":
+            self.handle_xslotbutton_click()
+        elif self.moduletype == "signtype":
             self.handle_signtypebutton_click()
         elif self.moduletype == "movement":
             self.handle_movementbutton_click()
@@ -450,19 +492,22 @@ class MyRect(QGraphicsRectItem):
         # # TODO KV
         editing_existing = True  # button.property("existingmodule")
         existing_key = self.text
-        moduletoload = self.sign.movementmodules[existing_key]
-        movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload)  # , parent=self)
-        movement_selector.saved_movement.connect(lambda movementtree: self.handle_save_movement(movementtree, existing_key))
+        if "." in existing_key:
+            dot_idx = existing_key.index(".")
+            existing_key = existing_key[dot_idx+1:]
+        moduletoload = self.sign.movementmodules[existing_key][0]
+        hands_dict = self.sign.movementmodules[existing_key][1]
+        movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, hands=hands_dict)  # , parent=self)
+        movement_selector.saved_movement.connect(lambda movementtree, hands: self.handle_save_movement(movementtree, hands, existing_key))
         movement_selector.exec_()
 
-    def handle_save_movement(self, movementtree, existing_key):
+    def handle_save_movement(self, movementtree, hands_dict, existing_key):
         if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-            self.sign.addmovementmodule(movementtree)
+            self.sign.addmovementmodule(movementtree, hands_dict)
         else:
-            self.sign.movementmodules[existing_key] = movementtree
+            self.sign.movementmodules[existing_key] = [movementtree, hands_dict]
         # TODO KV
         # self.sign_updated.emit(self.sign)
-        # self.update_movementmodulebuttons()
 
     # TODO KV don't want this duplicated (also in signsummarypanel)
     def handle_signtypebutton_click(self):
@@ -491,8 +536,8 @@ class MyRect(QGraphicsRectItem):
         # self.sign_updated.emit(self.sign)
         # self.update_handshapemodulebuttons()
 
-    def mousePressEvent(self, event):
-        print("rectangle pressed")
+    # def mousePressEvent(self, event):
+    #     print("rectangle pressed")
 
     def hoverEnterEvent(self, event):
         self.setBrush(self.hoverbrush)
@@ -524,7 +569,7 @@ class MyRect(QGraphicsRectItem):
     #                   diameter + penWidth, diameter + penWidth)
 
 
-class MyEllipse(QGraphicsEllipseItem):
+class XslotEllipse(QGraphicsEllipseItem):
     def __init__(self, parentwidget, text="", restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow)):
         super().__init__()
         self.restingbrush = restingbrush
@@ -567,24 +612,24 @@ class MyEllipse(QGraphicsEllipseItem):
     #                   diameter + penWidth, diameter + penWidth)
 
 
-# TODO KV xslot mockup
-class XslotImagePanel(QScrollArea):
-
-    def __init__(self, mainwindow, **kwargs):
-        super().__init__(**kwargs)
-
-        self.setFrameStyle(QFrame.StyledPanel)
-        main_frame = QFrame(parent=self)
-
-        main_layout = QVBoxLayout()
-
-        self.pixmap = QPixmap(mainwindow.app_ctx.xslotimage['xslot'])
-        self.lbl = QLabel()
-        self.lbl.setPixmap(self.pixmap)
-        main_layout.addWidget(self.lbl)
-        main_frame.setLayout(main_layout)
-
-        self.setWidget(main_frame)
+# # TODO KV xslot mockup
+# class XslotImagePanel(QScrollArea):
+#
+#     def __init__(self, mainwindow, **kwargs):
+#         super().__init__(**kwargs)
+#
+#         self.setFrameStyle(QFrame.StyledPanel)
+#         main_frame = QFrame(parent=self)
+#
+#         main_layout = QVBoxLayout()
+#
+#         self.pixmap = QPixmap(mainwindow.app_ctx.xslotimage['xslot'])
+#         self.lbl = QLabel()
+#         self.lbl.setPixmap(self.pixmap)
+#         main_layout.addWidget(self.lbl)
+#         main_frame.setLayout(main_layout)
+#
+#         self.setWidget(main_frame)
 
 class SignSummaryPanel(QScrollArea):
     sign_updated = pyqtSignal(Sign)
@@ -607,103 +652,58 @@ class SignSummaryPanel(QScrollArea):
         self.signgloss_label = QLabel("Sign: " + sign.signlevel_information.gloss if sign else "")
         self.signlevel_button = QPushButton("Sign-level information")
         self.signlevel_button.clicked.connect(self.handle_signlevelbutton_click)
+
         self.signtype_button = QPushButton("Sign type selection")
         self.signtype_button.clicked.connect(self.handle_signtypebutton_click)
         self.module_buttons.append(self.signtype_button)
 
-        self.movement_layout = QHBoxLayout()
+        # TODO KV
+        # if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual':  # could also be 'none' or 'auto'
+        self.xslots_button = QPushButton("Specify X-slots")
+        self.xslots_button.clicked.connect(self.handle_xslotsbutton_click)
+        self.module_buttons.append(self.xslots_button)
+
         self.movement_button = QPushButton("Movement selection")
         self.movement_button.setProperty("existingmodule", False)
         self.movement_button.clicked.connect(self.handle_movementbutton_click)
-        self.movement_layout.addWidget(self.movement_button)
-        # self.movementmodule_buttons = []
-        # self.update_movementmodulebuttons()
         self.module_buttons.append(self.movement_button)
 
         self.location_button = QPushButton("Location selection")
         self.location_button.clicked.connect(self.handle_locationbutton_click)
         self.module_buttons.append(self.location_button)
 
-        self.handshape_layout = QHBoxLayout()
         self.handshape_button = QPushButton("Handshape selection")
         self.handshape_button.setProperty("existingmodule", False)
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
-        self.handshape_layout.addWidget(self.handshape_button)
-        # self.handshapemodule_buttons = []
-        # self.update_handshapemodulebuttons()
         self.module_buttons.append(self.handshape_button)
 
         self.orientation_button = QPushButton("Orientation selection")
         self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
         self.module_buttons.append(self.orientation_button)
+
         self.contact_button = QPushButton("Contact selection")
         self.contact_button.clicked.connect(self.handle_contactbutton_click)
         self.module_buttons.append(self.contact_button)
-        self.enable_module_buttons(False)
 
         main_layout.addWidget(self.signgloss_label)
         main_layout.addWidget(self.signlevel_button)
-        main_layout.addWidget(self.signtype_button)
-        main_layout.addLayout(self.movement_layout)
-        main_layout.addLayout(self.handshape_layout)
-        main_layout.addWidget(self.orientation_button)
-        main_layout.addWidget(self.location_button)
-        main_layout.addWidget(self.contact_button)
+        for btn in self.module_buttons:
+            main_layout.addWidget(btn)
+        self.enable_module_buttons(False)
+        # main_layout.addWidget(self.signlevel_button)
+        # main_layout.addWidget(self.signtype_button)
+        # main_layout.addWidget(self.movement_button)
+        # main_layout.addWidget(self.handshape_button)
+        # main_layout.addWidget(self.orientation_button)
+        # main_layout.addWidget(self.location_button)
+        # main_layout.addWidget(self.contact_button)
 
         self.setWidget(main_frame)
-
-    # # TODO KV - combine all of these specific functions into a general one
-    # def clear_handshapemodulebuttons(self):
-    #     existing_buttonkeys = [b.text() for b in self.handshapemodule_buttons]
-    #     for k in existing_buttonkeys:
-    #         buttontoremove = [button for button in self.handshapemodule_buttons if button.text() == k][0]
-    #         self.handshape_layout.removeWidget(buttontoremove)
-    #         self.module_buttons.remove(buttontoremove)
-    #         self.handshapemodule_buttons.remove(buttontoremove)
-    #     # self.handshapemodule_buttons = []
-    #
-    # def update_handshapemodulebuttons(self):
-    #     if self.sign:
-    #         existing_buttonkeys = [btn.text() for btn in self.handshapemodule_buttons]
-    #         for hsmodulekey in [k for k in self.sign.handshapemodules.keys() if k not in existing_buttonkeys]:
-    #             handshapemodulebutton = QPushButton(hsmodulekey)
-    #             handshapemodulebutton.setProperty("existingmodule", True)
-    #             handshapemodulebutton.clicked.connect(self.handle_handshapebutton_click)
-    #             self.handshape_layout.addWidget(handshapemodulebutton)
-    #             self.handshapemodule_buttons.append(handshapemodulebutton)
-    #             self.module_buttons.append(handshapemodulebutton)
-
-    # def load_handshapemodulebuttons(self):
-    #     self.clear_handshapemodulebuttons()
-    #     self.update_handshapemodulebuttons()
-
-    # def clear_movementmodulebuttons(self):
-    #     existing_buttonkeys = [b.text() for b in self.movementmodule_buttons]
-    #     for k in existing_buttonkeys:
-    #         buttontoremove = [button for button in self.movementmodule_buttons if button.text() == k][0]
-    #         self.movement_layout.removeWidget(buttontoremove)
-    #         self.module_buttons.remove(buttontoremove)
-    #         self.movementmodule_buttons.remove(buttontoremove)
-    #     # self.movementmodule_buttons = []
-    #
-    # def update_movementmodulebuttons(self):
-    #     if self.sign:
-    #         existing_buttonkeys = [btn.text() for btn in self.movementmodule_buttons]
-    #         for mvmtmodulekey in [k for k in self.sign.movementmodules.keys() if k not in existing_buttonkeys]:
-    #             movementmodulebutton = QPushButton(mvmtmodulekey)
-    #             movementmodulebutton.setProperty("existingmodule", True)
-    #             movementmodulebutton.clicked.connect(self.handle_movementbutton_click)
-    #             self.movement_layout.addWidget(movementmodulebutton)
-    #             self.movementmodule_buttons.append(movementmodulebutton)
-    #             self.module_buttons.append(movementmodulebutton)
-
-    # def load_movementmodulebuttons(self):
-    #     self.clear_movementmodulebuttons()
-    #     self.update_movementmodulebuttons()
 
     def enable_module_buttons(self, yesorno):
         for btn in self.module_buttons:
             btn.setEnabled(yesorno)
+        self.xslots_button.setEnabled(yesorno and self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual')
 
     @property
     def sign(self):
@@ -717,6 +717,15 @@ class SignSummaryPanel(QScrollArea):
     def clear(self):
         self._sign = None
         self.signgloss_label.setText("Sign: ")
+
+    def handle_xslotsbutton_click(self):
+        timing_selector = XslotSelectorDialog(self.sign.xslotstructure if self.sign else None, self.mainwindow, parent=self)  #  self.mainwindow.app_settings,
+        timing_selector.saved_xslots.connect(self.handle_save_xslots)
+        timing_selector.exec_()
+
+    def handle_save_xslots(self, xslots):
+        self.sign.xslotstructure = xslots
+        self.sign_updated.emit(self.sign)
 
     def handle_signlevelbutton_click(self):
         signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, self.mainwindow, self.mainwindow.app_settings, parent=self)
@@ -762,16 +771,15 @@ class SignSummaryPanel(QScrollArea):
             existing_key = button.text()
             moduletoload = self.sign.movementmodules[existing_key]
         movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
-        movement_selector.saved_movement.connect(lambda movementtree: self.handle_save_movement(movementtree, existing_key))
+        movement_selector.saved_movement.connect(lambda movementtree, hands: self.handle_save_movement(movementtree, hands, existing_key))
         movement_selector.exec_()
 
-    def handle_save_movement(self, movementtree, existing_key):
+    def handle_save_movement(self, movementtree, hands_dict, existing_key):
         if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-            self.sign.addmovementmodule(movementtree)
+            self.sign.addmovementmodule(movementtree, hands_dict)
         else:
             self.sign.movementmodules[existing_key] = movementtree
         self.sign_updated.emit(self.sign)
-        # self.update_movementmodulebuttons()
 
     def handle_handshapebutton_click(self):
         button = self.sender()
@@ -806,190 +814,7 @@ class SignSummaryPanel(QScrollArea):
         # TODO KV
         QMessageBox.information(self, 'Not Available', 'Location module functionality not yet linked.')
 
-
 # TODO KV no longer used
-# class SignLevelInformationPanel(QScrollArea):
-#     finish_edit = pyqtSignal(QWidget)
-#
-#     def __init__(self, coder, defaulthand, update, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         self.coder = coder
-#         self.defaulthand = defaulthand
-#         self.update = update
-#
-#         self.setFrameStyle(QFrame.StyledPanel)
-#         main_frame = QFrame(parent=self)
-#
-#         main_layout = QVBoxLayout()
-#         main_layout.setSpacing(5)
-#         main_frame.setLayout(main_layout)
-#
-#         gloss_label = QLabel('Gloss:', parent=self)
-#         lemma_label = QLabel('Lemma:', parent=self)
-#         source_label = QLabel('Source:', parent=self)
-#         signer_label = QLabel('Signer:', parent=self)
-#         freq_label = QLabel('Frequency:', parent=self)
-#         coder_label = QLabel('Coder:', parent=self)
-#         update_label = QLabel('Last updated:', parent=self)
-#         note_label = QLabel('Notes:', parent=self)
-#
-#         self.gloss_edit = QLineEdit(parent=self)
-#         self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
-#         self.gloss_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.gloss_edit))
-#
-#         self.lemma_edit = QLineEdit(parent=self)
-#         self.lemma_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.lemma_edit))
-#
-#         self.source_edit = QLineEdit(parent=self)
-#         self.source_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.source_edit))
-#
-#         self.signer_edit = QLineEdit(parent=self)
-#         self.signer_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.signer_edit))
-#
-#         self.freq_edit = QLineEdit('1.0', parent=self)
-#         self.freq_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.freq_edit))
-#
-#         self.coder_edit = QLineEdit(parent=self)
-#         self.coder_edit.setText(coder)
-#         self.coder_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.coder_edit))
-#
-#         self.update_edit = QLineEdit(parent=self)
-#         self.update_edit.setPlaceholderText('YYYY-MM-DD')
-#         self.update_edit.setText(str(update))
-#         self.update_edit.editingFinished.connect(lambda: self.finish_edit.emit(self.update_edit))
-#
-#         self.note_edit = SignLevelNote(parent=self)
-#         self.note_edit.setPlaceholderText('Enter note here...')
-#         self.note_edit.focus_out.connect(lambda: self.finish_edit.emit(self.note_edit))
-#
-#         self.handdominance_buttongroup = QButtonGroup(parent=self)
-#         self.handdominance_l_radio = QRadioButton('Left')
-#         self.handdominance_l_radio.setProperty('hand', 'L')
-#         self.handdominance_r_radio = QRadioButton('Right')
-#         self.handdominance_r_radio.setProperty('hand', 'R')
-#         self.handdominance_buttongroup.addButton(self.handdominance_l_radio)
-#         self.handdominance_buttongroup.addButton(self.handdominance_r_radio)
-#
-#         self.handdominance_layout = QHBoxLayout()
-#         self.handdominance_box = QGroupBox('Hand dominance')
-#         self.handdominance_layout.addWidget(self.handdominance_l_radio)
-#         self.handdominance_layout.addWidget(self.handdominance_r_radio)
-#         self.handdominance_box.setLayout(self.handdominance_layout)
-#
-#         main_layout.addWidget(gloss_label)
-#         main_layout.addWidget(self.gloss_edit)
-#         main_layout.addWidget(lemma_label)
-#         main_layout.addWidget(self.lemma_edit)
-#         main_layout.addWidget(source_label)
-#         main_layout.addWidget(self.source_edit)
-#         main_layout.addWidget(signer_label)
-#         main_layout.addWidget(self.signer_edit)
-#         main_layout.addWidget(freq_label)
-#         main_layout.addWidget(self.freq_edit)
-#         main_layout.addWidget(coder_label)
-#         main_layout.addWidget(self.coder_edit)
-#         main_layout.addWidget(update_label)
-#         main_layout.addWidget(self.update_edit)
-#         main_layout.addWidget(note_label)
-#         main_layout.addWidget(self.note_edit)
-#         # main_layout.addWidget(self.signtype_box)
-#         main_layout.addWidget(self.handdominance_box)
-#
-#         # TODO KV rejig the buttons once signlevel info is redone as a dialog
-#         buttonlayout = QHBoxLayout()
-#         self.save_button = QPushButton("Save")
-#         self.save_button.clicked.connect(self.handle_savebutton_click)
-#         self.cancel_button = QPushButton("Cancel")
-#         self.cancel_button.clicked.connect(self.handle_cancelbutton_click)
-#         buttonlayout.addWidget(self.save_button)
-#         buttonlayout.addWidget(self.cancel_button)
-#         main_layout.addLayout(buttonlayout)
-#
-#         self.setWidget(main_frame)
-#
-#     # save update sign-level info to corpus (but not file)
-#     def handle_savebutton_click(self):
-#         mainwindow = self.parent().parent().parent().parent()  # TODO KV too much ancestor business
-#         if mainwindow.current_sign:
-#             mainwindow.current_sign.signlevel_information = self.get_value()
-#         # elif mainwindow.new_sign:
-#         #     mainwindow.new_sign.signlevel_information = self.get_value()
-#         #     # TODO KV add to corpus
-#
-#     # revert sign-level info to the last-saved values
-#     def handle_cancelbutton_click(self):
-#         mainwindow = self.parent().parent().parent().parent()
-#         if mainwindow.current_sign:
-#             self.set_value(mainwindow.current_sign.signlevel_information)
-#         # elif mainwindow.new_sign:
-#         #     self.set_value(mainwindow.new_sign.signlevel_information)
-#         else:
-#             self.clear(self.coder, self.defaulthand)
-#
-#     @check_date_format
-#     def get_date(self):
-#         year, month, day = self.update_edit.text().split(sep='-')
-#         return date(int(year), int(month), int(day))
-#
-#     @check_empty_gloss
-#     def get_gloss(self):
-#         return self.gloss_edit.text()
-#
-#     def clear(self, coder, defaulthand):
-#         self.gloss_edit.clear()
-#         self.lemma_edit.clear()
-#         self.source_edit.clear()
-#         self.signer_edit.clear()
-#         self.freq_edit.setText('1.0')
-#         self.coder_edit.setText(coder)
-#         self.update_edit.setText(str(date.today()))
-#         self.note_edit.clear()
-#         # reset to default (unspecified)
-#         # self.handstype_unspec_radio.setChecked(True)
-#         # reset to default from global settings
-#         # TODO KV - potential to override global default with coder default?
-#         self.defaulthand = defaulthand
-#         for button in self.handdominance_buttongroup.buttons():
-#             if button.property('hand') == self.defaulthand:
-#                 button.setChecked(True)
-#                 break
-#
-#     def set_value(self, signlevel_info):
-#         self.gloss_edit.setText(signlevel_info.gloss)
-#         self.lemma_edit.setText(signlevel_info.lemma)
-#         self.source_edit.setText(signlevel_info.source)
-#         self.signer_edit.setText(signlevel_info.signer)
-#         self.freq_edit.setText(str(signlevel_info.frequency))
-#         self.coder_edit.setText(signlevel_info.coder)
-#         self.update_edit.setText(str(signlevel_info.update_date))
-#         self.note_edit.setPlainText(signlevel_info.note if signlevel_info.note is not None else "")
-#         self.set_handdominance(signlevel_info.handdominance)
-#
-#     def set_handdominance(self, handdominance):
-#         if handdominance == 'R':
-#             self.handdominance_r_radio.setChecked(True)
-#         elif handdominance == 'L':
-#             self.handdominance_l_radio.setChecked(True)
-#
-#     def get_handdominance(self):
-#         return 'R' if self.handdominance_r_radio.isChecked() else 'L'
-#
-#     def get_value(self):
-#         if self.get_date() and self.get_gloss():
-#             return {
-#                 'gloss': self.get_gloss(),
-#                 'lemma': self.lemma_edit.text(),
-#                 'source': self.source_edit.text(),
-#                 'signer': self.signer_edit.text(),
-#                 'frequency': float(self.freq_edit.text()),
-#                 'coder': self.coder_edit.text(),
-#                 'date': self.get_date(),
-#                 'note': self.note_edit.toPlainText(),
-#                 'handdominance': self.get_handdominance()
-#             }
-
-#
 # class HandTranscriptionPanel(QScrollArea):
 #     selected_hand = pyqtSignal(int)
 #
@@ -1374,41 +1199,42 @@ class LocationPointPanel(QGroupBox):
                                             self.new_point_name_edit.property('text_color'),
                                             self.new_point_note_edit.text())
 
+# TODO KV no longer used
+# class ParameterPanel(QScrollArea):
+#     def __init__(self, location_specifications, app_ctx, **kwargs):  # TODO KV movement_specifications,
+#         super().__init__(**kwargs)
+#
+#         self.setFrameStyle(QFrame.StyledPanel)
+#         main_frame = QFrame(parent=self)
+#
+#         #TODO: need to figure out how to do this...
+#         main_frame.setFixedSize(1000, 1000)
+#
+#         main_layout = QVBoxLayout()
+#         main_frame.setLayout(main_layout)
+#
+#         self.location_layout = LocationSpecificationLayout(location_specifications, app_ctx)
+#         self.location_section = CollapsibleSection(title='Location', parent=self)
+#         self.location_section.setContentLayout(self.location_layout)
+#
+#         self.orientation_layout = QVBoxLayout()
+#         orientation_label = QLabel('Coming soon...')
+#         self.orientation_layout.addWidget(orientation_label)
+#         self.orientation_section = CollapsibleSection(title='Orientation', parent=self)
+#         self.orientation_section.setContentLayout(self.orientation_layout)
+#
+#         # main_layout.addWidget(QLabel('Location'))
+#         # main_layout.addLayout(self.location_layout)
+#         main_layout.addWidget(self.location_section)
+#         main_layout.addWidget(self.orientation_section)
+#
+#         self.setWidget(main_frame)
+#
+#     def clear(self, location_specifications, app_ctx):  # TODO KV movement_specifications,
+#         self.location_layout.clear(location_specifications, app_ctx)
+#         # self.movement_layout.clear(movement_specifications, app_ctx) # TODO KV
+#
+#     def set_value(self, value):
+#         self.location_layout.set_value(value)
+#         # self.movement_layout.set_value(value)
 
-class ParameterPanel(QScrollArea):
-    def __init__(self, location_specifications, app_ctx, **kwargs):  # TODO KV movement_specifications,
-        super().__init__(**kwargs)
-
-        self.setFrameStyle(QFrame.StyledPanel)
-        main_frame = QFrame(parent=self)
-
-        #TODO: need to figure out how to do this...
-        main_frame.setFixedSize(1000, 1000)
-
-        main_layout = QVBoxLayout()
-        main_frame.setLayout(main_layout)
-
-        self.location_layout = LocationSpecificationLayout(location_specifications, app_ctx)
-        self.location_section = CollapsibleSection(title='Location', parent=self)
-        self.location_section.setContentLayout(self.location_layout)
-
-        self.orientation_layout = QVBoxLayout()
-        orientation_label = QLabel('Coming soon...')
-        self.orientation_layout.addWidget(orientation_label)
-        self.orientation_section = CollapsibleSection(title='Orientation', parent=self)
-        self.orientation_section.setContentLayout(self.orientation_layout)
-
-        # main_layout.addWidget(QLabel('Location'))
-        # main_layout.addLayout(self.location_layout)
-        main_layout.addWidget(self.location_section)
-        main_layout.addWidget(self.orientation_section)
-
-        self.setWidget(main_frame)
-
-    def clear(self, location_specifications, app_ctx):  # TODO KV movement_specifications,
-        self.location_layout.clear(location_specifications, app_ctx)
-        # self.movement_layout.clear(movement_specifications, app_ctx) # TODO KV
-
-    def set_value(self, value):
-        self.location_layout.set_value(value)
-        # self.movement_layout.set_value(value)

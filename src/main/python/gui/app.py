@@ -69,11 +69,11 @@ class AppContext(ApplicationContext):
             'slot34': self.get_resource('illustrations/slot34.jpg')
         }
 
-    @cached_property
-    def xslotimage(self):
-        return {
-            'xslot': self.get_resource('xslotsample.png')
-        }
+    # @cached_property
+    # def xslotimage(self):
+    #     return {
+    #         'xslot': self.get_resource('xslotsample.png')
+    #     }
 
     @cached_property
     def predefined(self):

@@ -342,8 +342,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
     def setsigntype(self, signtype):
         allbuttons = [btn for btngrp in self.buttongroups for btn in btngrp.buttons()]
         buttonproperties = [btn.property('signtype') for btn in allbuttons]
-        tempspecs = signtype.specs
-        for spec in tempspecs:
+        for spec in signtype.specs:
             if spec in buttonproperties:
                 btnidx = buttonproperties.index(spec)
                 allbuttons[btnidx].setChecked(True)

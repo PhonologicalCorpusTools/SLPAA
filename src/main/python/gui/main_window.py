@@ -46,7 +46,6 @@ from gui.panel import (
     # HandIllustrationPanel,
     # ParameterPanel,
     SignSummaryPanel,
-    XslotImagePanel,
     XslotPanel
 )
 from gui.preference_dialog import PreferenceDialog
@@ -214,14 +213,6 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setCheckable(True)
         self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
-        # TODO KV no longer used
-        # # show/hide sign-level subwindow
-        # self.action_show_sub_signlevel = QAction('Show sign-level information', parent=self)
-        # self.action_show_sub_signlevel.setStatusTip('Show/hide sign-level information')
-        # self.action_show_sub_signlevel.triggered.connect(self.on_action_show_sub_signlevel)
-        # self.action_show_sub_signlevel.setCheckable(True)
-        # self.action_show_sub_signlevel.setChecked(self.app_settings['display']['sub_signlevel_show'])
-
         # show/hide sign summary subwindow
         self.action_show_sub_signsummary = QAction('Show sign summary', parent=self)
         self.action_show_sub_signsummary.setStatusTip('Show/hide sign summary')
@@ -313,7 +304,6 @@ class MainWindow(QMainWindow):
         menu_edit.addAction(action_default_view)
         menu_edit.addSeparator()
         menu_edit.addAction(self.action_show_sub_corpus)
-        # menu_edit.addAction(self.action_show_sub_signlevel)
         menu_edit.addAction(self.action_show_sub_signsummary)
         # menu_edit.addAction(self.action_show_sub_transcription)
         # menu_edit.addAction(self.action_show_sub_illustration)
@@ -336,9 +326,6 @@ class MainWindow(QMainWindow):
         self.corpus_scroll.setWidgetResizable(True)
         self.corpus_scroll.setWidget(self.corpus_view)
 
-        # self.signlevelinfo_scroll = SignLevelInformationPanel(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'], self.today, parent=self)
-        # self.signlevelinfo_scroll.finish_edit.connect(self.handle_signlevel_edit)
-
         # self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
         #
         # self.transcription_scroll = HandTranscriptionPanel(self.app_ctx.predefined, parent=self)
@@ -360,7 +347,7 @@ class MainWindow(QMainWindow):
 
         # TODO KV xslot mockup
         self.xslot_panel = XslotPanel(mainwindow=self, sign=self.current_sign, parent=self)
-        self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
+        # self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
         self.sign_summary.sign_updated.connect(self.xslot_panel.refreshsign)
 
         self.main_mdi = QMdiArea(parent=self)
@@ -379,11 +366,6 @@ class MainWindow(QMainWindow):
         # self.sub_transcription.subwindow_closed.connect(self.on_subwindow_manually_closed)
         # self.main_mdi.addSubWindow(self.sub_transcription)
 
-        # TODO KV delete?
-        # self.sub_signlevel = SubWindow('Sign-level information', self.signlevelinfo_scroll, parent=self)
-        # self.sub_signlevel.subwindow_closed.connect(self.on_subwindow_manually_closed)
-        # self.main_mdi.addSubWindow(self.sub_signlevel)
-
         self.sub_corpus = SubWindow('Corpus', self.corpus_scroll, parent=self)
         self.sub_corpus.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_corpus)
@@ -396,10 +378,6 @@ class MainWindow(QMainWindow):
         self.sub_xslot = SubWindow('Xslots', self.xslot_panel, parent=self)
         self.sub_xslot.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_xslot)
-
-        self.sub_xslotimage = SubWindow('Summary', self.xslot_image, parent=self)
-        self.sub_xslotimage.subwindow_closed.connect(self.on_subwindow_manually_closed)
-        self.main_mdi.addSubWindow(self.sub_xslotimage)
 
         self.show_hide_subwindows()
         self.arrange_subwindows()
@@ -786,7 +764,19 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('signdefaults')
         self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
         self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none')
-        self.app_qsettings.endGroup()
+        self.partial_defaults = {
+            '1/4': False,
+            '1/3': True,
+            '1/2': True,
+            '2/3': True,
+            '3/4': False
+        }
+        self.app_qsettings.beginGroup('partial_slots')
+        self.app_settings['signdefaults']['partial_slots'] = self.app_qsettings.value('partial_slots', defaultValue=self.partial_defaults)
+        # for frac in self.partial_defaults.keys():
+        #     self.app_settings['signdefaults']['partial_slots'][frac] = self.app_qsettings.value(frac, defaultValue=self.partial_defaults[frac])
+        self.app_qsettings.endGroup()  # partial_slots
+        self.app_qsettings.endGroup()  # xslot_generation
 
     def check_storage(self):
         if not os.path.exists(self.app_settings['storage']['corpora']):

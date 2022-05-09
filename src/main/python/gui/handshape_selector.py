@@ -15,6 +15,7 @@ from PyQt5.QtCore import (
 
 # from gui.panel import HandTranscriptionPanel
 from gui.hand_configuration import ConfigGlobal, Config
+from gui.movement_selector import HandSelectionLayout
 from lexicon.lexicon_classes import HandshapeTranscription
 
 
@@ -237,14 +238,17 @@ class HandshapeSpecificationLayout(QVBoxLayout):
 class HandshapeSelectorDialog(QDialog):
     saved_handshape = pyqtSignal(ConfigGlobal, HandshapeTranscription)
 
-    def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, **kwargs):
+    def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, hands=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         self.system_default_handshape_specifications = mainwindow.system_default_handshape
 
-        self.handshape_layout = HandshapeSpecificationLayout(mainwindow.app_ctx.predefined, moduletoload=moduletoload)
-
         main_layout = QVBoxLayout()
+
+        self.hands_layout = HandSelectionLayout(hands)
+        main_layout.addLayout(self.hands_layout)
+
+        self.handshape_layout = HandshapeSpecificationLayout(mainwindow.app_ctx.predefined, moduletoload=moduletoload)
         main_layout.addLayout(self.handshape_layout)
 
         separate_line = QFrame()

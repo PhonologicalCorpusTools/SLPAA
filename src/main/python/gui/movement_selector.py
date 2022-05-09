@@ -17,7 +17,8 @@ from PyQt5.QtWidgets import (
     QApplication,
     QHeaderView,
     QStyleOptionFrame,
-    QErrorMessage
+    QErrorMessage,
+    QCheckBox
 )
 
 from PyQt5.QtCore import (
@@ -225,74 +226,21 @@ class MovementSpecificationLayout(QVBoxLayout):
         for rownum in range(numtoplevelitems):
             self.treemodel.invisibleRootItem().child(rownum, 0).uncheck(force=True)
 
-    # TODO KV - from location
-    # def get_movement_value(self):
-    #     movement_value_dict = {
-    #         # 'start': self.start_location_group_layout.get_location_value(),
-    #         # 'end': self.end_location_group_layout.get_location_value()
-    #     }
-    #
-    #     return movement_value_dict
-
-    # todo kv - from location
-    # def clear(self, movement_specifications, app_ctx):
-    #     pass
-    #     # self.hand_switch.setChecked(True)
-    #     # self.start_location_group_layout.clear(location_specifications, app_ctx)
-    #     # self.end_location_group_layout.clear(location_specifications, app_ctx)
-
-    # todo kv
-    # def set_value(self, value):
-    #     self.start_location_group_layout.set_value(value.start)
-    #     self.end_location_group_layout.set_value(value.end)
-#
-# class RepSelectorWidget(QWidget):
-#
-#     def __init__(self, *args, **kwargs):
-#         super(RepSelectorWidget, self).__init__(*args, **kwargs)
-#
-#         layout = QHBoxLayout()
-#         self._label = QLabel("Number:")
-#         layout.addWidget(self._label)
-#
-#         self._text = QLineEdit("")
-#         layout.addWidget(self._text)
-#
-#         self.setLayout(layout)
-
-#
-# class RepEditor(QWidget):
-#
-#     def __init__(self, parent, *args, **kwargs):
-#         super().__init__(parent, *args, **kwargs)
-#
-#         layout = QHBoxLayout(self)
-#         self._label = QLabel("Number:")
-#         layout.addWidget(self._label)
-#
-#         self._text = QLineEdit("enter #")
-#         layout.addWidget(self._text)
-#
-#         self.setLayout(layout)
-#
-#     def text(self):
-#         return self._text.text()
-#
-#     def setText(self, text):
-#         self._text.setText(text)
-
 
 class MovementSelectorDialog(QDialog):
-    saved_movement = pyqtSignal(MovementTreeModel)
+    saved_movement = pyqtSignal(MovementTreeModel, dict)
 
-    def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, **kwargs):
+    def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, hands=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         self.system_default_movement_specifications = mainwindow.system_default_movement
 
-        self.movement_layout = MovementSpecificationLayout(moduletoload=moduletoload)
-
         main_layout = QVBoxLayout()
+
+        self.hands_layout = HandSelectionLayout(hands)
+        main_layout.addLayout(self.hands_layout)
+
+        self.movement_layout = MovementSpecificationLayout(moduletoload=moduletoload)
         main_layout.addLayout(self.movement_layout)
 
         separate_line = QFrame()
@@ -332,18 +280,20 @@ class MovementSelectorDialog(QDialog):
 
         elif standard == QDialogButtonBox.Save:  # save and add another
             # save info and then refresh screen to enter next movemement module
-            self.saved_movement.emit(self.movement_layout.treemodel)
+            self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
             # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
+            self.hands_layout.clear()
             self.movement_layout.refresh_treemodel()
 
         elif standard == QDialogButtonBox.Apply:  # save and close
             # save info and then close dialog
-            self.saved_movement.emit(self.movement_layout.treemodel)
+            self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
             # TODO KV -- where should the "defaults" be defined?
             self.movement_layout.clearlist(button)
+            self.hands_layout.clear()
 
     #     # elif standard == QDialogButtonBox.NoButton:
     #     #     action_role = button.property('ActionRole')
@@ -380,3 +330,35 @@ class MovementSelectorDialog(QDialog):
     #     #                 self.saved_locations.emit(self.location_tab.get_locations())
 
         # TODO KV - continue copying from class LocationDefinerDialog in location_definer
+
+
+class HandSelectionLayout(QHBoxLayout):
+
+    def __init__(self, hands=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.dominanthand_checkbox = QCheckBox("Hand 1")
+        self.nondominanthand_checkbox = QCheckBox("Hand 2")
+        self.addWidget(self.dominanthand_checkbox)
+        self.addWidget(self.nondominanthand_checkbox)
+
+        if hands is not None:
+            self.sethands(hands)
+
+    def gethands(self):
+        return {
+            'H1': self.dominanthand_checkbox.isChecked(),
+            'H2': self.nondominanthand_checkbox.isChecked()
+        }
+
+    def sethands(self, hands_dict):
+        self.dominanthand_checkbox.setChecked(hands_dict['H1'])
+        self.nondominanthand_checkbox.setChecked(hands_dict['H2'])
+
+    def clear(self):
+        self.sethands(
+            {
+                'H1': False,
+                'H2': False
+            }
+        )

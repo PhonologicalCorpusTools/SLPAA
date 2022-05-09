@@ -107,9 +107,39 @@ class SignDefaultsTab(QWidget):
                 break
         main_layout.addRow(QLabel('X-slot generation:'), self.xslots_layout)
 
+        self.partialxslots_layout = QVBoxLayout()
+        self.partialxslots_group = QButtonGroup(parent=self)
+        self.partialxslots_group.setExclusive(False)
+        self.partialxslots_onequarter_checkbox = QCheckBox('¼')
+        self.partialxslots_onequarter_checkbox.setProperty('partialxslots', '1/4')
+        self.partialxslots_group.addButton(self.partialxslots_onequarter_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_onequarter_checkbox)
+        self.partialxslots_onethird_checkbox = QCheckBox('⅓')
+        self.partialxslots_onethird_checkbox.setProperty('partialxslots', '1/3')
+        self.partialxslots_group.addButton(self.partialxslots_onethird_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_onethird_checkbox)
+        self.partialxslots_onehalf_checkbox = QCheckBox('½')
+        self.partialxslots_onehalf_checkbox.setProperty('partialxslots', '1/2')
+        self.partialxslots_group.addButton(self.partialxslots_onehalf_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_onehalf_checkbox)
+        self.partialxslots_twothirds_checkbox = QCheckBox('⅔')
+        self.partialxslots_twothirds_checkbox.setProperty('partialxslots', '2/3')
+        self.partialxslots_group.addButton(self.partialxslots_twothirds_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_twothirds_checkbox)
+        self.partialxslots_threequarters_checkbox = QCheckBox('¾')
+        self.partialxslots_threequarters_checkbox.setProperty('partialxslots', '3/4')
+        self.partialxslots_group.addButton(self.partialxslots_threequarters_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_threequarters_checkbox)
+
+        for button in self.partialxslots_group.buttons():
+            button.setChecked(self.settings['signdefaults']['partial_slots'][button.property('partialxslots')])
+        main_layout.addRow(QLabel('X-slot points to include:'), self.partialxslots_layout)
+
     def save_settings(self):
         self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
         self.settings['signdefaults']['xslot_generation'] = self.xslots_group.checkedButton().property('xslots')
+        for cb in self.partialxslots_group.buttons():
+            self.settings['signdefaults']['partial_slots'][cb.property('partialxslots')] = cb.isChecked()
 
 
 class PreferenceDialog(QDialog):
@@ -149,5 +179,6 @@ class PreferenceDialog(QDialog):
             self.reminder_tab.save_settings()
             self.signdefaults_tab.save_settings()
 
-            QMessageBox.information(self, 'Preferences Saved', 'New preferences saved!')
+            # TODO KV delete
+            # QMessageBox.information(self, 'Preferences Saved', 'New preferences saved!')
             self.accept()

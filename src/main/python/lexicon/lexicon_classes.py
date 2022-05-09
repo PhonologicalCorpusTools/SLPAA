@@ -502,6 +502,7 @@ class Sign:
         if serializedsign:
             self._signlevel_information = serializedsign['signlevel']
             self._signtype = serializedsign['type']
+            self._xslotstructure = serializedsign['xslot structure']
             self.unserializemovementmodules(serializedsign['mov modules'])
             self.locationmodules = serializedsign['loc modules']
             self.orientationmodules = serializedsign['ori modules']
@@ -520,6 +521,7 @@ class Sign:
 
             # TODO KV - for parameter modules and x-slots
             self._signtype = None
+            self.xslotstructure = None
             self.movementmodules = {}
             # self.targetmodules = []
             self.locationmodules = []
@@ -530,6 +532,7 @@ class Sign:
         return {
             'signlevel': self._signlevel_information,
             'type': self._signtype,
+            'xslot structure': self.xslotstructure,
             'mov modules': self.serializemovementmodules(),
             'loc modules': self.locationmodules,
             'ori modules': self.orientationmodules,
@@ -600,12 +603,22 @@ class Sign:
         # TODO KV - validate?
         self._signtype = stype
 
-    def addmovementmodule(self, movementtree, mvmtid=None):
-        if mvmtid is None:
-            existingkeys = [k[1:] for k in self.movementmodules.keys()] + [0]
-            nextinteger = max([int(k) for k in existingkeys]) + 1
-            mvmtid = str("M" + str(nextinteger))
-        self.movementmodules[mvmtid] = movementtree
+    @property
+    def xslotstructure(self):
+        return self._xslotstructure
+
+    @xslotstructure.setter
+    def xslotstructure(self, xslotstruct):
+        # TODO KV - validate?
+        self._xslotstructure = xslotstruct
+
+    def addmovementmodule(self, movementtree, hands_dict):  # , mvmtid=None):
+        # if mvmtid is None:
+        existingkeys = [k[4:] for k in self.movementmodules.keys()] + [0]
+        nextinteger = max([int(k) for k in existingkeys]) + 1
+        mvmtid = str("Mov." + str(nextinteger))
+
+        self.movementmodules[mvmtid] = [movementtree, hands_dict]
 
     def removemovementmodule(self, mvmtid):
         self.movementmodules.pop(mvmtid)
@@ -619,11 +632,12 @@ class Sign:
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)
 
-    def addhandshapemodule(self, globalhandshapeinfo, handshapetranscription, hsid=None):
-        if hsid is None:
-            existingkeys = [k[1:] for k in self.handshapemodules.keys()] + [0]
-            nextinteger = max([int(k) for k in existingkeys]) + 1
-            hsid = str("H" + str(nextinteger))
+    def addhandshapemodule(self, globalhandshapeinfo, handshapetranscription):  #, hsid=None):
+        # if hsid is None:
+        existingkeys = [k[10:] for k in self.handshapemodules.keys()] + [0]
+        nextinteger = max([int(k) for k in existingkeys]) + 1
+        hsid = str("HandConfig." + str(nextinteger))
+
         self.handshapemodules[hsid] = [globalhandshapeinfo, handshapetranscription]
 
     def removehandshapemodule(self, hsid):
