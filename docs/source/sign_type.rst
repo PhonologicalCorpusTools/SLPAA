@@ -1,7 +1,8 @@
 .. _sign_type_module:
 
 ***********
-Sign Type
+Sign Type 
+
 ***********
 
 This module is used to identify the overarching ‘kind’ of sign by selecting specifications for the behaviours of each hand (H1 & H2) in relation to each other. 
@@ -17,7 +18,7 @@ Number of hands
 
 Select this if the sign involves only one hand. 
 
-- "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, `STYLE <https://www.handspeak.com/word/search/index.php?id=4174>`_). **also include handshape change movement example**
+- "The hand moves" should be selected if the hand is involved in either a perceptual shape (e.g., `NORTH <https://asl-lex.org/visualization/?sign=north>`_) or a joint-specific movement (e.g., `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, `STYLE <https://www.handspeak.com/word/search/index.php?id=4174>`_, `HIGH SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_)
 
 - "The hand does not move" should be selected if the hand is not involved in any movement, such as `ONE <https://www.handspeak.com/word/search/index.php?id=1554>`_.
 
@@ -59,7 +60,7 @@ b) "Only one hand moves" should be selected if only one hand is involved in move
 c) "Both hands move" should be selected if both hands are involved in movement. If selected, further specification is needed as described below regarding the movement relations between the two hands. 
 
   - "H1 and H2 move differently from each other" should be selected if H1 and H2 have at least one movement that is not shared between the two hands. For example, `STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_ and `RUN <https://www.handspeak.com/word/search/index.php?id=1859h>`_ are both examples of signs where both hands are involved in the same perceptual shape movement but only H1 has an additional joint-specific movement, which is not shared by H2. This option would also be relevant for a sign where the two hands have completely different movements (e.g., patting the head and rubbing the belly), but we don't know of any lexical examples of this sort.
-  - "H1 and H2 move similarly to each other" should be selected if H1 and H2 share the same set of movements, regardless of direction and timing. For example, in `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, both hands perform the same joint-specific movement and also happen to have the same direction and timing. In `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, however, both hands perform the same joint-specific movement, but their orientations / directions of movement alternate in terms of timing. Similarly, in `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_, both hands perform the same perceptual shape movement, though their locations / directions alternate. The alternation or lack thereof is specified below in the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section; all of these examples would be marked as having the two hands move similarly to each other.  **add an example of a sign that has both percpetual shape and joint spec.**
+  - "H1 and H2 move similarly to each other" should be selected if H1 and H2 share the same set of movements, regardless of direction and timing. For example, in `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, both hands perform the same joint-specific movement and also happen to have the same direction and timing. In `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, however, both hands perform the same joint-specific movement, but their orientations / directions of movement alternate in terms of timing. Similarly, in `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_, both hands perform the same perceptual shape movements. In `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_, both hands perform the same perceptual shape and joint-specific movements. The alternation or lack thereof is specified below in the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section; all of these examples would be marked as having the two hands move similarly to each other. 
 
 .. note::
   The following sections on :ref:`Movement Direction Relation<signtype_movement_direction_relation>` and :ref:`Movement Timing Relation<signtype_movement_timing_relation>` should be specified only for signs where H1 and H2 are specified as *‘moving similarly.’* 
@@ -114,7 +115,7 @@ b. Movement timing relation
       
   - "Simultaneous" should be selected if the hands move at the same time; when one hand is moving (in any way), the other is, too. Further specifications can be made below.
       
-    - "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`where will this information be?` **edit ref link** for more information. 
+    - "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; **see :ref:`general explanation of body geography / symmetry / planes / axes / ‘top’ of circle / anatomical position / ipsi-contra definitions?` edit ref link** for more information. 
             
       Some examples where everything is mirrored / in phase are: `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, `CLOUD <https://asl-lex.org/visualization/?sign=cloud_1>`_, and `DECORATE <https://asl-lex.org/visualization/?sign=decorate_2>`_ (all three of which have circular perceptual shape movements) and `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ (an unhooking joint-specific movement). For straight perceptual movements, the way directions are defined on the horizontal axis may be relevant. If the horizontal axis is defined in terms of relative directions, `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ would fall in this category (both hands are either contralateral or ipsilateral at the same time). If the horizontal axis is defined in terms of absolute directions, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ would fall in this category (both hands are either left or right at the same time). 
             
@@ -128,6 +129,6 @@ b. Movement timing relation
 
 Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_: **why is "both hands move" at the bottom of the menu?? image needs to be updated** [KCH: also: I'm not sure why location is marked as being not mirrored here -- that should only be true if we're also positing a perceptual shape component to the sign, in which case we would also need to specify a movement direction relation...]
 
-   .. image:: images/signtype_example_COMPARE.png
+   .. image:: images/signtype_COMPARE.png
       :width: 80%
       :align: center
