@@ -52,6 +52,13 @@ lemma
 add here
 
 
+.. _module:
+
+module
+======
+add here (specifically our use of this term and how it applies to the program)
+
+
 .. _perceptual_shape:
 
 perceptual shape
