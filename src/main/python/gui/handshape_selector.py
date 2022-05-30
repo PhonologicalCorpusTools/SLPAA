@@ -15,8 +15,9 @@ from PyQt5.QtCore import (
 
 # from gui.panel import HandTranscriptionPanel
 from gui.hand_configuration import ConfigGlobal, Config
-from gui.movement_selector import HandSelectionLayout
+# from gui.module_selector import HandSelectionLayout
 from lexicon.lexicon_classes import HandshapeTranscription
+from gui.module_selector import ModuleSpecificationLayout
 
 
 class HandTranscriptionPanel(QScrollArea):
@@ -132,7 +133,10 @@ class HandTranscriptionPanel(QScrollArea):
         #     self.config2.hand2.set_predefined(transcription_list)
 
 
-class HandshapeSpecificationLayout(QVBoxLayout):
+# class HandshapeSpecificationLayout(QVBoxLayout):
+class HandshapeSpecificationLayout(ModuleSpecificationLayout):
+    saved_handshape = pyqtSignal(ConfigGlobal, HandshapeTranscription, dict)
+
     def __init__(self, predefined_ctx, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
 
@@ -231,75 +235,81 @@ class HandshapeSpecificationLayout(QVBoxLayout):
         # selection_layout.addLayout(list_layout)
         # self.addLayout(selection_layout)
 
+    def get_savedmodule_signal(self):
+        return self.saved_handshape
+
+    def get_savedmodule_args(self):
+        return (self.panel.global_info, HandshapeTranscription(self.panel.config1.get_value()))
+
     def clear(self):
         self.panel.clear()
 
 #  TODO KV copied from movementselectordialog
-class HandshapeSelectorDialog(QDialog):
-    saved_handshape = pyqtSignal(ConfigGlobal, HandshapeTranscription)
-
-    def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, hands=None, **kwargs):
-        super().__init__(**kwargs)
-        self.mainwindow = mainwindow
-        self.system_default_handshape_specifications = mainwindow.system_default_handshape
-
-        main_layout = QVBoxLayout()
-
-        self.hands_layout = HandSelectionLayout(hands)
-        main_layout.addLayout(self.hands_layout)
-
-        self.handshape_layout = HandshapeSpecificationLayout(mainwindow.app_ctx.predefined, moduletoload=moduletoload)
-        main_layout.addLayout(self.handshape_layout)
-
-        separate_line = QFrame()
-        separate_line.setFrameShape(QFrame.HLine)
-        separate_line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(separate_line)
-
-        buttons = None
-        applytext = ""
-        if enable_addnew:
-            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-            applytext = "Save and close"
-        else:
-            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-            applytext = "Save"
-
-        self.button_box = QDialogButtonBox(buttons, parent=self)
-        if enable_addnew:
-            self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
-        self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
-
-        # TODO KV keep? from orig locationdefinerdialog:
-        #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
-        self.button_box.clicked.connect(self.handle_button_click)
-
-        main_layout.addWidget(self.button_box)
-
-        self.setLayout(main_layout)
-        self.setMinimumSize(QSize(1350, 600))
-
-    def handle_button_click(self, button):
-        standard = self.button_box.standardButton(button)
-
-        if standard == QDialogButtonBox.Cancel:
-            # TODO KV if we are editing an already-existing handshape module, this seems to save anyway
-            self.reject()
-
-        elif standard == QDialogButtonBox.Save:  # save and add another
-            # save info and then refresh screen to enter next handshape module
-            config = self.handshape_layout.panel.config1.get_value()  # TODO KV delete  , self.handshape_layout.panel.config2.get_value()]
-            self.saved_handshape.emit(self.handshape_layout.panel.global_info, HandshapeTranscription(config))
-            self.handshape_layout.clear()  # TODO KV should this use "restore defaults" instead?
-            # self.handshape_layout.refresh_treemodel()
-
-        elif standard == QDialogButtonBox.Apply:  # save and close
-            # save info and then close dialog
-            # configs = [self.handshape_layout.panel.config1.get_value()]  # TODO KV delete , self.handshape_layout.panel.config2.get_value()]
-            config = self.handshape_layout.panel.config1.get_value()
-            self.saved_handshape.emit(self.handshape_layout.panel.global_info, HandshapeTranscription(config)) # s))
-            self.accept()
-
-        elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
-            # TODO KV -- where should the "defaults" be defined?
-            self.handshape_layout.clear()
+# class HandshapeSelectorDialog(QDialog):
+#     saved_handshape = pyqtSignal(ConfigGlobal, HandshapeTranscription)
+#
+#     def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, hands=None, **kwargs):
+#         super().__init__(**kwargs)
+#         self.mainwindow = mainwindow
+#         self.system_default_handshape_specifications = mainwindow.system_default_handshape
+#
+#         main_layout = QVBoxLayout()
+#
+#         self.hands_layout = HandSelectionLayout(hands)
+#         main_layout.addLayout(self.hands_layout)
+#
+#         self.handshape_layout = HandshapeSpecificationLayout(mainwindow.app_ctx.predefined, moduletoload=moduletoload)
+#         main_layout.addLayout(self.handshape_layout)
+#
+#         separate_line = QFrame()
+#         separate_line.setFrameShape(QFrame.HLine)
+#         separate_line.setFrameShadow(QFrame.Sunken)
+#         main_layout.addWidget(separate_line)
+#
+#         buttons = None
+#         applytext = ""
+#         if enable_addnew:
+#             buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+#             applytext = "Save and close"
+#         else:
+#             buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+#             applytext = "Save"
+#
+#         self.button_box = QDialogButtonBox(buttons, parent=self)
+#         if enable_addnew:
+#             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
+#         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
+#
+#         # TODO KV keep? from orig locationdefinerdialog:
+#         #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
+#         self.button_box.clicked.connect(self.handle_button_click)
+#
+#         main_layout.addWidget(self.button_box)
+#
+#         self.setLayout(main_layout)
+#         self.setMinimumSize(QSize(1350, 600))
+#
+#     def handle_button_click(self, button):
+#         standard = self.button_box.standardButton(button)
+#
+#         if standard == QDialogButtonBox.Cancel:
+#             # TODO KV if we are editing an already-existing handshape module, this seems to save anyway
+#             self.reject()
+#
+#         elif standard == QDialogButtonBox.Save:  # save and add another
+#             # save info and then refresh screen to enter next handshape module
+#             config = self.handshape_layout.panel.config1.get_value()  # TODO KV delete  , self.handshape_layout.panel.config2.get_value()]
+#             self.saved_handshape.emit(self.handshape_layout.panel.global_info, HandshapeTranscription(config))
+#             self.handshape_layout.clear()  # TODO KV should this use "restore defaults" instead?
+#             # self.handshape_layout.refresh_treemodel()
+#
+#         elif standard == QDialogButtonBox.Apply:  # save and close
+#             # save info and then close dialog
+#             # configs = [self.handshape_layout.panel.config1.get_value()]  # TODO KV delete , self.handshape_layout.panel.config2.get_value()]
+#             config = self.handshape_layout.panel.config1.get_value()
+#             self.saved_handshape.emit(self.handshape_layout.panel.global_info, HandshapeTranscription(config)) # s))
+#             self.accept()
+#
+#         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
+#             # TODO KV -- where should the "defaults" be defined?
+#             self.handshape_layout.clear()
