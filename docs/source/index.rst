@@ -16,6 +16,7 @@ Contents:
    predefined_handshapes.rst
    setting_preferences.rst
    terminology.rst
+   modularity.rst
    transcription_process.rst
    sign_level_info.rst
    signing_space.rst
@@ -24,7 +25,6 @@ Contents:
    glossary.rst
    references.rst
    sign_type.rst
-   modularity.rst
    
 
 Indices and tables
