@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
 
+   sign_type.rst
    manage_corpus.rst
    predefined_handshapes.rst
    setting_preferences.rst
@@ -22,7 +23,7 @@ Contents:
    global_options.rst
    glossary.rst
    references.rst
-   sign_type.rst
+
    
 
 Indices and tables
