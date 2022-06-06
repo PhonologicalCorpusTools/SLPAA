@@ -87,7 +87,7 @@ Test
 
 .. raw:: html
 
-<video controls src="images/samplevideo.mp4"></video>
+  <video controls src="images/samplevideo.mp4"></video>
 
 
 Sources
@@ -95,6 +95,5 @@ Sources
 
 * https://github.com/readthedocs/readthedocs.org/issues/879
 * https://groups.google.com/g/sphinx-users/c/_z00m3zoRAY?pli=1
-* https://forum.freecodecamp.org/t/youtube-refused-to-connect/245262
 * https://stackoverflow.com/questions/48820321/how-to-force-a-file-mp4-to-transfer-from-github-to-readthedocs
 
