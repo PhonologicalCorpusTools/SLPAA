@@ -11,9 +11,7 @@ There are two ways to embed video in readthedocs.
 
 From YouTube
 ============
-You can use a "raw" block of html code. 
-
-The code looks like this (note the use of "/embed/" rather than "/watch?v="
+You can use a "raw" block of html code, which looks like this:
 
 .. code-block:: rst
 
@@ -22,9 +20,10 @@ The code looks like this (note the use of "/embed/" rather than "/watch?v="
       <div style="position: relative; padding-bottom: 56.25%; margin-bottom: 2em; height: 0; overflow: hidden; max-width: 100%; height: auto;">
           <iframe src="https://www.youtube.com/embed/KMYN4djSq7o" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
       </div>
-      
-The results look like this:
 
+Note (a) the use of "/embed/" rather than "/watch?v=", and (b) the various parameters that can be adjusted (like max-width, eg, which could be specified in percentage of page width *or* pixels).
+
+The results look like this:
 
 .. raw:: html
 
@@ -87,10 +86,9 @@ Test
 
 .. raw:: html
 
-  <video controls src="_images/samplevideo.mp4"></video>
+  <video controls src="_images/samplevideo.mp4" width="100"></video>
 
-
-  <video controls src="_images/samplevideo2.mp4"></video>
+  <video controls src="_images/samplevideo2.mp4" width="150"></video>
   
 More info on the html video tag `here <https://www.w3schools.com/html/html5_video.asp>`_.
 
@@ -100,4 +98,5 @@ Sources
 
 * https://github.com/readthedocs/readthedocs.org/issues/879
 * https://groups.google.com/g/sphinx-users/c/_z00m3zoRAY?pli=1
+* https://www.w3schools.com/html/html5_video.asp
 
