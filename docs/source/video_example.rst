@@ -34,9 +34,15 @@ The results look like this:
 
 .. _github:
 
-A video we host ourselves on github
-===================================
+Linking to a video we host on github
+====================================
+
+`A sample video <https://github.com/PhonologicalCorpusTools/SLPAA/tree/main/docs/source/images/samplevideo.mp4/>`_
+
+or 
+
 If we're hosting the video ourselves it can be embedded similarly to how we do images.
+
 
 .. image:: images/samplevideo.mp4
         :width: 60
@@ -51,3 +57,8 @@ This doesn't seem to work:
           :width: 60
           :align: left
           :alt: A sample video
+
+Linking to a video that's hosted on github and uploaded to readthedocs
+===================================
+
+TODO
