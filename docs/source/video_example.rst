@@ -41,13 +41,18 @@ Linking to a video we host on github
 
 or 
 
-If we're hosting the video ourselves it can be embedded similarly to how we do images.
-
+If we're hosting the video ourselves it can be embedded similarly to how we do images. Readthedocs seems to really want to display text, so you can either add alt text with a description of the video, or explicitly include alt text but leave it blank if you don't want a description/caption to show.
 
 .. image:: images/samplevideo.mp4
         :width: 60
         :align: left
         :alt: A sample video
+
+
+.. image:: images/samplevideo.mp4
+        :width: 60
+        :align: left
+        :alt: 
         
 This doesn't seem to work:
 
