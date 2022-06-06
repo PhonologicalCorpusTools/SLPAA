@@ -1,8 +1,11 @@
 from itertools import chain
+from fractions import Fraction
+from datetime import datetime
 from copy import deepcopy
 from datetime import date
 
 from gui.movement_view import MovementTree
+from gui.xslots_selector import XslotStructure
 
 NULL = '\u2205'
 
@@ -381,14 +384,6 @@ class LocationTranscription:
         #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
 
-# TODO KV delete
-# TODO KV - for parameter modules and x-slots
-# class MovementModule:
-#     def __init__(self):
-#         # TODO KV implement
-#         pass
-#         # gather all data from movement selector
-
 
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
@@ -416,63 +411,113 @@ class OrientationModule:
 
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
-# ... should this *replace* handshapetranscriptionconfig instead of wrapping it?
-class HandshapeModule:
-    def __init__(self):
-        # TODO KV implement
-        self._handshapetranscriptionconfig = None
+class TimingPoint:
 
-        @property
-        def handshapetranscriptionconfig(self):
-            return self._handshapetranscriptionconfig
+    def __init__(self, wholepart, fractionalpart):
+        self._wholepart = wholepart
+        self._fractionalpart = fractionalpart
 
-        @handshapetranscriptionconfig.setter
-        def handshapetranscriptionconfig(self, new_handshapetranscriptionconfig):
-            self._handshapetranscriptionconfig = new_handshapetranscriptionconfig
+    def __repr__(self):
+        return '<TimingPoint: ' + repr(self.wholepart) + ', ' + repr(self._fractionalpart) + '>'
+
+    @property
+    def wholepart(self):
+        return self._wholepart
+
+    @wholepart.setter
+    def wholepart(self, wholepart):
+        self._wholepart = wholepart
+
+    @property
+    def fractionalpart(self):
+        return self._fractionalpart
+
+    @fractionalpart.setter
+    def fractionalpart(self, fractionalpart):
+        self._fractionalpart = fractionalpart
+
+    def __eq__(self, other):
+        if isinstance(other, TimingPoint):
+            if self._wholepart == other.wholepart and self._fractionalpart == other.fractionalpart:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    # do not implement this, because TimingPoint objects are mutable
+    # def __hash__(self):
+    #     pass
+
+    def __lt__(self, other):
+        if isinstance(other, TimingPoint):
+            if self._wholepart < other.wholepart:
+                if not(self._fractionalpart == 1 and other.fractionalpart == 0):
+                    return True
+            elif self._wholepart == other.wholepart:
+                if self._fractionalpart < other.fractionalpart:
+                    return True
+        return False
+
+    def equivalent(self, other):
+        if isinstance(other, TimingPoint):
+            if self.fractionalpart == 1 and other.fractionalpart == 0 and (self.wholepart + 1 == other.wholepart):
+                return True
+            elif other.fractionalpart == 1 and self.fractionalpart == 0 and (other.wholepart + 1 == self.wholepart):
+                return True
+            else:
+                return self == other
+
+    def __gt__(self, other):
+        if isinstance(other, TimingPoint):
+            return other.__lt__(self)
+        return False
+
+    def __le__(self, other):
+        return not self.__gt__(other)
+
+    def __ge__(self, other):
+        return not self.__lt__(other)
 
 
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
 class TimingInterval:
-    def __init__(self):
-        # TODO KV implement
-        self._parametermodule = None
-        self._startpoint = None
-        self._endpoint = None
 
-    @property
-    def parametermodule(self):
-        return self._parametermodule
-
-    @parametermodule.setter
-    def parametermodule(self, parammodule):
-        self._parametermodule = parammodule
+    # startpt (type TimingPoint) = the point at which this xslot interval begins
+    # endpt (type TimingPoint) = the point at which this xslot interval ends
+    def __init__(self, startpt, endpt):
+        self.setinterval(startpt, endpt)
 
     @property
     def startpoint(self):
         return self._startpoint
 
-    @startpoint.setter
-    def startpoint(self, startpt):
-        self._startpoint = startpt
-
     @property
     def endpoint(self):
         return self._endpoint
 
-    @endpoint.setter
-    def endpoint(self, endpt):
-        self._endpoint = endpt
-
     def points(self):
-        return [self.startpoint(), self.endpoint()]
+        return self.startpoint(), self.endpoint()
 
     def setinterval(self, startpt, endpt):
-        self.setstartpoint(startpt)
-        self.setendpoint(endpt)
+        if startpt <= endpt:
+            self._startpoint = startpt
+            self._endpoint = endpt
+        else:
+            print("error: start point is larger than endpoint", startpt, endpt)
+            # TODO throw an error?
 
     def ispoint(self):
-        return self.startpoint() == self.endpoint()
+        return self._startpoint == self._endpoint
+
+    def containsinterval(self, otherinterval):
+        return self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint
+
+    # TODO KV - overlapping and/or contianing checking methods?
+
+    def __repr__(self):
+        return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
 
 
 # TODO: need to think about duplicated signs
@@ -521,7 +566,7 @@ class Sign:
 
             # TODO KV - for parameter modules and x-slots
             self._signtype = None
-            self.xslotstructure = None
+            self.xslotstructure = XslotStructure()
             self.movementmodules = {}
             # self.targetmodules = []
             self.locationmodules = []
@@ -632,16 +677,120 @@ class Sign:
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)
 
-    def addhandshapemodule(self, globalhandshapeinfo, handshapetranscription):  #, hsid=None):
+    def addhandshapemodule(self, globalhandshapeinfo, handshapetranscription, hands_dict):  #, hsid=None):
         # if hsid is None:
         existingkeys = [k[10:] for k in self.handshapemodules.keys()] + [0]
         nextinteger = max([int(k) for k in existingkeys]) + 1
         hsid = str("HandConfig." + str(nextinteger))
 
-        self.handshapemodules[hsid] = [globalhandshapeinfo, handshapetranscription]
+        self.handshapemodules[hsid] = [globalhandshapeinfo, handshapetranscription, hands_dict]
 
     def removehandshapemodule(self, hsid):
         self.handshapemodules.pop(hsid)
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+# common ancestor for (eg) HandshapeModule, MovementModule, etc
+class ParameterModule:
+
+    def __init__(self, hands, timingintervals=None):
+        self._hands = hands
+        self._timingintervals = []
+        if timingintervals is not None:
+            self.settimingintervals(timingintervals)
+        self._uniqueid = int(datetime.timestamp(datetime.now()))
+
+    @property
+    def hands(self):
+        return self._hands
+
+    @hands.setter
+    def hands(self, hands):
+        # TODO KV - validate?
+        self._hands = hands
+
+    @property
+    def uniqueid(self):
+        return self._uniqueid
+
+    @uniqueid.setter
+    def uniqueid(self, uniqueid):
+        # TODO KV - validate?
+        self._uniqueid = uniqueid
+
+    @property
+    def timingintervals(self):
+        return self._timingintervals
+
+    @timingintervals.setter
+    def timingintervals(self, timingintervals):
+        self.settimingintervals(timingintervals)
+
+    def settimingintervals(self, timingintervals):
+        self._timingintervals = []
+        # add one at a time
+        for tint in timingintervals:
+            self.add_timinginterval(tint)
+
+    def add_timinginterval(self, timinginterval):
+        # TODO KV - look for possible simplifications
+        if self._timingintervals == []:
+            self._timingintervals.append(timinginterval)
+        else:
+            needtocombine = False
+            idx = 0
+            while not needtocombine and idx < len(self._timingintervals):
+                existinginterval = self._timingintervals[idx]
+                if existinginterval.endpoint.equivalent(timinginterval.startpoint):
+                    # the new interval starts right where the existing one ends; combine them and re-add
+                    # (in case there's another interval that the newly-combined would also end up linking up with)
+                    needtocombine = True
+                    self._timingintervals.remove(existinginterval)
+                    self.add_timinginterval(TimingInterval(existinginterval.startpoint, timinginterval.endpoint))
+                elif existinginterval.startpoint.equivalent(timinginterval.endpoint):
+                    # the existing interval starts right where the new one ends; combine them and re-add
+                    # (in case there's another interval that the newly-combined would also end up linking up with)
+                    needtocombine = True
+                    self._timingintervals.remove(existinginterval)
+                    self.add_timinginterval(TimingInterval(timinginterval.startpoint, existinginterval.endpoint))
+                idx += 1
+            if not needtocombine:
+                self._timingintervals.append(timinginterval)
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+# ... should this *replace* handshapetranscriptionconfig instead of wrapping it?
+class HandshapeModule(ParameterModule):
+    def __init__(self, hstxnconfig, hands, timingintervals=None):
+        self._handshapetranscriptionconfig = hstxnconfig
+        super().__init__(hands, timingintervals)
+
+    @property
+    def handshapetranscriptionconfig(self):
+        return self._handshapetranscriptionconfig
+
+    @handshapetranscriptionconfig.setter
+    def handshapetranscriptionconfig(self, new_hstxnconfig):
+        self._handshapetranscriptionconfig = new_hstxnconfig
+
+
+# TODO KV delete
+# TODO KV - for parameter modules and x-slots
+class MovementModule(ParameterModule):
+    def __init__(self, movementtree, hands, timingintervals=None):
+        self._movementtree = movementtree
+        super().__init__(hands, timingintervals)
+
+    @property
+    def movementtree(self):
+        return self._movementtree
+
+    @movementtree.setter
+    def movementtree(self, movementtree):
+        # TODO KV - validate?
+        self._movementtree = movementtree
 
 
 class LocationParameter:
@@ -663,19 +812,6 @@ class LocationParameter:
             'location_polygons': self.location_polygons,
             'default': self.default
         }
-
-
-class Movements:
-    """
-    This class is intended for the Corpus class to specify corpus-level movement definition
-    """
-    # TODO KV see Locations below... copying
-
-    def __init__(self, movement_specification):
-        """
-        movements = {'movement_identifier': MovementParameter}
-        """
-        self.movements = movement_specification
 
 
 class Locations:
@@ -801,3 +937,74 @@ class Corpus:
 
     def __repr__(self):
         return '<CORPUS: ' + repr(self.name) + '>'
+
+
+if __name__ == '__main__':
+
+    # test TimingPoint
+    print("testing TimingPoint comparison operators...")
+    tp1 = TimingPoint(1, Fraction(0))
+    tp2 = TimingPoint(1, Fraction(1,3))
+    tp3 = TimingPoint(1, Fraction(3,4))
+    tp4 = TimingPoint(1, Fraction(1))
+    tp5 = TimingPoint(2, Fraction(0))
+    tp6 = TimingPoint(2, Fraction(1,3))
+    tp7 = TimingPoint(2, Fraction(1,3))
+    orderedpoints1 = [tp1, tp2, tp3, tp4, tp6]
+    orderedpoints2 = [tp1, tp2, tp3, tp5, tp7]
+    lt_success = True
+    le_success = True
+    ge_success = True
+    gt_success = True
+    eq_success = True
+    ne_success = True
+    equiv_success = True
+    for tplist in [orderedpoints1, orderedpoints2]:
+        for idx, first in enumerate(tplist[:-1]):
+            for second in tplist[idx+1:]:
+                lt_success = lt_success and first < second
+                gt_success = gt_success and second > first
+                le_success = le_success and first <= second
+                ge_success = ge_success and second >= first
+                eq_success = eq_success and not first == second
+                ne_success = ne_success and first != second
+                equiv_success = equiv_success and not first.equivalent(second)
+    lt_success = lt_success and not tp6 < tp7 and not tp4 < tp5
+    gt_success = gt_success and not tp6 > tp7 and not tp5 > tp4
+    le_success = le_success and tp6 <= tp7 and tp4 <= tp5
+    ge_success = ge_success and tp6 >= tp7 and tp4 >= tp5
+    eq_success = eq_success and tp6 == tp7 and not tp4 == tp5
+    ne_success = ne_success and not tp6 != tp7 and tp4 != tp5
+    equiv_success = equiv_success and tp6.equivalent(tp7) and tp4.equivalent(tp5)
+
+    print("success: lt", lt_success, "/ gt", gt_success, "/ le", le_success, "/ ge", ge_success, "/ eq", eq_success, "/ ne", ne_success, "/ equiv", equiv_success)
+
+
+    # test TimingInterval
+    print("testing TimingInterval methods...")
+    int1 = TimingInterval(tp1, tp2)
+    int2 = TimingInterval(tp2, tp4)
+    int3 = TimingInterval(tp5, tp6)
+    int4 = TimingInterval(tp1, tp7)
+    int5 = TimingInterval(tp4, tp4)
+    int6 = TimingInterval(tp5, tp1)
+    int7 = TimingInterval(tp7, tp7)
+
+    containssuccess = True
+    containssuccess = containssuccess and not int1.containsinterval(int2) and not int2.containsinterval(
+        int4) and int4.containsinterval(int1) and int4.containsinterval(int3) and int4.containsinterval(int5)
+    ispointsuccess = int7.ispoint() and not int1.ispoint()
+    print("success: containsinterval", containssuccess, "/ ispoint", ispointsuccess)
+
+    # test ParameterModule
+    print("testing ParameterModule methods...")
+    pm1 = ParameterModule(hands={"H1": True, "H2": True}, timingintervals=[int1])
+    print(pm1.timingintervals)
+    pm2 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int2])
+    print(pm2.timingintervals)
+    pm3 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int2, int3])
+    print(pm3.timingintervals)
+    pm4 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int3])
+    print(pm4.timingintervals)
+    pm5 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int2, int7])
+    print(pm5.timingintervals)

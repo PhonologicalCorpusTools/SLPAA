@@ -1,5 +1,6 @@
 import os
 import json
+from fractions import Fraction
 from PyQt5.QtWidgets import (
     QFrame,
     QGridLayout,
@@ -80,10 +81,11 @@ class XslotsSpecificationLayout(QVBoxLayout):
         self.partial_layout.addWidget(self.partial_label)
 
         self.fraction_layout = QVBoxLayout()
-        avail_fracs = [f for f in list(mainwindow.partial_defaults.keys()) if self.mainwindow.app_settings['signdefaults']['partial_slots'][f]]
-        if len(avail_fracs) > 0:
+        self.avail_fracs = [f for f in list(mainwindow.partial_defaults.keys()) if self.mainwindow.app_settings['signdefaults']['partial_slots'][f]]
+        self.partial_buttongroup = None
+        if len(self.avail_fracs) > 0:
             self.partial_buttongroup = QButtonGroup()
-            for fraction in avail_fracs:
+            for fraction in self.avail_fracs:
                 partial_checkbox = QCheckBox(fraction)
                 self.partial_buttongroup.addButton(partial_checkbox)
                 self.fraction_layout.addWidget(partial_checkbox)
@@ -103,22 +105,25 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
     def setxslots(self, xslots):
         self.xslots_spin.setValue(xslots.number)
-        for cb in self.partial_buttongroup.buttons():
-            cb.setChecked(cb.text() in xslots.partials)
+        if self.partial_buttongroup is not None:
+            for cb in self.partial_buttongroup.buttons():
+                cb.setChecked(Fraction(cb.text()) == xslots.additionalfraction)
 
     def getxslots(self):
-        partialslist = []
-        for cb in self.partial_buttongroup.buttons():
-            if cb.isChecked():
-                partialslist.append(cb.text())
-        return XslotStructure(self.xslots_spin.value(), partialslist)
+        thebutton = self.partial_buttongroup.checkedButton()
+        fractionalpoints = [Fraction(f) for f in self.avail_fracs]
+        return XslotStructure(number=self.xslots_spin.value(), fractionalpoints=fractionalpoints, additionalfraction=(Fraction(thebutton.text()) if thebutton is not None else Fraction()))
 
 
 class XslotStructure:
 
-    def __init__(self, number=0, partialslist=[]):
+    def __init__(self, number=1, fractionalpoints=[], additionalfraction=Fraction()):
+        # integer
         self._number = number
-        self._partials = partialslist
+        # list of Fractions objects = the fractions of whole xslots to display and make available to select
+        self._fractionalpoints = fractionalpoints
+        # Fraction object = the additional part of an x-slot on top of the wholes
+        self._additionalfraction = additionalfraction
 
     @property
     def number(self):
@@ -129,12 +134,20 @@ class XslotStructure:
         self._number = number
 
     @property
-    def partials(self):
-        return self._partials
+    def fractionalpoints(self):
+        return self._fractionalpoints
 
-    @partials.setter
-    def partials(self, partialslist):
-        self._partials = partialslist
+    @fractionalpoints.setter
+    def fractionalpoints(self, fractionalpoints):
+        self._fractionalpoints = fractionalpoints
+
+    @property
+    def additionalfraction(self):
+        return self._additionalfraction
+
+    @additionalfraction.setter
+    def additionalfraction(self, additionalfraction):
+        self._additionalfraction = additionalfraction
 
 
 class XslotSelectorDialog(QDialog):
