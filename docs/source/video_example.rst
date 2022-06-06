@@ -34,10 +34,10 @@ The results look like this:
 
 .. _github:
 
-Linking to a video we host on github (which gets autommatically uploaded to readthedocs)
+Linking to a video we host on github (which gets automatically uploaded to readthedocs)
 ====================================
 
-If we're hosting the video ourselves it can be embedded similarly to how we do images. Readthedocs seems to really want to display text, so you can either add alt text with a description of the video...
+If we're hosting the video ourselves and you try to embed it similarly to how we do images, you'll get a screenshot from the video, and a text string, both of which link to the video (which will play separately, not embedded in the doc). Readthedocs seems to really want to display text (if there's no alt text it will just display the link path) so you can either add alt text with a description of the video...
 
 .. code-block:: rst
 
@@ -74,7 +74,7 @@ If we're hosting the video ourselves it can be embedded similarly to how we do i
 |
 |
         
-This doesn't seem to work:
+I haven't been able to find an explicit video-embedding function yet, so (eg) this doesn't seem to work:
 
 .. code-block:: rst
 
@@ -83,7 +83,4 @@ This doesn't seem to work:
           :align: left
           :alt: A sample video
 
-Linking to a video that's hosted on github and uploaded to readthedocs
-===================================
 
-TODO
