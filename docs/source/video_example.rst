@@ -9,8 +9,8 @@ There are two ways to embed video in readthedocs.
 
 .. _youtube: 
 
-From YouTube
-============
+Method 1: From YouTube
+======================
 You can use a "raw" block of html code, which looks like this:
 
 .. code-block:: rst
@@ -33,8 +33,20 @@ The results look like this:
 
 .. _github:
 
-Linking to a video we host on github (which gets automatically uploaded to readthedocs)
+Method 2: Linking to a video we host on github (which gets automatically uploaded to readthedocs)
 ====================================
+
+
+.. raw:: html
+
+  <video controls src="_images/samplevideo.mp4" width="100"></video>
+
+  <video controls src="_static/samplevideo2.mp4" width="150"></video>
+  
+More info on the html video tag `here <https://www.w3schools.com/html/html5_video.asp>`_.
+
+
+TODO
 
 If we're hosting the video ourselves and you try to embed it similarly to how we do images, you'll get a screenshot from the video, and a text string, both of which link to the video (which will play separately, not embedded in the doc). Readthedocs seems to really want to display text (if there's no alt text it will just display the link path) so you can either add alt text with a description of the video...
 
@@ -72,26 +84,7 @@ If we're hosting the video ourselves and you try to embed it similarly to how we
 |
 |
 |
-        
-I haven't been able to find an explicit video-embedding function yet, so (eg) this doesn't seem to work:
-
-.. code-block:: rst
-
-  .. video:: images/samplevideo.mp4
-          :width: 60
-          :align: left
-          :alt: A sample video
-          
-Test
-
-.. raw:: html
-
-  <video controls src="_images/samplevideo.mp4" width="100"></video>
-
-  <video controls src="_static/samplevideo2.mp4" width="150"></video>
-  
-More info on the html video tag `here <https://www.w3schools.com/html/html5_video.asp>`_.
-
+     
 
 Sources
 ========
