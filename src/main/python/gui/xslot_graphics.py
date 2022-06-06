@@ -9,8 +9,10 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QGraphicsView,
     QGraphicsScene,
+    QGraphicsItem,
     QGraphicsEllipseItem,
-    QVBoxLayout
+    QVBoxLayout,
+    QGraphicsObject
 )
 
 from PyQt5.QtGui import (
@@ -21,6 +23,8 @@ from PyQt5.QtGui import (
     QPixmap,
     QIcon,
     QTextOption,
+    QPainterPath,
+    QFont
 )
 
 from PyQt5.QtCore import (
@@ -33,12 +37,18 @@ from PyQt5.QtCore import (
     QEvent
 )
 
+
 class XslotRect(QGraphicsRectItem):
 
-    def __init__(self, parentwidget, text="", moduletype=None, sign=None, mainwindow=None, restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow), proportionfill=1):
+    def __init__(self, parentwidget, text="", moduletype=None, sign=None, proportionfill=1, selected=False):
         super().__init__()
-        self.restingbrush = restingbrush
-        self.hoverbrush = hoverbrush
+        self.selectedbrush = QBrush(Qt.black)
+        self.unselectedbrush = QBrush(Qt.white)
+        self.hoverbrush = QBrush(Qt.cyan)
+        self.inactivebrush = QBrush(Qt.gray)
+        self.selectedpen = QPen(Qt.white)
+        self.unselectedpen = QPen(Qt.black)
+        self.hoverpen = QPen(Qt.black)
         self.setAcceptHoverEvents(True)
         self.parentwidget = parentwidget
         self.text = text
@@ -46,33 +56,74 @@ class XslotRect(QGraphicsRectItem):
         self.hover = False
         self.proportionfill = proportionfill
         self.sign = sign
-        self.mainwindow = mainwindow
+        self.selected = selected
+        # self.mainwindow = mainwindow
 
     def hoverEnterEvent(self, event):
-        if self.moduletype in ["signtype", "movement", "handshape"]:
-            self.setBrush(self.hoverbrush)
-            self.hover = True
+        # if self.moduletype in ["signtype", "movement", "handshape"]:
+        # self.setBrush(self.hoverbrush)
+        # self.setPen(self.hoverpen)
+        self.hover = True
+        self.update()
 
     def hoverLeaveEvent(self, event):
-        if self.moduletype in ["signtype", "movement", "handshape"]:
-            self.setBrush(self.restingbrush)
-            self.hover = False
+        # if self.moduletype in ["signtype", "movement", "handshape"]:
+        # self.setBrush(self.restingbrush())
+        # self.setPen(self.restingpen())
+        self.hover = False
+        self.update()
 
+    def currentbrush(self):
+        if self.hover:
+            return self.hoverbrush
+        else:
+            return self.restingbrush()
+
+    def currentpen(self):
+        if self.hover:
+            return self.hoverpen
+        else:
+            return self.restingpen()
+
+    def restingbrush(self):
+        if self.selected:
+            return self.selectedbrush
+        else:
+            return self.unselectedbrush
+
+    def restingpen(self):
+        if self.selected:
+            return self.selectedpen
+        else:
+            return self.unselectedpen
 
     def paint(self, painter, option, widget):
         # super().paint(painter, option, widget)
+
+        # turn pen off while filling rectangle
         pen = painter.pen()
         pen.setStyle(Qt.NoPen)
         painter.setPen(pen)
 
-        painter.setBrush(self.hoverbrush if self.hover else self.restingbrush)
+        # fill active percentage of rectangle
+        painter.setBrush(self.currentbrush())
         fractionalrect = self.rect()
         fractionalrect.setRight(self.rect().left() + (self.rect().width() * self.proportionfill))
         painter.drawRect(fractionalrect)
 
+        # fill inactive percentage of rectangle
+        if self.proportionfill < 1:
+            painter.setBrush(self.inactivebrush)
+            fractionalrect = self.rect()
+            fractionalrect.setLeft(self.rect().left() + (self.rect().width() * self.proportionfill))
+            painter.drawRect(fractionalrect)
+
+        # turn off brush while outlining rectangle & drawing text
         brush = painter.brush()
         brush.setStyle(Qt.NoBrush)
         painter.setBrush(brush)
+
+        # outline rectangle
         pen.setStyle(Qt.SolidLine)
         pen.setColor(Qt.black)
         pen.setWidth(5)
@@ -80,21 +131,40 @@ class XslotRect(QGraphicsRectItem):
         entirerect = self.rect()
         painter.drawRect(entirerect)
 
+        # draw rectangle text
         textoption = QTextOption(Qt.AlignCenter)
         # textoption.setAlignment(Qt.AlignCenter)
         font = painter.font()
         font.setPixelSize(35)
         painter.setFont(font)
+        pen.setColor
         painter.drawText(self.rect(), self.text, textoption)
 
+    def toggle(self):
+        self.selected = not self.selected
+        self.update()
 
 # from gui.movement_selector import MovementSelectorDialog
 # from gui.signtype_selector import SigntypeSelectorDialog
 # from gui.handshape_selector import HandshapeSelectorDialog
 # from lexicon.lexicon_classes import GlobalHandshapeInformation
 
-class XslotRectButton(XslotRect):
-    rect_clicked = pyqtSignal(str)
+class XslotRectLinkingButton(XslotRect):
+    # linkingrect_clicked = pyqtSignal()  # TODO KV
+    #
+    def mousePressEvent(self, event):
+        print("rectangle pressed")
+
+    def mouseReleaseEvent(self, event):
+        self.toggle()
+        # self.linkingrect_clicked.emit(self.moduletype)
+
+class XslotSummaryScene(QGraphicsScene):
+    modulerect_clicked = pyqtSignal(str, str)
+
+
+class XslotRectModuleButton(XslotRect):
+    # modulerect_clicked = pyqtSignal(str)
 
     # def __init__(self, parentwidget, text="", moduletype=None, sign=None, mainwindow=None, restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow), proportionfill=1):
     #     super().__init__()
@@ -108,14 +178,14 @@ class XslotRectButton(XslotRect):
     #     self.proportionfill = proportionfill
     #     self.sign = sign
     #     self.mainwindow = mainwindow
-
+    # #
     def mousePressEvent(self, event):
         print("rectangle pressed")
 
     def mouseReleaseEvent(self, event):
         # print("rectangle released")
         # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
-        self.rect_clicked.emit(self.moduletype)
+        self.scene().modulerect_clicked.emit(self.moduletype, self.text)
         #
         # if self.moduletype == "signlevel":
         #     self.handle_signlevelrebutton_click()
@@ -234,7 +304,7 @@ class XslotLinkingLayout(QVBoxLayout):
         if xslotstruct is None:
             print("no x-slot structure!")
 
-        self.link_intro_label = QLabel("Link this module to the interval/point")
+        self.link_intro_label = QLabel("Click on the relevant point(s) or interval(s) to link this module.")  #("Link this module to the interval/point")
         self.addWidget(self.link_intro_label)
 
         self.linkinglayout = QGridLayout()
@@ -245,93 +315,15 @@ class XslotLinkingLayout(QVBoxLayout):
         self.link_from_label = QLabel("from")
         self.link_to_label = QLabel("to")
 
-
         self.greenbrush = QBrush(Qt.green)
         self.bluebrush = QBrush(Qt.blue)
         self.blackpen = QPen(Qt.black)
         self.blackpen.setWidth(5)
 
-
-        self.link_from_buttongroup = QButtonGroup()
-        self.radios = {}
-        for xslot in range(1, xslotstruct.number+1):
-            self.radios[xslot] = {}
-            for fraction_of_12 in [0, 3, 4, 6, 8, 9, 12]:
-                thisbutton = QRadioButton()
-                thisbutton.setProperty("xslot", xslot)
-                thisbutton.setProperty("fraction", fraction_of_12)
-                self.link_from_buttongroup.addButton(thisbutton)
-                self.radios[xslot][fraction_of_12] = thisbutton
-        xslot = xslotstruct.number + 1
-        self.radios[xslot] = {}
-        fracs_of_12 = [0] + [float(p)*12 for p in xslotstruct.fractionalpoints]
-        for frac_of_12 in fracs_of_12:
-            thisbutton = QRadioButton()
-            thisbutton.setProperty("xslot", xslot)
-            thisbutton.setProperty("fraction", frac_of_12)
-            self.link_from_buttongroup.addButton(thisbutton)
-            self.radios[xslot][frac_of_12] = thisbutton
-
-        self.linkinglayout.addWidget(self.link_from_label, 0, 0, 1, 1)
-        row = 0
-        xslot = 1
-        while xslot in self.radios.keys():
-            for frac_of_12 in self.radios[xslot].keys():
-                if frac_of_12 == 0 and xslot-1 not in self.radios.keys():
-                    print("adding radio button for xslot", xslot, "position", frac_of_12, "to gridlayout column", 1+(xslot-1)*12)
-                    self.linkinglayout.addWidget(self.radios[xslot][0], row, 1+(xslot-1)*12, 1, 1)
-                elif frac_of_12 == 0 and xslot-1 in self.radios.keys():
-                    radiopairlayout = QHBoxLayout()
-                    print("adding radio buttons for xslots", xslot-1, "position 12 and xslot", xslot, "position 0 to gridlayout column", 1+(xslot-1)*12)
-                    radiopairlayout.addWidget(self.radios[xslot-1][12])
-                    radiopairlayout.addWidget(self.radios[xslot][0])
-                    self.linkinglayout.addLayout(radiopairlayout, row, 1+(xslot-1)*12, 1, 1)
-                elif frac_of_12 == 12 and xslot+1 not in self.radios.keys():
-                    print("adding radio button for xslot", xslot, "position", frac_of_12, "to gridlayout column", 1+(xslot*12))
-                    self.linkinglayout.addWidget(self.radios[xslot][12], row, 1+(xslot*12), 1, 1)
-                elif frac_of_12 == 12 and xslot+1 in self.radios.keys():
-                    # this will get rolled into the 0 spot in the next xslot
-                    pass
-                else:
-                    print("adding radio button for xslot", xslot, "position", frac_of_12, "to gridlayout column", 1+(xslot-1)*12)
-                    self.linkinglayout.addWidget(self.radios[xslot][frac_of_12], row, 1+(xslot-1)*12 + frac_of_12, 1, 1)
-            xslot += 1
-
-        sign = self.mainwindow.current_sign
-        self.link_xslots_scene = QGraphicsScene()
-        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and sign.xslotstructure is not None:
-            xslotrects = {}
-            numwholes = sign.xslotstructure.number
-            # partial = max([p.numerator/p.denominator for p in sign.xslotstructure.partials+[Fraction(0, 1)]])
-            partial = float(sign.xslotstructure.additionalfraction)
-
-            xslot_width = 1980 / (numwholes + (1 if partial > 0 else 0))
-            if numwholes + partial > 0:
-                for i in range(numwholes):
-                    xslotrect = XslotRect(self, text="x" + str(i + 1), moduletype='xslot', sign=sign, mainwindow=self.mainwindow)
-                    xloc = 0 + i * xslot_width - (2 * self.blackpen.width())
-                    xslotrect.setRect(xloc, 0, xslot_width, 50)
-                    xslotrect.setPen(self.blackpen)
-                    xslotrect.setBrush(self.greenbrush)
-                    xslotrects["x"+str(i+1)] = xslotrect
-                    # xslotrect.rect_clicked.connect(lambda moduletype: self.handle_rect_clicked(moduletype))
-                    self.link_xslots_scene.addItem(xslotrect)
-                if partial > 0:
-                    xslotrect = XslotRectButton(self, text="x" + str(numwholes + 1), moduletype='xslot', sign=sign, mainwindow=self.mainwindow, proportionfill=partial)
-                    xloc = 0 + numwholes * xslot_width - (2 * self.blackpen.width())
-                    xslotrect.setRect(xloc, 0, xslot_width * partial, 50)
-                    xslotrect.setPen(self.blackpen)
-                    xslotrect.setBrush(self.greenbrush)
-                    xslotrects["x"+str(numwholes+1)] = xslotrect
-                    # xslotrect.rect_clicked.connect(lambda moduletype: self.handle_rect_clicked(moduletype))
-                    self.link_xslots_scene.addItem(xslotrect)
-
-            self.link_xslots_view = QGraphicsView(self.link_xslots_scene)  # XslotGraphicsView(self.scene, self)
-            # # self.link_from_view.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-            self.link_xslots_view.setGeometry(0, 0, 2000, 50)
-            # # self.setMinimumSize(1000,1000)
-            self.linkinglayout.addWidget(self.link_xslots_view, 1, 1, 1, (numwholes + partial)*12+1)
-
+        self.xslotlinkscene = XslotLinkScene(mainwindow=self.mainwindow)
+        self.xslotvlinkview = QGraphicsView(self.xslotlinkscene)
+        self.xslotvlinkview.setGeometry(0, 0, 2000, 300)
+        self.addWidget(self.xslotvlinkview)
 
 
         #
@@ -447,24 +439,75 @@ class XslotLinkScene(QGraphicsScene):
         self.mainwindow = mainwindow
         self.scene_width = 2000
         self.rect_height = 50
-        self.radio_radius = 20
+        self.radio_radius = 10
+
+        self.greenbrush = QBrush(Qt.green)
+        self.bluebrush = QBrush(Qt.blue)
+        self.blackpen = QPen(Qt.black)
+        self.blackpen.setWidth(5)
+
+        xslotstruct = self.mainwindow.current_sign.xslotstructure
+        self.numwholes = xslotstruct.number
+        self.additionalfrac = xslotstruct.additionalfraction
+        self.fractionalpoints = xslotstruct.fractionalpoints
+        self.fractionalpoints.extend([Fraction(0,1), Fraction(1,1)])
+        self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
         self.from_radios = {}
-        self.to_radios = {}
-
         self.populate_radios(self.from_radios)
+        self.add_radios("From", self.from_radios, yloc=0)  # TODO figure out yloc
+
+        self.add_rectangles(yloc=100)  # TODO figure out yloc
+
+        self.to_radios = {}
         self.populate_radios(self.to_radios)
+        self.add_radios("To", self.to_radios, yloc=200)  # TODO figure out yloc
 
     def populate_radios(self, radios):
-        xslotstruct = self.mainwindow.current_sign.xslotstructure
-        numwholes = xslotstruct.number
-        additionalfrac = xslotstruct.additionalfraction
-        partials = xslotstruct.fractionalpoints
 
-        for whole in range(numwholes):
-            if 
+        for whole in range(self.numwholes):
+            for part in self.fractionalpoints:
+                radio = XslotRadioCircle(whole+1, part)
+                radios[(whole+1, part)] = radio
+        for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac]:
+            radio = XslotRadioCircle(self.numwholes+1, part)
+            radios[(self.numwholes+1, part)] = radio
 
+    def add_radios(self, label, radios, yloc):
+        for k in radios.keys():
+            radio = radios[k]
+            xloc = (radio.xslot_whole-1 + radio.xslot_part) * self.xslot_width
+            if radio.xslot_part == 0:
+                xloc -= self.radio_radius
+            elif radio.xslot_part == 1:
+                xloc += self.radio_radius
+            radio.setRect(xloc, yloc, self.radio_radius*2.5, self.radio_radius*2.5)  # TODO clarify height and width
+            self.addItem(radio)
 
+    def add_rectangles(self, yloc):
+
+        # TODO do some more validity checking (are there even xslots?) before just going for it
+
+        xslotrects = {}
+        if self.numwholes + self.additionalfrac > 0:
+            for i in range(self.numwholes):
+                xslotrect = XslotRect(self, text="x" + str(i + 1), moduletype='xslot')
+                xloc = 0 + i * self.xslot_width - (2 * self.blackpen.width())
+                xslotrect.setRect(xloc, yloc, self.xslot_width, 50)
+                xslotrect.setPen(self.blackpen)
+                xslotrect.setBrush(self.greenbrush)
+                xslotrects["x" + str(i + 1)] = xslotrect
+                # xslotrect.rect_clicked.connect(lambda moduletype: self.handle_rect_clicked(moduletype))
+                self.addItem(xslotrect)
+            if self.additionalfrac > 0:
+                xslotrect = XslotRectModuleButton(self, text="x" + str(self.numwholes + 1), moduletype='xslot', proportionfill=self.additionalfrac)
+                xloc = 0 + self.numwholes * self.xslot_width - (2 * self.blackpen.width())
+                xslotrect.setRect(xloc, yloc, self.xslot_width, 50)  # * self.additionalfrac, 50)
+                xslotrect.setPen(self.blackpen)
+                xslotrect.setBrush(self.greenbrush)
+                xslotrects["x" + str(self.numwholes + 1)] = xslotrect
+                # xslotrect.rect_clicked.connect(lambda moduletype: self.handle_rect_clicked(moduletype))
+                self.addItem(xslotrect)
 
 
 class XslotRadioCircle(QGraphicsEllipseItem):
@@ -474,13 +517,19 @@ class XslotRadioCircle(QGraphicsEllipseItem):
         super().__init__()
 
         self.pencolour = Qt.darkGray
-        self.brushcolour = Qt.black
+        self.uncheckedbrush = Qt.white
+        self.checkedbrush = Qt.black
         self.penwidth = penwidth
         self.radius = radius
         self.checked = False
 
         self.xslot_whole = xslot_whole
         self.xslot_part = xslot_part
+
+    def mouseReleaseEvent(self, event):
+        # print("rectangle released")
+        # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
+        self.toggle()
 
     def paint(self, painter, option, widget):
         # super().paint(painter, option, widget)
@@ -490,19 +539,16 @@ class XslotRadioCircle(QGraphicsEllipseItem):
         painter.setPen(pen)
 
         brush = painter.brush()
-        if self.checked:
-            brush.setStyle(Qt.SolidPattern)
-            brush.setColor(self.brushcolour)
-        else:
-            brush.setStyle(Qt.NoBrush)
+        # if self.checked:
+        #     # brush.setStyle(Qt.SolidPattern)
+        #     brush.setColor(self.checkedbrush)
+        # else:
+        #     # brush.setStyle(Qt.NoBrush)
+        #     brush.setColor(self.uncheckedbrush)
+        brush.setColor(self.checkedbrush if self.checked else self.uncheckedbrush)
         painter.setBrush(brush)
 
-        painter.drawEllipse(self.radius)
-
-    def mouseReleaseEvent(self, event):
-        # print("rectangle released")
-        # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
-        self.toggle()
+        painter.drawEllipse(self.rect())
 
     def toggle(self):
         self.checked = not self.checked

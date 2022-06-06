@@ -344,7 +344,6 @@ class MainWindow(QMainWindow):
 
         self.sign_summary = SignSummaryPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
-        # TODO KV xslot mockup
         self.xslot_panel = XslotPanel(mainwindow=self, sign=self.current_sign, parent=self)
         # self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
         self.sign_summary.sign_updated.connect(self.xslot_panel.refreshsign)

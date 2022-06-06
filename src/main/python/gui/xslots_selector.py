@@ -117,7 +117,7 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
 class XslotStructure:
 
-    def __init__(self, number=0, fractionalpoints=[], additionalfraction=Fraction()):
+    def __init__(self, number=1, fractionalpoints=[], additionalfraction=Fraction()):
         # integer
         self._number = number
         # list of Fractions objects = the fractions of whole xslots to display and make available to select

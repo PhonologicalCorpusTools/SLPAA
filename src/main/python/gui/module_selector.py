@@ -75,15 +75,10 @@ class ModuleSelectorDialog(QDialog):
         self.hands_layout = HandSelectionLayout(hands)
         main_layout.addLayout(self.hands_layout)
         self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
-        main_layout.addLayout(self.xslot_layout)
+        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
+            main_layout.addLayout(self.xslot_layout)
 
         self.module_layout = None
-        # if moduletype == "movement":
-        #     self.module_layout = MovementSpecificationLayout(*moduleargs)
-        # elif moduletype == "handshape":
-        #     self.module_layout = HandshapeSpecificationLayout(*moduleargs)
-        # else:
-        #     print("module type not recognized:", moduletype)
         self.module_layout = modulelayout
         main_layout.addLayout(self.module_layout)
 
@@ -154,23 +149,24 @@ class HandSelectionLayout(QHBoxLayout):
     def __init__(self, hands=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.dominanthand_checkbox = QCheckBox("Hand 1")
-        self.nondominanthand_checkbox = QCheckBox("Hand 2")
-        self.addWidget(self.dominanthand_checkbox)
-        self.addWidget(self.nondominanthand_checkbox)
+        self.hand1_checkbox = QCheckBox("Hand 1")
+        self.hand2_checkbox = QCheckBox("Hand 2")
+        self.addWidget(self.hand1_checkbox)
+        self.addWidget(self.hand2_checkbox)
+        self.addStretch()
 
         if hands is not None:
             self.sethands(hands)
 
     def gethands(self):
         return {
-            'H1': self.dominanthand_checkbox.isChecked(),
-            'H2': self.nondominanthand_checkbox.isChecked()
+            'H1': self.hand1_checkbox.isChecked(),
+            'H2': self.hand2_checkbox.isChecked()
         }
 
     def sethands(self, hands_dict):
-        self.dominanthand_checkbox.setChecked(hands_dict['H1'])
-        self.nondominanthand_checkbox.setChecked(hands_dict['H2'])
+        self.hand1_checkbox.setChecked(hands_dict['H1'])
+        self.hand2_checkbox.setChecked(hands_dict['H2'])
 
     def clear(self):
         self.sethands(
