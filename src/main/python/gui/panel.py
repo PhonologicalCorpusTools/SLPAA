@@ -732,7 +732,7 @@ class SignSummaryPanel(QScrollArea):
             existing_key = button.text()
             moduletoload = self.sign.movementmodules[existing_key]
         # movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
-        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, x_start=None, x_end=None, enable_addnew=(not editing_existing), modulelayout=MovementSpecificationLayout(moduletoload), moduleargs=None)
+        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=(not editing_existing), modulelayout=MovementSpecificationLayout(moduletoload), moduleargs=None)
         movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands: self.handle_save_movement(movementtree, hands, existing_key))
         movement_selector.exec_()
 
@@ -753,7 +753,7 @@ class SignSummaryPanel(QScrollArea):
             existing_key = button.text()
             moduletoload = self.sign.handshapemodules[existing_key]
         # handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
-        handshape_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, x_start=None, x_end=None, enable_addnew=(not editing_existing), modulelayout=HandshapeSpecificationLayout(self.mainwindow.app_ctx.predefined, moduletoload), moduleargs=None)
+        handshape_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=(not editing_existing), modulelayout=HandshapeSpecificationLayout(self.mainwindow.app_ctx.predefined, moduletoload), moduleargs=None)
         handshape_selector.get_savedmodule_signal().connect(lambda hs_global, hs_transcription, hands: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, hands, existing_key))
         handshape_selector.exec_()
 

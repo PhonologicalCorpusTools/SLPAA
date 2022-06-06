@@ -444,7 +444,7 @@ class MainWindow(QMainWindow):
                                     sign.global_handshape_information.incomplete,
                                     sign.global_handshape_information.fingerspelled,
                                     sign.global_handshape_information.initialized]
-                            info.extend(sign.handshape_transcription.config1.hand1.get_hand_transcription_list())
+                            info.extend(sign.handshape_transcription.config.hand1.get_hand_transcription_list())
                             # info.extend(sign.handshape_transcription.config1.hand2.get_hand_transcription_list())
                             # info.extend(sign.handshape_transcription.config2.hand1.get_hand_transcription_list())
                             # info.extend(sign.handshape_transcription.config2.hand2.get_hand_transcription_list())
@@ -466,8 +466,8 @@ class MainWindow(QMainWindow):
                                     sign.global_handshape_information.incomplete,
                                     sign.global_handshape_information.fingerspelled,
                                     sign.global_handshape_information.initialized,
-                                    sign.handshape_transcription.config1.hand1.get_hand_transcription_string(),
-                                    sign.handshape_transcription.config1.hand2.get_hand_transcription_string(),
+                                    sign.handshape_transcription.config.hand1.get_hand_transcription_string(),
+                                    sign.handshape_transcription.config.hand2.get_hand_transcription_string(),
                                     sign.handshape_transcription.config2.hand1.get_hand_transcription_string(),
                                     sign.handshape_transcription.config2.hand2.get_hand_transcription_string()]
                             transcription_writer.writerow(info)
@@ -1006,10 +1006,10 @@ class MainWindow(QMainWindow):
 
             self.predefined_handshape_dialog = PredefinedHandshapeDialog(self.app_ctx.predefined, focused_hand, parent=self)
             self.predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
-            self.predefined_handshape_dialog.selected_hand.connect(self.transcription_scroll.change_hand_selection)
+            # self.predefined_handshape_dialog.selected_hand.connect(self.transcription_scroll.change_hand_selection)
             self.predefined_handshape_dialog.rejected.connect(self.handle_predefined_close)
 
-            self.transcription_scroll.selected_hand.connect(self.predefined_handshape_dialog.change_hand_selection)
+            # self.transcription_scroll.selected_hand.connect(self.predefined_handshape_dialog.change_hand_selection)
 
             self.predefined_handshape_dialog.show()
 
@@ -1022,7 +1022,7 @@ class MainWindow(QMainWindow):
 
     def insert_predefined_buttons(self):
         focused_hands = [
-            self.transcription_scroll.config1.hand1.hasFocus(), self.transcription_scroll.config1.hand2.hasFocus(),
+            self.transcription_scroll.config.hand1.hasFocus(), self.transcription_scroll.config.hand2.hasFocus(),
             self.transcription_scroll.config2.hand1.hasFocus(), self.transcription_scroll.config2.hand2.hasFocus()
         ]
         if any(focused_hands):

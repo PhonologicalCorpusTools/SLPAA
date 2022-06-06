@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
     QFrame,
     QDialogButtonBox,
     QGridLayout,
+    QLayout,
     QScrollArea,
     QButtonGroup
 )
@@ -38,9 +39,9 @@ class HandTranscriptionPanel(QScrollArea):
         # main_layout.addWidget(self.global_info, 0, 0, 2, 1)
         main_layout.addWidget(self.global_info)
 
-        self.config1 = Config(1, 'Configuration 1', predefined_ctx, parent=self)
+        self.config = Config(predefined_ctx, parent=self)  # 1, 'Configuration 1'
         # main_layout.addWidget(self.config1, 0, 1, 1, 2)
-        main_layout.addWidget(self.config1)
+        main_layout.addWidget(self.config)
 
         # TODO KV delete
         # self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
@@ -50,30 +51,30 @@ class HandTranscriptionPanel(QScrollArea):
 
     def clear(self):
         self.global_info.clear()
-        self.config1.clear()
+        self.config.clear()
         # TODO KV delete
         # self.config2.clear()
 
     def set_value(self, global_handshape_info, hand_transcription):
         self.global_info.set_value(global_handshape_info)
-        self.config1.set_value(hand_transcription.config)  #1)
+        self.config.set_value(hand_transcription.config)  #1)
         # TODO KV delete
         # self.config2.set_value(hand_transcription.config2)
 
-    def change_hand_selection(self, hand):
-        if hand == 1:
-            self.button1.setChecked(True)
-        elif hand == 2:
-            self.button2.setChecked(True)
-        # TODO KV delete
-        # elif hand == 3:
-        #     self.button3.setChecked(True)
-        # elif hand == 4:
-        #     self.button4.setChecked(True)
+    # def change_hand_selection(self, hand):
+    #     if hand == 1:
+    #         self.button1.setChecked(True)
+    #     elif hand == 2:
+    #         self.button2.setChecked(True)
+    #     # TODO KV delete
+    #     # elif hand == 3:
+    #     #     self.button3.setChecked(True)
+    #     # elif hand == 4:
+    #     #     self.button4.setChecked(True)
 
     def insert_radio_button(self, focused_hand):
         self.selected_hand_group = QButtonGroup(parent=self)
-        self.button1, self.button2 = self.config1.insert_radio_button()
+        self.button1, self.button2 = self.config.insert_radio_button()
         # TODO KV delete
         # self.button3, self.button4 = self.config2.insert_radio_button()
 
@@ -100,7 +101,7 @@ class HandTranscriptionPanel(QScrollArea):
         # self.selected_hand_group.addButton(self.button4, 4)
 
     def remove_radio_button(self):
-        self.config1.remove_radio_button()
+        self.config.remove_radio_button()
         # TODO KV delete
         # self.config2.remove_radio_button()
         self.selected_hand_group.deleteLater()
@@ -110,9 +111,9 @@ class HandTranscriptionPanel(QScrollArea):
             hand = self.selected_hand_group.checkedId()
 
         if hand == 1:
-            return self.config1.hand1.get_hand_transcription_list()
+            return self.config.hand1.get_hand_transcription_list()
         elif hand == 2:
-            return self.config1.hand2.get_hand_transcription_list()
+            return self.config.hand2.get_hand_transcription_list()
         # TODO KV delete
         # elif hand == 3:
         #     return self.config2.hand1.get_hand_transcription_list()
@@ -124,9 +125,9 @@ class HandTranscriptionPanel(QScrollArea):
             hand = self.selected_hand_group.checkedId()
 
         if hand == 1:
-            self.config1.hand1.set_predefined(transcription_list)
+            self.config.hand1.set_predefined(transcription_list)
         elif hand == 2:
-            self.config1.hand2.set_predefined(transcription_list)
+            self.config.hand2.set_predefined(transcription_list)
         # TODO KV delete
         # elif hand == 3:
         #     self.config2.hand1.set_predefined(transcription_list)
@@ -150,7 +151,14 @@ class HandshapeSpecificationLayout(ModuleSpecificationLayout):
         return self.saved_handshape
 
     def get_savedmodule_args(self):
-        return (self.panel.global_info, HandshapeTranscription(self.panel.config1.get_value()))
+        return (self.panel.global_info, HandshapeTranscription(self.panel.config.get_value()))
 
     def clear(self):
         self.panel.clear()
+
+    def desiredwidth(self):
+        return 2000
+
+    def desiredheight(self):
+        return 400
+

@@ -24,7 +24,8 @@ from PyQt5.QtWidgets import (
     QSpinBox,
     QGraphicsView,
     QGraphicsScene,
-    QGraphicsEllipseItem
+    QGraphicsEllipseItem,
+    QSizePolicy
 )
 
 from PyQt5.QtCore import (
@@ -44,7 +45,7 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.xslot_graphics import XslotLinkingLayout
+from gui.xslot_graphics import XslotLinkingLayout, XslotLinkingLayoutNew
 
 
 # base class for various module specification layouts to inherit from
@@ -62,11 +63,17 @@ class ModuleSpecificationLayout(QVBoxLayout):
     def clear(self):
         pass
 
+    def desiredwidth(self):
+        pass
+
+    def desiredheight(self):
+        pass
+
 
 class ModuleSelectorDialog(QDialog):
     # saved_movement = pyqtSignal(MovementTreeModel, dict)
 
-    def __init__(self, mainwindow, hands, x_start, x_end, enable_addnew, modulelayout, moduleargs, **kwargs):
+    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
 
@@ -74,7 +81,8 @@ class ModuleSelectorDialog(QDialog):
 
         self.hands_layout = HandSelectionLayout(hands)
         main_layout.addLayout(self.hands_layout)
-        self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
+        # self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
+        self.xslot_layout = XslotLinkingLayoutNew(xslotstructure, self.mainwindow)
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addLayout(self.xslot_layout)
 
@@ -108,7 +116,11 @@ class ModuleSelectorDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
-        self.setMinimumSize(QSize(500, 700))
+        # self.setMinimumSize(QSize(500, 700))
+        self.setMinimumSize(modulelayout.desiredwidth(), modulelayout.desiredheight())
+        # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
+        # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # self.adjustSize()
 
     def get_savedmodule_signal(self):
         return self.module_layout.get_savedmodule_signal()

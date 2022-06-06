@@ -205,18 +205,24 @@ class ConfigField(QWidget):
 
         # testing...
         left_bracket = QLabel('[')
-        left_bracket.setFixedSize(QSize(10, 40))
+        bracketfont = left_bracket.font()
+        bracketfont.setPixelSize(20)
+        left_bracket.setFont(bracketfont)
+        left_bracket.setFixedSize(QSize(10, 30))
         left_bracket.setAlignment(Qt.AlignHCenter)
+        left_bracket.setAlignment(Qt.AlignVCenter)
         self.main_layout.addWidget(left_bracket)
 
         #right_bracket = QLabel(']{}'.format(self.field_number))
         right_bracket = QLabel(']')
+        right_bracket.setFont(bracketfont)
         right_number = QLabel(str(self.field_number))
+        right_number.setFont(bracketfont)
         right_number.setStyleSheet('QLabel{border:1px solid rgb(0, 255, 0);}')
-        right_bracket.setFixedSize(QSize(5, 40))
-        right_number.setFixedSize(QSize(20, 40))
-        right_bracket.setAlignment(Qt.AlignHCenter)
-        right_number.setAlignment(Qt.AlignHCenter)
+        right_bracket.setFixedSize(QSize(10, 30))
+        right_number.setFixedSize(QSize(20, 30))
+        right_bracket.setAlignment(Qt.AlignCenter)
+        right_number.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(right_bracket)
         self.main_layout.addWidget(right_number)
 
@@ -962,9 +968,9 @@ class Config(QGroupBox):
     slot_leave = pyqtSignal()
     slot_finish_edit = pyqtSignal(QLineEdit, dict, dict)
 
-    def __init__(self, config_number, title, predefined_ctx, **kwargs):
-        super().__init__(title=title, **kwargs)
-        self.config_number = config_number
+    def __init__(self, predefined_ctx, **kwargs):  # title, config_number,
+        super().__init__(title='Handshape Configuration', **kwargs)
+        # self.config_number = config_number
         self.predefined_ctx = predefined_ctx
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         # self.setStyleSheet('QGroupBox{margin: 0; padding: 0}')
@@ -991,7 +997,7 @@ class Config(QGroupBox):
         # self.hand2.slot_leave.connect(self.slot_leave.emit)
         # self.hand2.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
-        self.predefined_button = QPushButton('Load predefined handshape')
+        self.predefined_button = QPushButton("Load predefined handshape")
         self.predefined_button.clicked.connect(self.load_predefined)
         self.main_layout.addWidget(self.predefined_button)
         self.main_layout.addWidget(self.hand1)
@@ -1061,16 +1067,20 @@ class ConfigGlobal(QGroupBox):
         self.main_layout.addLayout(slot1_layout)
 
         left_bracket = QLabel('[')
-        left_bracket.setFixedSize(QSize(10, 40))
-        left_bracket.setAlignment(Qt.AlignHCenter)
+        bracketfont = left_bracket.font()
+        bracketfont.setPixelSize(20)
+        left_bracket.setFont(bracketfont)
+        left_bracket.setFixedSize(QSize(10, 30))
+        left_bracket.setAlignment(Qt.AlignCenter)
         slot1_layout.addWidget(left_bracket)
 
         self.slot1 = QCheckBox('Forearm', parent=self)
         slot1_layout.addWidget(self.slot1)
 
         right_bracket = QLabel(']1')
-        right_bracket.setFixedSize(QSize(20, 40))
-        right_bracket.setAlignment(Qt.AlignHCenter)
+        right_bracket.setFont(bracketfont)
+        right_bracket.setFixedSize(QSize(25, 30))
+        right_bracket.setAlignment(Qt.AlignCenter)
         slot1_layout.addWidget(right_bracket)
 
         slot1_layout.addStretch()

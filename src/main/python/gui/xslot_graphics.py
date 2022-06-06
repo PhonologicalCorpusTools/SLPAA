@@ -295,6 +295,31 @@ class XslotRectModuleButton(XslotRect):
     #                   diameter + penWidth, diameter + penWidth)
 
 
+class XslotLinkingLayoutNew(QVBoxLayout):
+
+    def __init__(self, xslotstructure, mainwindow, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = mainwindow
+        xslotstruct = self.mainwindow.current_sign.xslotstructure
+        if xslotstruct is None:
+            print("no x-slot structure!")
+
+        self.link_intro_label = QLabel(
+            "Click on the relevant point(s) or interval(s) to link this module.")  # ("Link this module to the interval/point")
+        self.addWidget(self.link_intro_label)
+
+        self.linkinglayout = QGridLayout()
+        # don't waste space
+        self.linkinglayout.setVerticalSpacing(0)
+        self.linkinglayout.setContentsMargins(0, 0, 0, 0)
+
+        self.xslotlinkscene = XslotLinkScene(mainwindow=self.mainwindow)
+        self.xslotvlinkview = QGraphicsView()  # self.xslotlinkscene)
+        self.xslotvlinkview.setGeometry(0, 0, 2000, 300)
+        self.addWidget(self.xslotvlinkview)
+
+        self.addLayout(self.linkinglayout)
+
 class XslotLinkingLayout(QVBoxLayout):
 
     def __init__(self, start=None, end=None, mainwindow=None, **kwargs):

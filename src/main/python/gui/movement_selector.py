@@ -256,6 +256,12 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         for rownum in range(numtoplevelitems):
             self.treemodel.invisibleRootItem().child(rownum, 0).uncheck(force=True)
 
+    def desiredwidth(self):
+        return 500
+
+    def desiredheight(self):
+        return 700
+
 
 # class MovementSelectorDialog(QDialog):
 #     saved_movement = pyqtSignal(MovementTreeModel, dict)
