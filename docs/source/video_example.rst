@@ -91,6 +91,8 @@ Test
 
 
   <video controls src="_images/samplevideo2.mp4"></video>
+  
+More info on the html video tag `here <https://www.w3schools.com/html/html5_video.asp>`_.
 
 
 Sources
