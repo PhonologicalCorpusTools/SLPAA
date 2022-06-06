@@ -2,7 +2,6 @@
 
 ***********
 Sign Type 
-
 ***********
 
 This module is used to identify the overarching ‘kind’ of sign by selecting specifications for the behaviours of each hand (H1 & H2) in relation to each other. 
