@@ -88,7 +88,7 @@ Test
 
   <video controls src="_images/samplevideo.mp4" width="100"></video>
 
-  <video controls src="_images/samplevideo2.mp4" width="150"></video>
+  <video controls src="_static/samplevideo2.mp4" width="150"></video>
   
 More info on the html video tag `here <https://www.w3schools.com/html/html5_video.asp>`_.
 
