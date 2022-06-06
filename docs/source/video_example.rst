@@ -46,6 +46,7 @@ Again, we can use raw html here, but to embed a video stored on the same file sy
   
 
 .. raw:: html
+
   <video controls src="_static/samplevideo2.mp4" width="120"></video>
   
 More info on the html video tag (changing sizes, controls, etc) `here <https://www.w3schools.com/html/html5_video.asp>`_.
