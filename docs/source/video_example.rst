@@ -47,12 +47,25 @@ If we're hosting the video ourselves it can be embedded similarly to how we do i
         :width: 60
         :align: left
         :alt: A sample video
-
+|
+|
+|
+|
+|
+|
+|
 
 .. image:: images/samplevideo.mp4
         :width: 60
         :align: left
         :alt: 
+|
+|
+|
+|
+|
+|
+|
         
 This doesn't seem to work:
 
