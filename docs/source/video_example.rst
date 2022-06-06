@@ -52,8 +52,6 @@ If we're hosting the video ourselves it can be embedded similarly to how we do i
 |
 |
 |
-|
-|
 
 .. image:: images/samplevideo.mp4
         :width: 60
@@ -64,12 +62,10 @@ If we're hosting the video ourselves it can be embedded similarly to how we do i
 |
 |
 |
-|
-|
         
 This doesn't seem to work:
 
-.. raw:: rst
+.. code-block:: rst
 
   .. video:: images/samplevideo.mp4
           :width: 60
