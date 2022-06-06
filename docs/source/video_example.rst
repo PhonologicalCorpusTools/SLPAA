@@ -1,7 +1,7 @@
 .. video_example:
 
 ************************
-Embedding Video Examples
+Embedding Video Examples (internal tutorial)
 ************************
 
 There are two ways to embed video in readthedocs. 
