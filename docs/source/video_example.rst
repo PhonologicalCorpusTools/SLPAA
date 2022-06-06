@@ -82,5 +82,18 @@ I haven't been able to find an explicit video-embedding function yet, so (eg) th
           :width: 60
           :align: left
           :alt: A sample video
+          
+Test
 
+.. raw:: html
+
+<video controls src="images/samplevideo.mp4"></video>
+
+
+Sources
+========
+ https://github.com/readthedocs/readthedocs.org/issues/879
+ https://groups.google.com/g/sphinx-users/c/_z00m3zoRAY?pli=1
+ https://forum.freecodecamp.org/t/youtube-refused-to-connect/245262
+ https://stackoverflow.com/questions/48820321/how-to-force-a-file-mp4-to-transfer-from-github-to-readthedocs
 
