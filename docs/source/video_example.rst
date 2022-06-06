@@ -33,7 +33,7 @@ The results look like this:
 
 .. _github:
 
-Method 2: Stored on github/readthedocs
+Method 2: Stored on github and readthedocs
 ====================================
 
 Again, we can use raw html here, but to embed a video stored on the same file system rather than from YouTube. Note that if you want to use this method, the video will have to live in the "/_static" directory on github so that it gets uploaded to readthedocs properly (readthedocs doesn't know to look for files referenced in <video> html tags, but it *does* know to upload everything in /_static no matter what.
