@@ -1407,7 +1407,7 @@ class HandshapeModifiedG(PredefinedHandshape):
 
 
 class HandshapeModifiedO(PredefinedHandshape):
-    def __init__(self, name='modified-O', filename='modified O', canonical=(
+    def __init__(self, name='modified O', filename='modified-O', canonical=(
             'O', '{', 'E', 'E',
             'fr', 'd', NULL, '/', 't', 'd', '1', '2', '-', '-',
             '1', 'F', 'i', 'i',

@@ -753,7 +753,7 @@ class SignSummaryPanel(QScrollArea):
             existing_key = button.text()
             moduletoload = self.sign.handshapemodules[existing_key]
         # handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
-        handshape_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=(not editing_existing), modulelayout=HandshapeSpecificationLayout(self.mainwindow.app_ctx.predefined, moduletoload), moduleargs=None)
+        handshape_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=(not editing_existing), modulelayout=HandshapeSpecificationLayout(self.mainwindow, moduletoload), moduleargs=None)
         handshape_selector.get_savedmodule_signal().connect(lambda hs_global, hs_transcription, hands: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, hands, existing_key))
         handshape_selector.exec_()
 
@@ -880,35 +880,6 @@ class SignSummaryPanel(QScrollArea):
 #         elif hand == 4:
 #             self.config2.hand2.set_predefined(transcription_list)
 
-
-class HandIllustrationPanel(QScrollArea):
-    def __init__(self, app_ctx, **kwargs):
-        super().__init__(**kwargs)
-        self.app_ctx = app_ctx
-
-        main_frame = QFrame(parent=self)
-
-        self.setFrameStyle(QFrame.StyledPanel)
-        main_layout = QVBoxLayout()
-        main_frame.setLayout(main_layout)
-
-        self.hand_illustration = QLabel()
-        self.hand_illustration.setFixedSize(QSize(400, 400))
-        self.set_neutral_img()
-        main_layout.addWidget(self.hand_illustration)
-
-        self.setWidget(main_frame)
-
-    def set_neutral_img(self):
-        neutral_img = QPixmap(self.app_ctx.hand_illustrations['neutral'])
-        self.hand_illustration.setPixmap(
-            neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
-        self.hand_illustration.repaint()
-
-    def set_img(self, new_img):
-        self.hand_illustration.setPixmap(
-            new_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
-        self.hand_illustration.repaint()
 
 
 class LocationGroupLayout(QHBoxLayout):

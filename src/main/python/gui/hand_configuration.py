@@ -969,7 +969,7 @@ class Config(QGroupBox):
     slot_finish_edit = pyqtSignal(QLineEdit, dict, dict)
 
     def __init__(self, predefined_ctx, **kwargs):  # title, config_number,
-        super().__init__(title='Handshape Configuration', **kwargs)
+        super().__init__(title='Hand Configuration', **kwargs)
         # self.config_number = config_number
         self.predefined_ctx = predefined_ctx
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -1079,7 +1079,7 @@ class ConfigGlobal(QGroupBox):
 
         right_bracket = QLabel(']1')
         right_bracket.setFont(bracketfont)
-        right_bracket.setFixedSize(QSize(25, 30))
+        right_bracket.setFixedSize(QSize(22, 30))
         right_bracket.setAlignment(Qt.AlignCenter)
         slot1_layout.addWidget(right_bracket)
 
@@ -1110,6 +1110,7 @@ class ConfigGlobal(QGroupBox):
         self.initialized = QCheckBox('Initialized', parent=self)
         other_layout.addWidget(self.fingerspelled)
         other_layout.addWidget(self.initialized)
+        other_layout.addStretch()
 
     def clear(self):
         self.slot1.setChecked(False)

@@ -96,9 +96,9 @@ class SigntypeSpecificationLayout(QVBoxLayout):
 
         # buttons and groups for 2-handed handshape relation
         self.handstype_handshapereln_buttongroup = SigntypeButtonGroup(prt=self)
-        self.handstype_2hsameshapes_radio = SigntypeRadioButton('H1 and H2 use same set(s) of handshapes', parentbutton=self.handstype_2h_radio)
+        self.handstype_2hsameshapes_radio = SigntypeRadioButton('H1 and H2 use same set(s) of hand configurations', parentbutton=self.handstype_2h_radio)
         self.handstype_2hsameshapes_radio.setProperty('signtype', '2hands.sameshapes')
-        self.handstype_2hdiffshapes_radio = SigntypeRadioButton('H1 and H2 use different set(s) of handshapes', parentbutton=self.handstype_2h_radio)
+        self.handstype_2hdiffshapes_radio = SigntypeRadioButton('H1 and H2 use different set(s) of hand configurations', parentbutton=self.handstype_2h_radio)
         self.handstype_2hdiffshapes_radio.setProperty('signtype', '2hands.diffshapes')
         self.handstype_handshapereln_buttongroup.addButton(self.handstype_2hsameshapes_radio)
         self.handstype_handshapereln_buttongroup.addButton(self.handstype_2hdiffshapes_radio)
@@ -219,7 +219,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handshape_layout = QVBoxLayout()
         self.handshape_layout.addWidget(self.handstype_2hsameshapes_radio)
         self.handshape_layout.addWidget(self.handstype_2hdiffshapes_radio)
-        self.handshape_box = QGroupBox('Handshape relation')
+        self.handshape_box = QGroupBox('Hand configuration relation')
         self.handshape_box.setLayout(self.handshape_layout)
         self.twohand_col1_layout.addWidget(self.handshape_box)
         ### end layout for 2-handed handshape relation

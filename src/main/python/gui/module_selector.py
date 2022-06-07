@@ -117,7 +117,7 @@ class ModuleSelectorDialog(QDialog):
 
         self.setLayout(main_layout)
         # self.setMinimumSize(QSize(500, 700))
-        self.setMinimumSize(modulelayout.desiredwidth(), modulelayout.desiredheight())
+        ## self.setMinimumSize(modulelayout.desiredwidth(), modulelayout.desiredheight())
         # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
         # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         # self.adjustSize()
