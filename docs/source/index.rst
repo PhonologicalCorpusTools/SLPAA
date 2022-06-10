@@ -14,6 +14,7 @@ Contents:
 
    sign_type.rst
    manage_corpus.rst
+   modularity.rst
    predefined_handshapes.rst
    setting_preferences.rst
    terminology.rst
