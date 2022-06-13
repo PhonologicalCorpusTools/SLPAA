@@ -10,7 +10,7 @@
 .. comment:: 
     The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle, **anatomical position (?)**, and ipsi-contra definitions.
 
-.. _signing_space:
+.. _signing_space_page:
 
 ***********************
 Symmetry, Planes & Axes
@@ -26,7 +26,14 @@ Symmetry, Planes & Axes
 1. Planes and axes
 ``````````````````
 
-**Introduction** The system used in this program to describe any *location* or *direction* in space depends on an understanding of the three (ordinate) axes: **horizontal**, **vertical**, and **mid-saggital**. 
+**Introduction**  
+
+.. _axes_entry:
+
+I. Axes
+~~~~~~~
+
+The system used in this program to describe any *location* or *direction* in space depends on an understanding of the three (ordinate) axes: **horizontal**, **vertical**, and **mid-saggital**.
 
 .. warning::
     I would like to have a set of diagrams here of the three axes superimposed on a person, where two axes are in grey and the relevant one is in an eye-catching colour. It might be beneficial to have two diagrams set forward-facing, and the mid-saggital one set as viewed from the signer's right. Otherwise, if the same image is used three times, it should be at a slight angle rather than head-on. 
@@ -35,9 +42,19 @@ Symmetry, Planes & Axes
     
 The directions of movement along each axis form a set of options ...
 
-**(Sets of planes?)**
+.. _planes_entry:
 
-.. _symmetry:
+II. Planes
+~~~~~~~~~~
+
+Along with the set of axes, we also use a similar set of (ordinate) planes: **horizontal**, **vertical**, and **mid-saggital**. These can be described by their relation to a perpendicular axis ...
+
+.. warning::
+    Duplicate the same sets of images from above, but with a plane highlighted instead of an axis. Also include the normal vector to each plane for clarity.
+
+**(Sets of planes? Describe here what is meant by the 'top' of a circle in each plane. Use example signs, and describe how to deal with combinations of planes.)**
+
+.. _symmetry_entry:
 
 2. Symmetry
 ```````````
@@ -51,17 +68,19 @@ I. Left/right and ipsi/contra models
 
 **(Description of what these two options generally entail, and a list of the selections that this choice will affect. Describe the interchangeability of the models. Link to the global settings page for more information about switching between the two. Link to the movement direction relation section in the sign type page! Add examples here, but work out how to stay away from repeating too much information.)**
 
+.. _circular_directions:
+
 II. Circular directions
 =======================
 
-**(Description. Also to include somewhere: what is meant by the 'top' of a circle for each plane, how to deal with combinations of planes.)**
+**(Description. Also to include somewhere: how to deal with circular directions for combinations of planes.)**
 
 .. _lr_directions:
 
 a) Left/right-oriented model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**(Describe the clockwise directions for each plane under this model. Also describe these directions in terms of movement across the top of the circle.)
+**(Describe the clockwise directions for each plane under this model. Also describe these directions in terms of movement across the top of the circle.)**
 
 .. warning::
     A set of similar diagrams to those introduced in the planes & axes section, but this time with one plane highlighted in each image along with its normal vector, shown for clarity. Include diagrams for each hand moving in the 'same' direction (e.g. both moving left from top of circle).
@@ -71,12 +90,13 @@ a) Left/right-oriented model
 b) Circular directions for an ipsi/contra-oriented model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**(Describe the circular directions for each plane under this model. Also describe these directions in terms of movement across the top of the circle.)
+**(Describe the circular directions for each plane under this model. Also describe these directions in terms of movement across the top of the circle.)**
 
 .. warning::
-    A set of similar diagrams to those introduced in the planes & axes section, but this time with one plane highlighted in each image along with its normal vector, shown for clarity. Include diagrams for each hand moving in the 'same' direction.
+    A set of similar diagrams to those introduced in the planes & axes section, but this time with one plane highlighted in each image along with its normal vector, shown for clarity. Include diagrams for each hand moving in the 'same' direction (e.g. both moving contralaterally from top of circle).
 
 
+.. _notes_comments:
 
 Notes
 ~~~~~
