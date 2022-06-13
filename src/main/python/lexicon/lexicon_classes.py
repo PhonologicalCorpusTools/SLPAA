@@ -452,8 +452,8 @@ class TimingPoint:
     def __lt__(self, other):
         if isinstance(other, TimingPoint):
             if self._wholepart < other.wholepart:
-                if not(self._fractionalpart == 1 and other.fractionalpart == 0):
-                    return True
+                # if not(self._fractionalpart == 1 and other.fractionalpart == 0):
+                return True
             elif self._wholepart == other.wholepart:
                 if self._fractionalpart < other.fractionalpart:
                     return True
@@ -461,12 +461,16 @@ class TimingPoint:
 
     def equivalent(self, other):
         if isinstance(other, TimingPoint):
+            return self.adjacent(other) or self.__eq__(other)
+
+    def adjacent(self, other):
+        if isinstance(other, TimingPoint):
             if self.fractionalpart == 1 and other.fractionalpart == 0 and (self.wholepart + 1 == other.wholepart):
                 return True
             elif other.fractionalpart == 1 and self.fractionalpart == 0 and (other.wholepart + 1 == self.wholepart):
                 return True
             else:
-                return self == other
+                return False
 
     def __gt__(self, other):
         if isinstance(other, TimingPoint):
@@ -478,6 +482,20 @@ class TimingPoint:
 
     def __ge__(self, other):
         return not self.__lt__(other)
+
+    def before(self, other):
+        if isinstance(other, TimingPoint):
+            return self.__lt__(other)
+        elif isinstance(other, TimingInterval):
+            return other.after(self)
+        return False
+
+    def after(self, other):
+        if isinstance(other, TimingPoint):
+            return self.__gt__(other)
+        elif isinstance(other, TimingInterval):
+            return other.before(self)
+        return False
 
 
 # TODO KV comments
@@ -514,6 +532,40 @@ class TimingInterval:
     def containsinterval(self, otherinterval):
         return self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint
 
+    def before(self, other):
+        if isinstance(other, TimingPoint):
+            return self.endpoint < other
+        elif isinstance(other, TimingInterval):
+            if other.ispoint():
+                return self.endpoint < other.startpoint
+            elif not self.ispoint():
+                return self.endpoint <= other.startpoint
+            else:
+                return other.after(self)
+        return False
+
+    def after(self, other):
+        if isinstance(other, TimingPoint):
+            return self.startpoint > other
+        elif isinstance(other, TimingInterval):
+            if other.ispoint():
+                return self.startpoint > other.endpoint
+            elif not self.ispoint():
+                return self.startpoint >= other.endpoint
+            else:
+                return other.before(self)
+        return False
+
+    def adjacent(self, other):
+        if isinstance(other, TimingInterval):
+            return self.endpoint.equivalent(other.startpoint) or other.endpoint.equivalent(self.startpoint)
+        return False
+
+    def __eq__(self, other):
+        if isinstance(other, TimingInterval):
+            return self.startpoint == other.startpoint and self.endpoint == other.endpoint
+        return False
+
     # TODO KV - overlapping and/or contianing checking methods?
 
     def __repr__(self):
@@ -545,6 +597,7 @@ class Sign:
 
     def __init__(self, signlevel_info=None, serializedsign=None):
         if serializedsign:
+            self._uniqueid = serializedsign['unique id']
             self._signlevel_information = serializedsign['signlevel']
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
@@ -553,6 +606,7 @@ class Sign:
             self.orientationmodules = serializedsign['ori modules']
             self.handshapemodules = serializedsign['han modules']
         else:
+            self._uniqueid = int(datetime.timestamp(datetime.now()))
             self._signlevel_information = signlevel_info
             # if isinstance(signlevel_info, SignLevelInformation):
             #     self._signlevel_information = signlevel_info
@@ -575,6 +629,7 @@ class Sign:
 
     def serialize(self):
         return {
+            'unique id': self._uniqueid,
             'signlevel': self._signlevel_information,
             'type': self._signtype,
             'xslot structure': self.xslotstructure,

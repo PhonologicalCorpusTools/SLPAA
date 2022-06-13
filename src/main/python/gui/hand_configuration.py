@@ -809,9 +809,9 @@ class ConfigHand(QWidget):
     slot_leave = pyqtSignal()
     slot_finish_edit = pyqtSignal(QLineEdit, dict, dict)
 
-    def __init__(self, hand_number, predefined_ctx, parent=None):
+    def __init__(self, predefined_ctx, parent=None):  # hand_number,
         super().__init__(parent=parent)
-        self.hand_number = hand_number
+        # self.hand_number = hand_number
         self.predefined_ctx = predefined_ctx
         self.setStyleSheet('QWidget{margin: 0; padding: 0}')
 
@@ -981,14 +981,60 @@ class Config(QGroupBox):
         # self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
+        self.add_slot1()
         self.generate_hands()
+        self.add_options()
+
+    def add_options(self):
+        option_frame = QGroupBox(parent=self)
+        option_layout = QHBoxLayout()
+        option_layout.setSpacing(5)
+        # option_layout.addStretch()
+        option_frame.setLayout(option_layout)
+        self.main_layout.addWidget(option_frame)
+        self.estimated = QCheckBox('Estimated', parent=self)
+        self.uncertain = QCheckBox('Uncertain', parent=self)
+        self.incomplete = QCheckBox('Incomplete', parent=self)
+        option_layout.addWidget(self.estimated)
+        option_layout.addWidget(self.uncertain)
+        option_layout.addWidget(self.incomplete)
+        option_layout.addStretch()
+
+    def add_slot1(self):
+        slot1_box = QGroupBox(parent=self)
+        slot1_layout = QHBoxLayout()
+        slot1_layout.setSpacing(5)
+        # slot1_layout.addStretch()
+        # self.main_layout.addLayout(slot1_layout)
+
+        left_bracket = QLabel('[')
+        bracketfont = left_bracket.font()
+        bracketfont.setPixelSize(20)
+        left_bracket.setFont(bracketfont)
+        left_bracket.setFixedSize(QSize(10, 30))
+        left_bracket.setAlignment(Qt.AlignCenter)
+        slot1_layout.addWidget(left_bracket)
+
+        self.slot1 = QCheckBox('Forearm', parent=self)
+        slot1_layout.addWidget(self.slot1)
+
+        right_bracket = QLabel(']1')
+        right_bracket.setFont(bracketfont)
+        right_bracket.setFixedSize(QSize(22, 30))
+        right_bracket.setAlignment(Qt.AlignCenter)
+        slot1_layout.addWidget(right_bracket)
+
+        slot1_layout.addStretch()
+
+        slot1_box.setLayout(slot1_layout)
+        self.main_layout.addWidget(slot1_box)
 
     def generate_hands(self):
-        self.hand1 = ConfigHand(1, self.predefined_ctx, parent=self)
-        self.hand1.slot_on_focus.connect(self.slot_on_focus.emit)
-        self.hand1.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
-        self.hand1.slot_leave.connect(self.slot_leave.emit)
-        self.hand1.slot_finish_edit.connect(self.slot_finish_edit.emit)
+        self.hand = ConfigHand(self.predefined_ctx, parent=self)  # 1,
+        self.hand.slot_on_focus.connect(self.slot_on_focus.emit)
+        self.hand.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
+        self.hand.slot_leave.connect(self.slot_leave.emit)
+        self.hand.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
         # TODO KV delete
         # self.hand2 = ConfigHand(2, self.predefined_ctx, parent=self)
@@ -999,10 +1045,25 @@ class Config(QGroupBox):
 
         self.predefined_button = QPushButton("Load predefined handshape")
         self.predefined_button.clicked.connect(self.load_predefined)
-        self.main_layout.addWidget(self.predefined_button)
-        self.main_layout.addWidget(self.hand1)
-        # TODO KV delete
-        # self.main_layout.addWidget(self.hand2)
+        # hand_layout = QHBoxLayout()
+        # hand_layout.addWidget(self.predefined_button)
+        # hand_layout.addWidget(self.hand)
+        # self.main_layout.addLayout(hand_layout)
+        hand_box = QGroupBox(parent=self)
+        hand_layout = QVBoxLayout()
+        hand_layout.setSpacing(5)
+        hand_box.setLayout(hand_layout)
+
+        predefined_layout = QHBoxLayout()
+        predefined_layout.addWidget(self.predefined_button)
+        predefined_layout.addStretch()
+
+        hand_layout.addLayout(predefined_layout)
+        hand_layout.addWidget(self.hand)
+        self.main_layout.addWidget(hand_box)
+        # self.main_layout.addLayout(hand_layout)
+        # self.main_layout.addWidget(self.predefined_button)
+        # self.main_layout.addWidget(self.hand)
 
     def load_predefined(self):
         predefined_handshape_dialog = PredefinedHandshapeDialog(self.predefined_ctx, parent=self)
@@ -1010,26 +1071,26 @@ class Config(QGroupBox):
         predefined_handshape_dialog.show()
 
     def handle_set_predefined(self, transcription_list):
-        self.hand1.set_predefined(transcription_list)
+        self.hand.set_predefined(transcription_list)
 
     def set_value(self, config):
-        self.hand1.set_value(config.hand1)
+        self.hand.set_value(config.hand)
         # TODO KV delete
         # self.hand2.set_value(config.hand2)
 
     def insert_radio_button(self):
-        button1 = self.hand1.insert_radio_button()
+        button1 = self.hand.insert_radio_button()
         # TODO KV delete
         # button2 = self.hand2.insert_radio_button()
         return button1  #, button2
 
     def remove_radio_button(self):
-        self.hand1.remove_radio_button()
+        self.hand.remove_radio_button()
         # TODO KV delete
         # self.hand2.remove_radio_button()
 
     def clear(self):
-        self.hand1.clear()
+        self.hand.clear()
         # TODO KV delete
         # self.hand2.clear()
 
@@ -1042,7 +1103,7 @@ class Config(QGroupBox):
         #         # self.hand2.get_value()
         #     ]
         # }
-        return self.hand1.get_value()
+        return self.hand.get_value()
 
 
 class ConfigGlobal(QGroupBox):

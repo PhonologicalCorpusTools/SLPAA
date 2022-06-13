@@ -444,7 +444,7 @@ class MainWindow(QMainWindow):
                                     sign.global_handshape_information.incomplete,
                                     sign.global_handshape_information.fingerspelled,
                                     sign.global_handshape_information.initialized]
-                            info.extend(sign.handshape_transcription.config.hand1.get_hand_transcription_list())
+                            info.extend(sign.handshape_transcription.config.hand.get_hand_transcription_list())
                             # info.extend(sign.handshape_transcription.config1.hand2.get_hand_transcription_list())
                             # info.extend(sign.handshape_transcription.config2.hand1.get_hand_transcription_list())
                             # info.extend(sign.handshape_transcription.config2.hand2.get_hand_transcription_list())
@@ -466,9 +466,9 @@ class MainWindow(QMainWindow):
                                     sign.global_handshape_information.incomplete,
                                     sign.global_handshape_information.fingerspelled,
                                     sign.global_handshape_information.initialized,
-                                    sign.handshape_transcription.config.hand1.get_hand_transcription_string(),
+                                    sign.handshape_transcription.config.hand.get_hand_transcription_string(),
                                     sign.handshape_transcription.config.hand2.get_hand_transcription_string(),
-                                    sign.handshape_transcription.config2.hand1.get_hand_transcription_string(),
+                                    sign.handshape_transcription.config2.hand.get_hand_transcription_string(),
                                     sign.handshape_transcription.config2.hand2.get_hand_transcription_string()]
                             transcription_writer.writerow(info)
 
@@ -1022,8 +1022,8 @@ class MainWindow(QMainWindow):
 
     def insert_predefined_buttons(self):
         focused_hands = [
-            self.transcription_scroll.config.hand1.hasFocus(), self.transcription_scroll.config.hand2.hasFocus(),
-            self.transcription_scroll.config2.hand1.hasFocus(), self.transcription_scroll.config2.hand2.hasFocus()
+            self.transcription_scroll.config.hand.hasFocus(), self.transcription_scroll.config.hand2.hasFocus(),
+            self.transcription_scroll.config2.hand.hasFocus(), self.transcription_scroll.config2.hand2.hasFocus()
         ]
         if any(focused_hands):
             focused_hand = focused_hands.index(True) + 1

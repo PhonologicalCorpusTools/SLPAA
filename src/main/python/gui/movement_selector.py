@@ -48,7 +48,7 @@ from gui.movement_view import MovementTreeModel, MovementTree, MovementPathsProx
 # from gui.handshape_selector import HandshapeSelectorDialog
 # from lexicon.lexicon_classes import GlobalHandshapeInformation
 from gui.module_selector import ModuleSpecificationLayout
-from gui.xslot_graphics import XslotLinkingLayout
+# from gui.xslot_graphics import XslotLinkingLayout
 from gui.module_selector import HandSelectionLayout
 
 

@@ -45,7 +45,7 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.xslot_graphics import XslotLinkingLayout, XslotLinkingLayoutNew
+from gui.xslot_graphics import XslotLinkingLayout
 
 
 # base class for various module specification layouts to inherit from
@@ -82,7 +82,7 @@ class ModuleSelectorDialog(QDialog):
         self.hands_layout = HandSelectionLayout(hands)
         main_layout.addLayout(self.hands_layout)
         # self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
-        self.xslot_layout = XslotLinkingLayoutNew(xslotstructure, self.mainwindow)
+        self.xslot_layout = XslotLinkingLayout(xslotstructure, self.mainwindow, parentwidget=self)
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addLayout(self.xslot_layout)
 
@@ -134,7 +134,7 @@ class ModuleSelectorDialog(QDialog):
 
         elif standard == QDialogButtonBox.Save:  # save and add another
             # save info and then refresh screen to enter next module
-            signalargstuple = (self.module_layout.get_savedmodule_args() + (self.hands_layout.gethands(),))
+            signalargstuple = (self.module_layout.get_savedmodule_args() + (self.hands_layout.gethands(), self.xslot_layout.gettimingintervals()))
             self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
             # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
             # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
@@ -145,7 +145,7 @@ class ModuleSelectorDialog(QDialog):
         elif standard == QDialogButtonBox.Apply:  # save and close
             # save info and then close dialog
             # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
-            signalargstuple = (self.module_layout.get_savedmodule_args()+(self.hands_layout.gethands(),))
+            signalargstuple = (self.module_layout.get_savedmodule_args() + (self.hands_layout.gethands(), self.xslot_layout.gettimingintervals()))
             self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
             self.accept()
 
@@ -161,8 +161,10 @@ class HandSelectionLayout(QHBoxLayout):
     def __init__(self, hands=None, **kwargs):
         super().__init__(**kwargs)
 
+        self.hands_label = QLabel("This module applies to :")
         self.hand1_checkbox = QCheckBox("Hand 1")
         self.hand2_checkbox = QCheckBox("Hand 2")
+        self.addWidget(self.hands_label)
         self.addWidget(self.hand1_checkbox)
         self.addWidget(self.hand2_checkbox)
         self.addStretch()

@@ -43,9 +43,9 @@ class HandTranscriptionPanel(QScrollArea):
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
 
-        self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
+        # self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
         # main_layout.addWidget(self.global_info, 0, 0, 2, 1)
-        main_layout.addWidget(self.global_info)
+        # main_layout.addWidget(self.global_info)
 
         config_layout = QVBoxLayout()
 
@@ -132,7 +132,7 @@ class HandTranscriptionPanel(QScrollArea):
             hand = self.selected_hand_group.checkedId()
 
         if hand == 1:
-            return self.config.hand1.get_hand_transcription_list()
+            return self.config.hand.get_hand_transcription_list()
         elif hand == 2:
             return self.config.hand2.get_hand_transcription_list()
         # TODO KV delete
@@ -146,7 +146,7 @@ class HandTranscriptionPanel(QScrollArea):
             hand = self.selected_hand_group.checkedId()
 
         if hand == 1:
-            self.config.hand1.set_predefined(transcription_list)
+            self.config.hand.set_predefined(transcription_list)
         elif hand == 2:
             self.config.hand2.set_predefined(transcription_list)
         # TODO KV delete

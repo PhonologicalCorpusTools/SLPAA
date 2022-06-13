@@ -448,8 +448,10 @@ class XslotPanel(QScrollArea):
 
         self.scene.modulerect_clicked.connect(self.handle_modulebutton_clicked)
 
-    def handle_modulebutton_clicked(self, moduletype, graphicsitemtext):
+    def handle_modulebutton_clicked(self, modulebutton):
         # TODO KV
+        moduletype = modulebutton.moduletype
+        graphicsitemtext = modulebutton.text
         print("you clicked a", moduletype, "button, associated with", graphicsitemtext)
         if moduletype == "signtype":
             self.handle_signtype_clicked()

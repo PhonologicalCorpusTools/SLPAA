@@ -1,18 +1,15 @@
 from fractions import Fraction
+from num2words import num2words
+import itertools
 
 from PyQt5.QtWidgets import (
     QGraphicsRectItem,
-    QGridLayout,
-    QRadioButton,
-    QButtonGroup,
     QLabel,
     QHBoxLayout,
     QGraphicsView,
     QGraphicsScene,
-    QGraphicsItem,
-    QGraphicsEllipseItem,
     QVBoxLayout,
-    QGraphicsObject
+    QMessageBox
 )
 
 from PyQt5.QtGui import (
@@ -23,7 +20,6 @@ from PyQt5.QtGui import (
     QPixmap,
     QIcon,
     QTextOption,
-    QPainterPath,
     QFont
 )
 
@@ -37,18 +33,20 @@ from PyQt5.QtCore import (
     QEvent
 )
 
+from lexicon.lexicon_classes import TimingPoint, TimingInterval
+
 
 class XslotRect(QGraphicsRectItem):
 
-    def __init__(self, parentwidget, text="", moduletype=None, sign=None, proportionfill=1, selected=False):
+    def __init__(self, parentwidget, xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="", moduletype=None, sign=None, proportionfill=1, selected=False):
         super().__init__()
-        self.selectedbrush = QBrush(Qt.black)
-        self.unselectedbrush = QBrush(Qt.white)
-        self.hoverbrush = QBrush(Qt.cyan)
+        # self.selectedbrush = QBrush(Qt.black)
+        # self.unselectedbrush = QBrush(Qt.white)
+        # self.hoverbrush = QColor(0, 120, 215)  # Qt.cyan
         self.inactivebrush = QBrush(Qt.gray)
-        self.selectedpen = QPen(Qt.white)
-        self.unselectedpen = QPen(Qt.black)
-        self.hoverpen = QPen(Qt.black)
+        # self.selectedpen = QPen(Qt.white)
+        # self.unselectedpen = QPen(Qt.black)
+        # self.hoverpen = QPen(Qt.black)
         self.setAcceptHoverEvents(True)
         self.parentwidget = parentwidget
         self.text = text
@@ -59,51 +57,47 @@ class XslotRect(QGraphicsRectItem):
         self.selected = selected
         # self.mainwindow = mainwindow
 
+        self.xslot_whole = xslot_whole  # if 0, it's the whole sign rather than a specific xslot
+        self.xslot_part_start = Fraction(0) if xslot_part_start is None else xslot_part_start
+        self.xslot_part_end = Fraction(1) if xslot_part_end is None else xslot_part_end
+
     def hoverEnterEvent(self, event):
-        # if self.moduletype in ["signtype", "movement", "handshape"]:
-        # self.setBrush(self.hoverbrush)
-        # self.setPen(self.hoverpen)
         self.hover = True
         self.update()
 
     def hoverLeaveEvent(self, event):
-        # if self.moduletype in ["signtype", "movement", "handshape"]:
-        # self.setBrush(self.restingbrush())
-        # self.setPen(self.restingpen())
         self.hover = False
         self.update()
 
     def currentbrush(self):
         if self.hover:
-            return self.hoverbrush
+            return QColor(0, 120, 215)  # self.hoverbrush
         else:
             return self.restingbrush()
 
     def currentpen(self):
         if self.hover:
-            return self.hoverpen
+            return QPen(Qt.black)  # self.hoverpen
         else:
             return self.restingpen()
 
     def restingbrush(self):
         if self.selected:
-            return self.selectedbrush
+            return QBrush(Qt.black)  # self.selectedbrush
         else:
-            return self.unselectedbrush
+            return QBrush(Qt.white)  # self.unselectedbrush
 
     def restingpen(self):
         if self.selected:
-            return self.selectedpen
+            return QPen(Qt.white)  # self.selectedpen
         else:
-            return self.unselectedpen
+            return QPen(Qt.black)  # self.unselectedpen
 
     def paint(self, painter, option, widget):
         # super().paint(painter, option, widget)
 
         # turn pen off while filling rectangle
-        pen = painter.pen()
-        pen.setStyle(Qt.NoPen)
-        painter.setPen(pen)
+        painter.setPen(Qt.NoPen)
 
         # fill active percentage of rectangle
         painter.setBrush(self.currentbrush())
@@ -124,10 +118,7 @@ class XslotRect(QGraphicsRectItem):
         painter.setBrush(brush)
 
         # outline rectangle
-        pen.setStyle(Qt.SolidLine)
-        pen.setColor(Qt.black)
-        pen.setWidth(5)
-        painter.setPen(pen)
+        painter.setPen(self.currentpen())
         entirerect = self.rect()
         painter.drawRect(entirerect)
 
@@ -135,169 +126,40 @@ class XslotRect(QGraphicsRectItem):
         textoption = QTextOption(Qt.AlignCenter)
         # textoption.setAlignment(Qt.AlignCenter)
         font = painter.font()
-        font.setPixelSize(35)
+        font.setPixelSize(18)
         painter.setFont(font)
-        pen.setColor
         painter.drawText(self.rect(), self.text, textoption)
 
     def toggle(self):
         self.selected = not self.selected
         self.update()
 
-# from gui.movement_selector import MovementSelectorDialog
-# from gui.signtype_selector import SigntypeSelectorDialog
-# from gui.handshape_selector import HandshapeSelectorDialog
-# from lexicon.lexicon_classes import GlobalHandshapeInformation
 
 class XslotRectLinkingButton(XslotRect):
-    # linkingrect_clicked = pyqtSignal()  # TODO KV
-    #
+
     def mousePressEvent(self, event):
-        print("rectangle pressed")
+        pass
 
     def mouseReleaseEvent(self, event):
         self.toggle()
-        # self.linkingrect_clicked.emit(self.moduletype)
-
-class XslotSummaryScene(QGraphicsScene):
-    modulerect_clicked = pyqtSignal(str, str)
-
+        self.parentwidget.linkingrect_clicked.emit(self)  # self.xslot_whole, self.xslot_part_start, self.xslot_part_end)
 
 class XslotRectModuleButton(XslotRect):
-    # modulerect_clicked = pyqtSignal(str)
 
-    # def __init__(self, parentwidget, text="", moduletype=None, sign=None, mainwindow=None, restingbrush=QBrush(Qt.green), hoverbrush=QBrush(Qt.yellow), proportionfill=1):
-    #     super().__init__()
-    #     self.restingbrush = restingbrush
-    #     self.hoverbrush = hoverbrush
-    #     self.setAcceptHoverEvents(True)
-    #     self.parentwidget = parentwidget
-    #     self.text = text
-    #     self.moduletype = moduletype
-    #     self.hover = False
-    #     self.proportionfill = proportionfill
-    #     self.sign = sign
-    #     self.mainwindow = mainwindow
-    # #
     def mousePressEvent(self, event):
-        print("rectangle pressed")
+        pass
 
     def mouseReleaseEvent(self, event):
-        # print("rectangle released")
-        # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
-        self.scene().modulerect_clicked.emit(self.moduletype, self.text)
-        #
-        # if self.moduletype == "signlevel":
-        #     self.handle_signlevelrebutton_click()
-        # elif self.moduletype == "xslot":
-        #     self.handle_xslotbutton_click()
-        # elif self.moduletype == "signtype":
-        #     self.handle_signtypebutton_click()
-        # elif self.moduletype == "movement":
-        #     self.handle_movementbutton_click()
-        # elif self.moduletype == "handshape":
-        #     self.handle_handshapebutton_click()
-    #
-    # # TODO KV don't want this duplicated (also in signsummarypanel)
-    # def handle_movementbutton_click(self):
-    #     # button = self.sender()
-    #     # # TODO KV
-    #     editing_existing = True  # button.property("existingmodule")
-    #     existing_key = self.text
-    #     if "." in existing_key:
-    #         dot_idx = existing_key.index(".")
-    #         existing_key = existing_key[dot_idx+1:]
-    #     moduletoload = self.sign.movementmodules[existing_key][0]
-    #     hands_dict = self.sign.movementmodules[existing_key][1]
-    #     movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, hands=hands_dict)  # , parent=self)
-    #     movement_selector.saved_movement.connect(lambda movementtree, hands: self.handle_save_movement(movementtree, hands, existing_key))
-    #     movement_selector.exec_()
-    #
-    # def handle_save_movement(self, movementtree, hands_dict, existing_key):
-    #     if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-    #         self.sign.addmovementmodule(movementtree, hands_dict)
-    #     else:
-    #         self.sign.movementmodules[existing_key] = [movementtree, hands_dict]
-    #     # TODO KV
-    #     # self.sign_updated.emit(self.sign)
-    #
-    # # TODO KV don't want this duplicated (also in signsummarypanel)
-    # def handle_signtypebutton_click(self):
-    #     signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow)  # , parent=self)
-    #     signtype_selector.saved_signtype.connect(self.handle_save_signtype)
-    #     signtype_selector.exec_()
-    #
-    # def handle_save_signtype(self, signtype):
-    #     self.sign.signtype = signtype
-    #     self.sign_updated.emit(self.sign)
-    #
-    # # TODO KV don't want this duplicated (also in signsummarypanel)
-    # def handle_handshapebutton_click(self):
-    #     editing_existing = True  # button.property("existingmodule")
-    #     existing_key = self.text
-    #     moduletoload = self.sign.handshapemodules[existing_key]
-    #     handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload)  # , parent=self)
-    #     handshape_selector.saved_handshape.connect(lambda hs_global, hs_transcription: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, existing_key))
-    #     handshape_selector.exec_()
-    #
-    # def handle_save_handshape(self, hs_globalinfo, hs_transcription, existing_key):
-    #     if existing_key is None or existing_key not in self.sign.handshapemodules.keys():
-    #         self.sign.addhandshapemodule(hs_globalinfo, hs_transcription)
-    #     else:
-    #         self.sign.handshapemodules[existing_key] = [hs_globalinfo, hs_transcription]
-    #     # self.sign_updated.emit(self.sign)
-    #     # self.update_handshapemodulebuttons()
-
-    # def mousePressEvent(self, event):
-    #     print("rectangle pressed")
-    #
-    # def hoverEnterEvent(self, event):
-    #     if self.moduletype in ["signtype", "movement", "handshape"]:
-    #         self.setBrush(self.hoverbrush)
-    #         self.hover = True
-    #
-    # def hoverLeaveEvent(self, event):
-    #     if self.moduletype in ["signtype", "movement", "handshape"]:
-    #         self.setBrush(self.restingbrush)
-    #         self.hover = False
-    #
-    # def paint(self, painter, option, widget):
-    #     # super().paint(painter, option, widget)
-    #     pen = painter.pen()
-    #     pen.setStyle(Qt.NoPen)
-    #     painter.setPen(pen)
-    #
-    #     painter.setBrush(self.hoverbrush if self.hover else self.restingbrush)
-    #     fractionalrect = self.rect()
-    #     fractionalrect.setRight(self.rect().left() + (self.rect().width() * self.proportionfill))
-    #     painter.drawRect(fractionalrect)
-    #
-    #     brush = painter.brush()
-    #     brush.setStyle(Qt.NoBrush)
-    #     painter.setBrush(brush)
-    #     pen.setStyle(Qt.SolidLine)
-    #     pen.setColor(Qt.black)
-    #     pen.setWidth(5)
-    #     painter.setPen(pen)
-    #     entirerect = self.rect()
-    #     painter.drawRect(entirerect)
-    #
-    #     textoption = QTextOption(Qt.AlignCenter)
-    #     # textoption.setAlignment(Qt.AlignCenter)
-    #     font = painter.font()
-    #     font.setPixelSize(35)
-    #     painter.setFont(font)
-    #     painter.drawText(self.rect(), self.text, textoption)
-
-    # def boundingRect(self):
-    #     penWidth = self.pen().width()
-    #     return QRectF(-radius - penWidth / 2, -radius - penWidth / 2,
-    #                   diameter + penWidth, diameter + penWidth)
+        self.scene().modulerect_clicked.emit(self)
 
 
-class XslotLinkingLayoutNew(QVBoxLayout):
+class XslotSummaryScene(QGraphicsScene):
+    modulerect_clicked = pyqtSignal(XslotRectModuleButton)
 
-    def __init__(self, xslotstructure, mainwindow, **kwargs):
+
+class XslotLinkingLayout(QVBoxLayout):
+
+    def __init__(self, xslotstructure, mainwindow, parentwidget, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         xslotstruct = self.mainwindow.current_sign.xslotstructure
@@ -308,274 +170,260 @@ class XslotLinkingLayoutNew(QVBoxLayout):
             "Click on the relevant point(s) or interval(s) to link this module.")  # ("Link this module to the interval/point")
         self.addWidget(self.link_intro_label)
 
-        self.linkinglayout = QGridLayout()
-        # don't waste space
-        self.linkinglayout.setVerticalSpacing(0)
-        self.linkinglayout.setContentsMargins(0, 0, 0, 0)
+        self.xslotlinkscene = XslotLinkScene(parentwidget=parentwidget, mainwindow=self.mainwindow)
+        self.xslotlinkview = QGraphicsView(self.xslotlinkscene)
+        self.xslotlinkview.setFixedHeight(self.xslotlinkscene.scene_height+50)
+        # self.xslotlinkview.setFixedSize(self.xslotlinkscene.scene_width+100, self.xslotlinkscene.scene_height+50)
+        # self.xslotlinkview.setSceneRect(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height)
+        # self.xslotlinkview.fitInView(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height, Qt.KeepAspectRatio)
+        # self.xslotvlinkview.setGeometry(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height)
+        self.addWidget(self.xslotlinkview)
 
-        self.xslotlinkscene = XslotLinkScene(mainwindow=self.mainwindow)
-        self.xslotvlinkview = QGraphicsView()  # self.xslotlinkscene)
-        self.xslotvlinkview.setGeometry(0, 0, 2000, 300)
-        self.addWidget(self.xslotvlinkview)
-
-        self.addLayout(self.linkinglayout)
-
-class XslotLinkingLayout(QVBoxLayout):
-
-    def __init__(self, start=None, end=None, mainwindow=None, **kwargs):
-        super().__init__(**kwargs)
-        self.mainwindow = mainwindow
-        xslotstruct = self.mainwindow.current_sign.xslotstructure
-        if xslotstruct is None:
-            print("no x-slot structure!")
-
-        self.link_intro_label = QLabel("Click on the relevant point(s) or interval(s) to link this module.")  #("Link this module to the interval/point")
-        self.addWidget(self.link_intro_label)
-
-        self.linkinglayout = QGridLayout()
-        # don't waste space
-        self.linkinglayout.setVerticalSpacing(0)
-        self.linkinglayout.setContentsMargins(0, 0, 0, 0)
-
-        self.link_from_label = QLabel("from")
-        self.link_to_label = QLabel("to")
-
-        self.greenbrush = QBrush(Qt.green)
-        self.bluebrush = QBrush(Qt.blue)
-        self.blackpen = QPen(Qt.black)
-        self.blackpen.setWidth(5)
-
-        self.xslotlinkscene = XslotLinkScene(mainwindow=self.mainwindow)
-        self.xslotvlinkview = QGraphicsView(self.xslotlinkscene)
-        self.xslotvlinkview.setGeometry(0, 0, 2000, 300)
-        self.addWidget(self.xslotvlinkview)
+    def gettimingintervals(self):
+        return self.xslotlinkscene.xslotlinks
 
 
-        #
-        # self.link_from_scene = QGraphicsScene()
-        # # TODO circle graphics
-        #
-        # self.link_from_view = QGraphicsView(self.scene, self)  # XslotGraphicsView(self.scene, self)
-        # # self.link_from_view.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        # self.link_from_view.setGeometry(0, 0, 1000, 100)
-        # # self.setMinimumSize(1000,1000)
+class XSlotCheckbox(QGraphicsRectItem):
 
+    def __init__(self, xslot_whole, xslot_part, parentwidget, textsize=30, penwidth=2, checked=False):  # sidelength=20
+        super().__init__()
+        # self.mainwindow = mainwindow
+        self.parentwidget = parentwidget
 
+        # self.sidelength = sidelength
+        self.textsize = textsize
+        self.penwidth = penwidth
+        self.checked = checked
 
+        self.setAcceptHoverEvents(True)
+        self.hover = False
 
+        self.xslot_whole = xslot_whole
+        self.xslot_part = xslot_part
 
+    def currentpen(self):
+        pen = QPen()
+        pen.setStyle(Qt.SolidLine)
+        pen.setWidth(self.penwidth)
+        pen.setColor(QColor(0,120,215) if self.hover else Qt.black)
+        return pen
 
-        # self.link_xslots_img = None  # TODO bar graphics
-        # self.link_to_radios = None  # TODO circle graphics
-        #
-        # self.linkinglayout.addWidget(self.link_from_label, 0, 0, 1, 1, Qt.AlignRight)
-        # self.linkinglayout.addWidget(self.link_from_radios, 0, 1, 1, 1, Qt.AlignLeft)
-        # self.linkinglayout.addWidget(self.link_xslots_img, 1, 1, 1, 1, Qt.AlignLeft)
-        # self.linkinglayout.addWidget(self.link_to_label, 2, 0, 1, 1, Qt.AlignRight)
-        # self.linkinglayout.addWidget(self.link_to_radios, 2, 1, 1, 1, Qt.AlignLeft)
+    def hoverEnterEvent(self, event):
+        # if self.moduletype in ["signtype", "movement", "handshape"]:
+        # self.setBrush(self.hoverbrush)
+        # self.setPen(self.hoverpen)
+        self.hover = True
+        self.update()
 
-        self.addLayout(self.linkinglayout)
+    def hoverLeaveEvent(self, event):
+        # if self.moduletype in ["signtype", "movement", "handshape"]:
+        # self.setBrush(self.restingbrush())
+        # self.setPen(self.restingpen())
+        self.hover = False
+        self.update()
 
-        # self.link_start_spin = QSpinBox()
-        # xslotstruct = self.mainwindow.current_sign.xslotstructure
-        # self.link_start_spin.setRange(1, xslotstruct.number + (len(xslotstruct.partials) > 0))
-        # if start > 0:
-        #     self.link_start_spin.setValue(start)
-        # self.link_end_label = QLabel("to x")
-        # self.link_end_spin = QSpinBox()
-        # self.link_end_spin.setRange(1, xslotstruct.number + (len(xslotstruct.partials) > 0))
-        # if end > 0:
-        #     self.link_start_spin.setValue(end)
-        #
-        # self.addWidget(self.link_start_label)
-        # self.addWidget(self.link_start_spin)
-        # self.addWidget(self.link_end_label)
-        # self.addWidget(self.link_end_spin)
+    def paint(self, painter, option, widget):
+        # super().paint(painter, option, widget)
 
-    # def handle_rect_clicked(self, moduletype):
-    #
-    #     if moduletype == "signlevel":
-    #         self.handle_signlevelbutton_click()
-    #     elif moduletype == "xslot":
-    #         self.handle_xslotbutton_click()
-    #     elif moduletype == "signtype":
-    #         self.handle_signtypebutton_click()
-    #     elif moduletype == "movement":
-    #         self.handle_movementbutton_click()
-    #     elif moduletype == "handshape":
-    #         self.handle_handshapebutton_click()
+        # turn off brush - we're just drawing text
+        brush = painter.brush()
+        brush.setStyle(Qt.NoBrush)
+        painter.setBrush(brush)
 
-    # TODO KV don't want this duplicated (also in signsummarypanel)
-    # def handle_movementbutton_click(self):
-    #     # button = self.sender()
-    #     # # TODO KV
-    #     editing_existing = True  # button.property("existingmodule")
-    #     existing_key = self.text
-    #     if "." in existing_key:
-    #         dot_idx = existing_key.index(".")
-    #         existing_key = existing_key[dot_idx+1:]
-    #     moduletoload = self.sign.movementmodules[existing_key][0]
-    #     hands_dict = self.sign.movementmodules[existing_key][1]
-    #     movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, hands=hands_dict)  # , parent=self)
-    #     movement_selector.saved_movement.connect(lambda movementtree, hands: self.handle_save_movement(movementtree, hands, existing_key))
-    #     movement_selector.exec_()
+        painter.setPen(self.currentpen())
+        rect = self.rect()
+        rect.setHeight(rect.height()+5)
 
-    # def handle_save_movement(self, movementtree, hands_dict, existing_key):
-    #     if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-    #         self.sign.addmovementmodule(movementtree, hands_dict)
-    #     else:
-    #         self.sign.movementmodules[existing_key] = [movementtree, hands_dict]
-    #     # TODO KV
-    #     # self.sign_updated.emit(self.sign)
-    #
-    # # TODO KV don't want this duplicated (also in signsummarypanel)
-    # def handle_signtypebutton_click(self):
-    #     signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow)  # , parent=self)
-    #     signtype_selector.saved_signtype.connect(self.handle_save_signtype)
-    #     signtype_selector.exec_()
-    #
-    # def handle_save_signtype(self, signtype):
-    #     self.sign.signtype = signtype
-    #     self.sign_updated.emit(self.sign)
-    #
-    # # TODO KV don't want this duplicated (also in signsummarypanel)
-    # def handle_handshapebutton_click(self):
-    #     editing_existing = True  # button.property("existingmodule")
-    #     existing_key = self.text
-    #     moduletoload = self.sign.handshapemodules[existing_key]
-    #     handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload)  # , parent=self)
-    #     handshape_selector.saved_handshape.connect(lambda hs_global, hs_transcription: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, existing_key))
-    #     handshape_selector.exec_()
-    #
-    # def handle_save_handshape(self, hs_globalinfo, hs_transcription, existing_key):
-    #     if existing_key is None or existing_key not in self.sign.handshapemodules.keys():
-    #         self.sign.addhandshapemodule(hs_globalinfo, hs_transcription)
-    #     else:
-    #         self.sign.handshapemodules[existing_key] = [hs_globalinfo, hs_transcription]
-    #     # self.sign_updated.emit(self.sign)
-    #     # self.update_handshapemodulebuttons()
+        textoption = QTextOption(Qt.AlignCenter)
+        font = painter.font()
+        font.setPixelSize(self.textsize)
+        painter.setFont(font)
+        # draw check or empty box
+        painter.drawText(rect, "☑" if self.checked else "☐", textoption)
+
+    def toggle(self):
+        self.checked = not self.checked
+        self.update()
+
+    def mousePressEvent(self, event):
+        pass
+
+    def mouseReleaseEvent(self, event):
+        self.toggle()
+        self.parentwidget.checkbox_toggled.emit(self)  # self.xslot_whole, self.xslot_part)
 
 
 
 class XslotLinkScene(QGraphicsScene):
-    def __init__(self, mainwindow=None):
+    checkbox_toggled = pyqtSignal(XSlotCheckbox)
+    linkingrect_clicked = pyqtSignal(XslotRectLinkingButton)
+
+    def __init__(self, parentwidget, mainwindow=None):
         super().__init__()
 
         self.mainwindow = mainwindow
-        self.scene_width = 2000
-        self.rect_height = 50
-        self.radio_radius = 10
-
-        self.greenbrush = QBrush(Qt.green)
-        self.bluebrush = QBrush(Qt.blue)
-        self.blackpen = QPen(Qt.black)
-        self.blackpen.setWidth(5)
+        self.parentwidget = parentwidget
+        self.scene_width = 1500
+        self.rect_height = 25
+        self.checkbox_size = 25
+        self.pen_width = 2
+        self.scene_height = 0
 
         xslotstruct = self.mainwindow.current_sign.xslotstructure
         self.numwholes = xslotstruct.number
         self.additionalfrac = xslotstruct.additionalfraction
-        self.fractionalpoints = xslotstruct.fractionalpoints
-        self.fractionalpoints.extend([Fraction(0,1), Fraction(1,1)])
+        self.avail_fracs = [f for f in list(self.mainwindow.partial_defaults.keys()) if
+                            self.mainwindow.app_settings['signdefaults']['partial_slots'][f]]
+        self.fractionalpoints = [Fraction(f) for f in self.avail_fracs]  # [fp for fp in xslotstruct.fractionalpoints]
+        self.fractionalpoints.extend([Fraction(0, 1), Fraction(1, 1)])
         self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
-        self.from_radios = {}
-        self.populate_radios(self.from_radios)
-        self.add_radios("From", self.from_radios, yloc=0)  # TODO figure out yloc
+        self.xslotlinks = []
 
-        self.add_rectangles(yloc=100)  # TODO figure out yloc
+        # TODO KV do we need this modularity now that there's only one row of them?
+        self.point_checkboxes = {}
+        self.populate_checkboxes(self.point_checkboxes)
+        self.add_checkboxes(self.point_checkboxes, yloc=0)
 
-        self.to_radios = {}
-        self.populate_radios(self.to_radios)
-        self.add_radios("To", self.to_radios, yloc=200)  # TODO figure out yloc
+        self.add_rectangles(yloc=2*self.checkbox_size)
 
-    def populate_radios(self, radios):
+        self.checkbox_toggled.connect(self.handle_point_toggled)
+        self.linkingrect_clicked.connect(self.handle_interval_toggled)
+
+    def handle_point_toggled(self, xslotcheckbox):  #  whole, frac):
+
+        whole = xslotcheckbox.xslot_whole
+        # startfrac = xslotcheckbox.xslot_part
+        # endfrac = xslotcheckbox.xslot_part
+        frac = xslotcheckbox.xslot_part
+        pointinterval = TimingInterval(TimingPoint(whole, frac), TimingPoint(whole, frac))
+
+        if xslotcheckbox.checked and self.check_no_xslot_overlap(pointinterval, xslotcheckbox):
+            self.xslotlinks.append(pointinterval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})  # (whole, startfrac, endfrac))
+        elif (not xslotcheckbox.checked) and pointinterval in self.xslotlinks:
+            self.xslotlinks.remove(pointinterval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})
+
+    def check_no_xslot_overlap(self, timinginterval, xslotgraphicsitem):
+        success = True
+        collapse_check = False
+
+        for xinterval in self.xslotlinks:
+
+            if timinginterval.startpoint.wholepart == 0 or xinterval.startpoint.wholepart == 0:
+                # at least one of them is the whole sign; guaranteed to be overlap
+                success = False
+                break
+            elif timinginterval.before(xinterval) or timinginterval.after(xinterval):
+                if timinginterval.ispoint() != xinterval.ispoint() and timinginterval.adjacent(xinterval):
+                    newly_selected = "a point" if timinginterval.ispoint() else "an interval"
+                    already_selected = "an existing " + ("interval" if timinginterval.ispoint() else "point")
+                    response = QMessageBox.question(self.parentwidget, 'Adjacent point',
+                                                    "You have selected " + newly_selected + " adjacent to " + already_selected + ". Would you like to collapse the point into the interval?")
+                    if response == QMessageBox.Yes:
+                        if timinginterval.ispoint():
+                            xslotgraphicsitem.toggle()
+                            return False
+                        elif xinterval.ispoint():
+                            self.point_checkboxes[(xinterval.startpoint.wholepart, xinterval.startpoint.fractionalpart)].toggle()
+                            self.xslotlinks.remove(xinterval)
+                    else:
+                        return True
+                continue
+            else:
+                # there is some overlap
+                success = False
+                break
+
+        if not success:
+            QMessageBox.information(self.parentwidget, "X-slot clash",
+                                    "The attempted selection overlaps with an existing selection. Please first de-select the initial selection if you wish to continue.")
+            xslotgraphicsitem.toggle()
+
+        return success
+
+    def handle_interval_toggled(self, xslotintervalrect):
+
+        whole = xslotintervalrect.xslot_whole
+        startfrac = xslotintervalrect.xslot_part_start
+        endfrac = xslotintervalrect.xslot_part_end
+        interval = TimingInterval(TimingPoint(whole, startfrac), TimingPoint(whole, endfrac))
+
+        if xslotintervalrect.selected and self.check_no_xslot_overlap(interval, xslotintervalrect):  # whole, startfrac, endfrac, xslotintervalrect):
+            self.xslotlinks.append(interval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})  # (whole, startfrac, endfrac))
+        elif (not xslotintervalrect.selected) and interval in self.xslotlinks:
+            self.xslotlinks.remove(interval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})
+
+    def populate_checkboxes(self, checkboxes):
 
         for whole in range(self.numwholes):
             for part in self.fractionalpoints:
-                radio = XslotRadioCircle(whole+1, part)
-                radios[(whole+1, part)] = radio
-        for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac]:
-            radio = XslotRadioCircle(self.numwholes+1, part)
-            radios[(self.numwholes+1, part)] = radio
+                cb = XSlotCheckbox(whole + 1, part, parentwidget=self, textsize=self.checkbox_size)  # TODO checked=???
+                checkboxes[(whole+1, part)] = cb
+        for part in [fp for fp in self.fractionalpoints if (fp <= self.additionalfrac and fp > 0)]:
+            cb = XSlotCheckbox(self.numwholes + 1, part, parentwidget=self, textsize=self.checkbox_size)  # TODO checked=???
+            checkboxes[(self.numwholes+1, part)] = cb
 
-    def add_radios(self, label, radios, yloc):
-        for k in radios.keys():
-            radio = radios[k]
-            xloc = (radio.xslot_whole-1 + radio.xslot_part) * self.xslot_width
-            if radio.xslot_part == 0:
-                xloc -= self.radio_radius
-            elif radio.xslot_part == 1:
-                xloc += self.radio_radius
-            radio.setRect(xloc, yloc, self.radio_radius*2.5, self.radio_radius*2.5)  # TODO clarify height and width
-            self.addItem(radio)
+    def add_checkboxes(self, checkboxes, yloc):
+        for k in checkboxes.keys():
+            cb = checkboxes[k]
+            xloc = (cb.xslot_whole-1 + cb.xslot_part) * self.xslot_width
+            if cb.xslot_part == 0:
+                xloc += 0.1 * self.checkbox_size
+            elif cb.xslot_part == 1:
+                xloc -= 1.1 * self.checkbox_size
+            else:
+                xloc -= 0.5 * self.checkbox_size
+            cb.setRect(xloc, yloc, self.checkbox_size, self.checkbox_size)  # TODO clarify height and width
+            self.addItem(cb)
+
+    # frac_size determines the width of the rectangles in this row
+    #   (is it the quarter-xslot row? the half-xslot row? etc)
+    #   if frac_size is none, then we're doing the whole-sign row
+    def add_rectangle_row(self, yloc, frac_size):
+        if self.scene_height < yloc:
+            self.scene_height = yloc
+        if frac_size is not None:
+            # make a row of rectangles, each frac_size of an xslot,
+            #   up to & including the endpoint of the final (part of an) xslot
+            denom = frac_size.denominator
+            total = self.numwholes + self.additionalfrac
+
+            whole_i = 0
+            met_total = False
+            num_rects = 0
+
+            while whole_i < self.numwholes+1:
+                frac_j = 0
+                while frac_j < denom and not met_total:
+                    # make a rectangle for this fraction of the xslot
+                    text = "x"+str(whole_i+1)
+                    if frac_size != 1:
+                        text = num2words(frac_j+1, lang="en", to="ordinal_num") + " " + str(frac_size) + " " + text
+                    xslotrect = XslotRectLinkingButton(self, xslot_whole=whole_i+1, xslot_part_start=Fraction(frac_j,denom), xslot_part_end=Fraction(frac_j+1,denom), text=text, moduletype='xslot')
+                    xloc = 0 + (whole_i + ((frac_j)/denom)) * (self.xslot_width)  # - (self.pen_width * num_rects)
+                    xslotrect.setRect(xloc, yloc, float(self.xslot_width * frac_size), self.rect_height)
+                    self.addItem(xslotrect)
+                    met_total = (whole_i) + ((frac_j+2)/denom) > total
+                    frac_j += 1
+                    num_rects += 1
+                whole_i += 1
+        else:
+            # make a rectangle for the whole sign (all x-slots)
+            xslotrect = XslotRectLinkingButton(self, text="whole sign", moduletype='xslot')
+            xslotrect.setRect(0, yloc, float(self.xslot_width*(self.numwholes+self.additionalfrac)), self.rect_height)
+            self.addItem(xslotrect)
 
     def add_rectangles(self, yloc):
 
         # TODO do some more validity checking (are there even xslots?) before just going for it
 
-        xslotrects = {}
-        if self.numwholes + self.additionalfrac > 0:
-            for i in range(self.numwholes):
-                xslotrect = XslotRect(self, text="x" + str(i + 1), moduletype='xslot')
-                xloc = 0 + i * self.xslot_width - (2 * self.blackpen.width())
-                xslotrect.setRect(xloc, yloc, self.xslot_width, 50)
-                xslotrect.setPen(self.blackpen)
-                xslotrect.setBrush(self.greenbrush)
-                xslotrects["x" + str(i + 1)] = xslotrect
-                # xslotrect.rect_clicked.connect(lambda moduletype: self.handle_rect_clicked(moduletype))
-                self.addItem(xslotrect)
-            if self.additionalfrac > 0:
-                xslotrect = XslotRectModuleButton(self, text="x" + str(self.numwholes + 1), moduletype='xslot', proportionfill=self.additionalfrac)
-                xloc = 0 + self.numwholes * self.xslot_width - (2 * self.blackpen.width())
-                xslotrect.setRect(xloc, yloc, self.xslot_width, 50)  # * self.additionalfrac, 50)
-                xslotrect.setPen(self.blackpen)
-                xslotrect.setBrush(self.greenbrush)
-                xslotrects["x" + str(self.numwholes + 1)] = xslotrect
-                # xslotrect.rect_clicked.connect(lambda moduletype: self.handle_rect_clicked(moduletype))
-                self.addItem(xslotrect)
+        # for the fractional (and whole x-slot) rows
+        denoms = list(set([f.denominator for f in self.fractionalpoints]))
+        for idx, denom in enumerate(sorted(denoms, reverse=True)):
+            yloc_row = yloc + idx*self.rect_height
+            self.add_rectangle_row(yloc_row, Fraction(1, denom))
 
+        # for the whole-sign row
+        yloc_row = yloc_row + self.rect_height
+        self.add_rectangle_row(yloc_row, None)
 
-class XslotRadioCircle(QGraphicsEllipseItem):
-    radiocircle_toggled = pyqtSignal((str, str))
-
-    def __init__(self, xslot_whole, xslot_part, radius=20, penwidth=5, mainwindow=None):
-        super().__init__()
-
-        self.pencolour = Qt.darkGray
-        self.uncheckedbrush = Qt.white
-        self.checkedbrush = Qt.black
-        self.penwidth = penwidth
-        self.radius = radius
-        self.checked = False
-
-        self.xslot_whole = xslot_whole
-        self.xslot_part = xslot_part
-
-    def mouseReleaseEvent(self, event):
-        # print("rectangle released")
-        # QMessageBox.information(self.parentwidget, 'Rectangle clicked', 'You clicked the '+self.text+' rectangle!')
-        self.toggle()
-
-    def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
-        pen = painter.pen()
-        pen.setColor(self.pencolour)
-        pen.setWidth(self.penwidth)
-        painter.setPen(pen)
-
-        brush = painter.brush()
-        # if self.checked:
-        #     # brush.setStyle(Qt.SolidPattern)
-        #     brush.setColor(self.checkedbrush)
-        # else:
-        #     # brush.setStyle(Qt.NoBrush)
-        #     brush.setColor(self.uncheckedbrush)
-        brush.setColor(self.checkedbrush if self.checked else self.uncheckedbrush)
-        painter.setBrush(brush)
-
-        painter.drawEllipse(self.rect())
-
-    def toggle(self):
-        self.checked = not self.checked
-        self.update()
-        self.radiocircle_toggled.emit((self.xslot_whole, self.xslot_part))
