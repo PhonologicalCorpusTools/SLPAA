@@ -161,7 +161,7 @@ class HandSelectionLayout(QHBoxLayout):
     def __init__(self, hands=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.hands_label = QLabel("This module applies to :")
+        self.hands_label = QLabel("This module applies to:")
         self.hand1_checkbox = QCheckBox("Hand 1")
         self.hand2_checkbox = QCheckBox("Hand 2")
         self.addWidget(self.hands_label)
