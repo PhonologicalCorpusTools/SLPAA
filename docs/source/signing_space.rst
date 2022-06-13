@@ -31,7 +31,7 @@ Symmetry, Planes & Axes
 .. _axes_entry:
 
 I. Axes
-~~~~~~~
+=======
 
 The system used in this program to describe any *location* or *direction* in space depends on an understanding of the three (ordinate) axes: **horizontal**, **vertical**, and **mid-saggital**.
 
@@ -45,7 +45,7 @@ The directions of movement along each axis form a set of options ...
 .. _planes_entry:
 
 II. Planes
-~~~~~~~~~~
+==========
 
 Along with the set of axes, we also use a similar set of (ordinate) planes: **horizontal**, **vertical**, and **mid-saggital**. These can be described by their relation to a perpendicular axis ...
 
