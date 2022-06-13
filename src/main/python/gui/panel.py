@@ -643,7 +643,7 @@ class SignSummaryPanel(QScrollArea):
         self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
         self.module_buttons.append(self.orientation_button)
 
-        self.handshape_button = QPushButton("Handshape selection")
+        self.handshape_button = QPushButton("Hand configuration selection")
         self.handshape_button.setProperty("existingmodule", False)
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
         self.module_buttons.append(self.handshape_button)
