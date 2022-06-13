@@ -132,12 +132,12 @@ The joint-specific movement options are as follows:
 
 
 .. todo::
-Pinching/unpinching
-Pinching (Morgan 2017) [--> autofills to adduction of thumb base joint] e.g., TURTLE
-Unpinching [--> autofills to abduction of thumb base joint]
-Flattening/Straightening
-Flattening [--> autofills to flexion of [selected finger base joints]] e.g., HORSE
-Straightening [--> autofills to extension of [selected finger base joints]]
+    Pinching/unpinching
+    Pinching (Morgan 2017) [--> autofills to adduction of thumb base joint] e.g., TURTLE
+    Unpinching [--> autofills to abduction of thumb base joint]
+    Flattening/Straightening
+    Flattening [--> autofills to flexion of [selected finger base joints]] e.g., HORSE
+    Straightening [--> autofills to extension of [selected finger base joints]]
 
 
 
