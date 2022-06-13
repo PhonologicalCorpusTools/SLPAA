@@ -12,13 +12,15 @@ Contents:
    :maxdepth: 2
 
 
-   sign_type.rst
    manage_corpus.rst
+   modularity.rst
    predefined_handshapes.rst
    setting_preferences.rst
    terminology.rst
+   signing_space.rst
    transcription_process.rst
    sign_level_info.rst
+   sign_type.rst
    movement_module.rst
    global_options.rst
    glossary.rst
