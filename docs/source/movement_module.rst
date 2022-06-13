@@ -34,7 +34,7 @@ Select the movement type for the current module.
     
     At minimum, for signs with multiple (simultaneous and/or sequential) movements, give each movement type its own module. That is, code any :ref:`joint_specific_movement` separately from any movement with :ref:`perceptual_shape`, as these are mutually exclusive by definition. You can then adjust the timing of each module with respect to the others in the ``x-slot visualization window`` **(?)**.
     
-    Signs with complex movements like `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_ and `EVERY_YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ require at least two movement modules, including a perceptual shape and a joint-specific movement.
+    Signs with complex movements like `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ and `EVERY_YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ require at least two movement modules, including a perceptual shape and a joint-specific movement.
     
     Keep in mind that the number of :ref:`modules<module>` needed to describe a movement may depend on your choices in terms of its :ref:`movement characteristics<movement_chars>`, and that you can add more detail on the joint articulations for any type of movement in its :ref:`joint activity<joint_activity_entry>` options.
     
@@ -104,7 +104,7 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
 II. Joint-specific movements
 ============================
 
-Code the specifications for a :ref:`joint_specific_movement`. This may be the only movement in a sign, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, or a single component of a more complex sign, like the closing and opening motions in `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_.
+Code the specifications for a :ref:`joint_specific_movement`. This may be the only movement in a sign, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, or a single component of a more complex sign, like the closing and opening motions in `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
 
 ...
 
