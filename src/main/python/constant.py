@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 from lexicon.lexicon_classes import LocationParameter, Locations
 from lexicon.predefined_handshape import (
     HandshapeBase, HandshapeEmpty,
@@ -314,4 +316,12 @@ PREDEFINED_MAP = {
     'Y': HandshapeY(),
     'combined-Y&middle': HandshapeCombinedYAndMiddle(),
     'combined-Y&U': HandshapeCombinedYAndU(),
+}
+
+FRACTION_TEXT = {
+    Fraction(1, 4): "¼",
+    Fraction(1, 3): "⅓",
+    Fraction(1, 2): "½",
+    Fraction(2, 3): "⅔",
+    Fraction(3, 4): "¾",
 }

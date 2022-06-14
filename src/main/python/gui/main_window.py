@@ -32,6 +32,8 @@ from PyQt5.QtGui import (
     QPixmap
 )
 
+from fractions import Fraction
+
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusView
@@ -763,11 +765,9 @@ class MainWindow(QMainWindow):
         self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
         self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none')
         self.partial_defaults = {
-            '1/4': False,
-            '1/3': True,
-            '1/2': True,
-            '2/3': True,
-            '3/4': False
+            str(Fraction(1, 4)): False,
+            str(Fraction(1, 2)): True,
+            str(Fraction(1, 3)): True
         }
         self.app_qsettings.beginGroup('partial_slots')
         self.app_settings['signdefaults']['partial_slots'] = self.app_qsettings.value('partial_slots', defaultValue=self.partial_defaults)

@@ -35,6 +35,7 @@ from PyQt5.QtCore import (
 )
 
 from lexicon.lexicon_classes import TimingPoint, TimingInterval
+from constant import FRACTION_TEXT
 
 
 class XslotPointLabel(QGraphicsRectItem):
@@ -448,7 +449,7 @@ class XslotLinkScene(QGraphicsScene):
                     # make a rectangle for this fraction of the xslot
                     text = "x"+str(whole_i+1)
                     if frac_size != 1:
-                        text = num2words(frac_j+1, lang="en", to="ordinal_num") + " " + str(frac_size) + " " + text
+                        text = num2words(frac_j+1, lang="en", to="ordinal_num") + " " + FRACTION_TEXT[frac_size] + " " + text
                     xslotrect = XslotRectLinkingButton(self, xslot_whole=whole_i+1, xslot_part_start=Fraction(frac_j,denom), xslot_part_end=Fraction(frac_j+1,denom), text=text, moduletype='xslot')
                     xloc = 0 + (whole_i + ((frac_j)/denom)) * (self.xslot_width) + self.x_offset  # - (self.pen_width * num_rects)
                     xslotrect.setRect(xloc, yloc, float(self.xslot_width * frac_size), self.rect_height)

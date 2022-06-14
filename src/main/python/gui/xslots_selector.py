@@ -82,14 +82,19 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
         self.fraction_layout = QVBoxLayout()
         self.avail_fracs = [f for f in list(mainwindow.partial_defaults.keys()) if self.mainwindow.app_settings['signdefaults']['partial_slots'][f]]
-        self.partial_buttongroup = None
-        if len(self.avail_fracs) > 0:
-            self.partial_buttongroup = QButtonGroup()
-            for fraction in self.avail_fracs:
-                partial_checkbox = QCheckBox(fraction)
-                self.partial_buttongroup.addButton(partial_checkbox)
-                self.fraction_layout.addWidget(partial_checkbox)
-        else:
+        self.partial_buttongroup = QButtonGroup()
+        none_radio = QRadioButton("none")
+        none_radio.setProperty('fraction', Fraction(0))
+        self.partial_buttongroup.addButton(none_radio)
+        none_radio.setChecked(True)
+        # if len(self.avail_fracs) > 0:
+        self.fraction_layout.addWidget(none_radio)
+        for fraction in self.avail_fracs:
+            partial_radio = QRadioButton(fraction)
+            partial_radio.setProperty('fraction', Fraction(fraction))
+            self.partial_buttongroup.addButton(partial_radio)
+            self.fraction_layout.addWidget(partial_radio)
+        if len(self.avail_fracs) == 0:  # else:
             self.nopartials_label = QLabel("You do not have any fractional x-slot points selected in Global Settings.")
             self.fraction_layout.addWidget(self.nopartials_label)
 
@@ -105,14 +110,14 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
     def setxslots(self, xslots):
         self.xslots_spin.setValue(xslots.number)
-        if self.partial_buttongroup is not None:
-            for cb in self.partial_buttongroup.buttons():
-                cb.setChecked(Fraction(cb.text()) == xslots.additionalfraction)
+        # if self.partial_buttongroup is not None:
+        for cb in self.partial_buttongroup.buttons():
+            cb.setChecked(cb.property('fraction') == xslots.additionalfraction)
 
     def getxslots(self):
         thebutton = self.partial_buttongroup.checkedButton()
         fractionalpoints = [Fraction(f) for f in self.avail_fracs]
-        return XslotStructure(number=self.xslots_spin.value(), fractionalpoints=fractionalpoints, additionalfraction=(Fraction(thebutton.text()) if thebutton is not None else Fraction()))
+        return XslotStructure(number=self.xslots_spin.value(), fractionalpoints=fractionalpoints, additionalfraction=thebutton.property('fraction'))
 
 
 class XslotStructure:
@@ -177,6 +182,7 @@ class XslotSelectorDialog(QDialog):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.button(QDialogButtonBox.RestoreDefaults).setText("Clear")
 
         self.button_box.clicked.connect(self.handle_button_click)
 
@@ -202,6 +208,5 @@ class XslotSelectorDialog(QDialog):
             self.saved_xslots.emit(self.xslot_layout.getxslots())
             self.accept()
 
-        # TODO KV should this be "clear" isntead?
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.xslot_layout.setxslots(XslotStructure())

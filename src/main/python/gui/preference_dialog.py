@@ -1,4 +1,3 @@
-#from PyQt5.QtCore import ()
 from PyQt5.QtWidgets import (
     QDialog,
     QWidget,
@@ -8,14 +7,15 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QSpinBox,
     QCheckBox,
-    QMessageBox,
     QDialogButtonBox,
     QLineEdit,
     QLabel,
     QRadioButton,
     QButtonGroup
 )
-#from PyQt5.QtGui import ()
+
+from constant import FRACTION_TEXT
+from fractions import Fraction
 
 
 class DisplayTab(QWidget):
@@ -110,26 +110,22 @@ class SignDefaultsTab(QWidget):
         self.partialxslots_layout = QVBoxLayout()
         self.partialxslots_group = QButtonGroup(parent=self)
         self.partialxslots_group.setExclusive(False)
-        self.partialxslots_onequarter_checkbox = QCheckBox('¼')
-        self.partialxslots_onequarter_checkbox.setProperty('partialxslots', '1/4')
-        self.partialxslots_group.addButton(self.partialxslots_onequarter_checkbox)
-        self.partialxslots_layout.addWidget(self.partialxslots_onequarter_checkbox)
-        self.partialxslots_onethird_checkbox = QCheckBox('⅓')
-        self.partialxslots_onethird_checkbox.setProperty('partialxslots', '1/3')
-        self.partialxslots_group.addButton(self.partialxslots_onethird_checkbox)
-        self.partialxslots_layout.addWidget(self.partialxslots_onethird_checkbox)
-        self.partialxslots_onehalf_checkbox = QCheckBox('½')
-        self.partialxslots_onehalf_checkbox.setProperty('partialxslots', '1/2')
-        self.partialxslots_group.addButton(self.partialxslots_onehalf_checkbox)
-        self.partialxslots_layout.addWidget(self.partialxslots_onehalf_checkbox)
-        self.partialxslots_twothirds_checkbox = QCheckBox('⅔')
-        self.partialxslots_twothirds_checkbox.setProperty('partialxslots', '2/3')
-        self.partialxslots_group.addButton(self.partialxslots_twothirds_checkbox)
-        self.partialxslots_layout.addWidget(self.partialxslots_twothirds_checkbox)
-        self.partialxslots_threequarters_checkbox = QCheckBox('¾')
-        self.partialxslots_threequarters_checkbox.setProperty('partialxslots', '3/4')
-        self.partialxslots_group.addButton(self.partialxslots_threequarters_checkbox)
-        self.partialxslots_layout.addWidget(self.partialxslots_threequarters_checkbox)
+
+        quarter = Fraction(1, 4)
+        third = Fraction(1, 3)
+        half = Fraction(1, 2)
+        self.partialxslots_quarters_checkbox = QCheckBox("quarters (" + FRACTION_TEXT[quarter] + "n)")
+        self.partialxslots_quarters_checkbox.setProperty('partialxslots', str(quarter))
+        self.partialxslots_group.addButton(self.partialxslots_quarters_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_quarters_checkbox)
+        self.partialxslots_thirds_checkbox = QCheckBox("thirds (" + FRACTION_TEXT[third] + "n)")
+        self.partialxslots_thirds_checkbox.setProperty('partialxslots', str(third))
+        self.partialxslots_group.addButton(self.partialxslots_thirds_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_thirds_checkbox)
+        self.partialxslots_halves_checkbox = QCheckBox("halves (" + FRACTION_TEXT[half] + "n)")
+        self.partialxslots_halves_checkbox.setProperty('partialxslots', str(half))
+        self.partialxslots_group.addButton(self.partialxslots_halves_checkbox)
+        self.partialxslots_layout.addWidget(self.partialxslots_halves_checkbox)
 
         for button in self.partialxslots_group.buttons():
             button.setChecked(self.settings['signdefaults']['partial_slots'][button.property('partialxslots')])
@@ -179,6 +175,4 @@ class PreferenceDialog(QDialog):
             self.reminder_tab.save_settings()
             self.signdefaults_tab.save_settings()
 
-            # TODO KV delete
-            # QMessageBox.information(self, 'Preferences Saved', 'New preferences saved!')
             self.accept()
