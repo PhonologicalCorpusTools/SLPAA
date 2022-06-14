@@ -161,12 +161,21 @@ class HandSelectionLayout(QHBoxLayout):
     def __init__(self, hands=None, **kwargs):
         super().__init__(**kwargs)
 
+        self.setSpacing(25)
+
         self.hands_label = QLabel("This module applies to:")
-        self.hand1_checkbox = QCheckBox("Hand 1")
-        self.hand2_checkbox = QCheckBox("Hand 2")
+        self.hand1_radio = QRadioButton("Hand 1")
+        self.hand2_radio = QRadioButton("Hand 2")
+        self.bothhands_radio = QRadioButton("Both hands")
+        # self.hand1_checkbox = QCheckBox("Hand 1")
+        # self.hand2_checkbox = QCheckBox("Hand 2")
         self.addWidget(self.hands_label)
-        self.addWidget(self.hand1_checkbox)
-        self.addWidget(self.hand2_checkbox)
+        # self.addWidget(self.hand1_checkbox)
+        # self.addWidget(self.hand2_checkbox)
+        self.addWidget(self.hand1_radio)
+        self.addWidget(self.hand2_radio)
+        self.addWidget(self.bothhands_radio)
+
         self.addStretch()
 
         if hands is not None:
@@ -174,13 +183,18 @@ class HandSelectionLayout(QHBoxLayout):
 
     def gethands(self):
         return {
-            'H1': self.hand1_checkbox.isChecked(),
-            'H2': self.hand2_checkbox.isChecked()
+            # 'H1': self.hand1_checkbox.isChecked(),
+            # 'H2': self.hand2_checkbox.isChecked()
+            'H1': self.hand1_radio.isChecked() or self.bothhands_radio.isChecked(),
+            'H2': self.hand2_radio.isChecked() or self.bothhands_radio.isChecked()
         }
 
     def sethands(self, hands_dict):
-        self.hand1_checkbox.setChecked(hands_dict['H1'])
-        self.hand2_checkbox.setChecked(hands_dict['H2'])
+        # self.hand1_checkbox.setChecked(hands_dict['H1'])
+        # self.hand2_checkbox.setChecked(hands_dict['H2'])
+        self.hand1_radio.setChecked(hands_dict['H1'])
+        self.hand2_radio.setChecked(hands_dict['H2'])
+        self.bothhands_radio.setChecked(hands_dict['H1'] and hands_dict['H2'])
 
     def clear(self):
         self.sethands(
