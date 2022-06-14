@@ -9,7 +9,8 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QGraphicsScene,
     QVBoxLayout,
-    QMessageBox
+    QMessageBox,
+    QGraphicsTextItem
 )
 
 from PyQt5.QtGui import (
@@ -20,7 +21,7 @@ from PyQt5.QtGui import (
     QPixmap,
     QIcon,
     QTextOption,
-    QFont
+    QFont,
 )
 
 from PyQt5.QtCore import (
@@ -34,6 +35,34 @@ from PyQt5.QtCore import (
 )
 
 from lexicon.lexicon_classes import TimingPoint, TimingInterval
+
+
+class XslotPointLabel(QGraphicsRectItem):
+
+    def __init__(self, text="", align=Qt.AlignCenter):
+        super().__init__()
+        self.text = text
+        self.align = align
+
+    def setText(self, txt):
+        self.text = txt
+
+    def setAlign(self, align):
+        self.align = align
+
+    def paint(self, painter, option, widget):
+        # super().paint(painter, option, widget)
+
+        # turn pen off while filling rectangle
+        painter.setBrush(Qt.NoBrush)
+
+        # draw rectangle text
+        textoption = QTextOption(self.align)
+        # textoption.setAlignment(Qt.AlignCenter)
+        # font = painter.font()
+        # font.setPixelSize(18)
+        # painter.setFont(font)
+        painter.drawText(self.rect(), self.text, textoption)
 
 
 class XslotRect(QGraphicsRectItem):
@@ -266,8 +295,10 @@ class XslotLinkScene(QGraphicsScene):
         self.scene_width = 1500
         self.rect_height = 25
         self.checkbox_size = 25
+        self.textbox_width = 40
         self.pen_width = 2
         self.scene_height = 0
+        self.x_offset = 10
 
         xslotstruct = self.mainwindow.current_sign.xslotstructure
         self.numwholes = xslotstruct.number
@@ -285,7 +316,7 @@ class XslotLinkScene(QGraphicsScene):
         self.populate_checkboxes(self.point_checkboxes)
         self.add_checkboxes(self.point_checkboxes, yloc=0)
 
-        self.add_rectangles(yloc=2*self.checkbox_size)
+        self.add_rectangles(yloc=3*self.checkbox_size)
 
         self.checkbox_toggled.connect(self.handle_point_toggled)
         self.linkingrect_clicked.connect(self.handle_interval_toggled)
@@ -359,21 +390,40 @@ class XslotLinkScene(QGraphicsScene):
             for part in self.fractionalpoints:
                 cb = XSlotCheckbox(whole + 1, part, parentwidget=self, textsize=self.checkbox_size)  # TODO checked=???
                 checkboxes[(whole+1, part)] = cb
-        for part in [fp for fp in self.fractionalpoints if (fp <= self.additionalfrac and fp > 0)]:
+        for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac and (fp > 0 or self.additionalfrac > 0)]:
             cb = XSlotCheckbox(self.numwholes + 1, part, parentwidget=self, textsize=self.checkbox_size)  # TODO checked=???
             checkboxes[(self.numwholes+1, part)] = cb
 
     def add_checkboxes(self, checkboxes, yloc):
+        yloc_text = yloc
+        yloc_box = yloc + self.checkbox_size
         for k in checkboxes.keys():
             cb = checkboxes[k]
-            xloc = (cb.xslot_whole-1 + cb.xslot_part) * self.xslot_width
+            textbox = XslotPointLabel()
+            xloc_box = (cb.xslot_whole-1 + cb.xslot_part) * self.xslot_width + self.x_offset
+            xloc_text = xloc_box
             if cb.xslot_part == 0:
-                xloc += 0.1 * self.checkbox_size
+                textbox.setText("[ x" + str(k[0]))
+                textbox.setAlign(Qt.AlignLeft)
+                xloc_box += 0.1 * self.checkbox_size
+                xloc_text = xloc_box
             elif cb.xslot_part == 1:
-                xloc -= 1.1 * self.checkbox_size
+                textbox.setText("x"+str(k[0])+" ]")
+                textbox.setAlign(Qt.AlignRight)
+                xloc_text = xloc_box - (0.1*self.checkbox_size) - self.textbox_width # - text.textWidth() # + self.checkbox_size
+                xloc_box -= 1.1 * self.checkbox_size
             else:
-                xloc -= 0.5 * self.checkbox_size
-            cb.setRect(xloc, yloc, self.checkbox_size, self.checkbox_size)  # TODO clarify height and width
+                textbox.setText(str(k[1]))
+                textbox.setAlign(Qt.AlignCenter)
+                xloc_text = xloc_box - self.textbox_width/2 # - (text.textWidth()/2) + (self.checkbox_size/2)
+                xloc_box -= 0.5 * self.checkbox_size
+            # text.adjustSize()
+            # print(text.toPlainText(), "width is", text.textWidth())
+            # text.setPos(xloc_text, yloc_text)
+            # text.setPos(xloc, yloc_text)
+            textbox.setRect(xloc_text, yloc_text, self.textbox_width, self.checkbox_size)
+            self.addItem(textbox)
+            cb.setRect(xloc_box, yloc_box, self.checkbox_size, self.checkbox_size)  # TODO clarify height and width
             self.addItem(cb)
 
     # frac_size determines the width of the rectangles in this row
@@ -400,7 +450,7 @@ class XslotLinkScene(QGraphicsScene):
                     if frac_size != 1:
                         text = num2words(frac_j+1, lang="en", to="ordinal_num") + " " + str(frac_size) + " " + text
                     xslotrect = XslotRectLinkingButton(self, xslot_whole=whole_i+1, xslot_part_start=Fraction(frac_j,denom), xslot_part_end=Fraction(frac_j+1,denom), text=text, moduletype='xslot')
-                    xloc = 0 + (whole_i + ((frac_j)/denom)) * (self.xslot_width)  # - (self.pen_width * num_rects)
+                    xloc = 0 + (whole_i + ((frac_j)/denom)) * (self.xslot_width) + self.x_offset  # - (self.pen_width * num_rects)
                     xslotrect.setRect(xloc, yloc, float(self.xslot_width * frac_size), self.rect_height)
                     self.addItem(xslotrect)
                     met_total = (whole_i) + ((frac_j+2)/denom) > total
@@ -410,7 +460,7 @@ class XslotLinkScene(QGraphicsScene):
         else:
             # make a rectangle for the whole sign (all x-slots)
             xslotrect = XslotRectLinkingButton(self, text="whole sign", moduletype='xslot')
-            xslotrect.setRect(0, yloc, float(self.xslot_width*(self.numwholes+self.additionalfrac)), self.rect_height)
+            xslotrect.setRect(self.x_offset, yloc, float(self.xslot_width*(self.numwholes+self.additionalfrac)), self.rect_height)
             self.addItem(xslotrect)
 
     def add_rectangles(self, yloc):
