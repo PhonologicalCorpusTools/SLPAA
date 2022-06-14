@@ -106,7 +106,41 @@ II. Joint-specific movements
 
 Code the specifications for a :ref:`joint_specific_movement`. This may be the only movement in a sign, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, or a single component of a more complex sign, like the closing and opening motions in `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
 
-...
+Each joint-specific movement has two sub-options, which correspond to which direction the movement starts with. You can skip selecting the broader option
+and go directly to selecting the sub-option; the broader option will show up as being selected. Similarly, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the starting direction unspecified or if it is unknown. **[AP]: is this way too in-depth? Also is this accurate?** The appropriate joint activity will be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. **should the description of what exactly gets autofilled be specified for each of these?** 
+
+The joint-specific movement options are as follows: 
+
+**Nodding/Un-nodding** 
+- "Nodding" should be selected if the movement begins with a flexion of the wrist, such as `_CORN <>`. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as ABLE **link**, or signs where there is a repeated, unidirectional nodding, such as YES **links**. 
+- "Un-nodding" should be selected if the moevement begins with an extension of the wrist, or if it is the only movement involved, for example GIVE_UP **links**
+
+**Pivoting**
+- "Radial > ulnar" should be selected if the movement begins with a radial deviation, or if it is the only direction involved. 
+- "Ulnar > radial" should be selected if the movement begins with an ulnar deviation, as in COOKIE **links**, or if it is the only direction involved.    
+
+
+**Twisting**
+- "Pronation" should be selected if the movement begins with pronation, or if it is the only direction involved, such as the subordinate hand of DIE **links**. Selecting this will autofill 
+- "Supination" should be selected if the movement begins with supination, or if it is the only direction involved, such as CLAUSE and the dominant hand of DIE **links** 
+
+**[proximal] - meaning?**
+
+**Closing/Opening**
+"Closing" should be selected if the sign begins with flexion of all joints of the selected finger(s), such as MILK_2 **link**, or if this is the only direction involved. 
+"Opening" should be selected if the sign begins with extension of all joints of the selected finger(s), or if this is the only direction involved, such as BOWTIE **link**.
+
+
+.. todo::
+    Pinching/unpinching
+    Pinching (Morgan 2017) [--> autofills to adduction of thumb base joint] e.g., TURTLE
+    Unpinching [--> autofills to abduction of thumb base joint]
+    Flattening/Straightening
+    Flattening [--> autofills to flexion of [selected finger base joints]] e.g., HORSE
+    Straightening [--> autofills to extension of [selected finger base joints]]
+
+
+
 
 .. _handshape_change_entry:
 
