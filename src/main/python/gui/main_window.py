@@ -764,17 +764,13 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('signdefaults')
         self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
         self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none')
-        self.partial_defaults = {
-            str(Fraction(1, 4)): False,
-            str(Fraction(1, 2)): True,
-            str(Fraction(1, 3)): True
-        }
-        self.app_qsettings.beginGroup('partial_slots')
-        self.app_settings['signdefaults']['partial_slots'] = self.app_qsettings.value('partial_slots', defaultValue=self.partial_defaults)
-        # for frac in self.partial_defaults.keys():
-        #     self.app_settings['signdefaults']['partial_slots'][frac] = self.app_qsettings.value(frac, defaultValue=self.partial_defaults[frac])
-        self.app_qsettings.endGroup()  # partial_slots
-        self.app_qsettings.endGroup()  # xslot_generation
+        self.app_qsettings.beginGroup('partial_xslots')
+        self.app_settings['signdefaults']['partial_xslots'] = defaultdict(dict)
+        self.app_settings['signdefaults']['partial_xslots'][str(Fraction(1, 2))] = self.app_qsettings.value(str(Fraction(1, 2)), defaultValue=True, type=bool)
+        self.app_settings['signdefaults']['partial_xslots'][str(Fraction(1, 3))] = self.app_qsettings.value(str(Fraction(1, 3)), defaultValue=True, type=bool)
+        self.app_settings['signdefaults']['partial_xslots'][str(Fraction(1, 4))] = self.app_qsettings.value(str(Fraction(1, 4)), defaultValue=False, type=bool)
+        self.app_qsettings.endGroup()  # partial_xslots
+        self.app_qsettings.endGroup()  # signdefaults
 
     def check_storage(self):
         if not os.path.exists(self.app_settings['storage']['corpora']):
@@ -830,7 +826,15 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('signdefaults')
         self.app_qsettings.setValue('handdominance', self.app_settings['signdefaults']['handdominance'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.setValue('xslot_generation', self.app_settings['signdefaults']['xslot_generation'])
+
+        self.app_qsettings.beginGroup('partial_xslots')
+        for fracstring in self.app_settings['signdefaults']['partial_xslots'].keys():
+            fractionchecked = self.app_settings['signdefaults']['partial_xslots'][fracstring]
+            self.app_qsettings.setValue(fracstring, fractionchecked)
+        self.app_qsettings.endGroup()  # partial_xslots
+
+        self.app_qsettings.endGroup()  # signdefaults
 
     def on_action_define_location(self):
         location_definer = LocationDefinerDialog(self.system_default_locations, self.corpus.location_definition, self.app_settings, self.app_ctx, parent=self)

@@ -35,7 +35,7 @@ from PyQt5.QtCore import (
 )
 
 from lexicon.lexicon_classes import TimingPoint, TimingInterval
-from constant import FRACTION_TEXT
+from constant import FRACTION_CHAR
 
 
 class XslotPointLabel(QGraphicsRectItem):
@@ -283,7 +283,6 @@ class XSlotCheckbox(QGraphicsRectItem):
         self.parentwidget.checkbox_toggled.emit(self)  # self.xslot_whole, self.xslot_part)
 
 
-
 class XslotLinkScene(QGraphicsScene):
     checkbox_toggled = pyqtSignal(XSlotCheckbox)
     linkingrect_clicked = pyqtSignal(XslotRectLinkingButton)
@@ -304,10 +303,13 @@ class XslotLinkScene(QGraphicsScene):
         xslotstruct = self.mainwindow.current_sign.xslotstructure
         self.numwholes = xslotstruct.number
         self.additionalfrac = xslotstruct.additionalfraction
-        self.avail_fracs = [f for f in list(self.mainwindow.partial_defaults.keys()) if
-                            self.mainwindow.app_settings['signdefaults']['partial_slots'][f]]
-        self.fractionalpoints = [Fraction(f) for f in self.avail_fracs]  # [fp for fp in xslotstruct.fractionalpoints]
-        self.fractionalpoints.extend([Fraction(0, 1), Fraction(1, 1)])
+        partialxslots = self.mainwindow.app_settings['signdefaults']['partial_xslots']
+        self.avail_denoms = [Fraction(f).denominator for f in list(partialxslots.keys()) if partialxslots[f]]
+        self.fractionalpoints = []
+        for d in self.avail_denoms:
+            for mult in range(d+1):
+                self.fractionalpoints.append(Fraction(mult, d))
+        self.fractionalpoints = list(set(self.fractionalpoints))
         self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
         self.xslotlinks = []
@@ -322,18 +324,16 @@ class XslotLinkScene(QGraphicsScene):
         self.checkbox_toggled.connect(self.handle_point_toggled)
         self.linkingrect_clicked.connect(self.handle_interval_toggled)
 
-    def handle_point_toggled(self, xslotcheckbox):  #  whole, frac):
+    def handle_point_toggled(self, xslotcheckbox):
 
         whole = xslotcheckbox.xslot_whole
-        # startfrac = xslotcheckbox.xslot_part
-        # endfrac = xslotcheckbox.xslot_part
         frac = xslotcheckbox.xslot_part
         pointinterval = TimingInterval(TimingPoint(whole, frac), TimingPoint(whole, frac))
 
         if xslotcheckbox.checked and self.check_no_xslot_overlap(pointinterval, xslotcheckbox):
-            self.xslotlinks.append(pointinterval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})  # (whole, startfrac, endfrac))
+            self.xslotlinks.append(pointinterval)
         elif (not xslotcheckbox.checked) and pointinterval in self.xslotlinks:
-            self.xslotlinks.remove(pointinterval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})
+            self.xslotlinks.remove(pointinterval)
 
     def check_no_xslot_overlap(self, timinginterval, xslotgraphicsitem):
         success = True
@@ -380,17 +380,17 @@ class XslotLinkScene(QGraphicsScene):
         endfrac = xslotintervalrect.xslot_part_end
         interval = TimingInterval(TimingPoint(whole, startfrac), TimingPoint(whole, endfrac))
 
-        if xslotintervalrect.selected and self.check_no_xslot_overlap(interval, xslotintervalrect):  # whole, startfrac, endfrac, xslotintervalrect):
-            self.xslotlinks.append(interval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})  # (whole, startfrac, endfrac))
+        if xslotintervalrect.selected and self.check_no_xslot_overlap(interval, xslotintervalrect):
+            self.xslotlinks.append(interval)
         elif (not xslotintervalrect.selected) and interval in self.xslotlinks:
-            self.xslotlinks.remove(interval)  # {'whole': whole, 'start': startfrac, 'end': endfrac})
+            self.xslotlinks.remove(interval)
 
     def populate_checkboxes(self, checkboxes):
 
-        for whole in range(self.numwholes):
+        for whole in range(1, self.numwholes+1):
             for part in self.fractionalpoints:
-                cb = XSlotCheckbox(whole + 1, part, parentwidget=self, textsize=self.checkbox_size)  # TODO checked=???
-                checkboxes[(whole+1, part)] = cb
+                cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size)  # TODO checked=???
+                checkboxes[(whole, part)] = cb
         for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac and (fp > 0 or self.additionalfrac > 0)]:
             cb = XSlotCheckbox(self.numwholes + 1, part, parentwidget=self, textsize=self.checkbox_size)  # TODO checked=???
             checkboxes[(self.numwholes+1, part)] = cb
@@ -411,17 +411,13 @@ class XslotLinkScene(QGraphicsScene):
             elif cb.xslot_part == 1:
                 textbox.setText("x"+str(k[0])+" ]")
                 textbox.setAlign(Qt.AlignRight)
-                xloc_text = xloc_box - (0.1*self.checkbox_size) - self.textbox_width # - text.textWidth() # + self.checkbox_size
+                xloc_text = xloc_box - (0.1*self.checkbox_size) - self.textbox_width
                 xloc_box -= 1.1 * self.checkbox_size
             else:
                 textbox.setText(str(k[1]))
                 textbox.setAlign(Qt.AlignCenter)
-                xloc_text = xloc_box - self.textbox_width/2 # - (text.textWidth()/2) + (self.checkbox_size/2)
+                xloc_text = xloc_box - self.textbox_width/2
                 xloc_box -= 0.5 * self.checkbox_size
-            # text.adjustSize()
-            # print(text.toPlainText(), "width is", text.textWidth())
-            # text.setPos(xloc_text, yloc_text)
-            # text.setPos(xloc, yloc_text)
             textbox.setRect(xloc_text, yloc_text, self.textbox_width, self.checkbox_size)
             self.addItem(textbox)
             cb.setRect(xloc_box, yloc_box, self.checkbox_size, self.checkbox_size)  # TODO clarify height and width
@@ -449,7 +445,7 @@ class XslotLinkScene(QGraphicsScene):
                     # make a rectangle for this fraction of the xslot
                     text = "x"+str(whole_i+1)
                     if frac_size != 1:
-                        text = num2words(frac_j+1, lang="en", to="ordinal_num") + " " + FRACTION_TEXT[frac_size] + " " + text
+                        text = num2words(frac_j+1, lang="en", to="ordinal_num") + " " + FRACTION_CHAR[frac_size] + " " + text
                     xslotrect = XslotRectLinkingButton(self, xslot_whole=whole_i+1, xslot_part_start=Fraction(frac_j,denom), xslot_part_end=Fraction(frac_j+1,denom), text=text, moduletype='xslot')
                     xloc = 0 + (whole_i + ((frac_j)/denom)) * (self.xslot_width) + self.x_offset  # - (self.pen_width * num_rects)
                     xslotrect.setRect(xloc, yloc, float(self.xslot_width * frac_size), self.rect_height)

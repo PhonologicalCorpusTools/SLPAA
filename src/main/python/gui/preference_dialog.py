@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QButtonGroup
 )
 
-from constant import FRACTION_TEXT
+from constant import FRACTION_CHAR
 from fractions import Fraction
 
 
@@ -90,6 +90,7 @@ class SignDefaultsTab(QWidget):
         self.xslots_group = QButtonGroup(parent=self)
         self.xslots_none_radio = QRadioButton('None')
         self.xslots_none_radio.setProperty('xslots', 'none')
+        self.xslots_none_radio.toggled.connect(self.handle_none_toggled)
         self.xslots_group.addButton(self.xslots_none_radio)
         self.xslots_layout.addWidget(self.xslots_none_radio)
         self.xslots_manual_radio = QRadioButton('Manual')
@@ -114,28 +115,36 @@ class SignDefaultsTab(QWidget):
         quarter = Fraction(1, 4)
         third = Fraction(1, 3)
         half = Fraction(1, 2)
-        self.partialxslots_quarters_checkbox = QCheckBox("quarters (" + FRACTION_TEXT[quarter] + "n)")
-        self.partialxslots_quarters_checkbox.setProperty('partialxslots', str(quarter))
+        self.partialxslots_quarters_checkbox = QCheckBox("quarters (" + FRACTION_CHAR[quarter] + "n)")
+        self.partialxslots_quarters_checkbox.setProperty('partialxslot', str(quarter))
         self.partialxslots_group.addButton(self.partialxslots_quarters_checkbox)
         self.partialxslots_layout.addWidget(self.partialxslots_quarters_checkbox)
-        self.partialxslots_thirds_checkbox = QCheckBox("thirds (" + FRACTION_TEXT[third] + "n)")
-        self.partialxslots_thirds_checkbox.setProperty('partialxslots', str(third))
+        self.partialxslots_thirds_checkbox = QCheckBox("thirds (" + FRACTION_CHAR[third] + "n)")
+        self.partialxslots_thirds_checkbox.setProperty('partialxslot', str(third))
         self.partialxslots_group.addButton(self.partialxslots_thirds_checkbox)
         self.partialxslots_layout.addWidget(self.partialxslots_thirds_checkbox)
-        self.partialxslots_halves_checkbox = QCheckBox("halves (" + FRACTION_TEXT[half] + "n)")
-        self.partialxslots_halves_checkbox.setProperty('partialxslots', str(half))
+        self.partialxslots_halves_checkbox = QCheckBox("halves (" + FRACTION_CHAR[half] + "n)")
+        self.partialxslots_halves_checkbox.setProperty('partialxslot', str(half))
         self.partialxslots_group.addButton(self.partialxslots_halves_checkbox)
         self.partialxslots_layout.addWidget(self.partialxslots_halves_checkbox)
 
         for button in self.partialxslots_group.buttons():
-            button.setChecked(self.settings['signdefaults']['partial_slots'][button.property('partialxslots')])
-        main_layout.addRow(QLabel('X-slot points to include:'), self.partialxslots_layout)
+            fractionstring = button.property('partialxslot')
+            fractionchecked = self.settings['signdefaults']['partial_xslots'][fractionstring]
+            button.setChecked(fractionchecked)
+        self.partialxslots_label = QLabel('X-slot points to include:')
+        main_layout.addRow(self.partialxslots_label, self.partialxslots_layout)
+
+    def handle_none_toggled(self, checked):
+        self.partialxslots_label.setEnabled(not checked)
+        for button in self.partialxslots_group.buttons():
+            button.setEnabled(not checked)
 
     def save_settings(self):
         self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
         self.settings['signdefaults']['xslot_generation'] = self.xslots_group.checkedButton().property('xslots')
         for cb in self.partialxslots_group.buttons():
-            self.settings['signdefaults']['partial_slots'][cb.property('partialxslots')] = cb.isChecked()
+            self.settings['signdefaults']['partial_xslots'][cb.property('partialxslot')] = cb.isChecked()
 
 
 class PreferenceDialog(QDialog):

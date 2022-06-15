@@ -318,10 +318,12 @@ PREDEFINED_MAP = {
     'combined-Y&U': HandshapeCombinedYAndU(),
 }
 
-FRACTION_TEXT = {
+FRACTION_CHAR = {
     Fraction(1, 4): "¼",
     Fraction(1, 3): "⅓",
     Fraction(1, 2): "½",
     Fraction(2, 3): "⅔",
     Fraction(3, 4): "¾",
 }
+
+
