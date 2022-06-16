@@ -73,7 +73,7 @@ class ModuleSpecificationLayout(QVBoxLayout):
 class ModuleSelectorDialog(QDialog):
     # saved_movement = pyqtSignal(MovementTreeModel, dict)
 
-    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, **kwargs):
+    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, timingintervals=[], **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
 
@@ -82,7 +82,7 @@ class ModuleSelectorDialog(QDialog):
         self.hands_layout = HandSelectionLayout(hands)
         main_layout.addLayout(self.hands_layout)
         # self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
-        self.xslot_layout = XslotLinkingLayout(xslotstructure, self.mainwindow, parentwidget=self)
+        self.xslot_layout = XslotLinkingLayout(xslotstructure, self.mainwindow, parentwidget=self, timingintervals=timingintervals)
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addLayout(self.xslot_layout)
 
@@ -107,6 +107,7 @@ class ModuleSelectorDialog(QDialog):
         self.button_box = QDialogButtonBox(buttons, parent=self)
         if enable_addnew:
             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
+        self.button_box.button(QDialogButtonBox.Apply).setDefault(True)
         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
 
         # TODO KV keep? from orig locationdefinerdialog:
@@ -167,11 +168,7 @@ class HandSelectionLayout(QHBoxLayout):
         self.hand1_radio = QRadioButton("Hand 1")
         self.hand2_radio = QRadioButton("Hand 2")
         self.bothhands_radio = QRadioButton("Both hands")
-        # self.hand1_checkbox = QCheckBox("Hand 1")
-        # self.hand2_checkbox = QCheckBox("Hand 2")
         self.addWidget(self.hands_label)
-        # self.addWidget(self.hand1_checkbox)
-        # self.addWidget(self.hand2_checkbox)
         self.addWidget(self.hand1_radio)
         self.addWidget(self.hand2_radio)
         self.addWidget(self.bothhands_radio)
@@ -183,18 +180,17 @@ class HandSelectionLayout(QHBoxLayout):
 
     def gethands(self):
         return {
-            # 'H1': self.hand1_checkbox.isChecked(),
-            # 'H2': self.hand2_checkbox.isChecked()
             'H1': self.hand1_radio.isChecked() or self.bothhands_radio.isChecked(),
             'H2': self.hand2_radio.isChecked() or self.bothhands_radio.isChecked()
         }
 
     def sethands(self, hands_dict):
-        # self.hand1_checkbox.setChecked(hands_dict['H1'])
-        # self.hand2_checkbox.setChecked(hands_dict['H2'])
-        self.hand1_radio.setChecked(hands_dict['H1'])
-        self.hand2_radio.setChecked(hands_dict['H2'])
-        self.bothhands_radio.setChecked(hands_dict['H1'] and hands_dict['H2'])
+        if hands_dict['H1'] and hands_dict['H2']:
+            self.bothhands_radio.setChecked(True)
+        elif hands_dict['H1']:
+            self.hand1_radio.setChecked(True)
+        elif hands_dict['H2']:
+            self.hand2_radio.setChecked(True)
 
     def clear(self):
         self.sethands(

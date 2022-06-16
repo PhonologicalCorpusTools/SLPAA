@@ -19,6 +19,7 @@ def empty_copy(obj):
 
 class SignLevelInformation:
     def __init__(self, signlevel_info):
+        self._entryid = signlevel_info['entryid']
         self._gloss = signlevel_info['gloss']
         self._lemma = signlevel_info['lemma']
         self._source = signlevel_info['source']
@@ -28,6 +29,20 @@ class SignLevelInformation:
         self._update_date = signlevel_info['date']
         self._note = signlevel_info['note']
         self._handdominance = signlevel_info['handdominance']
+
+    @property
+    def entryid(self):
+        return self._entryid
+
+    @entryid.setter
+    def entryid(self, new_entryid):
+        self._entryid = new_entryid
+
+    def entryid_string(self):
+        numchars = 4  # TODO KV this should be in global settings
+        entryid_string = str(self._entryid)
+        entryid_string = "0"*(numchars-len(entryid_string)) + entryid_string
+        return entryid_string
 
     @property
     def gloss(self):
@@ -597,7 +612,7 @@ class Sign:
 
     def __init__(self, signlevel_info=None, serializedsign=None):
         if serializedsign:
-            self._uniqueid = serializedsign['unique id']
+            # self._entryid = serializedsign['entry id']
             self._signlevel_information = serializedsign['signlevel']
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
@@ -606,7 +621,7 @@ class Sign:
             self.orientationmodules = serializedsign['ori modules']
             self.handshapemodules = serializedsign['han modules']
         else:
-            self._uniqueid = int(datetime.timestamp(datetime.now()))
+            # self._entryid = int(datetime.timestamp(datetime.now()))
             self._signlevel_information = signlevel_info
             # if isinstance(signlevel_info, SignLevelInformation):
             #     self._signlevel_information = signlevel_info
@@ -629,7 +644,7 @@ class Sign:
 
     def serialize(self):
         return {
-            'unique id': self._uniqueid,
+            # 'unique id': self._entryid,
             'signlevel': self._signlevel_information,
             'type': self._signtype,
             'xslot structure': self.xslotstructure,
@@ -653,14 +668,16 @@ class Sign:
         self.movementmodules = unserialized
 
     def __hash__(self):
-        return hash(self.signlevel_information.gloss)
+        # return hash(self.signlevel_information.gloss)
+        return hash(self.signlevel_information.entryid)
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
     def __eq__(self, other):
-        return isinstance(other, Sign) and self.signlevel_information.gloss == other.signlevel_information.gloss
+        # return isinstance(other, Sign) and self.signlevel_information.gloss == other.signlevel_information.gloss
+        return isinstance(other, Sign) and self.signlevel_information.entryid == other.signlevel_information.entryid
 
     def __repr__(self):
-        return '<SIGN: ' + repr(self.signlevel_information.gloss) + '>'
+        return '<SIGN: ' + repr(self.signlevel_information.gloss) + ' - ' + repr(self.signlevel_information.entryid) + '>'
 
     @property
     def signlevel_information(self):
@@ -669,22 +686,6 @@ class Sign:
     @signlevel_information.setter
     def signlevel_information(self, signlevelinfo):
         self._signlevel_information = signlevelinfo  # SignLevelInformation(signlevelinfo)
-
-    # @property
-    # def global_handshape_information(self):
-    #     return self._global_handshape_information
-    #
-    # @global_handshape_information.setter
-    # def global_handshape_information(self, globalhandshapeinfo):
-    #     self._global_handshape_information = GlobalHandshapeInformation(globalhandshapeinfo)
-
-    # @property
-    # def handshape_transcription(self):
-    #     return self._handshape_transcription
-    #
-    # @handshape_transcription.setter
-    # def handshape_transcription(self, handshapetranscription):
-    #     self._handshape_transcription = HandshapeTranscription(handshapetranscription)
 
     @property
     def location(self):
@@ -712,16 +713,25 @@ class Sign:
         # TODO KV - validate?
         self._xslotstructure = xslotstruct
 
-    def addmovementmodule(self, movementtree, hands_dict):  # , mvmtid=None):
-        # if mvmtid is None:
-        existingkeys = [k[4:] for k in self.movementmodules.keys()] + [0]
-        nextinteger = max([int(k) for k in existingkeys]) + 1
-        mvmtid = str("Mov." + str(nextinteger))
+    def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals):
+        mvmtmod = self.movementmodules[uniqueid]
+        mvmtmod.movementtree = movementtree
+        mvmtmod.hands = hands_dict
+        mvmtmod.timingintervals = timingintervals
 
-        self.movementmodules[mvmtid] = [movementtree, hands_dict]
+    def addmovementmodule(self, movementtree, hands_dict, timingintervals):
+        # create and add a brand new one
+        mvmtmod = MovementModule(movementtree, hands_dict, timingintervals)
+        self.movementmodules[mvmtmod.uniqueid] = mvmtmod
 
-    def removemovementmodule(self, mvmtid):
-        self.movementmodules.pop(mvmtid)
+        # existingkeys = [k[4:] for k in self.movementmodules.keys()] + [0]
+        # nextinteger = max([int(k) for k in existingkeys]) + 1
+        # mvmtid = str("Mov." + str(nextinteger))
+        #
+        # self.movementmodules[mvmtid] = [movementtree, hands_dict]
+
+    def removemovementmodule(self, uniqueid):
+        self.movementmodules.pop(uniqueid)
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)
@@ -935,26 +945,29 @@ class Locations:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None):  # movement_definition=None,
+    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, highestID=0):  # movement_definition=None,
         if serializedcorpus:
             self.name = serializedcorpus['name']
             self.signs = set([Sign(serializedsign=s) for s in serializedcorpus['signs']])
             self.location_definition = serializedcorpus['loc defn']
             # self.movement_definition = serializedcorpus['mvmt defn']
             self.path = serializedcorpus['path']
+            self.highestID = serializedcorpus['highest id']
         else:
             self.name = name
             self.signs = signs if signs else set()
             self.location_definition = location_definition
             # self.movement_definition = movement_definition
             self.path = path
+            self.highestID = highestID
 
     def serialize(self):
         return {
             'name': self.name,
             'signs': [s.serialize() for s in list(self.signs)],
             'loc defn': self.location_definition,
-            'path': self.path
+            'path': self.path,
+            'highest id': self.highestID
         }
 
     def get_sign_glosses(self):
@@ -977,6 +990,7 @@ class Corpus:
 
     def add_sign(self, new_sign):
         self.signs.add(new_sign)
+        self.highestID = max([new_sign.signlevel_information.entryid, self.highestID])
 
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)

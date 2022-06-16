@@ -63,9 +63,9 @@ from constant import DEFAULT_LOCATION_POINTS
 from gui.movement_selector import MovementSpecificationLayout
 from gui.handshape_selector import HandshapeSpecificationLayout
 from gui.xslots_selector import XslotSelectorDialog
-from lexicon.lexicon_classes import Sign, GlobalHandshapeInformation
+from lexicon.lexicon_classes import Sign, GlobalHandshapeInformation, TimingInterval, TimingPoint
 from gui.module_selector import ModuleSelectorDialog
-from gui.xslot_graphics import XslotRectModuleButton, XslotSummaryScene
+from gui.xslot_graphics import XslotRect, XslotRectModuleButton, XslotSummaryScene
 
 
 class LocationPolygon(QGraphicsPolygonItem):
@@ -283,7 +283,6 @@ class SingleLocationViewer(QGraphicsView):
 #         super().focusInEvent(event)
 
 
-# TODO KV xslot skeleton
 class XslotPanel(QScrollArea):
 
     def __init__(self, mainwindow, sign=None, **kwargs):
@@ -298,178 +297,234 @@ class XslotPanel(QScrollArea):
 
         # self.scene = QGraphicsScene()
         self.scene = XslotSummaryScene()
+        self.scene_width = 1100
+        self.xslots_width = 1000
+        self.indent = self.scene_width - self.xslots_width
+        self.default_xslot_height = 40
+        self.verticalspacing = 10
 
-        self.greenbrush = QBrush(Qt.green)
-        self.bluebrush = QBrush(Qt.blue)
-        self.blackpen = QPen(Qt.black)
-        self.blackpen.setWidth(5)
+        self.x_offset = 0
+        self.current_y = 0
+        self.onexslot_width = 0
 
-        if sign is None:
+        # self.greenbrush = QBrush(Qt.green)
+        # self.bluebrush = QBrush(Qt.blue)
+        # self.blackpen = QPen(Qt.black)
+        # self.blackpen.setWidth(5)
 
-            ellipse = XslotEllipse(self, text="hello! how are you doing?")
-            ellipse.setRect(10, 20, 100, 100)
-            ellipse.setPen(self.blackpen)
-            ellipse.setBrush(self.greenbrush)
-            # print("ellipse bounding rect:", ellipse.boundingRect())
-            self.scene.addItem(ellipse)
-
-            # text = MyText("hi", self)
-            # text.setPos(10,10)
-            # # text.setBrush(greenbrush)
-            # scene.addItem(text)
-
-        else:
-            self.refreshsign(self.sign)
+        # if sign is None:
+        #
+        #     ellipse = XslotEllipse(self, text="hello! how are you doing?")
+        #     ellipse.setRect(10, 20, 100, 100)
+        #     ellipse.setPen(self.blackpen)
+        #     ellipse.setBrush(self.greenbrush)
+        #     # print("ellipse bounding rect:", ellipse.boundingRect())
+        #     self.scene.addItem(ellipse)
+        #
+        #     # text = MyText("hi", self)
+        #     # text.setPos(10,10)
+        #     # # text.setBrush(greenbrush)
+        #     # scene.addItem(text)
+        #
+        # else:
+        self.refreshsign()  # self.sign)
         self.xslotview = QGraphicsView(self.scene, self)  # XslotGraphicsView(self.scene, self)
         self.xslotview.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        self.xslotview.setGeometry(0, 0, 1000, 1000)  #640, 480)
+        self.xslotview.setGeometry(0, 0, 1000, 600)  #640, 480)
         # self.xslotview.setEnabled(True)
-        self.setMinimumSize(1000,1000)
+        self.setMinimumSize(1000, 600)
         # xslotview.setScene(scene)
 
-    def refreshsign(self, sign):
-        self.sign = sign
+    def refreshsign(self, sign=None):
+        if sign is not None:
+            self.sign = sign
+
         sceneitems = self.scene.items()
         for sceneitem in sceneitems:
             self.scene.removeItem(sceneitem)
 
-        current_x = 0
-        current_y = 0
+        self.current_y = 0
+
+        # set the top text, either welcome or the sign gloss + ID
 
         signleveltext = QGraphicsTextItem()
-        signleveltext.setPlainText("Sign: " + sign.signlevel_information.gloss)
-        signleveltext.setPos(current_x, current_y*75)
-        # signlevelrect = XslotRect(self, text="Sign: " + sign.signlevel_information.gloss, moduletype='signlevel', sign=self.sign, mainwindow=self.mainwindow)
-        # signlevelrect.setRect(current_x, current_y*75, 640-(2*self.blackpen.width()), 50)
-        # signlevelrect.setPen(self.blackpen)
-        # signlevelrect.setBrush(self.greenbrush)
-        # self.scene.addItem(signlevelrect)
-        current_y += 1
+        signleveltext.setPlainText("Welcome! Add a new sign to get started.")
+        if self.sign is not None:
+            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid_string())
+        signleveltext.setPos(self.x_offset, self.current_y*(self.default_xslot_height+self.verticalspacing))
+        self.current_y += 1
         self.scene.addItem(signleveltext)
 
-        if sign.signtype is not None:
-            signtyperect = XslotRectModuleButton(self, text="Sign Type: " + ";".join(sign.signtype.specs), moduletype='signtype', sign=self.sign)
-            signtyperect.setRect(current_x, current_y*75, 640-(2*self.blackpen.width()), 50)
-            current_y += 1
-            # signtyperect.setPen(self.blackpen)
-            # signtyperect.setBrush(self.greenbrush)
-            # print("ellipse bounding rect:", ellipse.boundingRect())
-            self.scene.addItem(signtyperect)
+        if self.sign is None:
+            return
 
-        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and sign.xslotstructure is not None:
+        self.addsigntype()
+        self.addxslots()
+        self.addhand("H1")
+        self.addhand("H2")
+        self.addgridlines()
+
+        self.scene.modulerect_clicked.connect(self.handle_modulebutton_clicked)
+
+    def addsigntype(self):
+        signtypetext = "Sign Type (TODO): "
+        if self.sign.signtype is None:
+            signtypetext += "n/a"
+        else:
+            signtypetext += ";".join(self.sign.signtype.specs)
+        signtyperect = XslotRectModuleButton(self, text=signtypetext, moduletype='signtype', sign=self.sign)
+        signtyperect.setRect(self.x_offset + self.indent, self.current_y*(self.default_xslot_height+self.verticalspacing), self.xslots_width, self.default_xslot_height)  # 640-(2*self.blackpen.width()), 50)
+        self.current_y += 1
+        self.scene.addItem(signtyperect)
+
+    def addxslots(self):
+        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and self.sign.xslotstructure is not None:
             xslotrects = {}
-            numwholes = sign.xslotstructure.number
-            # partial = max([p.numerator/p.denominator for p in sign.xslotstructure.partials+[Fraction(0, 1)]])
-            partial = float(sign.xslotstructure.additionalfraction)
+            numwholes = self.sign.xslotstructure.number
+            partial = float(self.sign.xslotstructure.additionalfraction)
             roundedup = numwholes + (1 if partial > 0 else 0)
-            xslot_width = 640 / (numwholes + roundedup)
+            self.onexslot_width = self.xslots_width / roundedup
             if numwholes + partial > 0:
                 for i in range(numwholes):
-                    xslotrect = XslotRectModuleButton(self, text="x" + str(i + 1), moduletype='xslot', sign=self.sign)
-                    xloc = 0 + i * xslot_width - (2 * self.blackpen.width())
-                    xslotrect.setRect(xloc, current_y * 75, xslot_width, 50)
-                    # xslotrect.setPen(self.blackpen)
-                    # xslotrect.setBrush(self.greenbrush)
+                    xslotrect = XslotRect(self, text="x" + str(i + 1), moduletype='xslot', sign=self.sign)
+                    xloc = self.indent + i * self.onexslot_width  # - (2 * self.blackpen.width())
+                    xslotrect.setRect(xloc, self.current_y * (self.default_xslot_height+self.verticalspacing), self.onexslot_width, self.default_xslot_height)
                     xslotrects["x"+str(i+1)] = xslotrect
                     self.scene.addItem(xslotrect)
                 if partial > 0:
-                    xslotrect = XslotRectModuleButton(self, text="x" + str(numwholes + 1), moduletype='xslot', sign=self.sign, proportionfill=partial)
-                    xloc = 0 + numwholes * xslot_width - (2 * self.blackpen.width())
-                    xslotrect.setRect(xloc, current_y * 75, xslot_width, 50)
-                    # xslotrect.setPen(self.blackpen)
-                    # xslotrect.setBrush(self.greenbrush)
+                    xslotrect = XslotRect(self, text="x" + str(numwholes + 1), moduletype='xslot', sign=self.sign, proportionfill=partial)
+                    xloc = self.indent + numwholes * self.onexslot_width #  - (2 * self.blackpen.width())
+                    xslotrect.setRect(xloc, self.current_y * (self.default_xslot_height + self.verticalspacing), self.onexslot_width,
+                                      self.default_xslot_height)
                     xslotrects["x"+str(numwholes+1)] = xslotrect
                     self.scene.addItem(xslotrect)
+            self.current_y += 1
 
-                    # xslotrect = XslotRect(self, text="", moduletype='xslot', sign=self.sign, mainwindow=self.mainwindow)
-                    # xloc = 0 + numwholes * xslot_width - (2 * self.blackpen.width()) + xslot_width * partial
-                    # xslotrect.setRect(xloc, current_y * 75, xslot_width * (1-partial), 50)
-                    # xslotrect.setPen(self.blackpen)
-                    # xslotrect.setBrush(self.greenbrush)
-                    # xslotrects["x"+str(0)] = xslotrect
-                    # self.scene.addItem(xslotrect)
-            current_y += 1
+    def addhand(self, hand):
+        # add hand label
+        handtext = QGraphicsTextItem()
+        handtext.setPlainText("Hand " + hand[-1])
+        if hand == "H2":
+            self.current_y += 1
+        handtext.setPos(self.x_offset, self.current_y * (self.default_xslot_height + self.verticalspacing))
+        self.scene.addItem(handtext)
 
-        mvmtrects = {}
+        # TODO KV get rid of this m business once the modules are teased apart
+        self.addmovement(hand=hand)
+        self.addhandpart(hand=hand)
+        self.addlocation(hand=hand)
+        self.addcontact(hand=hand)
+        self.addorientation(hand=hand)
+        self.addhandconfig(hand=hand)
+
+    # TODO KV need to get ellipses working
+    def addmovement(self, hand):
+        # TODO KV implement spacing efficiency - for now put each on its own row
         num_mvmtmods = len(self.sign.movementmodules)
         if num_mvmtmods > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+                # everything just gets listed vertically
                 for idx, m in enumerate(self.sign.movementmodules.keys()):
-                    for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
-                        hand_abbr = hand  #[:3] TODO KV
-                        mvmtrect = XslotRectModuleButton(self, text=hand_abbr + "." + m, moduletype='movement', sign=self.sign)
-                        mvmtrect.setRect(current_x, current_y*75, 640 - (2 * self.blackpen.width()), 50)
-                        current_y += 1
-                        # mvmtrect.setPen(self.blackpen)
-                        # mvmtrect.setBrush(self.greenbrush)
-                        mvmtrects[hand_abbr+"."+m] = mvmtrect
+                    mvmtmod = self.sign.movementmodules[m]
+                    mvmtmodid = mvmtmod.uniqueid
+                    if mvmtmod.hands[hand]:
+                        mvmtrect = XslotRectModuleButton(self, module_uniqueid=mvmtmodid, text=hand+".Mov"+str(idx+1), moduletype='movement', sign=self.sign)
+                        mvmtrect.setRect(self.current_x, self.current_y * (self.default_xslot_height + self.verticalspacing), self.xslots_width, self.default_xslot_height)
+                        self.current_y += 1
                         self.scene.addItem(mvmtrect)
             else:  # 'manual' or 'auto'
-                mvmt_width = 640 / num_mvmtmods
-                for idx, m in enumerate(self.sign.movementmodules.keys()):
-                    for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
-                        hand_abbr = hand[:3]
-                        mvmtrect = XslotRectModuleButton(self, text=hand_abbr + "." + m, moduletype='movement', sign=self.sign)
-                        xloc = 0 + idx * mvmt_width - (2*self.blackpen.width())
-                        mvmtrect.setRect(xloc, current_y*75, mvmt_width, 50)
-                        # mvmtrect.setPen(self.blackpen)
-                        # mvmtrect.setBrush(self.greenbrush)
-                        mvmtrects[hand_abbr+"."+m] = mvmtrect
-                        self.scene.addItem(mvmtrect)
-                current_y += 1
+                # associate modules with x-slots
+                for midx, m in enumerate(self.sign.movementmodules.keys()):
+                    mvmtmod = self.sign.movementmodules[m]
+                    mvmtmodid = mvmtmod.uniqueid
+                    if mvmtmod.hands[hand]:
+                        for tidx, t in enumerate(mvmtmod.timingintervals):
+                            mvmtrect = XslotRectModuleButton(self, module_uniqueid=mvmtmodid,
+                                                             text=hand + ".Mov" + str(midx + 1), moduletype='movement',
+                                                             sign=self.sign)
+                            mvmtrect.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+                            self.scene.addItem(mvmtrect)
+                self.current_y += 1
 
-        hsrects = {}
-        num_hsmods = len(self.sign.handshapemodules)
-        if num_hsmods > 0:
-            if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
-                for idx, hs in enumerate(self.sign.handshapemodules.keys()):
-                    for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
-                        hand_abbr = hand  #[:3] TODO KV
-                        hsrect = XslotRectModuleButton(self, text=hand_abbr + "." + hs, moduletype='handshape', sign=self.sign)
-                        hsrect.setRect(current_x, current_y * 75, 640 - (2 * self.blackpen.width()), 50)
-                        current_y += 1
-                        # hsrect.setPen(self.blackpen)
-                        # hsrect.setBrush(self.greenbrush)
-                        hsrects[hand_abbr+"."+hs] = hsrect
-                        self.scene.addItem(hsrect)
-            else:  # 'manual' or 'auto'
-                hs_width = 640 / num_hsmods
-                for idx, hs in enumerate(self.sign.handshapemodules.keys()):
-                    for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
-                        hand_abbr = hand  #[:3] TODO KV
-                        hsrect = XslotRectModuleButton(self, text=hand_abbr + "." + hs, moduletype='handshape', sign=self.sign)
-                        xloc = 0 + idx * hs_width - (2 * self.blackpen.width())
-                        hsrect.setRect(xloc, current_y * 75, hs_width, 50)
-                        # hsrect.setPen(self.blackpen)
-                        # hsrect.setBrush(self.greenbrush)
-                        hsrects[hand_abbr+"."+hs] = hsrect
-                        self.scene.addItem(hsrect)
-                current_y += 1
+    def getxywh(self, timinginterval):
+        if timinginterval == TimingInterval(TimingPoint(0,0),TimingPoint(0,1)):
+            # then it's the whole sign
+            startfrac = 0
+            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction
+        else:
+            # some subinterval
+            startfrac = timinginterval.startpoint.wholepart - 1 + timinginterval.startpoint.fractionalpart
+            endfrac = timinginterval.endpoint.wholepart - 1 + timinginterval.endpoint.fractionalpart
+        widthfrac = endfrac - startfrac
 
-        self.scene.modulerect_clicked.connect(self.handle_modulebutton_clicked)
+        x = self.x_offset + self.indent + float(startfrac)*self.onexslot_width
+        y = self.current_y * (self.default_xslot_height + self.verticalspacing)
+        w = float(widthfrac) * self.onexslot_width
+        h = self.default_xslot_height
+
+        return x, y, w, h
+
+    def addhandpart(self, hand):
+        return  # TODO KV implement
+
+    def addlocation(self, hand):
+        return  # TODO KV implement
+
+    def addcontact(self, hand):
+        return  # TODO KV implement
+
+    def addorientation(self, hand):
+        return  # TODO KV implement
+
+    def addhandconfig(self, hand):
+        return  # TODO KV implement
+
+        # hsrects = {}
+        # num_hsmods = len(self.sign.handshapemodules)
+        # if num_hsmods > 0:
+        #     if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+        #         for idx, hs in enumerate(self.sign.handshapemodules.keys()):
+        #             for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
+        #                 hand_abbr = hand  # [:3] TODO KV
+        #                 hsrect = XslotRectModuleButton(self, text=hand_abbr + "." + hs, moduletype='handshape',
+        #                                                sign=self.sign)
+        #                 hsrect.setRect(self.x_offset, self.current_y * 75, 640)  # - (2 * self.blackpen.width()), 50)
+        #                 self.current_y += 1
+        #                 # hsrect.setPen(self.blackpen)
+        #                 # hsrect.setBrush(self.greenbrush)
+        #                 hsrects[hand_abbr + "." + hs] = hsrect
+        #                 self.scene.addItem(hsrect)
+        #     else:  # 'manual' or 'auto'
+        #         hs_width = 640 / num_hsmods
+        #         for idx, hs in enumerate(self.sign.handshapemodules.keys()):
+        #             for hand in [h for h in self.sign.movementmodules[m][1].keys() if self.sign.movementmodules[m][1][h]]:
+        #                 hand_abbr = hand  # [:3] TODO KV
+        #                 hsrect = XslotRectModuleButton(self, text=hand_abbr + "." + hs, moduletype='handshape',
+        #                                                sign=self.sign)
+        #                 xloc = 0 + idx * hs_width  # - (2 * self.blackpen.width())
+        #                 hsrect.setRect(xloc, self.current_y * 75, hs_width, 50)
+        #                 # hsrect.setPen(self.blackpen)
+        #                 # hsrect.setBrush(self.greenbrush)
+        #                 hsrects[hand_abbr + "." + hs] = hsrect
+        #                 self.scene.addItem(hsrect)
+        #         self.current_y += 1
+
+    def addgridlines(self):
+        return  # TODO KV implement
 
     def handle_modulebutton_clicked(self, modulebutton):
         # TODO KV
         moduletype = modulebutton.moduletype
-        graphicsitemtext = modulebutton.text
-        print("you clicked a", moduletype, "button, associated with", graphicsitemtext)
         if moduletype == "signtype":
             self.handle_signtype_clicked()
-        elif moduletype == "xslot":
-            self.handle_xslot_clicked()
+        # elif moduletype == "xslot":
+        #     self.handle_xslot_clicked()
         else:
-            firstdot = graphicsitemtext.index(".")
-            hand = graphicsitemtext[:firstdot]
-            # seconddot = graphicsitemtext.index(".", firstdot+1)
-
-            openbracket = graphicsitemtext.index("(") if ("(" in graphicsitemtext) else len(graphicsitemtext)+1
-            modulekey = graphicsitemtext[firstdot + 1:openbracket].strip()
+            modulekey = modulebutton.module_uniqueid
             if moduletype == "movement":
-                self.handle_movement_clicked(hand, modulekey)
-                print(self.sign.movementmodules)
+                self.handle_movement_clicked(modulekey)
             elif moduletype == "handshape":
-                self.handle_handshape_clicked(hand, modulekey)
-                print(self.sign.handshapemodules)
+                self.handle_handshape_clicked(modulekey)
 
     def handle_xslot_clicked(self):
         # TODO KV - open xslot editing window
@@ -482,49 +537,24 @@ class XslotPanel(QScrollArea):
 
     def handle_save_signtype(self, signtype):
         self.sign.signtype = signtype
-        self.refreshsign(self.sign)
+        self.refreshsign()  # self.sign)
 
-    def handle_movement_clicked(self, hand, modulekey):
+    def handle_movement_clicked(self, modulekey):
+        mvmtmodule = self.sign.movementmodules[modulekey]
+        movementtreemodel = mvmtmodule.movementtree
+        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=mvmtmodule.hands,
+                                                 xslotstructure=self.sign.xslotstructure,
+                                                 enable_addnew=False,
+                                                 modulelayout=MovementSpecificationLayout(movementtreemodel),
+                                                 moduleargs=None,
+                                                 timingintervals=mvmtmodule.timingintervals)
+        movement_selector.get_savedmodule_signal().connect(
+            lambda movementtree, hands, timingintervals: self.mainwindow.sign_summary.handle_save_movement(movementtree, hands, timingintervals, modulekey))
+        movement_selector.exec_()
+
+    def handle_handshape_clicked(self, modulekey):  # hand,
         # TODO kv
-        print("access", self.sign.movementmodules, "via", modulekey, "and", hand)
-        print(self.sign.movementmodules[modulekey][1][hand])
-
-    def handle_handshape_clicked(self, hand, modulekey):
-        # TODO kv
-        print(self.sign.handshapemodules[modulekey][2][hand])
-
-#  TODO KV delete
-# class XslotGraphicsView(QGraphicsView):
-#     def __init__(self, scene, parent, **kwargs):
-#         super().__init__(scene, parent, **kwargs)
-
-#  TODO KV delete
-# class MyText(QGraphicsTextItem):
-#     def __init__(self, text, parentwidget, restingbrush=QBrush(Qt.blue), hoverbrush=QBrush(Qt.yellow)):
-#         super().__init__()
-#         self.setPlainText(text)
-#         self.restingbrush = restingbrush
-#         self.hoverbrush = hoverbrush
-#         # self.setAcceptHoverEvents(True)
-#         self.parentwidget = parentwidget
-#
-#     def mouseReleaseEvent(self, event):
-#         print("text released")
-#         QMessageBox.information(self.parentwidget, 'Text clicked', 'You clicked the text!')
-#
-#     def mousePressEvent(self, event):
-#         print("text pressed")
-#
-#     # def hoverEnterEvent(self, event):
-#     #     self.setBrush(self.hoverbrush)
-#     #
-#     # def hoverLeaveEvent(self, event):
-#     #     self.setBrush(self.restingbrush)
-#
-#     def boundingRect(self):
-#         # penWidth = self.pen().width()
-#         return QRectF(5, 5, 50, 10)
-
+        print(self.sign.handshapemodules[modulekey])  # [2][hand])
 
 
 class XslotEllipse(QGraphicsEllipseItem):
@@ -725,24 +755,16 @@ class SignSummaryPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_movementbutton_click(self):
-        button = self.sender()
-        # TODO KV
-        editing_existing = button.property("existingmodule")
-        existing_key = None
-        moduletoload = None
-        if editing_existing:
-            existing_key = button.text()
-            moduletoload = self.sign.movementmodules[existing_key]
-        # movement_selector = MovementSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
-        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=(not editing_existing), modulelayout=MovementSpecificationLayout(moduletoload), moduleargs=None)
-        movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands: self.handle_save_movement(movementtree, hands, existing_key))
+        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=True, modulelayout=MovementSpecificationLayout(), moduleargs=None)
+        movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals: self.handle_save_movement(movementtree, hands, timingintervals))
         movement_selector.exec_()
 
-    def handle_save_movement(self, movementtree, hands_dict, existing_key):
+    def handle_save_movement(self, movementtree, hands_dict, timingintervals, existing_key=None):
         if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-            self.sign.addmovementmodule(movementtree, hands_dict)
+            self.sign.addmovementmodule(movementtree, hands_dict, timingintervals)
         else:
-            self.sign.movementmodules[existing_key] = movementtree
+            # self.sign.movementmodules[existing_key] = movementtree
+            self.sign.updatemovementmodule(existing_key, movementtree, hands_dict, timingintervals)
         self.sign_updated.emit(self.sign)
 
     def handle_handshapebutton_click(self):

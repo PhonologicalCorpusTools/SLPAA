@@ -59,6 +59,7 @@ class SignLevelInfoLayout(QVBoxLayout):
 
     def __init__(self, signlevelinfo, mainwindow, app_settings, **kwargs):
         super().__init__(**kwargs)
+        self.mainwindow = mainwindow
 
         self.coder = app_settings['metadata']['coder']
         self.defaulthand = app_settings['signdefaults']['handdominance']
@@ -68,15 +69,19 @@ class SignLevelInfoLayout(QVBoxLayout):
         main_layout = QVBoxLayout()
         main_layout.setSpacing(5)
 
-        gloss_label = QLabel('Gloss:') #  , parent=self)
-        lemma_label = QLabel('Lemma:') #  , parent=self)
-        source_label = QLabel('Source:') #  , parent=self)
-        signer_label = QLabel('Signer:') #  , parent=self)
-        freq_label = QLabel('Frequency:') #  , parent=self)
-        coder_label = QLabel('Coder:') #  , parent=self)
-        update_label = QLabel('Last updated:') #  , parent=self)
-        note_label = QLabel('Notes:') #  , parent=self)
+        entryid_label = QLabel("Entry ID:")
+        gloss_label = QLabel('Gloss:')
+        lemma_label = QLabel('Lemma:')
+        source_label = QLabel('Source:')
+        signer_label = QLabel('Signer:')
+        freq_label = QLabel('Frequency:')
+        coder_label = QLabel('Coder:')
+        update_label = QLabel('Last updated:')
+        note_label = QLabel('Notes:')
 
+        self.entryid_value = QLineEdit()
+        self.entryid_value.setText(self.entryid_string())
+        self.entryid_value.setEnabled(False)
         self.gloss_edit = QLineEdit()
         self.gloss_edit.setFocusPolicy(Qt.StrongFocus)
         self.lemma_edit = QLineEdit()
@@ -103,6 +108,8 @@ class SignLevelInfoLayout(QVBoxLayout):
 
         self.clear()
 
+        main_layout.addWidget(entryid_label)
+        main_layout.addWidget(self.entryid_value)
         main_layout.addWidget(gloss_label)
         main_layout.addWidget(self.gloss_edit)
         main_layout.addWidget(lemma_label)
@@ -125,6 +132,17 @@ class SignLevelInfoLayout(QVBoxLayout):
 
         self.addLayout(main_layout)
 
+    def entryid(self):
+        return self.mainwindow.corpus.highestID+1
+
+    def entryid_string(self, entryid_int=None):
+        numchars = 4  # TODO KV this should be in global settings
+        if entryid_int is None:
+            entryid_int = self.entryid()
+        entryid_string = str(entryid_int)
+        entryid_string = "0"*(numchars-len(entryid_string)) + entryid_string
+        return entryid_string
+
     def set_starting_focus(self):
         self.gloss_edit.setFocus()
 
@@ -132,6 +150,7 @@ class SignLevelInfoLayout(QVBoxLayout):
         if not signlevelinfo:
             signlevelinfo = self.signlevelinfo
         if self.signlevelinfo:
+            self.entryid_value.setText(self.entryid_string(signlevelinfo.entryid))
             self.gloss_edit.setText(signlevelinfo.gloss)
             self.lemma_edit.setText(signlevelinfo.lemma)
             self.source_edit.setText(signlevelinfo.source)
@@ -167,6 +186,7 @@ class SignLevelInfoLayout(QVBoxLayout):
     def get_value(self):
         if self.get_date() and self.get_gloss():
             return {
+                'entryid': self.entryid(),
                 'gloss': self.get_gloss(),
                 'lemma': self.lemma_edit.text(),
                 'source': self.source_edit.text(),
@@ -193,6 +213,7 @@ class SignlevelinfoSelectorDialog(QDialog):
 
     def __init__(self, signlevelinfo, mainwindow, app_settings, **kwargs):
         super().__init__(**kwargs)
+        self.setWindowTitle("Sign-level information")
         self.mainwindow = mainwindow
         self.settings = app_settings
 
