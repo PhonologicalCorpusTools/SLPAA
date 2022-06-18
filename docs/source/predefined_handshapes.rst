@@ -359,7 +359,7 @@ Middle Finger
 Standard Base
 ~~~~~~~~~~~~~
 .. image:: images/pdhs_base.png
-        :width: 60
+        :width: 80
         :align: left
 |
 |
@@ -397,6 +397,11 @@ Bent
 - **Generic description:** Selected fingers are extended straight from the palm with only the bottom joint flexed (except “bent-thumb-L”, which has the thumb lateral and bent upwards parallel to the extended index finger) 
 - **SLP coding description:** proximal joint of each bent finger is F; other joints are often E but may depend on handshape (except for “bent-thumb-L” -- see description)
 - **Prototypical coding:** F-E-E on each bent finger
+
+
+.. image:: images/pdhs_bent.png
+        :width: 60
+        :align: left
 
 Clawed
 ~~~~~~
