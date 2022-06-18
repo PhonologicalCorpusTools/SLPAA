@@ -184,6 +184,8 @@ L
 .. image:: images/pdhs_L.png
         :width: 60
         :align: left
+   
+|
 |
 |
 |
@@ -208,7 +210,7 @@ N
 O 
 ~
 .. image:: images/pdhs_O.png
-        :width: 40
+        :width: 50
         :align: left
 |
 |
