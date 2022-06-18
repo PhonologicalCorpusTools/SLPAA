@@ -392,7 +392,6 @@ Adducted
 
 
 
-
 Bent
 ~~~~
 - **Dictionary description:** Handshape is compressed to take on a flat appearance
@@ -400,10 +399,13 @@ Bent
 - **SLP coding description:** proximal joint of each bent finger is F; other joints are often E but may depend on handshape (except for “bent-thumb-L” -- see description)
 - **Prototypical coding:** F-E-E on each bent finger
 
-
 .. image:: images/pdhs_bent.png
-        :width: 60
+        :width: 100
         :align: left
+        
+|
+|
+|
 
 Clawed
 ~~~~~~
