@@ -392,7 +392,20 @@ Adducted
 - **SLP coding description:** full adduction between each finger
 - **Prototypical coding:** [=] between each adducted finger
 
-
+.. image:: images/pdhs_adducted.png
+        :width: 200
+        :align: left
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|      
 
 Bent
 ~~~~
@@ -402,7 +415,7 @@ Bent
 - **Prototypical coding:** F-E-E on each bent finger
 
 .. image:: images/pdhs_bent.png
-        :width: 200
+        :width: 500
         :align: left
         
 |
@@ -410,7 +423,17 @@ Bent
 |
 |
 |
-
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
 Clawed
 ~~~~~~
 - **Dictionary description:** Handshape with fingers rigidly retracted to resemble the talons on a bird of prey 
