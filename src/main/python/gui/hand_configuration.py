@@ -28,6 +28,7 @@ from itertools import chain
 from constant import NULL, X_IN_BOX, ESTIMATE_BORDER, UNCERTAIN_BACKGROUND, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeNoMatch
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
+from lexicon.lexicon_classes import HandConfigurationHand
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
@@ -949,9 +950,19 @@ class ConfigHand(QWidget):
             slot.setText(symbol)
 
     def get_value(self):
-        return {
-            # 'hand_number': self.hand_number,
-            'fields': [
+        # return {
+        #     # 'hand_number': self.hand_number,
+        #     'fields': [
+        #         self.field2.get_value(),
+        #         self.field3.get_value(),
+        #         self.field4.get_value(),
+        #         self.field5.get_value(),
+        #         self.field6.get_value(),
+        #         self.field7.get_value()
+        #     ]
+        # }
+
+        return [
                 self.field2.get_value(),
                 self.field3.get_value(),
                 self.field4.get_value(),
@@ -959,7 +970,6 @@ class ConfigHand(QWidget):
                 self.field6.get_value(),
                 self.field7.get_value()
             ]
-        }
 
 
 class Config(QGroupBox):
@@ -1073,8 +1083,13 @@ class Config(QGroupBox):
     def handle_set_predefined(self, transcription_list):
         self.hand.set_predefined(transcription_list)
 
-    def set_value(self, config):
-        self.hand.set_value(config.hand)
+    def set_value(self, handconfigmodule):
+        self.hand.set_value(HandConfigurationHand(handconfigmodule.handconfiguration))
+        self.slot1.setChecked(handconfigmodule.overalloptions['forearm'])
+        self.estimated.setChecked(handconfigmodule.overalloptions['estimated'])
+        self.uncertain.setChecked(handconfigmodule.overalloptions['uncertain'])
+        self.incomplete.setChecked(handconfigmodule.overalloptions['incomplete'])
+
         # TODO KV delete
         # self.hand2.set_value(config.hand2)
 
@@ -1103,7 +1118,14 @@ class Config(QGroupBox):
         #         # self.hand2.get_value()
         #     ]
         # }
-        return self.hand.get_value()
+        return {
+            'forearm': self.slot1.isChecked(),
+            'estimated': self.estimated.isChecked(),
+            'uncertain': self.uncertain.isChecked(),
+            'incomplete': self.incomplete.isChecked(),
+            'hand': self.hand.get_value()  # this is a list of field values
+        }
+        # return self.slot1.isChecked(), self.estimated.isChecked(), self.uncertain.isChecked(), self.incomplete.isChecked(), self.hand.get_value()
 
 
 class ConfigGlobal(QGroupBox):

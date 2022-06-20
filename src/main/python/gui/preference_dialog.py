@@ -14,6 +14,8 @@ from PyQt5.QtWidgets import (
     QButtonGroup
 )
 
+from PyQt5.QtCore import pyqtSignal
+
 from constant import FRACTION_CHAR
 from fractions import Fraction
 
@@ -31,19 +33,25 @@ class DisplayTab(QWidget):
         self.decimal_place.setMinimum(0)
         self.decimal_place.setMaximum(10)
         self.decimal_place.setValue(settings['display']['sig_figs'])
-        main_layout.addRow(QLabel('Number of displayed decimal places:'), self.decimal_place)
+        main_layout.addRow(QLabel("Number of displayed decimal places:"), self.decimal_place)
 
         self.coder_name = QLineEdit(settings['metadata']['coder'], parent=self)
-        main_layout.addRow(QLabel('Preferred coder name:'), self.coder_name)
+        main_layout.addRow(QLabel("Preferred coder name:"), self.coder_name)
 
         self.show_tooltip = QCheckBox(parent=self)
         self.show_tooltip.setChecked(settings['display']['tooltips'])
-        main_layout.addRow(QLabel('Show tooltip:'), self.show_tooltip)
+        main_layout.addRow(QLabel("Show tooltip:"), self.show_tooltip)
+
+        self.entryid_digits = QSpinBox(parent=self)
+        self.entryid_digits.setMinimum(1)
+        self.entryid_digits.setValue(settings['display']['entryid_digits'])
+        main_layout.addRow(QLabel("Number of displayed entry ID digits:"), self.entryid_digits)
 
     def save_settings(self):
         self.settings['display']['sig_figs'] = int(self.decimal_place.value())
         self.settings['display']['tooltips'] = self.show_tooltip.isChecked()
         self.settings['metadata']['coder'] = str(self.coder_name.text())
+        self.settings['display']['entryid_digits'] = self.entryid_digits.value()
 
 
 class ReminderTab(QWidget):
@@ -148,6 +156,8 @@ class SignDefaultsTab(QWidget):
 
 
 class PreferenceDialog(QDialog):
+    prefs_saved = pyqtSignal()
+
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
 
@@ -183,5 +193,5 @@ class PreferenceDialog(QDialog):
             self.display_tab.save_settings()
             self.reminder_tab.save_settings()
             self.signdefaults_tab.save_settings()
-
+            self.prefs_saved.emit()
             self.accept()

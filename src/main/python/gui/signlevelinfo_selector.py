@@ -63,6 +63,7 @@ class SignLevelInfoLayout(QVBoxLayout):
 
         self.coder = app_settings['metadata']['coder']
         self.defaulthand = app_settings['signdefaults']['handdominance']
+        self.settings = app_settings
 
         self.signlevelinfo = signlevelinfo
 
@@ -136,11 +137,11 @@ class SignLevelInfoLayout(QVBoxLayout):
         return self.mainwindow.corpus.highestID+1
 
     def entryid_string(self, entryid_int=None):
-        numchars = 4  # TODO KV this should be in global settings
+        numdigits = self.settings['display']['entryid_digits']
         if entryid_int is None:
             entryid_int = self.entryid()
         entryid_string = str(entryid_int)
-        entryid_string = "0"*(numchars-len(entryid_string)) + entryid_string
+        entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
         return entryid_string
 
     def set_starting_focus(self):
@@ -247,7 +248,7 @@ class SignlevelinfoSelectorDialog(QDialog):
 
         elif standard == QDialogButtonBox.Save:
             signlevelinfo = self.signlevelinfo_layout.get_value()
-            self.saved_signlevelinfo.emit(SignLevelInformation(signlevelinfo))
+            self.saved_signlevelinfo.emit(SignLevelInformation(signlevelinfo, self.settings))
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:

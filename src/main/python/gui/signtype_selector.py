@@ -182,7 +182,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handstype_mvmtmirroredexcept_buttongroup.setExclusive(False)
         self.handstype_2hmvmtexceptloc_check = SigntypeCheckBox('Location', parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptloc_check.setProperty('signtype', '2hands.bothmove.same.simult.mirroredexcept.locn')
-        self.handstype_2hmvmtexceptshape_check = SigntypeCheckBox('Handshape', parentbutton=self.handstype_mirroredexcept_radio)
+        self.handstype_2hmvmtexceptshape_check = SigntypeCheckBox('Hand configuration', parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptshape_check.setProperty('signtype', '2hands.bothmove.same.simult.mirroredexcept.shape')
         self.handstype_2hmvmtexceptorientn_check = SigntypeCheckBox('Orientation', parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptorientn_check.setProperty('signtype', '2hands.bothmove.same.simult.mirroredexcept.orientn')

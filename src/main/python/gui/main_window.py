@@ -348,7 +348,7 @@ class MainWindow(QMainWindow):
 
         self.xslot_panel = XslotPanel(mainwindow=self, sign=self.current_sign, parent=self)
         # self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
-        self.sign_summary.sign_updated.connect(self.xslot_panel.refreshsign)
+        self.sign_summary.sign_updated.connect(self.xslot_panel.refreshsign)  #  (self.refreshxslotviews)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -384,6 +384,10 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_mdi)
 
         self.open_initialization_window()
+
+    # def refreshxslotviews(self, sign):
+    #     self.sign_summary.enable_module_buttons(True)
+    #     self.xslot_panel.refreshsign(sign)
 
     def setCorpusName(self, newtitle):
         if self.corpus is not None:
@@ -750,6 +754,7 @@ class MainWindow(QMainWindow):
 
         self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2)
         self.app_settings['display']['tooltips'] = bool(self.app_qsettings.value('tooltips', defaultValue=True))
+        self.app_settings['display']['entryid_digits'] = self.app_qsettings.value('entryid_digits', defaultValue=4)
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('metadata')
@@ -814,6 +819,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
+        self.app_qsettings.setValue('entryid_digits', self.app_settings['display']['entryid_digits'])
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('metadata')
@@ -855,6 +861,7 @@ class MainWindow(QMainWindow):
 
     def on_action_edit_preference(self):
         pref_dialog = PreferenceDialog(self.app_settings, parent=self)
+        pref_dialog.prefs_saved.connect(self.xslot_panel.refreshsign)
         pref_dialog.exec_()
         #self.app_settings
 

@@ -106,9 +106,6 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
         self.addLayout(self.partial_layout)
 
-        # ensure that none are selected by default
-        # TODO KV
-
     def setxslots(self, xslots):
         self.xslots_spin.setValue(xslots.number)
         # if self.partial_buttongroup is not None:

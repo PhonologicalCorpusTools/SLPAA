@@ -140,6 +140,7 @@ class ModuleSelectorDialog(QDialog):
             # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
             # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
             self.hands_layout.clear()
+            self.xslot_layout.clear()
             # self.movement_layout.refresh_treemodel()
             self.module_layout.refresh()
 
@@ -165,9 +166,13 @@ class HandSelectionLayout(QHBoxLayout):
         self.setSpacing(25)
 
         self.hands_label = QLabel("This module applies to:")
+        self.hands_group = QButtonGroup()
         self.hand1_radio = QRadioButton("Hand 1")
         self.hand2_radio = QRadioButton("Hand 2")
         self.bothhands_radio = QRadioButton("Both hands")
+        self.hands_group.addButton(self.hand1_radio)
+        self.hands_group.addButton(self.hand2_radio)
+        self.hands_group.addButton(self.bothhands_radio)
         self.addWidget(self.hands_label)
         self.addWidget(self.hand1_radio)
         self.addWidget(self.hand2_radio)
@@ -193,9 +198,7 @@ class HandSelectionLayout(QHBoxLayout):
             self.hand2_radio.setChecked(True)
 
     def clear(self):
-        self.sethands(
-            {
-                'H1': False,
-                'H2': False
-            }
-        )
+        self.hands_group.setExclusive(False)
+        for b in self.hands_group.buttons():
+            b.setChecked(False)
+        self.hands_group.setExclusive(True)

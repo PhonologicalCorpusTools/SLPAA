@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QGraphicsScene,
     QVBoxLayout,
     QMessageBox,
-    QGraphicsTextItem
+    QGraphicsEllipseItem
 )
 
 from PyQt5.QtGui import (
@@ -181,6 +181,81 @@ class XslotRectLinkingButton(XslotRectButton):
         self.toggle()
         self.parentwidget.linkingrect_clicked.emit(self)  # self.xslot_whole, self.xslot_part_start, self.xslot_part_end)
 
+
+class XslotEllipseModuleButton(QGraphicsEllipseItem):
+    def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None):  # xslot_whole=0, xslot_part=None,
+        super().__init__()
+        self.parentwidget = parentwidget
+        self.text = text
+        self.moduletype = moduletype
+        self.sign = sign
+        # self.mainwindow = mainwindow
+
+        self.setAcceptHoverEvents(True)
+        self.hover = False
+        self.module_uniqueid = module_uniqueid
+
+    def mousePressEvent(self, event):
+        pass
+
+    def mouseReleaseEvent(self, event):
+        print("mouse released on module ellipse")
+        self.scene().moduleellipse_clicked.emit(self)
+
+    def hoverEnterEvent(self, event):
+        self.hover = True
+        self.update()
+
+    def hoverLeaveEvent(self, event):
+        self.hover = False
+        self.update()
+
+    def currentbrush(self):
+        if self.hover:
+            return QColor(0, 120, 215)  # self.hoverbrush
+        else:
+            return QBrush(Qt.white)  # self.unselectedbrush
+
+    def currentpen(self):
+        if self.hover:
+            return QPen(Qt.black)  # self.hoverpen
+        else:
+            return QPen(Qt.black)  # self.unselectedpen
+
+    def paint(self, painter, option, widget):
+        # super().paint(painter, option, widget)
+
+        # turn pen off while filling ellipse
+        painter.setPen(Qt.NoPen)
+
+        # fill ellipse
+        painter.setBrush(self.currentbrush())
+        painter.drawEllipse(self.rect())
+
+        # turn off brush while outlining ellipse & drawing text
+        brush = painter.brush()
+        brush.setStyle(Qt.NoBrush)
+        painter.setBrush(brush)
+
+        # outline ellipse
+        painter.setPen(self.currentpen())
+        entirerect = self.rect()
+        painter.drawEllipse(entirerect)
+
+        # draw ellipse text
+        textoption = QTextOption(Qt.AlignCenter)
+        # textoption.setAlignment(Qt.AlignCenter)
+        font = painter.font()
+        font.setPixelSize(18)
+        painter.setFont(font)
+        painter.drawText(self.rect(), self.text, textoption)
+
+    # def boundingRect(self):
+    #     penWidth = self.pen().width()
+    #     return QRectF(-radius - penWidth / 2, -radius - penWidth / 2,
+    #                   diameter + penWidth, diameter + penWidth)
+
+
 class XslotRectModuleButton(XslotRectButton):
 
     def __init__(self, parentwidget, module_uniqueid=0, **kwargs):
@@ -197,6 +272,7 @@ class XslotRectModuleButton(XslotRectButton):
 
 class XslotSummaryScene(QGraphicsScene):
     modulerect_clicked = pyqtSignal(XslotRectModuleButton)
+    moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton)
 
 
 class XslotLinkingLayout(QVBoxLayout):
@@ -204,6 +280,8 @@ class XslotLinkingLayout(QVBoxLayout):
     def __init__(self, xslotstructure, mainwindow, parentwidget, timingintervals=[], **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
+        self.parentwidget = parentwidget
+        self.timingintervals = timingintervals
         xslotstruct = self.mainwindow.current_sign.xslotstructure
         if xslotstruct is None:
             print("no x-slot structure!")
@@ -212,7 +290,7 @@ class XslotLinkingLayout(QVBoxLayout):
             "Click on the relevant point(s) or interval(s) to link this module.")  # ("Link this module to the interval/point")
         self.addWidget(self.link_intro_label)
 
-        self.xslotlinkscene = XslotLinkScene(parentwidget=parentwidget, mainwindow=self.mainwindow, timingintervals=timingintervals)
+        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=self.timingintervals)
         self.xslotlinkview = QGraphicsView(self.xslotlinkscene)
         self.xslotlinkview.setFixedHeight(self.xslotlinkscene.scene_height+50)
         # self.xslotlinkview.setFixedSize(self.xslotlinkscene.scene_width+100, self.xslotlinkscene.scene_height+50)
@@ -223,6 +301,11 @@ class XslotLinkingLayout(QVBoxLayout):
 
     def gettimingintervals(self):
         return self.xslotlinkscene.xslotlinks
+
+    def clear(self):
+        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=self.timingintervals)
+        self.xslotlinkview.setScene(self.xslotlinkscene)
+
 
 
 class XSlotCheckbox(QGraphicsRectItem):

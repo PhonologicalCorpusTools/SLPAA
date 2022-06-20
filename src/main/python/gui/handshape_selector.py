@@ -25,7 +25,7 @@ from PyQt5.QtGui import (
 # from gui.panel import HandTranscriptionPanel
 from gui.hand_configuration import ConfigGlobal, Config
 # from gui.module_selector import HandSelectionLayout
-from lexicon.lexicon_classes import HandshapeTranscription
+from lexicon.lexicon_classes import HandConfiguration
 from gui.module_selector import ModuleSpecificationLayout
 from gui.undo_command import TranscriptionUndoCommand
 
@@ -71,14 +71,14 @@ class HandTranscriptionPanel(QScrollArea):
         self.details_label.setText(text)
 
     def clear(self):
-        self.global_info.clear()
+        # self.global_info.clear()
         self.config.clear()
         # TODO KV delete
         # self.config2.clear()
 
-    def set_value(self, global_handshape_info, hand_transcription):
-        self.global_info.set_value(global_handshape_info)
-        self.config.set_value(hand_transcription.config)  #1)
+    def set_value(self, handconfigmodule):  # , global_handshape_info
+        # self.global_info.set_value(global_handshape_info)
+        self.config.set_value(handconfigmodule)  #1)
         # TODO KV delete
         # self.config2.set_value(hand_transcription.config2)
 
@@ -191,10 +191,11 @@ class HandIllustrationPanel(QScrollArea):
 
 
 # class HandshapeSpecificationLayout(QVBoxLayout):
-class HandshapeSpecificationLayout(ModuleSpecificationLayout):
-    saved_handshape = pyqtSignal(ConfigGlobal, HandshapeTranscription, dict)
+class HandConfigSpecificationLayout(ModuleSpecificationLayout):
+    saved_handshape = pyqtSignal(dict, dict, list)
 
-    def __init__(self, mainwindow, predefined_ctx, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
+    def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
+    # def __init__(self, mainwindow, predefined_ctx, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
 
         self.mainwindow = mainwindow
@@ -211,8 +212,9 @@ class HandshapeSpecificationLayout(ModuleSpecificationLayout):
         self.panel.config.slot_leave.connect(self.illustration.set_neutral_img)
         self.panel.config.slot_finish_edit.connect(self.handle_slot_edit)
 
-        if moduletoload is not None:
-            self.panel.set_value(moduletoload[0], moduletoload[1])
+        if moduletoload:
+            self.panel.set_value(moduletoload)
+        # TODO KV also load forearm, uncertainty info
 
         main_layout.addWidget(self.panel)
         main_layout.addWidget(self.illustration)
@@ -226,8 +228,15 @@ class HandshapeSpecificationLayout(ModuleSpecificationLayout):
     def get_savedmodule_signal(self):
         return self.saved_handshape
 
+    # def get_savedmodule_args(self):
+    #     return (self.treemodel,)
+
     def get_savedmodule_args(self):
-        return (self.panel.global_info, HandshapeTranscription(self.panel.config.get_value()))
+        # allconfigoptions = self.panel.config.get_value()
+        # handconfig = allconfigoptions['hand']
+        # overalloptions = {k: v for (k, v) in allconfigoptions.items() if k != 'hand'}
+        # return (handconfig, overalloptions)
+        return (self.panel.config.get_value(), )
 
     def clear(self):
         self.panel.clear()

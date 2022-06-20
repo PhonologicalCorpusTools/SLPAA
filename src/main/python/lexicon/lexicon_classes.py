@@ -18,8 +18,9 @@ def empty_copy(obj):
 
 
 class SignLevelInformation:
-    def __init__(self, signlevel_info):
+    def __init__(self, signlevel_info, app_settings):
         self._entryid = signlevel_info['entryid']
+        self.settings = app_settings
         self._gloss = signlevel_info['gloss']
         self._lemma = signlevel_info['lemma']
         self._source = signlevel_info['source']
@@ -39,9 +40,9 @@ class SignLevelInformation:
         self._entryid = new_entryid
 
     def entryid_string(self):
-        numchars = 4  # TODO KV this should be in global settings
+        numdigits = self.settings['display']['entryid_digits']
         entryid_string = str(self._entryid)
-        entryid_string = "0"*(numchars-len(entryid_string)) + entryid_string
+        entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
         return entryid_string
 
     @property
@@ -183,7 +184,7 @@ class GlobalHandshapeInformation:
         self._forearm = new_is_forearm
 
 
-class HandshapeTranscriptionSlot:
+class HandConfigurationSlot:
     def __init__(self, slot_number, symbol, is_estimate, is_uncertain):
         self._slot_number = slot_number
         self._symbol = symbol
@@ -223,7 +224,7 @@ class HandshapeTranscriptionSlot:
         self._uncertain = new_is_uncertain
 
 
-class HandshapeTranscriptionField:
+class HandConfigurationField:
     def __init__(self, field_number, slots):
         self._field_number = field_number
         self._slots = slots
@@ -240,17 +241,17 @@ class HandshapeTranscriptionField:
 
     def set_slots(self):
         if self._field_number == 2:
-            self.slot2, self.slot3, self.slot4, self.slot5 = [HandshapeTranscriptionSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot2, self.slot3, self.slot4, self.slot5 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
         elif self._field_number == 3:
-            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandshapeTranscriptionSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
         elif self._field_number == 4:
-            self.slot16, self.slot17, self.slot18, self.slot19 = [HandshapeTranscriptionSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot16, self.slot17, self.slot18, self.slot19 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
         elif self._field_number == 5:
-            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandshapeTranscriptionSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
         elif self._field_number == 6:
-            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandshapeTranscriptionSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
         elif self._field_number == 7:
-            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandshapeTranscriptionSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
 
     def __iter__(self):
         if self._field_number == 2:
@@ -267,10 +268,10 @@ class HandshapeTranscriptionField:
             return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
 
 
-class HandshapeTranscriptionHand:
+class HandConfigurationHand:
     def __init__(self, fields):  # hand_number, fields):
         # self._hand_number = hand_number
-        self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandshapeTranscriptionField(field['field_number'], field['slots']) for field in fields]
+        self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
 
     # @property
     # def hand_number(self):
@@ -299,50 +300,43 @@ class HandshapeTranscriptionHand:
             '', '4', '', '', ''
         ]
 
+#
+# class HandshapeTranscriptionConfig:
+#     def __init__(self, hand):  # config_number, hands):
+#         self.hand1 = HandConfigurationHand(hand['fields'])
+#
+#     # def is_empty(self):
+#     #     return self.hand1.is_empty()  # and self.hand2.is_empty()
+#
 
-class HandshapeTranscriptionConfig:
-    def __init__(self, hand):  # config_number, hands):
-        # self._config_number = config_number
-        # self.hand1, self.hand2 = [HandshapeTranscriptionHand(hand['hand_number'], hand['fields']) for hand in hands]
-        self.hand1 = HandshapeTranscriptionHand(hand['fields'])
+class HandConfiguration:
+    def __init__(self, config):
 
-    # @property
-    # def config_number(self):
-    #     return self._config_number
-    #
-    # @config_number.setter
-    # def config_number(self, new_config_number):
-    #     self._config_number = new_config_number
-
-    def is_empty(self):
-        return self.hand1.is_empty()  # and self.hand2.is_empty()
-
-    def find_handedness(self):
-        if self.hand1.is_empty() and self.hand2.is_empty():
-            return 0
-        elif not self.hand1.is_empty() and self.hand2.is_empty():
-            return 1
-        elif self.hand1.is_empty() and not self.hand2.is_empty():
-            return 2
-        elif not self.hand1.is_empty() and not self.hand2.is_empty():
-            return 3
-
-    def __iter__(self):
-        return [self.hand1, self.hand2].__iter__()
+        # from above
+        # self.hand1 = HandConfigurationHand(hand['fields'])
+        self.config = config
 
 
-class HandshapeTranscription:
-    def __init__(self, config):  # s):
-        # self.configs = configs
-        self.config = HandshapeTranscriptionConfig(config)  # config  # [0]
-        # TODO KV delete
-        # self.config1, self.config2 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs]
-        # self.config1 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs][0]
-        # self.config1 = HandshapeTranscriptionConfig(config)  # config['config_number'], config['hands'][0])
-        # self.find_properties()
-
-    def __repr__(self):
-        return repr(self.config)  #s)
+# class HandshapeTranscription:
+#     def __init__(self, configvalue):  # s):
+#         # self.configs = configs
+#         # structure of congfigvalue: {
+#         #     'forearm': self.slot1.isChecked(),
+#         #     'estimated': self.estimated.isChecked(),
+#         #     'uncertain': self.uncertain.isChecked(),
+#         #     'incomplete': self.incomplete.isChecked(),
+#         #     'hand': self.hand.get_value()
+#         # }
+#
+#         self.config = HandshapeTranscriptionConfig(config)  # config  # [0]
+#         # TODO KV delete
+#         # self.config1, self.config2 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs]
+#         # self.config1 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs][0]
+#         # self.config1 = HandshapeTranscriptionConfig(config)  # config['config_number'], config['hands'][0])
+#         # self.find_properties()
+#
+#     def __repr__(self):
+#         return repr(self.config)  #s)
 
     # TODO KV delete
     # def find_properties(self):
@@ -592,66 +586,44 @@ class Sign:
     """
     Gloss in signlevel_information is used as the unique key
     """
-    # def __init__(self,
-    #              signlevel_info,
-    #              global_hand_info,
-    #              configs,
-    #              location_transcription_info):
-    #     self._signlevel_information = signlevel_info  # SignLevelInformation(signlevel_info)
-    #     self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
-    #     self._handshape_transcription = HandshapeTranscription(configs)
-    #     self._location = LocationTranscription(location_transcription_info)
-    #
-    #     # TODO KV - for parameter modules and x-slots
-    #     self._signtype = None
-    #     self.movementmodules = {}
-    #     # self.targetmodules = []
-    #     self.locationmodules = []
-    #     self.orientationmodules = []
-    #     self.handshapemodules = []
-
     def __init__(self, signlevel_info=None, serializedsign=None):
         if serializedsign:
-            # self._entryid = serializedsign['entry id']
             self._signlevel_information = serializedsign['signlevel']
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
+            self._specifiedxslots = serializedsign['specified xslots']
             self.unserializemovementmodules(serializedsign['mov modules'])
+            self.handpartmodules = serializedsign['hpt modules']
             self.locationmodules = serializedsign['loc modules']
+            self.contactmodules = serializedsign['con modules']
             self.orientationmodules = serializedsign['ori modules']
-            self.handshapemodules = serializedsign['han modules']
+            self.handconfigmodules = serializedsign['cfg modules']
         else:
-            # self._entryid = int(datetime.timestamp(datetime.now()))
             self._signlevel_information = signlevel_info
-            # if isinstance(signlevel_info, SignLevelInformation):
-            #     self._signlevel_information = signlevel_info
-            # else:
-            #     self._signlevel_information = SignLevelInformation(signlevel_info)
-
-
-            # self._global_handshape_information = GlobalHandshapeInformation(global_hand_info)
-            # self._handshape_transcription = HandshapeTranscription(configs)
-            # self._location = LocationTranscription(location_transcription_info)
 
             # TODO KV - for parameter modules and x-slots
             self._signtype = None
             self.xslotstructure = XslotStructure()
+            self.specifiedxslots = False
             self.movementmodules = {}
-            # self.targetmodules = []
+            self.handpartmodules = []
             self.locationmodules = []
+            self.contactmodules = []
             self.orientationmodules = []
-            self.handshapemodules = {}
+            self.handconfigmodules = {}
 
     def serialize(self):
         return {
-            # 'unique id': self._entryid,
             'signlevel': self._signlevel_information,
             'type': self._signtype,
             'xslot structure': self.xslotstructure,
+            'specified xslots': self.specifiedxslots,
             'mov modules': self.serializemovementmodules(),
+            'hpt modules': self.handpartmodules,
             'loc modules': self.locationmodules,
+            'con modules': self.contactmodules,
             'ori modules': self.orientationmodules,
-            'han modules': self.handshapemodules
+            'cfg modules': self.handshapemodules
         }
 
     def serializemovementmodules(self):
@@ -696,6 +668,14 @@ class Sign:
         self._location = LocationTranscription(locn)
 
     @property
+    def specifiedxslots(self):
+        return self._specifiedxslots
+
+    @specifiedxslots.setter
+    def specifiedxslots(self, specifiedxslots):
+        self._specifiedxslots = specifiedxslots
+
+    @property
     def signtype(self):
         return self._signtype
 
@@ -724,14 +704,23 @@ class Sign:
         mvmtmod = MovementModule(movementtree, hands_dict, timingintervals)
         self.movementmodules[mvmtmod.uniqueid] = mvmtmod
 
-        # existingkeys = [k[4:] for k in self.movementmodules.keys()] + [0]
-        # nextinteger = max([int(k) for k in existingkeys]) + 1
-        # mvmtid = str("Mov." + str(nextinteger))
-        #
-        # self.movementmodules[mvmtid] = [movementtree, hands_dict]
-
     def removemovementmodule(self, uniqueid):
         self.movementmodules.pop(uniqueid)
+
+    def updatehandconfigmodule(self, uniqueid, handconfiguration, overalloptions, hands_dict, timingintervals):
+        hcfgmod = self.handconfigmodules[uniqueid]
+        hcfgmod.handconfiguration = handconfiguration
+        hcfgmod.hands = hands_dict
+        hcfgmod.overalloptions = overalloptions
+        hcfgmod.timingintervals = timingintervals
+
+    def addhandconfigmodule(self, handconfiguration, overalloptions, hands_dict, timingintervals):
+        # create and add a brand new one
+        hcfgmod = HandConfigurationModule(handconfiguration, overalloptions, hands_dict, timingintervals)
+        self.handconfigmodules[hcfgmod.uniqueid] = hcfgmod
+
+    def removehandconfigmodule(self, uniqueid):
+        self.handshapemodules.pop(uniqueid)
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)
@@ -741,17 +730,6 @@ class Sign:
 
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)
-
-    def addhandshapemodule(self, globalhandshapeinfo, handshapetranscription, hands_dict):  #, hsid=None):
-        # if hsid is None:
-        existingkeys = [k[10:] for k in self.handshapemodules.keys()] + [0]
-        nextinteger = max([int(k) for k in existingkeys]) + 1
-        hsid = str("HandConfig." + str(nextinteger))
-
-        self.handshapemodules[hsid] = [globalhandshapeinfo, handshapetranscription, hands_dict]
-
-    def removehandshapemodule(self, hsid):
-        self.handshapemodules.pop(hsid)
 
 
 # TODO KV comments
@@ -827,18 +805,27 @@ class ParameterModule:
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
 # ... should this *replace* handshapetranscriptionconfig instead of wrapping it?
-class HandshapeModule(ParameterModule):
-    def __init__(self, hstxnconfig, hands, timingintervals=None):
-        self._handshapetranscriptionconfig = hstxnconfig
+class HandConfigurationModule(ParameterModule):
+    def __init__(self, handconfiguration, overalloptions, hands, timingintervals=None):
+        self._handconfiguration = handconfiguration
+        self._overalloptions = overalloptions
         super().__init__(hands, timingintervals)
 
     @property
-    def handshapetranscriptionconfig(self):
-        return self._handshapetranscriptionconfig
+    def handconfiguration(self):
+        return self._handconfiguration
 
-    @handshapetranscriptionconfig.setter
-    def handshapetranscriptionconfig(self, new_hstxnconfig):
-        self._handshapetranscriptionconfig = new_hstxnconfig
+    @handconfiguration.setter
+    def handconfiguration(self, new_handconfiguration):
+        self._handconfiguration = new_handconfiguration
+
+    @property
+    def overalloptions(self):
+        return self._overalloptions
+
+    @overalloptions.setter
+    def overalloptions(self, new_overalloptions):
+        self._overalloptions = new_overalloptions
 
 
 # TODO KV delete
