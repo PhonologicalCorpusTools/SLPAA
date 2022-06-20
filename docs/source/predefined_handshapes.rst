@@ -392,7 +392,7 @@ Adducted
 - **SLP coding description:** full adduction between each finger
 - **Prototypical coding:** [=] between each adducted finger
 
-.. image:: images/pdhs_bent.png
+.. image:: images/pdhs_adducted.png
         :width: 200
         :align: left
 |
