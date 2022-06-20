@@ -937,13 +937,13 @@ class ConfigHand(QWidget):
         self.field7.slot_finish_edit.connect(self.slot_finish_edit.emit)
         self.main_layout.addWidget(self.field7)
 
-    def insert_radio_button(self):
-        button = QRadioButton(parent=self)
-        self.main_layout.insertWidget(0, button)
-        return button
-
-    def remove_radio_button(self):
-        self.main_layout.takeAt(0).widget().deleteLater()
+    # def insert_radio_button(self):
+    #     button = QRadioButton(parent=self)
+    #     self.main_layout.insertWidget(0, button)
+    #     return button
+    #
+    # def remove_radio_button(self):
+    #     self.main_layout.takeAt(0).widget().deleteLater()
 
     def set_predefined(self, transcription_list):
         for symbol, slot in zip(transcription_list, self.__iter__()):
@@ -1093,21 +1093,23 @@ class Config(QGroupBox):
         # TODO KV delete
         # self.hand2.set_value(config.hand2)
 
-    def insert_radio_button(self):
-        button1 = self.hand.insert_radio_button()
-        # TODO KV delete
-        # button2 = self.hand2.insert_radio_button()
-        return button1  #, button2
-
-    def remove_radio_button(self):
-        self.hand.remove_radio_button()
-        # TODO KV delete
-        # self.hand2.remove_radio_button()
+    # def insert_radio_button(self):
+    #     button1 = self.hand.insert_radio_button()
+    #     # TODO KV delete
+    #     # button2 = self.hand2.insert_radio_button()
+    #     return button1  #, button2
+    #
+    # def remove_radio_button(self):
+    #     self.hand.remove_radio_button()
+    #     # TODO KV delete
+    #     # self.hand2.remove_radio_button()
 
     def clear(self):
         self.hand.clear()
-        # TODO KV delete
-        # self.hand2.clear()
+        self.slot1.setChecked(False)
+        self.estimated.setChecked(False)
+        self.uncertain.setChecked(False)
+        self.incomplete.setChecked(False)
 
     def get_value(self):
         # return {

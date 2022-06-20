@@ -322,6 +322,8 @@ class XslotPanel(QScrollArea):
         #     # scene.addItem(text)
         #
         # else:
+        self.moduleitems = []
+        self.gridlinestart = 0
         self.refreshsign()  # self.sign)
         self.xslotview = QGraphicsView(self.scene, self)  # XslotGraphicsView(self.scene, self)
         self.xslotview.setAlignment(Qt.AlignLeft | Qt.AlignTop)
@@ -396,6 +398,7 @@ class XslotPanel(QScrollArea):
                     xslotrects["x"+str(numwholes+1)] = xslotrect
                     self.scene.addItem(xslotrect)
             self.current_y += 1
+            self.gridlinestart = self.current_y * (self.default_xslot_height + self.verticalspacing)
 
     def addhand(self, hand):
         # add hand label
@@ -406,7 +409,6 @@ class XslotPanel(QScrollArea):
         handtext.setPos(self.x_offset, self.current_y * (self.default_xslot_height + self.verticalspacing))
         self.scene.addItem(handtext)
 
-        # TODO KV get rid of this m business once the modules are teased apart
         self.addmovement(hand=hand)
         self.addhandpart(hand=hand)
         self.addlocation(hand=hand)
@@ -416,7 +418,7 @@ class XslotPanel(QScrollArea):
 
     # TODO KV need to get ellipses working
     def addmovement(self, hand):
-        # TODO KV implement spacing efficiency - for now put each on its own row
+        # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
         num_mvmtmods = len(self.sign.movementmodules)
         if num_mvmtmods > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
@@ -431,32 +433,53 @@ class XslotPanel(QScrollArea):
                         self.scene.addItem(mvmtrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
-                for midx, m in enumerate(self.sign.movementmodules.keys()):
-                    mvmtmod = self.sign.movementmodules[m]
-                    mvmtmodid = mvmtmod.uniqueid
+                intervals = []
+                points = []
+
+                for midx, m_id in enumerate(self.sign.movementmodules.keys()):
+                    mvmtmod = self.sign.movementmodules[m_id]
+                    # mvmtmodid = mvmtmod.uniqueid
                     if mvmtmod.hands[hand]:
                         for tidx, t in enumerate(mvmtmod.timingintervals):
                             if t.ispoint():
-                                mvmtellipse = XslotEllipseModuleButton(self, module_uniqueid=mvmtmodid,
-                                                                       text=hand + ".Mov" + str(midx + 1), moduletype='movement',
-                                                                       sign=self.sign)
-                                mvmtellipse.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
-                                self.scene.addItem(mvmtellipse)
+                                points.append((midx, m_id, tidx, t))
                             else:
-                                mvmtrect = XslotRectModuleButton(self, module_uniqueid=mvmtmodid,
-                                                                 text=hand + ".Mov" + str(midx + 1), moduletype='movement',
-                                                                 sign=self.sign)
-                                mvmtrect.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
-                                self.scene.addItem(mvmtrect)
-                    self.current_y += 1
+                                intervals.append((midx, m_id, tidx, t))
+
+                self.addmovementintervals(hand, intervals)
+                self.addmovementpoints(hand, points)
+
+    def addmovementintervals(self, hand, intervals):
+        for (midx, m_id, tidx, t) in intervals:
+            mvmtrect = XslotRectModuleButton(self, module_uniqueid=m_id,
+                                             text=hand + ".Mov" + str(midx + 1),
+                                             moduletype='movement',
+                                             sign=self.sign)
+            mvmtrect.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            self.moduleitems.append(mvmtrect)
+            # self.scene.addItem(mvmtrect)
+        self.current_y += 1
+
+    def addmovementpoints(self, hand, points):
+        for (midx, m_id, tidx, t) in points:
+            mvmtellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
+                                                   text=hand + ".Mov" + str(midx + 1),
+                                                   moduletype='movement',
+                                                   sign=self.sign)
+
+            mvmtellipse.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            self.moduleitems.append(mvmtellipse)
+            # self.scene.addItem(mvmtellipse)
+        self.current_y += 1
 
     def getxywh(self, timinginterval):
         if timinginterval.ispoint():
             # it's a point; plan an ellipse
+            yradius = 40
             pointfrac = timinginterval.startpoint.wholepart - 1 + timinginterval.startpoint.fractionalpart
-            x = self.x_offset + self.indent + float(pointfrac)*self.onexslot_width - 30
+            x = self.x_offset + self.indent + float(pointfrac)*self.onexslot_width - yradius
             y = self.current_y * (self.default_xslot_height + self.verticalspacing)
-            w = 60
+            w = 2 * yradius
             h = self.default_xslot_height
         else:
             # it's an interval; plan a rectangle
@@ -491,7 +514,7 @@ class XslotPanel(QScrollArea):
 
     # TODO KV can this functionality be shared between modules? eg addhandconfig & addmovement have a *lot* of overlap
     def addhandconfig(self, hand):
-        # TODO KV implement spacing efficiency - for now put each on its own row
+        # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
         num_hcfgmods = len(self.sign.handconfigmodules)
         if num_hcfgmods > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
@@ -506,27 +529,71 @@ class XslotPanel(QScrollArea):
                         self.scene.addItem(hcfgrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
-                for midx, m in enumerate(self.sign.handconfigmodules.keys()):
-                    hcfgmod = self.sign.handconfigmodules[m]
-                    hcfgmodid = hcfgmod.uniqueid
+                intervals = []
+                points = []
+
+                for midx, m_id in enumerate(self.sign.handconfigmodules.keys()):
+                    hcfgmod = self.sign.handconfigmodules[m_id]
+                    # hcfgmodid = hcfgmod.uniqueid
                     if hcfgmod.hands[hand]:
                         for tidx, t in enumerate(hcfgmod.timingintervals):
                             if t.ispoint():
-                                hcfgellipse = XslotEllipseModuleButton(self, module_uniqueid=hcfgmodid,
-                                                                       text=hand + ".Config" + str(midx + 1), moduletype='handconfig',
-                                                                       sign=self.sign)
-                                hcfgellipse.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
-                                self.scene.addItem(hcfgellipse)
+                                points.append((midx, m_id, tidx, t))
                             else:
-                                hcfgrect = XslotRectModuleButton(self, module_uniqueid=hcfgmodid,
-                                                                 text=hand + ".Config" + str(midx + 1), moduletype='handconfig',
-                                                                 sign=self.sign)
-                                hcfgrect.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
-                                self.scene.addItem(hcfgrect)
-                    self.current_y += 1
+                                intervals.append((midx, m_id, tidx, t))
+
+                self.addhandconfigintervals(hand, intervals)
+                self.addhandconfigpoints(hand, points)
+
+    def addhandconfigintervals(self, hand, intervals):
+        for (midx, m_id, tidx, t) in intervals:
+            hcfgrect = XslotRectModuleButton(self, module_uniqueid=m_id,
+                                             text=hand + ".Config" + str(midx + 1),
+                                             moduletype='handconfig',
+                                             sign=self.sign)
+            hcfgrect.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            self.moduleitems.append(hcfgrect)
+            # self.scene.addItem(hcfgrect)
+        self.current_y += 1
+
+    def addhandconfigpoints(self, hand, points):
+        for (midx, m_id, tidx, t) in points:
+            hcfgellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
+                                                   text=hand + ".Config" + str(midx + 1),
+                                                   moduletype='handconfig',
+                                                   sign=self.sign)
+
+            hcfgellipse.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            self.moduleitems.append(hcfgellipse)
+            # self.scene.addItem(hcfgellipse)
+        self.current_y += 1
 
     def addgridlines(self):
-        return  # TODO KV implement
+        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and len(self.moduleitems) > 0:
+
+            pen = QPen(Qt.lightGray)
+            pen.setWidth(5)
+            pen.setStyle(Qt.DashLine)
+
+            whole_xslots = self.sign.xslotstructure.number
+            partial_xslot = self.sign.xslotstructure.additionalfraction
+
+            partialxslots = self.mainwindow.app_settings['signdefaults']['partial_xslots']
+            avail_denoms = [Fraction(f).denominator for f in list(partialxslots.keys()) if partialxslots[f]]
+            fractionalpoints = []
+            for d in avail_denoms:
+                for mult in range(d + 1):
+                    fractionalpoints.append(Fraction(mult, d))
+            fractionalpoints = list(set(fractionalpoints))
+            # self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
+
+            for whole in range(whole_xslots):
+                for frac in fractionalpoints:
+                    if whole + frac <= whole_xslots + partial_xslot:
+                        xstart = self.x_offset + self.indent + float((whole+frac)*self.onexslot_width)
+                        self.scene.addLine(xstart, self.gridlinestart, xstart, self.current_y * (self.default_xslot_height + self.verticalspacing), pen)
+            for item in self.moduleitems:
+                self.scene.addItem(item)
 
     def handle_modulebutton_clicked(self, modulebutton):
         # TODO KV

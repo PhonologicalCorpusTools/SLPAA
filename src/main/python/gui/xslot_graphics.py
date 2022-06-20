@@ -307,7 +307,6 @@ class XslotLinkingLayout(QVBoxLayout):
         self.xslotlinkview.setScene(self.xslotlinkscene)
 
 
-
 class XSlotCheckbox(QGraphicsRectItem):
 
     def __init__(self, xslot_whole, xslot_part, parentwidget, textsize=30, penwidth=2, checked=False):  # sidelength=20

@@ -71,10 +71,7 @@ class HandTranscriptionPanel(QScrollArea):
         self.details_label.setText(text)
 
     def clear(self):
-        # self.global_info.clear()
         self.config.clear()
-        # TODO KV delete
-        # self.config2.clear()
 
     def set_value(self, handconfigmodule):  # , global_handshape_info
         # self.global_info.set_value(global_handshape_info)
@@ -93,39 +90,39 @@ class HandTranscriptionPanel(QScrollArea):
     #     # elif hand == 4:
     #     #     self.button4.setChecked(True)
 
-    def insert_radio_button(self, focused_hand):
-        self.selected_hand_group = QButtonGroup(parent=self)
-        self.button1, self.button2 = self.config.insert_radio_button()
-        # TODO KV delete
-        # self.button3, self.button4 = self.config2.insert_radio_button()
-
-        self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
-        self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
-        # TODO KV delete
-        # self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
-        # self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
-
-        if focused_hand == 1:
-            self.button1.setChecked(True)
-        elif focused_hand == 2:
-            self.button2.setChecked(True)
-        # TODO KV delete
-        # elif focused_hand == 3:
-        #     self.button3.setChecked(True)
-        # elif focused_hand == 4:
-        #     self.button4.setChecked(True)
-
-        self.selected_hand_group.addButton(self.button1, 1)
-        self.selected_hand_group.addButton(self.button2, 2)
-        # TODO KV delete
-        # self.selected_hand_group.addButton(self.button3, 3)
-        # self.selected_hand_group.addButton(self.button4, 4)
-
-    def remove_radio_button(self):
-        self.config.remove_radio_button()
-        # TODO KV delete
-        # self.config2.remove_radio_button()
-        self.selected_hand_group.deleteLater()
+    # def insert_radio_button(self, focused_hand):
+    #     self.selected_hand_group = QButtonGroup(parent=self)
+    #     self.button1, self.button2 = self.config.insert_radio_button()
+    #     # TODO KV delete
+    #     # self.button3, self.button4 = self.config2.insert_radio_button()
+    #
+    #     self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
+    #     self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
+    #     # TODO KV delete
+    #     # self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
+    #     # self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
+    #
+    #     if focused_hand == 1:
+    #         self.button1.setChecked(True)
+    #     elif focused_hand == 2:
+    #         self.button2.setChecked(True)
+    #     # TODO KV delete
+    #     # elif focused_hand == 3:
+    #     #     self.button3.setChecked(True)
+    #     # elif focused_hand == 4:
+    #     #     self.button4.setChecked(True)
+    #
+    #     self.selected_hand_group.addButton(self.button1, 1)
+    #     self.selected_hand_group.addButton(self.button2, 2)
+    #     # TODO KV delete
+    #     # self.selected_hand_group.addButton(self.button3, 3)
+    #     # self.selected_hand_group.addButton(self.button4, 4)
+    #
+    # def remove_radio_button(self):
+    #     self.config.remove_radio_button()
+    #     # TODO KV delete
+    #     # self.config2.remove_radio_button()
+    #     self.selected_hand_group.deleteLater()
 
     def get_hand_transcription(self, hand=None):
         if hand is None:
@@ -192,7 +189,7 @@ class HandIllustrationPanel(QScrollArea):
 
 # class HandshapeSpecificationLayout(QVBoxLayout):
 class HandConfigSpecificationLayout(ModuleSpecificationLayout):
-    saved_handshape = pyqtSignal(dict, dict, list)
+    saved_handconfig = pyqtSignal(dict, dict, list)
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
     # def __init__(self, mainwindow, predefined_ctx, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
@@ -226,7 +223,7 @@ class HandConfigSpecificationLayout(ModuleSpecificationLayout):
         self.mainwindow.undostack.push(undo_command)
 
     def get_savedmodule_signal(self):
-        return self.saved_handshape
+        return self.saved_handconfig
 
     # def get_savedmodule_args(self):
     #     return (self.treemodel,)
@@ -237,6 +234,9 @@ class HandConfigSpecificationLayout(ModuleSpecificationLayout):
         # overalloptions = {k: v for (k, v) in allconfigoptions.items() if k != 'hand'}
         # return (handconfig, overalloptions)
         return (self.panel.config.get_value(), )
+
+    def refresh(self):
+        self.clear()
 
     def clear(self):
         self.panel.clear()
