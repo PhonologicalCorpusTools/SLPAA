@@ -168,7 +168,7 @@ mvmtOptionsDict = {
             ("None of these", fx, rb, u): {}
         }
     },
-    ("Joint movements", fx, cb, u): {
+    ("Joint activity", fx, cb, u): {
         ("Complex / multi-joint", fx, cb, u): {},  # from Yurika: if this is selected, the expectation is that nothing else below would be selected, though I guess people could...
         ("Shoulder", fx, cb, u): {
             (subgroup, None, 0, None): {
