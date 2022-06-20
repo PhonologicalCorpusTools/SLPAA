@@ -101,7 +101,7 @@ This section provides an overall list of all the baseline handshapes. If relevan
 A
 ~   
 .. image:: images/pdhs_A.png
-        :width: 60
+        :width: 70
         :align: left
 |
 |
@@ -135,7 +135,7 @@ C
 D
 ~
 .. image:: images/pdhs_D.png
-        :width: 60
+        :width: 70
         :align: left
 |
 |
@@ -145,7 +145,7 @@ D
 E
 ~
 .. image:: images/pdhs_E.png
-        :width: 60
+        :width: 70
         :align: left
 |
 |
@@ -153,7 +153,7 @@ E
 F
 ~
 .. image:: images/pdhs_F.png
-        :width: 60
+        :width: 70
         :align: left
 |
 |
@@ -161,7 +161,7 @@ F
 G
 ~
 .. image:: images/pdhs_G.png
-        :width: 60
+        :width: 40
         :align: left
 |
 |
@@ -182,8 +182,10 @@ L
 ~
 
 .. image:: images/pdhs_L.png
-        :width: 5%
+        :width: 60
         :align: left
+   
+|
 |
 |
 |
@@ -192,7 +194,7 @@ L
 M
 ~
 .. image:: images/pdhs_M.png
-        :width: 5%
+        :width: 40
         :align: left
 |
 |
@@ -200,7 +202,7 @@ M
 N
 ~
 .. image:: images/pdhs_N.png
-        :width: 5%
+        :width: 40
         :align: left
 |
 |
@@ -208,7 +210,7 @@ N
 O 
 ~
 .. image:: images/pdhs_O.png
-        :width: 5%
+        :width: 50
         :align: left
 |
 |
@@ -236,7 +238,7 @@ S
 T
 ~
 .. image:: images/pdhs_T.png
-        :width: 60
+        :width: 45
         :align: left
 |
 |
@@ -288,7 +290,7 @@ X
 Y
 ~
 .. image:: images/pdhs_Y.png
-        :width: 80
+        :width: 90
         :align: left
 |
 |
@@ -348,7 +350,7 @@ Y
 Middle Finger
 ~~~~~~~~~~~~~
 .. image:: images/pdhs_middle-finger.png
-        :width: 60
+        :width: 50
         :align: left
 |
 |
@@ -359,8 +361,10 @@ Middle Finger
 Standard Base
 ~~~~~~~~~~~~~
 .. image:: images/pdhs_base.png
-        :width: 60
+        :width: 80
         :align: left
+        
+|
 |
 |
 |
@@ -390,13 +394,22 @@ Adducted
 
 
 
-
 Bent
 ~~~~
 - **Dictionary description:** Handshape is compressed to take on a flat appearance
 - **Generic description:** Selected fingers are extended straight from the palm with only the bottom joint flexed (except “bent-thumb-L”, which has the thumb lateral and bent upwards parallel to the extended index finger) 
 - **SLP coding description:** proximal joint of each bent finger is F; other joints are often E but may depend on handshape (except for “bent-thumb-L” -- see description)
 - **Prototypical coding:** F-E-E on each bent finger
+
+.. image:: images/pdhs_bent.png
+        :width: 200
+        :align: left
+        
+|
+|
+|
+|
+|
 
 Clawed
 ~~~~~~
