@@ -270,18 +270,6 @@ class SingleLocationViewer(QGraphicsView):
             self._scene.addItem(self.text_W)
             self._scene.addItem(self.point_W)
 
-# TODO KV no longer used
-# class SignLevelNote(QPlainTextEdit):
-#     focus_out = pyqtSignal()
-#
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#
-#     def focusOutEvent(self, event):
-#         # use focusOutEvent as the proxy for finishing editing
-#         self.focus_out.emit()
-#         super().focusInEvent(event)
-
 
 class XslotPanel(QScrollArea):
 
@@ -292,8 +280,8 @@ class XslotPanel(QScrollArea):
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
-
         main_layout = QVBoxLayout()
+        main_frame.setLayout(main_layout)
 
         # self.scene = QGraphicsScene()
         self.scene = XslotSummaryScene()
@@ -307,27 +295,14 @@ class XslotPanel(QScrollArea):
         self.current_y = 0
         self.onexslot_width = 0
 
-        # if sign is None:
-        #
-        #     ellipse = XslotEllipse(self, text="hello! how are you doing?")
-        #     ellipse.setRect(10, 20, 100, 100)
-        #     ellipse.setPen(self.blackpen)
-        #     ellipse.setBrush(self.greenbrush)
-        #     # print("ellipse bounding rect:", ellipse.boundingRect())
-        #     self.scene.addItem(ellipse)
-        #
-        #     # text = MyText("hi", self)
-        #     # text.setPos(10,10)
-        #     # # text.setBrush(greenbrush)
-        #     # scene.addItem(text)
-        #
-        # else:
         self.moduleitems = []
         self.gridlinestart = 0
         self.refreshsign()  # self.sign)
-        self.xslotview = QGraphicsView(self.scene, self)  # XslotGraphicsView(self.scene, self)
+        self.xslotview = QGraphicsView(self.scene)  # , self)  # XslotGraphicsView(self.scene, self)
         self.xslotview.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.xslotview.setGeometry(0, 0, 1000, 600)
+        main_layout.addWidget(self.xslotview)
+        self.setLayout(main_layout)
         # self.xslotview.setEnabled(True)
         self.setMinimumSize(1000, 600)
         # xslotview.setScene(scene)
@@ -336,10 +311,10 @@ class XslotPanel(QScrollArea):
         if sign is not None:
             self.sign = sign
 
-        sceneitems = self.scene.items()
-        for sceneitem in sceneitems:
+        for sceneitem in self.scene.items():
             self.scene.removeItem(sceneitem)
 
+        self.moduleitems = []
         self.current_y = 0
 
         # set the top text, either welcome or the sign gloss + ID
@@ -405,7 +380,7 @@ class XslotPanel(QScrollArea):
         handtext = QGraphicsTextItem()
         handtext.setPlainText("Hand " + hand[-1])
         if hand == "H2":
-            self.current_y += 1
+            self.current_y += 1.5
         handtext.setPos(self.x_offset, self.current_y * (self.default_xslot_height + self.verticalspacing))
         self.scene.addItem(handtext)
 
@@ -416,7 +391,6 @@ class XslotPanel(QScrollArea):
         self.addorientation(hand=hand)
         self.addhandconfig(hand=hand)
 
-    # TODO KV need to get ellipses working
     def addmovement(self, hand):
         # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
         num_mvmtmods = len(self.sign.movementmodules)
@@ -450,26 +424,31 @@ class XslotPanel(QScrollArea):
                 self.addmovementpoints(hand, points)
 
     def addmovementintervals(self, hand, intervals):
-        for (midx, m_id, tidx, t) in intervals:
+        for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
             mvmtrect = XslotRectModuleButton(self, module_uniqueid=m_id,
                                              text=hand + ".Mov" + str(midx + 1),
                                              moduletype='movement',
                                              sign=self.sign)
-            mvmtrect.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
+            anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
+            if True in anyoverlaps:
+                self.current_y += 1
+            mvmtrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(mvmtrect)
-            # self.scene.addItem(mvmtrect)
         self.current_y += 1
 
     def addmovementpoints(self, hand, points):
-        for (midx, m_id, tidx, t) in points:
+        for i_idx, (midx, m_id, tidx, t) in enumerate(points):
             mvmtellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
                                                    text=hand + ".Mov" + str(midx + 1),
                                                    moduletype='movement',
                                                    sign=self.sign)
-
-            mvmtellipse.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
+            anyequivalent = [t.equivalent(prev_t) for prev_t in pointsalreadydone]
+            if True in anyequivalent:
+                self.current_y += 1
+            mvmtellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(mvmtellipse)
-            # self.scene.addItem(mvmtellipse)
         self.current_y += 1
 
     def getxywh(self, timinginterval):
@@ -546,26 +525,31 @@ class XslotPanel(QScrollArea):
                 self.addhandconfigpoints(hand, points)
 
     def addhandconfigintervals(self, hand, intervals):
-        for (midx, m_id, tidx, t) in intervals:
+        for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
             hcfgrect = XslotRectModuleButton(self, module_uniqueid=m_id,
                                              text=hand + ".Config" + str(midx + 1),
                                              moduletype='handconfig',
                                              sign=self.sign)
-            hcfgrect.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
+            anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
+            if True in anyoverlaps:
+                self.current_y += 1
+            hcfgrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(hcfgrect)
-            # self.scene.addItem(hcfgrect)
         self.current_y += 1
 
     def addhandconfigpoints(self, hand, points):
-        for (midx, m_id, tidx, t) in points:
+        for i_idx, (midx, m_id, tidx, t) in enumerate(points):
             hcfgellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
                                                    text=hand + ".Config" + str(midx + 1),
                                                    moduletype='handconfig',
                                                    sign=self.sign)
-
-            hcfgellipse.setRect(*(self.getxywh(t)))  # how big is it / where does it go?
+            pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
+            anyequivalent = [t.equivalent(prev_t) for prev_t in pointsalreadydone]
+            if True in anyequivalent:
+                self.current_y += 1
+            hcfgellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(hcfgellipse)
-            # self.scene.addItem(hcfgellipse)
         self.current_y += 1
 
     def addgridlines(self):
@@ -587,9 +571,11 @@ class XslotPanel(QScrollArea):
             fractionalpoints = list(set(fractionalpoints))
             # self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
-            for whole in range(whole_xslots):
+            for whole in range(0, whole_xslots+1):
                 for frac in fractionalpoints:
-                    if whole + frac <= whole_xslots + partial_xslot:
+                    curvalue = whole + frac
+                    totalvalue = whole_xslots + partial_xslot
+                    if curvalue <= totalvalue:
                         xstart = self.x_offset + self.indent + float((whole+frac)*self.onexslot_width)
                         self.scene.addLine(xstart, self.gridlinestart, xstart, self.current_y * (self.default_xslot_height + self.verticalspacing), pen)
             for item in self.moduleitems:

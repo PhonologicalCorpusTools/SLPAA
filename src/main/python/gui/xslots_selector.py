@@ -82,7 +82,7 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
         self.fraction_layout = QVBoxLayout()
         partialxslots = self.mainwindow.app_settings['signdefaults']['partial_xslots']
-        self.avail_fracs = [f for f in list(partialxslots.keys()) if partialxslots[f]]
+        self.avail_fracs = [Fraction(f) for f in list(partialxslots.keys()) if partialxslots[f]]
         self.partial_buttongroup = QButtonGroup()
         none_radio = QRadioButton("none")
         none_radio.setProperty('fraction', Fraction(0))
@@ -90,9 +90,9 @@ class XslotsSpecificationLayout(QVBoxLayout):
         none_radio.setChecked(True)
         # if len(self.avail_fracs) > 0:
         self.fraction_layout.addWidget(none_radio)
-        for fraction in self.avail_fracs:
-            partial_radio = QRadioButton(fraction)
-            partial_radio.setProperty('fraction', Fraction(fraction))
+        for fraction in sorted(self.avail_fracs):
+            partial_radio = QRadioButton(str(fraction))
+            partial_radio.setProperty('fraction', fraction)
             self.partial_buttongroup.addButton(partial_radio)
             self.fraction_layout.addWidget(partial_radio)
         if len(self.avail_fracs) == 0:  # else:

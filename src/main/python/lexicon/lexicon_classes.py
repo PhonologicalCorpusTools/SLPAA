@@ -575,6 +575,12 @@ class TimingInterval:
             return self.startpoint == other.startpoint and self.endpoint == other.endpoint
         return False
 
+    def overlapsinterval(self, other):
+        if isinstance(other, TimingInterval):
+            if (self.startpoint < other.startpoint and self.endpoint > other.startpoint) or (other.startpoint < self.endpoint and other.endpoint > self.startpoint):
+                return True
+        return False
+
     # TODO KV - overlapping and/or contianing checking methods?
 
     def __repr__(self):

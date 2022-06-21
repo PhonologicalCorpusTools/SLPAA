@@ -122,7 +122,7 @@ class XslotRect(QGraphicsRectItem):
         textoption = QTextOption(Qt.AlignCenter)
         # textoption.setAlignment(Qt.AlignCenter)
         font = painter.font()
-        font.setPixelSize(18)
+        font.setPixelSize(15)
         painter.setFont(font)
         painter.drawText(self.rect(), self.text, textoption)
 
@@ -246,7 +246,7 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         textoption = QTextOption(Qt.AlignCenter)
         # textoption.setAlignment(Qt.AlignCenter)
         font = painter.font()
-        font.setPixelSize(18)
+        font.setPixelSize(15)
         painter.setFont(font)
         painter.drawText(self.rect(), self.text, textoption)
 
