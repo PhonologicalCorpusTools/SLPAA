@@ -1078,7 +1078,7 @@ class Config(QGroupBox):
     def load_predefined(self):
         predefined_handshape_dialog = PredefinedHandshapeDialog(self.predefined_ctx, parent=self)
         predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
-        predefined_handshape_dialog.show()
+        predefined_handshape_dialog.exec_()
 
     def handle_set_predefined(self, transcription_list):
         self.hand.set_predefined(transcription_list)

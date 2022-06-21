@@ -60,9 +60,9 @@ class XslotPointLabel(QGraphicsRectItem):
         # draw rectangle text
         textoption = QTextOption(self.align)
         # textoption.setAlignment(Qt.AlignCenter)
-        # font = painter.font()
-        # font.setPixelSize(18)
-        # painter.setFont(font)
+        font = painter.font()
+        font.setPixelSize(18)
+        painter.setFont(font)
         painter.drawText(self.rect(), self.text, textoption)
 
 
@@ -199,7 +199,7 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         pass
 
     def mouseReleaseEvent(self, event):
-        print("mouse released on module ellipse")
+        # print("mouse released on module ellipse")
         self.scene().moduleellipse_clicked.emit(self)
 
     def hoverEnterEvent(self, event):
@@ -266,7 +266,7 @@ class XslotRectModuleButton(XslotRectButton):
         pass
 
     def mouseReleaseEvent(self, event):
-        print("mouse released on module rectangle")
+        # print("mouse released on module rectangle")
         self.scene().modulerect_clicked.emit(self)
 
 
@@ -390,7 +390,7 @@ class XslotLinkScene(QGraphicsScene):
         self.scene_width = 1500
         self.rect_height = 25
         self.checkbox_size = 25
-        self.textbox_width = 40
+        self.textbox_width = 60
         self.pen_width = 2
         self.scene_height = 0
         self.x_offset = 10

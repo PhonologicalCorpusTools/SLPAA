@@ -194,12 +194,13 @@ class MainWindow(QMainWindow):
         self.action_delete_sign.triggered.connect(self.on_action_delete_sign)
         self.action_delete_sign.setCheckable(False)
 
-        # predefined handshape
-        action_predefined_handshape = QAction(QIcon(self.app_ctx.icons['hand']), 'Predefined handshape', parent=self)
-        action_predefined_handshape.setStatusTip('Open predefined handshape window')
-        action_predefined_handshape.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
-        action_predefined_handshape.triggered.connect(self.on_action_predefined_handshape)
-        action_predefined_handshape.setCheckable(False)
+        # TODO KV delete?
+        # # predefined handshape
+        # action_predefined_handshape = QAction(QIcon(self.app_ctx.icons['hand']), 'Predefined handshape', parent=self)
+        # action_predefined_handshape.setStatusTip('Open predefined handshape window')
+        # action_predefined_handshape.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
+        # action_predefined_handshape.triggered.connect(self.on_action_predefined_handshape)
+        # action_predefined_handshape.setCheckable(False)
 
         # preferences
         action_edit_preference = QAction('Preferences...', parent=self)
@@ -272,8 +273,8 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addAction(action_copy)
         toolbar.addAction(action_paste)
-        toolbar.addSeparator()
-        toolbar.addAction(action_predefined_handshape)
+        # toolbar.addSeparator()
+        # toolbar.addAction(action_predefined_handshape)
 
         # status bar
         self.status_bar = QStatusBar(parent=self)
@@ -1011,44 +1012,44 @@ class MainWindow(QMainWindow):
 
             self.handle_sign_selected(previous.signlevel_information.gloss)
 
-    def on_action_predefined_handshape(self, clicked):
-        if self.predefined_handshape_dialog is None:
-            focused_hand = self.insert_predefined_buttons()
+    # def on_action_predefined_handshape(self, clicked):
+    #     if self.predefined_handshape_dialog is None:
+    #         focused_hand = self.insert_predefined_buttons()
+    #
+    #         self.predefined_handshape_dialog = PredefinedHandshapeDialog(self.app_ctx.predefined, focused_hand, parent=self)
+    #         self.predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
+    #         # self.predefined_handshape_dialog.selected_hand.connect(self.transcription_scroll.change_hand_selection)
+    #         self.predefined_handshape_dialog.rejected.connect(self.handle_predefined_close)
+    #
+    #         # self.transcription_scroll.selected_hand.connect(self.predefined_handshape_dialog.change_hand_selection)
+    #
+    #         self.predefined_handshape_dialog.show()
+    #
+    #     else:
+    #         self.predefined_handshape_dialog.raise_()
 
-            self.predefined_handshape_dialog = PredefinedHandshapeDialog(self.app_ctx.predefined, focused_hand, parent=self)
-            self.predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
-            # self.predefined_handshape_dialog.selected_hand.connect(self.transcription_scroll.change_hand_selection)
-            self.predefined_handshape_dialog.rejected.connect(self.handle_predefined_close)
-
-            # self.transcription_scroll.selected_hand.connect(self.predefined_handshape_dialog.change_hand_selection)
-
-            self.predefined_handshape_dialog.show()
-
-        else:
-            self.predefined_handshape_dialog.raise_()
-
-    def handle_set_predefined(self, transcription_list):
-        undo_command = PredefinedUndoCommand(self.transcription_scroll, transcription_list)
-        self.undostack.push(undo_command)
-
-    def insert_predefined_buttons(self):
-        focused_hands = [
-            self.transcription_scroll.config.hand.hasFocus(), self.transcription_scroll.config.hand2.hasFocus(),
-            self.transcription_scroll.config2.hand.hasFocus(), self.transcription_scroll.config2.hand2.hasFocus()
-        ]
-        if any(focused_hands):
-            focused_hand = focused_hands.index(True) + 1
-        else:
-            focused_hand = 1
-
-        self.transcription_scroll.insert_radio_button(focused_hand)
-
-        return focused_hand
-
-    def handle_predefined_close(self):
-        self.transcription_scroll.remove_radio_button()
-        self.predefined_handshape_dialog.deleteLater()
-        self.predefined_handshape_dialog = None
+    # def handle_set_predefined(self, transcription_list):
+    #     undo_command = PredefinedUndoCommand(self.transcription_scroll, transcription_list)
+    #     self.undostack.push(undo_command)
+    #
+    # def insert_predefined_buttons(self):
+    #     focused_hands = [
+    #         self.transcription_scroll.config.hand.hasFocus(), self.transcription_scroll.config.hand2.hasFocus(),
+    #         self.transcription_scroll.config2.hand.hasFocus(), self.transcription_scroll.config2.hand2.hasFocus()
+    #     ]
+    #     if any(focused_hands):
+    #         focused_hand = focused_hands.index(True) + 1
+    #     else:
+    #         focused_hand = 1
+    #
+    #     self.transcription_scroll.insert_radio_button(focused_hand)
+    #
+    #     return focused_hand
+    #
+    # def handle_predefined_close(self):
+    #     self.transcription_scroll.remove_radio_button()
+    #     self.predefined_handshape_dialog.deleteLater()
+    #     self.predefined_handshape_dialog = None
 
     @check_unsaved_change
     def closeEvent(self, event):
