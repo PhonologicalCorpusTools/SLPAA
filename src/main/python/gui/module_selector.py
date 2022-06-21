@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
     QDialog,
     QHBoxLayout,
     QVBoxLayout,
+    QMessageBox,
     QGraphicsRectItem,
     QGridLayout,
     QDialogButtonBox,
@@ -71,7 +72,6 @@ class ModuleSpecificationLayout(QVBoxLayout):
 
 
 class ModuleSelectorDialog(QDialog):
-    # saved_movement = pyqtSignal(MovementTreeModel, dict)
 
     def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, timingintervals=[], **kwargs):
         super().__init__(**kwargs)
@@ -134,28 +134,72 @@ class ModuleSelectorDialog(QDialog):
             self.reject()
 
         elif standard == QDialogButtonBox.Save:  # save and add another
-            # save info and then refresh screen to enter next module
-            signalargstuple = (self.module_layout.get_savedmodule_args() + (self.hands_layout.gethands(), self.xslot_layout.gettimingintervals()))
-            self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
-            # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
-            # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
-            self.hands_layout.clear()
-            self.xslot_layout.clear()
-            # self.movement_layout.refresh_treemodel()
-            self.module_layout.refresh()
+
+            # validate hand selection
+            handsdict = self.hands_layout.gethands()
+            handsvalid = True
+            if True not in handsdict.values():
+                handsvalid = False
+
+            # validate timing interval(s) selection
+            timingintervals = self.xslot_layout.gettimingintervals()
+            timingvalid = True
+            if len(timingintervals) == 0:
+                timingvalid = False
+
+            if not (handsvalid and timingvalid):
+                # refuse to save without hand & timing info
+                messagestring = "Missing"
+                messagestring += " hand selection" if not handsvalid else ""
+                messagestring += " and" if not (handsvalid or timingvalid) else ""
+                messagestring += " timing selection" if not timingvalid else ""
+                messagestring += "."
+                QMessageBox.critical(self, "Warning", messagestring)
+            else:
+                # save info and then refresh screen to enter next module
+                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals))
+                self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
+                # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
+                # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
+                self.hands_layout.clear()
+                self.xslot_layout.clear()
+                self.module_layout.refresh()
 
         elif standard == QDialogButtonBox.Apply:  # save and close
-            # save info and then close dialog
-            # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
-            signalargstuple = (self.module_layout.get_savedmodule_args() + (self.hands_layout.gethands(), self.xslot_layout.gettimingintervals()))
-            self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
-            self.accept()
+
+            # validate hand selection
+            handsdict = self.hands_layout.gethands()
+            handsvalid = True
+            if True not in handsdict.values():
+                handsvalid = False
+
+            # validate timing interval(s) selection
+            timingintervals = self.xslot_layout.gettimingintervals()
+            timingvalid = True
+            if len(timingintervals) == 0:
+                timingvalid = False
+
+            if not (handsvalid and timingvalid):
+                # refuse to save without hand & timing info
+                messagestring = "Missing"
+                messagestring += " hand selection" if not handsvalid else ""
+                messagestring += " and" if not (handsvalid or timingvalid) else ""
+                messagestring += " timing selection" if not timingvalid else ""
+                messagestring += "."
+                QMessageBox.critical(self, "Warning", messagestring)
+            else:
+                # save info and then close dialog
+                # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
+                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals))
+                self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
+                self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
             # TODO KV -- where should the "defaults" be defined?
             # self.movement_layout.clearlist(button)
-            self.module_layout.clear()
             self.hands_layout.clear()
+            self.xslot_layout.clear()
+            self.module_layout.clear()
 
 
 class HandSelectionLayout(QHBoxLayout):
