@@ -181,6 +181,9 @@ class XslotSelectorDialog(QDialog):
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.button_box.button(QDialogButtonBox.RestoreDefaults).setText("Clear")
+        self.button_box.button(QDialogButtonBox.RestoreDefaults).setAutoDefault(False)
+        self.button_box.button(QDialogButtonBox.Cancel).setAutoDefault(False)
+        self.button_box.button(QDialogButtonBox.Save).setAutoDefault(True)
 
         self.button_box.clicked.connect(self.handle_button_click)
 

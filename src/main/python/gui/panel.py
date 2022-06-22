@@ -345,7 +345,18 @@ class XslotPanel(QScrollArea):
         #     signtypetext += "n/a"
         # else:
         if self.sign.signtype is not None:
-            signtypetext = "Sign Type (TODO): " + ";".join(self.sign.signtype.specs)
+            signtypetext = "Sign Type: "
+            specslist = [triple for triple in self.sign.signtype.specslist]
+            toplevelitems = [st_triple for st_triple in specslist if "." not in st_triple[0]]
+            for topleveltriple in toplevelitems:
+                specslist.remove(topleveltriple)
+                includeabbrev = [st_triple for st_triple in specslist if st_triple[0].startswith(topleveltriple[1]) and st_triple[2]]
+                # signtypepaths = [st[0] for st in includeabbrev]
+                signtypeabbreviations = [st[1] for st in includeabbrev]
+                # signtypeabbrevincludes = [st[2] for st in includeabbrev]
+                signtypetext += topleveltriple[1]
+                if len(signtypeabbreviations) > 0:
+                    signtypetext += " (" + "; ".join(signtypeabbreviations) + ") "
             signtyperect = XslotRectModuleButton(self, text=signtypetext, moduletype='signtype', sign=self.sign)
             signtyperect.setRect(self.x_offset + self.indent, self.current_y*(self.default_xslot_height+self.verticalspacing), self.xslots_width, self.default_xslot_height)  # 640-(2*self.blackpen.width()), 50)
             self.scene.addItem(signtyperect)
