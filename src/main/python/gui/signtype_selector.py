@@ -396,6 +396,20 @@ class Signtype:
     def specslist(self, specslist):
         self._specslist = specslist
 
+    def getabbreviation(self):
+        abbreviationtext = ""
+        specscopy = [triple for triple in self._specslist]
+        toplevelitems = [st_triple for st_triple in specscopy if "." not in st_triple[0]]
+        for topleveltriple in toplevelitems:
+            specscopy.remove(topleveltriple)
+            includeabbrev = [st_triple for st_triple in specscopy if
+                             st_triple[0].startswith(topleveltriple[1]) and st_triple[2]]
+            signtypeabbreviations = [st[1] for st in includeabbrev]
+            abbreviationtext += topleveltriple[1]
+            if len(signtypeabbreviations) > 0:
+                abbreviationtext += " (" + "; ".join(signtypeabbreviations) + ") "
+        return abbreviationtext
+
 
 # parent can be widget or layout
 def enableChildWidgets(yesorno, parent):

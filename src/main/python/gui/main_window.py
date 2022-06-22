@@ -694,6 +694,7 @@ class MainWindow(QMainWindow):
         self.sign_summary.sign = selected_sign
         # self.sign_summary.load_movementmodulebuttons()
         self.sign_summary.enable_module_buttons(True)
+        self.xslot_panel.refreshsign(self.current_sign)
 
         # self.signlevelinfo_scroll.set_value(selected_sign.signlevel_information)
         # self.transcription_scroll.set_value(selected_sign.global_handshape_information,

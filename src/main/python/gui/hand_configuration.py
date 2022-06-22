@@ -28,7 +28,6 @@ from itertools import chain
 from constant import NULL, X_IN_BOX, ESTIMATE_BORDER, UNCERTAIN_BACKGROUND, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeNoMatch
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
-from lexicon.lexicon_classes import HandConfigurationHand
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
@@ -950,17 +949,6 @@ class ConfigHand(QWidget):
             slot.setText(symbol)
 
     def get_value(self):
-        # return {
-        #     # 'hand_number': self.hand_number,
-        #     'fields': [
-        #         self.field2.get_value(),
-        #         self.field3.get_value(),
-        #         self.field4.get_value(),
-        #         self.field5.get_value(),
-        #         self.field6.get_value(),
-        #         self.field7.get_value()
-        #     ]
-        # }
 
         return [
                 self.field2.get_value(),
@@ -1222,3 +1210,129 @@ class ConfigGlobal(QGroupBox):
             'fingerspelled': self.fingerspelled.isChecked(),
             'initialized': self.initialized.isChecked()
         }
+
+
+class HandConfigurationHand:
+    def __init__(self, fields):  # hand_number, fields):
+        # self._hand_number = hand_number
+        self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
+
+    # @property
+    # def hand_number(self):
+    #     return self._hand_number
+    #
+    # @hand_number.setter
+    # def hand_number(self, new_hand_number):
+    #     self._hand_number = new_hand_number
+
+    def __iter__(self):
+        return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
+
+    def get_hand_transcription_list(self):
+        return [slot.symbol for slot in self.__iter__()]
+
+    def get_hand_transcription_string(self):
+        return ''.join(self.get_hand_transcription_list())
+
+    def is_empty(self):
+        return self.get_hand_transcription_list() == [
+            '', '', '', '',
+            '', '', NULL, '/', '', '', '', '', '', '',
+            '1', '', '', '',
+            '', '2', '', '', '',
+            '', '3', '', '', '',
+            '', '4', '', '', ''
+        ]
+
+#
+# class HandshapeTranscriptionConfig:
+#     def __init__(self, hand):  # config_number, hands):
+#         self.hand1 = HandConfigurationHand(hand['fields'])
+#
+#     # def is_empty(self):
+#     #     return self.hand1.is_empty()  # and self.hand2.is_empty()
+#
+
+class HandConfigurationField:
+    def __init__(self, field_number, slots):
+        self._field_number = field_number
+        self._slots = slots
+
+        self.set_slots()
+
+    @property
+    def field_number(self):
+        return self._field_number
+
+    @field_number.setter
+    def field_number(self, new_field_number):
+        self._field_number = new_field_number
+
+    def set_slots(self):
+        if self._field_number == 2:
+            self.slot2, self.slot3, self.slot4, self.slot5 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+        elif self._field_number == 3:
+            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+        elif self._field_number == 4:
+            self.slot16, self.slot17, self.slot18, self.slot19 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+        elif self._field_number == 5:
+            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+        elif self._field_number == 6:
+            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+        elif self._field_number == 7:
+            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+
+    def __iter__(self):
+        if self._field_number == 2:
+            return [self.slot2, self.slot3, self.slot4, self.slot5].__iter__()
+        elif self._field_number == 3:
+            return [self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15].__iter__()
+        elif self._field_number == 4:
+            return [self.slot16, self.slot17, self.slot18, self.slot19].__iter__()
+        elif self._field_number == 5:
+            return [self.slot20, self.slot21, self.slot22, self.slot23, self.slot24].__iter__()
+        elif self._field_number == 6:
+            return [self.slot25, self.slot26, self.slot27, self.slot28, self.slot29].__iter__()
+        elif self._field_number == 7:
+            return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
+
+
+class HandConfigurationSlot:
+    def __init__(self, slot_number, symbol, is_estimate, is_uncertain):
+        self._slot_number = slot_number
+        self._symbol = symbol
+        self._estimate = is_estimate
+        self._uncertain = is_uncertain
+
+    @property
+    def slot_number(self):
+        return self._slot_number
+
+    @slot_number.setter
+    def slot_number(self, new_slot_number):
+        self._slot_number = new_slot_number
+
+    @property
+    def symbol(self):
+        return self._symbol
+
+    @symbol.setter
+    def symbol(self, new_symbol):
+        self._symbol = new_symbol
+
+    @property
+    def estimate(self):
+        return self._estimate
+
+    @estimate.setter
+    def estimate(self, new_is_estimate):
+        self._estimate = new_is_estimate
+
+    @property
+    def uncertain(self):
+        return self._uncertain
+
+    @uncertain.setter
+    def uncertain(self, new_is_uncertain):
+        self._uncertain = new_is_uncertain
+

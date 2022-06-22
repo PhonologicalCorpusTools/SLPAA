@@ -1,6 +1,6 @@
 from fractions import Fraction
 
-from lexicon.lexicon_classes import LocationParameter, Locations
+from lexicon.location import LocationParameter, Locations
 from lexicon.predefined_handshape import (
     HandshapeBase, HandshapeEmpty,
     Handshape1, HandshapeBent1, HandshapeCrooked1,

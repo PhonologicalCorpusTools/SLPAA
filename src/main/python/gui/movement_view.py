@@ -384,7 +384,9 @@ class MovementTree:
 
     def __init__(self, mvmtmodule):
 
-        treenode = mvmtmodule.invisibleRootItem()
+        treenode = mvmtmodule.movementtreemodel.invisibleRootItem()
+        self.hands = mvmtmodule.hands
+        self.timingintervals = mvmtmodule.timingintervals
 
         self.numvals = {}
         self.checkstates = {}

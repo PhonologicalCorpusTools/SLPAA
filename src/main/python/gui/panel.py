@@ -345,18 +345,18 @@ class XslotPanel(QScrollArea):
         #     signtypetext += "n/a"
         # else:
         if self.sign.signtype is not None:
-            signtypetext = "Sign Type: "
-            specslist = [triple for triple in self.sign.signtype.specslist]
-            toplevelitems = [st_triple for st_triple in specslist if "." not in st_triple[0]]
-            for topleveltriple in toplevelitems:
-                specslist.remove(topleveltriple)
-                includeabbrev = [st_triple for st_triple in specslist if st_triple[0].startswith(topleveltriple[1]) and st_triple[2]]
-                # signtypepaths = [st[0] for st in includeabbrev]
-                signtypeabbreviations = [st[1] for st in includeabbrev]
-                # signtypeabbrevincludes = [st[2] for st in includeabbrev]
-                signtypetext += topleveltriple[1]
-                if len(signtypeabbreviations) > 0:
-                    signtypetext += " (" + "; ".join(signtypeabbreviations) + ") "
+            signtypetext = "Sign Type: " + self.sign.signtype.getabbreviation()
+            # specslist = [triple for triple in self.sign.signtype.specslist]
+            # toplevelitems = [st_triple for st_triple in specslist if "." not in st_triple[0]]
+            # for topleveltriple in toplevelitems:
+            #     specslist.remove(topleveltriple)
+            #     includeabbrev = [st_triple for st_triple in specslist if st_triple[0].startswith(topleveltriple[1]) and st_triple[2]]
+            #     # signtypepaths = [st[0] for st in includeabbrev]
+            #     signtypeabbreviations = [st[1] for st in includeabbrev]
+            #     # signtypeabbrevincludes = [st[2] for st in includeabbrev]
+            #     signtypetext += topleveltriple[1]
+            #     if len(signtypeabbreviations) > 0:
+            #         signtypetext += " (" + "; ".join(signtypeabbreviations) + ") "
             signtyperect = XslotRectModuleButton(self, text=signtypetext, moduletype='signtype', sign=self.sign)
             signtyperect.setRect(self.x_offset + self.indent, self.current_y*(self.default_xslot_height+self.verticalspacing), self.xslots_width, self.default_xslot_height)  # 640-(2*self.blackpen.width()), 50)
             self.scene.addItem(signtyperect)
@@ -413,6 +413,8 @@ class XslotPanel(QScrollArea):
                     mvmtmodid = mvmtmod.uniqueid
                     if mvmtmod.hands[hand]:
                         mvmtrect = XslotRectModuleButton(self, module_uniqueid=mvmtmodid, text=hand+".Mov"+str(idx+1), moduletype='movement', sign=self.sign)
+                        mvmtabbrev = m.getabbreviation()
+                        mvmtrect.setToolTip(mvmtabbrev)
                         mvmtrect.setRect(self.current_x, self.current_y * (self.default_xslot_height + self.verticalspacing), self.xslots_width, self.default_xslot_height)
                         self.current_y += 1
                         self.scene.addItem(mvmtrect)
@@ -440,6 +442,8 @@ class XslotPanel(QScrollArea):
                                              text=hand + ".Mov" + str(midx + 1),
                                              moduletype='movement',
                                              sign=self.sign)
+            mvmtabbrev = self.sign.movementmodules[m_id].getabbreviation()
+            mvmtrect.setToolTip(mvmtabbrev)
             intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
             anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
             if True in anyoverlaps:
@@ -454,6 +458,8 @@ class XslotPanel(QScrollArea):
                                                    text=hand + ".Mov" + str(midx + 1),
                                                    moduletype='movement',
                                                    sign=self.sign)
+            mvmtabbrev = self.sign.movementmodules[m_id].getabbreviation()
+            mvmtellipse.setToolTip(mvmtabbrev)
             pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
             anyequivalent = [t.equivalent(prev_t) for prev_t in pointsalreadydone]
             if True in anyequivalent:
@@ -514,6 +520,8 @@ class XslotPanel(QScrollArea):
                     hcfgmodid = hcfgmod.uniqueid
                     if hcfgmod.hands[hand]:
                         hcfgrect = XslotRectModuleButton(self, module_uniqueid=hcfgmodid, text=hand+".Config"+str(idx+1), moduletype='handconfig', sign=self.sign)
+                        hcfgabbrev = m.getabbreviation()
+                        hcfgrect.setToolTip(hcfgabbrev)
                         hcfgrect.setRect(self.current_x, self.current_y * (self.default_xslot_height + self.verticalspacing), self.xslots_width, self.default_xslot_height)
                         self.current_y += 1
                         self.scene.addItem(hcfgrect)
@@ -541,6 +549,8 @@ class XslotPanel(QScrollArea):
                                              text=hand + ".Config" + str(midx + 1),
                                              moduletype='handconfig',
                                              sign=self.sign)
+            hcfgabbrev = self.sign.handconfigmodules[m_id].getabbreviation()
+            hcfgrect.setToolTip(hcfgabbrev)
             intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
             anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
             if True in anyoverlaps:
@@ -555,6 +565,8 @@ class XslotPanel(QScrollArea):
                                                    text=hand + ".Config" + str(midx + 1),
                                                    moduletype='handconfig',
                                                    sign=self.sign)
+            hcfgabbrev = self.sign.handconfigmodules[m_id].getabbreviation()
+            hcfgellipse.setToolTip(hcfgabbrev)
             pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
             anyequivalent = [t.equivalent(prev_t) for prev_t in pointsalreadydone]
             if True in anyequivalent:
@@ -621,7 +633,7 @@ class XslotPanel(QScrollArea):
 
     def handle_movement_clicked(self, modulekey):
         mvmtmodule = self.sign.movementmodules[modulekey]
-        movementtreemodel = mvmtmodule.movementtree
+        movementtreemodel = mvmtmodule.movementtreemodel
         movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=mvmtmodule.hands,
                                                  xslotstructure=self.sign.xslotstructure,
                                                  enable_addnew=False,

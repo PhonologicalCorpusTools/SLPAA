@@ -1,13 +1,15 @@
 from itertools import chain
 from fractions import Fraction
-from datetime import datetime
-from copy import deepcopy
-from datetime import date
+# from datetime import datetime
+# from copy import deepcopy
+# from datetime import date
 
 from gui.movement_view import MovementTree
 from gui.xslots_selector import XslotStructure
+from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, TimingInterval, TimingPoint
 
 NULL = '\u2205'
+
 
 def empty_copy(obj):
     class Empty(obj.__class__):
@@ -184,131 +186,6 @@ class GlobalHandshapeInformation:
         self._forearm = new_is_forearm
 
 
-class HandConfigurationSlot:
-    def __init__(self, slot_number, symbol, is_estimate, is_uncertain):
-        self._slot_number = slot_number
-        self._symbol = symbol
-        self._estimate = is_estimate
-        self._uncertain = is_uncertain
-
-    @property
-    def slot_number(self):
-        return self._slot_number
-
-    @slot_number.setter
-    def slot_number(self, new_slot_number):
-        self._slot_number = new_slot_number
-
-    @property
-    def symbol(self):
-        return self._symbol
-
-    @symbol.setter
-    def symbol(self, new_symbol):
-        self._symbol = new_symbol
-
-    @property
-    def estimate(self):
-        return self._estimate
-
-    @estimate.setter
-    def estimate(self, new_is_estimate):
-        self._estimate = new_is_estimate
-
-    @property
-    def uncertain(self):
-        return self._uncertain
-
-    @uncertain.setter
-    def uncertain(self, new_is_uncertain):
-        self._uncertain = new_is_uncertain
-
-
-class HandConfigurationField:
-    def __init__(self, field_number, slots):
-        self._field_number = field_number
-        self._slots = slots
-
-        self.set_slots()
-
-    @property
-    def field_number(self):
-        return self._field_number
-
-    @field_number.setter
-    def field_number(self, new_field_number):
-        self._field_number = new_field_number
-
-    def set_slots(self):
-        if self._field_number == 2:
-            self.slot2, self.slot3, self.slot4, self.slot5 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
-        elif self._field_number == 3:
-            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
-        elif self._field_number == 4:
-            self.slot16, self.slot17, self.slot18, self.slot19 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
-        elif self._field_number == 5:
-            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
-        elif self._field_number == 6:
-            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
-        elif self._field_number == 7:
-            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
-
-    def __iter__(self):
-        if self._field_number == 2:
-            return [self.slot2, self.slot3, self.slot4, self.slot5].__iter__()
-        elif self._field_number == 3:
-            return [self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15].__iter__()
-        elif self._field_number == 4:
-            return [self.slot16, self.slot17, self.slot18, self.slot19].__iter__()
-        elif self._field_number == 5:
-            return [self.slot20, self.slot21, self.slot22, self.slot23, self.slot24].__iter__()
-        elif self._field_number == 6:
-            return [self.slot25, self.slot26, self.slot27, self.slot28, self.slot29].__iter__()
-        elif self._field_number == 7:
-            return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
-
-
-class HandConfigurationHand:
-    def __init__(self, fields):  # hand_number, fields):
-        # self._hand_number = hand_number
-        self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
-
-    # @property
-    # def hand_number(self):
-    #     return self._hand_number
-    #
-    # @hand_number.setter
-    # def hand_number(self, new_hand_number):
-    #     self._hand_number = new_hand_number
-
-    def __iter__(self):
-        return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
-
-    def get_hand_transcription_list(self):
-        return [slot.symbol for slot in self.__iter__()]
-
-    def get_hand_transcription_string(self):
-        return ''.join(self.get_hand_transcription_list())
-
-    def is_empty(self):
-        return self.get_hand_transcription_list() == [
-            '', '', '', '',
-            '', '', NULL, '/', '', '', '', '', '', '',
-            '1', '', '', '',
-            '', '2', '', '', '',
-            '', '3', '', '', '',
-            '', '4', '', '', ''
-        ]
-
-#
-# class HandshapeTranscriptionConfig:
-#     def __init__(self, hand):  # config_number, hands):
-#         self.hand1 = HandConfigurationHand(hand['fields'])
-#
-#     # def is_empty(self):
-#     #     return self.hand1.is_empty()  # and self.hand2.is_empty()
-#
-
 class HandConfiguration:
     def __init__(self, config):
 
@@ -392,201 +269,6 @@ class LocationTranscription:
 
         #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class TargetModule:
-    def __init__(self):
-        # TODO KV implement
-        pass
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class LocationModule:
-    def __init__(self):
-        # TODO KV implement
-        pass
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class OrientationModule:
-    def __init__(self):
-        # TODO KV implement
-        pass
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class TimingPoint:
-
-    def __init__(self, wholepart, fractionalpart):
-        self._wholepart = wholepart
-        self._fractionalpart = fractionalpart
-
-    def __repr__(self):
-        return '<TimingPoint: ' + repr(self.wholepart) + ', ' + repr(self._fractionalpart) + '>'
-
-    @property
-    def wholepart(self):
-        return self._wholepart
-
-    @wholepart.setter
-    def wholepart(self, wholepart):
-        self._wholepart = wholepart
-
-    @property
-    def fractionalpart(self):
-        return self._fractionalpart
-
-    @fractionalpart.setter
-    def fractionalpart(self, fractionalpart):
-        self._fractionalpart = fractionalpart
-
-    def __eq__(self, other):
-        if isinstance(other, TimingPoint):
-            if self._wholepart == other.wholepart and self._fractionalpart == other.fractionalpart:
-                return True
-        return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    # do not implement this, because TimingPoint objects are mutable
-    # def __hash__(self):
-    #     pass
-
-    def __lt__(self, other):
-        if isinstance(other, TimingPoint):
-            if self._wholepart < other.wholepart:
-                # if not(self._fractionalpart == 1 and other.fractionalpart == 0):
-                return True
-            elif self._wholepart == other.wholepart:
-                if self._fractionalpart < other.fractionalpart:
-                    return True
-        return False
-
-    def equivalent(self, other):
-        if isinstance(other, TimingPoint):
-            return self.adjacent(other) or self.__eq__(other)
-
-    def adjacent(self, other):
-        if isinstance(other, TimingPoint):
-            if self.fractionalpart == 1 and other.fractionalpart == 0 and (self.wholepart + 1 == other.wholepart):
-                return True
-            elif other.fractionalpart == 1 and self.fractionalpart == 0 and (other.wholepart + 1 == self.wholepart):
-                return True
-            else:
-                return False
-
-    def __gt__(self, other):
-        if isinstance(other, TimingPoint):
-            return other.__lt__(self)
-        return False
-
-    def __le__(self, other):
-        return not self.__gt__(other)
-
-    def __ge__(self, other):
-        return not self.__lt__(other)
-
-    def before(self, other):
-        if isinstance(other, TimingPoint):
-            return self.__lt__(other)
-        elif isinstance(other, TimingInterval):
-            return other.after(self)
-        return False
-
-    def after(self, other):
-        if isinstance(other, TimingPoint):
-            return self.__gt__(other)
-        elif isinstance(other, TimingInterval):
-            return other.before(self)
-        return False
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class TimingInterval:
-
-    # startpt (type TimingPoint) = the point at which this xslot interval begins
-    # endpt (type TimingPoint) = the point at which this xslot interval ends
-    def __init__(self, startpt, endpt):
-        self.setinterval(startpt, endpt)
-
-    @property
-    def startpoint(self):
-        return self._startpoint
-
-    @property
-    def endpoint(self):
-        return self._endpoint
-
-    def points(self):
-        return self.startpoint(), self.endpoint()
-
-    def setinterval(self, startpt, endpt):
-        if startpt <= endpt:
-            self._startpoint = startpt
-            self._endpoint = endpt
-        else:
-            print("error: start point is larger than endpoint", startpt, endpt)
-            # TODO throw an error?
-
-    def ispoint(self):
-        return self._startpoint == self._endpoint
-
-    def containsinterval(self, otherinterval):
-        return self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint
-
-    def before(self, other):
-        if isinstance(other, TimingPoint):
-            return self.endpoint < other
-        elif isinstance(other, TimingInterval):
-            if other.ispoint():
-                return self.endpoint < other.startpoint
-            elif not self.ispoint():
-                return self.endpoint <= other.startpoint
-            else:
-                return other.after(self)
-        return False
-
-    def after(self, other):
-        if isinstance(other, TimingPoint):
-            return self.startpoint > other
-        elif isinstance(other, TimingInterval):
-            if other.ispoint():
-                return self.startpoint > other.endpoint
-            elif not self.ispoint():
-                return self.startpoint >= other.endpoint
-            else:
-                return other.before(self)
-        return False
-
-    def adjacent(self, other):
-        if isinstance(other, TimingInterval):
-            return self.endpoint.equivalent(other.startpoint) or other.endpoint.equivalent(self.startpoint)
-        return False
-
-    def __eq__(self, other):
-        if isinstance(other, TimingInterval):
-            return self.startpoint == other.startpoint and self.endpoint == other.endpoint
-        return False
-
-    def overlapsinterval(self, other):
-        if isinstance(other, TimingInterval):
-            if (self.startpoint < other.startpoint and self.endpoint > other.startpoint) or (other.startpoint < self.endpoint and other.endpoint > self.startpoint):
-                return True
-        return False
-
-    # TODO KV - overlapping and/or contianing checking methods?
-
-    def __repr__(self):
-        return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
-
-
 # TODO: need to think about duplicated signs
 class Sign:
     """
@@ -629,7 +311,7 @@ class Sign:
             'loc modules': self.locationmodules,
             'con modules': self.contactmodules,
             'ori modules': self.orientationmodules,
-            'cfg modules': self.handshapemodules
+            'cfg modules': self.handconfigmodules
         }
 
     def serializemovementmodules(self):
@@ -642,7 +324,9 @@ class Sign:
         unserialized = {}
         for k in serialized_mvmtmodules.keys():
             mvmttreemodel = serialized_mvmtmodules[k].getMovementTreeModel()
-            unserialized[k] = mvmttreemodel
+            hands = serialized_mvmtmodules[k].hands
+            timingintervals = serialized_mvmtmodules[k].timingintervals
+            unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals)
         self.movementmodules = unserialized
 
     def __hash__(self):
@@ -701,7 +385,7 @@ class Sign:
 
     def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals):
         mvmtmod = self.movementmodules[uniqueid]
-        mvmtmod.movementtree = movementtree
+        mvmtmod.movementtreemodel = movementtree
         mvmtmod.hands = hands_dict
         mvmtmod.timingintervals = timingintervals
 
@@ -726,7 +410,7 @@ class Sign:
         self.handconfigmodules[hcfgmod.uniqueid] = hcfgmod
 
     def removehandconfigmodule(self, uniqueid):
-        self.handshapemodules.pop(uniqueid)
+        self.handconfigmodules.pop(uniqueid)
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)
@@ -736,204 +420,6 @@ class Sign:
 
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-# common ancestor for (eg) HandshapeModule, MovementModule, etc
-class ParameterModule:
-
-    def __init__(self, hands, timingintervals=None):
-        self._hands = hands
-        self._timingintervals = []
-        if timingintervals is not None:
-            self.settimingintervals(timingintervals)
-        self._uniqueid = int(datetime.timestamp(datetime.now()))
-
-    @property
-    def hands(self):
-        return self._hands
-
-    @hands.setter
-    def hands(self, hands):
-        # TODO KV - validate?
-        self._hands = hands
-
-    @property
-    def uniqueid(self):
-        return self._uniqueid
-
-    @uniqueid.setter
-    def uniqueid(self, uniqueid):
-        # TODO KV - validate?
-        self._uniqueid = uniqueid
-
-    @property
-    def timingintervals(self):
-        return self._timingintervals
-
-    @timingintervals.setter
-    def timingintervals(self, timingintervals):
-        self.settimingintervals(timingintervals)
-
-    def settimingintervals(self, timingintervals):
-        self._timingintervals = []
-        # add one at a time
-        for tint in timingintervals:
-            self.add_timinginterval(tint)
-
-    def add_timinginterval(self, timinginterval):
-        # TODO KV - look for possible simplifications
-        if self._timingintervals == []:
-            self._timingintervals.append(timinginterval)
-        else:
-            needtocombine = False
-            idx = 0
-            while not needtocombine and idx < len(self._timingintervals):
-                existinginterval = self._timingintervals[idx]
-                if existinginterval.endpoint.equivalent(timinginterval.startpoint):
-                    # the new interval starts right where the existing one ends; combine them and re-add
-                    # (in case there's another interval that the newly-combined would also end up linking up with)
-                    needtocombine = True
-                    self._timingintervals.remove(existinginterval)
-                    self.add_timinginterval(TimingInterval(existinginterval.startpoint, timinginterval.endpoint))
-                elif existinginterval.startpoint.equivalent(timinginterval.endpoint):
-                    # the existing interval starts right where the new one ends; combine them and re-add
-                    # (in case there's another interval that the newly-combined would also end up linking up with)
-                    needtocombine = True
-                    self._timingintervals.remove(existinginterval)
-                    self.add_timinginterval(TimingInterval(timinginterval.startpoint, existinginterval.endpoint))
-                idx += 1
-            if not needtocombine:
-                self._timingintervals.append(timinginterval)
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-# ... should this *replace* handshapetranscriptionconfig instead of wrapping it?
-class HandConfigurationModule(ParameterModule):
-    def __init__(self, handconfiguration, overalloptions, hands, timingintervals=None):
-        self._handconfiguration = handconfiguration
-        self._overalloptions = overalloptions
-        super().__init__(hands, timingintervals)
-
-    @property
-    def handconfiguration(self):
-        return self._handconfiguration
-
-    @handconfiguration.setter
-    def handconfiguration(self, new_handconfiguration):
-        self._handconfiguration = new_handconfiguration
-
-    @property
-    def overalloptions(self):
-        return self._overalloptions
-
-    @overalloptions.setter
-    def overalloptions(self, new_overalloptions):
-        self._overalloptions = new_overalloptions
-
-
-# TODO KV delete
-# TODO KV - for parameter modules and x-slots
-class MovementModule(ParameterModule):
-    def __init__(self, movementtree, hands, timingintervals=None):
-        self._movementtree = movementtree
-        super().__init__(hands, timingintervals)
-
-    @property
-    def movementtree(self):
-        return self._movementtree
-
-    @movementtree.setter
-    def movementtree(self, movementtree):
-        # TODO KV - validate?
-        self._movementtree = movementtree
-
-
-class LocationParameter:
-    """
-    This is intended to be used with the Locations class
-    """
-    def __init__(self, name=None, image_path=None, location_polygons=None, default=True):
-        if location_polygons is None:
-            location_polygons = dict()
-        self.name = name
-        self.image_path = image_path
-        self.location_polygons = location_polygons
-        self.default = default
-
-    def get_attr_dict(self):
-        return {
-            'name': self.name,
-            'image_path': self.image_path,
-            'location_polygons': self.location_polygons,
-            'default': self.default
-        }
-
-
-class Locations:
-    """
-    This class is intended for the Corpus class to specify corpus-level location definition
-    """
-    #TODO: improve this so that order is kept, also a better repr
-    def __init__(self, location_specification):
-        """
-        locations = {'location_identifier': LocationParameter}
-        """
-        self.locations = location_specification
-
-    def get_attr_dict(self):
-        return {loc_identifier: location_param.get_attr_dict() for loc_identifier, location_param in self.locations.items()}
-
-    # Ref: https://stackoverflow.com/questions/4014621/a-python-class-that-acts-like-dict
-    def __setitem__(self, location_identifier, location_parameter):
-        self.locations[location_identifier] = location_parameter
-
-    def __getitem__(self, location_identifier):
-        return self.locations[location_identifier]
-
-    def __repr__(self):
-        return repr(self.locations)
-
-    def __len__(self):
-        return len(self.locations)
-
-    def __delitem__(self, location_identifier):
-        del self.locations[location_identifier]
-
-    def clear(self):
-        return self.locations.clear()
-
-    def copy(self):
-        return self.locations.copy()
-
-    def has_location(self, location_identifier):
-        return location_identifier in self.locations
-
-    def update(self, *args, **kwargs):
-        return self.locations.update(*args, **kwargs)
-
-    def keys(self):
-        return sorted(list(self.locations.keys()))
-
-    def values(self):
-        return [self.locations[loc] for loc in self.keys()]
-
-    def items(self):
-        return [(loc, self.locations[loc]) for loc in self.keys()]
-
-    def pop(self, *args):
-        return self.locations.pop(*args)
-
-    def __cmp__(self, dict_):
-        return self.__cmp__(self.locations, dict_)
-
-    def __contains__(self, location_identifier):
-        return location_identifier in self.locations
-
-    def __iter__(self):
-        return iter(self.keys())
 
 
 class Corpus:
