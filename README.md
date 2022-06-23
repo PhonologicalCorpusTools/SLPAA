@@ -1,3 +1,5 @@
+For a demonstration of how the software will work, please see: <a href="https://www.youtube.com/watch?v=o4C4hibTW1o"> SLP-AA Initial Demonstration Video on YouTube</a>
+
 # SLP-Annotator/Analyzer
 
 Sign Language Phonetic-Annotator/Analyzer (SLP-AA) is a graphical user interface (GUI)-based software system for the form-based transcription and analysis of signs. The system is intended to be relatively phonetic in nature and compatible with multiple phonological theories, enabling transcription of detailed variation across many sign languages, but largely without relying on a specific notation system. 
@@ -11,7 +13,6 @@ The analyzer interface, intended to facilitate phonological searches and analyse
 Currently, SLP-AA is a stand-alone piece of software that can be used to give detailed phonetic transcriptions of individual signs, one at a time. While these signs can come from any source, the software does not currently directly allow for the transcription of continuous signing. 
 
 The handshape fonts are created by <a href="http://www.cslds.org/v4/resources.php?id=1">CSLDS, CUHK</a>.
-
 
 References:
 
