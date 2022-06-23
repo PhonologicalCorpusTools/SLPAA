@@ -80,7 +80,7 @@ It may seem redundant to choose an axis direction as well as a plane and clockwi
 
 There are many possible ways to specify an axis direction for a circular movement. You could choose the direction of the end of the first half of the circle relative to the beginning point, or the first initial direction of motion at the starting point, or anything else that you can think of. The most important thing is to maintain a consistent standard for selecting direction for circular movements.
 
-For example, if you were to choose to code the direction as the midpoint of the circle relative to the beginning, then codings for ref:`WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and ref:`BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ could look like this:
+For example, if you were to choose to code the direction as the midpoint of the circle relative to the beginning, then codings for `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ could look like this:
 
 **add images for this comparison**
 
