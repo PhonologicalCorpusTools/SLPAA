@@ -18,7 +18,7 @@ Movement Module
 This :ref:`module` is used to code the movement components of a sign.
 
 .. note::
-    If ``x-slots`` **(x-slot page)** and ``auto-generation`` **(auto-generation and autofilling)** are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other :ref:`sign modules<modularity>`.
+    If ``x-slots`` **(x-slot page)** and ``auto-generation`` **(auto-generation and autofilling)** are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type_module`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other :ref:`sign modules<modularity>`.
 
     If ``x-slots`` **(x-slot page)** are enabled but they are created manually by the user, then they must be generated first before adding any modules to the sign.
     
@@ -71,7 +71,7 @@ b) Axis direction
 
 Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. 
 
-See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space` for a visual representation of these options.
+See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space_page` for a visual representation of these options.
 
 .. note::
     A combination of axes can be interpreted as ... **(not intended to be sequential in one module)**
@@ -93,7 +93,7 @@ c) Plane
 
 Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user.
 
-For each selected plane, you can also choose a circular directionality if desired. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute (counter-)clockwise directions for any circular shapes that involve the horizontal axis, as well as a definition of the default clockwise direction for each plane. See :ref:`signing_space` for a visual representation of these options.
+For each selected plane, you can also choose a circular directionality if desired. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute (counter-)clockwise directions for any circular shapes that involve the horizontal axis, as well as a definition of the default clockwise direction for each plane. See :ref:`signing_space_page` for a visual representation of these options.
 
 .. note::
     A combination of planes can be interpreted as ... **(not intended to be sequential in one module)**
