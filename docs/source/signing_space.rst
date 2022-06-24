@@ -79,9 +79,9 @@ II. Circular directions
     **(Describe what to do about combinations of planes -- look at each component plane separately)**
     
     .. image:: images/mov_combinations_of_planes.png
-    :width: 800
-    :align: left
-    :alt:
+        :width: 750
+        :align: left
+        :alt:
 
 .. _lr_directions:
 
