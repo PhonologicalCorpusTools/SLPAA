@@ -73,7 +73,15 @@ I. Left/right and ipsi/contra models
 II. Circular directions
 =======================
 
-**(Description. Also to include somewhere: how to deal with circular directions for combinations of planes.)**
+**(Description)**
+
+.. note::
+    **(Describe what to do about combinations of planes -- look at each component plane separately)**
+    
+    .. image:: images/mov_combinations_of_planes.png
+        :width: 750
+        :align: left
+        :alt:
 
 .. _lr_directions:
 
