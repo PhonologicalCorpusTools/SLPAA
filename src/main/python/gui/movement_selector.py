@@ -132,9 +132,11 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         if moduletoload:
             if isinstance(moduletoload, MovementTreeModel):
                 self.treemodel = moduletoload
-            elif isinstance(moduletoload, MovementTree):
-                # TODO KV - make sure listmodel & listitems are also populated
-                self.treemodel = moduletoload.getMovementTreeModel()
+            # elif isinstance(moduletoload, MovementTree):
+            #     # TODO KV - make sure listmodel & listitems are also populated
+            #     self.treemodel = moduletoload.getMovementTreeModel()
+            else:
+                print("moduletoload must be of type MovementTreeModel")
         else:
             # self.treemodel.populate(self.rootNode)
             self.treemodel.populate(self.treemodel.invisibleRootItem())
@@ -236,6 +238,9 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
                 print("enter pressed")
         return super().eventFilter(source, event)
 
+    def refresh(self):
+        self.refresh_treemodel()
+
     def clear(self):
         self.refresh_treemodel()
 
@@ -250,7 +255,10 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
 
         self.comboproxymodel.setSourceModel(self.listmodel)
         self.listproxymodel.setSourceModel(self.listmodel)
+        self.combobox.setModel(self.comboproxymodel)
+        self.combobox.setCurrentIndex(-1)
         self.treedisplay.setModel(self.treemodel)
+        self.pathslistview.setModel(self.listproxymodel)
 
         # self.combobox.clear()
 

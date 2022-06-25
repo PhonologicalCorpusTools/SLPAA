@@ -119,6 +119,7 @@ class MovementModule(ParameterModule):
         self._movementtreemodel = movementtreemodel
 
     def getabbreviation(self):
+        # TODO KV these can't be hardcoded like this... fix it!
         abbrevs = {
             "Perceptual shape": "Perceptual",
             "Straight": "Straight",
@@ -190,9 +191,9 @@ class MovementModule(ParameterModule):
             selected = item.data(Qt.UserRole+selectedrole)
             if selected:
                 pathelements = text.split(delimiter)
-                thisentrytext = ""
-                firstonedone = False
-                morethanone = False
+                # thisentrytext = ""
+                # firstonedone = False
+                # morethanone = False
                 for pathelement in pathelements:
                     if pathelement in abbrevs.keys():  #  and abbrevs[pathelement] not in thisentrytext:
                         wordlist.append(abbrevs[pathelement])

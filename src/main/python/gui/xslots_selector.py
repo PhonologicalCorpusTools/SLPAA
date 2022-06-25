@@ -82,7 +82,12 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
         self.fraction_layout = QVBoxLayout()
         partialxslots = self.mainwindow.app_settings['signdefaults']['partial_xslots']
-        self.avail_fracs = [Fraction(f) for f in list(partialxslots.keys()) if partialxslots[f]]
+        self.avail_denoms = [Fraction(f).denominator for f in list(partialxslots.keys()) if partialxslots[f]]
+        self.fractionalpoints = []
+        for d in self.avail_denoms:
+            for mult in range(1, d):
+                self.fractionalpoints.append(Fraction(mult, d))
+        self.fractionalpoints = list(set(self.fractionalpoints))
         self.partial_buttongroup = QButtonGroup()
         none_radio = QRadioButton("none")
         none_radio.setProperty('fraction', Fraction(0))
@@ -90,12 +95,12 @@ class XslotsSpecificationLayout(QVBoxLayout):
         none_radio.setChecked(True)
         # if len(self.avail_fracs) > 0:
         self.fraction_layout.addWidget(none_radio)
-        for fraction in sorted(self.avail_fracs):
+        for fraction in sorted(self.fractionalpoints):
             partial_radio = QRadioButton(str(fraction))
             partial_radio.setProperty('fraction', fraction)
             self.partial_buttongroup.addButton(partial_radio)
             self.fraction_layout.addWidget(partial_radio)
-        if len(self.avail_fracs) == 0:  # else:
+        if len(self.avail_denoms) == 0:  # else:
             self.nopartials_label = QLabel("You do not have any fractional x-slot points selected in Global Settings.")
             self.fraction_layout.addWidget(self.nopartials_label)
 
@@ -114,7 +119,7 @@ class XslotsSpecificationLayout(QVBoxLayout):
 
     def getxslots(self):
         thebutton = self.partial_buttongroup.checkedButton()
-        fractionalpoints = [Fraction(f) for f in self.avail_fracs]
+        fractionalpoints = [Fraction(f) for f in self.fractionalpoints]
         return XslotStructure(number=self.xslots_spin.value(), fractionalpoints=fractionalpoints, additionalfraction=thebutton.property('fraction'))
 
 

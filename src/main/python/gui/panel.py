@@ -461,7 +461,7 @@ class XslotPanel(QScrollArea):
             mvmtabbrev = self.sign.movementmodules[m_id].getabbreviation()
             mvmtellipse.setToolTip(mvmtabbrev)
             pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
-            anyequivalent = [t.equivalent(prev_t) for prev_t in pointsalreadydone]
+            anyequivalent = [t.startpoint.equivalent(prev_t.startpoint) for prev_t in pointsalreadydone]
             if True in anyequivalent:
                 self.current_y += 1
             mvmtellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
