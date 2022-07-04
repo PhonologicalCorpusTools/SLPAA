@@ -277,11 +277,11 @@ class XslotSummaryScene(QGraphicsScene):
 
 class XslotLinkingLayout(QVBoxLayout):
 
-    def __init__(self, xslotstructure, mainwindow, parentwidget, timingintervals=[], **kwargs):
+    def __init__(self, xslotstructure, mainwindow, parentwidget, timingintervals=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         self.parentwidget = parentwidget
-        self.timingintervals = timingintervals
+        self.timingintervals = [] if timingintervals is None else timingintervals
         xslotstruct = self.mainwindow.current_sign.xslotstructure
         if xslotstruct is None:
             print("no x-slot structure!")
@@ -381,7 +381,7 @@ class XslotLinkScene(QGraphicsScene):
     checkbox_toggled = pyqtSignal(XSlotCheckbox)
     linkingrect_clicked = pyqtSignal(XslotRectLinkingButton)
 
-    def __init__(self, parentwidget, mainwindow=None, timingintervals=[]):
+    def __init__(self, parentwidget, mainwindow=None, timingintervals=None):
         super().__init__()
 
         self.mainwindow = mainwindow
@@ -408,7 +408,7 @@ class XslotLinkScene(QGraphicsScene):
         self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
         # self.xslotlinks = []
-        self.xslotlinks = timingintervals
+        self.xslotlinks = [] if timingintervals is None else timingintervals
 
         # TODO KV do we need this modularity now that there's only one row of them?
         self.point_checkboxes = {}

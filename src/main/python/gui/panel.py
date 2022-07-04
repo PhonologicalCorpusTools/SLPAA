@@ -634,7 +634,8 @@ class XslotPanel(QScrollArea):
     def handle_movement_clicked(self, modulekey):
         mvmtmodule = self.sign.movementmodules[modulekey]
         movementtreemodel = mvmtmodule.movementtreemodel
-        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=mvmtmodule.hands,
+        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
+                                                 hands=mvmtmodule.hands,
                                                  xslotstructure=self.sign.xslotstructure,
                                                  enable_addnew=False,
                                                  modulelayout=MovementSpecificationLayout(movementtreemodel),
@@ -648,7 +649,8 @@ class XslotPanel(QScrollArea):
         hcfgmodule = self.sign.handconfigmodules[modulekey]
         handconfiguration = hcfgmodule.handconfiguration
         overalloptions = hcfgmodule.overalloptions
-        handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=hcfgmodule.hands,
+        handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
+                                                hands=hcfgmodule.hands,
                                                 xslotstructure=self.sign.xslotstructure,
                                                 enable_addnew=False,
                                                 modulelayout=HandConfigSpecificationLayout(self.mainwindow, hcfgmodule),  # (handconfiguration, overalloptions)),

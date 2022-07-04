@@ -73,9 +73,11 @@ class ModuleSpecificationLayout(QVBoxLayout):
 
 class ModuleSelectorDialog(QDialog):
 
-    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, timingintervals=[], **kwargs):
+    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, timingintervals=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
+        if timingintervals is None:
+            timingintervals = []
 
         main_layout = QVBoxLayout()
 
@@ -86,7 +88,6 @@ class ModuleSelectorDialog(QDialog):
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addLayout(self.xslot_layout)
 
-        self.module_layout = None
         self.module_layout = modulelayout
         main_layout.addLayout(self.module_layout)
 
