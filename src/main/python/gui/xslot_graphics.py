@@ -386,7 +386,7 @@ class XslotLinkScene(QGraphicsScene):
 
         self.mainwindow = mainwindow
         self.parentwidget = parentwidget
-        self.timingintervals = timingintervals
+        # self.timingintervals = timingintervals
         self.scene_width = 1500
         self.rect_height = 25
         self.checkbox_size = 25
@@ -407,7 +407,8 @@ class XslotLinkScene(QGraphicsScene):
         self.fractionalpoints = list(set(self.fractionalpoints))
         self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
-        self.xslotlinks = []
+        # self.xslotlinks = []
+        self.xslotlinks = timingintervals
 
         # TODO KV do we need this modularity now that there's only one row of them?
         self.point_checkboxes = {}
@@ -485,14 +486,14 @@ class XslotLinkScene(QGraphicsScene):
         for whole in range(1, self.numwholes+1):
             for part in self.fractionalpoints:
                 checkthebox = False
-                if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.timingintervals:
+                if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:  # self.timingintervals:
                     checkthebox = True
                 cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
                 checkboxes[(whole, part)] = cb
         whole = self.numwholes+1
         for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac and (fp > 0 or self.additionalfrac > 0)]:
             checkthebox = False
-            if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.timingintervals:
+            if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:  # self.timingintervals:
                 checkthebox = True
             cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
             checkboxes[(whole, part)] = cb
@@ -554,7 +555,7 @@ class XslotLinkScene(QGraphicsScene):
                     part_end = Fraction(frac_j+1, denom)
                     selecttheinterval = False
                     temptint = TimingInterval(TimingPoint(whole, part_start), TimingPoint(whole, part_end))
-                    if temptint in self.timingintervals:
+                    if temptint in self.xslotlinks:  # self.timingintervals:
                         selecttheinterval = True
                     xslotrect = XslotRectLinkingButton(self, xslot_whole=whole, xslot_part_start=part_start, xslot_part_end=part_end, text=text, moduletype='xslot', selected=selecttheinterval)
                     xloc = 0 + (whole_i + (frac_j/denom)) * self.xslot_width + self.x_offset  # - (self.pen_width * num_rects)
@@ -572,7 +573,7 @@ class XslotLinkScene(QGraphicsScene):
                 endpoint = TimingPoint(self.numwholes, self.additionalfrac)
             else:
                 endpoint = TimingPoint(self.numwholes, 1)
-            if TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1)) in self.timingintervals:
+            if TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1)) in self.xslotlinks:  # self.timingintervals:
                 selecttheinterval = True
             xslotrect = XslotRectLinkingButton(self, text="whole sign", moduletype='xslot', selected=selecttheinterval)
             xslotrect.setRect(self.x_offset, yloc, float(self.xslot_width*(self.numwholes+self.additionalfrac)), self.rect_height)

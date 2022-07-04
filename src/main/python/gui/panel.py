@@ -285,6 +285,9 @@ class XslotPanel(QScrollArea):
 
         # self.scene = QGraphicsScene()
         self.scene = XslotSummaryScene()
+        self.scene.modulerect_clicked.connect(self.handle_modulebutton_clicked)
+        self.scene.moduleellipse_clicked.connect(self.handle_modulebutton_clicked)
+
         self.scene_width = 1100
         self.xslots_width = 1000
         self.indent = self.scene_width - self.xslots_width
@@ -335,9 +338,6 @@ class XslotPanel(QScrollArea):
         self.addhand("H1")
         self.addhand("H2")
         self.addgridlines()
-
-        self.scene.modulerect_clicked.connect(self.handle_modulebutton_clicked)
-        self.scene.moduleellipse_clicked.connect(self.handle_modulebutton_clicked)
 
     def addsigntype(self):
         # signtypetext = "Sign Type (TODO): "
@@ -568,7 +568,7 @@ class XslotPanel(QScrollArea):
             hcfgabbrev = self.sign.handconfigmodules[m_id].getabbreviation()
             hcfgellipse.setToolTip(hcfgabbrev)
             pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
-            anyequivalent = [t.equivalent(prev_t) for prev_t in pointsalreadydone]
+            anyequivalent = [t.startpoint.equivalent(prev_t.startpoint) for prev_t in pointsalreadydone]
             if True in anyequivalent:
                 self.current_y += 1
             hcfgellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
@@ -821,7 +821,12 @@ class SignSummaryPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_movementbutton_click(self):
-        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=True, modulelayout=MovementSpecificationLayout(), moduleargs=None)
+        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
+                                                 hands=None,
+                                                 xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                                 enable_addnew=True,
+                                                 modulelayout=MovementSpecificationLayout(),
+                                                 moduleargs=None)
         movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals: self.handle_save_movement(movementtree, hands, timingintervals))
         movement_selector.exec_()
 
@@ -834,7 +839,12 @@ class SignSummaryPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_handshapebutton_click(self):
-        handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=True, modulelayout=HandConfigSpecificationLayout(self.mainwindow), moduleargs=None)
+        handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
+                                                hands=None,
+                                                xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                                enable_addnew=True,
+                                                modulelayout=HandConfigSpecificationLayout(self.mainwindow),
+                                                moduleargs=None)
         handcfg_selector.get_savedmodule_signal().connect(lambda configdict, hands, timingintervals: self.handle_save_handconfig(configdict, hands, timingintervals))
         handcfg_selector.exec_()
         #
