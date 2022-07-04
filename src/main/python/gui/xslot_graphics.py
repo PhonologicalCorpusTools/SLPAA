@@ -303,7 +303,7 @@ class XslotLinkingLayout(QVBoxLayout):
         return self.xslotlinkscene.xslotlinks
 
     def clear(self):
-        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=self.timingintervals)
+        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=[])
         self.xslotlinkview.setScene(self.xslotlinkscene)
 
 
