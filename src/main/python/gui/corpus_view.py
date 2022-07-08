@@ -35,6 +35,7 @@ class CorpusTitleEdit(QLineEdit):
 
     def __init__(self, corpus_title, **kwargs):
         super().__init__(**kwargs)
+        self.setFocusPolicy(Qt.StrongFocus)
 
     def focusOutEvent(self, event):
         # use focusOutEvent as the proxy for finishing editing
