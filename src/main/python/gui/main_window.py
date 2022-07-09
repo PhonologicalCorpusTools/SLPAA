@@ -117,6 +117,13 @@ class MainWindow(QMainWindow):
         action_save.triggered.connect(self.on_action_save)
         action_save.setCheckable(False)
 
+        # save as
+        action_saveas = QAction(QIcon(self.app_ctx.icons['saveas']), 'Save As...', parent=self)
+        action_saveas.setStatusTip('Save As...')
+        action_saveas.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_A))
+        action_saveas.triggered.connect(self.on_action_saveas)
+        action_saveas.setCheckable(False)
+
         # undo
         action_undo = QAction(QIcon(self.app_ctx.icons['undo']), 'Undo', parent=self)
         action_undo.setEnabled(False)
@@ -138,14 +145,14 @@ class MainWindow(QMainWindow):
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
         action_copy.setStatusTip('Copy the current sign')
-        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
+        action_copy.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
         action_copy.triggered.connect(self.on_action_copy)
         action_copy.setCheckable(False)
 
         # paste
         action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
         action_paste.setStatusTip('Paste the copied sign')
-        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
+        action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
 
@@ -164,14 +171,14 @@ class MainWindow(QMainWindow):
         # load corpus
         action_load_corpus = QAction(QIcon(self.app_ctx.icons['load16']), 'Load corpus...', parent=self)
         action_load_corpus.setStatusTip('Load a .corpus file')
-        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
+        action_load_corpus.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
         # close
         action_close = QAction('Close', parent=self)
         action_close.setStatusTip('Close the application')
-        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_W))
+        action_close.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_W))
         action_close.triggered.connect(self.on_action_close)
         action_close.setCheckable(False)
 
@@ -182,7 +189,7 @@ class MainWindow(QMainWindow):
         # new sign
         action_new_sign = QAction(QIcon(self.app_ctx.icons['plus']), 'New sign', parent=self)
         action_new_sign.setStatusTip('Create a new sign')
-        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_N))
+        action_new_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_N))
         action_new_sign.triggered.connect(self.on_action_new_sign)
         action_new_sign.setCheckable(False)
 
@@ -267,6 +274,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.action_delete_sign)
         toolbar.addSeparator()
         toolbar.addAction(action_save)
+        toolbar.addAction(action_saveas)
         toolbar.addSeparator()
         toolbar.addAction(action_undo)
         toolbar.addAction(action_redo)
@@ -294,6 +302,7 @@ class MainWindow(QMainWindow):
         menu_file.addSeparator()
         menu_file.addAction(action_close)
         menu_file.addAction(action_save)
+        menu_file.addAction(action_saveas)
         menu_file.addSeparator()
         menu_file.addAction(action_new_sign)
         menu_file.addAction(self.action_delete_sign)
@@ -931,6 +940,23 @@ class MainWindow(QMainWindow):
             self.save_corpus_binary()
 
         self.undostack.clear()
+
+    @check_unsaved_corpus
+    def on_action_saveas(self, clicked):
+        self.corpus.name = self.corpus_view.corpus_title.text()
+        name = self.corpus.name
+        file_name, _ = QFileDialog.getSaveFileName(self,
+                                                   self.tr('Save Corpus'),
+                                                   os.path.join(self.app_settings['storage']['recent_folder'],
+                                                                name + '.slpaa'),  # 'corpus.slpaa'),
+                                                   self.tr('SLP-AA Corpus (*.slpaa)'))
+        if file_name:
+            self.corpus.path = file_name
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.app_settings['storage']['recent_folder'] = folder
+
+        self.save_corpus_binary()
 
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
