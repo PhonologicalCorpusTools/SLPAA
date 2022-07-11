@@ -3,11 +3,11 @@
     For the moment, this includes the auto-generation page, the page on x-slots, and the sign summary window
     
 .. todo::
-    shape examples
-    axis direction comparison
-    combinations of planes and axes
-        examples for these
-    finish writing up the joint activity section
+    add axis direction examples
+    add plane examples
+    handshape change not completed
+    joint activity description not completed
+    movement characteristics not yet started
     
 .. _movement:
 
@@ -17,12 +17,13 @@ Movement Module
 
 This :ref:`module` is used to code the movement components of a sign.
 
-.. note::
-    If ``x-slots`` **(x-slot page)** and ``auto-generation`` **(auto-generation and autofilling)** are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type_module`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other :ref:`sign modules<modularity>`.
+**Notes: select the hand(s) the module applies to, select the x-slot(s) if applicable. These instructions apply for each module type, so the same thing can be added to every module page or it can just be explained in the modularity page and linked in several pages.**
 
-    If ``x-slots`` **(x-slot page)** are enabled but they are created manually by the user, then they must be generated first before adding any modules to the sign.
-    
-    See :ref:`global_settings` for more about the default auto-generation behaviour, and how to change these options.
+If ``x-slots`` **(x-slot page)** and ``auto-generation`` **(auto-generation and autofilling)** are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other :ref:`sign modules<modularity>`.
+
+If ``x-slots`` **(x-slot page)** are enabled but ``auto-generation`` **(auto-generation and autofilling)** is not, then you must select the appropriate number of x-slots first before adding any modules to the sign.
+
+See :ref:`global_settings` for more about the program's default behaviour, and how to change these options.
 
 .. _movement_type_entry:
 
@@ -45,7 +46,7 @@ Select the **movement type** for the current module.
 I. Perceptual shape
 ===================
 
-Code the specifications for a movement with :ref:`perceptual_shape`. This could be the only movement in a sign, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_, or a single component of a more complex sign, like the path movement in `FINGERSPELL <https://asl-lex.org/visualization/?sign=fingerspell>`_.
+Code the specifications for a movement with :ref:`perceptual_shape`. This could be the only movement in a sign, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_, or a single component of a more complex sign, like the path movements in `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
 
 .. _shape_entry:
 
@@ -54,31 +55,48 @@ a) Shape
 
 Select the shape of the movement.
 
-.. note::
-    Give at least one example for each preset shape option.
+Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The modules will be assigned to the ``x-slot visualization`` **(?)** in the order in which they're coded, so it's best to start with the first movement in the sequence and then continue in order. The initial list of perceptual shapes can also be edited by the user, so another way to capture the full movement is create a new shape label. This may be a useful option for shapes that reappear in many signs.
 
-Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The modules will be assigned to the ``x-slot visualization`` **(?)** in the order in which they're coded, so it's important to start with the first movement in the sequence and continue in order. Another way to capture the full movement is to create a new shape label. This may be a useful option for shapes that reappear in many signs.
+For the special case of shape combinations where multiple straight movements are signed in a connected sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' Selecting this means that once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified. **What does this option mean specifically for searching/analysis?**
 
-.. note::
-    For the special case of shape combinations where multiple straight movements are signed in sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' Selecting this means that once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified.
+The default list of shape options is:
+
+**Straight**
+
+    **Interacts with a subsequent straight movement**
     
-    (In addition to being a little more expedient than adding the extra module(s) yourself, this method has the benefit of unifying all signs with multiple straight movements in an accessible way for searching and analysis later on.)
+        **Movement contours cross**, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `HOSPITAL <https://asl-lex.org/visualization/?sign=hospital>`_
+        
+        **Subsequent movement starts at end of first**, as in `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_ or `TRIANGLE <https://asl-lex.org/visualization/?sign=triangle>`_
+        
+        **Subsequent movement starts in same location as first**, as in (possibly) the second movement of `DAISY <https://www.handspeak.com/word/index.php?id=5824>`_
+        
+        **Subsequent movement ends in same location as first**, as in (possibly) the first movement of `SNOWSTORM <https://www.youtube.com/watch?v=KQLrgPdHRlQ&list=TLGGDt2--iXU7qQxNzAxMjAyMg>`_ **Note: Is this a stable link? Would it be possible to find something else?**
+        
+    **Doesn't interact with a subsequent straight movement**, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_ or `SCROLL_DOWN <https://asl-lex.org/visualization/?sign=scroll_down>`_
+    
+**Arc**, as in `FOLD <https://asl-lex.org/visualization/?sign=fold>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
+
+**Circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
+
+**Zigzag**, as in `DRAW <https://asl-lex.org/visualization/?sign=draw>`_ or `WHALE <https://asl-lex.org/visualization/?sign=whale>`_
+
+**Loop (traveling circles)**, as in `ERASE_5 <https://asl-lex.org/visualization/?sign=erase_5>`_ or `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_
+
+**None of these**
 
 .. _axis_direction_entry:
 
 b) Axis direction
 ~~~~~~~~~~~~~~~~~
 
-Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. 
+Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space` for a visual representation of these options.
 
-See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space_page` for a visual representation of these options.
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<axes_entry>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and assign them to the ``x-slot visualization`` to record their temporal order.
 
-.. note::
-    A combination of axes can be interpreted as ... **(not intended to be sequential in one module)**
+Choosing an axis direction is straightforward for straight shapes, but there is flexibility in choosing a direction for circular shapes. You could choose the direction of the end of the first half of the circle relative to the beginning point, or the first initial direction of motion at the starting point, and so on. The most important thing is to maintain a consistent standard for coding direction for circular shapes.
 
-It may seem redundant to choose an axis direction as well as a plane and clockwise direction for circular movements, but it is a useful feature for describing the timing distinction in pairs like `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_. Notice that the plane and clockwise directionality are the same in both of these cases, but the location of each hand relative to the other is the same at every point in the sign for WHEELCHAIR while the relative locations of each hand are different for BICYCLE. See the section on :ref:`movement timing relation<signtype_movement_timing_relation>` for more discussion of this idea.
-
-There are many possible ways to specify an axis direction for a circular movement. You could choose the direction of the end of the first half of the circle relative to the beginning point, or the first initial direction of motion at the starting point, or anything else that you can think of. The most important thing is to maintain a consistent standard for selecting direction for circular movements.
+It may seem redundant to choose an axis direction as well as a plane and clockwise direction for circular movements, but it is a useful feature for describing the timing distinction in pairs like `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_. **Notice that the plane and clockwise directionality are the same in both of these cases, but the location of each hand relative to the other is the same at every point in the sign for WHEELCHAIR while the relative locations of each hand are different for BICYCLE. (Work on this wording)** See the section on :ref:`movement timing relations<signtype_movement_timing_relation>` for more discussion of this idea.
 
 For example, if you were to choose to code the direction as the midpoint of the circle relative to the beginning, then codings for `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ could look like this:
 
@@ -91,12 +109,13 @@ Similarly, **SAMPLE SIGN (arc)** may look like ...
 c) Plane
 ~~~~~~~~
 
-Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user.
+Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. See :ref:`signing_space` for a visual representation of these options.
 
-For each selected plane, you can also choose a circular directionality if desired. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute (counter-)clockwise directions for any circular shapes that involve the horizontal axis, as well as a definition of the default clockwise direction for each plane. See :ref:`signing_space_page` for a visual representation of these options.
+This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user. 
 
-.. note::
-    A combination of planes can be interpreted as ... **(not intended to be sequential in one module)**
+For each selected plane, you can also choose a circular directionality if desired. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the horizontal axis, as well as a definition of the default clockwise direction for each plane. 
+
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions) applying simultaneously. See the notes on :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_directions>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and assign them to the ``x-slot visualization`` to record their temporal order.
 
 .. note::
     Insert a few sign examples for different shapes
@@ -115,12 +134,11 @@ The joint-specific movement options are as follows:
 
 **Nodding/Un-nodding** 
 - "Nodding" should be selected if the movement begins with a flexion of the wrist, such as `_CORN <>`. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as ABLE **link**, or signs where there is a repeated, unidirectional nodding, such as YES **links**. 
-- "Un-nodding" should be selected if the moevement begins with an extension of the wrist, or if it is the only movement involved, for example GIVE_UP **links**
+- "Un-nodding" should be selected if the movement begins with an extension of the wrist, or if it is the only movement involved, for example GIVE_UP **links**
 
 **Pivoting**
 - "Radial > ulnar" should be selected if the movement begins with a radial deviation, or if it is the only direction involved. 
 - "Ulnar > radial" should be selected if the movement begins with an ulnar deviation, as in COOKIE **links**, or if it is the only direction involved.    
-
 
 **Twisting**
 - "Pronation" should be selected if the movement begins with pronation, or if it is the only direction involved, such as the subordinate hand of DIE **links**. Selecting this will autofill 
@@ -132,7 +150,6 @@ The joint-specific movement options are as follows:
 "Closing" should be selected if the sign begins with flexion of all joints of the selected finger(s), such as MILK_2 **link**, or if this is the only direction involved. 
 "Opening" should be selected if the sign begins with extension of all joints of the selected finger(s), or if this is the only direction involved, such as BOWTIE **link**.
 
-
 .. todo::
     Pinching/unpinching
     Pinching (Morgan 2017) [--> autofills to adduction of thumb base joint] e.g., TURTLE
@@ -140,9 +157,6 @@ The joint-specific movement options are as follows:
     Flattening/Straightening
     Flattening [--> autofills to flexion of [selected finger base joints]] e.g., HORSE
     Straightening [--> autofills to extension of [selected finger base joints]]
-
-
-
 
 .. _handshape_change_entry:
 
