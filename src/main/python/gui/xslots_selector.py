@@ -212,6 +212,8 @@ class XslotSelectorDialog(QDialog):
     #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
             self.saved_xslots.emit(self.xslot_layout.getxslots())
+            if self.mainwindow.current_sign is not None:
+                self.mainwindow.current_sign.lastmodifiednow()
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:

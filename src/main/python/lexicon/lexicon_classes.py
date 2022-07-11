@@ -2,7 +2,7 @@ from itertools import chain
 from fractions import Fraction
 # from datetime import datetime
 # from copy import deepcopy
-# from datetime import date
+from datetime import datetime
 
 from gui.movement_view import MovementTree
 from gui.xslots_selector import XslotStructure
@@ -277,6 +277,8 @@ class Sign:
     def __init__(self, signlevel_info=None, serializedsign=None):
         if serializedsign:
             self._signlevel_information = serializedsign['signlevel']
+            self._datecreated = serializedsign['date created']
+            self._datelastmodified = serializedsign['date last modified']
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
@@ -288,11 +290,11 @@ class Sign:
             self.handconfigmodules = serializedsign['cfg modules']
         else:
             self._signlevel_information = signlevel_info
-
-            # TODO KV - for parameter modules and x-slots
+            self._datecreated = int(datetime.timestamp(datetime.now()))
+            self.lastmodifiednow()
             self._signtype = None
-            self.xslotstructure = XslotStructure()
-            self.specifiedxslots = False
+            self._xslotstructure = XslotStructure()
+            self._specifiedxslots = False
             self.movementmodules = {}
             self.handpartmodules = []
             self.locationmodules = []
@@ -303,6 +305,8 @@ class Sign:
     def serialize(self):
         return {
             'signlevel': self._signlevel_information,
+            'date created': self._datecreated,
+            'date last modified': self._datelastmodified,
             'type': self._signtype,
             'xslot structure': self.xslotstructure,
             'specified xslots': self.specifiedxslots,
@@ -364,6 +368,29 @@ class Sign:
     @specifiedxslots.setter
     def specifiedxslots(self, specifiedxslots):
         self._specifiedxslots = specifiedxslots
+
+    @property
+    def datecreated(self):
+        return self._datecreated
+
+    # input should be an integer timestamp
+    @datecreated.setter
+    def datecreated(self, created):
+        # TODO KV - validate?
+        self._datecreated = created
+
+    @property
+    def datelastmodified(self):
+        return self._datelastmodified
+
+    # input should be an integer timestamp
+    @datelastmodified.setter
+    def signtype(self, lastmodified):
+        # TODO KV - validate?
+        self._datelastmodified = lastmodified
+
+    def lastmodifiednow(self):
+        self._datelastmodified = int(datetime.timestamp(datetime.now()))
 
     @property
     def signtype(self):

@@ -311,8 +311,12 @@ class XslotPanel(QScrollArea):
         # xslotview.setScene(scene)
 
     def refreshsign(self, sign=None):
-        if sign is not None:
+        if sign is None and self.mainwindow.current_sign is None:
+            self.sign = None
+        elif sign is not None:
             self.sign = sign
+        elif self.mainwindow.current_sign is not None:
+            self.sign = self.mainwindow.current_sign
 
         for sceneitem in self.scene.items():
             self.scene.removeItem(sceneitem)

@@ -249,6 +249,8 @@ class SignlevelinfoSelectorDialog(QDialog):
         elif standard == QDialogButtonBox.Save:
             signlevelinfo = self.signlevelinfo_layout.get_value()
             self.saved_signlevelinfo.emit(SignLevelInformation(signlevelinfo, self.settings))
+            if self.mainwindow.current_sign is not None:
+                self.mainwindow.current_sign.lastmodifiednow()
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:

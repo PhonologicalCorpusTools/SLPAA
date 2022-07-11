@@ -70,6 +70,9 @@ def check_duplicated_gloss(func):
 def check_unsaved_corpus(func):
     @functools.wraps(func)
     def wrapper_check_unsaved_corpus(self, *args, **kwargs):
+        # if self.corpus is None:
+        #     return func(self, *args, **kwargs)
+
         if self.corpus.path is None:
             self.corpus.name = self.corpus_view.corpus_title.text()
             name = self.corpus.name

@@ -160,6 +160,8 @@ class ModuleSelectorDialog(QDialog):
                 # save info and then refresh screen to enter next module
                 signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals))
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
+                if self.mainwindow.current_sign is not None:
+                    self.mainwindow.current_sign.lastmodifiednow()
                 # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
                 # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
                 self.hands_layout.clear()
@@ -193,6 +195,8 @@ class ModuleSelectorDialog(QDialog):
                 # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
                 signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals))
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
+                if self.mainwindow.current_sign is not None:
+                    self.mainwindow.current_sign.lastmodifiednow()
                 self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults

@@ -90,7 +90,8 @@ class MainWindow(QMainWindow):
         self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
         self.system_default_movement = None
         self.system_default_handshape = None
-        self.system_default_signtype = Signtype([('unspecified', 'Unspecified', False)])  # TODO KV not necessarily default...
+        # self.system_default_signtype = Signtype([('unspecified', 'Unspecified', False)])  # TODO KV not necessarily default...
+        self.system_default_signtype = Signtype([('Unspecified', False)])
 
         # handle setting-related stuff
         self.handle_app_settings()
@@ -163,14 +164,14 @@ class MainWindow(QMainWindow):
         action_define_location.setCheckable(False)
 
         # new corpus
-        action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), 'New corpus', parent=self)
-        action_new_corpus.setStatusTip('Create a new corpus')
+        action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
+        action_new_corpus.setStatusTip("Create a new corpus")
         action_new_corpus.triggered.connect(self.on_action_new_corpus)
         action_new_corpus.setCheckable(False)
 
         # load corpus
-        action_load_corpus = QAction(QIcon(self.app_ctx.icons['load16']), 'Load corpus...', parent=self)
-        action_load_corpus.setStatusTip('Load a .corpus file')
+        action_load_corpus = QAction(QIcon(self.app_ctx.icons['load16']), "Load corpus...", parent=self)
+        action_load_corpus.setStatusTip("Load a .corpus file")
         action_load_corpus.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
@@ -979,6 +980,7 @@ class MainWindow(QMainWindow):
         pass
         # TODO: implement
 
+    # TODO KV check whether current corpus has been saved
     def on_action_new_corpus(self, clicked):
         self.current_sign = None
         self.action_delete_sign.setEnabled(False)
@@ -988,10 +990,12 @@ class MainWindow(QMainWindow):
         self.corpus_view.clear()
         self.sign_summary.clear()
         self.sign_summary.enable_module_buttons(False)
+        self.xslot_panel.refreshsign()
         # self.signlevelinfo_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         # self.transcription_scroll.clear()
         # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)  # todo kv dict(),
 
+    # TODO KV check whether current corpus has been saved
     def on_action_load_corpus(self, clicked):
         file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Corpus'), self.app_settings['storage']['recent_folder'],
                                                            self.tr('SLP-AA Corpus (*.slpaa)'))
