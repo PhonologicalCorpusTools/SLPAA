@@ -64,6 +64,7 @@ The default list of shape options is:
 * **Straight**  
 
   * **Interacts with a subsequent straight movement** 
+    
     * **Movement contours cross**, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `HOSPITAL <https://asl-lex.org/visualization/?sign=hospital>`_  
     * **Subsequent movement starts at end of first**, as in `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_ or `TRIANGLE <https://asl-lex.org/visualization/?sign=triangle>`_  
     * **Subsequent movement starts in same location as first**, as in (possibly) the second movement of `DAISY <https://www.handspeak.com/word/index.php?id=5824>`_  
