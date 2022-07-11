@@ -19,7 +19,7 @@ This :ref:`module` is used to code the movement components of a sign.
 
 **Notes: select the hand(s) the module applies to, select the x-slot(s) if applicable. These instructions apply for each module type, so the same thing can be added to every module page or it can just be explained in the modularity page and linked in several pages.**
 
-If ``x-slots`` **(x-slot page)** and ``auto-generation`` **(auto-generation and autofilling)** are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other :ref:`sign modules<modularity>`.
+If ``x-slots`` **(x-slot page)** and ``auto-generation`` **(auto-generation and autofilling)** are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type_module`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other :ref:`sign modules<modularity>`.
 
 If ``x-slots`` **(x-slot page)** are enabled but ``auto-generation`` **(auto-generation and autofilling)** is not, then you must select the appropriate number of x-slots first before adding any modules to the sign.
 
@@ -57,32 +57,21 @@ Select the shape of the movement.
 
 Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The modules will be assigned to the ``x-slot visualization`` **(?)** in the order in which they're coded, so it's best to start with the first movement in the sequence and then continue in order. The initial list of perceptual shapes can also be edited by the user, so another way to capture the full movement is create a new shape label. This may be a useful option for shapes that reappear in many signs.
 
-For the special case of shape combinations where multiple straight movements are signed in a connected sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' Selecting this means that once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified. **What does this option mean specifically for searching/analysis?**
+For the special case of shape combinations where multiple straight movements are signed in a connected sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' Selecting this means that once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified. **Note: What does this option mean specifically for searching/analysis?**
 
 The default list of shape options is:
 
 **Straight**
-
     **Interacts with a subsequent straight movement**
-    
         **Movement contours cross**, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `HOSPITAL <https://asl-lex.org/visualization/?sign=hospital>`_
-        
         **Subsequent movement starts at end of first**, as in `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_ or `TRIANGLE <https://asl-lex.org/visualization/?sign=triangle>`_
-        
         **Subsequent movement starts in same location as first**, as in (possibly) the second movement of `DAISY <https://www.handspeak.com/word/index.php?id=5824>`_
-        
         **Subsequent movement ends in same location as first**, as in (possibly) the first movement of `SNOWSTORM <https://www.youtube.com/watch?v=KQLrgPdHRlQ&list=TLGGDt2--iXU7qQxNzAxMjAyMg>`_ **Note: Is this a stable link? Would it be possible to find something else?**
-        
     **Doesn't interact with a subsequent straight movement**, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_ or `SCROLL_DOWN <https://asl-lex.org/visualization/?sign=scroll_down>`_
-    
 **Arc**, as in `FOLD <https://asl-lex.org/visualization/?sign=fold>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
-
 **Circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
-
 **Zigzag**, as in `DRAW <https://asl-lex.org/visualization/?sign=draw>`_ or `WHALE <https://asl-lex.org/visualization/?sign=whale>`_
-
 **Loop (traveling circles)**, as in `ERASE_5 <https://asl-lex.org/visualization/?sign=erase_5>`_ or `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_
-
 **None of these**
 
 .. _axis_direction_entry:
