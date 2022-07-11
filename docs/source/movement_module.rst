@@ -59,20 +59,21 @@ Only one shape option can be specified per module. When you want to indicate mul
 
 For the special case of shape combinations where multiple straight movements are signed in a connected sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' Selecting this means that once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified. **Note: What does this option mean specifically for searching/analysis?**
 
-The default list of shape options is:
+.. note::
+    The default list of shape options is:
 
-**Straight**
-    **Interacts with a subsequent straight movement**
-        **Movement contours cross**, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `HOSPITAL <https://asl-lex.org/visualization/?sign=hospital>`_
-        **Subsequent movement starts at end of first**, as in `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_ or `TRIANGLE <https://asl-lex.org/visualization/?sign=triangle>`_
-        **Subsequent movement starts in same location as first**, as in (possibly) the second movement of `DAISY <https://www.handspeak.com/word/index.php?id=5824>`_
-        **Subsequent movement ends in same location as first**, as in (possibly) the first movement of `SNOWSTORM <https://www.youtube.com/watch?v=KQLrgPdHRlQ&list=TLGGDt2--iXU7qQxNzAxMjAyMg>`_ **Note: Is this a stable link? Would it be possible to find something else?**
-    **Doesn't interact with a subsequent straight movement**, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_ or `SCROLL_DOWN <https://asl-lex.org/visualization/?sign=scroll_down>`_
-**Arc**, as in `FOLD <https://asl-lex.org/visualization/?sign=fold>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
-**Circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
-**Zigzag**, as in `DRAW <https://asl-lex.org/visualization/?sign=draw>`_ or `WHALE <https://asl-lex.org/visualization/?sign=whale>`_
-**Loop (traveling circles)**, as in `ERASE_5 <https://asl-lex.org/visualization/?sign=erase_5>`_ or `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_
-**None of these**
+    **Straight**  
+        **Interacts with a subsequent straight movement**  
+            **Movement contours cross**, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `HOSPITAL <https://asl-lex.org/visualization/?sign=hospital>`_  
+            **Subsequent movement starts at end of first**, as in `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_ or `TRIANGLE <https://asl-lex.org/visualization/?sign=triangle>`_  
+            **Subsequent movement starts in same location as first**, as in (possibly) the second movement of `DAISY <https://www.handspeak.com/word/index.php?id=5824>`_  
+            **Subsequent movement ends in same location as first**, as in (possibly) the first movement of `SNOWSTORM <https://www.youtube.com/watch?v=KQLrgPdHRlQ&list=TLGGDt2--iXU7qQxNzAxMjAyMg>`_ **Note: Is this a stable link? Would it be possible to find something else?**  
+        **Doesn't interact with a subsequent straight movement**, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_ or `SCROLL_DOWN <https://asl-lex.org/visualization/?sign=scroll_down>`_
+    **Arc**, as in `FOLD <https://asl-lex.org/visualization/?sign=fold>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
+    **Circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
+    **Zigzag**, as in `DRAW <https://asl-lex.org/visualization/?sign=draw>`_ or `WHALE <https://asl-lex.org/visualization/?sign=whale>`_
+    **Loop (traveling circles)**, as in `ERASE_5 <https://asl-lex.org/visualization/?sign=erase_5>`_ or `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_
+    **None of these**
 
 .. _axis_direction_entry:
 
