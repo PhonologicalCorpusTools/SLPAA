@@ -83,7 +83,7 @@ The default list of shape options is:
 b) Axis direction
 ~~~~~~~~~~~~~~~~~
 
-Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space_module` for a visual representation of these options.
+Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space_page` for a visual representation of these options.
 
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<axes_entry>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and assign them to the ``x-slot visualization`` to record their temporal order.
 
@@ -102,7 +102,7 @@ Similarly, **SAMPLE SIGN (arc)** may look like ...
 c) Plane
 ~~~~~~~~
 
-Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. See :ref:`signing_space_module` for a visual representation of these options.
+Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. See :ref:`signing_space_page` for a visual representation of these options.
 
 This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user. 
 
