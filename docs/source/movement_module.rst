@@ -83,7 +83,7 @@ The default list of shape options is:
 b) Axis direction
 ~~~~~~~~~~~~~~~~~
 
-Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space` for a visual representation of these options.
+Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See a description of :ref:`signing_space_module` for a visual representation of these options.
 
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<axes_entry>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and assign them to the ``x-slot visualization`` to record their temporal order.
 
@@ -102,7 +102,7 @@ Similarly, **SAMPLE SIGN (arc)** may look like ...
 c) Plane
 ~~~~~~~~
 
-Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. See :ref:`signing_space` for a visual representation of these options.
+Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. See :ref:`signing_space_module` for a visual representation of these options.
 
 This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user. 
 
@@ -161,7 +161,7 @@ Select whether the sign uses a :ref:`handshape_change`. This can apply for finge
 .. note::
     As with the other movement types, a module with this specification cannot be combined with the selections for a :ref:`joint_specific_movement` or a movement with :ref:`perceptual_shape`. To code any information about other movements in the sign, add additional movement module(s) with the appropriate movement type(s). You can then adjust the timing of each module with respect to the others in the ``x-slot visualization window`` **(?)**.
 
-    For instance, you can choose whether or not to indicate that a fingerspelling is signed along a path ...
+    For instance, you can choose whether or not to indicate that a fingerspelling is signed along a path ... **(Note: add an example of a quick handshape change in the middle of a sign? I seem to remember a handful of these, maybe for compounds)**
 
 .. comment::
     Should I give examples here for lexicalized fingerspellings on a (circular) path? e.g. (I think?) the handspeak example of STYLE.
