@@ -29,7 +29,7 @@ Holistic description of a standard phonological handshape, e.g., the B handshape
 
 handshape change
 ======
-add here
+KCH - add here
 
 .. _hand_configuration: 
 
@@ -42,7 +42,7 @@ Phonetic shapes of the hand coded in the :ref:`hand_configuration_module`. May i
 
 joint-specific movement
 =======================
-add here
+NT - add here
 
 
 .. _lemma: 
@@ -56,14 +56,14 @@ add here
 
 module
 ======
-add here (specifically our use of this term and how it applies to the program)
+NT - add here (specifically our use of this term and how it applies to the program)
 
 
 .. _perceptual_shape:
 
 perceptual shape
 ================
-add here
+NT - add here
 
 
 .. _sample: 
@@ -82,4 +82,4 @@ testing2
 
 x-slot
 ======
-add here
+NT - add here
