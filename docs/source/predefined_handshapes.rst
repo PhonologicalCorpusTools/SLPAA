@@ -587,7 +587,7 @@ Crooked
 - **SLP coding description:** For selected fingers, the proximal joint is E, medial and distal joints are i
 - **Prototypical coding:** [E-i-i] for each crooked finger
 
-.. image:: images/pdhs_croo.png
+.. image:: images/pdhs_crooked.png
         :width: 500
         :align: left
      
