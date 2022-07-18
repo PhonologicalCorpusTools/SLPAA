@@ -14,6 +14,7 @@ Contents:
 
    manage_corpus.rst
    modularity.rst
+   timing.rst
    predefined_handshapes.rst
    setting_preferences.rst
    terminology.rst
