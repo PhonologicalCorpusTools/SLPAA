@@ -719,7 +719,7 @@ class HandshapeCombinedILY(PredefinedHandshape):
 
 
 class HandshapeCombinedYAndU(PredefinedHandshape):
-    def __init__(self, name='combined Y&U', filename='combined-Y&U', canonical=(
+    def __init__(self, name='combined Y+U', filename='combined-Y+U', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'E', 'E',
@@ -731,7 +731,7 @@ class HandshapeCombinedYAndU(PredefinedHandshape):
 
 
 class HandshapeCombinedYAndMiddle(PredefinedHandshape):
-    def __init__(self, name='combined Y&middle', filename='combined-Y&middle', canonical=(
+    def __init__(self, name='combined Y+middle', filename='combined-Y+middle', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'F', 'F',

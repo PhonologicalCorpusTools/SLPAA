@@ -314,8 +314,8 @@ PREDEFINED_MAP = {
     'closed-X': HandshapeClosedX(),
 
     'Y': HandshapeY(),
-    'combined-Y&middle': HandshapeCombinedYAndMiddle(),
-    'combined-Y&U': HandshapeCombinedYAndU(),
+    'combined-Y+middle': HandshapeCombinedYAndMiddle(),
+    'combined-Y+U': HandshapeCombinedYAndU(),
 }
 
 FRACTION_CHAR = {

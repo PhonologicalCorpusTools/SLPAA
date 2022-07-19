@@ -333,7 +333,7 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['Y',
              '',  # bent
-             '', '', 'combined-Y&middle', '', '', '', '',  # 7 slots
+             '', '', 'combined-Y+middle', '', '', '', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
@@ -342,7 +342,7 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['',
              '',  # bent
-             '', '', 'combined-Y&U', '', '', '', '',  # 7 slots
+             '', '', 'combined-Y+U', '', '', '', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
