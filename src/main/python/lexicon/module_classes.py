@@ -18,7 +18,7 @@ class ParameterModule:
         self._timingintervals = []
         if timingintervals is not None:
             self.settimingintervals(timingintervals)
-        self._uniqueid = int(datetime.timestamp(datetime.now()))
+        self._uniqueid = datetime.timestamp(datetime.now())
 
     @property
     def hands(self):

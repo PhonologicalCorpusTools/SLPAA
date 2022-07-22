@@ -620,8 +620,9 @@ class SigntypeSelectorDialog(QDialog):
     #         self.movement_tab.remove_all_pages()
     #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
-            self.saved_signtype.emit(self.signtype_layout.getsigntype())
-            if self.mainwindow.current_sign is not None:
+            newsigntype = self.signtype_layout.getsigntype()
+            self.saved_signtype.emit(newsigntype)
+            if self.mainwindow.current_sign is not None and self.signtype != newsigntype:
                 self.mainwindow.current_sign.lastmodifiednow()
             self.accept()
 

@@ -20,18 +20,64 @@ def empty_copy(obj):
 
 
 class SignLevelInformation:
-    def __init__(self, signlevel_info, app_settings):
-        self._entryid = signlevel_info['entryid']
-        self.settings = app_settings
-        self._gloss = signlevel_info['gloss']
-        self._lemma = signlevel_info['lemma']
-        self._source = signlevel_info['source']
-        self._signer = signlevel_info['signer']
-        self._frequency = signlevel_info['frequency']
-        self._coder = signlevel_info['coder']
-        self._update_date = signlevel_info['date']
-        self._note = signlevel_info['note']
-        self._handdominance = signlevel_info['handdominance']
+    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
+        # self.settings = app_settings
+        if serializedsignlevelinfo is not None:
+            self._entryid = serializedsignlevelinfo['entryid']
+            self._gloss = serializedsignlevelinfo['gloss']
+            self._lemma = serializedsignlevelinfo['lemma']
+            self._source = serializedsignlevelinfo['source']
+            self._signer = serializedsignlevelinfo['signer']
+            self._frequency = serializedsignlevelinfo['frequency']
+            self._coder = serializedsignlevelinfo['coder']
+            # self._update_date = signlevel_info['date']
+            self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
+            self._note = serializedsignlevelinfo['note']
+            self._handdominance = serializedsignlevelinfo['handdominance']
+        else:
+            self._entryid = signlevel_info['entryid']
+            self._gloss = signlevel_info['gloss']
+            self._lemma = signlevel_info['lemma']
+            self._source = signlevel_info['source']
+            self._signer = signlevel_info['signer']
+            self._frequency = signlevel_info['frequency']
+            self._coder = signlevel_info['coder']
+            # self._update_date = signlevel_info['date']
+            self._datecreated = signlevel_info['date created']
+            self._datelastmodified = signlevel_info['date last modified']
+            self._note = signlevel_info['note']
+            self._handdominance = signlevel_info['handdominance']
+
+    def __eq__(self, other):
+        aresame = True
+        if isinstance(other, SignLevelInformation):
+            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
+                aresame = False
+            if self._source != other.source or self._signer != other.signer or self._frequency != other.frequency:
+                aresame = False
+            if self._coder != other.coder or self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
+                aresame = False
+            if self._note != other.note or self._handdominance != other.handdominance:
+                aresame = False
+        else:
+            aresame = False
+        return aresame
+
+    def serialize(self):
+        return {
+            'entryid': self._entryid,
+            'gloss': self._gloss,
+            'lemma': self._lemma,
+            'source': self._source,
+            'signer': self._signer,
+            'frequency': self._frequency,
+            'coder': self._coder,
+            'date created': self._datecreated.timestamp(),
+            'date last modified': self._datelastmodified.timestamp(),
+            'note': self._note,
+            'handdominance': self._handdominance
+        }
 
     @property
     def entryid(self):
@@ -40,12 +86,12 @@ class SignLevelInformation:
     @entryid.setter
     def entryid(self, new_entryid):
         self._entryid = new_entryid
-
-    def entryid_string(self):
-        numdigits = self.settings['display']['entryid_digits']
-        entryid_string = str(self._entryid)
-        entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
-        return entryid_string
+    #
+    # def entryid_string(self):
+    #     numdigits = self.settings['display']['entryid_digits']
+    #     entryid_string = str(self._entryid)
+    #     entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
+    #     return entryid_string
 
     @property
     def gloss(self):
@@ -94,14 +140,35 @@ class SignLevelInformation:
     @coder.setter
     def coder(self, new_coder):
         self._coder = new_coder
+    #
+    # @property
+    # def update_date(self):
+    #     return self._update_date
+    #
+    # @update_date.setter
+    # def update_date(self, new_update_date):
+    #     self._update_date = new_update_date
 
     @property
-    def update_date(self):
-        return self._update_date
+    def datecreated(self):
+        return self._datecreated
 
-    @update_date.setter
-    def update_date(self, new_update_date):
-        self._update_date = new_update_date
+    # input should be a datetime object
+    @datecreated.setter
+    def datecreated(self, new_datecreated):
+        self._datecreated = new_datecreated
+
+    @property
+    def datelastmodified(self):
+        return self._datelastmodified
+
+    # input should be a datetime object
+    @datelastmodified.setter
+    def datelastmodified(self, new_datelastmodified):
+        self._datelastmodified = new_datelastmodified
+
+    def lastmodifiednow(self):
+        self._datelastmodified = datetime.now()
 
     @property
     def note(self):
@@ -275,10 +342,10 @@ class Sign:
     Gloss in signlevel_information is used as the unique key
     """
     def __init__(self, signlevel_info=None, serializedsign=None):
-        if serializedsign:
-            self._signlevel_information = serializedsign['signlevel']
-            self._datecreated = serializedsign['date created']
-            self._datelastmodified = serializedsign['date last modified']
+        if serializedsign is not None:
+            self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'])
+            # self._datecreated = serializedsign['date created']
+            # self._datelastmodified = serializedsign['date last modified']
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
@@ -290,8 +357,8 @@ class Sign:
             self.handconfigmodules = serializedsign['cfg modules']
         else:
             self._signlevel_information = signlevel_info
-            self._datecreated = int(datetime.timestamp(datetime.now()))
-            self.lastmodifiednow()
+            # self._datecreated = int(datetime.timestamp(datetime.now()))
+            # self.lastmodifiednow()
             self._signtype = None
             self._xslotstructure = XslotStructure()
             self._specifiedxslots = False
@@ -304,9 +371,9 @@ class Sign:
 
     def serialize(self):
         return {
-            'signlevel': self._signlevel_information,
-            'date created': self._datecreated,
-            'date last modified': self._datelastmodified,
+            'signlevel': self._signlevel_information.serialize(),
+            # 'date created': self._datecreated,
+            # 'date last modified': self._datelastmodified,
             'type': self._signtype,
             'xslot structure': self.xslotstructure,
             'specified xslots': self.specifiedxslots,
@@ -368,29 +435,30 @@ class Sign:
     @specifiedxslots.setter
     def specifiedxslots(self, specifiedxslots):
         self._specifiedxslots = specifiedxslots
-
-    @property
-    def datecreated(self):
-        return self._datecreated
-
-    # input should be an integer timestamp
-    @datecreated.setter
-    def datecreated(self, created):
-        # TODO KV - validate?
-        self._datecreated = created
-
-    @property
-    def datelastmodified(self):
-        return self._datelastmodified
-
-    # input should be an integer timestamp
-    @datelastmodified.setter
-    def signtype(self, lastmodified):
-        # TODO KV - validate?
-        self._datelastmodified = lastmodified
+    #
+    # @property
+    # def datecreated(self):
+    #     return self._datecreated
+    #
+    # # input should be an integer timestamp
+    # @datecreated.setter
+    # def datecreated(self, created):
+    #     # TODO KV - validate?
+    #     self._datecreated = created
+    #
+    # @property
+    # def datelastmodified(self):
+    #     return self._datelastmodified
+    #
+    # # input should be an integer timestamp
+    # @datelastmodified.setter
+    # def signtype(self, lastmodified):
+    #     # TODO KV - validate?
+    #     self._datelastmodified = lastmodified
 
     def lastmodifiednow(self):
-        self._datelastmodified = int(datetime.timestamp(datetime.now()))
+        # self._datelastmodified = int(datetime.timestamp(datetime.now()))
+        self.signlevel_information.lastmodifiednow()
 
     @property
     def signtype(self):
@@ -412,41 +480,71 @@ class Sign:
 
     def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals):
         mvmtmod = self.movementmodules[uniqueid]
-        mvmtmod.movementtreemodel = movementtree
-        mvmtmod.hands = hands_dict
-        mvmtmod.timingintervals = timingintervals
+        ischanged = False
+        if mvmtmod.movementtreemodel != movementtree:
+            mvmtmod.movementtreemodel = movementtree
+            ischanged = True
+        if mvmtmod.hands != hands_dict:
+            mvmtmod.hands = hands_dict
+            ischanged = True
+        if mvmtmod.timingintervals != timingintervals:
+            mvmtmod.timingintervals = timingintervals
+            ischanged = True
+        if ischanged:
+            self.lastmodifiednow()
 
     def addmovementmodule(self, movementtree, hands_dict, timingintervals):
         # create and add a brand new one
         mvmtmod = MovementModule(movementtree, hands_dict, timingintervals)
         self.movementmodules[mvmtmod.uniqueid] = mvmtmod
+        self.lastmodifiednow()
 
     def removemovementmodule(self, uniqueid):
         self.movementmodules.pop(uniqueid)
+        self.lastmodifiednow()
 
     def updatehandconfigmodule(self, uniqueid, handconfiguration, overalloptions, hands_dict, timingintervals):
         hcfgmod = self.handconfigmodules[uniqueid]
-        hcfgmod.handconfiguration = handconfiguration
-        hcfgmod.hands = hands_dict
-        hcfgmod.overalloptions = overalloptions
-        hcfgmod.timingintervals = timingintervals
+        ischanged = False
+        if hcfgmod.handconfiguration != handconfiguration:
+            hcfgmod.handconfiguration = handconfiguration
+            ischanged = True
+        if hcfgmod.hands != hands_dict:
+            hcfgmod.hands = hands_dict
+            ischanged = True
+        if hcfgmod.overalloptions != overalloptions:
+            hcfgmod.overalloptions = overalloptions
+            ischanged = True
+        if hcfgmod.timingintervals != timingintervals:
+            hcfgmod.timingintervals = timingintervals
+            ischanged = True
+        if ischanged:
+            self.lastmodifiednow()
 
     def addhandconfigmodule(self, handconfiguration, overalloptions, hands_dict, timingintervals):
         # create and add a brand new one
         hcfgmod = HandConfigurationModule(handconfiguration, overalloptions, hands_dict, timingintervals)
         self.handconfigmodules[hcfgmod.uniqueid] = hcfgmod
+        self.lastmodifiednow()
 
     def removehandconfigmodule(self, uniqueid):
         self.handconfigmodules.pop(uniqueid)
+        self.lastmodifiednow()
 
     def addtargetmodule(self, targetmod):
         self.targetmodules.append(targetmod)
+        self.lastmodifiednow()
 
     def addlocationmodule(self, locationmod):
         self.locationmodules.append(locationmod)
+        self.lastmodifiednow()
 
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)
+        self.lastmodifiednow()
+
+    def gettimedmodules(self):
+        return [self.movementmodules, self.handpartmodules, self.locationmodules, self.contactmodules, self.orientationmodules, self.handconfigmodules]
 
 
 class Corpus:

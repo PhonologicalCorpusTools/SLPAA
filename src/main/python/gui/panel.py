@@ -277,6 +277,7 @@ class XslotPanel(QScrollArea):
         super().__init__(**kwargs)
         self.sign = sign
         self.mainwindow = mainwindow
+        self.settings = self.mainwindow.app_settings
 
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
@@ -329,7 +330,8 @@ class XslotPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid_string())
+            # signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid_string())
+            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
         signleveltext.setPos(self.x_offset, self.current_y*(self.default_xslot_height+self.verticalspacing))
         self.current_y += 1
         self.scene.addItem(signleveltext)
@@ -342,6 +344,14 @@ class XslotPanel(QScrollArea):
         self.addhand("H1")
         self.addhand("H2")
         self.addgridlines()
+
+    def entryid_string(self, entryid_int=None):
+        numdigits = self.settings['display']['entryid_digits']
+        if entryid_int is None:
+            entryid_int = self.sign.signlevel_information.entryid
+        entryid_string = str(entryid_int)
+        entryid_string = "0" * (numdigits - len(entryid_string)) + entryid_string
+        return entryid_string
 
     def addsigntype(self):
         # signtypetext = "Sign Type (TODO): "
@@ -793,7 +803,7 @@ class SignSummaryPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_signlevelbutton_click(self):
-        signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, self.mainwindow, self.mainwindow.app_settings, parent=self)
+        signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, self.mainwindow, parent=self)
         signlevelinfo_selector.saved_signlevelinfo.connect(self.handle_save_signlevelinfo)
         signlevelinfo_selector.exec_()
 

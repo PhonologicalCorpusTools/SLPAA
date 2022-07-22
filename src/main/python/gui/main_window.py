@@ -872,10 +872,70 @@ class MainWindow(QMainWindow):
         self.illustration_scroll.set_img(hand_img)
 
     def on_action_edit_preference(self):
-        pref_dialog = PreferenceDialog(self.app_settings, parent=self)
+        pref_dialog = PreferenceDialog(self.app_settings, timingfracsinuse=self.getcurrentlyused_timingfractions(), parent=self)
+        pref_dialog.xslotdivisions_changed.connect(lambda before, after: self.check_xslotdivisions(before, after))
         pref_dialog.prefs_saved.connect(self.xslot_panel.refreshsign)
         pref_dialog.exec_()
         #self.app_settings
+
+    def getcurrentlyused_timingfractions(self):
+        fractionsinuse = []
+        for sign in self.corpus.signs:
+            timedmodules = sign.gettimedmodules()
+            for modulecollection in timedmodules:
+                for module in modulecollection:
+                    timingintervals = module.timingintervals
+                    for tint in timingintervals:
+                        startfrac = tint.startpoint.fractionalpart
+                        if startfrac not in fractionsinuse:
+                            fractionsinuse.append(startfrac)
+                        endfrac = tint.endpoint.fractionalpart
+                        if endfrac not in fractionsinuse:
+                            fractionsinuse.append(endfrac)
+            structuralfrac = sign.xslotstructure.additionalfraction
+            if structuralfrac not in [0, 1] and structuralfrac not in fractionsinuse:
+                fractionsinuse.append(structuralfrac)
+        return fractionsinuse
+
+
+    #
+    # def check_xslotdivisions(self, beforedict, afterdict):
+    #     divisionsbefore = [Fraction(fracstring) for fracstring in beforedict.keys() if beforedict[fracstring]]
+    #     fractionsbefore = []
+    #     for frac in divisionsbefore:
+    #         for num in range(1, frac.numerator):
+    #             fracmultiple = num * frac
+    #             if fracmultiple not in fractionsbefore:
+    #                 fractionsbefore.append(fracmultiple)
+    #     divisionsafter = [Fraction(fracstring) for fracstring in afterdict.keys() if afterdict[fracstring]]
+    #     fractionsafter = []
+    #     for frac in divisionsafter:
+    #         for num in range(1, frac.numerator):
+    #             fracmultiple = num * frac
+    #             if fracmultiple not in fractionsafter:
+    #                 fractionsafter.append(fracmultiple)
+    #
+    #     # divisionslost = [divn for divn in divisionsbefore if divn not in divisionsafter]
+    #     fractionslost = [frac for frac in fractionsbefore if frac not in fractionsafter]
+    #
+    #     fractionsatrisk = []
+    #
+    #     for sign in self.corpus.signs:
+    #         timedmodules = sign.gettimedmodules()
+    #         for modulecollection in timedmodules:
+    #             for module in modulecollection:
+    #                 timingintervals = module.timingintervals
+    #                 for tint in timingintervals:
+    #                     startfrac = tint.startpoint.fractionalpart
+    #                     endfrac = tint.endpoint.fractionalpart
+    #
+    #                     # if we're losing a division that is used in at least one sign...
+    #                     if startfrac in fractionslost and startfrac not in fractionsatrisk:
+    #                         fractionsatrisk.append(startfrac)
+    #                     if endfrac in fractionslost and endfrac not in fractionsatrisk:
+    #                         fractionsatrisk.append(endfrac)
+    #
+    #     return fractionsatrisk
 
     # @check_duplicated_gloss
     # @check_unsaved_corpus

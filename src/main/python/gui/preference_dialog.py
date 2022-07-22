@@ -11,7 +11,9 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QLabel,
     QRadioButton,
-    QButtonGroup
+    QButtonGroup,
+    QMessageBox,
+    QPushButton
 )
 
 from PyQt5.QtCore import pyqtSignal
@@ -71,6 +73,8 @@ class ReminderTab(QWidget):
 
 
 class SignDefaultsTab(QWidget):
+    xslotdivisions_changed = pyqtSignal(dict, dict)
+
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
         self.settings = settings
@@ -151,17 +155,25 @@ class SignDefaultsTab(QWidget):
     def save_settings(self):
         self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
         self.settings['signdefaults']['xslot_generation'] = self.xslots_group.checkedButton().property('xslots')
-        for cb in self.partialxslots_group.buttons():
-            self.settings['signdefaults']['partial_xslots'][cb.property('partialxslot')] = cb.isChecked()
+
+        previouspartials = self.settings['signdefaults']['partial_xslots']
+        newpartials = {cb.property('partialxslot'): cb.isChecked() for cb in self.partialxslots_group.buttons()}
+        self.settings['signdefaults']['partial_xslots'] = newpartials
+        # for cb in self.partialxslots_group.buttons():
+        #     self.settings['signdefaults']['partial_xslots'][cb.property('partialxslot')] = cb.isChecked()
+        if previouspartials != newpartials:
+            self.xslotdivisions_changed.emit(previouspartials, newpartials)
 
 
 class PreferenceDialog(QDialog):
     prefs_saved = pyqtSignal()
+    xslotdivisions_changed = pyqtSignal(dict, dict)
 
-    def __init__(self, settings, **kwargs):
+    def __init__(self, settings, timingfracsinuse, **kwargs):
         super().__init__(**kwargs)
 
         self.settings = settings
+        self.timingfractions_inuse = timingfracsinuse
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
@@ -176,6 +188,7 @@ class PreferenceDialog(QDialog):
         tabs.addTab(self.reminder_tab, 'Reminder')
 
         self.signdefaults_tab = SignDefaultsTab(settings, parent=self)
+        self.signdefaults_tab.xslotdivisions_changed.connect(self.handle_xslotdivisions_changed)
         tabs.addTab(self.signdefaults_tab, 'Sign')
 
         buttons = QDialogButtonBox.Save | QDialogButtonBox.Cancel
@@ -184,6 +197,54 @@ class PreferenceDialog(QDialog):
 
         # Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
+
+    def handle_xslotdivisions_changed(self, beforedict, afterdict):
+        divisionsbefore = [Fraction(fracstring) for fracstring in beforedict.keys() if beforedict[fracstring]]
+        fractionsbefore = []
+        for frac in divisionsbefore:
+            for num in range(1, frac.denominator):
+                fracmultiple = num * frac
+                if fracmultiple not in fractionsbefore:
+                    fractionsbefore.append(fracmultiple)
+        divisionsafter = [Fraction(fracstring) for fracstring in afterdict.keys() if afterdict[fracstring]]
+        fractionsafter = []
+        for frac in divisionsafter:
+            for num in range(1, frac.denominator):
+                fracmultiple = num * frac
+                if fracmultiple not in fractionsafter:
+                    fractionsafter.append(fracmultiple)
+        # divisionslost = [divn for divn in divisionsbefore if divn not in divisionsafter]
+        fractionslost = [frac for frac in fractionsbefore if frac not in fractionsafter]
+
+        fractionsatrisk = []
+        for frac in self.timingfractions_inuse:
+            if frac in fractionslost and frac not in fractionsatrisk:
+                fractionsatrisk.append(frac)
+
+        if len(fractionsatrisk) > 0:
+            xslotincompatibilities_msgbox = QMessageBox()
+            xslotincompatibilities_msgbox.setText("Your new partial x-slot settings create incompatibilities with previously coded signs that used the old settings. What would you like to do?")
+            discardbutton = QPushButton("Discard changes (keep old divisions)")
+            # TODO KV implement
+            newsinugnsonlybutton = QPushButton("Apply changes to new signs only (not yet implemented)")  # TODO KV [Tooltip / documentation explains: previously coded signs will have only the old x-slot options both visible and usable; any new signs added will have only the new x-slot options available.]
+            # TODO KV implement
+            allsignsbutton = QPushButton("Apply changes to all signs (not yet implemented)")  # TODO KV [Tooltip / documentation explains: previously coded signs will keep their coded x-slot selections if they are compatible with the new options, otherwise will lose their associations and need to be recoded; all signs (old and new) will have only the new x-slot options available]. [Add option here: output list of signs that had incompatibilities to a file? or mark in the corpus somehow?]
+            xslotincompatibilities_msgbox.addButton(discardbutton, QMessageBox.DestructiveRole)
+            xslotincompatibilities_msgbox.addButton(newsignsonlybutton, QMessageBox.ApplyRole)
+            xslotincompatibilities_msgbox.addButton(allsignsbutton, QMessageBox.ApplyRole)
+            xslotincompatibilities_msgbox.setDefaultButton(discardbutton)
+            xslotincompatibilities_msgbox.exec()
+            result = xslotincompatibilities_msgbox.clickedButton()
+
+            if result == discardbutton:
+                # reset the partial x-slot fractions to whatever they were before
+                self.settings['signdefaults']['partial_xslots'] = beforedict
+            elif result == newsignsonlybutton:
+                # TODO KV
+                pass
+            elif result == allsignsbutton:
+                # TODO KV
+                pass
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)

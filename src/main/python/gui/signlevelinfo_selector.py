@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from PyQt5.QtWidgets import (
     QFrame,
@@ -55,15 +55,35 @@ from gui.decorator import check_date_format, check_empty_gloss
 #     #     super().focusInEvent(event)
 
 
+class SignLevelDateDisplay(QLabel):
+    def __init__(self, thedatetime=None, **kwargs):
+        super().__init__(**kwargs)
+        self.set_datetime(thedatetime)
+        self.setStyleSheet("border: 1px solid black;")
+
+    def set_datetime(self, thedatetime):
+        self.datetime = thedatetime
+        if thedatetime is None:
+            self.setText("now")
+        else:
+            self.setText(self.datetime.strftime('%Y-%m-%d %I:%M:%S%p'))
+
+    def get_datetime(self):
+        return self.datetime
+
+    def reset(self):
+        self.set_datetime(None)
+
+
 class SignLevelInfoLayout(QVBoxLayout):
 
-    def __init__(self, signlevelinfo, mainwindow, app_settings, **kwargs):
+    def __init__(self, signlevelinfo, mainwindow, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
 
-        self.coder = app_settings['metadata']['coder']
-        self.defaulthand = app_settings['signdefaults']['handdominance']
-        self.settings = app_settings
+        self.settings = self.mainwindow.app_settings
+        self.coder = self.settings['metadata']['coder']
+        self.defaulthand = self.settings['signdefaults']['handdominance']
 
         self.signlevelinfo = signlevelinfo
 
@@ -77,7 +97,9 @@ class SignLevelInfoLayout(QVBoxLayout):
         signer_label = QLabel('Signer:')
         freq_label = QLabel('Frequency:')
         coder_label = QLabel('Coder:')
-        update_label = QLabel('Last updated:')
+        created_label = QLabel('Date created:')
+        modified_label = QLabel('Date last modified:')
+        # update_label = QLabel('Last updated:')
         note_label = QLabel('Notes:')
 
         self.entryid_value = QLineEdit()
@@ -90,7 +112,9 @@ class SignLevelInfoLayout(QVBoxLayout):
         self.signer_edit = QLineEdit()
         self.freq_edit = QLineEdit()
         self.coder_edit = QLineEdit()
-        self.update_edit = QLineEdit()
+        # self.update_edit = QLineEdit()
+        self.created_display = SignLevelDateDisplay()
+        self.modified_display = SignLevelDateDisplay()
         self.note_edit = QPlainTextEdit()
 
         self.handdominance_buttongroup = QButtonGroup()  # parent=self)
@@ -123,8 +147,12 @@ class SignLevelInfoLayout(QVBoxLayout):
         main_layout.addWidget(self.freq_edit)
         main_layout.addWidget(coder_label)
         main_layout.addWidget(self.coder_edit)
-        main_layout.addWidget(update_label)
-        main_layout.addWidget(self.update_edit)
+        # main_layout.addWidget(update_label)
+        # main_layout.addWidget(self.update_edit)
+        main_layout.addWidget(created_label)
+        main_layout.addWidget(self.created_display)
+        main_layout.addWidget(modified_label)
+        main_layout.addWidget(self.modified_display)
         main_layout.addWidget(note_label)
         main_layout.addWidget(self.note_edit)
         main_layout.addWidget(self.handdominance_box)
@@ -134,7 +162,10 @@ class SignLevelInfoLayout(QVBoxLayout):
         self.addLayout(main_layout)
 
     def entryid(self):
-        return self.mainwindow.corpus.highestID+1
+        if self.signlevelinfo is not None:
+            return self.signlevelinfo.entryid
+        else:
+            return self.mainwindow.corpus.highestID+1
 
     def entryid_string(self, entryid_int=None):
         numdigits = self.settings['display']['entryid_digits']
@@ -158,7 +189,9 @@ class SignLevelInfoLayout(QVBoxLayout):
             self.signer_edit.setText(signlevelinfo.signer)
             self.freq_edit.setText(str(signlevelinfo.frequency))
             self.coder_edit.setText(signlevelinfo.coder)
-            self.update_edit.setText(str(signlevelinfo.update_date))
+            # self.update_edit.setText(str(signlevelinfo.update_date))
+            self.created_display.set_datetime(signlevelinfo.datecreated)
+            self.modified_display.set_datetime(signlevelinfo.datelastmodified)
             self.note_edit.setPlainText(signlevelinfo.note if signlevelinfo.note is not None else "")
             self.set_handdominance(signlevelinfo.handdominance)
 
@@ -169,8 +202,10 @@ class SignLevelInfoLayout(QVBoxLayout):
         self.signer_edit.setText("")
         self.freq_edit.setText('1.0')
         self.coder_edit.setText(self.coder)
-        self.update_edit.setPlaceholderText('YYYY-MM-DD')
-        self.update_edit.setText(str(date.today()))
+        # self.update_edit.setPlaceholderText('YYYY-MM-DD')
+        # self.update_edit.setText(str(date.today()))
+        self.created_display.reset()
+        self.modified_display.reset()
         # self.note_edit = QPlainTextEdit()  # parent=self)
         self.note_edit.setPlaceholderText('Enter note here...')
         self.set_handdominance(self.defaulthand)
@@ -185,7 +220,12 @@ class SignLevelInfoLayout(QVBoxLayout):
         return 'R' if self.handdominance_r_radio.isChecked() else 'L'
 
     def get_value(self):
-        if self.get_date() and self.get_gloss():
+        # if self.get_date() and self.get_gloss():
+        if self.get_gloss():
+            if self.created_display.text() == "now" or self.modified_display.text() == "now":
+                newtime = datetime.now()
+                self.created_display.set_datetime(newtime)
+                self.modified_display.set_datetime(newtime)
             return {
                 'entryid': self.entryid(),
                 'gloss': self.get_gloss(),
@@ -194,15 +234,17 @@ class SignLevelInfoLayout(QVBoxLayout):
                 'signer': self.signer_edit.text(),
                 'frequency': float(self.freq_edit.text()),
                 'coder': self.coder_edit.text(),
-                'date': self.get_date(),
+                # 'date': self.get_date(),
+                'date created': self.created_display.get_datetime(),
+                'date last modified': self.modified_display.get_datetime(),
                 'note': self.note_edit.toPlainText(),
                 'handdominance': self.get_handdominance()
             }
 
-    @check_date_format
-    def get_date(self):
-        year, month, day = self.update_edit.text().split(sep='-')
-        return date(int(year), int(month), int(day))
+    # @check_date_format
+    # def get_date(self):
+    #     year, month, day = self.update_edit.text().split(sep='-')
+    #     return date(int(year), int(month), int(day))
 
     @check_empty_gloss
     def get_gloss(self):
@@ -212,13 +254,13 @@ class SignLevelInfoLayout(QVBoxLayout):
 class SignlevelinfoSelectorDialog(QDialog):
     saved_signlevelinfo = pyqtSignal(SignLevelInformation)
 
-    def __init__(self, signlevelinfo, mainwindow, app_settings, **kwargs):
+    def __init__(self, signlevelinfo, mainwindow, **kwargs):
         super().__init__(**kwargs)
         self.setWindowTitle("Sign-level information")
         self.mainwindow = mainwindow
-        self.settings = app_settings
+        self.settings = self.mainwindow.app_settings
 
-        self.signlevelinfo_layout = SignLevelInfoLayout(signlevelinfo, mainwindow, app_settings)  # TODO KV delete app_ctx)
+        self.signlevelinfo_layout = SignLevelInfoLayout(signlevelinfo, mainwindow)  # TODO KV delete app_ctx)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(self.signlevelinfo_layout)
@@ -247,9 +289,10 @@ class SignlevelinfoSelectorDialog(QDialog):
             self.reject()
 
         elif standard == QDialogButtonBox.Save:
-            signlevelinfo = self.signlevelinfo_layout.get_value()
-            self.saved_signlevelinfo.emit(SignLevelInformation(signlevelinfo, self.settings))
-            if self.mainwindow.current_sign is not None:
+            newsignlevelinfo = SignLevelInformation(signlevel_info=self.signlevelinfo_layout.get_value())
+            oldsignlevelinfo = self.signlevelinfo_layout.signlevelinfo
+            self.saved_signlevelinfo.emit(newsignlevelinfo)
+            if self.mainwindow.current_sign is not None and newsignlevelinfo != oldsignlevelinfo:
                 self.mainwindow.current_sign.lastmodifiednow()
             self.accept()
 
