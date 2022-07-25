@@ -704,7 +704,7 @@ Modified
 - **Prototypical coding:** N/A
 
 .. image:: images/pdhs_modified.png
-        :width: 300
+        :width: 350
         :align: left
      
         
@@ -733,7 +733,7 @@ Offset
 - **Prototypical coding:** E-E for thumb
 
 .. image:: images/pdhs_offset.png
-        :width: 300
+        :width: 250
         :align: left
      
         
@@ -793,7 +793,7 @@ Relaxed
 
 
 .. image:: images/pdhs_relaxed.png
-        :width: 500
+        :width: 180
         :align: left
      
         
@@ -852,7 +852,7 @@ Spread
 
 
 .. image:: images/pdhs_spread.png
-        :width: 500
+        :width: 350
         :align: left
      
         
