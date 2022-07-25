@@ -415,7 +415,7 @@ Bent
 - **Prototypical coding:** F-E-E on each bent finger
 
 .. image:: images/pdhs_bent.png
-        :width: 500
+        :width: 550
         :align: left
         
 |
