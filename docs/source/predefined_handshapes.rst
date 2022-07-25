@@ -800,7 +800,7 @@ The predefined handshapes are organized in a grid where the rows are organized b
 -- *Note: The below image is a placeholder for a future image that shows the whole grid (may need to piece together separate screenshots of each section)*
    
    .. image:: images/pdhs_all_handshapes.png
-      :width: 90%
+      :width: 500
       :align: center
      
 
