@@ -3,8 +3,13 @@
     For the moment, this only includes the auto-generation page
     
 .. todo::
-    add axis direction sign examples
-    add plane sign examples
+    axis direction sign examples?
+    plane sign examples?
+    check against all of the places where docs information is stored
+        -guidelines
+        -system overview
+        -to mention in docs
+        -team meeting?
     handshape change not completed
     joint activity description not completed
     movement characteristics not yet started
@@ -45,9 +50,9 @@ Select the **movement type** for the current module.
 
 Movement type options include:
 
-* :ref:`perceptual_shape`
-* :ref:`joint_specific_movement`
-* :ref:`handshape_change`
+* :ref:`perceptual_shape`, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_
+* :ref:`joint_specific_movement`, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_
+* :ref:`handshape_change`, as in `HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_
 
 .. _perceptual_shape_entry:
 
@@ -128,19 +133,22 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
 
     Axis direction is a useful feature for recording the starting point of movement within a circle, and for specifying details related to the `movement relations<signtype_movement_relation>` of two-handed signs. For instance, `ROW <https://asl-lex.org/visualization/?sign=row>`_ is a two-handed sign where both hands are moving similarly in the same direction, and all aspects of movement are simultaneous and in sync. If axis direction is selected as the midpoint of the circle relative to the starting point, then a movement module to describe this sign could look like this:
     
-    .. image:: images/mov_sample_sign_ROW.PNG
+    .. image:: images/mov_sample_sign_ROW.png
         :width: 750
         :align: center
+        :alt: A movement module filled out with the specifications for both hands of ROW.
     
     Notice that it is possible for one module to describe both hands in this case, since the direction and location of each hand is the same relative to the other. This would not be possible for a sign like `THEATER <https://asl-lex.org/visualization/?sign=theater>`_, a two-handed sign where both hands are moving similarly and in the same direction, but where all aspects of movement *except* location are simultaneous and in sync. Each hand needs to be specified separately, and they differ only in terms of their initial starting point within their respective circle, which is represented by axis direction. Again, the axis direction is selected as the midpoint of the circle relative to the starting point for each hand:
     
-    .. image:: images/mov_sample_sign_THEATER_H1.PNG
+    .. image:: images/mov_sample_sign_THEATER_H1.png
         :width: 750
         :align: center
+        :alt: A movement module filled out with the specifications for hand 1 of THEATER.
         
-    .. image:: images/mov_sample_sign_THEATER_H2.PNG
+    .. image:: images/mov_sample_sign_THEATER_H2.png
         :width: 750
         :align: center
+        :alt: A movement module filled out with the specifications for hand 2 of THEATER.
         
     The movements of both hands are identical other than a single parameter. The differences between each hand are clear within this sign, and it is also possible this way to compare differences at the sign level between `ROW <https://asl-lex.org/visualization/?sign=row>`_ and `THEATER <https://asl-lex.org/visualization/?sign=theater>`_.
 
