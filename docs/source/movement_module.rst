@@ -138,7 +138,9 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
         :align: center
         :alt: A movement module filled out with the specifications for both hands of ROW.
     
-    Notice that it is possible for one module to describe both hands in this case, since the direction and location of each hand is the same relative to the other. This would not be possible for a sign like `THEATER <https://asl-lex.org/visualization/?sign=theater>`_, a two-handed sign where both hands are moving similarly and in the same direction, but where all aspects of movement *except* location are simultaneous and in sync. Each hand needs to be specified separately, and they differ only in terms of their initial starting point within their respective circle, which is represented by axis direction. Again, the axis direction is selected as the midpoint of the circle relative to the starting point for each hand:
+    Notice that it is possible for one module to describe both hands in this case, since the direction and location of each hand is the same relative to the other. 
+    
+    This would not be possible for a sign like `THEATER <https://asl-lex.org/visualization/?sign=theater>`_, a two-handed sign where both hands are moving similarly and in the same direction, but where all aspects of movement *except* location are simultaneous and in sync. Each hand needs to be specified separately, and they differ only in terms of their initial starting point within their respective circle, which is represented by axis direction. Again, the axis direction is selected as the midpoint of the circle relative to the starting point for each hand:
     
     .. image:: images/mov_sample_sign_THEATER_H1.png
         :width: 750
@@ -150,7 +152,7 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
         :align: center
         :alt: A movement module filled out with the specifications for hand 2 of THEATER.
         
-    The movements of both hands are identical other than a single parameter. The differences between each hand are clear within this sign, and it is also possible this way to compare differences at the sign level between `ROW <https://asl-lex.org/visualization/?sign=row>`_ and `THEATER <https://asl-lex.org/visualization/?sign=theater>`_.
+    The movements of both hands are identical in this coding other than for a single parameter. The differences in this sign between each hand are clear, and it is also possible to compare differences at the sign level between `ROW <https://asl-lex.org/visualization/?sign=row>`_ and `THEATER <https://asl-lex.org/visualization/?sign=theater>`_.
 
 .. _plane_entry:
 
