@@ -393,7 +393,7 @@ Adducted
 - **Prototypical coding:** [=] between each adducted finger
 
 .. image:: images/pdhs_adducted.png
-        :width: 200
+        :width: 80
         :align: left
 |
 |
@@ -704,7 +704,7 @@ Modified
 - **Prototypical coding:** N/A
 
 .. image:: images/pdhs_modified.png
-        :width: 500
+        :width: 200
         :align: left
      
         
@@ -733,7 +733,7 @@ Offset
 - **Prototypical coding:** E-E for thumb
 
 .. image:: images/pdhs_offset.png
-        :width: 500
+        :width: 100
         :align: left
      
         
