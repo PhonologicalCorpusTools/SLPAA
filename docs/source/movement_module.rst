@@ -131,7 +131,7 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
 
     Choosing an axis direction is straightforward for straight shapes, but there is flexibility in choosing a direction for circular shapes. You could choose the direction of the end of the first half of the circle relative to the beginning point, or the first initial direction of motion at the starting point, and so on. The most important thing is to maintain a consistent coding standard.
 
-    Axis direction is a useful feature for recording the starting point of movement within a circle, and for specifying details related to the `movement relations<signtype_movement_relation>` of two-handed signs. For instance, `ROW <https://asl-lex.org/visualization/?sign=row>`_ is a two-handed sign where both hands are moving similarly in the same direction, and all aspects of movement are simultaneous and in sync. If axis direction is selected as the midpoint of the circle relative to the starting point, then a movement module to describe this sign could look like this:
+    Axis direction is a useful feature for recording the starting point of movement within a circle, and for specifying details related to the :ref:`movement relations<signtype_movement_relation>` of two-handed signs. For instance, `ROW <https://asl-lex.org/visualization/?sign=row>`_ is a two-handed sign where both hands are moving similarly in the same direction, and all aspects of movement are simultaneous and in sync. If axis direction is selected as the midpoint of the circle relative to the starting point, then a movement module to describe this sign could look like this:
     
     .. image:: images/mov_sample_sign_ROW.png
         :width: 750
