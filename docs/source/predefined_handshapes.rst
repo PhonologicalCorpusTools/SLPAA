@@ -469,7 +469,6 @@ Closed
 |
 |
 |
-|
 
 Combined
 ~~~~~~~~
@@ -483,7 +482,6 @@ Combined
         :align: left
      
         
-|
 |
 |
 |
