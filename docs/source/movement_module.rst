@@ -4,12 +4,11 @@
     
 .. todo::
     add axis direction sign examples
-        finish axis direction for circular shapes
     add plane sign examples
     handshape change not completed
     joint activity description not completed
     movement characteristics not yet started
-    at least one sample coding of the full set of movement modules for a sign
+    at least one sample coding of the full set of movement modules for a sign (or is this covered in the other project materials?)
     
 .. _movement:
 
@@ -66,7 +65,7 @@ Select the shape of the movement.
 
 Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The timing of each movement with respect to the others can then be seen in the :ref:`x-slot visualization window<sign_summary>`. The default list of perceptual shapes can also be edited by the user, so another way to capture the full movement of a new shape is to create a shape label. This may be a useful option for shapes that reappear in many signs.
 
-For the special case of shape combinations where multiple straight movements are signed in a connected sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select that this movement 'interacts with a subsequent straight movement.' Selecting this means that once you are finished with the current module, the program will create another movement module automatically for the next movement in the sequence with a 'straight' shape already specified. **Note: What does this option mean specifically for searching/analysis?**
+For the special case of shape combinations where multiple straight movements are signed in a connected sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select whether any given straight shape **interacts with a subsequent straight movement**. Some signs may include multiple straight shapes that do not form a connected sequence, as in `ROOM <https://asl-lex.org/visualization/?sign=room>`_, in which case you can indicate that the first straight movement **does not interact with a subsequent straight movement**.
 
 The default list of shape options is:
 
@@ -77,7 +76,7 @@ The default list of shape options is:
     * **Movement contours cross**, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `HOSPITAL <https://asl-lex.org/visualization/?sign=hospital>`_  
     * **Subsequent movement starts at end of first**, as in `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_ or `TRIANGLE <https://asl-lex.org/visualization/?sign=triangle>`_  
     * **Subsequent movement starts in same location as first**, as in (possibly) the second set of movements of `DAISY <https://www.handspeak.com/word/index.php?id=5824>`_  
-    * **Subsequent movement ends in same location as first**, as in (possibly) the first set of movements of `SNOWSTORM <https://www.youtube.com/watch?v=KQLrgPdHRlQ&list=TLGGDt2--iXU7qQxNzAxMjAyMg>`_ **Note: Is this a stable link? Would it be possible to find something else?**  
+    * **Subsequent movement ends in same location as first**, as in (possibly) the first set of movements of `SNOWSTORM <https://www.youtube.com/watch?v=KQLrgPdHRlQ&list=TLGGDt2--iXU7qQxNzAxMjAyMg>`_ **Note: Should I leave this out? Would it be possible to find something else?**  
         
   * **Doesn't interact with a subsequent straight movement**, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_ or `SCROLL_DOWN <https://asl-lex.org/visualization/?sign=scroll_down>`_
     
@@ -94,9 +93,9 @@ b) Axis direction
 
 Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. 
 
-Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<axes_entry>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules to be able to refer to the :ref:`x-slot visualization window<sign_summary>` for the temporal order of the movement sequence.
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<axes_entry>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
-At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once.
+At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module.
 
 * Vertical axis:
 
@@ -123,18 +122,27 @@ At most one direction can be selected for each axis, so that a total maximum of 
 See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See :ref:`signing_space_page` for a visual representation of each of these options, and more information about the horizontal axis in particular.
 
 .. note::
-
     **Axis direction for circular shapes**
 
-    Choosing an axis direction is straightforward for straight shapes, but there is flexibility in choosing a direction for circular shapes. You could choose the direction of the end of the first half of the circle relative to the beginning point, or the first initial direction of motion at the starting point, and so on. The most important thing is to maintain a consistent standard for coding direction.
+    Choosing an axis direction is straightforward for straight shapes, but there is flexibility in choosing a direction for circular shapes. You could choose the direction of the end of the first half of the circle relative to the beginning point, or the first initial direction of motion at the starting point, and so on. The most important thing is to maintain a consistent coding standard.
 
-    It may seem redundant to choose an axis direction as well as a plane and clockwise direction for circular movements, but it is a useful feature for describing the timing distinction in pairs like `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_. **Notice that the plane and clockwise directionality are the same in both of these cases, but the location of each hand relative to the other is the same at every point in the sign for WHEELCHAIR while the relative locations of each hand are different for BICYCLE. (Work on this wording)** See the section on :ref:`movement timing relations<signtype_movement_timing_relation>` for more discussion of this idea.
-
-    For example, if you were to choose to code the direction as the midpoint of the circle relative to the beginning, then codings for `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ could look like this: **Note: I need a pair of signs with two hands moving in the same circular direction in the mid-saggital plane, where one sign has the hands moving in sync and the other has them out of sync. Is this the best pair for this? Can I find something slightly more similar?**
-
-    **add images for this comparison**
-
-    Similarly, **SAMPLE SIGN (arc)** may look like ...
+    Axis direction is a useful feature for recording the starting point of movement within a circle, and for specifying details related to the `movement relations<signtype_movement_relation>` of two-handed signs. For instance, `ROW <https://asl-lex.org/visualization/?sign=row>`_ is a two-handed sign where both hands are moving similarly in the same direction, and all aspects of movement are simultaneous and in sync. If axis direction is selected as the midpoint of the circle relative to the starting point, then a movement module to describe this sign could look like this:
+    
+    .. image:: images/mov_sample_sign_ROW.PNG
+        :width: 750
+        :align: center
+    
+    Notice that it is possible for one module to describe both hands in this case, since the direction and location of each hand is the same relative to the other. This would not be possible for a sign like `THEATER <https://asl-lex.org/visualization/?sign=theater>`_, a two-handed sign where both hands are moving similarly and in the same direction, but where all aspects of movement *except* location are simultaneous and in sync. Each hand needs to be specified separately, and they differ only in terms of their initial starting point within their respective circle, which is represented by axis direction. Again, the axis direction is selected as the midpoint of the circle relative to the starting point for each hand:
+    
+    .. image:: images/mov_sample_sign_THEATER_H1.PNG
+        :width: 750
+        :align: center
+        
+    .. image:: images/mov_sample_sign_THEATER_H2.PNG
+        :width: 750
+        :align: center
+        
+    The movements of both hands are identical other than a single parameter. The differences between each hand are clear within this sign, and it is also possible this way to compare differences at the sign level between `ROW <https://asl-lex.org/visualization/?sign=row>`_ and `THEATER <https://asl-lex.org/visualization/?sign=theater>`_.
 
 .. _plane_entry:
 
@@ -145,9 +153,9 @@ Select the **plane** (or combination of planes) that fully encompasses the range
 
 This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user. 
 
-Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions) applying simultaneously. See the notes on :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_directions>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and assign them to the :ref:`x-slot visualization<sign_summary>` to record their temporal order.
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the notes on :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_directions>` for a visual description of how this works. For sequential movements in different planes or circular directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
-At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once. See :ref:`global_settings` for a definition of the default clockwise direction and what is meant by the 'top' of the circle for each plane.
+At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. See :ref:`global_settings` for a definition of the default clockwise direction and what is meant by the 'top' of the circle for each plane.
 
 * **Mid-saggital plane**
 
