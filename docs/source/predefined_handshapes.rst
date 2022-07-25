@@ -796,8 +796,6 @@ Spread
 ```````````````````````````````````````
 The predefined handshapes are organized in a grid where the rows are organized by base handshape and the columns are organized by derivation type. In other words, each row starts on the left with the base handshape and continues to the right with the derived versions of that base handshape organized under their appropriate column. Both the rows and the columns are organized alphabetically. 
 
-
--- *Note: The below image is a placeholder for a future image that shows the whole grid (may need to piece together separate screenshots of each section)*
    
    .. image:: images/pdhs_all_handshapes.png
       :width: 900
