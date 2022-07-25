@@ -401,11 +401,7 @@ Adducted
 |
 |
 |
-|
-|
-|
-|
-|      
+     
 
 Bent
 ~~~~
@@ -426,14 +422,7 @@ Bent
 |
 |
 |
-|
-|
-|
-|
-|
-|
-|
-|
+
 Clawed
 ~~~~~~
 - **Dictionary description:** Handshape with fingers rigidly retracted to resemble the talons on a bird of prey 
