@@ -470,7 +470,6 @@ Closed
 |
 |
 |
-|
 
 Combined
 ~~~~~~~~
@@ -484,8 +483,6 @@ Combined
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -535,8 +532,6 @@ Covered
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -616,8 +611,6 @@ Flat
 |
 |
 |
-|
-|
 
 
 Index
@@ -632,8 +625,6 @@ Index
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -687,8 +678,6 @@ Offset
 |
 |
 |
-|
-|
 
 Open
 ~~~~~~
@@ -702,8 +691,6 @@ Open
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -759,7 +746,6 @@ Slanted
 |
 |
 |
-|
 
 Spread
 ~~~~~~
@@ -774,7 +760,6 @@ Spread
         :align: left
      
         
-|
 |
 |
 |
