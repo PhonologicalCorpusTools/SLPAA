@@ -422,6 +422,8 @@ Bent
 |
 |
 |
+|
+|
 
 Clawed
 ~~~~~~
@@ -435,10 +437,6 @@ Clawed
         :align: left
      
         
-|
-|
-|
-|
 |
 |
 |
@@ -476,10 +474,6 @@ Closed
 |
 |
 |
-|
-|
-|
-|
 
 Combined
 ~~~~~~~~
@@ -493,9 +487,6 @@ Combined
         :align: left
      
         
-|
-|
-|
 |
 |
 |
@@ -535,10 +526,7 @@ Contracted
 |
 |
 |
-|
-|
-|
-|
+
 
 Covered
 ~~~~~~~
@@ -565,10 +553,7 @@ Covered
 |
 |
 |
-|
-|
-|
-|
+
 Crooked
 ~~~~~~~
 - **Dictionary description:** Fingers are slightly retracted in a relaxed way
@@ -593,10 +578,7 @@ Crooked
 |
 |
 |
-|
-|
-|
-|
+
 
 Extended
 ~~~~~~~~
@@ -622,10 +604,7 @@ Extended
 |
 |
 |
-|
-|
-|
-|
+
 
 Flat
 ~~~~~~
@@ -651,10 +630,7 @@ Flat
 |
 |
 |
-|
-|
-|
-|
+
 
 Index
 ~~~~~~
@@ -668,10 +644,6 @@ Index
         :align: left
      
         
-|
-|
-|
-|
 |
 |
 |
@@ -709,10 +681,6 @@ Modified
 |
 |
 |
-|
-|
-|
-|
 
 Offset
 ~~~~~~
@@ -738,10 +706,6 @@ Offset
 |
 |
 |
-|
-|
-|
-|
 
 Open
 ~~~~~~
@@ -755,10 +719,6 @@ Open
         :align: left
      
         
-|
-|
-|
-|
 |
 |
 |
@@ -798,11 +758,6 @@ Relaxed
 |
 |
 |
-|
-|
-|
-|
-
 Slanted
 ~~~~~~~
 - **Dictionary description:** A slightly askew handshape
@@ -815,10 +770,6 @@ Slanted
         :align: left
      
         
-|
-|
-|
-|
 |
 |
 |
@@ -845,10 +796,6 @@ Spread
         :align: left
      
         
-|
-|
-|
-|
 |
 |
 |
