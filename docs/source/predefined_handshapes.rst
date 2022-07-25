@@ -448,7 +448,6 @@ Clawed
 |
 |
 |
-|
 
 Closed
 ~~~~~~
@@ -472,8 +471,6 @@ Closed
 |
 |
 |
-|
-|
 
 Combined
 ~~~~~~~~
@@ -487,8 +484,6 @@ Combined
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -525,7 +520,6 @@ Contracted
 |
 |
 |
-|
 
 
 Covered
@@ -551,8 +545,6 @@ Covered
 |
 |
 |
-|
-|
 
 Crooked
 ~~~~~~~
@@ -566,7 +558,6 @@ Crooked
         :align: left
      
         
-|
 |
 |
 |
@@ -603,7 +594,6 @@ Extended
 |
 |
 |
-|
 
 
 Flat
@@ -618,8 +608,6 @@ Flat
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -654,8 +642,6 @@ Index
 |
 |
 |
-|
-|
 
 Modified
 ~~~~~~~~
@@ -669,7 +655,6 @@ Modified
         :align: left
      
         
-|
 |
 |
 |
@@ -704,8 +689,6 @@ Offset
 |
 |
 |
-|
-|
 
 Open
 ~~~~~~
@@ -719,8 +702,6 @@ Open
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -757,7 +738,6 @@ Relaxed
 |
 |
 |
-|
 Slanted
 ~~~~~~~
 - **Dictionary description:** A slightly askew handshape
@@ -770,8 +750,6 @@ Slanted
         :align: left
      
         
-|
-|
 |
 |
 |
@@ -796,8 +774,6 @@ Spread
         :align: left
      
         
-|
-|
 |
 |
 |
