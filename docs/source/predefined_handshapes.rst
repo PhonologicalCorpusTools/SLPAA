@@ -29,7 +29,7 @@ Once a predefined handshape has been selected, you can change individual slots o
 3. Conventions for How Predefined Handshapes were Coded
 ```````````````````````````````````````````````````````
 
-The transcription system for the predefined handshapes is based on the system outlined by Johnson & Lidell (2011, 2012). Specific changes to this system were made for the predefined handshapes used in SLPAA. The conventions are organized in three main parts: I) General Conventions :ref:`general_conventions`; II) Baseline Handshapes :ref:`baseline_handshapes` (i.e., information about the basic handshapes, such as the 'A' handshape); III) Derived Handshapes :ref:`derived_handshapes` (i.e., information about handshapes that are variations derived from the basic handshapes, such as the 'extended A' handshape).
+The transcription system for the predefined handshapes is based on the system outlined by Johnson & Lidell (2011, 2012). Specific changes to this system were made for the predefined handshapes used in SLPAA. The conventions are organized in three main parts: I) :ref:`general_conventions`; II) :ref:`baseline_handshapes` (i.e., information about the basic handshapes, such as the 'A' handshape); and III) :ref:`derived_handshapes` (i.e., information about handshapes that are variations derived from the basic handshapes, such as the 'extended A' handshape).
 
 
 .. _general_conventions: 
