@@ -61,13 +61,15 @@ In response to these issues, our system allows any movement in which the hand or
 
 Traditional local movements (relating to particular joints) defined in the literature are listed under the joint-specific movement section, with the associated joint activities optionally auto-filled (e.g., the joint-specific movement of “closing” can auto-fill to flexion of finger joints in the “joint activity” section). 
 
+Note that after the movement type selections have been made, there are separate additional sections for coding the :ref:`joint activity<joint_activity_entry>` and the :ref:`movement_chars`. 
+
 
 .. _perceptual_shape_entry:
 
 I. Perceptual shape
 ===================
 
-Code the specifications for a movement with :ref:`perceptual_shape`. This could be the only movement in a sign, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_, or a single component of a more complex sign, like the path movements in `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
+Make your selections from this section if you are coding a movement with :ref:`perceptual_shape`. This could be the only movement in a sign, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_, or a single component of a more complex sign, like the path movements in `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
 
 .. _shape_entry:
 
@@ -209,10 +211,11 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
 II. Joint-specific movements
 ============================
 
-Code the specifications for a :ref:`joint_specific_movement`. This may be the only movement in a sign, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, or a single component of a more complex sign, like the closing and opening motions in `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
+Make your selections from this section if you are coding a :ref:`joint_specific_movement`. This may be the only movement in a sign, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_, or a single component of a more complex sign, like the closing and opening motions in `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
 
-Each joint-specific movement has two sub-options, which correspond to which direction the movement starts with. You can skip selecting the broader option
-and go directly to selecting the sub-option; the broader option will show up as being selected. Similarly, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the starting direction unspecified or if it is unknown. **[AP]: is this way too in-depth? Also is this accurate?** The appropriate joint activity will be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. **should the description of what exactly gets autofilled be specified for each of these?** 
+Each joint-specific movement has two sub-options, which correspond to the two directions a movement can occur in. It is possible to use separate instances of the movement module for each direction, or to use one instance of the module and then code that movement as being 'bidirectional' in the :ref:`movement_chars` section. In the latter case, you would need to establish a convention such as explicitly selecting the direction that the movement *starts* with. All of our examples below assume this convention. 
+
+As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown. The appropriate joint activity can optionally be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. **should the description of what exactly gets autofilled be specified for each of these?** **[KCH: Yes, and we should also make sure we have a section that describes how to turn off / on auto-filling.]**
 
 The joint-specific movement options are as follows: 
 
@@ -221,25 +224,25 @@ The joint-specific movement options are as follows:
 - "Un-nodding" should be selected if the movement begins with an extension of the wrist, or if it is the only movement involved, for example `GIVE_UP <>`_ **links**
 
 **Pivoting**
-- "To radial" should be selected if the movement begins with a pivot in the direction of the ulnar surface of the hand, or if it is the only direction involved. 
-- "To ulnar" should be selected if the movement begins with a pivot in the direction of the radial surface of the hand, as in `COOKIE <>`_ **links**, or if it is the only direction involved.    
+- "To radial" should be selected if the movement begins with a pivot in the direction of the radial surface of the hand, or if it is the only direction involved. 
+- "To ulnar" should be selected if the movement begins with a pivot in the direction of the ulnar surface of the hand, as in `COOKIE <>`_ **links**, or if it is the only direction involved.    **[KCH: also add links to the glossary terms / videos for these directions.]**
 
 **Twisting**
 - "Pronation" should be selected if the movement begins with pronation, or if it is the only direction involved, such as the subordinate hand of `DIE <>`_ **links**. Selecting this will autofill 
-- "Supination" should be selected if the movement begins with supination, or if it is the only direction involved, such as `CLAUSE <>`_ and the dominant hand of `DIE <>`_ **links** 
+- "Supination" should be selected if the movement begins with supination, or if it is the only direction involved, such as `CLAUSE <>`_ and the dominant hand of `DIE <>`_ **links** **[KCH: also add links to the glossary terms / videos for these directions.]**
 
 
 **Closing/Opening**
 - "Closing" should be selected if the movement begins with flexion of all joints of the selected finger(s), such as `MILK_2 <>`_ **link**, or if this is the only direction involved. 
-- "Opening" should be selected if the movement begins with extension of all joints of the selected finger(s), or if this is the only direction involved, such as `BOWTIE <>`_ **link**.
+- "Opening" should be selected if the movement begins with extension of all joints of the selected finger(s), or if this is the only direction involved, such as `BOWTIE <>`_ **link**.  **[KCH: also add links to the glossary terms / videos for these directions.]**
 
 **Pinching/Un-pinching**
 - "Pinching" should be selected if the movement begins with adduction of the thumb base joint, such as `TURTLE <>`_ **links**, or if it is the only direction involved.
-- "Un-pinching" should be selected if the movement begins with abduction of the thumb base joint, or if it is the only direction involved, such as `DELETE <>`_ **links**.
+- "Un-pinching" should be selected if the movement begins with abduction of the thumb base joint, or if it is the only direction involved, such as `DELETE <>`_ **links**.  **[KCH: also add links to the glossary terms / videos for these directions.]**
 
 **Flattening/Straightening**
 - "Flattening" should be selected if the movement begins with flexion of the base joints of the selected fingers, such as `HORSE <>`_, or if it is the only direction involved. 
-- "Straightening" should be selected if the movement begins with extension of the base joints of the selected fingers, or if it is the only direction involved. 
+- "Straightening" should be selected if the movement begins with extension of the base joints of the selected fingers, or if it is the only direction involved. **[KCH: also add links to the glossary terms / videos for these directions.]**
 
 .. todo::
 
@@ -251,24 +254,19 @@ The joint-specific movement options are as follows:
 III. Handshape change
 =====================
 
-Select whether the sign uses a :ref:`handshape_change`. This can apply for fingerspellings, compound signs (as in `DESERT <https://asl-lex.org/visualization/?sign=desert>`_), initialized signs (as in `HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_), or any other cases that involve a change in handshape during the production of the sign.
+Make your selections from this section if you are coding a :ref:`handshape_change`. This can apply for fingerspellings, compound signs (as in `DESERT <https://asl-lex.org/visualization/?sign=desert>`_), initialized signs (as in `HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_), or any other cases that involve a change in handshape during the production of the sign that cannot be simply described as a simple movement of one joint / set of joints.
 
 .. note::
-    As with the other movement types, a module with this specification cannot be combined with the selections for a :ref:`joint_specific_movement` or a movement with :ref:`perceptual_shape`. To code any information about other movements in the sign, add additional movement module(s) with the appropriate movement type(s). You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`.
-
-    For instance, you can choose whether or not to indicate that a fingerspelling is signed along a path ... 
+    As with the other movement types, a module with this specification cannot be combined with the selections for a :ref:`joint_specific_movement` or a movement with :ref:`perceptual_shape`. To code any information about other movements in the sign, add additional movement module(s) with the appropriate movement type(s). You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`. For example, to code the sign `WORKSHOP <https://asl-lex.org/visualization/?sign=workshop>`_, one would need two separate instances of the movement module, one for the circular (perceptual shape) movement of the hands and one for the handshape change from W to S.
     
-    **(Note: add an example of a quick handshape change in the middle of a sign? I seem to remember a handful of these, maybe for compounds)**
-
-.. comment::
-    Should I give examples here for lexicalized fingerspellings on a (circular) path? e.g. (I think?) the handspeak example of STYLE.
+No further details of the handshape change itself need to be provided in this section, because they can be better coded in the :ref:`hand_configuration_module`. It is left to the discretion of the user as to how exactly these two modules interact with each other. For example, in `STYLE <https://www.handspeak.com/word/index.php?id=4174>`_, one could code five movements (one perceptual shape of the circle that lasts the whole duration of the sign, plus one handshape change movement for each change between letters, S --> T, T --> Y, Y --> L, L --> E, each aligned with a timepoint within the whole duration of the sign), or code two movements (one perceptual shape of the circle that lasts the whole duration of the sign, plus one generic handshape change movement that also encompasses the duration of the sign). In either case, there would be five different hand configuration modules instantiated, one for each letter.
 
 .. _joint_activity_entry:
 
 2. Joint activity
 ``````````````````
 
-Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program will ``autofill`` **(auto-generation and autofilling documentations)** the joint movements that are predictable from the selections made earlier within the :ref:`movement type section<joint_specific_movement_entry>`. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
+Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can ``autofill`` **(auto-generation and autofilling documentations)** the joint movements that are predictable from the selections made earlier within the :ref:`movement type section<joint_specific_movement_entry>`. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
 
 **(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 
