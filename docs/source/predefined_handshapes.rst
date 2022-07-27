@@ -63,8 +63,9 @@ a) Labels and Images of Handshapes:
 b) Transcription of Handshapes:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Relationships among baseline and derived handshapes
+
     - We attempted to keep things maximally consistent in two ways: first, consistency between a baseline handshape and its derivations, and second, consistency among all derivations of the same type across different baselines. 
-        - For example, the 'extended' derivation involves the thumb being coded as [L] (lateral) and [E-E] (both joints extended). So, for "extended-A," the handshape should be identical to the baseline handshape for "A" except for those three specific characteristics. And, all 'extended' handshapes should share those three characteristics with each other. Specific exceptions to this principle are noted in the descriptions below.
+        - For example, the 'extended' derivation involves the thumb being coded as [L] (lateral) and [E-E] (both joints extended). So, for "extended-A," the handshape should be identical to the baseline handshape for "A" except for those three specific characteristics. And, all 'extended' handshapes should share those three characteristics with each other. Specific exceptions to this principle are noted in the descriptions below (see e.g. 'A-index'); these exceptions are listed under both the baseline handshapes (e.g. "A") and the relevant derivation (e.g. "index").
 
 - Using only F, E, i (not f, e)
     - [F] was used for a fully bent joint, [i] was used to achieve a slightly bent joint, and [E] was used for a straight extended joint. [f] and [e] were avoided because of the vagueness involved in their interpretation. 
@@ -592,7 +593,7 @@ Extended
 
 Flat
 ~~~~~~
-- **Dictionary description:** Hands are compressed to take on a flat appearance
+- **Dictionary description:** "Hands are compressed to take on a flat appearance"
 - **Generic description:** Handshape appears flattened
 - **SLP coding description:** Proximal joint is bent to make the handshape appear flattened
 - **Prototypical coding:** Usually F at the proximal joint, and E at the medial and distal joints [F-E-E] for each selected finger and thumb is generally E-E (except for “flat-M”)
@@ -614,7 +615,7 @@ Flat
 
 Index
 ~~~~~~
-- **Dictionary description:** Involves only the thumb and forefinger (as opposed to the entire hand)
+- **Dictionary description:** "Involves only the thumb and forefinger (as opposed to the entire hand)"
 - **Generic description:** Handshape is made by using only the thumb and index finger (middle, ring and pinky fingers usually tucked away)
 - **SLP coding description:** Finger 1 is selected 
 - **Prototypical coding:** Generally follows the transcription of its base handshape but selecting only finger 1 (or fingers 1&2 in the case of “double-C-index”), and remaining fingers are often [F-F-F] (exceptions: see above for descriptions of “A-index” and “contracted-U-index”)
@@ -659,7 +660,7 @@ Modified
 
 Offset
 ~~~~~~
-- **Dictionary description:** Thumb moves just a little to the side of where it normally is for that handshape
+- **Dictionary description:** "Thumb moves just a little to the side of where it normally is for that handshape"
 - **Generic description:** The thumb is extended straight from the palm and the bottom joint makes contact with the first finger 
 - **SLP coding description:** The proximal and medial joint of the thumb is extended, and the proximal joint of the thumb makes contact with the radial surface of the finger it contacts.
 - **Prototypical coding:** E-E for thumb
@@ -680,7 +681,7 @@ Offset
 
 Open
 ~~~~~~
-- **Dictionary description:** A less tucked handshape
+- **Dictionary description:** "A less tucked handshape"
 - **Generic description:** Selected fingers less tucked and have no contact with the thumb.
 - **SLP coding description:** Selected fingers are distanced from their point of contact on thumb (e.g. "open-E", “open-F”, “open-O”). The overall handshape may be ‘looser’ and fingers less flexed (e.g.“open-A”). 
 - **Prototypical coding:** No contact between thumb & fingers. Joints that are fully flexed [F] in the baseline handshape have [i] in the "open" handshape. 
@@ -726,7 +727,7 @@ Relaxed
 |
 Slanted
 ~~~~~~~
-- **Dictionary description:** A slightly askew handshape
+- **Dictionary description:** "A slightly askew handshape"
 - **Generic description:** Selected fingers are slanted from its baseline handshape, with the bottom joints of each finger becoming more flexed as you move from the first finger to the fourth finger
 - **SLP coding description:** The fingers become progressively more flexed as you move towards finger 4. The proximal, medial, and distal joint for the first finger is extended, except for “slanted-F” (because the index finger has contact with the thumb) and “slanted-V” (because the index finger is slightly bent).
 - **Prototypical coding:** typically E-E-E for the first finger, then typically i-E-E for finger 2, i-E-E for finger 3, and F-F-E for finger 4. Note: since the flexion value i represents a range of flexion, for slanted handshapes that have two adjacent fingers both coded with i-E-E, it is understood that the finger farther from the thumb is slightly more flexed.
@@ -748,7 +749,7 @@ Slanted
 
 Spread
 ~~~~~~
-- **Dictionary description:** Fingers spread to create space between them
+- **Dictionary description:** "Fingers spread to create space between them"
 - **Generic description:** Selected fingers are spread from each other
 - **SLP coding description:** Fingers 1-4 are abducted
 - **Prototypical coding:** { between each pair of fingers
