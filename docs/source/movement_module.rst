@@ -14,6 +14,8 @@
     joint activity description not completed
     movement characteristics not yet started
     at least one sample coding of the full set of movement modules for a sign (or is this covered in the other project materials?)
+    fix references
+    update / delete refs to “transcription process”
     
 .. _movement:
 
