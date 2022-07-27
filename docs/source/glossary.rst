@@ -22,27 +22,28 @@ add here
 
 handshape
 ======
-Holistic description of a standard phonological handshape, e.g., the B handshape in ASL. In SLP-AA, there are 'pre-defined' handshapes whose full :ref:`hand_configuration` is already specified in the :ref:`hand_configuration_module`.
+Holistic description of a standard phonological handshape, e.g., the 'B' handshape in ASL. In SLP-AA, there are 'pre-defined' handshapes whose full :ref:`hand_configuration` is already specified in the :ref:`hand_configuration_module`.
 
 
 .. _handshape_change:
 
 handshape change
 ======
-KCH - add here
+A "handshape change" is one of the three primary types of movement that are coded in SLP-AA (the other two being :ref:`perceptual_shape` and :ref:`joint_specific_movement`). Handshape changes occur whenever there is a change in handshape during the production of the sign that cannot   be described as a simple movement of one joint / set of joints (like closing, opening, or twisting). This typically occurs in fingerspellings (as in `BUS <https://asl-lex.org/visualization/?sign=bus>`_), compound signs (as in `DESERT <https://asl-lex.org/visualization/?sign=desert>`_), and initialized signs (as in `HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_). Note that in certain cases, a sign may have both a handshape change and a perceptual shape movement (as in `STYLE <https://www.handspeak.com/word/index.php?id=4174>`_)
 
 .. _hand_configuration: 
 
 hand configuration
 ======
-Phonetic shapes of the hand coded in the :ref:`hand_configuration_module`. May include variation from a standard :ref:`handshape`.
+Phonetic details of the hand coded in the :ref:`hand_configuration_module`. May include variation from a standard :ref:`handshape`.
 
 
 .. _joint_specific_movement:
 
 joint-specific movement
 =======================
-NT - add here
+NT - add here [use the stuff below to start]
+A "joint-specific movement" is one of the three primary types of movement that are coded in SLP-AA (the other two being :ref:`perceptual_shape` and :ref:`handshape_change`). 
 
 
 .. _lemma: 
@@ -63,8 +64,9 @@ NT - add here (specifically our use of this term and how it applies to the progr
 
 perceptual shape
 ================
-NT - add here
+NT - add here [use the stuff below to start]
 
+A "perceptual shape" is one of the three primary types of movement that are coded in SLP-AA (the other two being :ref:`handshape_change` and :ref:`joint_specific_movement`). 
 
 .. _sample: 
 
