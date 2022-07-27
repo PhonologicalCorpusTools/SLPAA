@@ -163,13 +163,13 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
 c) Plane
 ~~~~~~~~
 
-Select the **plane** (or combination of planes) that fully encompasses the range of movement described in the current module. For each selected plane, you can also choose a circular directionality if desired.
+In some cases, it is useful to specify not just the axis but also the **plane** (or combination of planes) that is relevant to describe the movement being coded in a particular module. For each selected plane, you can also choose a circular directionality if desired.
 
 This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user. 
 
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the notes on :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_directions>` for a visual description of how this works. For sequential movements in different planes or circular directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
-At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. See :ref:`global_settings` for a definition of the default clockwise direction and what is meant by the 'top' of the circle for each plane.
+At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. See :ref:`global_settings` for a definition of the default clockwise direction and what is meant by the 'top' of the circle for each plane. **[Should this be in global settings or the 'signing space' page?]**
 
 * **Mid-saggital plane**
 
@@ -198,7 +198,7 @@ At most one circular direction can be selected for each plane, so that a total m
 
 * **Not relevant**
 
-See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the vertical or horizontal plane. See :ref:`signing_space_page` for a visual representation of all of these options, and for more information on the horizontal axis in particular.
+See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the horizontal axis (i.e., those on the vertical or horizontal planes). See :ref:`signing_space_page` for a visual representation of all of these options, and for more information on the horizontal axis in particular.
 
 .. _joint_specific_movement_entry:
 
