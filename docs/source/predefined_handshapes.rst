@@ -12,7 +12,7 @@ While it is always possible to manually specify each component of the hand confi
 
 1. Selecting a Predefined Handshape
 ```````````````````````````````````
-To select a predefined handshape, you first need to be in the :ref:`hand_configuration` dialogue box. Click on the "Load predefined handshape" button. A new window will open. The predefined handshapes are organized vertically by base handshape and horizontally by modification type. For example, if you are searching for 'clawed-F', you can find it in the 'F' row and the 'clawed' column (see :ref:`handshape_images`).
+To select a predefined handshape, you first need to be in the :ref:`hand_configuration_module` dialogue box. Click on the "Load predefined handshape" button. A new window will open. The predefined handshapes are organized vertically by base handshape and horizontally by modification type. For example, if you are searching for 'clawed-F', you can find it in the 'F' row and the 'clawed' column (see :ref:`handshape_images`).
 
 Once you have selected a predefined handshape, the transcription will be filled in to the slots of the appropriate configuration and hand on the 'hand configuration selection' window. The name and image of the selected handshape will appear to the right of the slots. To change the selection, you can simply select another predefined handshape to replace it. Once the right shape has been selected, the predefined handshape selection window can simply be closed; there is no separate step of 'saving' the handshape. To clear this selection, click on the 'clear' button to the right of the predefined handshape name.
 
