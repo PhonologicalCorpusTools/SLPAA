@@ -52,7 +52,10 @@ Movement type options include:
     
     At a minimum, for signs with multiple (simultaneous and/or sequential) movements, give each movement type its own module. That is, code any :ref:`joint_specific_movement` separately from any movement with :ref:`perceptual_shape`, as these are mutually exclusive by definition. You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`.
     
-    This means that signs with complex movements like `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ and `EVERY_YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ require at least two movement modules, including a perceptual shape and a joint-specific movement.
+    This means that signs with complex movements like `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ and `EVERY_YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ require at least two movement modules, including a perceptual shape and a 
+    
+    
+    specific movement.
     
     The number of modules needed to describe a movement may also depend on your choices in terms of :ref:`movement characteristics<movement_chars>` (e.g., how repetitions are coded). 
     
@@ -223,39 +226,44 @@ Make your selections from this section if you are coding a :ref:`joint_specific_
 
 Each joint-specific movement has two sub-options, which correspond to the two directions a movement can occur in. It is possible to use separate instances of the movement module for each direction, or to use one instance of the module and then code that movement as being 'bidirectional' in the :ref:`movement_chars` section. In the latter case, you would need to establish a convention such as explicitly selecting the direction that the movement *starts* with. All of our examples below assume this convention. 
 
-As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown. The appropriate joint activity can optionally be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. **should the description of what exactly gets autofilled be specified for each of these?** **[KCH: Yes, and we should also make sure we have a section that describes how to turn off / on auto-filling.]**
+As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown. The appropriate joint activity can optionally be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. **should the description of what exactly gets autofilled be specified for each of these?** **[KCH: Yes, and we should also make sure we have a section that describes how to turn off / on auto-filling.]** ADD that above at the end of that paragraph^
 
 The joint-specific movement options are as follows: 
 
 **Nodding/Un-nodding** 
-- "Nodding" should be selected if the movement begins with a flexion of the wrist, such as `_CORN <>`. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as `ABLE <>`_ **link**, or signs where there is a repeated, unidirectional nodding, such as `YES <>`_ **links**. 
-- "Un-nodding" should be selected if the movement begins with an extension of the wrist, or if it is the only movement involved, for example `GIVE_UP <>`_ **links**
+- "Nodding" should be selected if the movement begins with a flexion of the wrist, such as `_CORN_3 <https://asl-lex.org/visualization/?sign=corn_3>`. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as `CAN <https://asl-lex.org/visualization/?sign=can>`_, or signs where there is a repeated, unidirectional nodding, such as `YES <https://asl-lex.org/visualization/?sign=yes>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of the wrist. 
+- "Un-nodding" should be selected if the movement begins with an extension of the wrist, or if it is the only movement involved, for example `GIVE_UP <https://asl-lex.org/visualization/?sign=give_up>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of the wrist. 
 
 **Pivoting**
-- "To radial" should be selected if the movement begins with a pivot in the direction of the radial surface of the hand, or if it is the only direction involved. 
-- "To ulnar" should be selected if the movement begins with a pivot in the direction of the ulnar surface of the hand, as in `COOKIE <>`_ **links**, or if it is the only direction involved.    **[KCH: also add links to the glossary terms / videos for these directions.]**
+- "To ulnar" should be selected if the movement begins with a pivot in the direction of the ulnar surface of the hand, as in `COOKIE <https://asl-lex.org/visualization/?sign=cookie>`_, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *radial* deviation of the wrist.
+- "To radial" should be selected if the movement begins with a pivot in the direction of the radial surface of the hand, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *ulnar* deviation of the wrist.
+
 
 **Twisting**
-- "Pronation" should be selected if the movement begins with pronation, or if it is the only direction involved, such as the subordinate hand of `DIE <>`_ **links**. Selecting this will autofill 
-- "Supination" should be selected if the movement begins with supination, or if it is the only direction involved, such as `CLAUSE <>`_ and the dominant hand of `DIE <>`_ **links** **[KCH: also add links to the glossary terms / videos for these directions.]**
+- "Pronation" should be selected if the movement begins with pronation, or if it is the only direction involved, such as the subordinate hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_. Selecting this will autofill to proximal radioulnar *pronation* in the :ref:`joint activity<joint_activity_entry>` section.
+- "Supination" should be selected if the movement begins with supination, or if it is the only direction involved, such as `CLAUSE <>`_ and the dominant hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_. Selecting this will autofill to proximal radioulnar *supination* in the :ref:`joint activity<joint_activity_entry>` section.
 
 
 **Closing/Opening**
-- "Closing" should be selected if the movement begins with flexion of all joints of the selected finger(s), such as `MILK_2 <>`_ **link**, or if this is the only direction involved. 
-- "Opening" should be selected if the movement begins with extension of all joints of the selected finger(s), or if this is the only direction involved, such as `BOWTIE <>`_ **link**.  **[KCH: also add links to the glossary terms / videos for these directions.]**
+- "Closing" should be selected if the movement begins with flexion of all joints of the selected finger(s), or if this is the only direction involved, such as `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of [selected finger, all joints].
+- "Opening" should be selected if the movement begins with extension of all joints of the selected finger(s), or if this is the only direction involved, such as `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger, all joints].
 
 **Pinching/Un-pinching**
-- "Pinching" should be selected if the movement begins with adduction of the thumb base joint, such as `TURTLE <>`_ **links**, or if it is the only direction involved.
-- "Un-pinching" should be selected if the movement begins with abduction of the thumb base joint, or if it is the only direction involved, such as `DELETE <>`_ **links**.  **[KCH: also add links to the glossary terms / videos for these directions.]**
+- "Pinching" should be selected if the movement begins with adduction of the thumb base joint, such as `TURTLE <https://asl-lex.org/visualization/?sign=turtle>`_, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *adduction* of thumb base joint.
+- "Un-pinching" should be selected if the movement begins with abduction of the thumb base joint, or if it is the only direction involved, such as `DELETE <https://www.handspeak.com/word/index.php?id=554>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *abduction* of thumb base joint.
 
 **Flattening/Straightening**
-- "Flattening" should be selected if the movement begins with flexion of the base joints of the selected fingers, such as `HORSE <>`_, or if it is the only direction involved. 
-- "Straightening" should be selected if the movement begins with extension of the base joints of the selected fingers, or if it is the only direction involved. **[KCH: also add links to the glossary terms / videos for these directions.]**
+- "Flattening" should be selected if the movement begins with flexion of the base joints of the selected fingers, such as `HORSE <https://asl-lex.org/visualization/?sign=horse>`_, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of [selected finger base joints].
+- "Straightening" should be selected if the movement begins with extension of the base joints of the selected fingers, or if it is the only direction involved. **[KCH: also add links to the glossary terms / videos for these directions.]** The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger base joints].
+
+**Hooking/Un-hooking**
+- "Hooking", or "clawing", should be selected if the movement begins with flexion of the non-base joints of the selected fingers,  or if it is the only direction involved, such as  `CLAUSE <https://asl-lex.org/visualization/?sign=clause>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of [selected finger non-base joints].
+- "Un-hooking" should be selected if the movement begins with  extension of the non-base joints of the selected fingers, or if it is the only direction involved, such as `UPLOAD <https://asl-lex.org/visualization/?sign=upload>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger non-base joints].
 
 .. todo::
 
-    - ADD in links to examples
-    - add in autofilling details for each selection (???)
+    - add links to glossary definitions of the movemewnt terms
+    - add part about how to turn on and off autofill (with link to documentation)
 
 .. _handshape_change_entry:
 
