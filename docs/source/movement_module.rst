@@ -231,7 +231,7 @@ As with all menus, selecting the sub-option will automatically select the broade
 The joint-specific movement options are as follows: 
 
 **Nodding/Un-nodding** 
-- "Nodding" should be selected if the movement begins with a flexion of the wrist, such as `_CORN_3 <https://asl-lex.org/visualization/?sign=corn_3>`. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as `CAN <https://asl-lex.org/visualization/?sign=can>`_, or signs where there is a repeated, unidirectional nodding, such as `YES <https://asl-lex.org/visualization/?sign=yes>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of the wrist. 
+- "Nodding" should be selected if the movement begins with a flexion of the wrist, such as `CORN_3 <https://asl-lex.org/visualization/?sign=corn_3>`_. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as `CAN <https://asl-lex.org/visualization/?sign=can>`_, or signs where there is a repeated, unidirectional nodding, such as `YES <https://asl-lex.org/visualization/?sign=yes>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of the wrist. 
 - "Un-nodding" should be selected if the movement begins with an extension of the wrist, or if it is the only movement involved, for example `GIVE_UP <https://asl-lex.org/visualization/?sign=give_up>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of the wrist. 
 
 **Pivoting**
@@ -241,7 +241,7 @@ The joint-specific movement options are as follows:
 
 **Twisting**
 - "Pronation" should be selected if the movement begins with pronation, or if it is the only direction involved, such as the subordinate hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_. Selecting this will autofill to proximal radioulnar *pronation* in the :ref:`joint activity<joint_activity_entry>` section.
-- "Supination" should be selected if the movement begins with supination, or if it is the only direction involved, such as `CLAUSE <>`_ and the dominant hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_. Selecting this will autofill to proximal radioulnar *supination* in the :ref:`joint activity<joint_activity_entry>` section.
+- "Supination" should be selected if the movement begins with supination, or if it is the only direction involved, such as `CLAUSE <https://asl-lex.org/visualization/?sign=clause>`_ and the dominant hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_. Selecting this will autofill to proximal radioulnar *supination* in the :ref:`joint activity<joint_activity_entry>` section.
 
 
 **Closing/Opening**
