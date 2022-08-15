@@ -1,14 +1,19 @@
 .. todo::
-    find two signs for direction/location distinction
-    what is meant by 'anatomical position'?
-    references? need any other than what we have?
-    graphics! diagrams! visuals! to use as placeholders and references for someone else to do properly.
+    sign example pair for (dynamic) direction and (static) location
+    replace the placeholder image currently in the 'axes' and 'planes' sections
+    diagrams
+        - full, detailed overview of axes and planes
+        - simple axes and angled vectors
+        - simple planes and angled planes
+        - top of a circle and circular directions
+    fill in missing descriptions
+    references?
+
+.. comment:: 
+    The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle in each plane, **anatomical position (?)**, and ipsi-contra definitions.
     
 .. comment::
-    I want to stay away from using "absolute" and "relative" as much as possible for the directions on the horizontal axis as this may get confusing, especially if we end up using these terms to describe orientation (is this still happening?). Instead I tend towards just using ipsi/contra and left/right.
-    
-.. comment:: 
-    The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle, **anatomical position (?)**, and ipsi-contra definitions.
+    From sign type: "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`signing space<signing_space_page>` for more information.
 
 .. _signing_space_page:
 
@@ -16,107 +21,164 @@
 Symmetry, Planes & Axes
 ***********************
 
-**Introduction** This section will describe the complexities of the three-dimensional signing space on and surrounding the body to give more context to the terminology and labels used throughout the program and in the documentations.
+**Introduction**
+
+This page will describe the complexities of the three-dimensional signing space on and surrounding the body and explain the relevant terminology used throughout the program and here in its documentations.
 
 .. note::
-    **To explain here**: There's a difference in using terms like up, right, proximal, contra, etc as an indicator of the direction of movement vs. describing location. It's easiest (I *think*) to focus on the left/right distinction, because it's clear to see that a movement can start on the signer's right and move a little toward the left, but not end up on the left side of the body. The *movement* is leftward, even if the target *location* is not on the left, and the hand does not cross the midpoint of the body. I should have a pretty easy time finding signs like these. SO, although this information is meant to be applied generally across the program, the specific use of a label in one instance should always be kept in mind for that context, even if the same word is applied elsewhere for another context. (Left/right is also better here because there is an intrinsic horizontal midline to the body, but several equally plausible choices for a midpoint for up/down and distal/proximal axes.)
-
-.. _planes_axes:
-
-1. Planes and axes
-``````````````````
-
-**Introduction**  
+    Movement *direction* vs. static *location*. Use the left/right distinction relative to the intrinsic midline of the body. Grab a couple of sign examples to demonstrate. 
+    
+    Use the system overview to flag down every section where this will be relevant to think about, or otherwise just mention that it should be kept in mind for similar or identical descriptions used in differing contexts. Probably both.
+    
+    **Note** that the placement of this whole note may end up moving, but for now I like it here.
 
 .. _axes_entry:
 
-I. Axes
-=======
+1. Axes
+```````
 
-The system used in this program to describe any *location* or *direction* in space depends on an understanding of the three (ordinate) axes: **horizontal**, **vertical**, and **mid-saggital**.
+**Introduction**
+
+The system used in this program to describe location, direction of movement, orientation, ..., **(add references here to specific places where this information is required)**, depends on an understanding of the three ordinate axes: **horizontal**, **vertical**, and **mid-sagittal**.
+
+Each axis can be described in reference to the signer's body. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
+
+.. image:: images/shared_axes_and_planes.png
+    :width: 750
+    :align: left
+        
+**Note: This image is a placeholder and must be replaced when we have something suitable. It was taken from `here <https://www.physical-solutions.co.uk/wp-content/uploads/2015/05/Understanding-Planes-and-Axes-of-Movement.pdf>`_.**
+
+.. _axis_directions:
+
+I. Axis directions
+==================
+
+**Introduction**
+
+.. _axis_default:
+
+a) Default directions
+~~~~~~~~~~~~~~~~~~~~~
+
+**Definition (and possibly illustration) of default directions**
+
+.. _axis_symmetry:
+
+b) Symmetry in the horizontal axis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Complications from the horizontal axis in particular and any combinations involving it, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in sign type**
+
+.. _combinations_axes:
+
+c) Combinations of axes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+**How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.**
 
 .. warning::
-    I would like to have a set of diagrams here of the three axes superimposed on a person, where two axes are in grey and the relevant one is in an eye-catching colour. It might be beneficial to have two diagrams set forward-facing, and the mid-saggital one set as viewed from the signer's right. Otherwise, if the same image is used three times, it should be at a slight angle rather than head-on. 
+    To be able to cover everything below the 'Planes' node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for the (two) ordinate axes that form a basis for each plane; ...
+
+.. warning::
+    It is **possible**, though perhaps too technically involved, to include notions like: sets of parallel planes; normal vectors; spans; cartesian coordinate triples in space; movement vector triples in space; etc.
     
-    A few versions of each image should focus on different parts, so that the same viewpoint and sketch-up can be used for both the axis system and the plane directionalities. Axis arrows, for example, would not be useful when showing plane information later on.
-    
-The directions of movement along each axis form a set of options ...
+    It is **likely** that we will need to include notions like: movement relative to a starting point (vectors, though we don't have to call it that); vectors parallel to/able to form bases for ordinate axes; vector addition (though we won't call it that); etc.
 
 .. _planes_entry:
 
-II. Planes
-==========
+2. Planes
+`````````
 
-Along with the set of axes, we also use a similar set of (ordinate) planes: **horizontal**, **vertical**, and **mid-saggital**. These can be described by their relation to a perpendicular axis ...
+**Introduction**
 
-.. warning::
-    Duplicate the same sets of images from above, but with a plane highlighted instead of an axis. Also include the normal vector to each plane for clarity.
+Along with the set of axes, we can also describe a similar set of (ordinate) planes: **horizontal**, **vertical**, and **mid-sagittal**. These are each formed along...
 
-**(Sets of planes? Describe here what is meant by the 'top' of a circle in each plane. Use example signs, and describe how to deal with combinations of planes.)**
+.. image:: images/shared_axes_and_planes.png
+    :width: 750
+    :align: left
+        
+**Note: This image is a placeholder and must be replaced when we have something suitable. It was taken from `here <https://www.physical-solutions.co.uk/wp-content/uploads/2015/05/Understanding-Planes-and-Axes-of-Movement.pdf>`_.**
 
-.. _symmetry_entry:
-
-2. Symmetry
-```````````
-
-**(I wanted to have something here about the symmetrical plane, but this seems like too prominent a placement for that subject. It could be a note tacked on to the section below somewhere instead? Or this could be a general introduction to the problems encountered when describing left/right symmetry, and a note here can go into more detail on why those problems exist for this axis only.)**
-
-.. _lr_ic:
-
-I. Left/right and ipsi/contra models
-=====================================
-
-**(Description of what these two options generally entail, and a list of the selections that this choice will affect. Describe the interchangeability of the models. Link to the global settings page for more information about switching between the two. Link to the movement direction relation section in the sign type page! Add examples here, but work out how to stay away from repeating too much information.)**
+**Describe angled planes here, without reference to circular directions.**
 
 .. _circular_directions:
 
-II. Circular directions
-=======================
+I. Circular directions
+======================
 
-**(Description)**
+**Introduction**
 
-.. note::
-    **(Describe what to do about combinations of planes -- look at each component plane separately)**
-    
-    .. image:: images/mov_combinations_of_planes.png
-        :width: 750
-        :align: left
-        :alt:
+.. _top_of_circle:
 
-.. _lr_directions:
+a) 'Top' of a circle
+~~~~~~~~~~~~~~~~~~~~
 
-a) Left/right-oriented model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**(Describe the clockwise directions for each plane under this model. Also describe these directions in terms of movement across the top of the circle.)**
-
-.. warning::
-    A set of similar diagrams to those introduced in the planes & axes section, but this time with one plane highlighted in each image along with its normal vector, shown for clarity. Include diagrams for each hand moving in the 'same' direction (e.g. both moving left from top of circle).
-
-.. _ic_directions:
-
-b) Circular directions for an ipsi/contra-oriented model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**(Describe the circular directions for each plane under this model. Also describe these directions in terms of movement across the top of the circle.)**
-
-.. warning::
-    A set of similar diagrams to those introduced in the planes & axes section, but this time with one plane highlighted in each image along with its normal vector, shown for clarity. Include diagrams for each hand moving in the 'same' direction (e.g. both moving contralaterally from top of circle).
-
-
-.. _notes_comments:
-
-Notes
-~~~~~
-
-Note to self, delete this section once each of these is expressed in the main text somewhere:
+**Description. Needs a set of diagrams.**
 
 .. note::
-    Absolute directions, relative directions for **axes**: relevant for any vector *involving* the horizontal axis, i.e. any vector that is not normal to the horizontal axis/not contained within a plane that is normal to the horizontal axis.
+    **Directionality as movement across the topmost point of the circle as determined for each plane**
 
-    Absolute directions, relative directions for **planes**: relevant for any plane *involving* the horizontal axis, i.e. any plane that is not normal to the horizontal axis.
+.. _plane_default:
+
+b) Default directions
+~~~~~~~~~~~~~~~~~~~~~
+
+**Definition (and possibly illustration) of default directions**
+
+.. _plane_symmetry:
+
+c) Symmetry in planes involving the horizontal axis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. comment::
+    Check the most current language in the movement page to see if this heading should be altered
     
-    ... Okay, this suggests that the set of mid-saggital planes is more applicable to symmetry than exclusively the body midpoint/line of bi-lateral symmetry. I could leave that out and still have everything come across perfectly clearly, but it would still be fun/useful to include for background information as to why the horizontal axis has so many more possibilities for movement than any other.
+**Complications from the horizontal axis in particular, i.e. for the vertical and horizontal planes and any combinations involving these, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in sign type.**
+
+.. _circular_combinations:
+
+d) Directions in combinations of planes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**How to approach combinations of planes. Mention again that these must be considered to be additive in a single module, not sequential.**
+
+.. image:: images/mov_combinations_of_planes.png
+    :width: 750
+    :align: left
+
+.. _symmetry_review:
+
+II. The signing space
+=====================
+
+**Detailed summary for quick reference, consisting mostly of a set of visuals and sign examples.**
+
+Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry.
+
+.. _tbd_location_symmetry:
+
+4. (Title)
+```````````
+
+**All above information as applicable to smaller locations and/or on-body locations. Needs more planning, and will likely be coordinated with the Location module documentations. For now this is just a general concept of something we will need later on.**
+
+.. _symmetry_puzzle:
+
+5. The horizontal axis
+``````````````````````
+
+**Introduction. This section is all fun theory and brainbusters! Everything above this is necessary to understand for the program, but from here onwards is for additional and not-strictly-necessary information.**
+
+.. note::
+    To include here:
     
-.. note::    
-    Terminology: Line of bi-lateral symmetry (from Battison), or maybe just plane of horizontal symmetry? The plane of bisection? (Does the choice of terminology matter more than the clarity of its meaning?) Which one of these is the clearest/simplest? Is there a term used more often in sign language linguistics or sign language teaching in general?
+    {Introduction to the particular difficulties introduced with horizontal symmetry over any other kind}
+    -->    {The (set of) mid-sagittal plane(s) as normal to the horizontal axis}
+        
+    {Anatomical symmetry across the "midline," or whatever terminology}
+    -->    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry, or plane of bisection, or other. Which one of these is the clearest/simplest? Is there a term used more often in sign language linguistics or sign language teaching? This cannot be referred to as the mid-sagittal plane, as it must specifically be horizontally central to the body (meanwhile a generic mid-sagittal plane can still be described to either side of the body).
+    
+    {Why the discrepancy? Difficulties in articulation mechanisms}
+    --> Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, e.g. an axis on one hand AND a plane on the other. Link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane. Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with.
+
