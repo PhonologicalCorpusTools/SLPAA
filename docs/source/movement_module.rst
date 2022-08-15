@@ -9,8 +9,6 @@
         -guidelines
         -system overview
         -to mention in docs
-        -team meeting?
-    handshape change not completed
     joint activity description not completed
     movement characteristics not yet started
     at least one sample coding of the full set of movement modules for a sign (or is this covered in the other project materials?)
@@ -116,7 +114,7 @@ b) Axis direction
 
 Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. 
 
-Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<axes_entry>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module.
 
@@ -181,7 +179,7 @@ In some cases, it is useful to specify not just the axis but also the **plane** 
 
 This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user. 
 
-Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the notes on :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_directions>` for a visual description of how this works. For sequential movements in different planes or circular directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the description of :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_combinations>` for a visual description of how this works. For sequential movements in different planes or circular directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
 At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. See :ref:`global_settings` for a definition of the default clockwise direction and what is meant by the 'top' of the circle for each plane. **[Should this be in global settings or the 'signing space' page?]**
 
@@ -282,7 +280,7 @@ No further details of the handshape change itself need to be provided in this se
 2. Joint activity
 ``````````````````
 
-Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can ``autofill`` **(auto-generation and autofilling documentations)** the joint movements that are predictable from the selections made earlier within the :ref:`movement type section<joint_specific_movement_entry>`. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
+Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can ``autofill`` **(auto-generation and autofilling documentations)** the joint movements that are predictable from the selections made earlier within its :ref:`movement type<joint_specific_movement_entry>` section. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
 
 **(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 
