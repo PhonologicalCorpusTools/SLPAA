@@ -158,14 +158,14 @@ Quick and simple review of everything mentioned so far in terms of the basics of
 
 .. _tbd_location_symmetry:
 
-4. (Title)
+3. (Title)
 ```````````
 
 **All above information as applicable to smaller locations and/or on-body locations. Needs more planning, and will likely be coordinated with the Location module documentations. For now this is just a general concept of something we will need later on.**
 
 .. _symmetry_puzzle:
 
-5. The horizontal axis
+4. The horizontal axis
 ``````````````````````
 
 **Introduction. This section is all fun theory and brainbusters! Everything above this is necessary to understand for the program, but from here onwards is for additional and not-strictly-necessary information.**
