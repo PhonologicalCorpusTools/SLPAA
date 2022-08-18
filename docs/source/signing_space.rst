@@ -1,12 +1,16 @@
 .. todo::
     sign example pair for (dynamic) direction and (static) location
-    replace the placeholder image currently in the 'axes' and 'planes' sections
+    sign examples for each axis direction, plane, and circular directionality 
+        - should be doubled from the movement docs, not a new set of examples
+    replace the placeholder image currently in the 'summary' section
+    amend the angled circular directions image to include the top of the circle for each plane
     diagrams
         - full, detailed overview of axes and planes
         - simple axes 
         - combination of axes
         - angled planes (no circular direction)
-        - top of a circle and circular directions, likely in one image
+        - top of a circle 
+        - circular directions (including top of the circle)
     fill in missing descriptions
     references?
 
@@ -40,7 +44,7 @@ This page will describe the complexities of the three-dimensional signing space 
 
 **Introduction**
 
-The system used in this program to describe location, direction of movement, orientation, ..., **(add references here to specific places where this information is required)**, depends on an understanding of the three ordinate axes: **horizontal**, **vertical**, and **mid-sagittal**.
+The system used in this program to describe location, direction of movement, orientation, ..., **(add references and links here to the specific parts of the program where this information is required and their associated documentations)**, depends on an understanding of the three ordinate axes: **horizontal**, **vertical**, and **mid-sagittal**.
 
 Each axis can be described in reference to the signer's body. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
 
@@ -80,27 +84,25 @@ c) Combinations of axes
 **How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.**
 
 .. warning::
-    To be able to cover everything below the 'Planes' node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for the (two) ordinate axes that form a basis for each plane; ...
+    To be able to cover everything below the 'Planes' node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for the (two) ordinate axes that form a basis for each plane; etc.
 
 .. warning::
     It is **possible**, though perhaps too technically involved, to include notions like: sets of parallel planes; normal vectors; spans; cartesian coordinate triples in space; movement vector triples in space; etc.
     
-    It is **likely** that we will need to include notions like: movement relative to a starting point (vectors, though we don't have to call it that); vectors parallel to/able to form bases for ordinate axes; vector addition (though we won't call it that); etc.
+    It is **likely** that we will need to include notions like: direction of movement relative to an arbitrary starting point; vectors parallel to/able to form bases for ordinate axes; vector addition/combinations of axes; etc.
 
 .. _planes_entry:
 
 2. Planes
 `````````
 
-**Introduction**
-
-Along with the set of axes, we can also describe a similar set of (ordinate) planes: **horizontal**, **vertical**, and **mid-sagittal**. These are each formed along...
+We can also describe a set of planes, where each one is formed by a pair of the ordinate axes described above. These are the **horizontal**, **vertical**, and **mid-sagittal** planes.
 
 .. image:: images/shared_planes.png
     :width: 750
     :align: left
-      
-**Describe angled planes here, without reference to circular directions.**
+        
+**Describe angled planes here, without reference to circular directions. Include a diagram similar to the above.**
 
 .. _circular_directions:
 
@@ -114,10 +116,7 @@ I. Circular directions
 a) 'Top' of a circle
 ~~~~~~~~~~~~~~~~~~~~
 
-**Description. Needs a set of diagrams.**
-
-.. note::
-    **Directionality as movement across the topmost point of the circle as determined for each plane**
+**State the point on a circle in each plane that we define to be the top of a circle in that plane. Note especially that this notion is independent from movement. Then introduce the idea of circular directionality (in movement) as defined by the (axis) direction of movement through the topmost point for that plane. Needs a set of diagrams.**
 
 .. _plane_default:
 
