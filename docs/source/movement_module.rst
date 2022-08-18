@@ -1,7 +1,3 @@
-.. comment::
-    The places where I intend to add a link to a currently non-existent docs section/page are marked as a code block temporarily
-    For the moment, this only includes the auto-generation page
-    
 .. todo::
     axis direction sign examples?
     plane sign examples?
@@ -26,9 +22,9 @@ This :ref:`module` is used to code the movement components of a sign. For more d
 .. note::
     Depending on your choices of how to interact with the program, the step to start adding modules to a sign may come at different points in the coding process.
     
-    If :ref:`x-slots<x_slot>` and ``auto-generation`` **(auto-generation and autofilling documentations)** are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type_module`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other sign modules.
+    If :ref:`x-slots<x_slot>` and :ref:`auto-generation<auto_gen>`` are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type_module`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other sign modules.
 
-    If :ref:`x-slots<x_slot>` are enabled but ``auto-generation`` **(auto-generation and autofilling documentations)** is not, then you must add the appropriate number of x-slots first before adding any modules at all to the sign.
+    If :ref:`x-slots<x_slot>` are enabled but :ref:`auto-generation<auto_gen>` is not, then you must add the appropriate number of x-slots first before adding any modules at all to the sign.
 
     See :ref:`global_settings` for more about the program's default behaviour, and how to change these options.
 
@@ -260,7 +256,7 @@ The joint-specific movement options are as follows:
 
 .. todo::
 
-    - add links to glossary definitions of the movemewnt terms
+    - add links to glossary definitions of the movement terms
     - add part about how to turn on and off autofill (with link to documentation)
 
 .. _handshape_change_entry:
@@ -280,7 +276,7 @@ No further details of the handshape change itself need to be provided in this se
 2. Joint activity
 ``````````````````
 
-Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can ``autofill`` **(auto-generation and autofilling documentations)** the joint movements that are predictable from the selections made earlier within its :ref:`movement type<joint_specific_movement_entry>` section. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
+Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can :ref:`autofill<auto_gen>` the joint movements that are predictable from the selections made earlier within its :ref:`movement type<joint_specific_movement_entry>` section. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
 
 **(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 
