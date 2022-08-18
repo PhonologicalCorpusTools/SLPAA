@@ -181,7 +181,7 @@ This section is automatically specified by the program as 'not relevant' when th
 
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the description of :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_combinations>` for a visual description of how this works. For sequential movements in different planes or circular directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
-At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. See :ref:`global_settings` for a definition of the default clockwise direction and what is meant by the 'top' of the circle for each plane. **[Should this be in global settings or the 'signing space' page?]**
+At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. See :ref:`circular directions<circular_directions>` for a definition of the default clockwise direction and what is meant by the 'top' of the circle for each plane.
 
 * **Mid-saggital plane**
 
