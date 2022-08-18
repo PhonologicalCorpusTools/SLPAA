@@ -3,9 +3,10 @@
     replace the placeholder image currently in the 'axes' and 'planes' sections
     diagrams
         - full, detailed overview of axes and planes
-        - simple axes and angled vectors
-        - simple planes and angled planes
-        - top of a circle and circular directions
+        - simple axes 
+        - combination of axes
+        - angled planes (no circular direction)
+        - top of a circle and circular directions, likely in one image
     fill in missing descriptions
     references?
 
@@ -43,12 +44,12 @@ The system used in this program to describe location, direction of movement, ori
 
 Each axis can be described in reference to the signer's body. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
 
-.. image:: images/shared_axes_and_planes.png
-    :width: 750
-    :align: left
+(working on this currently)
+.. comment::
+    .. image:: images/shared_axes.png
+        :width: 750
+        :align: left
         
-**Note: This image is a placeholder and must be replaced when we have something suitable. It was taken from `here <https://www.physical-solutions.co.uk/wp-content/uploads/2015/05/Understanding-Planes-and-Axes-of-Movement.pdf>`_.**
-
 .. _axis_directions:
 
 I. Axis directions
@@ -94,12 +95,10 @@ c) Combinations of axes
 
 Along with the set of axes, we can also describe a similar set of (ordinate) planes: **horizontal**, **vertical**, and **mid-sagittal**. These are each formed along...
 
-.. image:: images/shared_axes_and_planes.png
+.. image:: images/shared_planes.png
     :width: 750
     :align: left
-        
-**Note: This image is a placeholder and must be replaced when we have something suitable. It was taken from `here <https://www.physical-solutions.co.uk/wp-content/uploads/2015/05/Understanding-Planes-and-Axes-of-Movement.pdf>`_.**
-
+      
 **Describe angled planes here, without reference to circular directions.**
 
 .. _circular_directions:
@@ -154,7 +153,13 @@ II. The signing space
 
 **Detailed summary for quick reference, consisting mostly of a set of visuals and sign examples.**
 
-Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry.
+**Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry.**
+
+.. image:: images/shared_axes_and_planes.png
+    :width: 750
+    :align: left
+
+**Note: This image is a placeholder and must be replaced when we have something suitable. It was taken from https://www.physical-solutions.co.uk/wp-content/uploads/2015/05/Understanding-Planes-and-Axes-of-Movement.pdf, and it's similar to what I would want to have here other than some alterations to the plane and axis labels**
 
 .. _tbd_location_symmetry:
 
