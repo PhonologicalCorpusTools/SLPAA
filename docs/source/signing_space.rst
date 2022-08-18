@@ -45,6 +45,7 @@ The system used in this program to describe location, direction of movement, ori
 Each axis can be described in reference to the signer's body. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
 
 (working on this currently)
+
 .. comment::
     .. image:: images/shared_axes.png
         :width: 750
