@@ -113,26 +113,28 @@ Select an **axis direction** (or a combination of axis directions) that describe
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module.
+Up  - UMBRELLA - https://asl-lex.org/visualization/?sign=umbrella 
+Down - LOSE_GAME https://asl-lex.org/visualization/?sign=lose_game 
 
 * Vertical axis:
 
-    * **Up**
-    * **Down**
+    * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_
+    * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ 
 
 * Mid-sagittal axis:
 
-    * **Distal**
-    * **Proximal**
+    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_
+    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
 * Horizontal axis:
 
-    * **Ipsilateral** (by default)
-    * **Contralateral** (by default)
+    * **Ipsilateral** (by default), as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
+    * **Contralateral** (by default), as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
     
         * OR
     
-    * **Left**
-    * **Right**
+    * **Left**, as in `WEST <https://asl-lex.org/visualization/?sign=west>`_
+    * **Right**, as in `EAST <https://asl-lex.org/visualization/?sign=east>`_
 
 * **Not relevant**
 
