@@ -113,8 +113,6 @@ Select an **axis direction** (or a combination of axis directions) that describe
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to represent the temporal order of the movement sequence.
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module.
-Up  - UMBRELLA - https://asl-lex.org/visualization/?sign=umbrella 
-Down - LOSE_GAME https://asl-lex.org/visualization/?sign=lose_game 
 
 * Vertical axis:
 
@@ -136,7 +134,7 @@ Down - LOSE_GAME https://asl-lex.org/visualization/?sign=lose_game
     * **Left**, as in `WEST <https://asl-lex.org/visualization/?sign=west>`_
     * **Right**, as in `EAST <https://asl-lex.org/visualization/?sign=east>`_
 
-* **Not relevant**
+* **Not relevant**, as in `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_
 
 See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See :ref:`signing_space_page` for a visual representation of each of these options, and more information about the horizontal axis in particular.
 
@@ -183,30 +181,31 @@ At most one circular direction can be selected for each plane, so that a total m
 
 * **Mid-saggital plane**
 
-    * **Clockwise**
-    * **Counter-clockwise**
+    * **Clockwise**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_
+    * **Counter-clockwise**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_
 
 * **Horizontal plane**
 
-    * **Ipsilateral from the top of the circle** (by default)
-    * **Contralateral from the top of the circle** (by default)
+    * **Ipsilateral from the top of the circle** (by default), as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_
+    * **Contralateral from the top of the circle** (by default), as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
     
         * OR
     
-    * **Clockwise**
-    * **Counter-clockwise**
-
+    * **Clockwise**, as in left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
+    * **Counter-clockwise**, as in right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
+    
 * **Vertical plane**
 
-    * **Ipsilateral from the top of the circle** (by default)
-    * **Contralateral from the top of the circle** (by default)
+    * **Ipsilateral from the top of the circle** (by default), as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
+    * **Contralateral from the top of the circle** (by default), as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
     
         * OR
     
-    * **Clockwise**
-    * **Counter-clockwise**
+    * **Clockwise**, as in right hand of `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_
 
-* **Not relevant**
+    * **Counter-clockwise**, as in `ERASE_2 <https://asl-lex.org/visualization/?sign=erase_2>`_
+
+* **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_
 
 See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the horizontal axis (i.e., those on the vertical or horizontal planes). See :ref:`signing_space_page` for a visual representation of all of these options, and for more information on the horizontal axis in particular.
 
