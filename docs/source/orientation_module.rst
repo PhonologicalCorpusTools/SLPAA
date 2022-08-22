@@ -17,8 +17,8 @@ The selection options included in this module are outlined below:
 
 **2) Palm direction**
 
-        * Up				* Distal		  * Ipsilateral
-        * Down			* Proximal		* Contralateral
+        * Up	|			* Distal	|	  * Ipsilateral |
+        * Down |			* Proximal	|	* Contralateral |
 
 
 Palm direction refers to the direction that the friction surface of the hand (minus the fingers) is facing. When selecting palm direction, you are         able to maximally select one option from each column, that is, you may combine two or more columns if more than one of the direction options is             involved (e.g., **give an example of a sign and how it would be coded.**)
