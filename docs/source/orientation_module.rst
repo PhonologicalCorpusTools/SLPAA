@@ -9,6 +9,8 @@ This optional module codes absolute orientation. **add about options for convent
 
 If absolute orientation is being coded, there must be a module for each hand in the sign (i.e., a two handed sign would have at least two orientation modules and and a one-handed sign would have at least one orientation module). 
 
+Note that directions on the horizontal axis can be set to either be absolute (right / left) or relative (ipsilateral / contralateral). The default is to use relative directions, but this can be changed in the :ref:`global_settings`.
+
 The selection options included in this module are outlined below:
 
 **1) This module applies to**
@@ -17,23 +19,34 @@ The selection options included in this module are outlined below:
 
 **2) Palm direction**
 
-        * Up	|			* Distal	|	  * Ipsilateral |
-        * Down |			* Proximal	|	* Contralateral |
-
-
-Palm direction refers to the direction that the friction surface of the hand (minus the fingers) is facing. When selecting palm direction, you are         able to maximally select one option from each column, that is, you may combine two or more columns if more than one of the direction options is             involved (e.g., **give an example of a sign and how it would be coded.**)
+      a) * UP
+         * DOWN
+         
+      B) * DISTAL
+         * PROXIMAL
+      
+      C) * IPSILATERAL
+         * CONTRALATERAL
+      
+      
+Palm direction refers to the direction that the friction surface of the hand (minus the fingers) is facing. When selecting palm direction, you are         able to maximally select one option from each set of options (e.g., **give an example of a sign and how it would be coded.**)
      
 **3) Finger root direction**
 
 
-        * Up				* Distal		  * Ipsilateral
-        * Down			* Proximal		* Contralateral
+      a) * UP
+         * DOWN
+         
+      B) * DISTAL
+         * PROXIMAL
+      
+      C) * IPSILATERAL
+         * CONTRALATERAL
         
-Finger root direction refers to the direction that the fingertips would be pointing if they were to be fully extended. You can maximally select one         from each column, that is, you may combine two or more columns if more than one of the direction options is involved (e.g., **give an example of a sign and how it would be coded.**)
+Finger root direction refers to the direction that the fingertips would be pointing if they were to be fully extended. You can maximally select one         from each set of options, that is, you may combine two or more columns if more than one of the direction options is involved (e.g., **give an example of a sign and how it would be coded.**)
         
         
         
 
 
-        
-        
+     
