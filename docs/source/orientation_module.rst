@@ -47,6 +47,6 @@ Finger root direction refers to the direction that the fingertips would be point
         
         
         
-
+**give an example of how the whole orientation module would look for a certain sign. INCLUDE IMAGE?**
 
      
