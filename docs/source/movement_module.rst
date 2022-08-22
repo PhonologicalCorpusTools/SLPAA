@@ -266,21 +266,18 @@ The joint-specific movement options are as follows:
 
 :ref:`Rubbing<rubbing>`
 
-* "Thumb crosses over the palm" should be selected if the thumb crosses over the palm, as in `FEW <>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
+* "Thumb crosses over the palm" should be selected if the thumb crosses over the palm, as in `FEW <https://asl-lex.org/visualization/?sign=few>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
 
-* "Thumb moves away from palm" should be selected if the thumb moves away from the palm, as in `DOG <>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
+* "Thumb moves away from palm" should be selected if the thumb moves away from the palm, as in `DOG <https://asl-lex.org/visualization/?sign=dog>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
 
 
 :ref:`Wiggling or fluttering<wiggling_fluttering>`
 
-* this should be selected if ....
+* This should be selected if the selected fingers wiggle, or flutter, such as in the signs `DIRTY <https://asl-lex.org/visualization/?sign=dirty>`_, `SALT <https://asl-lex.org/visualization/?sign=salt>`_, `BEACH <https://asl-lex.org/visualization/?sign=beach>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to both flexion and extension of the selected fingers' base joints.
 
 
 "None of these" should be selected if joint-specific movmenet does not apply to the sign being coded. 
 
-
-.. todo::
-        - add links for these new examples
 
 
 .. _handshape_change_entry:
