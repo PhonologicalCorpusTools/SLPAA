@@ -258,16 +258,29 @@ The joint-specific movement options are as follows:
 
 * "Un-hooking" should be selected if the movement begins with  extension of the non-base joints of the selected fingers, or if it is the only direction involved, such as `UPLOAD <https://asl-lex.org/visualization/?sign=upload>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger non-base joints].
 
+:ref:`Spreading/Un-spreading<spreading_unspreading>`
+
+* "Spreading" should be selected if the movement begins with the abduction of the base joints of the selected fingers, or if it is the only direction involved, such as `SEND <>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *abduction* of [selected finger base joints]. 
+
+* "Un-spreading" should be selected if the movement begins with the adduction of the base joints of the selected fingers, or if it is the only direction involved, such as `RUN_OUT_OF <>`_ or `SCISSORS <>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *abduction* of [selected finger base joints]. 
+
+:ref:`Rubbing<rubbing>`
+
+* "Thumb crosses over the palm" should be selected if the thumb crosses over the palm, as in `FEW <>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
+
+* "Thumb moves away from palm" should be selected if the thumb moves away from the palm, as in `DOG <>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
+
+
+:ref:`Wiggling or fluttering<wiggling_fluttering>`
+
+* this should be selected if ....
+
+
+"None of these" should be selected if joint-specific movmenet does not apply to the sign being coded. 
+
+
 .. todo::
-    - finish last few points 
-            Spreading/unspreading
-        Spreading [--> autofills to abduction of [selected finger base joints]] e.g., SEND  
-        Unspreading [--> autofills to adduction of [selected finger base joints]] e.g., RUN_OUT_OF  SCISSORS
-        Rubbing
-        Thumb crossing over palm [ --> autofills to Complex/multi-joint] e.g., FEW
-        Thumb moving away from palm [ --> autofills to Complex/multi-joint] e.g., DOG
-        Wiggling or Fluttering [--> autofills to both flexion and extension of selected finger base joints] e.g., DIRTY, SALT, BEACH
-        None of these
+        - add links for these new examples
 
 
 .. _handshape_change_entry:
