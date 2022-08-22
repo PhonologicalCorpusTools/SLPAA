@@ -68,17 +68,51 @@ NT - add here [use the stuff below to start]
 
 A "perceptual shape" is one of the three primary types of movement that are coded in SLP-AA (the other two being :ref:`handshape_change` and :ref:`joint_specific_movement`). 
 
-.. _sample: 
+.. nodding_unnodding: 
 
-sample
-======
-testing1
+nodding/un-nodding
+=================
+AP add 
 
-.. _sample_2:
+.. pivoting:
 
-sample 2
+pivoting
 ========
-testing2
+AP add 
+
+
+.. twisting:
+
+twisting
+========
+AP add 
+
+.. closing_opening:
+
+closing/opening
+===============
+AP add here
+
+.. pinching_unpinching:
+
+pinching/un-pinching
+===================
+AP add here
+
+
+.. flattening_straightening:
+
+flattening/straightening
+=======================
+AP add here
+
+
+.. hooking_unhooking:
+
+hooking/un-hooking
+========
+AP add here
+
 
 .. _x_slot:
 
