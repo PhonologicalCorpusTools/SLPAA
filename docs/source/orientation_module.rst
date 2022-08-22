@@ -5,4 +5,35 @@
 Orientation Module
 **************************
 
-**add overall description of what this section is for**
+This optional module codes absolute orientation. **add about options for conventions on coding orientation)** (include link to section of global settings documentation). The absolute orientation of the hand is described in two ways, firstly you will select the palm direction and then the finger root direction. These terms will be further explained below in their respective sections. Both palm direction and finger root direction must be coded for a full and accurate coding of absolute orientation.
+
+If absolute orientation is being coded, there must be a module for each hand in the sign (i.e., a two handed sign would have at least two orientation modules and and a one-handed sign would have at least one orientation module). 
+
+The selection options included in this module are outlined below:
+
+**1) This module applies to**
+        * H1
+        * H2
+
+**2) Palm direction**
+
+        * Up				* Distal		  * Ipsilateral
+        * Down			* Proximal		* Contralateral
+
+
+Palm direction refers to the direction that the friction surface of the hand (minus the fingers) is facing. When selecting palm direction, you are         able to maximally select one option from each column, that is, you may combine two or more columns if more than one of the direction options is             involved (e.g., **give an example of a sign and how it would be coded.**)
+     
+**3) Finger root direction**
+
+
+        * Up				* Distal		  * Ipsilateral
+        * Down			* Proximal		* Contralateral
+        
+Finger root direction refers to the direction that the fingertips would be pointing if they were to be fully extended. You can maximally select one         from each column, that is, you may combine two or more columns if more than one of the direction options is involved (e.g., **give an example of a sign and how it would be coded.**)
+        
+        
+        
+
+
+        
+        
