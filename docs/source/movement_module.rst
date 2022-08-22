@@ -276,7 +276,7 @@ The joint-specific movement options are as follows:
 * This should be selected if the selected fingers wiggle, or flutter, such as in the signs `DIRTY <https://asl-lex.org/visualization/?sign=dirty>`_, `SALT <https://asl-lex.org/visualization/?sign=salt>`_, `BEACH <https://asl-lex.org/visualization/?sign=beach>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to both flexion and extension of the selected fingers' base joints.
 
 
-"None of these" should be selected if joint-specific movmenet does not apply to the sign being coded. 
+THe "none of these" option should be selected if joint-specific movmenet does not apply to the sign being coded. 
 
 
 
