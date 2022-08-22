@@ -246,7 +246,6 @@ The joint-specific movement options are as follows:
 - "Un-hooking" should be selected if the movement begins with  extension of the non-base joints of the selected fingers, or if it is the only direction involved, such as `UPLOAD <https://asl-lex.org/visualization/?sign=upload>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger non-base joints].
 
 .. todo::
-    - add part about how to turn on and off autofill (with link to documentation)
     - finish last few points 
             Spreading/unspreading
         Spreading [--> autofills to abduction of [selected finger base joints]] e.g., SEND  
