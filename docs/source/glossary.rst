@@ -4,11 +4,25 @@
 Glossary
 **********
 
+
+.. closing_opening:
+
+closing/opening
+===============
+AP add here
+
 .. _entry_ID: 
 
 entry ID
 ========
 A unique identifier for each entry in a corpus. Choices for how these are defined are set within the :ref:`global_options` section.
+
+
+.. flattening_straightening:
+
+flattening/straightening
+=======================
+AP add here
 
 
 .. _gloss: 
@@ -38,6 +52,13 @@ hand configuration
 Phonetic details of the hand coded in the :ref:`hand_configuration_module`. May include variation from a standard :ref:`handshape`.
 
 
+.. hooking_unhooking:
+
+hooking/un-hooking
+========
+AP add here
+
+
 .. _joint_specific_movement:
 
 joint-specific movement
@@ -60,6 +81,13 @@ module
 NT - add here (specifically our use of this term and how it applies to the program)
 
 
+.. nodding_unnodding: 
+
+nodding/un-nodding
+=================
+AP add 
+
+
 .. _perceptual_shape:
 
 perceptual shape
@@ -68,11 +96,13 @@ NT - add here [use the stuff below to start]
 
 A "perceptual shape" is one of the three primary types of movement that are coded in SLP-AA (the other two being :ref:`handshape_change` and :ref:`joint_specific_movement`). 
 
-.. nodding_unnodding: 
 
-nodding/un-nodding
-=================
-AP add 
+.. pinching_unpinching:
+
+pinching/un-pinching
+===================
+AP add here
+
 
 .. pivoting:
 
@@ -86,32 +116,6 @@ AP add
 twisting
 ========
 AP add 
-
-.. closing_opening:
-
-closing/opening
-===============
-AP add here
-
-.. pinching_unpinching:
-
-pinching/un-pinching
-===================
-AP add here
-
-
-.. flattening_straightening:
-
-flattening/straightening
-=======================
-AP add here
-
-
-.. hooking_unhooking:
-
-hooking/un-hooking
-========
-AP add here
 
 
 .. _x_slot:
