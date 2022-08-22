@@ -110,7 +110,7 @@ pivoting
 ========
 AP add 
 
-.. _rubbing_:
+.. _rubbing:
 
 rubbing
 =======
