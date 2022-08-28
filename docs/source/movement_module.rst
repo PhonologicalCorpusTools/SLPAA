@@ -101,23 +101,23 @@ The default list of shape options is:
 b) Axis direction
 ~~~~~~~~~~~~~~~~~
 
-Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. 
+Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. It is also possible to select an axis without a direction, which may be useful for coding an underspecified sign.
 
-Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements in different directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements along different axes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
 
-At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. An axis cannot be selected without also specifying a direction for that axis. For a movement that travels back and forth along both directions for a given axis, you can either create a new module for each successive change in direction, or you can select that the movement is 'bidirectional' in the :ref:`movement characteristics<movement_chars>` options, if applicable. In the case of bidirectional movements, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, select the first direction of motion to be the axis direction.
+At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is 'bidirectional' in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting axis direction, such as always selecting the first direction of motion.
 
-* Vertical axis:
+* **Vertical axis**
 
     * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
     * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
 
-* Mid-sagittal axis:
+* **Mid-sagittal axis**
 
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-* Horizontal axis:
+* **Horizontal axis**
 
     * **Ipsilateral** (by default), as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
     * **Contralateral** (by default), as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
@@ -145,7 +145,7 @@ See the :ref:`global_settings` page for how to switch between relative ipsi/cont
     
     Notice that it is possible for one module to describe both hands in this case, since the direction and location of each hand is the same relative to the other. 
     
-    This would not be possible for a sign like `THEATER <https://asl-lex.org/visualization/?sign=theater>`_, a two-handed sign where both hands are moving similarly and in the same direction, but where all aspects of movement *except* location are simultaneous and in sync. Each hand needs to be specified separately, and they differ only in terms of their initial starting point within their respective circle, which is represented by axis direction. Again, the axis direction is selected as the midpoint of the circle relative to the starting point for each hand:
+    This would not be possible for a sign like `THEATER <https://asl-lex.org/visualization/?sign=theater>`_, a two-handed sign where both hands are moving similarly (as in, both are moving in circles) and in the same direction, but where all aspects of movement *except* location are simultaneous and in sync. Each hand needs to be specified separately, and they differ only in terms of their initial starting point within their respective circle, which is represented by axis direction. Again, the axis direction is selected as the midpoint of the circle relative to the starting point for each hand:
     
     .. image:: images/mov_sample_sign_THEATER_H1.png
         :width: 750
@@ -168,9 +168,9 @@ In some cases, it is useful to specify not just the axis but also the **plane** 
 
 This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape, or when the axis direction is coded as 'not relevant' by the user. 
 
-Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the description of :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_combinations>` for a visual description of how this works. For sequential movements in different planes or circular directions, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
+Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the description of :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_combinations>` for a visual description of how this works. For sequential movements in different planes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
 
-At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, you can either create a new module for each successive change in direction, or you can select that the movement is 'bidirectional' in the :ref:`movement characteristics<movement_chars>` options, if applicable. In the case of bidirectional movements, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, select the first direction of motion to be the circular direction.
+At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is 'bidirectional' in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting circular direction, such as always selecting the first direction of motion.
 
 * **Mid-sagittal plane**
 
@@ -199,7 +199,7 @@ At most one circular direction can be selected for each plane, so that a total m
 
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_
 
-See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the horizontal axis (i.e., those on the vertical or horizontal planes). See :ref:`signing_space_page` for a visual representation of all of these options, and for more information on the horizontal axis in particular.
+See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the horizontal axis (i.e., those involving the vertical or horizontal planes). See :ref:`signing_space_page` for a visual representation of all of these options, and for more information on the horizontal axis in particular.
 
 .. _joint_specific_movement_entry:
 
@@ -270,15 +270,11 @@ The joint-specific movement options are as follows:
 
 * "Thumb moves away from palm" should be selected if the thumb moves away from the palm, as in `DOG <https://asl-lex.org/visualization/?sign=dog>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
 
-
 :ref:`Wiggling or fluttering<wiggling_fluttering>`
 
 * This should be selected if the selected fingers wiggle, or flutter, such as in the signs `DIRTY <https://asl-lex.org/visualization/?sign=dirty>`_, `SALT <https://asl-lex.org/visualization/?sign=salt>`_, `BEACH <https://asl-lex.org/visualization/?sign=beach>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to both flexion and extension of the selected fingers' base joints.
 
-
-The "none of these" option should be selected if joint-specific movmenet does not apply to the sign being coded. 
-
-
+The "none of these" option should be selected if joint-specific movement does not apply to the sign being coded. 
 
 .. _handshape_change_entry:
 
