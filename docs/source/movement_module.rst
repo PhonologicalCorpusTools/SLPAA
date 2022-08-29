@@ -197,7 +197,7 @@ At most one circular direction can be selected for each plane, so that a total m
     * **Clockwise**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
     * **Counter-clockwise**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
 
-* **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_
+* **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are *not straight*. This option will be auto-selected if the perceptual movement selected is *straight*.
 
 See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the horizontal axis (i.e., those involving the vertical or horizontal planes). See :ref:`signing_space_page` for a visual representation of all of these options, and for more information on the horizontal axis in particular.
 
