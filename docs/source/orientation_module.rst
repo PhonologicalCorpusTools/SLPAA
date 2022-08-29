@@ -16,7 +16,7 @@ The selection options included in this module are outlined below:
 **1) This module applies to**
   
 .. image:: images/ori_hand.png
-        :width: 120
+        :width: 160
         :align: left
         
 |
@@ -26,7 +26,7 @@ The selection options included in this module are outlined below:
 **2) Palm direction**
 
 .. image:: images/ori_palm_direction.png
-        :width: 150
+        :width: 250
         :align: left
         
 |
@@ -39,7 +39,7 @@ Palm direction refers to the direction that the friction surface of the hand (mi
 **3) Finger root direction**
 
 .. image:: images/ori_finger_root.png
-        :width: 150
+        :width: 250
         :align: left
 |
 |
