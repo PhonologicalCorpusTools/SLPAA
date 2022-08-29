@@ -16,13 +16,13 @@ The selection options included in this module are outlined below:
 **1) This module applies to**
   
 .. image:: images/ori_hand.png
-        :width: 60
+        :width: 100
         :align: left
         
 **2) Palm direction**
 
 .. image:: images/ori_palm_direction.png
-        :width: 60
+        :width: 100
         :align: left
       
       
@@ -31,7 +31,7 @@ Palm direction refers to the direction that the friction surface of the hand (mi
 **3) Finger root direction**
 
 .. image:: images/ori_finger_root.png
-        :width: 60
+        :width: 100
         :align: left
         
 Finger root direction refers to the direction that the fingertips would be pointing if they were to be fully extended. You can maximally select one         from each set of options, that is, you may combine two or more columns if more than one of the direction options is involved (e.g., **give an example of a sign and how it would be coded.**)
