@@ -34,7 +34,7 @@ The selection options included in this module are outlined below:
 |
    
         
-Palm direction refers to the direction that the friction surface of the hand (minus the fingers) is facing. When selecting palm direction, you are         able to maximally select one option from each set of options (e.g., **give an example of a sign and how it would be coded.**)
+Palm direction refers to the direction that the friction surface of the hand (minus the fingers) is facing. When selecting palm direction, you are         able to maximally select one option from each set of options (e.g., in the sign `GAME<https://asl-lex.org/visualization/?sign=game>`_ the palm direction should be coded as *distal*)
      
 **3) Finger root direction**
 
@@ -44,7 +44,7 @@ Palm direction refers to the direction that the friction surface of the hand (mi
 |
 |
 |  
-Finger root direction refers to the direction that the fingertips would be pointing if they were to be fully extended. You can maximally select one         from each set of options, that is, you may combine two or more columns if more than one of the direction options is involved (e.g., **give an example of a sign and how it would be coded.**)
+Finger root direction refers to the direction that the fingertips would be pointing if they were to be fully extended. You can maximally select one         from each set of options, that is, you may combine two or more columns if more than one of the direction options is involved (e.g., in the sign `GAME<https://asl-lex.org/visualization/?sign=game>`_ the finger root direction should be coded as *contralateral*)
         
         
         
