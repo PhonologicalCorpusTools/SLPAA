@@ -24,6 +24,11 @@ flattening/straightening
 =======================
 AP add here
 
+.. _fluttering: 
+
+fluttering
+=================
+see "wiggling/fluttering"
 
 .. _gloss: 
 
@@ -87,6 +92,11 @@ nodding/un-nodding
 =================
 AP add 
 
+.. _opening: 
+
+opening
+=================
+see "closing/opening"
 
 .. _perceptual_shape:
 
@@ -118,9 +128,15 @@ AP to add
 
 .. _spreading_unspreading:
 
-spreading/unspreading
+spreading/un-spreading
 =====================
 AP add here
+
+.. _straightening: 
+
+straightening
+=================
+see "flattening/straightening"
 
 
 .. _twisting:
@@ -128,6 +144,33 @@ AP add here
 twisting
 ========
 AP add 
+
+
+.. _unhooking: 
+
+un-hooking
+=================
+see "hooking/un-hooking"
+
+
+.. _unnodding:
+
+un-nodding
+========
+see "nodding/un-nodding"
+
+
+.. _unpinching: 
+
+un-pinching
+=================
+see "pinching/un-pinching"
+
+.. _unspreading: 
+
+un-spreading
+=================
+see "spreading/un-spreading"
 
 .. _wiggling_fluttering:
 
