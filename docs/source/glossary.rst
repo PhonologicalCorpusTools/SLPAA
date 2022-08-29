@@ -134,6 +134,7 @@ AP to add
 spreading/un-spreading
 =====================
 Spreading: abduction of the base joints of the selected fingers, such that the fingers spread apart. This movement is seen in the sign `SEND <https://asl-lex.org/visualization/?sign=send>`_. *insert link to video*
+
 Un-spreading: adduction of the base joints of the selected fingers, such that the fingers are brought together. This movement is seen in the sign `RUN_OUT_OF <https://asl-lex.org/visualization/?sign=run_out_of>`_ and `SCISSORS <https://asl-lex.org/visualization/?sign=scissors>`_. *insert link to video*
 
 .. _straightening: 
