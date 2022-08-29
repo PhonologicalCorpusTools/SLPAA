@@ -124,10 +124,10 @@ At most one direction can be selected for each axis, so that a total maximum of 
     
         * OR
     
-    * **Left**, as in `WEST <https://asl-lex.org/visualization/?sign=west>`_
-    * **Right**, as in `EAST <https://asl-lex.org/visualization/?sign=east>`_
+    * **Left**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_, or as in `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
+    * **Right**, as in the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_, or as in `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
 
-* **Not relevant**, as in `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_
+* **Not relevant**, as in `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ [**REMOVE THIS?**]
 
 See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See :ref:`signing_space_page` for a visual representation of each of these options, and more information about the horizontal axis in particular.
 
@@ -194,8 +194,8 @@ At most one circular direction can be selected for each plane, so that a total m
     
         * OR
     
-    * **Clockwise**, as in the right hand of `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_
-    * **Counter-clockwise**, as in `ERASE_2 <https://asl-lex.org/visualization/?sign=erase_2>`_
+    * **Clockwise**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
+    * **Counter-clockwise**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
 
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_
 
