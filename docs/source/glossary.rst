@@ -9,7 +9,10 @@ Glossary
 
 closing/opening
 ===============
-AP add here
+Closing: flexion of all joints of the selected fingers, such that the handshape becomes "closed" compared to the starting configuration. This movement is seen in the sign `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_. *insert link to video example*
+
+Opening: extension of all joints of the selected fingers, such that the handshape "opens up" compared to the starting configuration. This movement is seen in the sign `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_. *insert link to video example*
+
 
 .. _entry_ID: 
 
@@ -130,7 +133,8 @@ AP to add
 
 spreading/un-spreading
 =====================
-AP add here
+Spreading: abduction of the base joints of the selected fingers, such that the fingers spread apart. This movement is seen in the sign `SEND <https://asl-lex.org/visualization/?sign=send>`_. *insert link to video*
+Un-spreading: adduction of the base joints of the selected fingers, such that the fingers are brought together. This movement is seen in the sign `RUN_OUT_OF <https://asl-lex.org/visualization/?sign=run_out_of>`_ and `SCISSORS <https://asl-lex.org/visualization/?sign=scissors>`_. *insert link to video*
 
 .. _straightening: 
 
@@ -176,7 +180,7 @@ see "spreading/un-spreading"
 
 wiggling/fluttering
 ===================
-AP to add
+Extension *and* flexion of base joints of the selected fingers independently from each other, such that the fingers wiggle/flutter. This movement is seen in the signs  `DIRTY <https://asl-lex.org/visualization/?sign=dirty>`_ or `SALT <https://asl-lex.org/visualization/?sign=salt>`_. *insert link to video*
 
 .. _x_slot:
 
