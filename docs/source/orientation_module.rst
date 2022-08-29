@@ -14,34 +14,25 @@ Note that directions on the horizontal axis can be set to either be absolute (ri
 The selection options included in this module are outlined below:
 
 **1) This module applies to**
-        * H1
-        * H2
-
+  
+.. image:: images/ori_hand.png
+        :width: 60
+        :align: left
+        
 **2) Palm direction**
 
-      a) * UP
-         * DOWN
-         
-      B) * DISTAL
-         * PROXIMAL
-      
-      C) * IPSILATERAL
-         * CONTRALATERAL
+.. image:: images/ori_palm_direction.png
+        :width: 60
+        :align: left
       
       
 Palm direction refers to the direction that the friction surface of the hand (minus the fingers) is facing. When selecting palm direction, you are         able to maximally select one option from each set of options (e.g., **give an example of a sign and how it would be coded.**)
      
 **3) Finger root direction**
 
-
-      a) * UP
-         * DOWN
-         
-      B) * DISTAL
-         * PROXIMAL
-      
-      C) * IPSILATERAL
-         * CONTRALATERAL
+.. image:: images/ori_finger_root.png
+        :width: 60
+        :align: left
         
 Finger root direction refers to the direction that the fingertips would be pointing if they were to be fully extended. You can maximally select one         from each set of options, that is, you may combine two or more columns if more than one of the direction options is involved (e.g., **give an example of a sign and how it would be coded.**)
         
