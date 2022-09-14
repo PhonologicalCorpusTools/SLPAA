@@ -101,7 +101,7 @@ The default list of shape options is:
 b) Axis direction
 ~~~~~~~~~~~~~~~~~
 
-Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. It is also possible to select an axis without a direction, which may be useful for coding an underspecified sign.
+Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. It is also possible to select an axis without a specific direction.
 
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements along different axes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
 
@@ -127,7 +127,8 @@ At most one direction can be selected for each axis, so that a total maximum of 
     * **Left**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_, or as in `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
     * **Right**, as in the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_, or as in `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
 
-* **Not relevant**, as in `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ [**REMOVE THIS?**]
+.. comment::
+    * **Not relevant** --> We may end up wanting some way to indicate that axis direction is unspecified, but we're working under the assumption that direction will always be relevant in some way for perceptual shape movements.
 
 See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right directions on the horizontal axis. See :ref:`signing_space_page` for a visual representation of each of these options, and more information about the horizontal axis in particular.
 
