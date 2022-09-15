@@ -80,7 +80,7 @@ b) Symmetry in the horizontal axis
 
 [The issue with what horizontal symmetry even means: if the hands are moving towards each other, are they moving in the same direction? or if they're both moving to the signer's left, are they moving in the same direction? This is an issue with definition: the same in terms of what?]
 
-.. comment::
+.. note::
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
 
 .. _combinations_axes:
