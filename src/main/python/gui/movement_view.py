@@ -522,16 +522,6 @@ class MovementTreeModel(QStandardItemModel):
         self._listmodel = listmod
 
 
-################# TODO KV below is copied from CorpusModel
-    #
-    # def data(self, index, role):
-    #     if role == Qt.DisplayRole:
-    #         return self.glosses[index.row()]
-    #
-    # def rowCount(self, index):
-    #     return len(self.glosses)
-
-
 class MovementTreeView(QTreeView):
 
     # adapted from https://stackoverflow.com/questions/68069548/checkbox-with-persistent-editor

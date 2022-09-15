@@ -64,7 +64,7 @@ class SignLevelDateDisplay(QLabel):
     def set_datetime(self, thedatetime):
         self.datetime = thedatetime
         if thedatetime is None:
-            self.setText("now")
+            self.setText("")
         else:
             self.setText(self.datetime.strftime('%Y-%m-%d %I:%M:%S%p'))
 
@@ -222,7 +222,7 @@ class SignLevelInfoLayout(QVBoxLayout):
     def get_value(self):
         # if self.get_date() and self.get_gloss():
         if self.get_gloss():
-            if self.created_display.text() == "now" or self.modified_display.text() == "now":
+            if self.created_display.text() == "" or self.modified_display.text() == "":
                 newtime = datetime.now()
                 self.created_display.set_datetime(newtime)
                 self.modified_display.set_datetime(newtime)

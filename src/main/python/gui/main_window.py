@@ -331,7 +331,8 @@ class MainWindow(QMainWindow):
         if self.corpus and self.corpus.name:
             corpusname = self.corpus.name
         self.corpus_view = CorpusView(corpusname, parent=self)
-        self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
+        # self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
+        self.corpus_view.selected_sign.connect(self.handle_sign_selected)
         self.corpus_view.title_changed.connect(self.setCorpusName)
 
         self.corpus_scroll = QScrollArea(parent=self)
@@ -695,8 +696,9 @@ class MainWindow(QMainWindow):
         if not response:  # close the window or press cancel
             self.on_action_new_corpus(False)
 
-    def handle_sign_selected(self, gloss):
-        selected_sign = self.corpus.get_sign_by_gloss(gloss)
+    def handle_sign_selected(self, sign):  # gloss):
+        # selected_sign = self.corpus.get_sign_by_gloss(gloss)
+        selected_sign = sign
 
         self.current_sign = selected_sign
         # self.new_sign = selected_sign
@@ -1066,11 +1068,14 @@ class MainWindow(QMainWindow):
         self.corpus = self.load_corpus_binary(file_name)
         self.corpus_view.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
 
-        first = self.corpus.get_sign_glosses()[0]
+        # first = self.corpus.get_sign_glosses()[0]
         # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv dict(),
         self.corpus_view.corpus_title.setText(self.corpus.name)
-        self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
-        self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
+        # self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
+        # self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
+        self.corpus_view.updated_signs(self.corpus.signs, self.corpus.signs[0])
+        # self.corpus_view.selected.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
+        self.corpus_view.selected.emit(self.corpus.signs[0].signlevel_information.gloss)
 
         return bool(self.corpus)
 
