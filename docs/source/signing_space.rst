@@ -6,7 +6,6 @@
     amend the angled circular directions image to include the top of the circle for each plane
     diagrams
         - full, detailed overview of axes and planes
-        - simple axes 
         - combination of axes
         - angled planes (no circular direction)
         - top of a circle 
@@ -19,6 +18,9 @@
     
 .. comment::
     From sign type: "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`signing space<signing_space_page>` for more information.
+    
+.. comment::
+    Note that we don't prescribe how the system of planes and axes must be defined in terms of their relation to the signer. There is freedom for an interpretation of relative planes both through the relative orientation system and because the set of planes need not be rigidly defined. (For example, if a signer changes position or moves part of their body in a different direction, the sign directions can apply as usual to the signer's altered position.)
 
 .. _signing_space_page:
 
@@ -28,7 +30,7 @@ Symmetry, Planes & Axes
 
 **Introduction**
 
-This page will describe the complexities of the three-dimensional signing space on and surrounding the body and explain the relevant terminology used throughout the program and here in its documentations.
+This page will describe the complexities of the three-dimensional signing space on and surrounding the body and explain the relevant terminology used throughout SLP-AA and here in its documentations.
 
 .. note::
     Movement *direction* vs. static *location*. Use the left/right distinction relative to the intrinsic midline of the body. Grab a couple of sign examples to demonstrate. 
@@ -39,8 +41,8 @@ This page will describe the complexities of the three-dimensional signing space 
 
 .. _axes_entry:
 
-1. Axes
-```````
+1. Axes and straight movements
+``````````````````````````````
 
 **Introduction**
 
@@ -76,6 +78,11 @@ b) Symmetry in the horizontal axis
 
 **Complications from the horizontal axis in particular and any combinations involving it, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in sign type**
 
+[The issue with what horizontal symmetry even means: if the hands are moving towards each other, are they moving in the same direction? or if they're both moving to the signer's left, are they moving in the same direction? This is an issue with definition: the same in terms of what?]
+
+.. comment::
+    From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
+
 .. _combinations_axes:
 
 c) Combinations of axes
@@ -83,20 +90,35 @@ c) Combinations of axes
 
 **How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.**
 
-.. warning::
-    To be able to cover everything below the 'Planes' node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for the (two) ordinate axes that form a basis for each plane; etc.
+.. comment::
+    Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements along different axes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
+    
+    `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_
 
-.. warning::
+.. note::
+    From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9)
+
+.. comment::
     It is **possible**, though perhaps too technically involved, to include notions like: sets of parallel planes; normal vectors; spans; cartesian coordinate triples in space; movement vector triples in space; etc.
     
-    It is **likely** that we will need to include notions like: direction of movement relative to an arbitrary starting point; vectors parallel to/able to form bases for ordinate axes; vector addition/combinations of axes; etc.
+    It is **likely** that we will need to include notions like: direction of movement relative to an arbitrary starting point; vectors parallel to/able to form bases for ordinate axes (and later planes); vector addition/combinations of axes; etc.
 
 .. _planes_entry:
 
-2. Planes
-`````````
+2. Planes and circular movements
+````````````````````````````````
 
-We can also describe a set of planes, where each one is formed by a pair of the ordinate axes described above. These are the **horizontal**, **vertical**, and **mid-sagittal** planes.
+.. _planes_section:
+
+I. Planes
+=========
+
+.. warning::
+    To be able to cover everything below the 'Planes' node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for the (two) ordinate axes that form a basis for each plane; etc.
+    
+    Be sure that these are adequately covered above.
+
+We can also describe a set of planes, where each one is formed by a pair of the ordinate axes described above. These are the **horizontal**, **vertical**, and **mid-sagittal** planes. (In the following diagram, the signer would be facing toward the front side of the cube.)
 
 .. image:: images/shared_planes.png
     :width: 750
@@ -106,8 +128,8 @@ We can also describe a set of planes, where each one is formed by a pair of the 
 
 .. _circular_directions:
 
-I. Circular directions
-======================
+II. Circular directions
+=======================
 
 **Introduction**
 
@@ -123,7 +145,7 @@ a) 'Top' of a circle
 b) Default directions
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Definition (and possibly illustration) of default directions**
+**Definition (and possibly illustration) of default directions, in reference to the top of the circle. Start with the mid-sagittal plane to describe the simple case, then the vertical, then horizontal.**
 
 .. _plane_symmetry:
 
@@ -140,7 +162,12 @@ c) Symmetry in planes involving the horizontal axis
 d) Directions in combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**How to approach combinations of planes. Mention again that these must be considered to be additive in a single module, not sequential.**
+Sometimes circular shapes don't line up perfectly within one of the cardinal planes. 
+
+.. comment::
+    Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the description of :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_combinations>` for a visual description of how this works. For sequential movements in different planes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
+    
+    `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
@@ -148,12 +175,12 @@ d) Directions in combinations of planes
 
 .. _symmetry_review:
 
-II. The signing space
-=====================
+III. The signing space
+======================
 
 **Detailed summary for quick reference, consisting mostly of a set of visuals and sign examples.**
 
-**Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry.**
+**Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry. Hopefully this will be a good way to easily reference the important information without digging through the whole page.**
 
 .. image:: images/shared_axes_and_planes.png
     :width: 750
@@ -179,11 +206,14 @@ II. The signing space
     To include here:
     
     {Introduction to the particular difficulties introduced with horizontal symmetry over any other kind}
+    
     -->    {The (set of) mid-sagittal plane(s) as normal to the horizontal axis}
         
     {Anatomical symmetry across the "midline," or whatever terminology}
+    
     -->    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry, or plane of bisection, or other. Which one of these is the clearest/simplest? Is there a term used more often in sign language linguistics or sign language teaching? This cannot be referred to as the mid-sagittal plane, as it must specifically be horizontally central to the body (meanwhile a generic mid-sagittal plane can still be described to either side of the body).
     
     {Why the discrepancy? Difficulties in articulation mechanisms}
+    
     --> Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, e.g. an axis on one hand AND a plane on the other. Link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane. Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with.
 
