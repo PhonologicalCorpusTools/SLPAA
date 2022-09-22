@@ -126,7 +126,10 @@ perceptual shape
 
 A "perceptual shape" is one of the three primary types of movement that are coded in SLP-AA (the other two being :ref:`handshape_change` and :ref:`joint_specific_movement`). These movements are characterized as being produced based on and understood by the shapes that they trace out, either in the signing space or on the body, regardless of the joints involved in the motion. The default list of shapes that can be selected for this movement type can be found in the :ref:`shape<shape_entry>` section.
 
-Perceptual shape movements are comparable to traditional 'path' / 'major' / 'primary' movements, with the exception that there is no distinction at this level for shapes produced by joints that are more proximal or more distal to the body, although that distinction can be recorded in the :ref:`joint activity<joint_activity_entry>` section. There is some possible overlap between perceptual shape and joint-specific movements in some cases, so care should be taken when selecting between these. For example, a flexion the selected finger base joints could either be coded as :ref:`flattening<flattening_straightening>` or as a "straight" perceptual shape.
+Perceptual shape movements are often comparable to traditional 'path' / 'major' / 'primary' movements, with the exception that there is no distinction at this level for shapes produced by joints that are more proximal or more distal to the body, although that distinction can be recorded in the :ref:`joint activity<joint_activity_entry>` section. There is some possible overlap between perceptual shape and joint-specific movements in some cases, so care should be taken when selecting between these. For example, flexion of the selected finger base joints could either be coded as :ref:`flattening<flattening_straightening>` or as a "straight" perceptual shape.
+
+.. comment::
+  This example is meant to show that the choice between 'perceptual shape' and 'joint-specific movement' is a phonological one in the cases where either one could reasonably apply. The difference is not purely articulatory. This is also true for traditional terms like 'path' and 'local' movements.
 
 
 .. _pinching_unpinching:
