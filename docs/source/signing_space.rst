@@ -1,16 +1,16 @@
 .. todo::
     sign example pair for (dynamic) direction and (static) location
     sign examples for each axis direction, plane, and circular directionality 
-        - should be doubled from the movement docs, not a new set of examples
-    replace the placeholder image currently in the 'summary' section
-    amend the angled circular directions image to include the top of the circle for each plane
+        - should be doubled from the movement docs and elsewhere, not a new set of examples
+    amend the angled circular directions image to include the top of the circle for each plane?
     diagrams
         - full, detailed overview of axes and planes
+        - simple system of axes
         - combination of axes
         - angled planes (no circular direction)
         - top of a circle 
         - circular directions (including top of the circle)
-    fill in missing descriptions
+    use new images to replace the placeholders in axes and the symmetry review
     references?
 
 .. comment:: 
@@ -20,7 +20,7 @@
     From sign type: "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`signing space<signing_space_page>` for more information.
     
 .. comment::
-    Note that we don't prescribe how the system of planes and axes must be defined in terms of their relation to the signer. There is freedom for an interpretation of relative planes both through the relative orientation system and because the set of planes need not be rigidly defined. (For example, if a signer changes position or moves part of their body in a different direction, the sign directions can apply as usual to the signer's altered position.)
+    Note that we don't prescribe how the system of planes and axes must be defined in terms of their relation to the signer. There is freedom for an interpretation of relative planes both through the relative orientation system and because the set of planes need not be rigidly defined. (For example, if a signer changes position or moves part of their body in a different direction, the sign directions can apply as usual to the signer's altered position without any fuss.)
 
 .. _signing_space_page:
 
@@ -50,12 +50,9 @@ The system used in this program to describe location, direction of movement, ori
 
 Each axis can be described in reference to the signer's body. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
 
-(working on this currently)
-
-.. comment::
-    .. image:: images/shared_axes.png
-        :width: 750
-        :align: left
+.. image:: images/placeholder.png
+    :width: 750
+    :align: left
         
 .. _axis_directions:
 
@@ -69,7 +66,7 @@ I. Axis directions
 a) Default directions
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Definition (and possibly illustration) of default directions**
+**Definition (and possibly illustration) of the default directions along each axis.**
 
 .. _axis_symmetry:
 
@@ -94,6 +91,8 @@ c) Combinations of axes
     Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<combinations_axes>` for a visual description of how this works. For sequential movements along different axes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
     
     `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_
+    
+    `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_
 
 .. note::
     From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9)
@@ -168,6 +167,10 @@ Sometimes circular shapes don't line up perfectly within one of the cardinal pla
     Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the description of :ref:`combinations of planes<planes_entry>` and :ref:`angled circular directions<circular_combinations>` for a visual description of how this works. For sequential movements in different planes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
     
     `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_
+    
+    `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_
+    
+    `SMOKE <https://asl-lex.org/visualization/?sign=smoke>`_
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
@@ -182,16 +185,14 @@ III. The signing space
 
 **Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry. Hopefully this will be a good way to easily reference the important information without digging through the whole page.**
 
-.. image:: images/shared_axes_and_planes.png
+.. image:: images/placeholder.png
     :width: 750
     :align: left
 
-**Note: This image is a placeholder and must be replaced when we have something suitable. It was taken from https://www.physical-solutions.co.uk/wp-content/uploads/2015/05/Understanding-Planes-and-Axes-of-Movement.pdf, and it's similar to what I would want to have here other than some alterations to the plane and axis labels**
+.. _body_location_symmetry:
 
-.. _tbd_location_symmetry:
-
-3. (Title)
-```````````
+3. Body-linked locations
+````````````````````````
 
 **All above information as applicable to smaller locations and/or on-body locations. Needs more planning, and will likely be coordinated with the Location module documentations. For now this is just a general concept of something we will need later on.**
 
@@ -216,4 +217,5 @@ III. The signing space
     {Why the discrepancy? Difficulties in articulation mechanisms}
     
     --> Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, e.g. an axis on one hand AND a plane on the other. Link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane. Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with.
-
+    
+    
