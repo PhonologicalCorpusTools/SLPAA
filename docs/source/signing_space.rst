@@ -93,7 +93,7 @@ b) Symmetry in the horizontal axis
 c) Directions in combinations of axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential. (Use `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_ as examples, and show a sample coding of the movement module for one of these.)**
+**How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.** (Use `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_ as examples, and show a sample coding of the movement module for one of these.)
 
 .. comment::
     From movement: Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<angled_axes>` for a visual description of how this works. For sequential movements along different axes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
@@ -128,7 +128,7 @@ These are the **horizontal**, **vertical**, and **mid-sagittal** planes.
     :width: 750
     :align: left
 
-**Note: I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body/>`_ if we can manage that somehow.**
+**Note: I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown** `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body>`_ **if we can manage that somehow.**
 
 .. _angled_planes:
 
