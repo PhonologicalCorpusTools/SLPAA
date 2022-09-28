@@ -4,7 +4,11 @@
         - should be doubled from the movement docs and elsewhere
     replace current placeholders with diagrams
         - axis system
+        - plane system, preferably
         - summary image
+    references
+        - Johnson & Liddell
+        - (potentially) Battison
 
 .. comment:: 
     The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle in each plane, **anatomical position (?)**, and ipsi-contra definitions.
@@ -87,13 +91,21 @@ b) Symmetry in the horizontal axis
 
 .. note::
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
+    
+    Resolved by giving examples of EAST and WEST? Reference J&L.
 
 .. _angled_axes:
 
 c) Directions in combinations of axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.** (Use `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_ as examples, and show a sample coding of the movement module for one of these.)
+An axis direction can also be specified to be angled by selecting multiple component directions from the applicable cardinal axes.
+
+**How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.** (Use `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_ as examples.)
+
+.. image:: images/mov_sample_sign_FOCUS.png
+    :width: 750
+    :align: left
 
 .. comment::
     From movement: Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the note on :ref:`combinations of axes<angled_axes>` for a visual description of how this works. For sequential movements along different axes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
@@ -128,7 +140,7 @@ These are the **horizontal**, **vertical**, and **mid-sagittal** planes.
     :width: 750
     :align: left
 
-**Note: I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown** `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body>`_ **if we can manage that somehow.**
+**Note: I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown** `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body/>`_ **if we can manage that somehow.**
 
 .. _angled_planes:
 
@@ -173,20 +185,15 @@ c) Symmetry in planes involving the horizontal axis
 d) Circular shapes in combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes circular shapes are traced within an angled plane, rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. 
-
-.. comment::
-    From movement: Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of planes should be interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the description of :ref:`combinations of planes<angled_planes>` and :ref:`angled circular directions<angled_circles>` for a visual description of how this works. For sequential movements in different planes, you should create multiple movement modules and use the :ref:`x-slot visualization window<sign_summary>` to assign a temporal order to the movement sequence.
-
-**Component planes**
+Sometimes circular shapes are traced within an angled plane rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes, as described :ref:`above<angled_planes>`, and code the direction within the angled plane by selecting the component directions within the component planes as well. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
     :align: left
 
-**Description**
+In this example, the sign traces out the black circle in an angled plane. The information to record in the program is then the directionalities indicated for the red and blue circles, which are situated in cardinal planes. The idea is that the angled circle could be 'flattened' into its components, and then the resulting circular directions are simpler to record and analyze.
 
-Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand. Note that the axis direction as selected here describes the position of the hand at the midpoint of the first circle relative to its position at the beginning of the movement. (See the note on :ref:`axis direction for circular shapes<axis_direction_entry>` for more information).
+Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand:
 
 .. image:: images/mov_sample_sign_SOCIALIZE_H1.png
     :width: 750
@@ -195,6 +202,8 @@ Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.co
 .. image:: images/mov_sample_sign_SOCIALIZE_H2.png
     :width: 750
     :align: left
+
+Note that the axis direction as selected here describes the position of the hand at the midpoint of the first circle relative to its position at the beginning of the movement. (See the note on :ref:`axis direction for circular shapes<axis_direction_entry>` for more information).
 
 .. _symmetry_review:
 
