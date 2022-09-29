@@ -61,6 +61,7 @@ from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
 from gui.movement_selector import MovementSpecificationLayout
+from gui.location_selector import LocationSpecificationLayout as LocationSpecificationLayout2
 from gui.handshape_selector import HandConfigSpecificationLayout
 from gui.xslots_selector import XslotSelectorDialog
 from lexicon.lexicon_classes import Sign, GlobalHandshapeInformation, TimingInterval, TimingPoint
@@ -900,8 +901,22 @@ class SignSummaryPanel(QScrollArea):
         QMessageBox.information(self, 'Not Available', 'Orientation module functionality not yet linked.')
 
     def handle_locationbutton_click(self):
-        # TODO KV
-        QMessageBox.information(self, 'Not Available', 'Location module functionality not yet linked.')
+        location_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
+                                                 hands=None,
+                                                 xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                                 enable_addnew=True,
+                                                 modulelayout=LocationSpecificationLayout2(),
+                                                 moduleargs=None)
+        location_selector.get_savedmodule_signal().connect(lambda locationtree, hands, timingintervals: self.handle_save_location(locationtree, hands, timingintervals))
+        location_selector.exec_()
+
+    def handle_save_location(self, locationtree, hands_dict, timingintervals, existing_key=None):
+        if existing_key is None or existing_key not in self.sign.locationmodules.keys():
+            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals)
+        else:
+            # self.sign.locationmodules[existing_key] = locationtree
+            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals)
+        self.sign_updated.emit(self.sign)
 
     def handle_handpartbutton_click(self):
         # TODO KV
