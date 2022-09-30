@@ -5,8 +5,6 @@ from os import path
 meipass_path = sys._MEIPASS
 
 # debugging
-print(path.dirname(sys.executable))
-input("break")
 
 # end debugging
 

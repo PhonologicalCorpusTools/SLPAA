@@ -1,0 +1,4 @@
+pyqt5~=5.15.7
+num2words~=0.5.12
+fbs~=1.1.4
+pyinstaller~=4.10
