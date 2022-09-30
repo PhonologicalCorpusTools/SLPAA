@@ -32,15 +32,20 @@ a = Analysis([os.path.join(src_path, 'main.py')],
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
           name='SLPAA',
-          debug=True,    # True only for debugging. Change to False later
+          debug=False,    # True if debugging
           strip=False,
           upx=True,
-          console=True,  # True only for debugging. Change to False later
+          console=False,  # True if debugging
           icon=icon_path)
+
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=False,
+               upx=True,
+               name='resources')
 
 if sys.platform == 'darwin':
    app = BUNDLE(exe, name='SLPAA.app', icon=icon_path)

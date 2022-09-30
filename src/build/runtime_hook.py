@@ -14,4 +14,4 @@ with open(path.join(meipass_path, 'runtime', 'base.json')) as f:
 module = importlib.import_module('fbs_runtime._frozen')
 module.BUILD_SETTINGS = settings
 module.BUILD_SETTINGS['environment'] = 'local'
-module.BUILD_SETTINGS['meipass_path'] = meipass_path
+# module.BUILD_SETTINGS['meipass_path'] = meipass_path
