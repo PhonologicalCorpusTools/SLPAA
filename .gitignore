@@ -12,6 +12,6 @@ docs/source/generate/
 docs/source/generated/
 
 # Executable creation
-src/main/python/build
-src/main/python/dist
+src/main/python/build/*
+src/main/python/dist/*
 
