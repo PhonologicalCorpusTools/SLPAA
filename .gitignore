@@ -14,5 +14,6 @@ docs/source/generated/
 # Executable creation
 build/*
 dist/*
-!dist/resources
+!dist/SLPAA-win64.zip
+!dist/SLPAA-macos.zip
 
