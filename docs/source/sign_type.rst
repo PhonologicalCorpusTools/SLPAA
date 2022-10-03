@@ -1,3 +1,6 @@
+.. todo::
+  update the screenshot of the selection window
+
 .. _sign_type_module:
 
 ***********
@@ -6,11 +9,10 @@ Sign Type
 
 This module is used to identify the overarching ‘kind’ of sign by selecting specifications for the behaviours of each hand (H1 & H2) in relation to each other. 
 
-
 .. _signtype_number_hands: 
 
 Number of hands
-`````````````````
+```````````````
 
 1. 1 hand
 ========= 
@@ -24,7 +26,7 @@ Select this if the sign involves only one hand.
 -Note that if the forearm, elbow, or wrist of the H2 is involved, there are several ways this could be coded in SLP-AA, and users should define their own conventions for consistency. Some options are: (1) the user can decide to specify the sign as one-handed and include the use of H2 in the specifications of contact and location; (2) the user can specify the sign as one-handed and select "forearm involved" in the hand configuration module; or (3) the user can specify the sign as two-handed, also specifying that "only H1 moves". For example, the sign `CRACKER <https://asl-lex.org/visualization/?sign=cracker>`_ could be coded as (1) one-handed, with H1 making contact to H2 at the elbow; (2) one-handed, with "forearm involved" selected in the hand configuration module; or (3) two-handed, with only H1 specified as moving. The sign `TABLE <https://asl-lex.org/visualization/?sign=table>`_ could be coded with the same basic options, with the additional possibility of coding the contact that H2 makes with the elbow of H1 in a separate location module and contact module.
 
 2. 2 hands
-=========
+==========
 Select this if both hands are involved in the sign. See note above if forearm, wrist, or elbow of the second hand are involved. 
 
 I. Handshape relation
@@ -32,17 +34,13 @@ I. Handshape relation
 
 - "H1 and H2 involve the same set(s) of handshapes" should be selected if all the handshapes used at any point during the sign are shared between both hands. This can be because the handshapes never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), or because the handshapes change but involve the same shapes on both hands. In the latter case, the handshapes can alternate (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) or change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
 
-
 - "H1 and H2 involve different set(s) of handshapes" should be selected if the two hands have at least one different handshape from each other within the sign, that is, if a handshape that appears on one hand never appears on the other hand. This could be because they never have the same handshape (e.g., `SHOW <https://asl-lex.org/visualization/?sign=show>`_), or because they share a handshape at only one part of the sign (e.g., `EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_). 
-
-
 
 II. Contact relation
 ~~~~~~~~~~~~~~~~~~~~~~
 - "H2 maintains contact with H1 throughout the sign" should be selected if the contact is maintained throughout the duration of the sign. This can happen when both hands move together, such as `SHOW <https://asl-lex.org/visualization/?sign=show>`_ or `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, or when the two hands are stationary in space but involve local movements, as in `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ or `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_.
 
 - "H1 and H2 do not maintain contact with each other" should be selected if contact is not maintained throughout the sign. This includes signs that have no contact between the hands (e.g., `STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) and signs that have momentary contact which is not maintained throughout the sign, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_.
-
 
 .. _signtype_movement_relation: 
 
@@ -73,7 +71,7 @@ a. Movement timing relation
       
   - "Simultaneous" should be selected if the hands move at the same time; when one hand is moving (in any way), the other is, too. Further specifications can be made below.
       
-    - "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`signing space<signing_space_page>` for more information. 
+    - "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`signing_space_page` for more information. 
             
       Some examples where everything is mirrored / in phase are: `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, `CLOUD <https://asl-lex.org/visualization/?sign=cloud_1>`_, and `DECORATE <https://asl-lex.org/visualization/?sign=decorate_2>`_ (all three of which have circular perceptual shape movements) and `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ (an unhooking joint-specific movement). For straight perceptual movements, the way directions are defined on the horizontal axis may be relevant. If the horizontal axis is defined in terms of relative directions, `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ would fall in this category (both hands are either contralateral or ipsilateral at the same time). If the horizontal axis is defined in terms of absolute directions, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ would fall in this category (both hands are either left or right at the same time). 
             
@@ -88,9 +86,9 @@ a. Movement timing relation
 .. _signtype_inclusion_of_perceptual_shape: 
 
 b. Inclusion of perceptual shape movement
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- "The sign includes a perceptual shape movement" should be selected if at least one of the movements in the sign is a :ref:`perceptual_shape`. This enables the specification of directions within perceptual shape movements (:ref:`signtype_movement_direction_relation`).
+- "The sign includes a perceptual shape movement" should be selected if at least one of the movements in the sign is a :ref:`perceptual_shape`. This enables the specification of directions within perceptual shape movements (:ref:`Movement Direction Relation<signtype_movement_direction_relation>`).
 
 .. note::
   We currently allow the section :ref:`Movement Direction Relation<signtype_movement_direction_relation>` to be specified only for signs with a *perceptual shape* component to their movement. It is true that certain joint-specific movements do also have 'directions' to their movements (e.g., twisting can be either pronating or supinating; pivoting can be toward the ulnar or the radial side), but these are not specifically coded as 'directions' in the :ref:`movement`. Instead, these differences are more directly accounted for in the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section above, because they have direct consequences for whether the *orientations* or *handshapes* of the hands are synchronized / in phase / non-alternating or not (see examples such as `DIE <https://asl-lex.org/visualization/?sign=die>`_, `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, `PAIN <https://asl-lex.org/visualization/?sign=pain>`_, or `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ below). However, with perceptual shape movements, the direction and synchronization / phasing are potentially separable, such that both need to be specified. This is especially clear with circular movements, where for example we can have the possible combinations illustrated below. For each one, both the :ref:`Movement Direction Relation<signtype_movement_direction_relation>` and the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` are specified. Note that the directions themselves are often dependent on whether the horizontal axis is treated relatively (ipsilateral / contralateral) or absolutely (right / left and clockwise / counterclockwise). The choices for direction parameters can be set in :ref:`global_settings`; the examples below show both possibilities.
@@ -109,7 +107,7 @@ b. Inclusion of perceptual shape movement
 
 .. _signtype_movement_direction_relation:
 
-Movement direction relation
+c. Movement direction relation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
 - "H1 and H2 have the same direction of movement" should be selected if the two hands move in either the same absolute direction or relative direction during the perceptual shape movement(s), depending on the choices selected in :ref:`global_settings`. This option would also apply if there are multiple perceptual shape movements and the hands move in the same directions in **all** of them. 
@@ -120,7 +118,6 @@ Movement direction relation
       
      - Finally, this option would also apply in cases that do not include the horizontal axis, like `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, where both hands are moving clockwise on the mid-sagittal plane (though again, they differ according to their :ref:`Movement Timing Relation<signtype_movement_timing_relation>`).
  
- 
 - "H1 and H2 have different directions of movement" should be selected if the two hands move in either different absolute directions or different relative directions during the perceptual shape movement(s), depending on the choices selected in :ref:`global_settings`. This option would also apply if there are multiple perceptual shape movements and the hands move in different directions in at least one of them. 
       
      - If the user has chosen relative directions on the horizontal axis, this option would be selected for signs where one hand moves ipsilaterally and one hand moves contralaterally, as in `SOCIAL <https://asl-lex.org/visualization/?sign=social>`_ (from the top of the circle, the upper hand moves contralaterally and the lower hand moves ipsilaterally), `DECORATE <https://asl-lex.org/visualization/?sign=decorate_2>`_ (from the top of the circle, the upper hand moves contralaterally and the lower hand moves ipsilaterally), and `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ (when one hand is moving ipsilaterally, the other is moving contralaterally and vice versa). Again, other minimal differences among these signs are covered by the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section above.
@@ -128,8 +125,6 @@ Movement direction relation
      - If the user has chosen absolute directions on the horizontal axis, this option would be selected for signs where one hand moves right and one hand moves left, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_ (the right hand moves to the left; the left hand moves to the right) or `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ (the right hand moves rightward and the left hand moves leftward, separating away from each other), or the hands circle in the opposite direction, as in `CLOUD <https://asl-lex.org/visualization/?sign=cloud_1>`_ and `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_ (in both signs, the right hand moves counterclockwise but the left hand moves clockwise).  Again, other minimal differences among these signs are covered by the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section above.
       
      - Finally, this option would also apply in cases that do not include the horizontal axis, such as `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_ (when one hand is moving distally, the other is moving proximally and vice versa).
-      
-      
 
 **[Needs to be updated with new sign type layout]**
 Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_:
@@ -137,3 +132,4 @@ Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/inde
    .. image:: images/signtype_COMPARE.png
       :width: 80%
       :align: center
+
