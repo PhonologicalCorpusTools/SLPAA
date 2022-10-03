@@ -175,7 +175,7 @@ c) Symmetry in planes involving the horizontal axis
 d) Circular shapes in combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes circular shapes are traced within an angled plane rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes, as described :ref:`above<angled_planes>`, and code the direction within the angled plane by selecting the component directions within the component planes as well. See the following illustration for how this works:
+Sometimes circular shapes are traced within an angled plane rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes, as described above, and code the direction within the angled plane by selecting the component directions within the component planes as well. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
@@ -212,7 +212,6 @@ III. The signing space
     This placeholder should be replaced with a detailed image that shows a full summary of the set of cardinal axes and planes with all possible directions labelled appropriately (including both sets of options for directions involving the horizontal axis), preferably with a demonstrated reference to the direction of the signer's body. This might be easiest to accomplish if we use a still image of one of us and superimpose the relevant information over top of it.
     
 .. note::
-
     **A note on repeated terminology**
     
     There are several places throughout the program where similar or identical terms are used for slightly different contexts. Take care to note the sign component that any given word is meant to be describing to be sure that your choice is accurate.
