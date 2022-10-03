@@ -1,5 +1,4 @@
 .. todo::
-    (dynamic) direction and (static) location
     copy sign examples for each axis/direction, and plane/circular directionality
         - should be doubled from the movement docs and elsewhere
     replace current placeholders with diagrams
