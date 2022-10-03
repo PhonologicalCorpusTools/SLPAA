@@ -1,12 +1,5 @@
 For a demonstration of how the software will work, please see: <a href="https://www.youtube.com/watch?v=o4C4hibTW1o"> SLP-AA Initial Demonstration Video on YouTube</a>
 
-To run the software on your machine, you can either (a) download the code from this repository and run it yourself if you have Python installed, or (b) download/run the application files as per the instructions below without having to worry about installing python or looking at code.
- 1. Download the bundled application files (clicking on the link will also show you when the zip was last updated): 
-    - For 64-bit Windows machines: <a href="https://github.com/PhonologicalCorpusTools/SLPAA/blob/main/dist/SLPAA-win64.zip">SLPAA-win64.zip</a>.
-    - For MacOS: <a href="https://github.com/PhonologicalCorpusTools/SLPAA/blob/main/dist/SLPAA-macos.zip">SLPAA-macos.zip</a>.
- 2. Unzip the archive.
- 3. Run SLPAA.exe (Windows) or SLPA.app (Mac).
-
 # SLP-Annotator/Analyzer
 
 Sign Language Phonetic-Annotator/Analyzer (SLP-AA) is a graphical user interface (GUI)-based software system for the form-based transcription and analysis of signs. The system is intended to be relatively phonetic in nature and compatible with multiple phonological theories, enabling transcription of detailed variation across many sign languages, but largely without relying on a specific notation system. 
