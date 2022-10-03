@@ -14,7 +14,7 @@
     The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle in each plane, anatomical position, and ipsi-contra definitions.
     
 .. comment::
-    From sign type: "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`signing space<signing_space_page>` for more information.
+    From sign type: "Everything is mirrored / in phase" should be selected if location, handshape, and orientation are all mirrored / in phase (synchronized). Signs are considered to be mirrored / in phase when both hands have the same specification at the same time; signs are considered to be not mirrored / out of phase when the hands have opposite specifications at the same time; see :ref:`signing_space_page` for more information.
 
 .. _signing_space_page:
 
@@ -22,7 +22,7 @@
 Symmetry, Planes & Axes
 ***********************
 
-This page will describe and define the terminology used throughout SLP-AA and here in its documentation in reference to the signing space on and surrounding the body. There is a fairly high level of complexity when dealing with motion in three-dimensional space, but our aim is that the visual and textual descriptions here will help to reduce any difficulty in interpreting the program's options and adapting them to the requirements of the individual user. 
+This page will describe and define the terminology used throughout SLP-AA and here in its documentations in reference to the signing space on and surrounding the body. There is a fairly high level of complexity when dealing with motion in three-dimensional space, but our aim is that the visual and textual descriptions provided here will help to reduce any difficulty in interpreting the program's options and adapting them to the requirements of the individual user. 
 
 .. _axes_entry:
 
@@ -47,14 +47,10 @@ These axes can be described in reference to any given point on the signer's body
 .. comment:: 
     This image should be replaced with one that shows the three cardinal axes relative to the signer's body, with some logical origin point selected. Directions (e.g. proximal/distal) should not be indicated for now. This might be easiest to accomplish if we use a still image of one of us and superimpose the system of axes over it, maybe from two angles if that's helpful.
 
-...
-
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
 
-**Remark on possibility of angled vectors (which we still call axis directions) through combinations of axes.)**
-
 .. note::
-    (relevant information on combinations of axes as additive)
+    **Give the relevant information on angled axis directions, i.e. that 1) they're possible through selecting multiple directions, which are 2) considered additive rather than sequential
 
 .. _axis_directions:
 
@@ -75,7 +71,7 @@ a) Default directions
 b) Symmetry in the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Complications from the horizontal axis in particular and any combinations involving it, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in** :ref:`sign type<sign_type_module>`.
+**Complications from the horizontal axis in particular and any combinations involving it, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in** :ref:`sign_type_module`.
 
 [The issue with what horizontal symmetry even means: if the hands are moving towards each other, are they moving in the same direction? or if they're both moving to the signer's left, are they moving in the same direction? This is an issue with definition: the same in terms of what?]
 
@@ -124,7 +120,7 @@ We can also describe a set of planes, where each one is formed by a pair of the 
 
 These are the **horizontal**, **vertical**, and **mid-sagittal** planes. 
 
-**(In this diagram, the signer would be facing toward the front side of the cube, looking out of the screen.)**
+In this diagram, the signer would be facing toward the front side of the cube, looking out of the screen:
 
 .. image:: images/shared_planes.png
     :width: 750
@@ -133,7 +129,7 @@ These are the **horizontal**, **vertical**, and **mid-sagittal** planes.
 .. comment::
     I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body/>`_, which might be easiest to replicate if we use a still image of one of us and superimpose the system of axes over it.
 
-Note that there is a good amount of flexibility in this system for defining planes relative to the positioning of the signer's body or the direction that they're facing, and that the central point of origin is not rigidly defined and can be adapted however necessary. The cardinal planes must be oriented in the same way relative to each other, ...
+There is a good amount of flexibility in the program for users to decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal plames are always oriented in the same way relative to each other.
 
 .. _angled_planes:
 
@@ -175,13 +171,13 @@ c) Symmetry in planes involving the horizontal axis
 d) Circular shapes in combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes circular shapes are traced within an angled plane rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes, as described above, and code the direction within the angled plane by selecting the component directions within the component planes as well. See the following illustration for how this works:
+Sometimes circular shapes are traced within an angled plane rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the direction within the angled plane by selecting the component directions as they would be within the component planes. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
     :align: left
 
-In this example, the sign includes the black circle traced out in an angled plane. The information to record in the program is then the directionalities indicated for the red and blue circles, which are situated in cardinal planes. The idea is that the angled circle could be 'flattened' into each of its components, and then the resulting circular directions are simpler to record and analyze.
+In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be 'flattened' into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program should be each of directionalities indicated for the red and blue circles, which are situated in cardinal planes.
 
 Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand:
 
