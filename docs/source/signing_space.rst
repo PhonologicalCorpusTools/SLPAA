@@ -50,7 +50,7 @@ These axes can be described in reference to any given point on the signer's body
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
 
 .. note::
-    **Give the relevant information on angled axis directions, i.e. that 1) they're possible through selecting multiple directions, which are 2) considered additive rather than sequential
+    **Give the relevant information on angled axis directions, i.e. that 1) they're possible through selecting multiple directions, which are 2) considered additive rather than sequential**
 
 .. _axis_directions:
 
