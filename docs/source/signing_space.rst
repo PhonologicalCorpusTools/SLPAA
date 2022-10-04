@@ -92,9 +92,17 @@ In order to remain explicit as to what this means and allow for precise analysis
 c) Directions in combinations of axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An axis direction can be specified to be angled by selecting multiple component directions from the applicable cardinal axes. (Take out the passive voice here and make the language more straightforward.)
+Sometimes the axis direction of a perceptual shape is traced along an angled axis rather than one of the ``cardinal axes`` **(glossary)**, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled axis is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
 
-**How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.** (Use `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_ as examples.)
+.. image:: images/placeholder.png
+    :width: 750
+    :align: left
+
+**(Image for angled axes/vectors)**
+
+Code each of the component directions as they would be within the component (cardinal) axes.
+
+Here is a sample coding of `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_, showing its two component directions within one module:
 
 .. image:: images/mov_sample_sign_FOCUS.png
     :width: 750
