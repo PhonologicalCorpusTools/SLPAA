@@ -71,17 +71,21 @@ a) Default directions
 b) Symmetry in the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Complications from the horizontal axis in particular and any combinations involving it, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in** :ref:`sign_type_module`.
+Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or mid-saggital axis, but much more ambiguous when the horizontal axis is involved. If both hands are moving to the signer's left or right, it would be understandable to assume that they are moving in the same direction. However, if both hands are moving towards or away from each other, then it also seems intuitive to say that they are moving in the same direction. 
 
-[The issue with what horizontal symmetry even means: if the hands are moving towards each other, are they moving in the same direction? or if they're both moving to the signer's left, are they moving in the same direction? This is an issue with definition: the same in terms of what?]
+In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options in the :ref:`global_settings`. For the absolute interpretation, the hands moving left or right are moving in the same direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving left or right are moving in different directions and the hands moving towards or away from each other are moving in the same direction. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it.
 
 .. note::
-    There is no articulatory difference between the right hand moving to left or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the right and left, respectively [reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely].
+    There is no articulatory difference between the right hand moving to left or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction regardless of handedness. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the signer's right and left, respectively **[reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely]**.
+    
+    Both options for the horizontal axis in SLP-AA can be used to adequately describe productions of these (and any other) signs, but this lexical definition would not be fully captured while using ipsi-contra descriptions. It may be helpful to indicate it elsewhere in the sign coding.
 
 .. comment::
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
     
     Resolved by giving examples of EAST and WEST? Reference J&L.
+
+**Interchangeability of the two horizontal systems. Particulars of what happens if the options change partway through coding a corpus, etc should be left to the global settings page. The description here should just mention why both systems are (basically) equivalent and what the differences look like in terms of searching/analysis.**
 
 .. _angled_axes:
 
