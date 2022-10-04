@@ -3,6 +3,7 @@
         - should be doubled from the movement docs and elsewhere
     replace current placeholders with diagrams
         - axis system (and axis directions)
+        - combinations of axes
         - plane system
         - summary image
     add references
@@ -36,7 +37,7 @@ This page will describe and define the terminology used throughout SLP-AA and he
 I. Axes
 =======
 
-The system used in this program to describe the ``modules`` **(link to glossary definition OR modularity page)** for each sign component depends on an understanding of the three ``cardinal axes`` **(link to glossary definition)**: **horizontal**, **vertical**, and **mid-sagittal**.
+The system used in this program to describe the ``modules`` **(link to glossary definition OR modularity page)** for each sign component depends on an understanding of the three :ref:`cardinal_axes`: **horizontal**, **vertical**, and **mid-sagittal**.
 
 These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
 
@@ -92,7 +93,7 @@ In order to remain explicit as to what this means and allow for precise analysis
 c) Directions in combinations of axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes the axis direction of a perceptual shape is traced along an angled axis rather than one of the ``cardinal axes`` **(glossary)**, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled axis is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
+Sometimes the axis direction of a perceptual shape is traced along an **angled axis** rather than one of the :ref:`cardinal_axes`, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled axis is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
 
 .. image:: images/placeholder.png
     :width: 750
@@ -102,7 +103,7 @@ Sometimes the axis direction of a perceptual shape is traced along an angled axi
 
 Code each of the component directions as they would be within the component (cardinal) axes.
 
-Here is a sample coding of `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_, showing its two component directions within one module:
+Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_, highlighting its two component axis directions within one module:
 
 .. image:: images/mov_sample_sign_FOCUS.png
     :width: 750
@@ -128,7 +129,7 @@ I. Planes
     
     Be sure that these are adequately covered above.
 
-We can also describe a set of planes, where each one is formed by a pair of the cardinal axes described above...
+We can also describe a set of :ref:`cardinal_planes`, where each one is formed by a pair of the cardinal axes described above...
 
 These are the **horizontal**, **vertical**, and **mid-sagittal** planes. 
 
@@ -148,7 +149,7 @@ There is a good amount of flexibility in the program for users to decide on an i
 a) Combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Describe angled planes here for non-straight shapes without circular direction.** ... Planes on an angle are made up of component combinations of two or all three of the cardinal planes.
+**Describe angled planes here for non-straight shapes, particularly without circular direction.** ... Planes on an angle are made up of component combinations of two or all three of the cardinal planes.
 
 .. _circular_directions:
 
@@ -176,22 +177,22 @@ b) Default directions
 c) Symmetry in planes involving the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Complications from the horizontal axis in particular, i.e. for the vertical and horizontal planes and any combinations involving these, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in sign type.**
+**Complications from the horizontal axis in particular, i.e. for the vertical and horizontal planes and any combinations involving these, the left/right system, interchangeability of the two horizontal systems, more implications for 'same' direction in sign type.**
 
 .. _angled_circles:
 
 d) Circular shapes in combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes circular shapes are traced within an angled plane rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the direction within the angled plane by selecting the component directions as they would be within the component planes. See the following illustration for how this works:
+Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal_planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the direction within the angled plane by selecting the component directions as they would be within the component planes. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
     :align: left
 
-In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be 'flattened' into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program should be each of directionalities indicated for the red and blue circles, which are situated in cardinal planes.
+In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be "flattened" into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program for this example should be each of directionalities indicated for the red and blue circles, which are situated in cardinal planes.
 
-Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand:
+Here is a possible coding of `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand, highlighting their shared circular direction components:
 
 .. image:: images/mov_sample_sign_SOCIALIZE_H1.png
     :width: 750
@@ -201,7 +202,7 @@ Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.co
     :width: 750
     :align: left
 
-Note that the axis direction as selected here describes the position of the hand at the midpoint of the first circle relative to its position at the beginning of the movement. (See the note on :ref:`axis direction for circular shapes<axis_direction_entry>` for more information).
+Note that the axis direction as selected here describes the position of each hand at the midpoint of its first circle relative to its position at the beginning of the movement, though there are other possibilities for how to specify this. (See the note on :ref:`axis direction for circular shapes<axis_direction_entry>` for more information).
 
 .. _symmetry_review:
 
@@ -226,9 +227,8 @@ III. The signing space
     
     For example, the words :ref:`ipsilateral` and :ref:`contralateral` can be applied for any (or all) of the movement direction, location, or hand orientation descriptions of a sign:
     
-    In `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_, the dominant hand moves in the ipsilateral **direction** (toward the signer's right, in this case), and it changes **location** from the contralateral to the ipsilateral side of the body. The **orientation** of the hand changes in the production of the sign, starting with the finger roots pointing down and the palm facing the ipsilateral direction and finishing with the finger roots pointing up and the palm facing the contralateral direction.
-    
-    In `SLICE_2 <https://asl-lex.org/visualization/?sign=slice_2>`_, the dominant hand moves in a proximal and ipsilateral **direction** (toward the signer's right, in this case), but its **location** starts on the contralateral side and ends at the midline of the body without ever crossing over to the ipsilateral side. The **orientation** of the hand is unchanging, with the finger roots angled in the distal and contralateral directions and the palm angled to face the proximal and contralateral directions.
+    * In `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_, the dominant hand moves in the ipsilateral **direction** (toward the signer's right, in this case), and it changes **location** from the contralateral to the ipsilateral side of the body. The **orientation** of the hand changes in the production of the sign, starting with the finger roots pointing down and the palm facing the ipsilateral direction and finishing with the finger roots pointing up and the palm facing the contralateral direction.
+    * In `SLICE_2 <https://asl-lex.org/visualization/?sign=slice_2>`_, the dominant hand moves in a proximal and ipsilateral **direction** (toward the signer's right, in this case), but its **location** starts on the contralateral side and ends at the midline of the body without ever crossing over to the ipsilateral side. The **orientation** of the hand is unchanging, with the finger roots angled in the distal and contralateral directions and the palm angled to face the proximal and contralateral directions.
     
     These descriptions may be confusing at first glance. Familiarising yourself with each of the modules' functionalities will help with developing clear and precise transcriptions that take advantage of the high level of detail that is possible to record with the program.
 
