@@ -4,6 +4,22 @@
 Glossary
 ********
 
+.. _cardinal_axes:
+
+cardinal axes
+=============
+
+add here
+
+
+.. _cardinal_planes:
+
+cardinal planes
+===============
+
+add here
+
+
 .. _closing_opening:
 
 closing/opening
