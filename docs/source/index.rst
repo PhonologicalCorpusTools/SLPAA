@@ -13,6 +13,8 @@ Contents:
 
 
    manage_corpus.rst
+   sign_level_info.rst
+   sign_type.rst
    modularity.rst
    timing.rst
    predefined_handshapes.rst
@@ -21,10 +23,8 @@ Contents:
    signing_space.rst
    transcription_process.rst
    orientation_module.rst
-   sign_level_info.rst
-   sign_type.rst
    movement_module.rst
-   global_options.rst
+   global_settings.rst
    glossary.rst
    references.rst
 
