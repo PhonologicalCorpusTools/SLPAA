@@ -1,5 +1,7 @@
 .. todo::
   update the screenshot of the selection window
+  add notes for the (new!) automatic greying-out for impossible/unnecessary combinations
+  is the movement direction relation section up to date?
 
 .. _sign_type_module:
 
@@ -9,13 +11,10 @@ Sign Type
 
 This module is used to identify the overarching ‘kind’ of sign by selecting specifications for the behaviours of each hand (H1 & H2) in relation to each other. 
 
-.. _signtype_number_hands: 
+.. _signtype_one_hand: 
 
-Number of hands
-```````````````
-
-1. 1 hand
-========= 
+1. Number of hands: 1 hand
+``````````````````````````
 
 Select this if the sign involves only one hand. 
 
@@ -25,19 +24,27 @@ Select this if the sign involves only one hand.
 
 -Note that if the forearm, elbow, or wrist of the H2 is involved, there are several ways this could be coded in SLP-AA, and users should define their own conventions for consistency. Some options are: (1) the user can decide to specify the sign as one-handed and include the use of H2 in the specifications of contact and location; (2) the user can specify the sign as one-handed and select "forearm involved" in the hand configuration module; or (3) the user can specify the sign as two-handed, also specifying that "only H1 moves". For example, the sign `CRACKER <https://asl-lex.org/visualization/?sign=cracker>`_ could be coded as (1) one-handed, with H1 making contact to H2 at the elbow; (2) one-handed, with "forearm involved" selected in the hand configuration module; or (3) two-handed, with only H1 specified as moving. The sign `TABLE <https://asl-lex.org/visualization/?sign=table>`_ could be coded with the same basic options, with the additional possibility of coding the contact that H2 makes with the elbow of H1 in a separate location module and contact module.
 
-2. 2 hands
-==========
+.. _signtype_two_hands:
+
+2. Number of hands: 2 hands
+```````````````````````````
+
 Select this if both hands are involved in the sign. See note above if forearm, wrist, or elbow of the second hand are involved. 
 
+.. _signtype_handshape_relation:
+
 I. Handshape relation
-~~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 - "H1 and H2 involve the same set(s) of handshapes" should be selected if all the handshapes used at any point during the sign are shared between both hands. This can be because the handshapes never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), or because the handshapes change but involve the same shapes on both hands. In the latter case, the handshapes can alternate (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) or change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
 
 - "H1 and H2 involve different set(s) of handshapes" should be selected if the two hands have at least one different handshape from each other within the sign, that is, if a handshape that appears on one hand never appears on the other hand. This could be because they never have the same handshape (e.g., `SHOW <https://asl-lex.org/visualization/?sign=show>`_), or because they share a handshape at only one part of the sign (e.g., `EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_). 
 
+.. _signtype_contact_relation:
+
 II. Contact relation
-~~~~~~~~~~~~~~~~~~~~~~
+====================
+
 - "H2 maintains contact with H1 throughout the sign" should be selected if the contact is maintained throughout the duration of the sign. This can happen when both hands move together, such as `SHOW <https://asl-lex.org/visualization/?sign=show>`_ or `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, or when the two hands are stationary in space but involve local movements, as in `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ or `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_.
 
 - "H1 and H2 do not maintain contact with each other" should be selected if contact is not maintained throughout the sign. This includes signs that have no contact between the hands (e.g., `STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) and signs that have momentary contact which is not maintained throughout the sign, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_.
@@ -45,16 +52,16 @@ II. Contact relation
 .. _signtype_movement_relation: 
 
 III. Movement relation
-~~~~~~~~~~~~~~~~~~~~~~
+======================
 
-a) "Neither H1 nor H2 moves" should be selected if neither hand is involved in any movement, such as `SICK <https://asl-lex.org/visualization/?sign=sick>`_. [Note that for this example, the sign is ambiguous between having no lexical movement (only transitional movement), as we suggest here, or having a straight perceptual shape movement to reach the target locations. Users should have clear conventions about how to decide between the two.]
+- "Neither H1 nor H2 moves" should be selected if neither hand is involved in any movement, such as `SICK <https://asl-lex.org/visualization/?sign=sick>`_. [Note that for this example, the sign is ambiguous between having no lexical movement (only transitional movement), as we suggest here, or having a straight perceptual shape movement to reach the target locations. Users should have clear conventions about how to decide between the two.]
 
-b) "Only one hand moves" should be selected if only one hand is involved in movement. If selected, further specification is needed as described below about which hand is involved in the movement.
+- "Only one hand moves" should be selected if only one hand is involved in movement. If selected, further specification is needed as described below about which hand is involved in the movement.
 
   - Only H1 moves (e.g., `WHEN <https://asl-lex.org/visualization/?sign=when>`_)
   - Only H2 moves (e.g., `SUPPORT <https://www.handspeak.com/word/search/index.php?id=2124>`_)
 
-c) "Both hands move" should be selected if both hands are involved in movement. If selected, further specification is needed as described below regarding the movement relations between the two hands. 
+- "Both hands move" should be selected if both hands are involved in movement. If selected, further specification is needed as described below regarding the movement relations between the two hands. 
 
   - "H1 and H2 move differently from each other" should be selected if H1 and H2 have at least one movement that is not shared between the two hands. For example, `STALK <https://www.handspeak.com/word/search/index.php?id=4168)as>`_ and `RUN <https://www.handspeak.com/word/search/index.php?id=1859h>`_ are both examples of signs where both hands are involved in the same perceptual shape movement but only H1 has an additional joint-specific movement, which is not shared by H2. This option would also be relevant for a sign where the two hands have completely different movements (e.g., patting the head and rubbing the belly), but we don't know of any lexical examples of this sort.
   - "H1 and H2 move similarly to each other" should be selected if H1 and H2 share the same set of movements, regardless of direction and timing. For example, in `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, both hands perform the same joint-specific movement and also happen to have the same direction and timing. In `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_, however, both hands perform the same joint-specific movement, but their orientations / directions of movement alternate in terms of timing. Similarly, in `COMMUNICATION <https://asl-lex.org/visualization/?sign=communication>`_, both hands perform the same perceptual shape movements. In `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_, both hands perform the same perceptual shape and joint-specific movements. The alternation or lack thereof is specified below in the :ref:`Movement Timing Relation<signtype_movement_timing_relation>` section; all of these examples would be marked as having the two hands move similarly to each other. 
