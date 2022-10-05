@@ -65,7 +65,7 @@ II. Axis directions
 a) Default directions
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Definition (and illustration) of the default set of directions along each axis.**
+**Definition (and illustration) of the default set of directions along each axis. Copy over axis direction examples from elsewhere.**
 
 .. _axis_symmetry:
 
@@ -93,15 +93,13 @@ In order to remain explicit as to what this means and allow for precise analysis
 c) Directions in combinations of axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes the axis direction of a perceptual shape is traced along an **angled axis** rather than one of the :ref:`cardinal_axes`, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled axis is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
+Sometimes the axis direction of a perceptual shape is traced along an angled ``vector`` **(is it too confusing to introduce this term for only angled directions? should I stick to "angled axes" even if this is inaccurate?)** rather than one of the :ref:`cardinal_axes`, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled ``vector`` is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
 
-.. image:: images/placeholder.png
-    :width: 750
+.. image:: images/mov_combinations_of_axes.png
+    :width: 250
     :align: left
 
-**(Image for angled axes/vectors)**
-
-Code each of the component directions as they would be within the component (cardinal) axes.
+In this example, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the red and blue lines along each of their respective cardinal axes.
 
 Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_, highlighting its two component axis directions within one module:
 
@@ -110,7 +108,7 @@ Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=foc
     :align: left
 
 .. comment::
-    From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9)
+    From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9). 
 
 .. _planes_entry:
 
@@ -142,7 +140,7 @@ In this diagram, the signer would be facing toward the front side of the cube, l
 .. comment::
     I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body/>`_, which might be easiest to replicate if we use a still image of one of us and superimpose the system of axes over it.
 
-There is a good amount of flexibility in the program for users to decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal plames are always oriented in the same way relative to each other.
+There is a good amount of flexibility in the program for users to decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal planes are always oriented in the same way relative to each other.
 
 .. _angled_planes:
 
@@ -184,7 +182,7 @@ c) Symmetry in planes involving the horizontal axis
 d) Circular shapes in combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal_planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the direction within the angled plane by selecting the component directions as they would be within the component planes. See the following illustration for how this works:
+Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by finding the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the direction within the angled plane by selecting the component directions as they would be within the component (cardinal) planes. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
