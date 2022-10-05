@@ -3,6 +3,7 @@
         - should be doubled from the movement docs and elsewhere
     replace current placeholders with diagrams
         - axis system (and axis directions)
+        - combinations of axes
         - plane system
         - summary image
     add references
@@ -36,7 +37,7 @@ This page will describe and define the terminology used throughout SLP-AA and he
 I. Axes
 =======
 
-The system used in this program to describe the ``modules`` **(link to glossary definition OR modularity page)** for each sign component depends on an understanding of the three ``cardinal axes`` **(link to glossary definition)**: **horizontal**, **vertical**, and **mid-sagittal**.
+The system used in this program to describe the ``modules`` **(link to glossary definition OR modularity page)** for each sign component depends on an understanding of the three :ref:`cardinal_axes`: **horizontal**, **vertical**, and **mid-sagittal**.
 
 These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
 
@@ -50,7 +51,7 @@ These axes can be described in reference to any given point on the signer's body
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
 
 .. note::
-    **Give the relevant information on angled axis directions, i.e. that 1) they're possible through selecting multiple directions, which are 2) considered additive rather than sequential
+    **Give the relevant information on angled axis directions, i.e. that 1) they're possible through selecting multiple directions, which are 2) considered additive rather than sequential**
 
 .. _axis_directions:
 
@@ -64,40 +65,50 @@ II. Axis directions
 a) Default directions
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Definition (and illustration) of the default set of directions along each axis.**
+**Definition (and illustration) of the default set of directions along each axis. Copy over axis direction examples from elsewhere.**
 
 .. _axis_symmetry:
 
 b) Symmetry in the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Complications from the horizontal axis in particular and any combinations involving it, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in** :ref:`sign_type_module`.
+Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or mid-saggital axis, but much more ambiguous when the horizontal axis is involved. If both hands are moving to the signer's left or right, it would be understandable to assume that they are moving in the same direction. However, if both hands are moving towards or away from each other, then it also seems intuitive to say that they are moving in the same direction. 
 
-[The issue with what horizontal symmetry even means: if the hands are moving towards each other, are they moving in the same direction? or if they're both moving to the signer's left, are they moving in the same direction? This is an issue with definition: the same in terms of what?]
+In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options in the :ref:`global_settings`. For the absolute interpretation, the hands moving left or right are moving in the same direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving left or right are moving in different directions and the hands moving towards or away from each other are moving in the same direction. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it.
 
 .. note::
-    There is no articulatory difference between the right hand moving to left or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the right and left, respectively [reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely].
+    There is no articulatory difference between the right hand moving to left or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction regardless of handedness. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the signer's right and left, respectively **[reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely]**.
+    
+    Both options for the horizontal axis in SLP-AA can be used to adequately describe productions of these (and any other) signs, but this lexical definition would not be fully captured while using ipsi-contra descriptions. It may be helpful to indicate it elsewhere in the sign coding.
 
 .. comment::
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
     
     Resolved by giving examples of EAST and WEST? Reference J&L.
 
+**Interchangeability of the two horizontal systems. Particulars of what happens if the options change partway through coding a corpus, etc should be left to the global settings page. The description here should just mention why both systems are (basically) equivalent and what the differences look like in terms of searching/analysis.**
+
 .. _angled_axes:
 
 c) Directions in combinations of axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An axis direction can be specified to be angled by selecting multiple component directions from the applicable cardinal axes. (Take out the passive voice here and make the language more straightforward.)
+Sometimes the axis direction of a perceptual shape is traced along an angled ``vector`` **(is it too confusing to introduce this term for only angled directions? should I stick to "angled axes" even if this is inaccurate?)** rather than one of the :ref:`cardinal_axes`, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled ``vector`` is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
 
-**How to approach combinations of axes. Mention again that these must be considered to be additive in a single module, not sequential.** (Use `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_ as examples.)
+.. image:: images/mov_combinations_of_axes.png
+    :width: 250
+    :align: left
+
+In this example, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the red and blue lines along each of their respective cardinal axes.
+
+Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_, highlighting its two component axis directions within one module:
 
 .. image:: images/mov_sample_sign_FOCUS.png
     :width: 750
     :align: left
 
 .. comment::
-    From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9)
+    From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9). 
 
 .. _planes_entry:
 
@@ -116,7 +127,7 @@ I. Planes
     
     Be sure that these are adequately covered above.
 
-We can also describe a set of planes, where each one is formed by a pair of the cardinal axes described above...
+We can also describe a set of :ref:`cardinal_planes`, where each one is formed by a pair of the cardinal axes described above...
 
 These are the **horizontal**, **vertical**, and **mid-sagittal** planes. 
 
@@ -129,14 +140,14 @@ In this diagram, the signer would be facing toward the front side of the cube, l
 .. comment::
     I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body/>`_, which might be easiest to replicate if we use a still image of one of us and superimpose the system of axes over it.
 
-There is a good amount of flexibility in the program for users to decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal plames are always oriented in the same way relative to each other.
+There is a good amount of flexibility in the program for users to decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal planes are always oriented in the same way relative to each other.
 
 .. _angled_planes:
 
 a) Combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Describe angled planes here for non-straight shapes without circular direction.** ... Planes on an angle are made up of component combinations of two or all three of the cardinal planes.
+**Describe angled planes here for non-straight shapes, particularly without circular direction.** ... Planes on an angle are made up of component combinations of two or all three of the cardinal planes.
 
 .. _circular_directions:
 
@@ -164,22 +175,22 @@ b) Default directions
 c) Symmetry in planes involving the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Complications from the horizontal axis in particular, i.e. for the vertical and horizontal planes and any combinations involving these, the left/right system, interchangeability of the two horizontal systems, implications for 'same' direction in sign type.**
+**Complications from the horizontal axis in particular, i.e. for the vertical and horizontal planes and any combinations involving these, the left/right system, interchangeability of the two horizontal systems, more implications for 'same' direction in sign type.**
 
 .. _angled_circles:
 
 d) Circular shapes in combinations of planes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes circular shapes are traced within an angled plane rather than one of the cardinal planes, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by selecting the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the direction within the angled plane by selecting the component directions as they would be within the component planes. See the following illustration for how this works:
+Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the orientation of the plane of movement by finding the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the direction within the angled plane by selecting the component directions as they would be within the component (cardinal) planes. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_planes.png
     :width: 750
     :align: left
 
-In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be 'flattened' into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program should be each of directionalities indicated for the red and blue circles, which are situated in cardinal planes.
+In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be "flattened" into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program for this example should be each of directionalities indicated for the red and blue circles, which are situated in cardinal planes.
 
-Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand:
+Here is a possible coding of `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand, highlighting their shared circular direction components:
 
 .. image:: images/mov_sample_sign_SOCIALIZE_H1.png
     :width: 750
@@ -189,7 +200,7 @@ Here is an example of a possible coding for `SOCIALIZE <https://www.handspeak.co
     :width: 750
     :align: left
 
-Note that the axis direction as selected here describes the position of the hand at the midpoint of the first circle relative to its position at the beginning of the movement. (See the note on :ref:`axis direction for circular shapes<axis_direction_entry>` for more information).
+Note that the axis direction as selected here describes the position of each hand at the midpoint of its first circle relative to its position at the beginning of the movement, though there are other possibilities for how to specify this. (See the note on :ref:`axis direction for circular shapes<axis_direction_entry>` for more information).
 
 .. _symmetry_review:
 
