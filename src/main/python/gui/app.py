@@ -3,6 +3,9 @@ from .main_window import MainWindow
 
 
 class AppContext(ApplicationContext):
+    def __init__(self):
+        super().__init__()
+        
     def run(self):
         self.main_window.show()
         return self.app.exec_()
