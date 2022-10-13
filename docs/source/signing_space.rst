@@ -10,6 +10,9 @@
         - Johnson & Liddell
         - (potentially) Battison
         - Canadian ASL dictionary?
+    **images currently show 'mid-sagittal' in the program:**
+        - SOCIALIZE H1
+        - SOCIALIZE H2
 
 .. comment:: 
     The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle in each plane, anatomical position, and ipsi-contra definitions.
@@ -37,9 +40,9 @@ This page will describe and define the terminology used throughout SLP-AA and he
 I. Axes
 =======
 
-The system used in this program to describe the ``modules`` **(link to glossary definition OR modularity page)** for each sign component depends on an understanding of the three :ref:`cardinal_axes`: **horizontal**, **vertical**, and **mid-sagittal**.
+The system used in this program to describe the ``modules`` **(link to glossary definition OR modularity page)** for each sign component depends on an understanding of the three :ref:`cardinal_axes`: **horizontal**, **vertical**, and **sagittal**.
 
-These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the mid-sagittal axis extends forwards and backwards. These can be seen here:
+These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the sagittal axis extends forwards and backwards. These can be seen here:
 
 .. image:: images/placeholder.png
     :width: 750
@@ -72,7 +75,7 @@ a) Default directions
 b) Symmetry in the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or mid-saggital axis, but much more ambiguous when the horizontal axis is involved. If both hands are moving to the signer's left or right, it would be understandable to assume that they are moving in the same direction. However, if both hands are moving towards or away from each other, then it also seems intuitive to say that they are moving in the same direction. 
+Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or sagittal axis, but much more ambiguous when the horizontal axis is involved. (If both hands are moving to the signer's left or right, it would be understandable to assume that they are moving in the same direction. However, if both hands are moving towards or away from each other, then it also seems intuitive to say that they are moving in the same direction.) **Change the wording here to be more precise.**
 
 In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options in the :ref:`global_settings`. For the absolute interpretation, the hands moving left or right are moving in the same direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving left or right are moving in different directions and the hands moving towards or away from each other are moving in the same direction. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it.
 
@@ -93,10 +96,10 @@ In order to remain explicit as to what this means and allow for precise analysis
 c) Directions in combinations of axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes the axis direction of a perceptual shape is traced along an angled ``vector`` **(is it too confusing to introduce this term for only angled directions? should I stick to "angled axes" even if this is inaccurate?)** rather than one of the :ref:`cardinal_axes`, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled ``vector`` is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
+Sometimes the axis direction of a perceptual shape is traced along an **angled path** rather than one of the :ref:`cardinal_axes`, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled path is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_axes.png
-    :width: 250
+    :width: 300
     :align: left
 
 In this example, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the red and blue lines along each of their respective cardinal axes.
@@ -129,7 +132,7 @@ I. Planes
 
 We can also describe a set of :ref:`cardinal_planes`, where each one is formed by a pair of the cardinal axes described above...
 
-These are the **horizontal**, **vertical**, and **mid-sagittal** planes. 
+These are the **horizontal**, **vertical**, and **sagittal** planes. 
 
 In this diagram, the signer would be facing toward the front side of the cube, looking out of the screen:
 
@@ -161,14 +164,14 @@ II. Circular directions
 a) 'Top' of a circle
 ~~~~~~~~~~~~~~~~~~~~
 
-**State the point on a circle in each plane that we define to be the top of a circle in that plane. Note especially that this notion is independent from movement. Then introduce the idea of circular directionality (in movement) as defined by the (axis) direction of movement through the topmost point for that plane. Needs a set of diagrams. Follow the order as required in the next section: describe the mid-sagittal plane, then vertical, then horizontal.**
+**State the point on a circle in each plane that we define to be the top of a circle in that plane. Note especially that this notion is independent from movement. Then introduce the idea of circular directionality (in movement) as defined by the (axis) direction of movement through the topmost point for that plane. Needs a set of diagrams. Follow the order as required in the next section: describe the sagittal plane, then vertical, then horizontal.**
 
 .. _plane_default:
 
 b) Default directions
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Definition (and possibly illustration) of default directions, in reference to the top of the circle. Start with the mid-sagittal plane to describe the simple case, then the vertical, then horizontal.**
+**Definition (and possibly illustration) of default directions, in reference to the top of the circle. Start with the sagittal plane to describe the simple case, then the vertical, then horizontal.**
 
 .. _plane_symmetry:
 
@@ -223,7 +226,7 @@ III. The signing space
     
     There are several places throughout the program where similar or identical terms are used for slightly different contexts. Take care to note the sign component that any given word is meant to be describing to be sure that your choice is accurate.
     
-    For example, the words :ref:`ipsilateral` and :ref:`contralateral` can be applied for any (or all) of the movement direction, location, or hand orientation descriptions of a sign:
+    For example, assuming the horizontal axis is defined in relative directions, the words :ref:`ipsilateral` and :ref:`contralateral` can be applied for any (or all) of the movement direction, location, or hand orientation descriptions of a sign:
     
     * In `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_, the dominant hand moves in the ipsilateral **direction** (toward the signer's right, in this case), and it changes **location** from the contralateral to the ipsilateral side of the body. The **orientation** of the hand changes in the production of the sign, starting with the finger roots pointing down and the palm facing the ipsilateral direction and finishing with the finger roots pointing up and the palm facing the contralateral direction.
     * In `SLICE_2 <https://asl-lex.org/visualization/?sign=slice_2>`_, the dominant hand moves in a proximal and ipsilateral **direction** (toward the signer's right, in this case), but its **location** starts on the contralateral side and ends at the midline of the body without ever crossing over to the ipsilateral side. The **orientation** of the hand is unchanging, with the finger roots angled in the distal and contralateral directions and the palm angled to face the proximal and contralateral directions.
@@ -235,7 +238,7 @@ III. The signing space
 3. Body-anchored locations
 ``````````````````````````
 
-**This section will describe how the information on the rest of this page applies to body-anchored locations in particular (rather than signing space locations, which are defined as relative to either the axis system or an item on the body location list). Important things to mention are that the system is not rigidly-defined in terms of the point of origin and orientation of the system of planes and axes relative to any particular point or direction, but it is important that the planes and axes are defined relative to each other. (It doesn't matter whether the signer turns to face a different direction, moves one part of the body, sits or lies down, etc.)**
+**This section will describe how the information on the rest of this page applies to body-anchored locations in particular (rather than signing space locations, which are defined as relative to either the axis system or an item on the body location list).**
 
 .. _symmetry_puzzle:
 
@@ -249,11 +252,11 @@ III. The signing space
     
     {Introduction to the particular difficulties introduced with horizontal symmetry over any other kind}
     
-    -->    {The (set of) mid-sagittal plane(s) as normal to the horizontal axis}
+    -->    {The (set of) sagittal plane(s) as normal to the horizontal axis}
         
     {Anatomical symmetry across the "midline," or whatever terminology}
     
-    -->    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry, or plane of bisection, or other. Which one of these is the clearest/simplest? Is there a term used more often in sign language linguistics or sign language teaching? This cannot be referred to as the mid-sagittal plane, as it must specifically be horizontally central to the body (meanwhile a generic mid-sagittal plane can still be described to either side of the body, depending on the reference point of origin).
+    -->    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry, or plane of bisection, or other. Specifically the **mid-sagittal** plane. 
     
     {Why the discrepancy? Difficulties in articulation mechanisms}
     
