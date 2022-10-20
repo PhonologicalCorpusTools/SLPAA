@@ -35,7 +35,7 @@ The program relies on a system of axes and planes, which are positioned relative
 1. Axes
 ````````
 
-...
+
 
 .. _axes_section:
 
@@ -53,14 +53,14 @@ These axes can be described in reference to any given point on the signer's body
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
 
 .. note::
-    **Give the relevant information on angled axis directions, i.e. that 1) they're possible through selecting multiple directions, which are 2) considered additive rather than sequential**
+    It isn't necessary to only select cardinal axis directions. These can be combined together to result in angled axes, as will be explained below in :ref:`directions in combinations of axes<angled_axes>`.
 
 .. _axis_directions:
 
 II. Axis directions
 ===================
 
-**Introduction**
+
 
 .. _axis_default:
 
@@ -74,7 +74,7 @@ a) Default directions
 b) Symmetry in the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or sagittal axis, but much more ambiguous when the horizontal axis is involved. (If both hands are moving to the signer's left or right, it would be understandable to assume that they are moving in the same direction. However, if both hands are moving towards or away from each other, then it also seems intuitive to say that they are moving in the same direction.) **Change the wording here to be more precise.**
+Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or sagittal axis, but much more ambiguous when the horizontal axis is involved. Depending on your definition, it could be equally valid that a movement with both hands moving to signer's left are moving in the same direction, or that one with both hands moving towards each other are moving in the same direction. This is an ambiguity only with how to interpret horizontal movements: one hand moving upwards and another moving downwards could not reasonably be defined as moving in the same direction.
 
 In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options in the :ref:`global_settings`. For the absolute interpretation, the hands moving left or right are moving in the same direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving left or right are moving in different directions and the hands moving towards or away from each other are moving in the same direction. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it.
 
@@ -87,6 +87,8 @@ In order to remain explicit as to what this means and allow for precise analysis
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
     
     Resolved by giving examples of EAST and WEST? Reference J&L.
+
+
 
 **Interchangeability of the two horizontal systems. Particulars of what happens if the options change partway through coding a corpus, etc should be left to the global settings page. The description here should just mention why both systems are (basically) equivalent and what the differences look like in terms of searching/analysis.**
 
@@ -117,7 +119,7 @@ Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=foc
 2. Planes
 ``````````
 
-**Introduction**
+
 
 .. _planes_section:
 
@@ -153,7 +155,7 @@ a) Combinations of planes
 II. Circular directions
 =======================
 
-**Introduction. Note that horizontal movements are dependent on the system for horizontal axis movements, so the choice for absolute or relative directions will have an impact here as well.** 
+**Note that horizontal movements are dependent on the system for horizontal axis movements, so the choice for absolute or relative directions will have an impact here as well.** 
 
 .. _top_of_circle:
 
@@ -162,12 +164,16 @@ a) 'Top' of a circle
 
 **State the point on a circle in each plane that we define to be the top of a circle in that plane. Note especially that this notion is independent from movement. Then introduce the idea of circular directionality (in movement) as defined by the (axis) direction of movement through the topmost point for that plane. Needs a set of diagrams. Follow the order as required in the next section: describe the sagittal plane, then vertical, then horizontal.**
 
+.. image:: images/placeholder.png
+    :width: 750
+    :align: left
+
 .. _plane_default:
 
 b) Default directions
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Definition (and possibly illustration) of default directions, in reference to the top of the circle. Start with the sagittal plane to describe the simple case, then the vertical, then horizontal.**
+**Definition (and possibly illustration) of default directions, in reference to the top of the circle. Start with the sagittal plane to describe the simple case, then the vertical, then horizontal. Note: it might be best to copy over the images from sign type for the vertical plane.**
 
 .. _plane_symmetry:
 
