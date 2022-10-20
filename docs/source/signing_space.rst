@@ -2,9 +2,6 @@
     copy sign examples for each axis/direction, and plane/circular directionality
         - should be doubled from the movement docs and elsewhere
     replace current placeholders with diagrams
-        - axis system (and axis directions)
-        - combinations of axes
-        - plane system
         - summary image
     add references
         - Johnson & Liddell
@@ -28,28 +25,30 @@ Symmetry, Planes & Axes
 
 This page will describe and define the terminology used throughout SLP-AA and here in its documentations in reference to the signing space on and surrounding the body. There is a fairly high level of complexity when dealing with motion in three-dimensional space, but our aim is that the visual and textual descriptions provided here will help to reduce any difficulty in interpreting the program's options and adapting them to the requirements of the individual user. 
 
+The program relies on a system of axes and planes, which are positioned relative to any arbitrary point, to frame three-dimensional space. This system is reapplied in several components of the program, so that many elements operate in the same way and knowing how to use one component will usually also help with being able to understand others.
+
+.. note::
+    SLP-AA incorporates the use of :ref:`modules<module>` to code sign aspects like handshape, location, movement, hand orientation, and so on. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
+
 .. _axes_entry:
 
-1. Axes and straight movements
-``````````````````````````````
+1. Axes
+````````
 
-**Introduction. Keep in mind that the system was altered so that an axis/axes can be selected without a direction.**
+...
 
 .. _axes_section:
 
-I. Axes
-=======
+I. Cardinal axis system
+=======================
 
-The system used in this program to describe the ``modules`` **(link to glossary definition OR modularity page)** for each sign component depends on an understanding of the three :ref:`cardinal_axes`: **horizontal**, **vertical**, and **sagittal**.
+The system of axes is based on a set of three :ref:`cardinal_axes`: the **horizontal**, **vertical**, and **sagittal** axis. 
 
 These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the sagittal axis extends forwards and backwards. These can be seen here:
 
-.. image:: images/placeholder.png
+.. image:: images/shared_axes.png
     :width: 750
     :align: left
-
-.. comment:: 
-    This image should be replaced with one that shows the three cardinal axes relative to the signer's body, with some logical origin point selected. Directions (e.g. proximal/distal) should not be indicated for now. This might be easiest to accomplish if we use a still image of one of us and superimpose the system of axes over it, maybe from two angles if that's helpful.
 
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
 
@@ -68,7 +67,7 @@ II. Axis directions
 a) Default directions
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Definition (and illustration) of the default set of directions along each axis. Copy over axis direction examples from elsewhere.**
+**Copy over axis direction examples.**
 
 .. _axis_symmetry:
 
@@ -99,7 +98,7 @@ c) Directions in combinations of axes
 Sometimes the axis direction of a perceptual shape is traced along an **angled path** rather than one of the :ref:`cardinal_axes`, as in `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_ and `SNOW_2 <https://asl-lex.org/visualization/?sign=snow_2>`_. In this case, the angled path is made up of a combination of two or all three of the cardinal axes. See the following illustration for how this works:
 
 .. image:: images/mov_combinations_of_axes.png
-    :width: 300
+    :width: 750
     :align: left
 
 In this example, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the red and blue lines along each of their respective cardinal axes.
@@ -115,35 +114,32 @@ Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=foc
 
 .. _planes_entry:
 
-2. Planes and circular movements
-````````````````````````````````
+2. Planes
+``````````
 
 **Introduction**
 
 .. _planes_section:
 
-I. Planes
-=========
+I. Cardinal plane system
+========================
 
 .. warning::
-    To be able to cover everything below the 'Planes' node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for both of the cardinal axes that form a basis for each plane; etc.
+    To be able to cover everything below this node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for both of the cardinal axes that form a basis for each plane; etc.
     
     Be sure that these are adequately covered above.
 
 We can also describe a set of :ref:`cardinal_planes`, where each one is formed by a pair of the cardinal axes described above...
 
-These are the **horizontal**, **vertical**, and **sagittal** planes. 
-
-In this diagram, the signer would be facing toward the front side of the cube, looking out of the screen:
+These are the **horizontal**, **vertical**, and **sagittal** planes, shown here:
 
 .. image:: images/shared_planes.png
     :width: 750
     :align: left
 
-.. comment::
-    I made this image in a few minutes in a google doc, but it's not the best visual since the orientation of the planes relative to the signer is unclear this way. I would want something more like the image shown `here <https://learnmuscles.com/glossary/cardinal-planes-of-the-body/>`_, which might be easiest to replicate if we use a still image of one of us and superimpose the system of axes over it.
-
 There is a good amount of flexibility in the program for users to decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal planes are always oriented in the same way relative to each other.
+
+**(In our system: the kind of information that can be recorded with only the 'axis direction' and 'plane' options.)**
 
 .. _angled_planes:
 
@@ -238,14 +234,14 @@ III. The signing space
 3. Body-anchored locations
 ``````````````````````````
 
-**This section will describe how the information on the rest of this page applies to body-anchored locations in particular (rather than signing space locations, which are defined as relative to either the axis system or an item on the body location list).**
+**This section will describe how the information on the rest of this page applies to body-anchored locations in particular (both the 'on-body locations' and the signing space option defined in terms of a body location).**
 
 .. _symmetry_puzzle:
 
 4. The horizontal axis
 ``````````````````````
 
-**Introduction.** Note that this entire section is not strictly necessary to include and it can be deleted if it's confusing or in the way.
+(Note that this entire section is not strictly necessary to include and it can be deleted if it's confusing or in the way, I just wanted to include some information background for the decisions we made and some things that may be interesting to look out for in sign movements.)
 
 .. note::
     To include here:
@@ -256,9 +252,9 @@ III. The signing space
         
     {Anatomical symmetry across the "midline," or whatever terminology}
     
-    -->    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry, or plane of bisection, or other. Specifically the **mid-sagittal** plane. 
+    -->    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry, or plane of bisection, or other. Specifically the **mid-sagittal** plane, rather than any given sagittal plane. (i.e. symmetry in terms of actual physical symmetry)
     
-    {Why the discrepancy? Difficulties in articulation mechanisms}
+    {Why the discrepancy? --> Difficulties in articulation mechanisms, anatomical limitations AND strengths}
     
-    --> Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand. Link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane. Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly vs. 'differently' and how restricted the 'simultaneous except location/orientation' options usually are.)
+    -->    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)
     
