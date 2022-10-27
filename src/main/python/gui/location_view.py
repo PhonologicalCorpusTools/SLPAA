@@ -1,3 +1,5 @@
+import os
+
 from PyQt5.QtCore import (
     Qt,
     QAbstractListModel,
@@ -5,13 +7,16 @@ from PyQt5.QtCore import (
     QModelIndex,
     QItemSelectionModel,
     QSortFilterProxyModel,
-    QDateTime
+    QDateTime,
+    QRectF
 )
 
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
 )
+
+from PyQt5.QtGui import QPixmap
 
 from PyQt5.QtWidgets import (
     QWidget,
@@ -21,7 +26,10 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QComboBox,
     QTreeView,
-    QStyle
+    QStyle,
+    QGraphicsView,
+    QGraphicsScene,
+    QGraphicsPixmapItem
 )
 
 
@@ -236,12 +244,12 @@ class TreeSearchComboBox(QComboBox):
         if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
 
             if self.currentText():
-                self.parentlayout.treedisplay.collapseAll()
+                # self.parentlayout.treedisplay.collapseAll()
                 itemstoselect = gettreeitemsinpath(self.parentlayout.treemodel, self.currentText(), delim=delimiter)
                 for item in itemstoselect:
                     if item.checkState() == Qt.Unchecked:
                         item.setCheckState(Qt.PartiallyChecked)
-                    self.parentlayout.treedisplay.setExpanded(item.index(), True)
+                    # self.parentlayout.treedisplay.setExpanded(item.index(), True)
                 itemstoselect[-1].setCheckState(Qt.Checked)
                 self.setCurrentIndex(-1)
 
@@ -701,6 +709,38 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
         elif "select" in sortbytext:
             self.setSortRole(Qt.UserRole+timestamprole)
             self.sort(0)
+
+
+class LocationGraphicsView(QGraphicsView):
+
+    def __init__(self, parent=None, viewer_size=400):
+        super().__init__(parent=parent)
+
+        self.viewer_size = viewer_size
+
+        self._scene = QGraphicsScene(parent=self)
+        self._pixmap = QPixmap("./crowface.jpg")
+        self._photo = QGraphicsPixmapItem(self._pixmap)
+        # self._photo.setPixmap(QPixmap("../../resources/base/default_location_images/upper_body.jpg"))
+        self._scene.addItem(self._photo)
+        # self._scene.addPixmap(QPixmap("./crowface.jpg"))
+        self.setScene(self._scene)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.fitInView()
+
+
+    def fitInView(self, scale=True):
+        rect = QRectF(self._photo.pixmap().rect())
+        if not rect.isNull():
+            self.setSceneRect(rect)
+            unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
+            self.scale(1 / unity.width(), 1 / unity.height())
+            scenerect = self.transform().mapRect(rect)
+            factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
+            self.factor = factor
+            # viewrect = self.viewport().rect()
+            # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
+            self.scale(factor, factor)
 
 
 class LocationListModel(QStandardItemModel):

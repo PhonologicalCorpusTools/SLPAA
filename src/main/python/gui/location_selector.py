@@ -22,7 +22,8 @@ from PyQt5.QtWidgets import (
     QStyleOptionFrame,
     QErrorMessage,
     QCheckBox,
-    QSpinBox
+    QSpinBox,
+    QSlider
 )
 
 from PyQt5.QtCore import (
@@ -42,7 +43,7 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.location_view import LocationTreeModel, LocationTree, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, lastingrouprole, finalsubgrouprole, pathdisplayrole, delimiter
+from gui.location_view import LocationTreeModel, LocationTree, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, mutuallyexclusiverole, lastingrouprole, finalsubgrouprole, pathdisplayrole, delimiter
 # from gui.xslot_graphics import XslotRectButton
 # from gui.signtype_selector import SigntypeSelectorDialog
 # from gui.handshape_selector import HandshapeSelectorDialog
@@ -116,7 +117,7 @@ class TreeItemDelegate(QStyledItemDelegate):
 
 # TODO KV - add undo, ...
 
-# there's another class with the same name in panel.py
+# TODO KV there's another class with the same name in panel.py
 class LocationSpecificationLayout(ModuleSpecificationLayout):
     saved_location = pyqtSignal(LocationTreeModel, dict, list)
 
@@ -170,8 +171,9 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         selection_layout = QHBoxLayout()
 
         # TODO KV graphics view!
-        # self.imagedisplay = LocationGraphicsView()
-        # self.imagedisplay.setMinimumWidth(400)
+        self.imagedisplay = LocationGraphicsView()
+        self.imagedisplay.setMinimumWidth(400)
+
         # self.treedisplay = MovementTreeView()
         # self.treedisplay.setItemDelegate(TreeItemDelegate())
         # self.treedisplay.setHeaderHidden(True)
@@ -184,7 +186,15 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         # self.treedisplay.setMinimumWidth(400)
 
-        # selection_layout.addWidget(self.imagedisplay)
+        selection_layout.addWidget(self.imagedisplay)
+
+        zoom_slider = QSlider(Qt.Vertical)
+        zoom_slider.setMinimum(1)
+        zoom_slider.setMaximum(10)
+        zoom_slider.setValue(0)
+        zoom_slider.valueChanged.connect(self.zoom)
+
+        selection_layout.addWidget(zoom_slider)
 
         list_layout = QVBoxLayout()
 
@@ -216,6 +226,12 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         list_layout.addLayout(buttons_layout)
         selection_layout.addLayout(list_layout)
         self.addLayout(selection_layout)
+
+    def zoom(self, scale):
+        trans_matrix = self.imagedisplay.transform()
+        trans_matrix.reset()
+        trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
+        self.imagedisplay.setTransform(trans_matrix)
 
     def get_savedmodule_signal(self):
         return self.saved_location

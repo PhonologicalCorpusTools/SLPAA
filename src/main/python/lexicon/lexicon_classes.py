@@ -6,7 +6,7 @@ from datetime import datetime
 
 from gui.movement_view import MovementTree
 from gui.xslots_selector import XslotStructure
-from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, TimingInterval, TimingPoint
+from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, TimingInterval, TimingPoint, LocationModule
 
 NULL = '\u2205'
 
@@ -363,10 +363,10 @@ class Sign:
             self._xslotstructure = XslotStructure()
             self._specifiedxslots = False
             self.movementmodules = {}
-            self.handpartmodules = []
-            self.locationmodules = []
-            self.contactmodules = []
-            self.orientationmodules = []
+            self.handpartmodules = {}
+            self.locationmodules = {}
+            self.contactmodules = {}
+            self.orientationmodules = {}
             self.handconfigmodules = {}
 
     def serialize(self):
@@ -535,8 +535,10 @@ class Sign:
         self.targetmodules.append(targetmod)
         self.lastmodifiednow()
 
-    def addlocationmodule(self, locationmod):
-        self.locationmodules.append(locationmod)
+    def addlocationmodule(self, locationtree, hands_dict, timingintervals):
+        # create and add a brand new one
+        locnmod = LocationModule(locationtree, hands_dict, timingintervals)
+        self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
     def addorientationmodule(self, orientationmod):
