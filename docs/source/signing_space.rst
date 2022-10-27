@@ -3,7 +3,7 @@
     "" for plane/circular directionality
     replace current placeholders with diagrams
         - summary image
-        - top of a circle
+        - top of a circle/circular directions
     add references
         - Johnson & Liddell
         - (potentially) Battison
@@ -46,7 +46,7 @@ The system of axes is based on a set of three :ref:`cardinal_axes`: the **horizo
 These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the sagittal axis extends forwards and backwards. These can be seen here, labelled with SLP-AA's :ref:`default direction settings<axis_default>`:
 
 .. image:: images/shared_axes.png
-    :width: 700
+    :width: 750
     :align: left
 
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
@@ -63,7 +63,9 @@ II. Axis directions
 a) Cardinal directions
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The directions for the vertical and sagittal axes are ...
+The pairs of directions for each axis are outlined here with sign examples involving a :ref:`perceptual_shape` traced out in the given direction. Keep in mind that it is possible to select only the axis itself without a specific direction wherever a selection for an axis or direction applies in the program.
+
+The directions for the vertical and sagittal axes are consistent wherever they appear. 
 
 * **Vertical axis**
 
@@ -75,12 +77,14 @@ The directions for the vertical and sagittal axes are ...
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-The directions for the horizontal axis, however, ...
+The directions for the horizontal axis, however, depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models for the horizontal axis, described in greater detail in the :ref:next section<axis_symmetry>`. By default, this first of set of options apply in the program:
     
 * **Horizontal axis: relative**
 
     * **Ipsilateral** (by default), as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
     * **Contralateral** (by default), as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
+
+Alternatively, the directions for the horizontal axis can be defined as:
 
 * **Horizontal axis: absolute**
     
@@ -96,11 +100,13 @@ Recall that the :ref:`movement direction relation<signtype_movement_direction_re
 
 In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving left or right are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving left or right are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
 
-See the following illustration to compare options in the horizontal axis for `WINDSHIELD_WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ and `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_:
+Compare how the horizontal axis options will apply for `WINDSHIELD_WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ and `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_:
 
 .. image:: images/signtype_straight_movements.png
     :width: 750
     :align: left
+
+These systems are only superficially different, and the information coded in each one can be recovered from the other. The biggest differences between using one or the other pertain to the :ref:`sign_type_module` options. Since the options are interchangeable, the choice is only a matter of user preference.
 
 .. note::
     There is no articulatory difference between the right hand moving to left or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction regardless of handedness. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the signer's right and left, respectively **[reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely]**.
@@ -111,8 +117,6 @@ See the following illustration to compare options in the horizontal axis for `WI
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
     
     Resolved by giving examples of EAST and WEST? Reference J&L.
-
-**Interchangeability of the two horizontal systems. Particulars of what happens if the options change partway through coding a corpus, etc should be left to the global settings page. The description here should just mention why both systems are (basically) equivalent and what the differences look like in terms of searching/analysis.**
 
 .. _angled_axes:
 
@@ -198,6 +202,12 @@ c) Symmetry in planes involving the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Complications from the horizontal axis in particular, i.e. for the vertical and horizontal planes and any combinations involving these, the left/right system, interchangeability of the two horizontal systems, more implications for 'same' direction in sign type.**
+
+Compare how the horizontal axis options will apply for `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_, `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_, `SOCIAL <https://asl-lex.org/visualization/?sign=social>`_, and `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_:
+
+.. image:: images/signtype_circular_movements.png
+    :width: 750
+    :align: left
 
 .. _angled_circles:
 
