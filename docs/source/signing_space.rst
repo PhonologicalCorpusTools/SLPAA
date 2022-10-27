@@ -1,8 +1,9 @@
 .. todo::
-    copy sign examples for each axis/direction, and plane/circular directionality
-        - should be doubled from the movement docs and elsewhere
+    copy sign examples for axis/direction
+    "" for plane/circular directionality
     replace current placeholders with diagrams
         - summary image
+        - top of a circle
     add references
         - Johnson & Liddell
         - (potentially) Battison
@@ -35,39 +36,56 @@ The program relies on a system of axes and planes, which are positioned relative
 1. Axes
 ````````
 
-
-
 .. _axes_section:
 
 I. Cardinal axis system
 =======================
 
-The system of axes is based on a set of three :ref:`cardinal_axes`: the **horizontal**, **vertical**, and **sagittal** axis. 
+The system of axes is based on a set of three :ref:`cardinal_axes`: the **horizontal**, **vertical**, and **sagittal** axes. 
 
-These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the sagittal axis extends forwards and backwards. These can be seen here:
+These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down, the horizontal extends to the left and right, and the sagittal axis extends forwards and backwards. These can be seen here, labelled with SLP-AA's :ref:`default direction settings<axis_default>`:
 
 .. image:: images/shared_axes.png
-    :width: 750
+    :width: 700
     :align: left
 
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
 
-.. note::
-    It isn't necessary to only select cardinal axis directions. These can be combined together to result in angled axes, as will be explained below in :ref:`directions in combinations of axes<angled_axes>`.
+It is also possible to select other directions in the program, rather than choosing strictly from the set of cardinal axes. These can instead be combined together to result in angled axes, as will be explained below in :ref:`directions in combinations of axes<angled_axes>`.
 
 .. _axis_directions:
 
 II. Axis directions
 ===================
 
-
-
 .. _axis_default:
 
-a) Default directions
-~~~~~~~~~~~~~~~~~~~~~
+a) Cardinal directions
+~~~~~~~~~~~~~~~~~~~~~~
 
-**Copy over axis direction examples.**
+The directions for the vertical and sagittal axes are ...
+
+* **Vertical axis**
+
+    * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
+    * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
+
+* **Sagittal axis**
+
+    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
+    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
+    
+The directions for the horizontal axis, however, ...
+    
+* **Horizontal axis: relative**
+
+    * **Ipsilateral** (by default), as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
+    * **Contralateral** (by default), as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
+
+* **Horizontal axis: absolute**
+    
+    * **Left**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_, or as in `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
+    * **Right**, as in the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_, or as in `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
 
 .. _axis_symmetry:
 
@@ -76,7 +94,13 @@ b) Symmetry in the horizontal axis
 
 Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or sagittal axis, but much more ambiguous when the horizontal axis is involved. Depending on your definition, it could be equally valid that a movement with both hands moving to signer's left are moving in the same direction, or that one with both hands moving towards each other are moving in the same direction. This is an ambiguity only with how to interpret horizontal movements: one hand moving upwards and another moving downwards could not reasonably be defined as moving in the same direction.
 
-In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options in the :ref:`global_settings`. For the absolute interpretation, the hands moving left or right are moving in the same direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving left or right are moving in different directions and the hands moving towards or away from each other are moving in the same direction. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it.
+In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving left or right are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving left or right are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
+
+See the following illustration to compare options in the horizontal axis for `WINDSHIELD_WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ and `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_:
+
+.. image:: images/signtype_straight_movements.png
+    :width: 750
+    :align: left
 
 .. note::
     There is no articulatory difference between the right hand moving to left or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction regardless of handedness. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the signer's right and left, respectively **[reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely]**.
@@ -87,8 +111,6 @@ In order to remain explicit as to what this means and allow for precise analysis
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
     
     Resolved by giving examples of EAST and WEST? Reference J&L.
-
-
 
 **Interchangeability of the two horizontal systems. Particulars of what happens if the options change partway through coding a corpus, etc should be left to the global settings page. The description here should just mention why both systems are (basically) equivalent and what the differences look like in terms of searching/analysis.**
 
@@ -103,13 +125,15 @@ Sometimes the axis direction of a perceptual shape is traced along an **angled p
     :width: 750
     :align: left
 
-In this example, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the red and blue lines along each of their respective cardinal axes.
+In this example, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the coloured lines along each of their respective cardinal axes.
 
 Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_, highlighting its two component axis directions within one module:
 
 .. image:: images/mov_sample_sign_FOCUS.png
     :width: 750
     :align: left
+
+When multiple directions are selected within one module, this is always interpreted as an angled direction with all selections applying simultaneously. To instead indicate a sequence of directions, create multiple modules and select the appropriate direction for each one.
 
 .. comment::
     From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9). 
@@ -119,17 +143,10 @@ Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=foc
 2. Planes
 ``````````
 
-
-
 .. _planes_section:
 
 I. Cardinal plane system
 ========================
-
-.. warning::
-    To be able to cover everything below this node, background information required includes: the basics of ipsi/contra and left/right; potentially a little in-depth discussion of normal vectors (though hopefully not strictly necessary here, and likely not in those words); basic knowledge of the axis directions applicable for both of the cardinal axes that form a basis for each plane; etc.
-    
-    Be sure that these are adequately covered above.
 
 We can also describe a set of :ref:`cardinal_planes`, where each one is formed by a pair of the cardinal axes described above...
 
@@ -193,7 +210,7 @@ Sometimes circular shapes are traced within an **angled plane** rather than one 
     :width: 750
     :align: left
 
-In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be "flattened" into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program for this example should be each of directionalities indicated for the red and blue circles, which are situated in cardinal planes.
+In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be "flattened" into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program for this example should be each of directionalities indicated for the coloured circles, which are situated in cardinal planes.
 
 Here is a possible coding of `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand, highlighting their shared circular direction components:
 
