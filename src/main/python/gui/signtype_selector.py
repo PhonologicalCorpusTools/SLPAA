@@ -150,10 +150,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handstype_2hmvmtexceptloc_check = SigntypeCheckBox('Location', parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptloc_check.setProperty('abbreviation.path', '2h.both move.move similarly.simultaneous.in phase except.Loc')
         self.handstype_2hmvmtexceptloc_check.setProperty('abbreviation.include', True)
-        self.handstype_2hmvmtexceptshape_check = SigntypeCheckBox('Hand configuration',
-                                                                  parentbutton=self.handstype_mirroredexcept_radio,
-                                                                  linkedbutton=self.handstype_2hdiffshapes_radio,
-                                                                  linksame=False)
+        self.handstype_2hmvmtexceptshape_check = SigntypeCheckBox('Hand configuration', parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptshape_check.setProperty('abbreviation.path', '2h.both move.move similarly.simultaneous.in phase except.HS')
         self.handstype_2hmvmtexceptshape_check.setProperty('abbreviation.include', True)
         self.handstype_2hmvmtexceptorientn_check = SigntypeCheckBox('Orientation', parentbutton=self.handstype_mirroredexcept_radio)
@@ -349,6 +346,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         # self.handstype_unspec_radio.toggle()
 
     def linkhandconfigbuttons(self, checked):
+        self.handstype_2hmvmtexceptshape_check.setAvailable(not checked)
         self.handstype_2hmvmtexceptshape_check.setEnabled(not checked)
 
     def setsigntype(self, signtype):
@@ -367,6 +365,13 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         signtype = Signtype(specslist)
 
         return signtype
+
+    # return the button group that contains the given button
+    # in theory I suppose a button could be in more than one button group?
+    # ... but here we assume there's only one, so the first hit is returned
+    def getButtonGroup(self, thebutton):
+        groups = [bg for bg in self.buttongroups if thebutton in bg.buttons()]
+        return groups[0]
 
 
 class Signtype:
@@ -421,19 +426,6 @@ class Signtype:
                 abbrevsdict[pathelements[0]] = {}
             self.ensurepathindict(pathelements[1:], abbrevsdict[pathelements[0]])
 
-# parent can be widget or layout
-def enableChildWidgets(yesorno, parent):
-    if isinstance(parent, QAbstractButton):
-        enableChildWidgets(yesorno, parent.childlayout)
-    elif isinstance(parent, QBoxLayout):
-        numchildren = parent.count()
-        for childnum in range(numchildren):
-            thechild = parent.itemAt(childnum)
-            if thechild.widget():
-                thechild.widget().setEnabled(yesorno)
-            elif thechild.layout():
-                enableChildWidgets(yesorno, thechild.layout())
-
 
 class SigntypeButtonGroup(QButtonGroup):
 
@@ -443,23 +435,45 @@ class SigntypeButtonGroup(QButtonGroup):
 
     def handleButtonToggled(self, thebutton, checked):
         if checked:
-            enableChildWidgets(True, thebutton.childlayout)
+            self.enableChildWidgets(True, thebutton.childlayout)
             self.disableSiblings(thebutton)
         elif isinstance(thebutton, SigntypeCheckBox) and not checked and not self.hasSiblings(thebutton):
             # then we've unchecked a checkbox that is the only button in its group,
             # and will therefore not have its children disabled via disableSiblings()
             if thebutton.childlayout:
-                enableChildWidgets(False, thebutton.childlayout)
+                self.enableChildWidgets(False, thebutton.childlayout)
 
     def hasSiblings(self, thebutton):
-        siblings = [b for b in self.buttons() if b != thebutton]
-        return len(siblings) > 0
+        return len(self.getSiblings(thebutton)) > 0
+
+    def getSiblings(self, thebutton):
+        return [b for b in self.buttons() if b != thebutton]
 
     def disableSiblings(self, thebutton):
-        siblings = [b for b in self.buttons() if b != thebutton]
+        siblings = self.getSiblings(thebutton)
         for b in siblings:
             if b.childlayout:
-                enableChildWidgets(False, b.childlayout)
+                self.enableChildWidgets(False, b.childlayout)
+
+    # parent can be widget or layout
+    def enableChildWidgets(self, yesorno, parent):
+        if isinstance(parent, QAbstractButton):
+            self.enableChildWidgets(yesorno, parent.childlayout)
+        elif isinstance(parent, QBoxLayout):
+            numchildren = parent.count()
+            for childnum in range(numchildren):
+                thechild = parent.itemAt(childnum)
+                if thechild.widget():
+                    if isinstance(thechild.widget(), QAbstractButton):
+                        parentbutton = thechild.widget().parentbutton
+                        parentbuttonhascheckedsibling = parentbutton and True in [sib.isChecked() for
+                                                                                  sib in
+                                                                                  self.parent().getButtonGroup(parentbutton).getSiblings(parentbutton)]
+                        thechild.widget().setEnabled(yesorno and not parentbuttonhascheckedsibling)
+                    elif isinstance(thechild.widget(), QGroupBox):
+                        self.enableChildWidgets(yesorno, thechild.widget().layout())
+                elif thechild.layout():
+                    self.enableChildWidgets(yesorno, thechild.layout())
 
 
 class SigntypeRadioButton(QRadioButton):
@@ -483,15 +497,15 @@ class SigntypeRadioButton(QRadioButton):
 
 class SigntypeCheckBox(QCheckBox):
 
-    def __init__(self, text="", parentbutton=None, linkedbutton=None, linksame=True):
+    def __init__(self, text="", parentbutton=None):
         super().__init__(text)
         self.parentbutton = parentbutton
-        self.linkedbutton = linkedbutton
-        self.linksame = linksame
-            # True if this button's enablement is tied to the linkedbutton's being checked;
-            # False if this button's enablement is tied to the linkedbutton's being unchecked
+        self.available = True  # to be used in conjunction with a linked button; ie, "available" means "available to be enabled"
         self.toggled.connect(self.checkParent)
         self.childlayout = None
+
+    def setAvailable(self, avail):
+        self.available = avail
 
     def checkParent(self, checked):
         if checked and self.parentbutton:
@@ -501,13 +515,11 @@ class SigntypeCheckBox(QCheckBox):
         self.childlayout = clayout
 
     def setEnabled(self, a0):
-        if self.linkedbutton and (self.linkedbutton.isChecked() != self.linksame) and a0:
-            return
-        super().setEnabled(a0)
+        super().setEnabled(a0 and self.available)
 
     def changeEvent(self, e):  # gets called *after* change event... so isEnabled is for new state, not old
         if e.type() == QEvent.EnabledChange:
-            if self.linkedbutton and (self.linkedbutton.isChecked() != self.linksame) and self.isEnabled():
+            if (not self.available or not self.parentbutton.isEnabled()) and self.isEnabled():
                 self.setEnabled(False)
                 return
         super().changeEvent(e)
