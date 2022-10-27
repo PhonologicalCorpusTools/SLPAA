@@ -8,6 +8,10 @@
     at least one sample coding of the full set of movement modules for a sign (or is this covered in the other project materials?)
     fix references
     update / delete refs to “transcription process”
+    **images currently show 'mid-sagittal' in the program:**
+        - ROW
+        - THEATER H1
+        - THEATER H2
     
 .. _movement:
 
@@ -112,7 +116,7 @@ At most one direction can be selected for each axis, so that a total maximum of 
     * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
     * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
 
-* **Mid-sagittal axis**
+* **Sagittal axis**
 
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
@@ -173,7 +177,7 @@ Keep in mind that a single module is meant to convey only one direction of movem
 
 At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is 'bidirectional' in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting circular direction, such as always selecting the first direction of motion.
 
-* **Mid-sagittal plane**
+* **Sagittal plane**
 
     * **Clockwise**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
     * **Counter-clockwise**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
@@ -275,7 +279,7 @@ The joint-specific movement options are as follows:
 
 * This should be selected if the selected fingers wiggle, or flutter, such as in the signs `DIRTY <https://asl-lex.org/visualization/?sign=dirty>`_, `SALT <https://asl-lex.org/visualization/?sign=salt>`_, `BEACH <https://asl-lex.org/visualization/?sign=beach>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to both flexion and extension of the selected fingers' base joints.
 
-The "none of these" option should be selected if joint-specific movement does not apply to the sign being coded. 
+The "none of these" option should be selected if joint-specific movement does not apply to the sign being coded.
 
 .. _handshape_change_entry:
 
@@ -304,3 +308,4 @@ Use the **joint activity** section to add more fine-grained detail about any joi
 ```````````````````````````
 
 ...
+
