@@ -77,7 +77,7 @@ The directions for the vertical and sagittal axes are consistent wherever they a
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-The directions for the horizontal axis, however, depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models for the horizontal axis, described in greater detail in the :ref:next section<axis_symmetry>`. By default, this first of set of options apply in the program:
+The directions for the horizontal axis, however, depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models for the horizontal axis, described in greater detail in the :ref:`next section<axis_symmetry>`. By default, this first of set of options apply in the program:
     
 * **Horizontal axis: relative**
 
