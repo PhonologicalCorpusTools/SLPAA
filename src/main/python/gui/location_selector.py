@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QStyleOptionButton,
     QApplication,
     QHeaderView,
+    QListView,
     QStyleOptionFrame,
     QErrorMessage,
     QCheckBox,
@@ -245,6 +246,11 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         list_layout.addWidget(self.pathslistview)
 
+        self.detailslistview = QListView()
+        # TODO KV set model, checkboxes, etc
+
+        list_layout.addWidget(self.detailslistview)
+
         buttons_layout = QHBoxLayout()
 
         sortlabel = QLabel("Sort by:")
@@ -281,6 +287,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
     def enable_location_tools(self, enable):
         self.combobox.setEnabled(enable)
         self.pathslistview.setEnabled(enable)
+        self.detailslistview.setEnabled(enable)
         self.imagetabs.setEnabled(enable)
 
     def handle_toggle_locationtype(self, btn):
