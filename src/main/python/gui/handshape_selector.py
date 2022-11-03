@@ -39,28 +39,18 @@ class HandTranscriptionPanel(QScrollArea):
         self.setFrameStyle(QFrame.StyledPanel)
         main_frame = QFrame(parent=self)
 
-        # main_layout = QGridLayout()
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
 
-        # self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
-        # main_layout.addWidget(self.global_info, 0, 0, 2, 1)
-        # main_layout.addWidget(self.global_info)
-
         config_layout = QVBoxLayout()
 
-        self.config = Config(predefined_ctx, parent=self)  # 1, 'Configuration 1'
-        # main_layout.addWidget(self.config1, 0, 1, 1, 2)
+        self.config = Config(predefined_ctx, parent=self)
         config_layout.addWidget(self.config)
 
         self.details_label = QLabel()
         config_layout.addWidget(self.details_label)
 
         main_layout.addLayout(config_layout)
-
-        # TODO KV delete
-        # self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
-        # main_layout.addWidget(self.config2, 1, 1, 1, 2)
 
         self.setWidget(main_frame)
 
@@ -73,56 +63,8 @@ class HandTranscriptionPanel(QScrollArea):
     def clear(self):
         self.config.clear()
 
-    def set_value(self, handconfigmodule):  # , global_handshape_info
-        # self.global_info.set_value(global_handshape_info)
-        self.config.set_value(handconfigmodule)  #1)
-        # TODO KV delete
-        # self.config2.set_value(hand_transcription.config2)
-
-    # def change_hand_selection(self, hand):
-    #     if hand == 1:
-    #         self.button1.setChecked(True)
-    #     elif hand == 2:
-    #         self.button2.setChecked(True)
-    #     # TODO KV delete
-    #     # elif hand == 3:
-    #     #     self.button3.setChecked(True)
-    #     # elif hand == 4:
-    #     #     self.button4.setChecked(True)
-
-    # def insert_radio_button(self, focused_hand):
-    #     self.selected_hand_group = QButtonGroup(parent=self)
-    #     self.button1, self.button2 = self.config.insert_radio_button()
-    #     # TODO KV delete
-    #     # self.button3, self.button4 = self.config2.insert_radio_button()
-    #
-    #     self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
-    #     self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
-    #     # TODO KV delete
-    #     # self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
-    #     # self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
-    #
-    #     if focused_hand == 1:
-    #         self.button1.setChecked(True)
-    #     elif focused_hand == 2:
-    #         self.button2.setChecked(True)
-    #     # TODO KV delete
-    #     # elif focused_hand == 3:
-    #     #     self.button3.setChecked(True)
-    #     # elif focused_hand == 4:
-    #     #     self.button4.setChecked(True)
-    #
-    #     self.selected_hand_group.addButton(self.button1, 1)
-    #     self.selected_hand_group.addButton(self.button2, 2)
-    #     # TODO KV delete
-    #     # self.selected_hand_group.addButton(self.button3, 3)
-    #     # self.selected_hand_group.addButton(self.button4, 4)
-    #
-    # def remove_radio_button(self):
-    #     self.config.remove_radio_button()
-    #     # TODO KV delete
-    #     # self.config2.remove_radio_button()
-    #     self.selected_hand_group.deleteLater()
+    def set_value(self, handconfigmodule):
+        self.config.set_value(handconfigmodule)
 
     def get_hand_transcription(self, hand=None):
         if hand is None:
@@ -132,11 +74,6 @@ class HandTranscriptionPanel(QScrollArea):
             return self.config.hand.get_hand_transcription_list()
         elif hand == 2:
             return self.config.hand2.get_hand_transcription_list()
-        # TODO KV delete
-        # elif hand == 3:
-        #     return self.config2.hand1.get_hand_transcription_list()
-        # elif hand == 4:
-        #     return self.config2.hand2.get_hand_transcription_list()
 
     def set_predefined(self, transcription_list, hand=None):
         if hand is None:
@@ -146,11 +83,6 @@ class HandTranscriptionPanel(QScrollArea):
             self.config.hand.set_predefined(transcription_list)
         elif hand == 2:
             self.config.hand2.set_predefined(transcription_list)
-        # TODO KV delete
-        # elif hand == 3:
-        #     self.config2.hand1.set_predefined(transcription_list)
-        # elif hand == 4:
-        #     self.config2.hand2.set_predefined(transcription_list)
 
 
 class HandIllustrationPanel(QScrollArea):

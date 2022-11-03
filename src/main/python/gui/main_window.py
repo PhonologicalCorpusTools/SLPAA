@@ -1087,11 +1087,6 @@ class MainWindow(QMainWindow):
         # self.new_sign = None
         self.action_delete_sign.setEnabled(False)
 
-        # TODO KV delete
-        # self.signlevelinfo_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
-        # self.transcription_scroll.clear()
-        # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv dict(),
-
         self.corpus_view.corpus_view.clearSelection()
         self.sign_summary.clear()
         self.sign_summary.handle_signlevelbutton_click()

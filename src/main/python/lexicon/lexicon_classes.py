@@ -35,7 +35,7 @@ class SignLevelInformation:
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
             self._handdominance = serializedsignlevelinfo['handdominance']
-        else:
+        elif signlevel_info is not None:
             self._entryid = signlevel_info['entryid']
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
@@ -48,6 +48,8 @@ class SignLevelInformation:
             self._datelastmodified = signlevel_info['date last modified']
             self._note = signlevel_info['note']
             self._handdominance = signlevel_info['handdominance']
+        else:
+            print("TODO KV no sign level info; what to do?")
 
     def __eq__(self, other):
         aresame = True
@@ -259,60 +261,6 @@ class HandConfiguration:
         # from above
         # self.hand1 = HandConfigurationHand(hand['fields'])
         self.config = config
-
-
-# class HandshapeTranscription:
-#     def __init__(self, configvalue):  # s):
-#         # self.configs = configs
-#         # structure of congfigvalue: {
-#         #     'forearm': self.slot1.isChecked(),
-#         #     'estimated': self.estimated.isChecked(),
-#         #     'uncertain': self.uncertain.isChecked(),
-#         #     'incomplete': self.incomplete.isChecked(),
-#         #     'hand': self.hand.get_value()
-#         # }
-#
-#         self.config = HandshapeTranscriptionConfig(config)  # config  # [0]
-#         # TODO KV delete
-#         # self.config1, self.config2 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs]
-#         # self.config1 = [HandshapeTranscriptionConfig(config['config_number'], config['hands']) for config in configs][0]
-#         # self.config1 = HandshapeTranscriptionConfig(config)  # config['config_number'], config['hands'][0])
-#         # self.find_properties()
-#
-#     def __repr__(self):
-#         return repr(self.config)  #s)
-
-    # TODO KV delete
-    # def find_properties(self):
-    #     # one-handed vs. two-handed
-    #     self.handedness = self.find_handedness()
-    #
-    #     # one-config vs. two-config
-    #     self.config = self.find_config()
-
-    # TODO KV delete
-    # def find_handedness(self):
-    #     if self.config1.is_empty() and self.config2.is_empty():
-    #         return 0
-    #     elif self.config1.find_handedness() == 3 or self.config2.find_handedness() == 3:
-    #         return 2
-    #     elif self.config1.find_handedness() == 1 and self.config2.find_handedness() == 2:
-    #         return 2
-    #     elif self.config2.find_handedness() == 1 and self.config1.find_handedness() == 2:
-    #         return 2
-    #     else:
-    #         return 1
-
-    # TODO KV delete
-    # def find_config(self):
-    #     if self.config1.is_empty() and self.config2.is_empty():
-    #         return 0
-    #     elif self.config1.is_empty() and not self.config2.is_empty():
-    #         return 2
-    #     elif not self.config1.is_empty() and self.config2.is_empty():
-    #         return 1
-    #     else:
-    #         return 3
 
 
 class LocationPoint:

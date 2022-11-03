@@ -1034,13 +1034,6 @@ class Config(QGroupBox):
         self.hand.slot_leave.connect(self.slot_leave.emit)
         self.hand.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
-        # TODO KV delete
-        # self.hand2 = ConfigHand(2, self.predefined_ctx, parent=self)
-        # self.hand2.slot_on_focus.connect(self.slot_on_focus.emit)
-        # self.hand2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
-        # self.hand2.slot_leave.connect(self.slot_leave.emit)
-        # self.hand2.slot_finish_edit.connect(self.slot_finish_edit.emit)
-
         self.predefined_button = QPushButton("Load predefined handshape")
         self.predefined_button.clicked.connect(self.load_predefined)
         # hand_layout = QHBoxLayout()
@@ -1078,20 +1071,6 @@ class Config(QGroupBox):
         self.uncertain.setChecked(handconfigmodule.overalloptions['uncertain'])
         self.incomplete.setChecked(handconfigmodule.overalloptions['incomplete'])
 
-        # TODO KV delete
-        # self.hand2.set_value(config.hand2)
-
-    # def insert_radio_button(self):
-    #     button1 = self.hand.insert_radio_button()
-    #     # TODO KV delete
-    #     # button2 = self.hand2.insert_radio_button()
-    #     return button1  #, button2
-    #
-    # def remove_radio_button(self):
-    #     self.hand.remove_radio_button()
-    #     # TODO KV delete
-    #     # self.hand2.remove_radio_button()
-
     def clear(self):
         self.hand.clear()
         self.slot1.setChecked(False)
@@ -1100,14 +1079,6 @@ class Config(QGroupBox):
         self.incomplete.setChecked(False)
 
     def get_value(self):
-        # return {
-        #     'config_number': self.config_number,
-        #     'hands': [
-        #         self.hand1.get_value(),
-        #         # TODO KV delete
-        #         # self.hand2.get_value()
-        #     ]
-        # }
         return {
             'forearm': self.slot1.isChecked(),
             'estimated': self.estimated.isChecked(),
@@ -1115,7 +1086,6 @@ class Config(QGroupBox):
             'incomplete': self.incomplete.isChecked(),
             'hand': self.hand.get_value()  # this is a list of field values
         }
-        # return self.slot1.isChecked(), self.estimated.isChecked(), self.uncertain.isChecked(), self.incomplete.isChecked(), self.hand.get_value()
 
 
 class ConfigGlobal(QGroupBox):
@@ -1125,7 +1095,6 @@ class ConfigGlobal(QGroupBox):
     def __init__(self, title='', **kwargs):
         super().__init__(title=title, **kwargs)
 
-        # self.main_layout = QVBoxLayout()
         self.main_layout = QHBoxLayout()
         self.main_layout.setSpacing(5)
         # self.main_layout.addStretch()
@@ -1213,17 +1182,8 @@ class ConfigGlobal(QGroupBox):
 
 
 class HandConfigurationHand:
-    def __init__(self, fields):  # hand_number, fields):
-        # self._hand_number = hand_number
+    def __init__(self, fields):
         self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
-
-    # @property
-    # def hand_number(self):
-    #     return self._hand_number
-    #
-    # @hand_number.setter
-    # def hand_number(self, new_hand_number):
-    #     self._hand_number = new_hand_number
 
     def __iter__(self):
         return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
@@ -1244,14 +1204,6 @@ class HandConfigurationHand:
             '', '4', '', '', ''
         ]
 
-#
-# class HandshapeTranscriptionConfig:
-#     def __init__(self, hand):  # config_number, hands):
-#         self.hand1 = HandConfigurationHand(hand['fields'])
-#
-#     # def is_empty(self):
-#     #     return self.hand1.is_empty()  # and self.hand2.is_empty()
-#
 
 class HandConfigurationField:
     def __init__(self, field_number, slots):
