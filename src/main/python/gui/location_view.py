@@ -719,11 +719,11 @@ class LocationGraphicsView(QGraphicsView):
         self.viewer_size = viewer_size
 
         self._scene = QGraphicsScene(parent=self)
-        self._pixmap = QPixmap("./crowface.jpg")
+        self._pixmap = QPixmap("./body_hands_front.png")
         self._photo = QGraphicsPixmapItem(self._pixmap)
         # self._photo.setPixmap(QPixmap("../../resources/base/default_location_images/upper_body.jpg"))
         self._scene.addItem(self._photo)
-        # self._scene.addPixmap(QPixmap("./crowface.jpg"))
+        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
         self.setScene(self._scene)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.fitInView()
