@@ -880,13 +880,15 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
 
 class LocationGraphicsView(QGraphicsView):
 
-    def __init__(self, parent=None, viewer_size=400):
+    def __init__(self, frontorback='front', parent=None, viewer_size=400):
         super().__init__(parent=parent)
 
         self.viewer_size = viewer_size
 
         self._scene = QGraphicsScene(parent=self)
-        self._pixmap = QPixmap("./body_hands_front.png")
+        # TODO KV - this needs to be a resource path, not local
+        imagepath = "./body_hands_" + frontorback + ".png"
+        self._pixmap = QPixmap(imagepath)
         self._photo = QGraphicsPixmapItem(self._pixmap)
         # self._photo.setPixmap(QPixmap("../../resources/base/default_location_images/upper_body.jpg"))
         self._scene.addItem(self._photo)
@@ -894,7 +896,6 @@ class LocationGraphicsView(QGraphicsView):
         self.setScene(self._scene)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.fitInView()
-
 
     def fitInView(self, scale=True):
         rect = QRectF(self._photo.pixmap().rect())

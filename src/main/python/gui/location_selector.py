@@ -23,7 +23,9 @@ from PyQt5.QtWidgets import (
     QErrorMessage,
     QCheckBox,
     QSpinBox,
-    QSlider
+    QSlider,
+    QTabWidget,
+    QWidget
 )
 
 from PyQt5.QtCore import (
@@ -115,6 +117,34 @@ class TreeItemDelegate(QStyledItemDelegate):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
 
+class ImageDisplayTab(QWidget):
+    def __init__(self, frontorback='front', **kwargs):
+        super().__init__(**kwargs)
+
+        main_layout = QHBoxLayout()
+
+        # TODO KV graphics view!
+        self.imagedisplay = LocationGraphicsView(frontorback)
+        # self.imagedisplay.setMinimumWidth(400)
+
+        self.zoom_slider = QSlider(Qt.Vertical)
+        self.zoom_slider.setMinimum(1)
+        self.zoom_slider.setMaximum(10)
+        self.zoom_slider.setValue(0)
+        self.zoom_slider.valueChanged.connect(self.zoom)
+
+        main_layout.addWidget(self.imagedisplay)
+        main_layout.addWidget(self.zoom_slider)
+
+        self.setLayout(main_layout)
+
+    def zoom(self, scale):
+        trans_matrix = self.imagedisplay.transform()
+        trans_matrix.reset()
+        trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
+        self.imagedisplay.setTransform(trans_matrix)
+
+
 # TODO KV - add undo, ...
 
 # TODO KV there's another class with the same name in panel.py
@@ -158,14 +188,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.locationtype_buttongroup = QButtonGroup()
         self.locationtype_buttongroup.addButton(self.bodyanchored_radio)
         self.locationtype_buttongroup.addButton(self.signingspace_radio)
-        if moduletoload is not None:
-            pass
-            # TODO KV implement for when we're loading an existing location module
-        else:
-            for btn in self.locationtype_buttongroup.buttons():
-                if app_settings['location']['locationtype'] == btn.property('locationtype'):
-                    btn.setChecked(True)
-                    break
+        self.locationtype_buttongroup.buttonToggled.connect(lambda: self.handle_toggle_locationtype(self.locationtype_buttongroup.checkedButton()))
         locationtype_layout.addWidget(self.bodyanchored_radio)
         locationtype_layout.addWidget(self.signingspace_radio)
         locationtype_layout.addStretch()
@@ -182,7 +205,6 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.combobox.setEditable(True)
         self.combobox.setInsertPolicy(QComboBox.NoInsert)
         self.combobox.setFocusPolicy(Qt.StrongFocus)
-        self.combobox.setEnabled(True)
         self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
         self.combobox.completer().setFilterMode(Qt.MatchContains)
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
@@ -194,9 +216,11 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         selection_layout = QHBoxLayout()
 
-        # TODO KV graphics view!
-        self.imagedisplay = LocationGraphicsView()
-        self.imagedisplay.setMinimumWidth(400)
+        self.imagetabs = QTabWidget()
+        self.fronttab = ImageDisplayTab('front')
+        self.imagetabs.addTab(self.fronttab, "Front")
+        self.backtab = ImageDisplayTab('back')
+        self.imagetabs.addTab(self.backtab, "Back")
 
         # self.treedisplay = MovementTreeView()
         # self.treedisplay.setItemDelegate(TreeItemDelegate())
@@ -210,15 +234,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         # self.treedisplay.setMinimumWidth(400)
 
-        selection_layout.addWidget(self.imagedisplay)
-
-        zoom_slider = QSlider(Qt.Vertical)
-        zoom_slider.setMinimum(1)
-        zoom_slider.setMaximum(10)
-        zoom_slider.setValue(0)
-        zoom_slider.valueChanged.connect(self.zoom)
-
-        selection_layout.addWidget(zoom_slider)
+        selection_layout.addWidget(self.imagetabs)
 
         list_layout = QVBoxLayout()
 
@@ -251,11 +267,31 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         selection_layout.addLayout(list_layout)
         self.addLayout(selection_layout)
 
-    def zoom(self, scale):
-        trans_matrix = self.imagedisplay.transform()
-        trans_matrix.reset()
-        trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
-        self.imagedisplay.setTransform(trans_matrix)
+        if moduletoload is not None:
+            pass
+            # TODO KV implement for when we're loading an existing location module
+        else:
+            for btn in self.locationtype_buttongroup.buttons():
+                if app_settings['location']['locationtype'] == btn.property('locationtype'):
+                    btn.setChecked(True)
+                    break
+
+        self.enable_location_tools(self.locationtype_buttongroup.checkedButton() is not None)
+
+    def enable_location_tools(self, enable):
+        self.combobox.setEnabled(enable)
+        self.pathslistview.setEnabled(enable)
+        self.imagetabs.setEnabled(enable)
+
+    def handle_toggle_locationtype(self, btn):
+        self.enable_location_tools(btn is not None)
+
+        if btn == self.bodyanchored_radio:
+            # TODO KV set image and search tool to body-anchored content
+            pass
+        elif btn == self.signingspace_radio:
+            # TODO KV set image and search tool to signing space content
+            pass
 
     def get_savedmodule_signal(self):
         return self.saved_location
