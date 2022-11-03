@@ -165,6 +165,40 @@ class SignDefaultsTab(QWidget):
             self.xslotdivisions_changed.emit(previouspartials, newpartials)
 
 
+class LocationTab(QWidget):
+    # xslotdivisions_changed = pyqtSignal(dict, dict)
+
+    def __init__(self, settings, **kwargs):
+        super().__init__(**kwargs)
+        self.settings = settings
+
+        main_layout = QFormLayout()
+        self.setLayout(main_layout)
+
+        self.locationtype_layout = QHBoxLayout()
+        self.locationtype_group = QButtonGroup(parent=self)
+        self.locationtype_bodyanchored_radio = QRadioButton('Body-anchored')
+        self.locationtype_bodyanchored_radio.setProperty('locationtype', 'bodyanchored')
+        self.locationtype_group.addButton(self.locationtype_bodyanchored_radio)
+        self.locationtype_layout.addWidget(self.locationtype_bodyanchored_radio)
+        self.locationtype_signingspace_radio = QRadioButton('Signing space')
+        self.locationtype_signingspace_radio.setProperty('locationtype', 'signingspace')
+        self.locationtype_group.addButton(self.locationtype_signingspace_radio)
+        self.locationtype_layout.addWidget(self.locationtype_signingspace_radio)
+        self.locationtype_neither_radio = QRadioButton('Neither')
+        self.locationtype_neither_radio.setProperty('locationtype', 'none')
+        self.locationtype_group.addButton(self.locationtype_neither_radio)
+        self.locationtype_layout.addWidget(self.locationtype_neither_radio)
+        for button in self.locationtype_group.buttons():
+            if self.settings['location']['locationtype'] == button.property('locationtype'):
+                button.setChecked(True)
+                break
+        main_layout.addRow(QLabel('Default location type:'), self.locationtype_layout)
+
+    def save_settings(self):
+        self.settings['location']['locationtype'] = self.locationtype_group.checkedButton().property('locationtype')
+
+
 class PreferenceDialog(QDialog):
     prefs_saved = pyqtSignal()
     xslotdivisions_changed = pyqtSignal(dict, dict)
@@ -190,6 +224,9 @@ class PreferenceDialog(QDialog):
         self.signdefaults_tab = SignDefaultsTab(settings, parent=self)
         self.signdefaults_tab.xslotdivisions_changed.connect(self.handle_xslotdivisions_changed)
         tabs.addTab(self.signdefaults_tab, 'Sign')
+
+        self.location_tab = LocationTab(settings, parent=self)
+        tabs.addTab(self.location_tab, 'Location')
 
         buttons = QDialogButtonBox.Save | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
@@ -254,5 +291,6 @@ class PreferenceDialog(QDialog):
             self.display_tab.save_settings()
             self.reminder_tab.save_settings()
             self.signdefaults_tab.save_settings()
+            self.location_tab.save_settings()
             self.prefs_saved.emit()
             self.accept()

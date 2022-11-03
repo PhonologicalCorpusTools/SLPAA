@@ -121,7 +121,7 @@ class TreeItemDelegate(QStyledItemDelegate):
 class LocationSpecificationLayout(ModuleSpecificationLayout):
     saved_location = pyqtSignal(LocationTreeModel, dict, list)
 
-    def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
+    def __init__(self, app_settings, moduletoload=None, **kwargs):  # TODO KV , movement_specifications,
         super().__init__(**kwargs)
 
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
@@ -147,6 +147,30 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         self.listproxymodel = LocationPathsProxyModel(wantselected=True)
         self.listproxymodel.setSourceModel(self.listmodel)
+
+        locationtype_layout = QHBoxLayout()
+        locationtype_layout.addWidget(QLabel("Location:"))
+
+        self.bodyanchored_radio = QRadioButton("Body-anchored")
+        self.bodyanchored_radio.setProperty('locationtype', 'bodyanchored')
+        self.signingspace_radio = QRadioButton("Signing space")
+        self.signingspace_radio.setProperty('locationtype', 'signingspace')
+        self.locationtype_buttongroup = QButtonGroup()
+        self.locationtype_buttongroup.addButton(self.bodyanchored_radio)
+        self.locationtype_buttongroup.addButton(self.signingspace_radio)
+        if moduletoload is not None:
+            pass
+            # TODO KV implement for when we're loading an existing location module
+        else:
+            for btn in self.locationtype_buttongroup.buttons():
+                if app_settings['location']['locationtype'] == btn.property('locationtype'):
+                    btn.setChecked(True)
+                    break
+        locationtype_layout.addWidget(self.bodyanchored_radio)
+        locationtype_layout.addWidget(self.signingspace_radio)
+        locationtype_layout.addStretch()
+
+        self.addLayout(locationtype_layout)
 
         search_layout = QHBoxLayout()
         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
