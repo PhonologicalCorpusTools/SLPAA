@@ -77,7 +77,8 @@ class ParameterModule:
             if not needtocombine:
                 self._timingintervals.append(timinginterval)
 
-
+    def getabbreviation(self):
+        return "TODO no abbreviations implemented yet"
 
 
 # TODO KV comments
@@ -218,7 +219,8 @@ class LocationModule(ParameterModule):
         self._locationtreemodel = locationtreemodel
 
     def getabbreviation(self):
-        # TODO KV - the below is just copied from movementmodule
+        # TODO KV these can't be hardcoded like this... fix it!
+        # copied from movement
         # abbrevs = {
         #     "Perceptual shape": "Perceptual",
         #     "Straight": "Straight",
