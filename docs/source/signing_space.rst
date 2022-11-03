@@ -88,15 +88,15 @@ Alternatively, the directions for the horizontal axis can be defined as:
 
 * **Horizontal axis: absolute**
     
-    * **Left**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_, or as in `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
-    * **Right**, as in the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_, or as in `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardles of the signer's dominant hand.
+    * **Left**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_; or as in `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardless of the signer's dominant hand.
+    * **Right**, as in the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_; or as in `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is encoded in the sign; the direction of the sign will be the same regardless of the signer's dominant hand.
 
 .. _axis_symmetry:
 
 b) Symmetry in the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements in the vertical and/or sagittal axis, but much more ambiguous when the horizontal axis is involved. Depending on your definition, it could be equally valid that a movement with both hands moving to signer's left are moving in the same direction, or that one with both hands moving towards each other are moving in the same direction. This is an ambiguity only with how to interpret horizontal movements: one hand moving upwards and another moving downwards could not reasonably be defined as moving in the same direction.
+Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. This is straightforward for movements along a vertical and/or a sagittal axis, but much more ambiguous when a horizontal axis is involved. Depending on your definition, it could be equally valid that a movement with both hands moving to signer's left are moving in the same direction, or that one with both hands moving towards each other are moving in the same direction. This is an ambiguity only with how to interpret horizontal movements: one hand moving upwards and another moving downwards could not reasonably be defined as moving in the same direction. [KCH: I basically agree, but I can imagine gestures that would make use of such a definition, e.g., both hands start on either side of the head, but one is above the head and one below the chin. Then both hands come toward the head to 'squash' it. In this case, one hand is moving up and one is moving down, but they're both moving 'toward the centre' or something like that. Not sure if we want to allow such definitions; disallow them but just remove this sentence; or disallow them and explicitly explain why we think they shouldn't be included.]
 
 In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving left or right are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving left or right are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
 
@@ -129,7 +129,7 @@ Sometimes the axis direction of a perceptual shape is traced along an **angled p
     :width: 750
     :align: left
 
-In this example, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the coloured lines along each of their respective cardinal axes.
+In these examples, the sign includes the black line traced out in an angled direction. The angled line can be "flattened" into each of its component cardinal axes, and then the resulting axis directions are simpler to record and analyze. The information to record in the program for this example should then be the directions indicated for the coloured lines along each of their respective cardinal axes.
 
 Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=focus>`_, highlighting its two component axis directions within one module:
 
@@ -137,7 +137,7 @@ Here is a possible coding of `FOCUS <https://asl-lex.org/visualization/?sign=foc
     :width: 750
     :align: left
 
-When multiple directions are selected within one module, this is always interpreted as an angled direction with all selections applying simultaneously. To instead indicate a sequence of directions, create multiple modules and select the appropriate direction for each one.
+When multiple directions are selected within one module, this is always interpreted as an angled direction with all selections applying simultaneously (as selected by the associated timing values) **[ADD LINK TO TIMING & x-SLOTS SECTION]**. To instead indicate a sequence of directions, create multiple instances of the module, associate them with separate (and sequential) timing values **[ADD LINK TO TIMING & x-SLOTS SECTION]** and select the appropriate direction for each one.
 
 .. comment::
     From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9). 
