@@ -3,7 +3,8 @@ import functools
 from datetime import date
 from PyQt5.QtWidgets import (
     QMessageBox,
-    QFileDialog
+    QFileDialog,
+    QWidget
 )
 
 
@@ -40,7 +41,7 @@ def check_empty_gloss(func):
     @functools.wraps(func)
     def wrapper_check_empty_gloss(self, *args, **kwargs):
         if not self.gloss_edit.text():
-            QMessageBox.critical(self, 'Empty Gloss', 'Gloss cannot be empty.')
+            QMessageBox.critical(self if isinstance(self, QWidget) else self.parentwidget, 'Empty Gloss', 'Gloss cannot be empty.')
             return
         else:
             return func(self, *args, **kwargs)

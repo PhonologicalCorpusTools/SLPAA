@@ -77,9 +77,10 @@ class SignLevelDateDisplay(QLabel):
 
 class SignLevelInfoLayout(QVBoxLayout):
 
-    def __init__(self, signlevelinfo, mainwindow, **kwargs):
+    def __init__(self, signlevelinfo, mainwindow, parentwidget=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
+        self.parentwidget = parentwidget
 
         self.settings = self.mainwindow.app_settings
         self.coder = self.settings['metadata']['coder']
@@ -260,7 +261,7 @@ class SignlevelinfoSelectorDialog(QDialog):
         self.mainwindow = mainwindow
         self.settings = self.mainwindow.app_settings
 
-        self.signlevelinfo_layout = SignLevelInfoLayout(signlevelinfo, mainwindow)  # TODO KV delete app_ctx)
+        self.signlevelinfo_layout = SignLevelInfoLayout(signlevelinfo, mainwindow, parentwidget=self)  # TODO KV delete app_ctx)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(self.signlevelinfo_layout)
