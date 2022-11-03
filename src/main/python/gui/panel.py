@@ -819,7 +819,7 @@ class XslotPanel(QScrollArea):
                                                  hands=locnmodule.hands,
                                                  xslotstructure=self.sign.xslotstructure,
                                                  enable_addnew=False,
-                                                 modulelayout=LocationSpecificationLayout2(self.mainwindow.app_settings, locationtreemodel),
+                                                 modulelayout=LocationSpecificationLayout2(self.mainwindow, locationtreemodel),
                                                  moduleargs=None,
                                                  timingintervals=locnmodule.timingintervals)
         location_selector.get_savedmodule_signal().connect(
@@ -1071,7 +1071,7 @@ class SignSummaryPanel(QScrollArea):
                                                  hands=None,
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                  enable_addnew=True,
-                                                 modulelayout=LocationSpecificationLayout2(self.mainwindow.app_settings),
+                                                 modulelayout=LocationSpecificationLayout2(self.mainwindow),
                                                  moduleargs=None)
         location_selector.get_savedmodule_signal().connect(lambda locationtree, hands, timingintervals: self.handle_save_location(locationtree, hands, timingintervals))
         location_selector.exec_()

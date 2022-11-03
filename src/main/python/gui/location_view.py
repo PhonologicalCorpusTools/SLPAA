@@ -880,14 +880,13 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
 
 class LocationGraphicsView(QGraphicsView):
 
-    def __init__(self, frontorback='front', parent=None, viewer_size=400):
+    def __init__(self, app_ctx, frontorback='front', parent=None, viewer_size=400):
         super().__init__(parent=parent)
 
         self.viewer_size = viewer_size
 
         self._scene = QGraphicsScene(parent=self)
-        # TODO KV - this needs to be a resource path, not local
-        imagepath = "./body_hands_" + frontorback + ".png"
+        imagepath = app_ctx.default_location_images['body_hands_' + frontorback]
         self._pixmap = QPixmap(imagepath)
         self._photo = QGraphicsPixmapItem(self._pixmap)
         # self._photo.setPixmap(QPixmap("../../resources/base/default_location_images/upper_body.jpg"))

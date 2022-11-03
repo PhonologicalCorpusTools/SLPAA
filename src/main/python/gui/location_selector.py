@@ -118,13 +118,13 @@ class TreeItemDelegate(QStyledItemDelegate):
 
 
 class ImageDisplayTab(QWidget):
-    def __init__(self, frontorback='front', **kwargs):
+    def __init__(self, app_ctx, frontorback='front', **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QHBoxLayout()
 
         # TODO KV graphics view!
-        self.imagedisplay = LocationGraphicsView(frontorback)
+        self.imagedisplay = LocationGraphicsView(app_ctx, frontorback)
         # self.imagedisplay.setMinimumWidth(400)
 
         self.zoom_slider = QSlider(Qt.Vertical)
@@ -151,7 +151,7 @@ class ImageDisplayTab(QWidget):
 class LocationSpecificationLayout(ModuleSpecificationLayout):
     saved_location = pyqtSignal(LocationTreeModel, dict, list)
 
-    def __init__(self, app_settings, moduletoload=None, **kwargs):  # TODO KV , movement_specifications,
+    def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV , movement_specifications,
         super().__init__(**kwargs)
 
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
@@ -217,9 +217,9 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         selection_layout = QHBoxLayout()
 
         self.imagetabs = QTabWidget()
-        self.fronttab = ImageDisplayTab('front')
+        self.fronttab = ImageDisplayTab(mainwindow.app_ctx, 'front')
         self.imagetabs.addTab(self.fronttab, "Front")
-        self.backtab = ImageDisplayTab('back')
+        self.backtab = ImageDisplayTab(mainwindow.app_ctx, 'back')
         self.imagetabs.addTab(self.backtab, "Back")
 
         # self.treedisplay = MovementTreeView()
@@ -272,7 +272,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             # TODO KV implement for when we're loading an existing location module
         else:
             for btn in self.locationtype_buttongroup.buttons():
-                if app_settings['location']['locationtype'] == btn.property('locationtype'):
+                if mainwindow.app_settings['location']['locationtype'] == btn.property('locationtype'):
                     btn.setChecked(True)
                     break
 
