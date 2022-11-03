@@ -37,7 +37,9 @@ class AppContext(ApplicationContext):
         return {
             'head': self.get_resource('default_location_images/head.jpg'),
             'upper_body': self.get_resource('default_location_images/upper_body.jpg'),
-            'weak_hand': self.get_resource('default_location_images/weak_hand.jpg')
+            'weak_hand': self.get_resource('default_location_images/weak_hand.jpg'),
+            'body_hands_front': self.get_resource('default_location_images/body_hands_front.png'),
+            'body_hands_back': self.get_resource('default_location_images/body_hands_back.png')
         }
 
     @cached_property
