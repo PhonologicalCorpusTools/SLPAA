@@ -85,15 +85,11 @@ a. Movement timing relation
   .. image:: images/signtype_straight_movements.png
    :width: 80%
    :align: center
-            
+
     - "Everything is mirrored / in phase except..." should be selected if at least one component is out of phase. The user can check as many as apply to the sign. 
       
       - "Location" should be selected for signs that are out of phase in terms of location, that is, if the two hands have the opposite specification for location at the same time (e.g., one hand is up while the other is down). For a circle, we consider location to be out of phase if the two hands would reach the top of the circle at *different* times. Some signs that fall under this category are: `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_ (one hand is up while the other is down) and `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_ or `SOCIAL <https://asl-lex.org/visualization/?sign=social>`_ (in both of the latter, the hands reach the top of their circles at different times). If the horizontal axis is defined in terms of relative directions, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ would fall in this category (one hand is ipsilateral while the other is contralateral). If the horizontal axis is defined in terms of absolute directions, `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ would fall in this category (one hand is right while the other is left). See illustration above. **Is this showing up?**
       
-      
-
-                
-                
       - "Handshape" should be selected for signs that are out of phase in terms of handshape, that is, if the two hands have different hand configurations at a given time. Some examples are: `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_, `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ (both signs involve two different hand configurations which are used by each hand at opposite times). 
                 
       - "Orientation" should be selected for signs that are out of phase in terms of absolute orientation, that is, if the two hands have different orientations at a given time. Some examples are: `DIE <https://asl-lex.org/visualization/?sign=die>`_ (one palm is facing upward when the other is facing downward), `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_ (one palm faces proximally when the other faces distally), and `PAIN <https://asl-lex.org/visualization/?sign=pain>`_ (again, one palm faces proximally when the other faces distally). Note that this is typically a direct result of joint-specific movements going in different 'directions' at the same time, though such a difference is not intended to be additionally coded in the :ref:`Movement Direction Relation<signtype_movement_direction_relation>` section.
