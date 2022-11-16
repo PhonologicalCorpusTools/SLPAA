@@ -26,7 +26,9 @@ from PyQt5.QtWidgets import (
     QSpinBox,
     QSlider,
     QTabWidget,
-    QWidget
+    QWidget,
+    QSpacerItem,
+    QSizePolicy
 )
 
 from PyQt5.QtCore import (
@@ -179,22 +181,53 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.listproxymodel = LocationPathsProxyModel(wantselected=True)
         self.listproxymodel.setSourceModel(self.listmodel)
 
-        locationtype_layout = QHBoxLayout()
-        locationtype_layout.addWidget(QLabel("Location:"))
+        loctype_layout = QHBoxLayout()
 
+        label_layout = QVBoxLayout()
+        label_layout.addWidget(QLabel("Location:"))
+        label_layout.addStretch()
+        loctype_layout.addLayout(label_layout)
+
+        bodyanchored_layout = QVBoxLayout()
         self.bodyanchored_radio = QRadioButton("Body-anchored")
-        self.bodyanchored_radio.setProperty('locationtype', 'bodyanchored')
-        self.signingspace_radio = QRadioButton("Signing space")
-        self.signingspace_radio.setProperty('locationtype', 'signingspace')
-        self.locationtype_buttongroup = QButtonGroup()
-        self.locationtype_buttongroup.addButton(self.bodyanchored_radio)
-        self.locationtype_buttongroup.addButton(self.signingspace_radio)
-        self.locationtype_buttongroup.buttonToggled.connect(lambda: self.handle_toggle_locationtype(self.locationtype_buttongroup.checkedButton()))
-        locationtype_layout.addWidget(self.bodyanchored_radio)
-        locationtype_layout.addWidget(self.signingspace_radio)
-        locationtype_layout.addStretch()
+        self.bodyanchored_radio.setProperty('loctype', 'bodyanchored')
+        bodyanchored_layout.addWidget(self.bodyanchored_radio)
+        bodyanchored_layout.addStretch()
+        loctype_layout.addLayout(bodyanchored_layout)
 
-        self.addLayout(locationtype_layout)
+        signingspace_layout = QVBoxLayout()
+        self.signingspace_radio = QRadioButton("Signing space")
+        self.signingspace_radio.setProperty('loctype', 'signingspace')
+        signingspace_layout.addWidget(self.signingspace_radio)
+
+        signingspaceoptions_spacedlayout = QHBoxLayout()
+        signingspaceoptions_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        signingspaceoptions_layout = QVBoxLayout()
+        self.signingspacebody_radio = QRadioButton('(body-anchored)')
+        self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
+        signingspaceoptions_layout.addWidget(self.signingspacebody_radio)
+        self.signingspacespatial_radio = QRadioButton('(purely spatial)')
+        self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
+        signingspaceoptions_layout.addWidget(self.signingspacespatial_radio)
+        signingspaceoptions_spacedlayout.addLayout(signingspaceoptions_layout)
+        signingspace_layout.addLayout(signingspaceoptions_spacedlayout)
+        loctype_layout.addLayout(signingspace_layout)
+        loctype_layout.addStretch()
+
+        self.loctype_group = QButtonGroup()
+        self.loctype_group.addButton(self.bodyanchored_radio)
+        self.loctype_group.addButton(self.signingspace_radio)
+        self.signingspace_group = QButtonGroup()
+        self.signingspace_group.addButton(self.signingspacebody_radio)
+        self.signingspace_group.addButton(self.signingspacespatial_radio)
+        self.loctype_group.buttonToggled.connect(lambda: self.handle_toggle_locationtype(self.loctype_group.checkedButton()))
+        self.signingspace_group.buttonToggled.connect(lambda: self.handle_toggle_signingspacetype(self.signingspace_group.checkedButton()))
+        # loctype_layout.addWidget(self.bodyanchored_radio)
+        # loctype_layout.addWidget(self.signingspace_radio)
+        # loctype_layout.addWidget(self.signingspacebody_radio)
+        # loctype_layout.addWidget(self.signingspacespatial_radio)
+
+        self.addLayout(loctype_layout)
 
         search_layout = QHBoxLayout()
         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
@@ -246,18 +279,14 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         list_layout.addWidget(self.pathslistview)
 
-        self.detailslistview = QListView()
-        # TODO KV set model, checkboxes, etc
-
-        list_layout.addWidget(self.detailslistview)
-
         buttons_layout = QHBoxLayout()
 
         sortlabel = QLabel("Sort by:")
         buttons_layout.addWidget(sortlabel)
 
         self.sortcombo = QComboBox()
-        self.sortcombo.addItems(["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
+        self.sortcombo.addItems(
+            ["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
         # self.sortcombo.completer().setCompletionMode(QCompleter.PopupCompletion)
         # self.sortcombo.currentTextChanged.connect(self.listproxymodel.sort(self.sortcombo.currentText()))
@@ -270,6 +299,12 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         buttons_layout.addWidget(self.clearbutton)
 
         list_layout.addLayout(buttons_layout)
+
+        self.detailslistview = QListView()
+        # TODO KV set model, checkboxes, etc
+
+        list_layout.addWidget(self.detailslistview)
+
         selection_layout.addLayout(list_layout)
         self.addLayout(selection_layout)
 
@@ -277,12 +312,13 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             pass
             # TODO KV implement for when we're loading an existing location module
         else:
-            for btn in self.locationtype_buttongroup.buttons():
-                if mainwindow.app_settings['location']['locationtype'] == btn.property('locationtype'):
+            for btn in self.loctype_group.buttons() + self.signingspace_group.buttons():
+                if mainwindow.app_settings['location']['loctype'] == btn.property('loctype'):
                     btn.setChecked(True)
                     break
 
-        self.enable_location_tools(self.locationtype_buttongroup.checkedButton() is not None)
+        self.enable_location_tools(self.loctype_group.checkedButton() == self.bodyanchored_radio
+                                   or self.signingspace_group.checkedButton() is not None)
 
     def enable_location_tools(self, enable):
         self.combobox.setEnabled(enable)
@@ -290,14 +326,27 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.detailslistview.setEnabled(enable)
         self.imagetabs.setEnabled(enable)
 
-    def handle_toggle_locationtype(self, btn):
+    def handle_toggle_signingspacetype(self, btn):
+        self.signingspace_radio.setChecked(btn is not None)
         self.enable_location_tools(btn is not None)
+
+        if btn == self.signingspacebody_radio:
+            # TODO KV set image and search tool to signing space (body-anchored) content
+            pass
+        elif btn == self.signingspacespatial_radio:
+            # TODO KV set image and search tool to signing space (purely spatial) content
+            pass
+
+    def handle_toggle_locationtype(self, btn):
+        for btn in self.signingspace_group.buttons():
+            btn.setEnabled(self.loctype_group.checkedButton() == self.signingspace_radio)
+        self.enable_location_tools(self.loctype_group.checkedButton() == self.bodyanchored_radio)
 
         if btn == self.bodyanchored_radio:
             # TODO KV set image and search tool to body-anchored content
             pass
         elif btn == self.signingspace_radio:
-            # TODO KV set image and search tool to signing space content
+            # TODO KV leave image and search tool disabled
             pass
 
     def get_savedmodule_signal(self):

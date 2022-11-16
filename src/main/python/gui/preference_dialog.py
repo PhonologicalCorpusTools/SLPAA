@@ -175,28 +175,36 @@ class LocationTab(QWidget):
         main_layout = QFormLayout()
         self.setLayout(main_layout)
 
-        self.locationtype_layout = QHBoxLayout()
+        self.locationtype_layout = QVBoxLayout()
         self.locationtype_group = QButtonGroup(parent=self)
-        self.locationtype_bodyanchored_radio = QRadioButton('Body-anchored')
-        self.locationtype_bodyanchored_radio.setProperty('locationtype', 'bodyanchored')
-        self.locationtype_group.addButton(self.locationtype_bodyanchored_radio)
-        self.locationtype_layout.addWidget(self.locationtype_bodyanchored_radio)
-        self.locationtype_signingspace_radio = QRadioButton('Signing space')
-        self.locationtype_signingspace_radio.setProperty('locationtype', 'signingspace')
-        self.locationtype_group.addButton(self.locationtype_signingspace_radio)
-        self.locationtype_layout.addWidget(self.locationtype_signingspace_radio)
-        self.locationtype_neither_radio = QRadioButton('Neither')
-        self.locationtype_neither_radio.setProperty('locationtype', 'none')
-        self.locationtype_group.addButton(self.locationtype_neither_radio)
-        self.locationtype_layout.addWidget(self.locationtype_neither_radio)
+        self.loctype_bodyanchored_radio = QRadioButton('Body-anchored')
+        self.loctype_bodyanchored_radio.setProperty('loctype', 'bodyanchored')
+        self.locationtype_group.addButton(self.loctype_bodyanchored_radio)
+        self.locationtype_layout.addWidget(self.loctype_bodyanchored_radio)
+        self.loctype_signingspace_radio = QRadioButton('Signing space')
+        self.loctype_signingspace_radio.setProperty('loctype', 'signingspace')
+        self.locationtype_group.addButton(self.loctype_signingspace_radio)
+        self.locationtype_layout.addWidget(self.loctype_signingspace_radio)
+        self.loctype_signingspacebody_radio = QRadioButton('Signing space (body-anchored)')
+        self.loctype_signingspacebody_radio.setProperty('loctype', 'signingspace_body')
+        self.locationtype_group.addButton(self.loctype_signingspacebody_radio)
+        self.locationtype_layout.addWidget(self.loctype_signingspacebody_radio)
+        self.loctype_signingspacespatial_radio = QRadioButton('Signing space (purely spatial)')
+        self.loctype_signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
+        self.locationtype_group.addButton(self.loctype_signingspacespatial_radio)
+        self.locationtype_layout.addWidget(self.loctype_signingspacespatial_radio)
+        self.loctype_none_radio = QRadioButton('None of these')
+        self.loctype_none_radio.setProperty('loctype', 'none')
+        self.locationtype_group.addButton(self.loctype_none_radio)
+        self.locationtype_layout.addWidget(self.loctype_none_radio)
         for button in self.locationtype_group.buttons():
-            if self.settings['location']['locationtype'] == button.property('locationtype'):
+            if self.settings['location']['loctype'] == button.property('loctype'):
                 button.setChecked(True)
                 break
         main_layout.addRow(QLabel('Default location type:'), self.locationtype_layout)
 
     def save_settings(self):
-        self.settings['location']['locationtype'] = self.locationtype_group.checkedButton().property('locationtype')
+        self.settings['location']['loctype'] = self.locationtype_group.checkedButton().property('loctype')
 
 
 class PreferenceDialog(QDialog):

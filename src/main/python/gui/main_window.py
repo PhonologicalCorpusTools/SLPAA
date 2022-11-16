@@ -792,7 +792,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.endGroup()  # signdefaults
 
         self.app_qsettings.beginGroup('location')
-        self.app_settings['location']['locationtype'] = self.app_qsettings.value('locationtype', defaultValue='none')
+        self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
         self.app_qsettings.endGroup()  # location
 
     def check_storage(self):
