@@ -82,7 +82,7 @@ a. Movement timing relation
             
 Some examples where everything is mirrored / in phase are: `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_, `CLOUD <https://asl-lex.org/visualization/?sign=cloud_1>`_, and `DECORATE <https://asl-lex.org/visualization/?sign=decorate_2>`_ (all three of which have circular perceptual shape movements) and `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ (an unhooking joint-specific movement). For straight perceptual movements, the way directions are defined on the horizontal axis may be relevant. If the horizontal axis is defined in terms of relative directions, `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ would fall in this category (both hands are either contralateral or ipsilateral at the same time). If the horizontal axis is defined in terms of absolute directions, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ would fall in this category (both hands are either left or right at the same time). See illustration below.
 
-  .. image:: images/signtype_straight_movements.png
+.. image:: images/signtype_straight_movements.png
    :width: 80%
    :align: center
 
