@@ -72,20 +72,26 @@ mvmtOptionsDict = {
                 }
             },
             ("Axis direction", fx, cb, u): {  # Choose up to one from each axis to get the complete direction
-                (subgroup, None, 0, None): {
-                    ("Up", fx, rb, u): {},
-                    ("Down", fx, rb, u): {}
+                ("Vertical", fx, cb, u): {
+                    (subgroup, None, 0, None): {
+                        ("Clockwise", fx, rb, u): {},
+                        ("Counterclockwise", fx, rb, u): {}
+                    },
                 },
-                (subgroup, None, 1, None): {
-                    ("Distal", fx, rb, u): {},
-                    ("Proximal", fx, rb, u): {}
+                ("Sagittal", fx, cb, u): {
+                    (subgroup, None, 0, None): {
+                        ("Clockwise", fx, rb, u): {},
+                        ("Counterclockwise", fx, rb, u): {}
+                    },
                 },
-                (subgroup, None, 2, None): {
-                    ("Right", fx, rb, u): {},
-                    ("Left", fx, rb, u): {}
+                ("Horizontal", fx, cb, u): {
+                    (subgroup, None, 0, None): {
+                        ("Ipsilateral", fx, rb, u): {},
+                        ("Contralateral", fx, rb, u): {}
+                    },
                 },
-                ("Not relevant", fx, rb, u): {}
-            },
+                ("Not relevant", fx, rb, u): {},
+                },
             ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
                 ("Sagittal", fx, cb, u): {
                     (subgroup, None, 0, None): {
