@@ -167,7 +167,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handstype_mvmtperceptualshape_group.setExclusive(False)
 
         # self.handstype_similarmvmt_group = SigntypeButtonGroup(prt=self)
-        self.handstype_2hmvmtbothperceptual_check = SigntypeCheckBox('Sign includes a perceptual shape movement', parentbutton=self.handstype_2hmvmtbothsame_radio)
+        self.handstype_2hmvmtbothperceptual_check = SigntypeCheckBox('Sign includes a non-straight perceptual shape movement', parentbutton=self.handstype_2hmvmtbothsame_radio)
         self.handstype_2hmvmtbothperceptual_check.setProperty('abbreviation.path', '2h.both move.move similarly.has perceptual shape')
         self.handstype_2hmvmtbothperceptual_check.setProperty('abbreviation.include', True)
         self.handstype_mvmtperceptualshape_group.addButton(self.handstype_2hmvmtbothperceptual_check)
