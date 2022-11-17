@@ -282,8 +282,8 @@ mvmtOptionsDict = {
                             ("Proximal", fx, rb, u): {}
                         },
                         (subgroup, None, 2, None): {
-                            ("Right", fx, rb, u): {},
-                            ("Left", fx, rb, u): {}
+                            ("Ipsilateral", fx, rb, u): {},  # TODO KV default ipsi/contra; can choose right/left in settings
+                            ("Contralateral", fx, rb, u): {}
                         }
                     }
                 }
