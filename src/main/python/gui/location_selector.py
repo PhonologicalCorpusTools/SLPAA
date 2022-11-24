@@ -4,6 +4,7 @@ from fractions import Fraction
 from PyQt5.QtWidgets import (
     QFrame,
     QPushButton,
+    QMenu,
     QRadioButton,
     QDialog,
     QHBoxLayout,
@@ -13,6 +14,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QCompleter,
     QButtonGroup,
+    QGroupBox,
     QAbstractItemView,
     QStyledItemDelegate,
     QStyle,
@@ -224,30 +226,68 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         label_layout.addStretch()
         loctype_layout.addLayout(label_layout)
 
-        bodyanchored_layout = QVBoxLayout()
+        # bodyanchored_layout = QVBoxLayout()
+        # self.bodyanchored_radio = QRadioButton("Body-anchored")
+        # self.bodyanchored_radio.setProperty('loctype', 'bodyanchored')
+        # bodyanchored_layout.addWidget(self.bodyanchored_radio)
+        # bodyanchored_layout.addStretch()
+        # loctype_layout.addLayout(bodyanchored_layout)
+
+        # signingspace_layout = QVBoxLayout()
+        # self.signingspace_radio = QRadioButton("Signing space")
+        # self.signingspace_radio.setProperty('loctype', 'signingspace')
+        # signingspace_layout.addWidget(self.signingspace_radio)
+        #
+        # signingspaceoptions_spacedlayout = QHBoxLayout()
+        # signingspaceoptions_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        # signingspaceoptions_layout = QVBoxLayout()
+        # self.signingspacebody_radio = QRadioButton('(body-anchored)')
+        # self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
+        # signingspaceoptions_layout.addWidget(self.signingspacebody_radio)
+        # self.signingspacespatial_radio = QRadioButton('(purely spatial)')
+        # self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
+        # signingspaceoptions_layout.addWidget(self.signingspacespatial_radio)
+        # signingspaceoptions_spacedlayout.addLayout(signingspaceoptions_layout)
+        # signingspace_layout.addLayout(signingspaceoptions_spacedlayout)
+        # loctype_layout.addLayout(signingspace_layout)
+        # loctype_layout.addStretch()
+
+        bodyanchored_layout = QHBoxLayout()
+
+        # bodyanchored_layout = QVBoxLayout()
         self.bodyanchored_radio = QRadioButton("Body-anchored")
         self.bodyanchored_radio.setProperty('loctype', 'bodyanchored')
         bodyanchored_layout.addWidget(self.bodyanchored_radio)
-        bodyanchored_layout.addStretch()
-        loctype_layout.addLayout(bodyanchored_layout)
+        bodyanchored_box = QGroupBox()
+        bodyanchored_box.setLayout(bodyanchored_layout)
+        loctype_layout.addWidget(bodyanchored_box)
+        # bodyanchored_layout.addStretch()
+        # loctype_layout.addLayout(bodyanchored_layout)
 
-        signingspace_layout = QVBoxLayout()
-        self.signingspace_radio = QRadioButton("Signing space")
+        signingspace_layout = QHBoxLayout()
+
+        self.signingspace_radio = QRadioButton("Signing space  (")
         self.signingspace_radio.setProperty('loctype', 'signingspace')
+        # loctype_layout.addWidget(self.signingspace_radio)
         signingspace_layout.addWidget(self.signingspace_radio)
 
-        signingspaceoptions_spacedlayout = QHBoxLayout()
-        signingspaceoptions_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        signingspaceoptions_layout = QVBoxLayout()
-        self.signingspacebody_radio = QRadioButton('(body-anchored)')
+        # signingspaceoptions_spacedlayout = QHBoxLayout()
+        # signingspaceoptions_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        # signingspaceoptions_layout = QVBoxLayout()
+        self.signingspacebody_radio = QRadioButton('body-anchored  /')
         self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
-        signingspaceoptions_layout.addWidget(self.signingspacebody_radio)
-        self.signingspacespatial_radio = QRadioButton('(purely spatial)')
+        # loctype_layout.addWidget(self.signingspacebody_radio)
+        signingspace_layout.addWidget(self.signingspacebody_radio)
+        self.signingspacespatial_radio = QRadioButton('purely spatial  )')
         self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
-        signingspaceoptions_layout.addWidget(self.signingspacespatial_radio)
-        signingspaceoptions_spacedlayout.addLayout(signingspaceoptions_layout)
-        signingspace_layout.addLayout(signingspaceoptions_spacedlayout)
-        loctype_layout.addLayout(signingspace_layout)
+        # loctype_layout.addWidget(self.signingspacespatial_radio)
+        signingspace_layout.addWidget(self.signingspacespatial_radio)
+        # signingspaceoptions_spacedlayout.addLayout(signingspaceoptions_layout)
+        # signingspace_layout.addLayout(signingspaceoptions_spacedlayout)
+        # loctype_layout.addLayout(signingspace_layout)
+        signingspace_box = QGroupBox()
+        signingspace_box.setLayout(signingspace_layout)
+        loctype_layout.addWidget(signingspace_box)
         loctype_layout.addStretch()
 
         self.loctype_group = QButtonGroup()
@@ -289,11 +329,11 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.imagetabs = QTabWidget()
         self.fronttab = ImageDisplayTab(mainwindow.app_ctx, 'front')
         self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
-        self.fronttab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkcheckbox_toggled(ischecked, self.fronttab))
+        self.fronttab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.fronttab))
         self.imagetabs.addTab(self.fronttab, "Front")
         self.backtab = ImageDisplayTab(mainwindow.app_ctx, 'back')
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
-        self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkcheckbox_toggled(ischecked, self.backtab))
+        self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.backtab))
         self.imagetabs.addTab(self.backtab, "Back")
 
         selection_layout.addWidget(self.imagetabs)
@@ -303,7 +343,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.pathslistview = TreeListView()
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
-        self.pathslistview.setMinimumWidth(400)
+        self.pathslistview.setMinimumWidth(300)
+        self.pathslistview.installEventFilter(self)
 
         list_layout.addWidget(self.pathslistview)
 
@@ -353,7 +394,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             self.fronttab.force_zoom(scale)
             self.backtab.force_zoom(scale)
 
-    def handle_linkcheckbox_toggled(self, ischecked, thistab):
+    def handle_linkbutton_toggled(self, ischecked, thistab):
         othertab = self.fronttab if thistab == self.backtab else self.backtab
         othertab.force_link(ischecked)
         othertab.force_zoom(thistab.zoom_slider.value())
@@ -371,10 +412,14 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         if btn == self.signingspacebody_radio:
             # TODO KV set image and search tool to signing space (body-anchored) content
-            pass
+            if self.treemodel.locationtype != 'bodyanchored':
+                self.treemodel.locationtype = 'bodyanchored'
+                self.refresh_treemodel()
         elif btn == self.signingspacespatial_radio:
             # TODO KV set image and search tool to signing space (purely spatial) content
-            pass
+            if self.treemodel.locationtype != 'purelyspatial':
+                self.treemodel.locationtype = 'purelyspatial'
+                self.refresh_treemodel()
 
     def handle_toggle_locationtype(self, btn):
         for btn in self.signingspace_group.buttons():
@@ -383,7 +428,9 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         if btn == self.bodyanchored_radio:
             # TODO KV set image and search tool to body-anchored content
-            pass
+            if self.treemodel.locationtype != 'bodyanchored':
+                self.treemodel.locationtype = 'bodyanchored'
+                self.refresh_treemodel()
         elif btn == self.signingspace_radio:
             # TODO KV leave image and search tool disabled
             pass
@@ -398,6 +445,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
 
     def eventFilter(self, source, event):
+
         # adapted from https://stackoverflow.com/questions/26021808/how-can-i-intercept-when-a-widget-loses-its-focus
         # if (event.type() == QEvent.FocusOut):  # and source is items[0].child(0, 0)):
         #     print('TODO KV eventFilter: focus out', source)
@@ -408,6 +456,18 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             key = event.key()
             if key == Qt.Key_Enter:
                 print("enter pressed")
+            # TODO KV return true??
+        elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
+            menu = QMenu()
+            menu.addAction('TODO KV 1')
+            menu.addAction('TODO KV 2')
+            if menu.exec_(event.globalPos()):  # if a menu item is clicked on
+                # TODO KV do something with source.specificitem...
+                proxyindex = self.pathslistview.currentIndex()
+                listindex = proxyindex.model().mapToSource(proxyindex)
+                print("selected item:" + listindex.model().itemFromIndex(listindex).text())
+            return True
+
         return super().eventFilter(source, event)
 
     def refresh(self):
@@ -417,7 +477,9 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.refresh_treemodel()
 
     def refresh_treemodel(self):
+        locationtype = self.treemodel.locationtype
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
+        self.treemodel.locationtype = locationtype
         self.treemodel.populate(self.treemodel.invisibleRootItem())
 
         self.listmodel = self.treemodel.listmodel
