@@ -121,6 +121,9 @@ class TreeItemDelegate(QStyledItemDelegate):
 
 
 class ImageDisplayTab(QWidget):
+    zoomfactor_changed = pyqtSignal(int)
+    linkbutton_toggled = pyqtSignal(bool)
+
     def __init__(self, app_ctx, frontorback='front', **kwargs):
         super().__init__(**kwargs)
 
@@ -130,14 +133,32 @@ class ImageDisplayTab(QWidget):
         self.imagedisplay = LocationGraphicsView(app_ctx, frontorback)
         # self.imagedisplay.setMinimumWidth(400)
 
+        zoom_layout = QVBoxLayout()
+
         self.zoom_slider = QSlider(Qt.Vertical)
         self.zoom_slider.setMinimum(1)
         self.zoom_slider.setMaximum(10)
         self.zoom_slider.setValue(0)
         self.zoom_slider.valueChanged.connect(self.zoom)
+        zoom_layout.addWidget(self.zoom_slider)
+        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
+
+        self.link_button = QPushButton("Link")
+        self.link_button.setCheckable(True)
+        self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
+        zoom_layout.addWidget(self.link_button)
+        zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
+        # self.link_checkbox = QCheckBox("Link")
+        # self.link_checkbox.toggled.connect(lambda ischecked: self.linkcheckbox_toggled.emit(ischecked))
+        # zoom_layout.addWidget(self.link_checkbox)
+        # zoom_layout.setAlignment(self.link_checkbox, Qt.AlignHCenter)
+
+        # self.link_checkbox.toggled.connect(lambda ischecked: self.linkcheckbox_toggled.emit(ischecked))
+        # self.link_button.toggled.connect(lambda ischecked: self.linkcheckbox_toggled.emit(ischecked))
 
         main_layout.addWidget(self.imagedisplay)
-        main_layout.addWidget(self.zoom_slider)
+        # main_layout.addWidget(self.zoom_slider)
+        main_layout.addLayout(zoom_layout)
 
         self.setLayout(main_layout)
 
@@ -146,6 +167,21 @@ class ImageDisplayTab(QWidget):
         trans_matrix.reset()
         trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
         self.imagedisplay.setTransform(trans_matrix)
+
+        self.zoomfactor_changed.emit(scale)
+
+    def force_zoom(self, scale):
+        self.blockSignals(True)
+        self.zoom_slider.blockSignals(True)
+        self.zoom(scale)
+        self.zoom_slider.setValue(scale)
+        self.blockSignals(False)
+        self.zoom_slider.blockSignals(False)
+
+    def force_link(self, ischecked):
+        self.blockSignals(True)
+        self.link_button.setChecked(ischecked)
+        self.blockSignals(False)
 
 
 # TODO KV - add undo, ...
@@ -252,8 +288,12 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         self.imagetabs = QTabWidget()
         self.fronttab = ImageDisplayTab(mainwindow.app_ctx, 'front')
+        self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
+        self.fronttab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkcheckbox_toggled(ischecked, self.fronttab))
         self.imagetabs.addTab(self.fronttab, "Front")
         self.backtab = ImageDisplayTab(mainwindow.app_ctx, 'back')
+        self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
+        self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkcheckbox_toggled(ischecked, self.backtab))
         self.imagetabs.addTab(self.backtab, "Back")
 
         # self.treedisplay = MovementTreeView()
@@ -319,6 +359,17 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         self.enable_location_tools(self.loctype_group.checkedButton() == self.bodyanchored_radio
                                    or self.signingspace_group.checkedButton() is not None)
+
+    def handle_zoomfactor_changed(self, scale):
+        if self.fronttab.link_button.isChecked() or self.backtab.link_button.isChecked():
+            self.fronttab.force_zoom(scale)
+            self.backtab.force_zoom(scale)
+
+    def handle_linkcheckbox_toggled(self, ischecked, thistab):
+        othertab = self.fronttab if thistab == self.backtab else self.backtab
+        othertab.force_link(ischecked)
+        othertab.force_zoom(thistab.zoom_slider.value())
+        # self.backtab.force_link(ischecked)
 
     def enable_location_tools(self, enable):
         self.combobox.setEnabled(enable)
