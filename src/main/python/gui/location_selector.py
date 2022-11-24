@@ -296,18 +296,6 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkcheckbox_toggled(ischecked, self.backtab))
         self.imagetabs.addTab(self.backtab, "Back")
 
-        # self.treedisplay = MovementTreeView()
-        # self.treedisplay.setItemDelegate(TreeItemDelegate())
-        # self.treedisplay.setHeaderHidden(True)
-        # self.treedisplay.setModel(self.treemodel)
-        # # TODO KV figure out adding number selector
-        # items = self.treemodel.findItems("Number of repetitions", Qt.MatchRecursive)
-        # repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
-        # self.treedisplay.openPersistentEditor(repsindex)
-        # self.treedisplay.installEventFilter(self)
-        # self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        # self.treedisplay.setMinimumWidth(400)
-
         selection_layout.addWidget(self.imagetabs)
 
         list_layout = QVBoxLayout()
@@ -431,9 +419,6 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
     def refresh_treemodel(self):
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
         self.treemodel.populate(self.treemodel.invisibleRootItem())
-        # items = self.treemodel.findItems("Number of repetitions", Qt.MatchRecursive)
-        # repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
-        # self.treedisplay.openPersistentEditor(repsindex)
 
         self.listmodel = self.treemodel.listmodel
 
@@ -441,7 +426,6 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.listproxymodel.setSourceModel(self.listmodel)
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
-        self.treedisplay.setModel(self.treemodel)
         self.pathslistview.setModel(self.listproxymodel)
 
         # self.combobox.clear()
