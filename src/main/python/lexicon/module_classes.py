@@ -98,8 +98,9 @@ class OrientationModule:
 
 
 class MovementModule(ParameterModule):
-    def __init__(self, movementtreemodel, hands, timingintervals=None):
+    def __init__(self, movementtreemodel, hands, timingintervals=None, inphase=0):
         self._movementtreemodel = movementtreemodel
+        self._inphase = inphase
         super().__init__(hands, timingintervals)
 
     @property
@@ -110,6 +111,15 @@ class MovementModule(ParameterModule):
     def movementtreemodel(self, movementtreemodel):
         # TODO KV - validate?
         self._movementtreemodel = movementtreemodel
+
+    @property
+    def inphase(self):
+        return self._inphase
+
+    @inphase.setter
+    def inphase(self, inphase):
+        # TODO KV - validate?
+        self._inphase = inphase
 
     def getabbreviation(self):
         # TODO KV these can't be hardcoded like this... fix it!
@@ -168,7 +178,7 @@ class MovementModule(ParameterModule):
             "Single": "1x",
             "2": "2x",
             "3": "3x",
-            "4": "4x",
+            "4": "4x",  # TODO KV automate the abbreviations for integers
             "Same location": "same loc",
             "Different location": "diff. loc",
             "Trilled": "Trilled",
