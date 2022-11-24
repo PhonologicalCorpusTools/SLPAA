@@ -229,169 +229,38 @@ locn_options_bodyanchored = {
 
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
-locn_options_signingspace = {  # TODO KV edit!
+locn_options_purelyspatial = {
     # ("No movement", fx, rb, u): {},
-    ("Head", fx, rb, u): {
-        ("Back of head", fx, rb, u): {},
-        ("Top of head", fx, rb, u): {},
-        ("Side of face", fx, rb, u): {
-            ("Side of face - contra", fx, rb, u): {},
-            ("Side of face - ipsi", fx, rb, u): {}
+    ("Vertical axis", fx, cb, u): {
+        ("High", fx, rb, u): {},
+        ("Mid", fx, rb, u): {},
+        ("Low", fx, rb, u): {},
+    },
+    ("Sagittal axis", fx, cb, u): {
+        ("In front", fx, rb, u): {
+            ("Far", fx, rb, u): {},
+            ("Med.", fx, rb, u): {},
+            ("Close", fx, rb, u): {},
         },
-        ("Face", fx, rb, u): {
-            ("Temple", fx, rb, u): {
-                ("Temple - contra", fx, rb, u): {},
-                ("Temple - ipsi", fx, rb, u): {}
-            },
-            ("Above forehead (hairline)", fx, rb, u): {},
-            ("Forehead", fx, rb, u): {},
-            ("Eyebrow", fx, rb, u): {
-                ("Eyebrow - contra", fx, rb, u): {},
-                ("Eyebrow - ipsi", fx, rb, u): {},
-                ("Between eyebrows", fx, rb, u): {}
-            },
-            ("Eye", fx, rb, u): {
-                ("Eye - contra", fx, rb, u): {},
-                ("Eye - ipsi", fx, rb, u): {},
-                ("Outer corner of eye", fx, rb, u): {
-                    ("Outer corner of eye - contra", fx, rb, u): {},
-                    ("Outer corner of eye - ipsi", fx, rb, u): {}
-                },
-                ("Upper eyelid", fx, rb, u): {
-                    ("Upper eyelid - contra", fx, rb, u): {},
-                    ("Upper eyelid - ipsi", fx, rb, u): {}
-                },
-                ("Lower eyelid", fx, rb, u): {
-                    ("Lower eyelid - contra", fx, rb, u): {},
-                    ("Lower eyelid - ipsi", fx, rb, u): {}
-                }
-            },
-            ("Cheek/nose", fx, rb, u): {
-                ("Cheek", fx, rb, u): {
-                    ("Cheek - contra", fx, rb, u): {},
-                    ("Cheek - ipsi", fx, rb, u): {}
-                },
-                ("Maxillary process of zygomatic", fx, rb, u): {
-                    ("Maxillary process of zygomatic - contra", fx, rb, u): {},
-                    ("Maxillary process of zygomatic - ipsi", fx, rb, u): {}
-                },
-                ("Zygomatic process of temporal bone", fx, rb, u): {
-                    ("Zygomatic process of temporal bone - contra", fx, rb, u): {},
-                    ("Zygomatic process of temporal bone - ipsi", fx, rb, u): {}
-                },
-                ("Nose", fx, rb, u): {
-                    ("Nose root", fx, rb, u): {},
-                    ("Nose ridge", fx, rb, u): {},
-                    ("Nose tip", fx, rb, u): {},
-                    ("Septum", fx, rb, u): {}
-                }
-            },
-            ("Below nose / philtrum", fx, rb, u): {},
-            ("Mouth", fx, rb, u): {
-                ("Lips", fx, rb, u): {
-                    ("Upper lip", fx, rb, u): {},
-                    ("Lower lip", fx, rb, u): {}
-                },
-                ("Corner of mouth - contra", fx, rb, u): {},
-                ("Corner of mouth - ipsi", fx, rb, u): {},
-                ("Teeth", fx, rb, u): {
-                    ("Upper teeth", fx, rb, u): {},
-                    ("Lower teeth", fx, rb, u): {}
-                },
-                ("Tongue", fx, rb, u): {},
-            },
-            ("Ear", fx, rb, u): {
-                ("Ear - contra", fx, rb, u): {},
-                ("Ear - ipsi", fx, rb, u): {},
-                ("Mastoid process", fx, rb, u): {
-                    ("Mastoid process - contra", fx, rb, u): {},
-                    ("Mastoid process - ipsi", fx, rb, u): {}
-                },
-                ("Earlobe", fx, rb, u): {
-                    ("Earlobe - contra", fx, rb, u): {},
-                    ("Earlobe - ipsi", fx, rb, u): {}
-                }
-            },
-            ("Jaw", fx, rb, u): {
-                ("Jaw - contra", fx, rb, u): {},
-                ("Jaw - ipsi", fx, rb, u): {}
-            },
-            ("Chin", fx, rb, u): {},
-            ("Under chin", fx, rb, u): {}
+        ("Behind", fx, rb, u): {
+            ("Far", fx, rb, u): {},
+            ("Med.", fx, rb, u): {},
+            ("Close", fx, rb, u): {},
         },
     },
-    ("Neck", fx, rb, u): {},
-    ("Torso", fx, rb, u): {
-        ("Shoulder", fx, rb, u): {
-            ("Shoulder - contra", fx, rb, u): {},
-            ("Shoulder - ipsi", fx, rb, u): {}
+    ("Horizontal axis", fx, cb, u): {
+        ("Ipsi", fx, rb, u): {
+            ("Far", fx, rb, u): {},
+            ("Med.", fx, rb, u): {},
+            ("Close", fx, rb, u): {},
         },
-        ("Armpit", fx, rb, u): {
-            ("Armpit - contra", fx, rb, u): {},
-            ("Armpit - ipsi", fx, rb, u): {}
+        ("Central", fx, rb, u): {},
+        ("Contra", fx, rb, u): {
+            ("Far", fx, rb, u): {},
+            ("Med.", fx, rb, u): {},
+            ("Close", fx, rb, u): {},
         },
-        ("Sternum/clavicle area", fx, rb, u): {},
-        ("Chest/breast area", fx, rb, u): {},
-        ("Abdominal/waist area", fx, rb, u): {},
-        ("Pelvis area", fx, rb, u): {},
-        ("Hip", fx, rb, u): {
-            ("Hip - contra", fx, rb, u): {},
-            ("Hip - ipsi", fx, rb, u): {}
-        },
-        ("Groin", fx, rb, u): {},
-        ("Buttocks", fx, rb, u): {
-            ("Buttocks - contra", fx, rb, u): {},
-            ("Buttocks - ipsi", fx, rb, u): {}
-        }
     },
-    ("Arm (contralateral)", fx, rb, u): {
-        ("Upper arm", fx, rb, u): {
-            ("Upper arm above biceps", fx, rb, u): {},
-            ("Biceps", fx, rb, u): {}
-        },
-        ("Elbow", fx, rb, u): {},
-        ("Forearm", fx, rb, u): {},
-        ("Wrist", fx, rb, u): {}
-    },
-    ("Legs and feet", fx, rb, u): {
-        ("Upper leg", fx, rb, u): {
-            ("Upper leg - contra", fx, rb, u): {},
-            ("Upper leg - ipsi", fx, rb, u): {}
-        },
-        ("Knee", fx, rb, u): {
-            ("Knee - contra", fx, rb, u): {},
-            ("Knee - ipsi", fx, rb, u): {}
-        },
-        ("Lower leg", fx, rb, u): {
-            ("Lower leg - contra", fx, rb, u): {},
-            ("Lower leg - ipsi", fx, rb, u): {}
-        },
-        ("Ankle", fx, rb, u): {
-            ("Ankle - contra", fx, rb, u): {},
-            ("Ankle - ipsi", fx, rb, u): {}
-        },
-        ("Foot", fx, rb, u): {
-            ("Foot - contra", fx, rb, u): {},
-            ("Foot - ipsi", fx, rb, u): {}
-        }
-    },
-    ("Other hand", fx, rb, u): {
-        ("Whole hand", fx, rb, u): {},
-        ("Hand minus fingers", fx, rb, u): {},
-        ("Heel of hand", fx, rb, u): {},
-        ("Thumb", fx, rb, u): {},
-        ("Fingers", fx, rb, u): {},
-        ("Selected fingers", fx, rb, u): {},
-        ("Selected fingers and Thumb", fx, rb, u): {},
-        ("Finger 1", fx, rb, u): {},
-        ("Finger 2", fx, rb, u): {},
-        ("Finger 3", fx, rb, u): {},
-        ("Finger 4", fx, rb, u): {},
-        ("Between Thumb and Finger 1", fx, rb, u): {},
-        ("Between Fingers 1 and 2", fx, rb, u): {},
-        ("Between Fingers 2 and 3", fx, rb, u): {},
-        ("Between Fingers 3 and 4", fx, rb, u): {},
-    }
 }
 
 
@@ -531,6 +400,7 @@ class LocationTreeModel(QStandardItemModel):
         self._listmodel = None  # MovementListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
+        self._locationtype = 'bodyanchored'
 
     def updatelistdata(self, topLeft, bottomRight):
         startitem = self.itemFromIndex(topLeft)
@@ -564,7 +434,10 @@ class LocationTreeModel(QStandardItemModel):
         elif structure == {} and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            self.populate(parentnode, structure=locn_options_bodyanchored, pathsofar="")
+            if self.locationtype == 'bodyanchored':
+                self.populate(parentnode, structure=locn_options_bodyanchored, pathsofar="")
+            elif self.locationtype == 'purelyspatial':
+                self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())
@@ -608,6 +481,14 @@ class LocationTreeModel(QStandardItemModel):
     @listmodel.setter
     def listmodel(self, listmod):
         self._listmodel = listmod
+
+    @property
+    def locationtype(self):
+        return self._locationtype
+
+    @locationtype.setter
+    def locationtype(self, locationtype):  # either 'bodyanchored' or 'purelyspatial'
+        self._locationtype = locationtype
 
 
 # TODO KV: need a graphics view instead
