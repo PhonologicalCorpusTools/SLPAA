@@ -188,7 +188,7 @@ class ImageDisplayTab(QWidget):
 
 # TODO KV there's another class with the same name in panel.py
 class LocationSpecificationLayout(ModuleSpecificationLayout):
-    saved_location = pyqtSignal(LocationTreeModel, dict, list)
+    saved_location = pyqtSignal(LocationTreeModel, dict, list, int)
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV , movement_specifications,
         super().__init__(**kwargs)
