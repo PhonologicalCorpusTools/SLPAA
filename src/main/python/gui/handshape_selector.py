@@ -121,7 +121,7 @@ class HandIllustrationPanel(QScrollArea):
 
 # class HandshapeSpecificationLayout(QVBoxLayout):
 class HandConfigSpecificationLayout(ModuleSpecificationLayout):
-    saved_handconfig = pyqtSignal(dict, dict, list)
+    saved_handconfig = pyqtSignal(dict, dict, list, int)
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
     # def __init__(self, mainwindow, predefined_ctx, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,

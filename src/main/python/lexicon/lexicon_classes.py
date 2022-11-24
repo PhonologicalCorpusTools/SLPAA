@@ -426,7 +426,7 @@ class Sign:
         # TODO KV - validate?
         self._xslotstructure = xslotstruct
 
-    def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals):
+    def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals, inphase):
         mvmtmod = self.movementmodules[uniqueid]
         ischanged = False
         if mvmtmod.movementtreemodel != movementtree:
@@ -438,12 +438,15 @@ class Sign:
         if mvmtmod.timingintervals != timingintervals:
             mvmtmod.timingintervals = timingintervals
             ischanged = True
+        if mvmtmod.inphase != inphase:
+            mvmtmod.inphase = inphase
+            ischanged = True
         if ischanged:
             self.lastmodifiednow()
 
-    def addmovementmodule(self, movementtree, hands_dict, timingintervals):
+    def addmovementmodule(self, movementtree, hands_dict, timingintervals, inphase):
         # create and add a brand new one
-        mvmtmod = MovementModule(movementtree, hands_dict, timingintervals)
+        mvmtmod = MovementModule(movementtree, hands_dict, timingintervals, inphase)
         self.movementmodules[mvmtmod.uniqueid] = mvmtmod
         self.lastmodifiednow()
 
@@ -488,6 +491,21 @@ class Sign:
         locnmod = LocationModule(locationtree, hands_dict, timingintervals)
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
+
+    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals):
+        locnmod = self.locationmodules[uniqueid]
+        ischanged = False
+        if locnmod.locationtreemodel != locationtree:
+            locnmod.locationtreemodel = locationtree
+            ischanged = True
+        if locnmod.hands != hands_dict:
+            locnmod.hands = hands_dict
+            ischanged = True
+        if locnmod.timingintervals != timingintervals:
+            locnmod.timingintervals = timingintervals
+            ischanged = True
+        if ischanged:
+            self.lastmodifiednow()
 
     def addorientationmodule(self, orientationmod):
         self.orientationmodules.append(orientationmod)

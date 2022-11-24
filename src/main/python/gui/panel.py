@@ -807,9 +807,11 @@ class XslotPanel(QScrollArea):
                                                  enable_addnew=False,
                                                  modulelayout=MovementSpecificationLayout(movementtreemodel),
                                                  moduleargs=None,
-                                                 timingintervals=mvmtmodule.timingintervals)
+                                                 timingintervals=mvmtmodule.timingintervals,
+                                                 includephase=True,
+                                                 inphase=mvmtmodule.inphase)
         movement_selector.get_savedmodule_signal().connect(
-            lambda movementtree, hands, timingintervals: self.mainwindow.sign_summary.handle_save_movement(movementtree, hands, timingintervals, modulekey))
+            lambda movementtree, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_movement(movementtree, hands, timingintervals, inphase, modulekey))
         movement_selector.exec_()
 
     def handle_location_clicked(self, modulekey):
@@ -823,7 +825,7 @@ class XslotPanel(QScrollArea):
                                                  moduleargs=None,
                                                  timingintervals=locnmodule.timingintervals)
         location_selector.get_savedmodule_signal().connect(
-            lambda locationtree, hands, timingintervals: self.mainwindow.sign_summary.handle_save_movement(locationtree, hands, timingintervals, modulekey))
+            lambda locationtree, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_location(locationtree, hands, timingintervals, modulekey))
         location_selector.exec_()
 
     def handle_handconfig_clicked(self, modulekey):
@@ -838,7 +840,7 @@ class XslotPanel(QScrollArea):
                                                 moduleargs=None,
                                                 timingintervals=hcfgmodule.timingintervals)
         handcfg_selector.get_savedmodule_signal().connect(
-            lambda configdict, hands, timingintervals: self.mainwindow.sign_summary.handle_save_handconfig(configdict, hands, timingintervals, modulekey))
+            lambda configdict, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_handconfig(configdict, hands, timingintervals, modulekey))
         handcfg_selector.exec_()
 
 # # TODO KV xslot mockup
@@ -1010,16 +1012,18 @@ class SignSummaryPanel(QScrollArea):
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                  enable_addnew=True,
                                                  modulelayout=MovementSpecificationLayout(),
-                                                 moduleargs=None)
-        movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals: self.handle_save_movement(movementtree, hands, timingintervals))
+                                                 moduleargs=None,
+                                                 includephase=True,
+                                                 inphase=None)
+        movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals, inphase: self.handle_save_movement(movementtree, hands, timingintervals, inphase))
         movement_selector.exec_()
 
-    def handle_save_movement(self, movementtree, hands_dict, timingintervals, existing_key=None):
+    def handle_save_movement(self, movementtree, hands_dict, timingintervals, inphase, existing_key=None):
         if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-            self.sign.addmovementmodule(movementtree, hands_dict, timingintervals)
+            self.sign.addmovementmodule(movementtree, hands_dict, timingintervals, inphase)
         else:
             # self.sign.movementmodules[existing_key] = movementtree
-            self.sign.updatemovementmodule(existing_key, movementtree, hands_dict, timingintervals)
+            self.sign.updatemovementmodule(existing_key, movementtree, hands_dict, timingintervals, inphase)
         self.sign_updated.emit(self.sign)
 
     def handle_handshapebutton_click(self):
@@ -1029,7 +1033,7 @@ class SignSummaryPanel(QScrollArea):
                                                 enable_addnew=True,
                                                 modulelayout=HandConfigSpecificationLayout(self.mainwindow),
                                                 moduleargs=None)
-        handcfg_selector.get_savedmodule_signal().connect(lambda configdict, hands, timingintervals: self.handle_save_handconfig(configdict, hands, timingintervals))
+        handcfg_selector.get_savedmodule_signal().connect(lambda configdict, hands, timingintervals, inphase: self.handle_save_handconfig(configdict, hands, timingintervals))
         handcfg_selector.exec_()
         #
         # button = self.sender()
@@ -1073,7 +1077,7 @@ class SignSummaryPanel(QScrollArea):
                                                  enable_addnew=True,
                                                  modulelayout=LocationSpecificationLayout2(self.mainwindow),
                                                  moduleargs=None)
-        location_selector.get_savedmodule_signal().connect(lambda locationtree, hands, timingintervals: self.handle_save_location(locationtree, hands, timingintervals))
+        location_selector.get_savedmodule_signal().connect(lambda locationtree, hands, timingintervals, inphase: self.handle_save_location(locationtree, hands, timingintervals))
         location_selector.exec_()
 
     def handle_save_location(self, locationtree, hands_dict, timingintervals, existing_key=None):

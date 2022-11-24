@@ -120,7 +120,7 @@ class TreeItemDelegate(QStyledItemDelegate):
 # TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
 # class MovementSpecificationLayout(QVBoxLayout):
 class MovementSpecificationLayout(ModuleSpecificationLayout):
-    saved_movement = pyqtSignal(MovementTreeModel, dict, list)
+    saved_movement = pyqtSignal(MovementTreeModel, dict, list, int)
 
     def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)

@@ -49,6 +49,8 @@ from PyQt5.QtGui import (
 from gui.xslot_graphics import XslotLinkingLayout
 
 
+# class ModuleSpecificationPanel(TODO KV):
+
 # base class for various module specification layouts to inherit from
 class ModuleSpecificationLayout(QVBoxLayout):
 
@@ -73,7 +75,7 @@ class ModuleSpecificationLayout(QVBoxLayout):
 
 class ModuleSelectorDialog(QDialog):
 
-    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, timingintervals=None, **kwargs):
+    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, timingintervals=None, includephase=False, inphase=0, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         if timingintervals is None:
@@ -81,7 +83,7 @@ class ModuleSelectorDialog(QDialog):
 
         main_layout = QVBoxLayout()
 
-        self.hands_layout = HandSelectionLayout(hands)
+        self.hands_layout = HandSelectionLayout(hands, includephase=includephase, inphase=inphase)
         main_layout.addLayout(self.hands_layout)
         # self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
         self.xslot_layout = XslotLinkingLayout(xslotstructure, self.mainwindow, parentwidget=self, timingintervals=timingintervals)
@@ -134,6 +136,7 @@ class ModuleSelectorDialog(QDialog):
             # TODO KV - BUG? - if we are editing an already-existing movement module, this seems to save anyway
             self.reject()
 
+        # TODO KV this duplicates the code in the next conditional case
         elif standard == QDialogButtonBox.Save:  # save and add another
 
             # validate hand selection
@@ -141,6 +144,8 @@ class ModuleSelectorDialog(QDialog):
             handsvalid = True
             if True not in handsdict.values():
                 handsvalid = False
+
+            inphase = self.hands_layout.getphase()
 
             # validate timing interval(s) selection
             timingintervals = self.xslot_layout.gettimingintervals()
@@ -158,7 +163,7 @@ class ModuleSelectorDialog(QDialog):
                 QMessageBox.critical(self, "Warning", messagestring)
             else:
                 # save info and then refresh screen to enter next module
-                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals))
+                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals, inphase))
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
                 # if self.mainwindow.current_sign is not None:
                 #     self.mainwindow.current_sign.lastmodifiednow()
@@ -175,6 +180,8 @@ class ModuleSelectorDialog(QDialog):
             handsvalid = True
             if True not in handsdict.values():
                 handsvalid = False
+
+            inphase = self.hands_layout.getphase()
 
             # validate timing interval(s) selection
             timingintervals = self.xslot_layout.gettimingintervals()
@@ -193,7 +200,7 @@ class ModuleSelectorDialog(QDialog):
             else:
                 # save info and then close dialog
                 # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
-                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals))
+                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals, inphase))
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
                 # if self.mainwindow.current_sign is not None:
                 #     self.mainwindow.current_sign.lastmodifiednow()
@@ -207,35 +214,49 @@ class ModuleSelectorDialog(QDialog):
             self.module_layout.clear()
 
 
+# TODO KV - need to pull phase info from here as well as hands info
 class HandSelectionLayout(QHBoxLayout):
 
-    def __init__(self, hands=None, **kwargs):
+    def __init__(self, hands=None, includephase=False, inphase=0, **kwargs):
         super().__init__(**kwargs)
 
         self.setSpacing(25)
+
+        self.includephase = includephase
 
         self.hands_label = QLabel("This module applies to:")
         self.hands_group = QButtonGroup()
         self.hand1_radio = QRadioButton("Hand 1")
         self.hand2_radio = QRadioButton("Hand 2")
-        self.bothhands_radio = QRadioButton("Both hands")
-        self.hands_group.addButton(self.hand1_radio)
-        self.hands_group.addButton(self.hand2_radio)
-        self.hands_group.addButton(self.bothhands_radio)
         self.addWidget(self.hands_label)
         self.addWidget(self.hand1_radio)
         self.addWidget(self.hand2_radio)
-        self.addWidget(self.bothhands_radio)
+
+        self.bothhands_radio = QRadioButton("Both hands")
+        self.bothinphase_radio = QRadioButton("Both hands (in phase)")
+        self.bothoutofphase_radio = QRadioButton("Both hands (out of phase)")
+        self.hands_group.addButton(self.hand1_radio)
+        self.hands_group.addButton(self.hand2_radio)
+        if self.includephase:
+            self.hands_group.addButton(self.bothinphase_radio)
+            self.hands_group.addButton(self.bothoutofphase_radio)
+            self.addWidget(self.bothinphase_radio)
+            self.addWidget(self.bothoutofphase_radio)
+        else:
+            self.hands_group.addButton(self.bothhands_radio)
+            self.addWidget(self.bothhands_radio)
 
         self.addStretch()
 
         if hands is not None:
             self.sethands(hands)
+        self.setphase(inphase)
 
     def gethands(self):
+        both = self.bothhands_radio.isChecked() or self.bothinphase_radio.isChecked() or self.bothoutofphase_radio.isChecked()
         return {
-            'H1': self.hand1_radio.isChecked() or self.bothhands_radio.isChecked(),
-            'H2': self.hand2_radio.isChecked() or self.bothhands_radio.isChecked()
+            'H1': self.hand1_radio.isChecked() or both,
+            'H2': self.hand2_radio.isChecked() or both
         }
 
     def sethands(self, hands_dict):
@@ -245,6 +266,20 @@ class HandSelectionLayout(QHBoxLayout):
             self.hand1_radio.setChecked(True)
         elif hands_dict['H2']:
             self.hand2_radio.setChecked(True)
+
+    def getphase(self):
+        if self.bothinphase_radio.isChecked():
+            return 1
+        elif self.bothoutofphase_radio.isChecked():
+            return 2
+        else:
+            return 0
+
+    def setphase(self, inphase):
+        if inphase == 1:
+            self.bothinphase_radio.setChecked(True)
+        elif inphase == 2:
+            self.bothoutofphase_radio.setChecked(True)
 
     def clear(self):
         self.hands_group.setExclusive(False)
