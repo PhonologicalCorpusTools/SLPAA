@@ -4,6 +4,8 @@ from fractions import Fraction
 from PyQt5.QtWidgets import (
     QFrame,
     QPushButton,
+    QWidgetAction,
+    QAction,
     QMenu,
     QRadioButton,
     QDialog,
@@ -17,6 +19,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QAbstractItemView,
     QStyledItemDelegate,
+    QLineEdit,
     QStyle,
     QStyleOptionButton,
     QApplication,
@@ -190,10 +193,26 @@ class ImageDisplayTab(QWidget):
 
 # TODO KV there's another class with the same name in panel.py
 class LocationSpecificationLayout(ModuleSpecificationLayout):
-    saved_location = pyqtSignal(LocationTreeModel, dict, list, int)
+    saved_location = pyqtSignal(LocationTreeModel, bool, bool, dict, list, int)
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV , movement_specifications,
         super().__init__(**kwargs)
+
+        self.temptestactionstate = False
+        self.checknoteactionstate = True
+        self.checknoteactiontext = ""
+
+        # TODO KV temp - these need to live in the model item itself
+        self.uncertain_action_state = False
+        self.uncertain_action_text = ""
+        self.estimate_action_state = False
+        self.estimate_action_text = ""
+        self.varies_action_state = False
+        self.varies_action_text = ""
+        self.exceptional_action_state = False
+        self.exceptional_action_text = ""
+        self.notspecified_action_state = False
+        self.notspecified_action_text = ""
 
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
         # if moduletoload is not None:
@@ -219,16 +238,17 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.listproxymodel = LocationPathsProxyModel(wantselected=True)
         self.listproxymodel.setSourceModel(self.listmodel)
 
-        loctype_layout = QHBoxLayout()
+        loctype_phonloc_layout = QHBoxLayout()
 
-        label_layout = QVBoxLayout()
-        label_layout.addWidget(QLabel("Location:"))
-        label_layout.addStretch()
-        loctype_layout.addLayout(label_layout)
+        # label_layout = QVBoxLayout()
+        # label_layout.addWidget(QLabel("Location:"))
+        # label_layout.addStretch()
+        # loctype_phonloc_layout.addLayout(label_layout)
+        loctype_phonloc_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
 
         # bodyanchored_layout = QVBoxLayout()
         # self.bodyanchored_radio = QRadioButton("Body-anchored")
-        # self.bodyanchored_radio.setProperty('loctype', 'bodyanchored')
+        # self.bodyanchored_radio.setProperty('loctype', 'body')
         # bodyanchored_layout.addWidget(self.bodyanchored_radio)
         # bodyanchored_layout.addStretch()
         # loctype_layout.addLayout(bodyanchored_layout)
@@ -252,15 +272,16 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # loctype_layout.addLayout(signingspace_layout)
         # loctype_layout.addStretch()
 
-        bodyanchored_layout = QHBoxLayout()
+        body_layout = QHBoxLayout()
 
         # bodyanchored_layout = QVBoxLayout()
-        self.bodyanchored_radio = QRadioButton("Body-anchored")
-        self.bodyanchored_radio.setProperty('loctype', 'bodyanchored')
-        bodyanchored_layout.addWidget(self.bodyanchored_radio)
-        bodyanchored_box = QGroupBox()
-        bodyanchored_box.setLayout(bodyanchored_layout)
-        loctype_layout.addWidget(bodyanchored_box)
+        self.body_radio = QRadioButton("Body")
+        self.body_radio.setProperty('loctype', 'body')
+        body_layout.addWidget(self.body_radio)
+        body_layout.addSpacerItem(QSpacerItem(100, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
+        body_box = QGroupBox()
+        body_box.setLayout(body_layout)
+        loctype_phonloc_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
         # bodyanchored_layout.addStretch()
         # loctype_layout.addLayout(bodyanchored_layout)
 
@@ -287,11 +308,11 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # loctype_layout.addLayout(signingspace_layout)
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
-        loctype_layout.addWidget(signingspace_box)
-        loctype_layout.addStretch()
+        loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
+        loctype_phonloc_layout.addStretch()
 
         self.loctype_group = QButtonGroup()
-        self.loctype_group.addButton(self.bodyanchored_radio)
+        self.loctype_group.addButton(self.body_radio)
         self.loctype_group.addButton(self.signingspace_radio)
         self.signingspace_group = QButtonGroup()
         self.signingspace_group.addButton(self.signingspacebody_radio)
@@ -303,7 +324,17 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # loctype_layout.addWidget(self.signingspacebody_radio)
         # loctype_layout.addWidget(self.signingspacespatial_radio)
 
-        self.addLayout(loctype_layout)
+        phonlocn_layout = QVBoxLayout()
+        self.majorphonloc_cb = QCheckBox("Major phonological location")
+        self.minorphonloc_cb = QCheckBox("Minor phonological location")
+        phonlocn_layout.addWidget(self.majorphonloc_cb, alignment=Qt.AlignHCenter)
+        phonlocn_layout.addWidget(self.minorphonloc_cb, alignment=Qt.AlignHCenter)
+        loctype_phonloc_layout.addLayout(phonlocn_layout)
+        loctype_phonloc_layout.addStretch()
+
+        self.addLayout(loctype_phonloc_layout)
+
+        # TODO KV - do something with major / minor location info
 
         search_layout = QHBoxLayout()
         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
@@ -386,7 +417,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
                     btn.setChecked(True)
                     break
 
-        self.enable_location_tools(self.loctype_group.checkedButton() == self.bodyanchored_radio
+        self.enable_location_tools(self.loctype_group.checkedButton() == self.body_radio
                                    or self.signingspace_group.checkedButton() is not None)
 
     def handle_zoomfactor_changed(self, scale):
@@ -412,8 +443,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         if btn == self.signingspacebody_radio:
             # TODO KV set image and search tool to signing space (body-anchored) content
-            if self.treemodel.locationtype != 'bodyanchored':
-                self.treemodel.locationtype = 'bodyanchored'
+            if self.treemodel.locationtype != 'body':
+                self.treemodel.locationtype = 'body'
                 self.refresh_treemodel()
         elif btn == self.signingspacespatial_radio:
             # TODO KV set image and search tool to signing space (purely spatial) content
@@ -424,12 +455,12 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
     def handle_toggle_locationtype(self, btn):
         for btn in self.signingspace_group.buttons():
             btn.setEnabled(self.loctype_group.checkedButton() == self.signingspace_radio)
-        self.enable_location_tools(self.loctype_group.checkedButton() == self.bodyanchored_radio)
+        self.enable_location_tools(self.loctype_group.checkedButton() == self.body_radio)
 
-        if btn == self.bodyanchored_radio:
+        if btn == self.body_radio:
             # TODO KV set image and search tool to body-anchored content
-            if self.treemodel.locationtype != 'bodyanchored':
-                self.treemodel.locationtype = 'bodyanchored'
+            if self.treemodel.locationtype != 'body':
+                self.treemodel.locationtype = 'body'
                 self.refresh_treemodel()
         elif btn == self.signingspace_radio:
             # TODO KV leave image and search tool disabled
@@ -439,7 +470,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         return self.saved_location
 
     def get_savedmodule_args(self):
-        return (self.treemodel,)
+        return (self.treemodel, self.majorphonloc_cb.isChecked(), self.minorphonloc_cb.isChecked())
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
@@ -459,16 +490,97 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
             menu = QMenu()
-            menu.addAction('TODO KV 1')
-            menu.addAction('TODO KV 2')
+
+            # self.testaction = QAction('test action', menu, checkable=True)
+            # # viewStatAct.setStatusTip('View statusbar')
+            # self.testaction.setChecked(self.temptestactionstate)
+            # self.testaction.triggered.connect(self.testaction_toggled)
+            # menu.addAction(self.testaction)
+
+            self.uncertain_action = CheckNoteAction("Uncertain")
+            self.uncertain_action.setChecked(self.uncertain_action_state)
+            self.uncertain_action.setText(self.uncertain_action_text)
+            self.uncertain_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.uncertain_action))
+            menu.addAction(self.uncertain_action)
+
+            self.estimate_action = CheckNoteAction("Estimate")
+            self.estimate_action.setChecked(self.estimate_action_state)
+            self.estimate_action.setText(self.estimate_action_text)
+            self.estimate_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.estimate_action))
+            menu.addAction(self.estimate_action)
+
+            self.notspecified_action = CheckNoteAction("Not specified")
+            self.notspecified_action.setChecked(self.notspecified_action_state)
+            self.notspecified_action.setText(self.notspecified_action_text)
+            self.notspecified_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.notspecified_action))
+            menu.addAction(self.notspecified_action)
+
+            self.varies_action = CheckNoteAction("Varies morphologically")
+            self.varies_action.setChecked(self.varies_action_state)
+            self.varies_action.setText(self.varies_action_text)
+            self.varies_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.varies_action))
+            menu.addAction(self.varies_action)
+
+            self.exceptional_action = CheckNoteAction("Mark as exceptional")
+            self.exceptional_action.setChecked(self.exceptional_action_state)
+            self.exceptional_action.setText(self.exceptional_action_text)
+            self.exceptional_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.exceptional_action))
+            menu.addAction(self.exceptional_action)
+
+            #
+            # uncertain_action = menu.addAction("Uncertain")  # , checkable=True)
+            # uncertain_action.setCheckable(True)
+            # # menu.addAction(uncertain_action)
+            # estimate_action = QAction("Estimate", checkable=True)
+            # # estimate_action.setCheckable(True)
+            # menu.addAction(estimate_action)
+            # notspecified_action = QAction("Not specified", checkable=True)
+            # # notspecified_action.setCheckable(True)
+            # menu.addAction(notspecified_action)
+            # variesmorph_action = QAction("Varies morphologically", checkable=True)
+            # # variesmorph_action.setCheckable(True)
+            # menu.addAction(variesmorph_action)
+            # markexcept_action = QAction("Mark as exceptional", checkable=True)
+            # # markexcept_action.setCheckable(True)
+            # menu.addAction(markexcept_action)
+
+            menu.aboutToHide.connect(self.savemenunotes)
+
             if menu.exec_(event.globalPos()):  # if a menu item is clicked on
-                # TODO KV do something with source.specificitem...
                 proxyindex = self.pathslistview.currentIndex()
                 listindex = proxyindex.model().mapToSource(proxyindex)
-                print("selected item:" + listindex.model().itemFromIndex(listindex).text())
+                # TODO KV do something with the item!    vvv
+                #  print("selected: " + listindex.model().itemFromIndex(listindex).text())
             return True
 
         return super().eventFilter(source, event)
+
+    def savemenunotes(self):
+        # self.checknoteactiontext = self.checknoteaction.text()
+        self.uncertain_action_text = self.uncertain_action.text()
+        self.estimate_action_text = self.estimate_action.text()
+        self.notspecified_action_text = self.notspecified_action.text()
+        self.varies_action_text = self.varies_action.text()
+        self.exceptional_action_text = self.exceptional_action.text()
+
+    def testaction_toggled(self, state):
+        self.temptestactionstate = state
+
+    # def checknoteaction_textchanged(self, text):
+    #     print("checknoteaction's new text is: " + text)
+    #     self.checknoteactiontext = text
+
+    def checknoteaction_toggled(self, state, whichaction):
+        if whichaction == self.uncertain_action:
+            self.uncertain_action_state = state
+        elif whichaction == self.estimate_action:
+            self.estimate_action_state = state
+        elif whichaction == self.varies_action:
+            self.varies_action_state = state
+        elif whichaction == self.exceptional_action:
+            self.exceptional_action_state = state
+        elif whichaction == self.notspecified_action:
+            self.notspecified_action_state = state
 
     def refresh(self):
         self.refresh_treemodel()
@@ -502,3 +614,40 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
     def desiredheight(self):
         return 700
+
+
+class CheckNoteAction(QWidgetAction):
+    textChanged = pyqtSignal(str)
+
+    def __init__(self, text, parent=None):
+        super().__init__(parent)
+
+        actionwidget = QWidget()
+        actionlayout = QHBoxLayout()
+        self.checkbox = QCheckBox(text)
+        self.checkbox.setTristate(False)
+        self.checkbox.toggled.connect(self.toggled)
+        self.note = QLineEdit()
+        self.note.textChanged.connect(self.textChanged.emit)
+        actionlayout.addWidget(self.checkbox)
+        actionlayout.addWidget(self.note)
+        actionwidget.setLayout(actionlayout)
+        self.setDefaultWidget(actionwidget)
+
+    def getCheckbox(self):
+        return self.checkbox
+
+    def getNote(self):
+        return self.note
+
+    def setChecked(self, state):
+        self.checkbox.setChecked(state)
+
+    def isChecked(self):
+        return self.checkbox.isChecked()
+
+    def setText(self, text):
+        self.note.setText(text)
+
+    def text(self):
+        return self.note.text()

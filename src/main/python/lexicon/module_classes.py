@@ -215,8 +215,10 @@ class MovementModule(ParameterModule):
 
 
 class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, hands, timingintervals=None):
+    def __init__(self, locationtreemodel, hands, timingintervals=None, majorphonloc=False, minorphonloc=False):
         self._locationtreemodel = locationtreemodel
+        self._majorphonlocn = majorphonloc
+        self._minorphonlocn = minorphonloc
         super().__init__(hands, timingintervals)
 
     @property
@@ -227,6 +229,24 @@ class LocationModule(ParameterModule):
     def locationtreemodel(self, locationtreemodel):
         # TODO KV - validate?
         self._locationtreemodel = locationtreemodel
+
+    @property
+    def majorphonlocn(self):
+        return self._majorphonlocn
+
+    @majorphonlocn.setter
+    def majorphonlocn(self, majorphonlocn):
+        # TODO KV - validate?
+        self._majorphonlocn = majorphonlocn
+
+    @property
+    def minorphonlocn(self):
+        return self._minorphonlocn
+
+    @minorphonlocn.setter
+    def minorphonlocn(self, minorphonlocn):
+        # TODO KV - validate?
+        self._minorphonlocn = minorphonlocn
 
     def getabbreviation(self):
         # TODO KV these can't be hardcoded like this... fix it!

@@ -62,7 +62,7 @@ u = False  # unchecked
 
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
-locn_options_bodyanchored = {
+locn_options_body = {
     # ("No movement", fx, rb, u): {},
     ("Head", fx, rb, u): {
         ("Back of head", fx, rb, u): {},
@@ -400,7 +400,7 @@ class LocationTreeModel(QStandardItemModel):
         self._listmodel = None  # MovementListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
-        self._locationtype = 'bodyanchored'
+        self._locationtype = 'body'
 
     def updatelistdata(self, topLeft, bottomRight):
         startitem = self.itemFromIndex(topLeft)
@@ -434,8 +434,8 @@ class LocationTreeModel(QStandardItemModel):
         elif structure == {} and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            if self.locationtype == 'bodyanchored':
-                self.populate(parentnode, structure=locn_options_bodyanchored, pathsofar="")
+            if self.locationtype == 'body':
+                self.populate(parentnode, structure=locn_options_body, pathsofar="")
             elif self.locationtype == 'purelyspatial':
                 self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
         elif structure != {}:
@@ -487,7 +487,7 @@ class LocationTreeModel(QStandardItemModel):
         return self._locationtype
 
     @locationtype.setter
-    def locationtype(self, locationtype):  # either 'bodyanchored' or 'purelyspatial'
+    def locationtype(self, locationtype):  # either 'body' or 'purelyspatial'
         self._locationtype = locationtype
 
 

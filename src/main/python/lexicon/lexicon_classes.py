@@ -486,13 +486,13 @@ class Sign:
         self.targetmodules.append(targetmod)
         self.lastmodifiednow()
 
-    def addlocationmodule(self, locationtree, hands_dict, timingintervals):
+    def addlocationmodule(self, locationtree, hands_dict, timingintervals, majorphonloc=False, minorphonloc=False):
         # create and add a brand new one
-        locnmod = LocationModule(locationtree, hands_dict, timingintervals)
+        locnmod = LocationModule(locationtree, hands_dict, timingintervals, majorphonloc, minorphonloc)
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
-    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals):
+    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, majorphonloc=False, minorphonloc=False):
         locnmod = self.locationmodules[uniqueid]
         ischanged = False
         if locnmod.locationtreemodel != locationtree:
@@ -503,6 +503,12 @@ class Sign:
             ischanged = True
         if locnmod.timingintervals != timingintervals:
             locnmod.timingintervals = timingintervals
+            ischanged = True
+        if locnmod.majorphonlocn != majorphonloc:
+            locnmod.majorphonlocn = majorphonloc
+            ischanged = True
+        if locnmod.minorphonlocn != minorphonloc:
+            locnmod.minorphonlocn = minorphonloc
             ischanged = True
         if ischanged:
             self.lastmodifiednow()
