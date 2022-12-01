@@ -550,6 +550,9 @@ class LocationTreeItem(QStandardItem):
             if listit is not None:
                 self.listitem.treeitem = self
 
+    def __repr__(self):
+        return '<LocationTreeItem: ' + repr(self.text()) + '>'
+
     def serialize(self):
         return {
             'editable': self.isEditable(),
@@ -715,6 +718,9 @@ class LocationListItem(QStandardItem):
     #         'selectedrole': self.data(Qt.UserRole+selectedrole)
     #     }
     #     return serialized
+
+    def __repr__(self):
+        return '<LocationListItem: ' + repr(self.text()) + '>'
 
     def updatetext(self, txt=""):
         self.setText(txt)
