@@ -140,20 +140,20 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handstype_mirroredall_radio = SigntypeRadioButton("Everything is mirrored / in phase", parentbutton=self.handstype_2hmvmtsimult_radio)
         self.handstype_mirroredall_radio.setProperty('abbreviation.path', '2h.both move.move similarly.simultaneous.all in phase')
         self.handstype_mirroredall_radio.setProperty('abbreviation.include', False)
-        self.handstype_mirroredexcept_radio = SigntypeRadioButton('Everything is mirrored / in phase except:', parentbutton=self.handstype_2hmvmtsimult_radio)
+        self.handstype_mirroredexcept_radio = SigntypeRadioButton("Everything is mirrored / in phase except:", parentbutton=self.handstype_2hmvmtsimult_radio)
         self.handstype_mirroredexcept_radio.setProperty('abbreviation.path', '2h.both move.move similarly.simultaneous.in phase except')
         self.handstype_mirroredexcept_radio.setProperty('abbreviation.include', True)
         self.handstype_mvmtmirroredreln_group.addButton(self.handstype_mirroredall_radio)
         self.handstype_mvmtmirroredreln_group.addButton(self.handstype_mirroredexcept_radio)
         self.handstype_mvmtmirroredexcept_group = SigntypeButtonGroup(prt=self)
         self.handstype_mvmtmirroredexcept_group.setExclusive(False)
-        self.handstype_2hmvmtexceptloc_check = SigntypeCheckBox('Location', parentbutton=self.handstype_mirroredexcept_radio)
+        self.handstype_2hmvmtexceptloc_check = SigntypeCheckBox("Location", parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptloc_check.setProperty('abbreviation.path', '2h.both move.move similarly.simultaneous.in phase except.Loc')
         self.handstype_2hmvmtexceptloc_check.setProperty('abbreviation.include', True)
-        self.handstype_2hmvmtexceptshape_check = SigntypeCheckBox('Hand configuration', parentbutton=self.handstype_mirroredexcept_radio)
+        self.handstype_2hmvmtexceptshape_check = SigntypeCheckBox("Hand configuration", parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptshape_check.setProperty('abbreviation.path', '2h.both move.move similarly.simultaneous.in phase except.HS')
         self.handstype_2hmvmtexceptshape_check.setProperty('abbreviation.include', True)
-        self.handstype_2hmvmtexceptorientn_check = SigntypeCheckBox('Orientation', parentbutton=self.handstype_mirroredexcept_radio)
+        self.handstype_2hmvmtexceptorientn_check = SigntypeCheckBox("Orientation", parentbutton=self.handstype_mirroredexcept_radio)
         self.handstype_2hmvmtexceptorientn_check.setProperty('abbreviation.path', '2h.both move.move similarly.simultaneous.in phase except.Ori')
         self.handstype_2hmvmtexceptorientn_check.setProperty('abbreviation.include', True)
         self.handstype_mvmtmirroredexcept_group.addButton(self.handstype_2hmvmtexceptloc_check)
@@ -167,7 +167,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handstype_mvmtperceptualshape_group.setExclusive(False)
 
         # self.handstype_similarmvmt_group = SigntypeButtonGroup(prt=self)
-        self.handstype_2hmvmtbothperceptual_check = SigntypeCheckBox('Sign includes a non-straight perceptual shape movement', parentbutton=self.handstype_2hmvmtbothsame_radio)
+        self.handstype_2hmvmtbothperceptual_check = SigntypeCheckBox("Sign includes a non-straight perceptual shape movement", parentbutton=self.handstype_2hmvmtbothsame_radio)
         self.handstype_2hmvmtbothperceptual_check.setProperty('abbreviation.path', '2h.both move.move similarly.has perceptual shape')
         self.handstype_2hmvmtbothperceptual_check.setProperty('abbreviation.include', True)
         self.handstype_mvmtperceptualshape_group.addButton(self.handstype_2hmvmtbothperceptual_check)
@@ -175,10 +175,10 @@ class SigntypeSpecificationLayout(QVBoxLayout):
 
         # self.handstype_2hmvmtsamedir_radio = SigntypeRadioButton('Same', parentbutton=self.handstype_2hmvmtbothsame_radio)
         self.handstype_mvmtdirreln_group = SigntypeButtonGroup(prt=self)
-        self.handstype_2hmvmtsamedir_radio = SigntypeRadioButton('Same', parentbutton=self.handstype_2hmvmtbothperceptual_check)
+        self.handstype_2hmvmtsamedir_radio = SigntypeRadioButton("Same", parentbutton=self.handstype_2hmvmtbothperceptual_check)
         self.handstype_2hmvmtsamedir_radio.setProperty('abbreviation.path', '2h.both move.move similarly.has perceptual shape.same directions')
         self.handstype_2hmvmtsamedir_radio.setProperty('abbreviation.include', True)
-        self.handstype_2hmvmtdiffdir_radio = SigntypeRadioButton('Different', parentbutton=self.handstype_2hmvmtbothperceptual_check)
+        self.handstype_2hmvmtdiffdir_radio = SigntypeRadioButton("Different", parentbutton=self.handstype_2hmvmtbothperceptual_check)
         self.handstype_2hmvmtdiffdir_radio.setProperty('abbreviation.path', '2h.both move.move similarly.has perceptual shape.different directions')
         self.handstype_2hmvmtdiffdir_radio.setProperty('abbreviation.include', True)
         self.handstype_mvmtdirreln_group.addButton(self.handstype_2hmvmtsamedir_radio)
@@ -212,7 +212,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handshape_layout = QVBoxLayout()
         self.handshape_layout.addWidget(self.handstype_2hsameshapes_radio)
         self.handshape_layout.addWidget(self.handstype_2hdiffshapes_radio)
-        self.handshape_box = QGroupBox('Hand configuration relation')
+        self.handshape_box = QGroupBox("Hand configuration relation")
         self.handshape_box.setLayout(self.handshape_layout)
         self.twohand_col1_layout.addWidget(self.handshape_box)
         ### end layout for 2-handed handshape relation
@@ -221,7 +221,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.contact_layout = QVBoxLayout()
         self.contact_layout.addWidget(self.handstype_2hcontactyes_radio)
         self.contact_layout.addWidget(self.handstype_2hcontactno_radio)
-        self.contact_box = QGroupBox('Contact relation')
+        self.contact_box = QGroupBox("Contact relation")
         self.contact_box.setLayout(self.contact_layout)
         self.twohand_col1_layout.addWidget(self.contact_box)
         ### end layout for 2-handed contact relation
@@ -284,7 +284,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         ###### end layout for simultaneous movement
 
         self.timing_layout.addLayout(self.simultaneous_spacedlayout)
-        self.timing_box = QGroupBox('Movement timing relation')
+        self.timing_box = QGroupBox("Movement timing relation")
         self.timing_box.setLayout(self.timing_layout)
         self.similarmvmt_spacedlayout.addWidget(self.timing_box)
         ##### end layout for 2-handed movement timing relation
@@ -297,11 +297,12 @@ class SigntypeSpecificationLayout(QVBoxLayout):
 
         ###### begin layout for 2-handed movement direction relation
         self.direction_layout = QVBoxLayout()
-        self.direction_layout.addWidget(QLabel('H1 and H2\'s directions of movement are:'))
+        self.direction_layout.addWidget(QLabel("H1 and H2's directions of movement are:"))
         self.direction_layout.addWidget(self.handstype_2hmvmtsamedir_radio)
         self.direction_layout.addWidget(self.handstype_2hmvmtdiffdir_radio)
         self.direction_layout.addStretch(1)
-        self.direction_box = QGroupBox('Movement direction relation')
+        self.direction_box = QGroupBox("Movement direction relation")
+        self.direction_box.setProperty('TEMP-STOPHERE', True)
         self.direction_box.setLayout(self.direction_layout)
         self.perceptualshape_spacedlayout.addWidget(self.direction_box)
         ###### end layout for 2-handed movement direction relation
@@ -323,7 +324,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
 
         self.movement_layout.addWidget(self.handstype_2hmvmtboth_radio)
 
-        self.movement_box = QGroupBox('Movement relation')
+        self.movement_box = QGroupBox("Movement relation")
         self.movement_box.setLayout(self.movement_layout)
         ### end layout for 2-handed movement relation
 
@@ -335,7 +336,7 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.handstype_2h_radio.setChildlayout(self.twohand_spacedlayout)
         ## end layout for 2-handed sign options
 
-        self.signtype_box = QGroupBox('Sign type')
+        self.signtype_box = QGroupBox("Sign type")
         self.signtype_box.setLayout(self.signtype_layout)
         # end layout for sign type (highest level)
 
@@ -464,14 +465,17 @@ class SigntypeButtonGroup(QButtonGroup):
             for childnum in range(numchildren):
                 thechild = parent.itemAt(childnum)
                 if thechild.widget():
-                    if isinstance(thechild.widget(), QAbstractButton):
-                        parentbutton = thechild.widget().parentbutton
+                    childwidget = thechild.widget()
+                    if isinstance(childwidget, QAbstractButton):
+                        parentbutton = childwidget.parentbutton
                         parentbuttonhascheckedsibling = parentbutton and True in [sib.isChecked() for
                                                                                   sib in
                                                                                   self.parent().getButtonGroup(parentbutton).getSiblings(parentbutton)]
-                        thechild.widget().setEnabled(yesorno and not parentbuttonhascheckedsibling)
-                    elif isinstance(thechild.widget(), QGroupBox):
-                        self.enableChildWidgets(yesorno, thechild.widget().layout())
+                        childwidget.setEnabled(yesorno and not parentbuttonhascheckedsibling)
+                    elif isinstance(childwidget, QLabel):
+                        childwidget.setEnabled(yesorno)
+                    elif isinstance(childwidget, QGroupBox):
+                        self.enableChildWidgets(yesorno, childwidget.layout())
                 elif thechild.layout():
                     self.enableChildWidgets(yesorno, thechild.layout())
 
