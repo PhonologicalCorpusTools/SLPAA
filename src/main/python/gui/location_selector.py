@@ -213,6 +213,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.exceptional_action_text = ""
         self.notspecified_action_state = False
         self.notspecified_action_text = ""
+        self.note_action_text = ""
 
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
         # if moduletoload is not None:
@@ -324,11 +325,19 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # loctype_layout.addWidget(self.signingspacebody_radio)
         # loctype_layout.addWidget(self.signingspacespatial_radio)
 
-        phonlocn_layout = QVBoxLayout()
+        # phonlocn_layout = QVBoxLayout()
+        # self.majorphonloc_cb = QCheckBox("Major phonological location")
+        # self.minorphonloc_cb = QCheckBox("Minor phonological location")
+        # phonlocn_layout.addWidget(self.majorphonloc_cb, alignment=Qt.AlignHCenter)
+        # phonlocn_layout.addWidget(self.minorphonloc_cb, alignment=Qt.AlignHCenter)
+        # loctype_phonloc_layout.addLayout(phonlocn_layout)
+        # loctype_phonloc_layout.addStretch()
+
+        phonlocn_layout = QHBoxLayout()
         self.majorphonloc_cb = QCheckBox("Major phonological location")
         self.minorphonloc_cb = QCheckBox("Minor phonological location")
-        phonlocn_layout.addWidget(self.majorphonloc_cb, alignment=Qt.AlignHCenter)
-        phonlocn_layout.addWidget(self.minorphonloc_cb, alignment=Qt.AlignHCenter)
+        phonlocn_layout.addWidget(self.majorphonloc_cb, alignment=Qt.AlignVCenter)
+        phonlocn_layout.addWidget(self.minorphonloc_cb, alignment=Qt.AlignVCenter)
         loctype_phonloc_layout.addLayout(phonlocn_layout)
         loctype_phonloc_layout.addStretch()
 
@@ -527,6 +536,16 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             self.exceptional_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.exceptional_action))
             menu.addAction(self.exceptional_action)
 
+            self.note_action = NoteAction("General note:")
+            self.note_action.setText(self.note_action_text)
+            menu.addAction(self.note_action)
+
+            menu.addSeparator()
+
+            self.close_action = QAction("Close menu")
+            menu.addAction(self.close_action)
+            # self.close_action.triggered(self.)
+
             #
             # uncertain_action = menu.addAction("Uncertain")  # , checkable=True)
             # uncertain_action.setCheckable(True)
@@ -562,6 +581,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.notspecified_action_text = self.notspecified_action.text()
         self.varies_action_text = self.varies_action.text()
         self.exceptional_action_text = self.exceptional_action.text()
+        self.note_action_text = self.note_action.text()
 
     def testaction_toggled(self, state):
         self.temptestactionstate = state
@@ -616,29 +636,51 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         return 700
 
 
-class CheckNoteAction(QWidgetAction):
+class AbstractLocationAction(QWidgetAction):
     textChanged = pyqtSignal(str)
 
-    def __init__(self, text, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
-        actionwidget = QWidget()
-        actionlayout = QHBoxLayout()
-        self.checkbox = QCheckBox(text)
+        self.actionwidget = QWidget()
+        self.actionlayout = QHBoxLayout()
+
+
+class NoteAction(AbstractLocationAction):
+
+    def __init__(self, label=None, parent=None):
+        super().__init__(parent)
+
+        self.label = label
+        self.actionlayout.addWidget(QLabel(self.label))
+        self.note = QLineEdit()
+        self.actionlayout.addWidget(self.note)
+        self.actionwidget.setLayout(self.actionlayout)
+        self.setDefaultWidget(self.actionwidget)
+
+    def setText(self, text):
+        self.note.setText(text)
+
+    def text(self):
+        return self.note.text()
+
+
+class CheckNoteAction(AbstractLocationAction):  # QWidgetAction):
+    # textChanged = pyqtSignal(str)
+
+    def __init__(self, label, parent=None):
+        super().__init__(parent)
+
+        self.label = label
+        self.checkbox = QCheckBox(self.label)
         self.checkbox.setTristate(False)
         self.checkbox.toggled.connect(self.toggled)
         self.note = QLineEdit()
         self.note.textChanged.connect(self.textChanged.emit)
-        actionlayout.addWidget(self.checkbox)
-        actionlayout.addWidget(self.note)
-        actionwidget.setLayout(actionlayout)
-        self.setDefaultWidget(actionwidget)
-
-    def getCheckbox(self):
-        return self.checkbox
-
-    def getNote(self):
-        return self.note
+        self.actionlayout.addWidget(self.checkbox)
+        self.actionlayout.addWidget(self.note)
+        self.actionwidget.setLayout(self.actionlayout)
+        self.setDefaultWidget(self.actionwidget)
 
     def setChecked(self, state):
         self.checkbox.setChecked(state)
