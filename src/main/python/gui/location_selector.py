@@ -50,10 +50,11 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.location_view import LocationTreeModel, LocationTree, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, mutuallyexclusiverole, lastingrouprole, finalsubgrouprole, pathdisplayrole, delimiter
+from gui.location_view import LocationTreeModel, LocationTree, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 # from gui.xslot_graphics import XslotLinkingLayout
 from gui.module_selector import HandSelectionLayout
+from lexicon.module_classes import delimiter, userdefinedroles as udr
 
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
@@ -69,10 +70,10 @@ class TreeItemDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.itemFromIndex(index).setData(editor.text(), role=Qt.DisplayRole)
-        currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+pathdisplayrole)
+        currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+udr.pathdisplayrole)
         newpathlevels = currentpath.split(delimiter)
         newpathlevels[-1] = editor.text()
-        model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+pathdisplayrole)
+        model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+udr.pathdisplayrole)
 
     def __init__(self):
         super().__init__()
@@ -100,7 +101,7 @@ class TreeItemDelegate(QStyledItemDelegate):
             # editor.setFocus()  # this creates an infinite loop
 
     def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+mutuallyexclusiverole):
+        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
             widget = option.widget
             style = widget.style() if widget else QApplication.style()
             opt = QStyleOptionButton()
@@ -108,11 +109,11 @@ class TreeItemDelegate(QStyledItemDelegate):
             opt.text = index.data()
             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole + lastingrouprole) and not index.data(Qt.UserRole + finalsubgrouprole):
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole + lastingrouprole) and not index.data(Qt.UserRole + finalsubgrouprole):
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
                 opt = QStyleOptionFrame()
                 opt.rect = option.rect
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())

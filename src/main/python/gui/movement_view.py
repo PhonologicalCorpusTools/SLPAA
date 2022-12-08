@@ -24,21 +24,7 @@ from PyQt5.QtWidgets import (
     QStyle
 )
 
-
-#from PyQt5.QtGui import ()
-
-
-# TODO KV - is this where I actually want to define these?
-delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
-selectedrole = 0
-pathdisplayrole = 1
-mutuallyexclusiverole = 2
-texteditrole = 3
-lastingrouprole = 4
-finalsubgrouprole = 5
-subgroupnamerole = 6
-nodedisplayrole = 7
-timestamprole = 8
+from lexicon.module_classes import AddedInfo, delimiter, userdefinedroles as udr
 
 rb = "radio button"  # ie mutually exclusive in group / at this level
 cb = "checkbox"  # ie not mutually exlusive
@@ -407,7 +393,7 @@ class MovementTree:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + pathdisplayrole)
+                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
                     checkstate = treechild.checkState()
                     editable = treechild.isEditable()
                     if editable:
@@ -432,8 +418,8 @@ class MovementTree:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + pathdisplayrole)
-                    parentpathtext = treenode.data(Qt.UserRole + pathdisplayrole)
+                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    parentpathtext = treenode.data(Qt.UserRole + udr.pathdisplayrole)
                     if parentpathtext in self.numvals.keys():
                         treechild.setText(self.numvals[parentpathtext])
                         treechild.setEditable(True)
@@ -505,15 +491,15 @@ class MovementTreeModel(QStandardItemModel):
                 else:
                     # parentnode.setColumnCount(1)
                     thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
-                    # thistreenode.setData(False, Qt.UserRole+selectedrole)  #  moved to MovementTreeItem.__init__()
-                    thistreenode.setData(pathsofar + label, role=Qt.UserRole + pathdisplayrole)
+                    # thistreenode.setData(False, Qt.UserRole+udr.selectedrole)  #  moved to MovementTreeItem.__init__()
+                    thistreenode.setData(pathsofar + label, role=Qt.UserRole + udr.pathdisplayrole)
                     thistreenode.setEditable(iseditable)
                     thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
                     if issubgroup:
-                        thistreenode.setData(subgroupname, role=Qt.UserRole+subgroupnamerole)
+                        thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
                         if idx + 1 == numentriesatthislevel:
-                            thistreenode.setData(True, role=Qt.UserRole + lastingrouprole)
-                            thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + finalsubgrouprole)
+                            thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
+                            thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
                     self.populate(thistreenode, structure=structure[labelclassifierchecked_4tuple], pathsofar=pathsofar+label+delimiter)
                     parentnode.appendRow([thistreenode])
 
@@ -550,7 +536,7 @@ class MovementTreeView(QTreeView):
 
 class MovementTreeItem(QStandardItem):
 
-    def __init__(self, txt="", listit=None, mutuallyexclusive=False, serializedmvmtitem=None):
+    def __init__(self, txt="", listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
         super().__init__()
         
         if serializedmvmtitem:
@@ -559,11 +545,12 @@ class MovementTreeItem(QStandardItem):
             self.setCheckable(serializedmvmtitem['checkable'])
             self.setCheckState(serializedmvmtitem['checkstate'])
             self.setUserTristate(serializedmvmtitem['usertristate'])
-            self.setData(serializedmvmtitem['selectedrole'], Qt.UserRole+selectedrole)
-            self.setData(serializedmvmtitem['texteditrole'], Qt.UserRole+texteditrole)
-            self.setData(serializedmvmtitem['timestamprole'], Qt.UserRole+timestamprole)
-            self.setData(serializedmvmtitem['mutuallyexclusiverole'], Qt.UserRole+mutuallyexclusiverole)
+            self.setData(serializedmvmtitem['selectedrole'], Qt.UserRole+udr.selectedrole)
+            self.setData(serializedmvmtitem['texteditrole'], Qt.UserRole+udr.texteditrole)
+            self.setData(serializedmvmtitem['timestamprole'], Qt.UserRole+udr.timestamprole)
+            self.setData(serializedmvmtitem['mutuallyexclusiverole'], Qt.UserRole+udr.mutuallyexclusiverole)
             self.setData(serializedmvmtitem['displayrole'], Qt.DisplayRole)
+            self._addedinfo = serializedmvmtitem['addedinfo']
             self.listitem = MovementListItem(serializedlistitem=serializedmvmtitem['listitem'])
             self.listitem.treeitem = self
         else:
@@ -572,14 +559,15 @@ class MovementTreeItem(QStandardItem):
             self.setCheckable(True)
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
-            self.setData(False, Qt.UserRole + selectedrole)
-            self.setData(False, Qt.UserRole + texteditrole)
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
+            self.setData(False, Qt.UserRole+udr.selectedrole)
+            self.setData(False, Qt.UserRole+udr.texteditrole)
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
+            self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
             if mutuallyexclusive:
-                self.setData(True, Qt.UserRole+mutuallyexclusiverole)
+                self.setData(True, Qt.UserRole+udr.mutuallyexclusiverole)
             else:
-                self.setData(False, Qt.UserRole+mutuallyexclusiverole)
+                self.setData(False, Qt.UserRole+udr.mutuallyexclusiverole)
             # self.setData(mutuallyexclusive, Qt.UserRole+mutuallyexclusiverole)
 
             self.listitem = listit
@@ -596,13 +584,22 @@ class MovementTreeItem(QStandardItem):
             'checkable': self.isCheckable(),
             'checkstate': self.checkState(),
             'usertristate': self.isUserTristate(),
-            'timestamprole': self.data(Qt.UserRole+timestamprole),
-            'selectedrole': self.data(Qt.UserRole + selectedrole),
-            'texteditrole': self.data(Qt.UserRole + texteditrole),
-            'mutuallyexclusiverole': self.data(Qt.UserRole+mutuallyexclusiverole),
+            'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
+            'selectedrole': self.data(Qt.UserRole+udr.selectedrole),
+            'texteditrole': self.data(Qt.UserRole+udr.texteditrole),
+            'mutuallyexclusiverole': self.data(Qt.UserRole+udr.mutuallyexclusiverole),
             'displayrole': self.data(Qt.DisplayRole),
-            # 'listitem': self.listitem.serialize()
+            'addedinfo': self._addedinfo
+            # 'listitem': self.listitem.serialize()  # TODO KV why not? the constructor uses it...
         }
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def updatelistdata(self):
         if self.parent() and "Number of repetitions" in self.parent().data():
@@ -618,21 +615,21 @@ class MovementTreeItem(QStandardItem):
 
     def check(self, fully=True):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
-        self.listitem.setData(fully, Qt.UserRole+selectedrole)
+        self.listitem.setData(fully, Qt.UserRole+udr.selectedrole)
         if fully:
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
-            self.listitem.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
+            self.listitem.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
         self.checkancestors()
 
         # gather siblings in order to deal with mutual exclusivity (radio buttons)
         siblings = self.collectsiblings()
 
         # if this is a radio button item, make sure none of its siblings are checked
-        if self.data(Qt.UserRole+mutuallyexclusiverole):
+        if self.data(Qt.UserRole+udr.mutuallyexclusiverole):
             for sib in siblings:
                 sib.uncheck(force=True)
         else:  # or if it has radio button siblings, make sure they are unchecked
-            for me_sibling in [s for s in siblings if s.data(Qt.UserRole+mutuallyexclusiverole)]:
+            for me_sibling in [s for s in siblings if s.data(Qt.UserRole+udr.mutuallyexclusiverole)]:
                 me_sibling.uncheck(force=True)
 
     def collectsiblings(self):
@@ -647,14 +644,14 @@ class MovementTreeItem(QStandardItem):
             if sibling.index() != self.index():  # ie, it's actually a sibling
                 siblings.append(sibling)
 
-        mysubgroup = self.data(Qt.UserRole+subgroupnamerole)
-        subgrouporgeneralsiblings = [sib for sib in siblings if sib.data(Qt.UserRole+subgroupnamerole) == mysubgroup or not sib.data(Qt.UserRole+subgroupnamerole)]
+        mysubgroup = self.data(Qt.UserRole+udr.subgroupnamerole)
+        subgrouporgeneralsiblings = [sib for sib in siblings if sib.data(Qt.UserRole+udr.subgroupnamerole) == mysubgroup or not sib.data(Qt.UserRole+udr.subgroupnamerole)]
 
         # if I'm ME and in a subgroup, collect siblings from my subgroup and also those at my level but not in any subgroup
-        if self.data(Qt.UserRole+mutuallyexclusiverole) and mysubgroup:
+        if self.data(Qt.UserRole+udr.mutuallyexclusiverole) and mysubgroup:
             return subgrouporgeneralsiblings
         # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
-        elif self.data(Qt.UserRole+mutuallyexclusiverole):
+        elif self.data(Qt.UserRole+udr.mutuallyexclusiverole):
             return siblings
         # if I'm *not* ME, collect all siblings from my level (in subgroups or no)
         # I'm not ME but my siblings might be
@@ -670,8 +667,8 @@ class MovementTreeItem(QStandardItem):
     def uncheck(self, force=False):
         name = self.data()
 
-        self.listitem.setData(False, Qt.UserRole+selectedrole)
-        self.setData(False, Qt.UserRole+selectedrole)
+        self.listitem.setData(False, Qt.UserRole+udr.selectedrole)
+        self.setData(False, Qt.UserRole+udr.selectedrole)
 
         # TODO KV - can't just uncheck a radio button... or can we?
 
@@ -692,7 +689,7 @@ class MovementTreeItem(QStandardItem):
             if self.parent() is not None:
                 self.parent().uncheckancestors()
 
-        if self.data(Qt.UserRole+mutuallyexclusiverole):
+        if self.data(Qt.UserRole+udr.mutuallyexclusiverole):
             pass
             # TODO KV is this relevant? shouldn't be able to uncheck anyway
         elif True:  # has a mutually exclusive sibling
@@ -729,29 +726,29 @@ class MovementListItem(QStandardItem):
         if serializedlistitem:
             self.setEditable(serializedlistitem['editable'])
             self.setText(serializedlistitem['text'])
-            self.setData(serializedlistitem['nodedisplayrole'], Qt.UserRole+nodedisplayrole)
-            self.setData(serializedlistitem['timestamprole'], Qt.UserRole+timestamprole)
+            self.setData(serializedlistitem['nodedisplayrole'], Qt.UserRole+udr.nodedisplayrole)
+            self.setData(serializedlistitem['timestamprole'], Qt.UserRole+udr.timestamprole)
             self.setCheckable(serializedlistitem['checkable'])
-            self.setData(serializedlistitem['selectedrole'], Qt.UserRole+selectedrole)
+            self.setData(serializedlistitem['selectedrole'], Qt.UserRole+udr.selectedrole)
         else:
             self.setEditable(False)
             self.setText(pathtxt)
-            self.setData(nodetxt, Qt.UserRole+nodedisplayrole)
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
+            self.setData(nodetxt, Qt.UserRole+udr.nodedisplayrole)
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
             self.setCheckable(False)
             self.treeitem = treeit
             if treeit is not None:
                 self.treeitem.listitem = self
-            self.setData(False, Qt.UserRole+selectedrole)
+            self.setData(False, Qt.UserRole+udr.selectedrole)
 
     # def serialize(self):
     #     serialized = {
     #         'editable': self.isEditable(),
     #         'text': self.text(),
-    #         'nodedisplayrole': self.data(Qt.UserRole+nodedisplayrole),
-    #         'timestamprole': self.data(Qt.UserRole+timestamprole),
+    #         'nodedisplayrole': self.data(Qt.UserRole+udr.nodedisplayrole),
+    #         'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
     #         'checkable': self.isCheckable(),
-    #         'selectedrole': self.data(Qt.UserRole+selectedrole)
+    #         'selectedrole': self.data(Qt.UserRole+udr.selectedrole)
     #     }
     #     return serialized
 
@@ -782,8 +779,8 @@ class MovementPathsProxyModel(QSortFilterProxyModel):
             return True
         else:
             source_index = self.sourceModel().index(source_row, 0, source_parent)
-            isselected = source_index.data(role=Qt.UserRole+selectedrole)
-            path = source_index.data(role=Qt.UserRole+pathdisplayrole)
+            isselected = source_index.data(role=Qt.UserRole+udr.selectedrole)
+            path = source_index.data(role=Qt.UserRole+udr.pathdisplayrole)
             text = self.sourceModel().index(source_row, 0, source_parent).data()
             return self.wantselected == isselected
 
@@ -792,12 +789,12 @@ class MovementPathsProxyModel(QSortFilterProxyModel):
             self.setSortRole(Qt.DisplayRole)
             self.sort(0)
         elif "alpha" in sortbytext and "node" in sortbytext:
-            self.setSortRole(Qt.UserRole+nodedisplayrole)
+            self.setSortRole(Qt.UserRole+udr.nodedisplayrole)
             self.sort(0)
         elif "tree" in sortbytext:
             self.sort(-1)  # returns to sort order of underlying model
         elif "select" in sortbytext:
-            self.setSortRole(Qt.UserRole+timestamprole)
+            self.setSortRole(Qt.UserRole+udr.timestamprole)
             self.sort(0)
 
 
@@ -824,7 +821,7 @@ class MovementListModel(QStandardItemModel):
             # for colnum in range(colcount):
             treechild = treenode.child(r, 0)
             if treechild is not None:
-                pathtext = treechild.data(role=Qt.UserRole+pathdisplayrole)
+                pathtext = treechild.data(role=Qt.UserRole+udr.pathdisplayrole)
                 nodetext = treechild.data(Qt.DisplayRole)
                 listitem = MovementListItem(pathtxt=pathtext, nodetxt=nodetext, treeit=treechild)  # also sets treeitem's listitem
                 self.appendRow(listitem)

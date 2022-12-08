@@ -42,14 +42,15 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.movement_view import MovementTreeModel, MovementTree, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, mutuallyexclusiverole, lastingrouprole, finalsubgrouprole, MovementTreeView, pathdisplayrole, delimiter
+from gui.movement_view import MovementTreeModel, MovementTree, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView
 # from gui.xslot_graphics import XslotRectButton
 # from gui.signtype_selector import SigntypeSelectorDialog
 # from gui.handshape_selector import HandshapeSelectorDialog
 # from lexicon.lexicon_classes import GlobalHandshapeInformation
-from gui.module_selector import ModuleSpecificationLayout
+from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 # from gui.xslot_graphics import XslotLinkingLayout
 from gui.module_selector import HandSelectionLayout
+from lexicon.module_classes import delimiter, userdefinedroles as udr
 
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
@@ -65,10 +66,10 @@ class TreeItemDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.itemFromIndex(index).setData(editor.text(), role=Qt.DisplayRole)
-        currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+pathdisplayrole)
+        currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+udr.pathdisplayrole)
         newpathlevels = currentpath.split(delimiter)
         newpathlevels[-1] = editor.text()
-        model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+pathdisplayrole)
+        model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+udr.pathdisplayrole)
 
     def __init__(self):
         super().__init__()
@@ -96,7 +97,7 @@ class TreeItemDelegate(QStyledItemDelegate):
             # editor.setFocus()  # this creates an infinite loop
 
     def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+mutuallyexclusiverole):
+        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
             widget = option.widget
             style = widget.style() if widget else QApplication.style()
             opt = QStyleOptionButton()
@@ -104,11 +105,11 @@ class TreeItemDelegate(QStyledItemDelegate):
             opt.text = index.data()
             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole + lastingrouprole) and not index.data(Qt.UserRole + finalsubgrouprole):
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole + lastingrouprole) and not index.data(Qt.UserRole + finalsubgrouprole):
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
                 opt = QStyleOptionFrame()
                 opt.rect = option.rect
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
@@ -191,6 +192,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)
+        self.pathslistview.installEventFilter(self)
 
         list_layout.addWidget(self.pathslistview)
 
@@ -236,6 +238,15 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
             key = event.key()
             if key == Qt.Key_Enter:
                 print("enter pressed")
+            # TODO KV return true??
+        elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
+            proxyindex = self.pathslistview.currentIndex()
+            listindex = proxyindex.model().mapToSource(proxyindex)
+            addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
+
+            menu = AddedInfoContextMenu(addedinfo)
+            menu.exec_(event.globalPos())
+
         return super().eventFilter(source, event)
 
     def refresh(self):

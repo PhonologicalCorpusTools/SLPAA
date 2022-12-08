@@ -5,7 +5,40 @@ from PyQt5.QtCore import (
 )
 
 from gui.hand_configuration import HandConfigurationHand, PREDEFINED_MAP
-from gui.movement_view import selectedrole, delimiter
+
+delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
+
+# userdefinedroles = {
+#     'selectedrole': 0,
+#     'pathdisplayrole': 1,
+#     'mutuallyexclusiverole': 2,
+#     'texteditrole': 3,
+#     'lastingrouprole': 4,
+#     'finalsubgrouprole': 5,
+#     'subgroupnamerole': 6,
+#     'nodedisplayrole': 7,
+#     'timestamprole': 8,
+# }
+#
+
+
+class UserDefinedRoles(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+userdefinedroles = UserDefinedRoles({
+    'selectedrole': 0,
+    'pathdisplayrole': 1,
+    'mutuallyexclusiverole': 2,
+    'texteditrole': 3,
+    'lastingrouprole': 4,
+    'finalsubgrouprole': 5,
+    'subgroupnamerole': 6,
+    'nodedisplayrole': 7,
+    'timestamprole': 8,
+})
 
 
 # TODO KV comments
@@ -186,12 +219,13 @@ class MovementModule(ParameterModule):
         }
         wordlist = []
 
+        udr = userdefinedroles
         listmodel = self._movementtreemodel.listmodel
         numrows = listmodel.rowCount()
         for rownum in range(numrows):
             item = listmodel.item(rownum)
             text = item.text()
-            selected = item.data(Qt.UserRole+selectedrole)
+            selected = item.data(Qt.UserRole+udr.selectedrole)
             if selected:
                 pathelements = text.split(delimiter)
                 # thisentrytext = ""
