@@ -6,7 +6,7 @@
     update / delete refs to “transcription process”
     type up hand applicability section
     continue x-slot selection
-    'no movement' sign example(s): ONE? possibly a two-handed sign where one hand moves?
+    'no movement' sign example(s)
     sign example(s) with orientation out of phase?
         
 .. _movement:
@@ -19,6 +19,8 @@ This :ref:`module` is used to code the movement components of a sign. For more d
 
 1. Hand applicability and timing options
 ````````````````````````````````````````
+
+**Describe what this section will deal with, mention that most of it applies to all module types, add a note about 'no movement' modules**
 
 I. Module handedness and phasing (work on the wording here)
 ================================
@@ -65,7 +67,6 @@ Select the **movement type** for the current module. The three movement types ar
 
 Movement type options include:
 
-* No movement
 * :ref:`perceptual_shape`, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_
 * :ref:`joint_specific_movement`, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_
 * :ref:`handshape_change`, as in `HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_
@@ -81,9 +82,9 @@ Movement type options include:
 
 Note that in SLP-AA, we do not require users to classify movements into the traditional categories of ‘path’ / ‘major’ / ‘primary’ vs. ‘local’ / ‘minor’ / ‘secondary’ movements. Instead, we have classifications for 1) “perceptual shape movements” (e.g., straight, circle, arc), “joint-specific movements” (e.g., twisting, closing), and “handshape changes” (e.g., fingerspelling). As Napoli et al. (2011: 19) point out, “the actual distinction between primary and secondary movement is not uncontroversial and is far from simple.” For example, while wrist movements are typically considered local movements according to articulatory definitions of path and local movement categories (e.g., Brentari, 1998), some of them have been categorized as path movements (van der Kooij, 2002: 229; Sehyr et al., 2021: 269). Furthermore, forcing the choice between path and local movements at the level of phonetic transcription could mask empirical phenomena such as proximalization and distalization (Brentari, 1998), in which both path and local movements can be articulated by non-canonical joints. 
 
-In response to these issues, our system allows any movement in which the hand or arm draws a perceptual shape in space to be classified as perceptual movement, with optional manual specifications of the exact (combination of) joints executing the movement under a separate "joint activity" section. For example, the sign `NORTH <https://asl-lex.org/visualization/?sign=north>`_ is canonically signed as a straight perceptual movement that is articulated at the shoulder. A distalized version of this sign might be produced with an "un-nodding" wrist movement. In such a case, one could code this either as a joint-specific wrist-nod movement OR one could preserve the 'phonological intention' of the perceptual straight movement and simply add the fact that it is articulated with wrist flexion in the :ref:`joint activity<joint_activity_entry>` section.
+In response to these issues, our system allows any movement in which the hand or arm draws a perceptual shape in space to be classified as perceptual movement, with optional manual specifications of the exact (combination of) joints executing the movement under a separate “joint activity” section. For example, the sign `NORTH <https://asl-lex.org/visualization/?sign=north>`_ is canonically signed as a straight perceptual movement that is articulated at the shoulder. A distalized version of this sign might be produced with an "un-nodding" wrist movement. In such a case, one could code this either as a joint-specific wrist-nod movement OR one could preserve the 'phonological intention' of the perceptual straight movement and simply add the fact that it is articulated with wrist flexion in the :ref:`joint activity<joint_activity_entry>` section.
 
-Traditional local movements (relating to particular joints) defined in the literature are listed under the :ref:`joint-specific movement section<joint_specific_movement_entry>`, with the associated joint activities optionally auto-filled (e.g., the joint-specific movement of “closing” can auto-fill to flexion of finger joints in the “joint activity” section). 
+Traditional local movements (relating to particular joints) defined in the literature are listed under the joint-specific movement section, with the associated joint activities optionally auto-filled (e.g., the joint-specific movement of “closing” can auto-fill to flexion of finger joints in the “joint activity” section). 
 
 Note that after the movement type selections have been made, there are separate additional sections for coding the :ref:`joint activity<joint_activity_entry>` and the :ref:`movement characteristics<movement_chars>`. 
 
@@ -102,7 +103,7 @@ Make your selections from this section if you are coding a movement with :ref:`p
 a) Shape
 ~~~~~~~~
 
-Select the shape of the movement.
+Select the **shape** of the movement.
 
 Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The timing of each movement with respect to the others can then be seen in the :ref:`x-slot visualization window<sign_summary>`. The default list of perceptual shapes can also be ``edited by the user`` **[ADD REF TO EDITING INFO]**, so another way to capture the full movement of a new shape is to create a shape label. This may be a useful option for shapes that reappear in many signs.
 
@@ -150,12 +151,16 @@ At most one direction can be selected for each axis, so that a total maximum of 
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-* **Horizontal axis**
-
-    * **Ipsilateral** (by default), as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
-    * **Contralateral** (by default), as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
+The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (ipsi/contra) or absolute (toward H1/H2), that are described in greater detail in :ref:symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
     
-        * OR
+* **Horizontal axis: relative** [Default]
+
+    * **Ipsilateral**, as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
+    * **Contralateral**, as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
+
+OR
+
+* **Horizontal axis: absolute**
     
     * **Toward H1**, as in the right hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
     * **Toward H2**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the right hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
@@ -165,14 +170,12 @@ At most one direction can be selected for each axis, so that a total maximum of 
 .. note::
     In some circumstances, the direction of movement is lexically encoded to be towards a side of the body independent of the signer's handedness. This is the case for `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is towards the signer's left regardless of the signer's dominant hand, and `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is towards the signer's right regardless of the signer's dominant hand. This definition cannot be fully captured by the available selection options for either of the horizontal axis systems, so it would require an additional note elsewhere in the sign coding.
 
-See the :ref:`global_settings` page for how to switch between relative 'ipsi/contra' and absolute 'toward H1/H2' directions on the horizontal axis for the movement module. See :ref:`signing_space_page` for a visual representation of each of these options, and more information about the horizontal axis in particular.
-
 .. _plane_entry:
 
 c) Plane
 ~~~~~~~~
 
-In some cases, it is useful to specify not just the axis but also the **plane** (or combination of planes) that is relevant to describe the movement being coded in a particular module. For each selected plane, you can also choose a circular directionality if desired. See :ref:`circular directions<circular_directions>` for a definition of the default clockwise direction relative to what we define to be the 'top' of the circle for each plane. Any number of planes can be selected to apply to one movement, with or without an associated direction of movement.
+In some cases, it is useful to specify not just the axis but also the **plane** (or combination of planes) that is relevant to describe the movement being coded in a particular module. For each selected plane, you can also choose a **circular direction** if desired. (See :ref:`circular directions<circular_directions>` for a definition of each of the circular direction labels relative to what we define to be the 'top' of a circle for each plane.) Any number of planes can be selected to apply to one movement, with or without an associated direction of movement.
 
 This section is automatically specified by the program as 'not relevant' when the module includes a 'straight' perceptual shape. 
 
@@ -184,30 +187,32 @@ At most one circular direction can be selected for each plane, so that a total m
 
     * **Clockwise**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
     * **Counter-clockwise**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
-
-* **Horizontal plane**
-
-    * **Ipsilateral from the top of the circle** (by default), as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
-    * **Contralateral from the top of the circle** (by default), as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
     
-        * OR
+As with :ref:`axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
+
+* **Horizontal plane: relative** [Default]
+
+    * **Ipsilateral from the top of the circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
+    * **Contralateral from the top of the circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
+
+* **Vertical plane: relative** [Default]
+
+    * **Ipsilateral from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
+    * **Contralateral from the top of the circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+    
+OR
+
+* **Horizontal plane: absolute**
     
     * **Clockwise**, as in left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
     * **Counter-clockwise**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
-    
-* **Vertical plane**, as in `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
 
-    * **Ipsilateral from the top of the circle** (by default), as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
-    * **Contralateral from the top of the circle** (by default), as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
-    
-        * OR
+* **Vertical plane: absolute**
     
     * **Clockwise**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
     * **Counter-clockwise**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
 
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are *not straight*. This option will be auto-selected if the perceptual movement selected is *straight*.
-
-See the :ref:`global_settings` page for how to switch between relative ipsi/contra and absolute left/right (counter-)clockwise directions for any circular shapes that involve the horizontal axis (i.e., those involving the vertical or horizontal planes). See :ref:`signing_space_page` for a visual representation of all of these options, and for more information on the horizontal axis in particular.
 
 .. _joint_specific_movement_entry:
 
