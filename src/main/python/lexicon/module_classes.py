@@ -217,8 +217,8 @@ class MovementModule(ParameterModule):
 class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, hands, timingintervals=None, majorphonloc=False, minorphonloc=False):
         self._locationtreemodel = locationtreemodel
-        self._majorphonlocn = majorphonloc
-        self._minorphonlocn = minorphonloc
+        self._majorphonloc = majorphonloc
+        self._minorphonloc = minorphonloc
         super().__init__(hands, timingintervals)
 
     @property
@@ -231,22 +231,22 @@ class LocationModule(ParameterModule):
         self._locationtreemodel = locationtreemodel
 
     @property
-    def majorphonlocn(self):
-        return self._majorphonlocn
+    def majorphonloc(self):
+        return self._majorphonloc
 
-    @majorphonlocn.setter
-    def majorphonlocn(self, majorphonlocn):
+    @majorphonloc.setter
+    def majorphonloc(self, majorphonloc):
         # TODO KV - validate?
-        self._majorphonlocn = majorphonlocn
+        self._majorphonloc = majorphonloc
 
     @property
-    def minorphonlocn(self):
-        return self._minorphonlocn
+    def minorphonloc(self):
+        return self._minorphonloc
 
-    @minorphonlocn.setter
-    def minorphonlocn(self, minorphonlocn):
+    @minorphonloc.setter
+    def minorphonloc(self, minorphonloc):
         # TODO KV - validate?
-        self._minorphonlocn = minorphonlocn
+        self._minorphonloc = minorphonloc
 
     def getabbreviation(self):
         # TODO KV these can't be hardcoded like this... fix it!
@@ -552,3 +552,134 @@ class TimingInterval:
 
     def __repr__(self):
         return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
+
+
+class AddedInfo:
+
+    def __init__(self,
+                 uncertain_flag=False, uncertain_note="",
+                 estimated_flag=False, estimated_note="",
+                 notspecified_flag=False, notspecified_note="",
+                 variable_flag=False, variable_note="",
+                 exceptional_flag=False, exceptional_note="",
+                 other_flag=False, other_note=""):
+        self._uncertain_flag = uncertain_flag
+        self._uncertain_note = uncertain_note
+        self._estimated_flag = estimated_flag
+        self._estimated_note = estimated_note
+        self._notspecified_flag = notspecified_flag
+        self._notspecified_note = notspecified_note
+        self._variable_flag = variable_flag
+        self._variable_note = variable_note
+        self._exceptional_flag = exceptional_flag
+        self._exceptional_note = exceptional_note
+        self._other_flag = other_flag
+        self._other_note = other_note
+
+    @property
+    def uncertain_flag(self):
+        return self._uncertain_flag
+
+    @uncertain_flag.setter
+    def uncertain_flag(self, uncertain_flag):
+        # TODO KV - validate?
+        self._uncertain_flag = uncertain_flag
+
+    @property
+    def uncertain_note(self):
+        return self._uncertain_note
+
+    @uncertain_note.setter
+    def uncertain_note(self, uncertain_note):
+        # TODO KV - validate?
+        self._uncertain_note = uncertain_note
+
+    @property
+    def estimated_flag(self):
+        return self._estimated_flag
+
+    @estimated_flag.setter
+    def estimated_flag(self, estimated_flag):
+        # TODO KV - validate?
+        self._estimated_flag = estimated_flag
+
+    @property
+    def estimated_note(self):
+        return self._estimated_note
+
+    @estimated_note.setter
+    def estimated_note(self, estimated_note):
+        # TODO KV - validate?
+        self._estimated_note = estimated_note
+
+    @property
+    def notspecified_flag(self):
+        return self._notspecified_flag
+
+    @notspecified_flag.setter
+    def notspecified_flag(self, notspecified_flag):
+        # TODO KV - validate?
+        self._notspecified_flag = notspecified_flag
+
+    @property
+    def notspecified_note(self):
+        return self._notspecified_note
+
+    @notspecified_note.setter
+    def notspecified_note(self, notspecified_note):
+        # TODO KV - validate?
+        self._notspecified_note = notspecified_note
+
+    @property
+    def variable_flag(self):
+        return self._variable_flag
+
+    @variable_flag.setter
+    def variable_flag(self, variable_flag):
+        # TODO KV - validate?
+        self._variable_flag = variable_flag
+
+    @property
+    def variable_note(self):
+        return self._variable_note
+
+    @variable_note.setter
+    def variable_note(self, variable_note):
+        # TODO KV - validate?
+        self._variable_note = variable_note
+
+    @property
+    def exceptional_flag(self):
+        return self._exceptional_flag
+
+    @exceptional_flag.setter
+    def exceptional_flag(self, exceptional_flag):
+        # TODO KV - validate?
+        self._exceptional_flag = exceptional_flag
+
+    @property
+    def exceptional_note(self):
+        return self._exceptional_note
+
+    @exceptional_note.setter
+    def exceptional_note(self, exceptional_note):
+        # TODO KV - validate?
+        self._exceptional_note = exceptional_note
+
+    @property
+    def other_flag(self):
+        return self._other_flag
+
+    @other_flag.setter
+    def other_flag(self, other_flag):
+        # TODO KV - validate?
+        self._other_flag = other_flag
+
+    @property
+    def other_note(self):
+        return self._other_note
+
+    @other_note.setter
+    def other_note(self, other_note):
+        # TODO KV - validate?
+        self._other_note = other_note

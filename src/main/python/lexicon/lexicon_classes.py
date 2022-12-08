@@ -504,11 +504,11 @@ class Sign:
         if locnmod.timingintervals != timingintervals:
             locnmod.timingintervals = timingintervals
             ischanged = True
-        if locnmod.majorphonlocn != majorphonloc:
-            locnmod.majorphonlocn = majorphonloc
+        if locnmod.majorphonloc != majorphonloc:
+            locnmod.majorphonloc = majorphonloc
             ischanged = True
-        if locnmod.minorphonlocn != minorphonloc:
-            locnmod.minorphonlocn = minorphonloc
+        if locnmod.minorphonloc != minorphonloc:
+            locnmod.minorphonloc = minorphonloc
             ischanged = True
         if ischanged:
             self.lastmodifiednow()
