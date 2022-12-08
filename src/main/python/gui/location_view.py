@@ -32,6 +32,8 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem
 )
 
+from lexicon.module_classes import AddedInfo
+
 
 # TODO KV - is this where I actually want to define these?
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
@@ -44,6 +46,7 @@ finalsubgrouprole = 5
 subgroupnamerole = 6
 nodedisplayrole = 7
 timestamprole = 8
+# addedinforole = 9
 
 # radio button vs checkbox
 rb = "radio button"  # ie mutually exclusive in group / at this level
@@ -514,7 +517,7 @@ class MovementTreeView(QTreeView):
 
 class LocationTreeItem(QStandardItem):
 
-    def __init__(self, txt="", listit=None, mutuallyexclusive=False, serializedlocnitem=None):
+    def __init__(self, txt="", listit=None, mutuallyexclusive=False, addedinfo=None, serializedlocnitem=None):
         super().__init__()
         
         if serializedlocnitem:
@@ -528,6 +531,8 @@ class LocationTreeItem(QStandardItem):
             self.setData(serializedlocnitem['timestamprole'], Qt.UserRole+timestamprole)
             self.setData(serializedlocnitem['mutuallyexclusiverole'], Qt.UserRole+mutuallyexclusiverole)
             self.setData(serializedlocnitem['displayrole'], Qt.DisplayRole)
+            # self.setData(serializedlocnitem['addedinforole'], Qt.UserRole+addedinforole)
+            self._addedinfo = serializedlocnitem['addedinforole']
             self.listitem = LocationListItem(serializedlistitem=serializedlocnitem['listitem'])
             self.listitem.treeitem = self
         else:
@@ -539,6 +544,10 @@ class LocationTreeItem(QStandardItem):
             self.setData(False, Qt.UserRole + selectedrole)
             self.setData(False, Qt.UserRole + texteditrole)
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+timestamprole)
+            # if addedinfo is None:
+            #     addedinfo = AddedInfo()
+            # self.setData(addedinfo, Qt.UserRole+addedinforole)
+            self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
             if mutuallyexclusive:
                 self.setData(True, Qt.UserRole+mutuallyexclusiverole)
@@ -565,8 +574,18 @@ class LocationTreeItem(QStandardItem):
             'texteditrole': self.data(Qt.UserRole + texteditrole),
             'mutuallyexclusiverole': self.data(Qt.UserRole+mutuallyexclusiverole),
             'displayrole': self.data(Qt.DisplayRole),
-            # 'listitem': self.listitem.serialize()
+            # 'addedinforole': self.data(Qt.UserRole+addedinforole)
+            'addedinfo': self._addedinfo
+            # 'listitem': self.listitem.serialize()  TODO KV why not? the constructor uses it...
         }
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def updatelistdata(self):
         if self.parent() and "Number of repetitions" in self.parent().data():

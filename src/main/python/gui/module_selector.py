@@ -3,6 +3,10 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QRadioButton,
     QDialog,
+    QWidget,
+    QAction,
+    QWidgetAction,
+    QLineEdit,
     QHBoxLayout,
     QVBoxLayout,
     QMessageBox,
@@ -10,6 +14,7 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QDialogButtonBox,
     QComboBox,
+    QMenu,
     QLabel,
     QCompleter,
     QButtonGroup,
@@ -212,6 +217,140 @@ class ModuleSelectorDialog(QDialog):
             self.hands_layout.clear()
             self.xslot_layout.clear()
             self.module_layout.clear()
+
+
+class AbstractLocationAction(QWidgetAction):
+    textChanged = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.actionwidget = QWidget()
+        self.actionlayout = QHBoxLayout()
+
+
+class NoteAction(AbstractLocationAction):
+
+    def __init__(self, label=None, parent=None):
+        super().__init__(parent)
+
+        self.label = label
+        self.actionlayout.addWidget(QLabel(self.label))
+        self.note = QLineEdit()
+        self.actionlayout.addWidget(self.note)
+        self.actionwidget.setLayout(self.actionlayout)
+        self.setDefaultWidget(self.actionwidget)
+
+    def setText(self, text):
+        self.note.setText(text)
+
+    def text(self):
+        return self.note.text()
+
+
+class CheckNoteAction(AbstractLocationAction):  # QWidgetAction):
+    # textChanged = pyqtSignal(str)
+
+    def __init__(self, label, parent=None):
+        super().__init__(parent)
+
+        self.label = label
+        self.checkbox = QCheckBox(self.label)
+        self.checkbox.setTristate(False)
+        self.checkbox.toggled.connect(self.toggled)
+        self.note = QLineEdit()
+        self.note.textChanged.connect(self.textChanged.emit)
+        self.actionlayout.addWidget(self.checkbox)
+        self.actionlayout.addWidget(self.note)
+        self.actionwidget.setLayout(self.actionlayout)
+        self.setDefaultWidget(self.actionwidget)
+
+    def setChecked(self, state):
+        self.checkbox.setChecked(state)
+
+    def isChecked(self):
+        return self.checkbox.isChecked()
+
+    def setText(self, text):
+        self.note.setText(text)
+
+    def text(self):
+        return self.note.text()
+
+
+class AddedInfoContextMenu(QMenu):
+
+    def __init__(self, addedinfo):
+        super().__init__()
+
+        self.addedinfo = addedinfo
+
+        self.uncertain_action = CheckNoteAction("Uncertain")
+        self.uncertain_action.setChecked(self.addedinfo.uncertain_flag)
+        self.uncertain_action.setText(self.addedinfo.uncertain_note)
+        self.uncertain_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.uncertain_action))
+        self.addAction(self.uncertain_action)
+
+        self.estimated_action = CheckNoteAction("Estimated")
+        self.estimated_action.setChecked(self.addedinfo.estimated_flag)
+        self.estimated_action.setText(self.addedinfo.estimated_note)
+        self.estimated_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.estimated_action))
+        self.addAction(self.estimated_action)
+
+        self.notspecified_action = CheckNoteAction("Not specified")
+        self.notspecified_action.setChecked(self.addedinfo.notspecified_flag)
+        self.notspecified_action.setText(self.addedinfo.notspecified_note)
+        self.notspecified_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.notspecified_action))
+        self.addAction(self.notspecified_action)
+
+        self.variable_action = CheckNoteAction("Variable")
+        self.variable_action.setChecked(self.addedinfo.variable_flag)
+        self.variable_action.setText(self.addedinfo.variable_note)
+        self.variable_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.variable_action))
+        self.addAction(self.variable_action)
+
+        self.exceptional_action = CheckNoteAction("Exceptional")
+        self.exceptional_action.setChecked(self.addedinfo.exceptional_flag)
+        self.exceptional_action.setText(self.addedinfo.exceptional_note)
+        self.exceptional_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.exceptional_action))
+        self.addAction(self.exceptional_action)
+
+        self.other_action = CheckNoteAction("Other")
+        self.other_action.setChecked(self.addedinfo.other_flag)
+        self.other_action.setText(self.addedinfo.other_note)
+        self.other_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.other_action))
+        self.addAction(self.other_action)
+
+        self.addSeparator()
+
+        self.close_action = QAction("Close menu")
+        self.addAction(self.close_action)
+
+        self.aboutToHide.connect(self.savemenunotes)
+
+    def checknoteaction_toggled(self, state, whichaction):
+
+        if whichaction == self.uncertain_action:
+            self.addedinfo.uncertain_flag = state
+        elif whichaction == self.estimated_action:
+            self.addedinfo.estimated_flag = state
+        elif whichaction == self.notspecified_action:
+            self.addedinfo.notspecified_flag = state
+        elif whichaction == self.variable_action:
+            self.addedinfo.variable_flag = state
+        elif whichaction == self.exceptional_action:
+            self.addedinfo.exceptional_flag = state
+        elif whichaction == self.other_action:
+            self.addedinfo.other_flag = state
+
+    def savemenunotes(self):
+
+        self.addedinfo.uncertain_note = self.uncertain_action.text()
+        self.addedinfo.estimated_note = self.estimated_action.text()
+        self.addedinfo.notspecified_note = self.notspecified_action.text()
+        self.addedinfo.variable_note = self.variable_action.text()
+        self.addedinfo.exceptional_note = self.exceptional_action.text()
+        self.addedinfo.other_note = self.other_action.text()
 
 
 # TODO KV - need to pull phase info from here as well as hands info
