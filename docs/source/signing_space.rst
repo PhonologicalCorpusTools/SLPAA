@@ -1,16 +1,16 @@
 .. todo::
     copy sign examples for plane/circular directionality
-    (update to reflect that absolute/relative is now specific to the module type)
+    update to reflect that absolute/relative is now specific to the module type
+    switch absolute system to H1/H2
     replace current placeholders with diagrams
         - summary image
         - top of a circle/circular directions
+        - multiple sets of axes superimposed on one image
     add references
         - Johnson & Liddell
         - (potentially) Battison
         - Canadian ASL dictionary?
-    update all screenshots to show expanded trees
-    new images:
-        - multiple sets of axes superimposed on one image
+    update FOCUS to show expanded trees
 
 .. comment:: 
     The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle in each plane, anatomical position, and ipsi-contra definitions.
@@ -51,7 +51,13 @@ These axes can be described in reference to any given point on the signer's body
 
 There is a good amount of flexibility in the program for users to decide on an interpretation of the axis system that suits their needs. The axes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body. The central point of origin can be adapted as necessary for the situation and the user's definition, as long as the cardinal axes are always oriented in the same way relative to each other.
 
-It is also possible to select other directions in the program, rather than choosing strictly from the set of cardinal axes. These can instead be combined together to result in angled axes, as will be explained below in :ref:`directions in combinations of axes<angled_axes>`.
+.. image:: images/placeholder.png
+    :width: 750
+    :align: left
+
+**(Multiple sets of axes superimposed to show that they can shift as needed)**
+
+It is also possible to select other directions in the program, rather than choosing strictly from the set of cardinal axes. Multiple selections within one module can be combined together to result in angled axes, as will be explained below in :ref:`directions in combinations of axes<angled_axes>`.
 
 .. _axis_directions:
 
@@ -65,7 +71,7 @@ a) Cardinal directions
 
 The pairs of endpoint directions for each axis are outlined here with sign examples involving a :ref:`perceptual_shape` traced out in the given direction. The axis system also applies for sign components outside of movement, so these examples are only meant to clearly display what is meant by each direction label. See the section below on :ref:`applying the spatial system in context<dynamic_examples>` for examples that include this system in terms of location and orientation. 
 
-Keep in mind that it is possible to select only the axis itself without a specific direction wherever a selection for an axis or direction applies in the program. The directions for the vertical and sagittal axes are consistent wherever they appear. 
+Keep in mind that it is possible to select only the axis itself without a specific endpoint direction wherever a selection for an axis or direction applies in the program. The directions for the vertical and sagittal axes are consistent wherever they appear. 
 
 * **Vertical axis**
 
@@ -77,20 +83,20 @@ Keep in mind that it is possible to select only the axis itself without a specif
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-The directions for the horizontal axis, however, depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models for the horizontal axis, described in greater detail in the :ref:next section<axis_symmetry>`. By default, this first of set of options apply in the program:
+The directions for the horizontal axis, however, depend on the preferences of the user. These adhere to one of two models for the horizontal axis, described in greater detail in the :ref:`next section<axis_symmetry>`. These can be toggled separately for different module types; see the :ref:`global_settings` for how to change these options and which model applies by default for each module type.
     
-* **Horizontal axis: relative**
+* **Horizontal axis: relative** [Default]
 
-    * **Ipsilateral** (by default), as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
-    * **Contralateral** (by default), as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
+    * **Ipsilateral**, as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
+    * **Contralateral**, as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
 
-Alternatively, the directions for the horizontal axis can be defined as:
+OR
 
 * **Horizontal axis: absolute**
     
-    * **Left**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
-    * **Right**, as in the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
-
+    * **Toward H1**, as in the right hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
+    * **Toward H2**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the right hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
+    
 .. _axis_symmetry:
 
 b) Symmetry in the horizontal axis
@@ -98,7 +104,7 @@ b) Symmetry in the horizontal axis
 
 Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. For the most part this is simple to assess, but it becomes more complicated in the horizontal axis due to the bilateral symmetry of the human body. It's possible that similar ambiguity could exist in either the vertical or sagittal axis in some cases, but we focus only on the horizontal axis since it has the benefit of being visibly evidenced by its grounding in physiology. 
 
-Depending on definition, it could be equally valid that both hands moving to signer's left are moving in the "same" direction, or that both hands moving towards each other (and towards the midline of the body) are moving in the "same" direction. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (left-right) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving left or right are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving left or right are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
+Depending on definition, it could be equally valid that both hands moving to signer's left are moving in the "same" direction, or that both hands moving towards each other (and towards the midline of the body) are moving in the "same" direction. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving left or right are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving left or right are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
 
 Compare how the horizontal axis options will apply for `WINDSHIELD_WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ and `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_:
 
@@ -109,9 +115,9 @@ Compare how the horizontal axis options will apply for `WINDSHIELD_WIPERS <https
 These systems are only superficially different, and the information coded in each one can be recovered from the other. The biggest differences between using one or the other pertain to the :ref:`sign_type_module` options. Since the options are interchangeable, the choice is only a matter of user preference.
 
 .. note::
-    There is no articulatory difference between the right hand moving to left or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction regardless of handedness. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the signer's right and left, respectively **[reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely]**.
+    There is no articulatory difference between the right hand moving to the H2 side (for a right-handed signer) or in the contralateral direction. There can, however, be a lexical difference for signs that are defined to move in a particular direction regardless of handedness. This is the case for `EAST <https://asl-lex.org/visualization/?sign=east>`_ and `WEST <https://asl-lex.org/visualization/?sign=west>`_, which are specified to move to the signer's right and left, respectively **[reference the ASL dictionary (pgs. 198 and 820)? or somewhere else that this is indicated concretely]**.
     
-    Both options for movement in a horizontal axis in SLP-AA can describe productions of these (and any other) signs, but this particular lexical definition would not be fully captured while using ipsi-contra descriptions. It may be helpful to indicate it elsewhere in the sign coding.
+    Both options for movement in a horizontal axis in SLP-AA can describe productions of these (and any other) signs, but this particular lexical definition would not be fully captured using only the phonetic descriptors available in the movement module. It may be helpful to indicate this definition elsewhere in the sign coding.
 
 .. comment::
     From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
@@ -222,13 +228,9 @@ Sometimes circular shapes are traced within an **angled plane** rather than one 
 
 In this example, the sign includes the black circle traced out in an angled plane. The idea is that the angled circle could be "flattened" into each of its components, and then the resulting circular directions are simpler to record and analyze. Then the information to record in the program for this example should be each of directionalities indicated for the coloured circles, which are situated in cardinal planes.
 
-Here is a possible coding of `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ for each hand, highlighting their shared circular direction components:
+Here is a possible coding of a movement module for `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_, highlighting the combined circular direction components:
 
-.. image:: images/mov_sample_sign_SOCIALIZE_H1.png
-    :width: 750
-    :align: left
-
-.. image:: images/mov_sample_sign_SOCIALIZE_H2.png
+.. image:: images/mov_sample_sign_SOCIALIZE.png
     :width: 750
     :align: left
 
@@ -284,7 +286,7 @@ These descriptions may be confusing at first glance. Familiarising yourself with
 4. The horizontal axis
 ``````````````````````
 
-(Note that this entire section is not strictly necessary to include and it can be deleted if it's confusing or in the way, I just wanted to include some information background for the decisions we made and some things that may be interesting to look out for in sign movements.)
+**I believe that all of the information in this section will be covered throughout the page, so it won't need its own section. I'll double-check to be sure.**
 
 .. note::
     To include here:
