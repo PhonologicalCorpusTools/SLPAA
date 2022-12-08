@@ -188,7 +188,7 @@ At most one circular direction can be selected for each plane, so that a total m
     * **Clockwise**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
     * **Counter-clockwise**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
     
-As with :ref:`axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
+As with :ref:`axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
 
 * **Horizontal plane: relative** [Default]
 
