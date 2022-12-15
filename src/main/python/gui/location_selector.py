@@ -37,7 +37,8 @@ from PyQt5.QtCore import (
     Qt,
     QSize,
     QEvent,
-    pyqtSignal
+    pyqtSignal,
+    QItemSelectionModel
 )
 
 from PyQt5.QtGui import (
@@ -50,7 +51,7 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.location_view import LocationTreeModel, LocationTree, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView
+from gui.location_view import LocationTreeModel, LocationTableModel, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 # from gui.xslot_graphics import XslotLinkingLayout
 from gui.module_selector import HandSelectionLayout
@@ -253,16 +254,29 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.loctype_group.buttonToggled.connect(lambda: self.handle_toggle_locationtype(self.loctype_group.checkedButton()))
         self.signingspace_group.buttonToggled.connect(lambda: self.handle_toggle_signingspacetype(self.signingspace_group.checkedButton()))
 
-        phonloc_layout = QVBoxLayout()
-        phonloc_layout.addWidget(QLabel("Phonological location"))
-        phonloc_sublayout = QHBoxLayout()
+        phonological_layout = QVBoxLayout()
+        self.phonological_cb = QCheckBox("Phonological location")
+        phonological_layout.addWidget(self.phonological_cb)
+        # phonological_layout.addWidget(QLabel("Phonological location"))
+        phonological_sublayout = QHBoxLayout()
         self.majorphonloc_cb = QCheckBox("Major")
         self.minorphonloc_cb = QCheckBox("Minor")
-        phonloc_sublayout.addWidget(self.majorphonloc_cb)  # , alignment=Qt.AlignVCenter)
-        phonloc_sublayout.addWidget(self.minorphonloc_cb)  # , alignment=Qt.AlignVCenter)
-        phonloc_layout.addLayout(phonloc_sublayout)
+        # TODO KV these should only be active if phonological location checkbox is checked
+        # phonological_sublayout.addStretch()ips
+        # phonological_sublayout.addWidget(QLabel("["))
+        phonological_sublayout.addWidget(self.majorphonloc_cb)  # , alignment=Qt.AlignVCenter)
+        phonological_sublayout.addWidget(self.minorphonloc_cb)  # , alignment=Qt.AlignVCenter)
+        # phonological_sublayout.addWidget(QLabel("]"))
+        phonological_sublayout.addStretch()
+        phonological_layout.addLayout(phonological_sublayout)
 
-        loctype_phonloc_layout.addLayout(phonloc_layout)
+        phonetic_layout = QVBoxLayout()
+        self.phonetic_cb = QCheckBox("Phonetic location")
+        phonetic_layout.addWidget(self.phonetic_cb)
+        phonetic_layout.addStretch()
+
+        loctype_phonloc_layout.addLayout(phonological_layout)
+        loctype_phonloc_layout.addLayout(phonetic_layout)
         loctype_phonloc_layout.addStretch()
 
         self.addLayout(loctype_phonloc_layout)
@@ -282,6 +296,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
         self.combobox.completer().setFilterMode(Qt.MatchContains)
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.combobox.item_selected.connect(self.selectlistitem)
         # tct = TreeClickTracker(self)  todo kv
         # self.combobox.installEventFilter(tct)
         search_layout.addWidget(self.combobox)
@@ -309,6 +324,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(300)
         self.pathslistview.installEventFilter(self)
+        self.pathslistview.selectionModel().selectionChanged.connect(self.update_detailstable)
 
         list_layout.addWidget(self.pathslistview)
 
@@ -333,10 +349,10 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         list_layout.addLayout(buttons_layout)
 
-        self.detailslistview = QListView()
+        self.detailstableview = LocationTableView()
         # TODO KV set model, checkboxes, etc
 
-        list_layout.addWidget(self.detailslistview)
+        list_layout.addWidget(self.detailstableview)
 
         selection_layout.addLayout(list_layout)
         self.addLayout(selection_layout)
@@ -353,6 +369,23 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.enable_location_tools(self.loctype_group.checkedButton() == self.body_radio
                                    or self.signingspace_group.checkedButton() is not None)
 
+    def selectlistitem(self, locationtreeitem):
+        listmodelindex = self.listmodel.indexFromItem(locationtreeitem.listitem)
+        listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
+        self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
+
+    def update_detailstable(self, selected, deselected):
+        selectedindexes = self.pathslistview.selectionModel().selectedIndexes()
+        if len(selectedindexes) == 1:  # the details pane reflects the (single) selection
+            itemindex = selectedindexes[0]
+            listitemindex = self.pathslistview.model().mapToSource(itemindex)
+            selectedlistitem = self.pathslistview.model().sourceModel().itemFromIndex(listitemindex)
+            self.detailstableview.setModel(selectedlistitem.treeitem.detailstable)
+        else:  # 0 or >1 rows selected; the details pane is blank
+            self.detailstableview.setModel(LocationTreeItem().detailstable)
+
+        self.detailstableview.horizontalHeader().resizeSections(QHeaderView.Stretch)
+
     def handle_zoomfactor_changed(self, scale):
         if self.fronttab.link_button.isChecked() or self.backtab.link_button.isChecked():
             self.fronttab.force_zoom(scale)
@@ -367,7 +400,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
     def enable_location_tools(self, enable):
         self.combobox.setEnabled(enable)
         self.pathslistview.setEnabled(enable)
-        self.detailslistview.setEnabled(enable)
+        self.detailstableview.setEnabled(enable)
         self.imagetabs.setEnabled(enable)
 
     def handle_toggle_signingspacetype(self, btn):

@@ -1,10 +1,10 @@
 from itertools import chain
 from fractions import Fraction
-# from datetime import datetime
 # from copy import deepcopy
 from datetime import datetime
 
 from gui.movement_view import MovementTree
+from gui.location_view import LocationTree
 from gui.xslots_selector import XslotStructure
 from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, TimingInterval, TimingPoint, LocationModule
 
@@ -299,7 +299,7 @@ class Sign:
             self._specifiedxslots = serializedsign['specified xslots']
             self.unserializemovementmodules(serializedsign['mov modules'])
             self.handpartmodules = serializedsign['hpt modules']
-            self.locationmodules = serializedsign['loc modules']
+            self.unserializelocationmodules(serializedsign['loc modules'])
             self.contactmodules = serializedsign['con modules']
             self.orientationmodules = serializedsign['ori modules']
             self.handconfigmodules = serializedsign['cfg modules']
@@ -327,11 +327,13 @@ class Sign:
             'specified xslots': self.specifiedxslots,
             'mov modules': self.serializemovementmodules(),
             'hpt modules': self.handpartmodules,
-            'loc modules': self.locationmodules,
+            'loc modules': self.serializelocationmodules(),
             'con modules': self.contactmodules,
             'ori modules': self.orientationmodules,
             'cfg modules': self.handconfigmodules
         }
+
+    # TODO KV - can the un/serialization methods below be combined into generic ones that can be used for all model-based modules?
 
     def serializemovementmodules(self):
         serialized = {}
@@ -347,6 +349,22 @@ class Sign:
             timingintervals = serialized_mvmtmodules[k].timingintervals
             unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals)
         self.movementmodules = unserialized
+
+
+    def serializelocationmodules(self):
+        serialized = {}
+        for k in self.locationmodules.keys():
+            serialized[k] = LocationTree(self.locationmodules[k])
+        return serialized
+
+    def unserializelocationmodules(self, serialized_locnmodules):
+        unserialized = {}
+        for k in serialized_locnmodules.keys():
+            locntreemodel = serialized_locnmodules[k].getLocationTreeModel()
+            hands = serialized_locnmodules[k].hands
+            timingintervals = serialized_locnmodules[k].timingintervals
+            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals)
+        self.locationmodules = unserialized
 
     def __hash__(self):
         # return hash(self.signlevel_information.gloss)

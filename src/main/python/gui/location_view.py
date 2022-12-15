@@ -3,6 +3,7 @@ import os
 from PyQt5.QtCore import (
     Qt,
     QAbstractListModel,
+    QAbstractTableModel,
     pyqtSignal,
     QModelIndex,
     QItemSelectionModel,
@@ -23,6 +24,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
     QListView,
+    QHeaderView,
+    QTableView,
     QVBoxLayout,
     QComboBox,
     QTreeView,
@@ -50,170 +53,179 @@ subgroup = "subgroup"
 c = True  # checked
 u = False  # unchecked
 
+# location type (and types of surfaces, subareas, bones/joints, etc) is either nonhand or hand
+h = "hand"
+n = "nonhand"
+
+# allow surface, subarea, and/or bone/joint specification?
+allow = True
+disallow = False
+
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
+# TODO KV - check specific exceptions etc for each subarea & surface
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
 locn_options_body = {
     # ("No movement", fx, rb, u): {},
-    ("Head", fx, rb, u): {
-        ("Back of head", fx, rb, u): {},
-        ("Top of head", fx, rb, u): {},
-        ("Side of face", fx, rb, u): {
-            ("Side of face - contra", fx, rb, u): {},
-            ("Side of face - ipsi", fx, rb, u): {}
+    ("Head", fx, rb, u, n, disallow, allow): {
+        ("Back of head", fx, rb, u, n, disallow, allow): {},
+        ("Top of head", fx, rb, u, n, disallow, allow): {},
+        ("Side of face", fx, rb, u, n, disallow, allow): {
+            ("Side of face - contra", fx, rb, u, n, disallow, allow): {},
+            ("Side of face - ipsi", fx, rb, u, n, disallow, allow): {}
         },
-        ("Face", fx, rb, u): {
-            ("Temple", fx, rb, u): {
-                ("Temple - contra", fx, rb, u): {},
-                ("Temple - ipsi", fx, rb, u): {}
+        ("Face", fx, rb, u, n, disallow, allow): {
+            ("Temple", fx, rb, u, n, disallow, allow): {
+                ("Temple - contra", fx, rb, u, n, disallow, allow): {},
+                ("Temple - ipsi", fx, rb, u, n, disallow, allow): {}
             },
-            ("Above forehead (hairline)", fx, rb, u): {},
-            ("Forehead", fx, rb, u): {},
-            ("Eyebrow", fx, rb, u): {
-                ("Eyebrow - contra", fx, rb, u): {},
-                ("Eyebrow - ipsi", fx, rb, u): {},
-                ("Between eyebrows", fx, rb, u): {}
+            ("Above forehead (hairline)", fx, rb, u, n, disallow, allow): {},
+            ("Forehead", fx, rb, u, n, disallow, allow): {},
+            ("Eyebrow", fx, rb, u, n, disallow, allow): {
+                ("Eyebrow - contra", fx, rb, u, n, disallow, allow): {},
+                ("Eyebrow - ipsi", fx, rb, u, n, disallow, allow): {},
+                ("Between eyebrows", fx, rb, u, n, disallow, allow): {}
             },
-            ("Eye", fx, rb, u): {
-                ("Eye - contra", fx, rb, u): {},
-                ("Eye - ipsi", fx, rb, u): {},
-                ("Outer corner of eye", fx, rb, u): {
-                    ("Outer corner of eye - contra", fx, rb, u): {},
-                    ("Outer corner of eye - ipsi", fx, rb, u): {}
+            ("Eye", fx, rb, u, n, disallow, allow): {
+                ("Eye - contra", fx, rb, u, n, disallow, allow): {},
+                ("Eye - ipsi", fx, rb, u, n, disallow, allow): {},
+                ("Outer corner of eye", fx, rb, u, n, disallow, allow): {
+                    ("Outer corner of eye - contra", fx, rb, u, n, disallow, disallow): {},
+                    ("Outer corner of eye - ipsi", fx, rb, u, n, disallow, disallow): {}
                 },
-                ("Upper eyelid", fx, rb, u): {
-                    ("Upper eyelid - contra", fx, rb, u): {},
-                    ("Upper eyelid - ipsi", fx, rb, u): {}
+                ("Upper eyelid", fx, rb, u, n, disallow, allow): {
+                    ("Upper eyelid - contra", fx, rb, u, n, disallow, allow): {},
+                    ("Upper eyelid - ipsi", fx, rb, u, n, disallow, allow): {}
                 },
-                ("Lower eyelid", fx, rb, u): {
-                    ("Lower eyelid - contra", fx, rb, u): {},
-                    ("Lower eyelid - ipsi", fx, rb, u): {}
+                ("Lower eyelid", fx, rb, u, n, disallow, allow): {
+                    ("Lower eyelid - contra", fx, rb, u, n, disallow, allow): {},
+                    ("Lower eyelid - ipsi", fx, rb, u, n, disallow, allow): {}
                 }
             },
-            ("Cheek/nose", fx, rb, u): {
-                ("Cheek", fx, rb, u): {
-                    ("Cheek - contra", fx, rb, u): {},
-                    ("Cheek - ipsi", fx, rb, u): {}
+            ("Cheek/nose", fx, rb, u, n, disallow, allow): {
+                ("Cheek", fx, rb, u, n, disallow, allow): {
+                    ("Cheek - contra", fx, rb, u, n, disallow, allow): {},
+                    ("Cheek - ipsi", fx, rb, u, n, disallow, allow): {}
                 },
-                ("Maxillary process of zygomatic", fx, rb, u): {
-                    ("Maxillary process of zygomatic - contra", fx, rb, u): {},
-                    ("Maxillary process of zygomatic - ipsi", fx, rb, u): {}
+                ("Maxillary process of zygomatic", fx, rb, u, n, disallow, allow): {
+                    ("Maxillary process of zygomatic - contra", fx, rb, u, n, disallow, allow): {},
+                    ("Maxillary process of zygomatic - ipsi", fx, rb, u, n, disallow, allow): {}
                 },
-                ("Zygomatic process of temporal bone", fx, rb, u): {
-                    ("Zygomatic process of temporal bone - contra", fx, rb, u): {},
-                    ("Zygomatic process of temporal bone - ipsi", fx, rb, u): {}
+                ("Zygomatic process of temporal bone", fx, rb, u, n, disallow, allow): {
+                    ("Zygomatic process of temporal bone - contra", fx, rb, u, n, disallow, allow): {},
+                    ("Zygomatic process of temporal bone - ipsi", fx, rb, u, n, disallow, allow): {}
                 },
-                ("Nose", fx, rb, u): {
-                    ("Nose root", fx, rb, u): {},
-                    ("Nose ridge", fx, rb, u): {},
-                    ("Nose tip", fx, rb, u): {},
-                    ("Septum", fx, rb, u): {}
+                ("Nose", fx, rb, u, n, disallow, allow): {
+                    ("Nose root", fx, rb, u, n, disallow, allow): {},
+                    ("Nose ridge", fx, rb, u, n, disallow, allow): {},
+                    ("Nose tip", fx, rb, u, n, disallow, allow): {},  # subarea permission is ?? is google sheet
+                    ("Septum", fx, rb, u, n, disallow, allow): {}
                 }
             },
-            ("Below nose / philtrum", fx, rb, u): {},
-            ("Mouth", fx, rb, u): {
-                ("Lips", fx, rb, u): {
-                    ("Upper lip", fx, rb, u): {},
-                    ("Lower lip", fx, rb, u): {}
+            ("Below nose / philtrum", fx, rb, u, n, disallow, allow): {},
+            ("Mouth", fx, rb, u, n, disallow, allow): {
+                ("Lips", fx, rb, u, n, disallow, allow): {
+                    ("Upper lip", fx, rb, u, n, disallow, allow): {},
+                    ("Lower lip", fx, rb, u, n, disallow, allow): {}
                 },
-                ("Corner of mouth - contra", fx, rb, u): {},
-                ("Corner of mouth - ipsi", fx, rb, u): {},
-                ("Teeth", fx, rb, u): {
-                    ("Upper teeth", fx, rb, u): {},
-                    ("Lower teeth", fx, rb, u): {}
+                ("Corner of mouth - contra", fx, rb, u, n, disallow, disallow): {},
+                ("Corner of mouth - ipsi", fx, rb, u, n, disallow, disallow): {},
+                ("Teeth", fx, rb, u, n, disallow, allow): {
+                    ("Upper teeth", fx, rb, u, n, disallow, allow): {},
+                    ("Lower teeth", fx, rb, u, n, disallow, allow): {}
                 },
-                ("Tongue", fx, rb, u): {},
+                ("Tongue", fx, rb, u, n, allow, allow): {},
             },
-            ("Ear", fx, rb, u): {
-                ("Ear - contra", fx, rb, u): {},
-                ("Ear - ipsi", fx, rb, u): {},
-                ("Mastoid process", fx, rb, u): {
-                    ("Mastoid process - contra", fx, rb, u): {},
-                    ("Mastoid process - ipsi", fx, rb, u): {}
+            ("Ear", fx, rb, u, n, disallow, allow): {
+                ("Ear - contra", fx, rb, u, n, disallow, allow): {},
+                ("Ear - ipsi", fx, rb, u, n, disallow, allow): {},
+                ("Mastoid process", fx, rb, u, n, disallow, allow): {
+                    ("Mastoid process - contra", fx, rb, u, n, disallow, allow): {},
+                    ("Mastoid process - ipsi", fx, rb, u, n, disallow, allow): {}
                 },
-                ("Earlobe", fx, rb, u): {
-                    ("Earlobe - contra", fx, rb, u): {},
-                    ("Earlobe - ipsi", fx, rb, u): {}
+                ("Earlobe", fx, rb, u, n, disallow, allow): {
+                    ("Earlobe - contra", fx, rb, u, n, disallow, allow): {},
+                    ("Earlobe - ipsi", fx, rb, u, n, disallow, allow): {}
                 }
             },
-            ("Jaw", fx, rb, u): {
-                ("Jaw - contra", fx, rb, u): {},
-                ("Jaw - ipsi", fx, rb, u): {}
+            ("Jaw", fx, rb, u, n, disallow, allow): {
+                ("Jaw - contra", fx, rb, u, n, disallow, allow): {},
+                ("Jaw - ipsi", fx, rb, u, n, disallow, allow): {}
             },
-            ("Chin", fx, rb, u): {},
-            ("Under chin", fx, rb, u): {}
+            ("Chin", fx, rb, u, n, disallow, allow): {},
+            ("Under chin", fx, rb, u, n, disallow, disallow): {}
         },
     },
-    ("Neck", fx, rb, u): {},
-    ("Torso", fx, rb, u): {
-        ("Shoulder", fx, rb, u): {
-            ("Shoulder - contra", fx, rb, u): {},
-            ("Shoulder - ipsi", fx, rb, u): {}
+    ("Neck", fx, rb, u, n, allow, allow): {},
+    ("Torso", fx, rb, u, n, allow, allow): {
+        ("Shoulder", fx, rb, u, n, allow, allow): {
+            ("Shoulder - contra", fx, rb, u, n, allow, allow): {},
+            ("Shoulder - ipsi", fx, rb, u, n, allow, allow): {}
         },
-        ("Armpit", fx, rb, u): {
-            ("Armpit - contra", fx, rb, u): {},
-            ("Armpit - ipsi", fx, rb, u): {}
+        ("Armpit", fx, rb, u, n, disallow, disallow): {
+            ("Armpit - contra", fx, rb, u, n, disallow, disallow): {},
+            ("Armpit - ipsi", fx, rb, u, n, disallow, disallow): {}
         },
-        ("Sternum/clavicle area", fx, rb, u): {},
-        ("Chest/breast area", fx, rb, u): {},
-        ("Abdominal/waist area", fx, rb, u): {},
-        ("Pelvis area", fx, rb, u): {},
-        ("Hip", fx, rb, u): {
-            ("Hip - contra", fx, rb, u): {},
-            ("Hip - ipsi", fx, rb, u): {}
+        ("Sternum/clavicle area", fx, rb, u, n, disallow, allow): {},
+        ("Chest/breast area", fx, rb, u, n, disallow, allow): {},
+        ("Abdominal/waist area", fx, rb, u, n, disallow, allow): {},
+        ("Pelvis area", fx, rb, u, n, disallow, allow): {},
+        ("Hip", fx, rb, u, n, allow, allow): {
+            ("Hip - contra", fx, rb, u, n, allow, allow): {},
+            ("Hip - ipsi", fx, rb, u, n, allow, allow): {}
         },
-        ("Groin", fx, rb, u): {},
-        ("Buttocks", fx, rb, u): {
-            ("Buttocks - contra", fx, rb, u): {},
-            ("Buttocks - ipsi", fx, rb, u): {}
+        ("Groin", fx, rb, u, n, disallow, allow): {},
+        ("Buttocks", fx, rb, u, n, disallow, allow): {
+            ("Buttocks - contra", fx, rb, u, n, disallow, allow): {},
+            ("Buttocks - ipsi", fx, rb, u, n, disallow, allow): {}
         }
     },
-    ("Arm (contralateral)", fx, rb, u): {
-        ("Upper arm", fx, rb, u): {
-            ("Upper arm above biceps", fx, rb, u): {},
-            ("Biceps", fx, rb, u): {}
+    ("Arm (contralateral)", fx, rb, u, n, allow, disallow): {
+        ("Upper arm", fx, rb, u, n, allow, allow): {
+            ("Upper arm above biceps", fx, rb, u, n, allow, allow): {},
+            ("Biceps", fx, rb, u, n, allow, allow): {}
         },
-        ("Elbow", fx, rb, u): {},
-        ("Forearm", fx, rb, u): {},
-        ("Wrist", fx, rb, u): {}
+        ("Elbow", fx, rb, u, n, allow, allow): {},
+        ("Forearm", fx, rb, u, n, allow, allow): {},
+        ("Wrist", fx, rb, u, n, allow, allow): {}
     },
-    ("Legs and feet", fx, rb, u): {
-        ("Upper leg", fx, rb, u): {
-            ("Upper leg - contra", fx, rb, u): {},
-            ("Upper leg - ipsi", fx, rb, u): {}
+    ("Legs and feet", fx, rb, u, n, allow, allow): {
+        ("Upper leg", fx, rb, u, n, allow, allow): {
+            ("Upper leg - contra", fx, rb, u, n, allow, allow): {},
+            ("Upper leg - ipsi", fx, rb, u, n, allow, allow): {}
         },
-        ("Knee", fx, rb, u): {
-            ("Knee - contra", fx, rb, u): {},
-            ("Knee - ipsi", fx, rb, u): {}
+        ("Knee", fx, rb, u, n, allow, allow): {
+            ("Knee - contra", fx, rb, u, n, allow, allow): {},
+            ("Knee - ipsi", fx, rb, u, n, allow, allow): {}
         },
-        ("Lower leg", fx, rb, u): {
-            ("Lower leg - contra", fx, rb, u): {},
-            ("Lower leg - ipsi", fx, rb, u): {}
+        ("Lower leg", fx, rb, u, n, allow, allow): {
+            ("Lower leg - contra", fx, rb, u, n, allow, allow): {},
+            ("Lower leg - ipsi", fx, rb, u, n, allow, allow): {}
         },
-        ("Ankle", fx, rb, u): {
-            ("Ankle - contra", fx, rb, u): {},
-            ("Ankle - ipsi", fx, rb, u): {}
+        ("Ankle", fx, rb, u, n, allow, allow): {
+            ("Ankle - contra", fx, rb, u, n, allow, allow): {},
+            ("Ankle - ipsi", fx, rb, u, n, allow, allow): {}
         },
-        ("Foot", fx, rb, u): {
-            ("Foot - contra", fx, rb, u): {},
-            ("Foot - ipsi", fx, rb, u): {}
+        ("Foot", fx, rb, u, n, allow, allow): {
+            ("Foot - contra", fx, rb, u, n, allow, allow): {},
+            ("Foot - ipsi", fx, rb, u, n, allow, allow): {}
         }
     },
-    ("Other hand", fx, rb, u): {
-        ("Whole hand", fx, rb, u): {},
-        ("Hand minus fingers", fx, rb, u): {},
-        ("Heel of hand", fx, rb, u): {},
-        ("Thumb", fx, rb, u): {},
-        ("Fingers", fx, rb, u): {},
-        ("Selected fingers", fx, rb, u): {},
-        ("Selected fingers and Thumb", fx, rb, u): {},
-        ("Finger 1", fx, rb, u): {},
-        ("Finger 2", fx, rb, u): {},
-        ("Finger 3", fx, rb, u): {},
-        ("Finger 4", fx, rb, u): {},
-        ("Between Thumb and Finger 1", fx, rb, u): {},
-        ("Between Fingers 1 and 2", fx, rb, u): {},
-        ("Between Fingers 2 and 3", fx, rb, u): {},
-        ("Between Fingers 3 and 4", fx, rb, u): {},
+    ("Other hand", fx, rb, u, h, allow, disallow): {
+        ("Whole hand", fx, rb, u, h, allow, disallow): {},
+        ("Hand minus fingers", fx, rb, u, h, allow, disallow): {},
+        ("Heel of hand", fx, rb, u, h, allow, allow): {},
+        ("Thumb", fx, rb, u, h, allow, allow): {},
+        ("Fingers", fx, rb, u, h, allow, allow): {},
+        ("Selected fingers", fx, rb, u, h, allow, allow): {},
+        ("Selected fingers and Thumb", fx, rb, u, h, allow, allow): {},
+        ("Finger 1", fx, rb, u, h, allow, allow): {},
+        ("Finger 2", fx, rb, u, h, allow, allow): {},
+        ("Finger 3", fx, rb, u, h, allow, allow): {},
+        ("Finger 4", fx, rb, u, h, allow, allow): {},
+        ("Between Thumb and Finger 1", fx, rb, u, h, allow, disallow): {},
+        ("Between Fingers 1 and 2", fx, rb, u, h, allow, disallow): {},
+        ("Between Fingers 2 and 3", fx, rb, u, h, allow, disallow): {},
+        ("Between Fingers 3 and 4", fx, rb, u, h, allow, disallow): {},
     }
 }
 
@@ -253,8 +265,243 @@ locn_options_purelyspatial = {
     },
 }
 
+surfaces_nonhand_default = ["Anterior", "Posterior", "Lateral", "Medial", "Top", "Bottom"]
+subareas_nonhand_default = ["Contra half", "Upper half", "Whole", "Centre", "Lower half", "Ipsi half"]
+surfaces_hand_default = ["Back", "Friction", "Radial", "Ulnar"]
+bonejoint_hand_default = ["Metacarpophalangeal joint", "Proximal bone", "Proximal interphalangeal joint",
+                         "Medial bone", "Distal interphalangeal joint", "Distal bone", "Tip"]
+
+surface_label = "Surface"
+subarea_label = "Sub-area"
+bonejoint_label = "Bone/joint"
+
+
+class LocationTreeItem(QStandardItem):
+
+    def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=False, allowsurfacespec=True,
+                 allowsubareaspec=True, addedinfo=None, serializedlocntreeitem=None):
+        super().__init__()
+
+        if serializedlocntreeitem:
+            self.setEditable(serializedlocntreeitem['editable'])
+            self.setText(serializedlocntreeitem['text'])
+            self.setCheckable(serializedlocntreeitem['checkable'])
+            self.setCheckState(serializedlocntreeitem['checkstate'])
+            self.setUserTristate(serializedlocntreeitem['usertristate'])
+            self.setData(serializedlocntreeitem['selectedrole'], Qt.UserRole + udr.selectedrole)
+            self.setData(serializedlocntreeitem['texteditrole'], Qt.UserRole + udr.texteditrole)
+            self.setData(serializedlocntreeitem['timestamprole'], Qt.UserRole + udr.timestamprole)
+            self.setData(serializedlocntreeitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
+            self.setData(serializedlocntreeitem['displayrole'], Qt.DisplayRole)
+            self._addedinfo = serializedlocntreeitem['addedinfo']
+            self._ishandloc = serializedlocntreeitem['ishandloc']
+            self._allowsurfacespec = serializedlocntreeitem['allowsurfacespec']
+            self._allowsubareaspec = serializedlocntreeitem['allowsubareaspec']
+            self._ishandloc = serializedlocntreeitem['ishandloc']
+            self.detailstable = LocationTableModel(serializedtableitem=serializedlocntreeitem['detailstable'])
+            self.listitem = LocationListItem(serializedlistitem=serializedlocntreeitem['listitem'])
+            self.listitem.treeitem = self
+        else:
+            self.setEditable(False)
+            self.setText(txt)
+            self.setCheckable(True)
+            self.setCheckState(Qt.Unchecked)
+            self.setUserTristate(False)
+            self.setData(False, Qt.UserRole + udr.selectedrole)
+            self.setData(False, Qt.UserRole + udr.texteditrole)
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
+            self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+            self._ishandloc = ishandloc
+            self._allowsurfacespec = allowsurfacespec
+            self._allowsubareaspec = allowsubareaspec
+            self.detailstable = LocationTableModel(loctext=txt, ishandloc=ishandloc)
+
+            if mutuallyexclusive:
+                self.setData(True, Qt.UserRole + udr.mutuallyexclusiverole)
+            else:
+                self.setData(False, Qt.UserRole + udr.mutuallyexclusiverole)
+            # self.setData(mutuallyexclusive, Qt.UserRole+udr.mutuallyexclusiverole)
+
+            self.listitem = listit
+            if listit is not None:
+                self.listitem.treeitem = self
+
+    def __repr__(self):
+        return '<LocationTreeItem: ' + repr(self.text()) + '>'
+
+    def serialize(self):
+        return {
+            'editable': self.isEditable(),
+            'text': self.text(),
+            'checkable': self.isCheckable(),
+            'checkstate': self.checkState(),
+            'usertristate': self.isUserTristate(),
+            'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
+            'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
+            'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
+            'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
+            'ishandloc': self._ishandloc,
+            'displayrole': self.data(Qt.DisplayRole),
+            'addedinfo': self._addedinfo,
+            'allowsurfacespec': self._allowsurfacespec,
+            'allowsubareaspec': self._allowsubareaspec
+            # 'listitem': self.listitem.serialize()  TODO KV why not? the constructor uses it...
+        }
+
+    @property
+    def allowsurfacespec(self):
+        return self._allowsurfacespec
+
+    @allowsurfacespec.setter
+    def allowsurfacespec(self, allowsurfacespec):
+        self._allowsurfacespec = allowsurfacespec
+
+    @property
+    def allowsubareaspec(self):
+        return self._allowsubareaspec
+
+    @allowsubareaspec.setter
+    def allowsubareaspec(self, allowsubareaspec):
+        self._allowsubareaspec = allowsubareaspec
+
+    @property
+    def ishandloc(self):
+        return self._ishandloc
+
+    @ishandloc.setter
+    def ishandloc(self, ishandloc):
+        self._ishandloc = ishandloc
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    def updatelistdata(self):
+        if self.parent() and "Number of repetitions" in self.parent().data():
+            previouslistitemtext = self.listitem.text()
+            parentname = self.parent().text()
+            updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
+            if delimiter in previouslistitemtext[updatetextstartindex:]:
+                updatetextstopindex = previouslistitemtext.index(delimiter, updatetextstartindex)
+            else:
+                updatetextstopindex = len(previouslistitemtext) + 1
+            selftext = self.text()
+            self.listitem.updatetext(
+                previouslistitemtext[:updatetextstartindex] + selftext + previouslistitemtext[updatetextstopindex:])
+
+    def check(self, fully=True):
+        self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
+        self.listitem.setData(fully, Qt.UserRole + udr.selectedrole)
+        if fully:
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
+            self.listitem.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
+        self.checkancestors()
+
+        # gather siblings in order to deal with mutual exclusivity (radio buttons)
+        siblings = self.collectsiblings()
+
+        # if this is a radio button item, make sure none of its siblings are checked
+        if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+            for sib in siblings:
+                sib.uncheck(force=True)
+        else:  # or if it has radio button siblings, make sure they are unchecked
+            for me_sibling in [s for s in siblings if s.data(Qt.UserRole + udr.mutuallyexclusiverole)]:
+                me_sibling.uncheck(force=True)
+
+    def collectsiblings(self):
+
+        siblings = []
+        parent = self.parent()
+        if not parent:
+            parent = self.model().invisibleRootItem()
+        numsiblingsincludingself = parent.rowCount()
+        for snum in range(numsiblingsincludingself):
+            sibling = parent.child(snum, 0)
+            if sibling.index() != self.index():  # ie, it's actually a sibling
+                siblings.append(sibling)
+
+        mysubgroup = self.data(Qt.UserRole + udr.subgroupnamerole)
+        subgrouporgeneralsiblings = [sib for sib in siblings if
+                                     sib.data(Qt.UserRole + udr.subgroupnamerole) == mysubgroup or not sib.data(
+                                         Qt.UserRole + udr.subgroupnamerole)]
+
+        # if I'm ME and in a subgroup, collect siblings from my subgroup and also those at my level but not in any subgroup
+        if self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
+            return subgrouporgeneralsiblings
+        # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
+        elif self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+            return siblings
+        # if I'm *not* ME, collect all siblings from my level (in subgroups or no)
+        # I'm not ME but my siblings might be
+        else:
+            return siblings
+
+    def checkancestors(self):
+        if self.checkState() == Qt.Unchecked:
+            self.setCheckState(Qt.PartiallyChecked)
+        if self.parent() is not None:
+            self.parent().checkancestors()
+
+    def uncheck(self, force=False):
+        name = self.data()
+
+        self.listitem.setData(False, Qt.UserRole + udr.selectedrole)
+        self.setData(False, Qt.UserRole + udr.selectedrole)
+
+        # TODO KV - can't just uncheck a radio button... or can we?
+
+        if force:  # force-clear this item and all its descendants - have to start at the bottom?
+            # self.forceuncheck()
+            # force-uncheck all descendants
+            if self.hascheckedchild():
+                for r in range(self.rowCount()):
+                    for c in range(self.columnCount()):
+                        ch = self.child(r, c)
+                        if ch is not None:
+                            ch.uncheck(force=True)
+            self.setCheckState(Qt.Unchecked)
+        elif self.hascheckedchild():
+            self.setCheckState(Qt.PartiallyChecked)
+        else:
+            self.setCheckState(Qt.Unchecked)
+            if self.parent() is not None:
+                self.parent().uncheckancestors()
+
+        if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+            pass
+            # TODO KV is this relevant? shouldn't be able to uncheck anyway
+        elif True:  # has a mutually exclusive sibling
+            pass
+            # might one of those sibling need to be checked, if none of the boxes are?
+
+    def uncheckancestors(self):
+        if self.checkState() == Qt.PartiallyChecked and not self.hascheckedchild():
+            self.setCheckState(Qt.Unchecked)
+            if self.parent() is not None:
+                self.parent().uncheckancestors()
+
+    def hascheckedchild(self):
+        foundone = False
+        numrows = self.rowCount()
+        numcols = self.columnCount()
+        r = 0
+        while not foundone and r < numrows:
+            c = 0
+            while not foundone and c < numcols:
+                child = self.child(r, c)
+                if child is not None:
+                    foundone = child.checkState() in [Qt.Checked, Qt.PartiallyChecked]
+                c += 1
+            r += 1
+        return foundone
+
 
 class TreeSearchComboBox(QComboBox):
+    item_selected = pyqtSignal(LocationTreeItem)
 
     def __init__(self, parentlayout=None):
         super().__init__()
@@ -277,6 +524,7 @@ class TreeSearchComboBox(QComboBox):
                         item.setCheckState(Qt.PartiallyChecked)
                     # self.parentlayout.treedisplay.setExpanded(item.index(), True)
                 itemstoselect[-1].setCheckState(Qt.Checked)
+                self.item_selected.emit(itemstoselect[-1])
                 self.setCurrentIndex(-1)
 
         if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
@@ -431,11 +679,14 @@ class LocationTreeModel(QStandardItemModel):
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())
-            for idx, labelclassifierchecked_4tuple in enumerate(structure.keys()):
-                label = labelclassifierchecked_4tuple[0]
-                editable = labelclassifierchecked_4tuple[1]
-                classifier = labelclassifierchecked_4tuple[2]
-                checked = labelclassifierchecked_4tuple[3]
+            for idx, labelclassifierchecked_7tuple in enumerate(structure.keys()):
+                label = labelclassifierchecked_7tuple[0]
+                editable = labelclassifierchecked_7tuple[1]
+                classifier = labelclassifierchecked_7tuple[2]
+                checked = labelclassifierchecked_7tuple[3]
+                ishandloc = labelclassifierchecked_7tuple[4] == h  # hand vs nonhand
+                allowsurfacespec = labelclassifierchecked_7tuple[5]
+                allowsubareaspec = labelclassifierchecked_7tuple[6]  # sub area or bone/joint
                 ismutuallyexclusive = classifier == rb
                 iseditable = editable == ed
                 if label == subgroup:
@@ -445,11 +696,11 @@ class LocationTreeModel(QStandardItemModel):
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, structure=structure[labelclassifierchecked_4tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
+                    self.populate(parentnode, structure=structure[labelclassifierchecked_7tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup + "_" + pathsofar + "_" + (str(classifier)))
 
                 else:
                     # parentnode.setColumnCount(1)
-                    thistreenode = LocationTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
+                    thistreenode = LocationTreeItem(label, ishandloc=ishandloc, allowsurfacespec=allowsurfacespec, allowsubareaspec=allowsubareaspec, mutuallyexclusive=ismutuallyexclusive)
                     # thistreenode.setData(False, Qt.UserRole+udr.selectedrole)  #  moved to MovementTreeItem.__init__()
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole+udr.pathdisplayrole)
                     thistreenode.setEditable(iseditable)
@@ -459,7 +710,7 @@ class LocationTreeModel(QStandardItemModel):
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole+udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole+udr.finalsubgrouprole)
-                    self.populate(thistreenode, structure=structure[labelclassifierchecked_4tuple], pathsofar=pathsofar+label+delimiter)
+                    self.populate(thistreenode, structure=structure[labelclassifierchecked_7tuple], pathsofar=pathsofar + label + delimiter)
                     parentnode.appendRow([thistreenode])
 
     @property
@@ -502,48 +753,167 @@ class LocationTreeModel(QStandardItemModel):
 #         return super().edit(index, trigger, event)
 
 
-class LocationTreeItem(QStandardItem):
+class LocationTableView(QTableView):
+    def __init__(self, locationtreeitem=None, **kwargs):
+        super().__init__(**kwargs)
 
-    def __init__(self, txt="", listit=None, mutuallyexclusive=False, addedinfo=None, serializedlocnitem=None):
+        # set the table model
+        locntablemodel = LocationTableModel(parent=self)
+        self.setModel(locntablemodel)
+        self.horizontalHeader().resizeSections(QHeaderView.Stretch)
+
+
+# # This class is a serializable form of the class LocationTableModel, which is itself not pickleable.
+# # Rather than being based on QAbstractTableModel, this one uses dictionary structures to convert to
+# # and from saveable form.
+# class LocationTable:
+#
+#     def __init__(self, locntablemodel):
+#
+#         treenode = locnmodule.locationtreemodel.invisibleRootItem()
+#         self.hands = locnmodule.hands
+#         self.timingintervals = locnmodule.timingintervals
+#
+#         self.numvals = {}
+#         self.checkstates = {}
+#
+#         self.collectdata(treenode)
+#
+#     def collectdata(self, treenode):
+#
+#         if treenode is not None:
+#             for r in range(treenode.rowCount()):
+#                 treechild = treenode.child(r, 0)
+#                 if treechild is not None:
+#                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+#                     checkstate = treechild.checkState()
+#                     editable = treechild.isEditable()
+#                     if editable:
+#                         pathsteps = pathtext.split(delimiter)
+#                         parentpathtext = delimiter.join(pathsteps[:-1])
+#                         numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
+#                         self.numvals[parentpathtext] = numericstring
+#
+#                     self.checkstates[pathtext] = checkstate
+#                 self.collectdata(treechild)
+#
+#     def getLocationTreeModel(self):
+#         locntreemodel = LocationTreeModel()
+#         rootnode = locntreemodel.invisibleRootItem()
+#         locntreemodel.populate(rootnode)
+#         makelistmodel = locntreemodel.listmodel
+#         self.setvalues(rootnode)
+#         return locntreemodel
+#
+#     def setvalues(self, treenode):
+#         if treenode is not None:
+#             for r in range(treenode.rowCount()):
+#                 treechild = treenode.child(r, 0)
+#                 if treechild is not None:
+#                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
+#                     parentpathtext = treenode.data(Qt.UserRole+udr.pathdisplayrole)
+#                     if parentpathtext in self.numvals.keys():
+#                         treechild.setText(self.numvals[parentpathtext])
+#                         treechild.setEditable(True)
+#                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
+#                     treechild.setCheckState(self.checkstates[pathtext])
+#                     self.setvalues(treechild)
+
+
+class LocationTableModel(QAbstractTableModel):
+
+    def __init__(self, loctext="", ishandloc=False, allowsurfacespec=True, allowsubareaspec=True, serializedtablemodel=None, **kwargs):
+        super().__init__(**kwargs)
+
+        if serializedtablemodel is not None:
+            # KV TODO
+            pass
+
+        else:  # brand new
+            self.col_labels = ["", ""]
+            self.col_contents = [[], []]
+
+            if loctext == "":  # no location yet
+                return
+
+            if allowsurfacespec:
+                self.col_labels[0] = surface_label
+                self.col_contents[0] = surfaces_hand_default if ishandloc else surfaces_nonhand_default
+                # TODO KV but what if it's not default?
+
+            if allowsubareaspec:
+                self.col_labels[1] = bonejoint_label if ishandloc else subarea_label
+                self.col_contents[1] = bonejoint_hand_default if ishandloc else subareas_nonhand_default
+                # TODO KV but what if it's not default?
+
+    # must implement! abstract parent doesn't define this behaviour
+    def rowCount(self, parent=None, *args, **kwargs):
+        return max([len(col) for col in self.col_contents])
+
+    # must implement! abstract parent doesn't define this behaviour
+    def columnCount(self, parent=None, *args, **kwargs):
+        return len(self.col_contents)
+
+    # must implement! abstract parent doesn't define this behaviour
+    def data(self, index, role=Qt.DisplayRole):
+        # TODO KV make sure to deal with other potential roles as well
+        if not index.isValid():
+            return None
+        try:
+            return self.col_contents[index.column()][index.row()]
+        except IndexError:
+            return None
+
+    # must implement! abstract parent doesn't define this behaviour
+    def headerData(self, section, orientation, role=None):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            header = self.col_labels[section]
+            return header
+        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+            return str(section + 1)
+
+        return None
+
+
+class LocationTableItem(QStandardItem):
+
+    def __init__(self, txt="", serializedlocntableitem=None):
         super().__init__()
-        
-        if serializedlocnitem:
-            self.setEditable(serializedlocnitem['editable'])
-            self.setText(serializedlocnitem['text'])
-            self.setCheckable(serializedlocnitem['checkable'])
-            self.setCheckState(serializedlocnitem['checkstate'])
-            self.setUserTristate(serializedlocnitem['usertristate'])
-            self.setData(serializedlocnitem['selectedrole'], Qt.UserRole+udr.selectedrole)
-            self.setData(serializedlocnitem['texteditrole'], Qt.UserRole+udr.texteditrole)
-            self.setData(serializedlocnitem['timestamprole'], Qt.UserRole+udr.timestamprole)
-            self.setData(serializedlocnitem['mutuallyexclusiverole'], Qt.UserRole+udr.mutuallyexclusiverole)
-            self.setData(serializedlocnitem['displayrole'], Qt.DisplayRole)
-            self._addedinfo = serializedlocnitem['addedinfo']
-            self.listitem = LocationListItem(serializedlistitem=serializedlocnitem['listitem'])
-            self.listitem.treeitem = self
+
+        # TODO KV does this actually need a timestamp??
+
+        if serializedlocntableitem:
+            self.setEditable(serializedlocntableitem['editable'])
+            self.setText(serializedlocntableitem['text'])
+            self.setCheckable(serializedlocntableitem['checkable'])
+            self.setCheckState(serializedlocntableitem['checkstate'])
+            self.setUserTristate(serializedlocntableitem['usertristate'])
+            # self.setData(serializedlocntableitem['selectedrole'], Qt.UserRole + udr.selectedrole)
+            # self.setData(serializedlocntableitem['texteditrole'], Qt.UserRole + udr.texteditrole)
+            self.setData(serializedlocntableitem['timestamprole'], Qt.UserRole + udr.timestamprole)
+            self.setData(serializedlocntableitem['checkstaterole'], Qt.CheckStateRole)
+            # self.setData(serializedlocntableitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
+            # self.setData(serializedlocntableitem['displayrole'], Qt.DisplayRole)
+            # self._addedinfo = serializedlocntableitem['addedinfo']
+            # self.listitem = LocationListItem(serializedlistitem=serializedlocntableitem['listitem'])
+            # self.listitem.treeitem = self
         else:
             self.setEditable(False)
             self.setText(txt)
             self.setCheckable(True)
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
-            self.setData(False, Qt.UserRole+udr.selectedrole)
-            self.setData(False, Qt.UserRole+udr.texteditrole)
+            # self.setData(False, Qt.UserRole+udr.selectedrole)
+            # self.setData(False, Qt.UserRole+udr.texteditrole)
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
-            self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
-
-            if mutuallyexclusive:
-                self.setData(True, Qt.UserRole+udr.mutuallyexclusiverole)
-            else:
-                self.setData(False, Qt.UserRole+udr.mutuallyexclusiverole)
-            # self.setData(mutuallyexclusive, Qt.UserRole+udr.mutuallyexclusiverole)
-
-            self.listitem = listit
-            if listit is not None:
-                self.listitem.treeitem = self
+            self.setData(Qt.Unchecked, Qt.CheckStateRole)
 
     def __repr__(self):
-        return '<LocationTreeItem: ' + repr(self.text()) + '>'
+        return '<LocationTableItem: ' + repr(self.text()) + '>'
+
+    def data(self, index, role):
+        if role == Qt.CheckStateRole:
+            return Qt.Checked
 
     def serialize(self):
         return {
@@ -552,138 +922,13 @@ class LocationTreeItem(QStandardItem):
             'checkable': self.isCheckable(),
             'checkstate': self.checkState(),
             'usertristate': self.isUserTristate(),
-            'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
-            'selectedrole': self.data(Qt.UserRole+udr.selectedrole),
-            'texteditrole': self.data(Qt.UserRole+udr.texteditrole),
-            'mutuallyexclusiverole': self.data(Qt.UserRole+udr.mutuallyexclusiverole),
-            'displayrole': self.data(Qt.DisplayRole),
-            'addedinfo': self._addedinfo
-            # 'listitem': self.listitem.serialize()  TODO KV why not? the constructor uses it...
+            'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
+            'checkstaterole': self.data(Qt.CheckStateRole),
+        #     'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
+        #     'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
+        #     'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
+        #     'displayrole': self.data(Qt.DisplayRole)
         }
-
-    @property
-    def addedinfo(self):
-        return self._addedinfo
-
-    @addedinfo.setter
-    def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
-
-    def updatelistdata(self):
-        if self.parent() and "Number of repetitions" in self.parent().data():
-            previouslistitemtext = self.listitem.text()
-            parentname = self.parent().text()
-            updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
-            if delimiter in previouslistitemtext[updatetextstartindex:]:
-                updatetextstopindex = previouslistitemtext.index(delimiter, updatetextstartindex)
-            else:
-                updatetextstopindex = len(previouslistitemtext)+1
-            selftext = self.text()
-            self.listitem.updatetext(previouslistitemtext[:updatetextstartindex] + selftext + previouslistitemtext[updatetextstopindex:])
-
-    def check(self, fully=True):
-        self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
-        self.listitem.setData(fully, Qt.UserRole+udr.selectedrole)
-        if fully:
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
-            self.listitem.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
-        self.checkancestors()
-
-        # gather siblings in order to deal with mutual exclusivity (radio buttons)
-        siblings = self.collectsiblings()
-
-        # if this is a radio button item, make sure none of its siblings are checked
-        if self.data(Qt.UserRole+udr.mutuallyexclusiverole):
-            for sib in siblings:
-                sib.uncheck(force=True)
-        else:  # or if it has radio button siblings, make sure they are unchecked
-            for me_sibling in [s for s in siblings if s.data(Qt.UserRole+udr.mutuallyexclusiverole)]:
-                me_sibling.uncheck(force=True)
-
-    def collectsiblings(self):
-
-        siblings = []
-        parent = self.parent()
-        if not parent:
-            parent = self.model().invisibleRootItem()
-        numsiblingsincludingself = parent.rowCount()
-        for snum in range(numsiblingsincludingself):
-            sibling = parent.child(snum, 0)
-            if sibling.index() != self.index():  # ie, it's actually a sibling
-                siblings.append(sibling)
-
-        mysubgroup = self.data(Qt.UserRole+udr.subgroupnamerole)
-        subgrouporgeneralsiblings = [sib for sib in siblings if sib.data(Qt.UserRole+udr.subgroupnamerole) == mysubgroup or not sib.data(Qt.UserRole+udr.subgroupnamerole)]
-
-        # if I'm ME and in a subgroup, collect siblings from my subgroup and also those at my level but not in any subgroup
-        if self.data(Qt.UserRole+udr.mutuallyexclusiverole) and mysubgroup:
-            return subgrouporgeneralsiblings
-        # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
-        elif self.data(Qt.UserRole+udr.mutuallyexclusiverole):
-            return siblings
-        # if I'm *not* ME, collect all siblings from my level (in subgroups or no)
-        # I'm not ME but my siblings might be
-        else:
-            return siblings
-
-    def checkancestors(self):
-        if self.checkState() == Qt.Unchecked:
-            self.setCheckState(Qt.PartiallyChecked)
-        if self.parent() is not None:
-            self.parent().checkancestors()
-
-    def uncheck(self, force=False):
-        name = self.data()
-
-        self.listitem.setData(False, Qt.UserRole+udr.selectedrole)
-        self.setData(False, Qt.UserRole+udr.selectedrole)
-
-        # TODO KV - can't just uncheck a radio button... or can we?
-
-        if force:  # force-clear this item and all its descendants - have to start at the bottom?
-            # self.forceuncheck()
-            # force-uncheck all descendants
-            if self.hascheckedchild():
-                for r in range(self.rowCount()):
-                    for c in range(self.columnCount()):
-                        ch = self.child(r, c)
-                        if ch is not None:
-                            ch.uncheck(force=True)
-            self.setCheckState(Qt.Unchecked)
-        elif self.hascheckedchild():
-            self.setCheckState(Qt.PartiallyChecked)
-        else:
-            self.setCheckState(Qt.Unchecked)
-            if self.parent() is not None:
-                self.parent().uncheckancestors()
-
-        if self.data(Qt.UserRole+udr.mutuallyexclusiverole):
-            pass
-            # TODO KV is this relevant? shouldn't be able to uncheck anyway
-        elif True:  # has a mutually exclusive sibling
-            pass
-            # might one of those sibling need to be checked, if none of the boxes are?
-
-    def uncheckancestors(self):
-        if self.checkState() == Qt.PartiallyChecked and not self.hascheckedchild():
-            self.setCheckState(Qt.Unchecked)
-            if self.parent() is not None:
-                self.parent().uncheckancestors()
-
-    def hascheckedchild(self):
-        foundone = False
-        numrows = self.rowCount()
-        numcols = self.columnCount()
-        r = 0
-        while not foundone and r < numrows:
-            c = 0
-            while not foundone and c < numcols:
-                child = self.child(r, c)
-                if child is not None:
-                    foundone = child.checkState() in [Qt.Checked, Qt.PartiallyChecked]
-                c += 1
-            r += 1
-        return foundone
 
 
 class LocationListItem(QStandardItem):
