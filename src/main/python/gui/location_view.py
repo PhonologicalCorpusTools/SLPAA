@@ -35,7 +35,7 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem
 )
 
-from lexicon.module_classes import AddedInfo, delimiter, userdefinedroles as udr
+from lexicon.module_classes import AddedInfo, delimiter, LocationType, userdefinedroles as udr
 
 
 # radio button vs checkbox
@@ -638,7 +638,7 @@ class LocationTreeModel(QStandardItemModel):
         self._listmodel = None  # MovementListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
-        self._locationtype = 'body'
+        self._locationtype = LocationType(body=True)
 
     def updatelistdata(self, topLeft, bottomRight):
         startitem = self.itemFromIndex(topLeft)
@@ -672,9 +672,9 @@ class LocationTreeModel(QStandardItemModel):
         elif structure == {} and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            if self.locationtype == 'body':
+            if self.locationtype.body:
                 self.populate(parentnode, structure=locn_options_body, pathsofar="")
-            elif self.locationtype == 'purelyspatial':
+            elif self.locationtype.purelyspatial:
                 self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
         elif structure != {}:
             # internal node with substructure
@@ -728,7 +728,7 @@ class LocationTreeModel(QStandardItemModel):
         return self._locationtype
 
     @locationtype.setter
-    def locationtype(self, locationtype):  # either 'body' or 'purelyspatial'
+    def locationtype(self, locationtype): # LocationType class
         self._locationtype = locationtype
 
 #
@@ -832,18 +832,23 @@ class LocationTableModel(QAbstractTableModel):
         else:  # brand new
             self.col_labels = ["", ""]
             self.col_contents = [[], []]
+            # self.col_checkstates = [[], []]
 
             if loctext == "":  # no location yet
                 return
 
             if allowsurfacespec:
                 self.col_labels[0] = surface_label
-                self.col_contents[0] = surfaces_hand_default if ishandloc else surfaces_nonhand_default
+                col_texts = surfaces_hand_default if ishandloc else surfaces_nonhand_default
+                self.col_contents[0] = [[txt, False] for txt in col_texts]
+                # self.col_contents[0] = surfaces_hand_default if ishandloc else surfaces_nonhand_default
                 # TODO KV but what if it's not default?
 
             if allowsubareaspec:
                 self.col_labels[1] = bonejoint_label if ishandloc else subarea_label
-                self.col_contents[1] = bonejoint_hand_default if ishandloc else subareas_nonhand_default
+                col_texts = bonejoint_hand_default if ishandloc else subareas_nonhand_default
+                self.col_contents[1] = [[txt, False] for txt in col_texts]
+                # self.col_contents[1] = bonejoint_hand_default if ishandloc else subareas_nonhand_default
                 # TODO KV but what if it's not default?
 
     # must implement! abstract parent doesn't define this behaviour
@@ -860,9 +865,27 @@ class LocationTableModel(QAbstractTableModel):
         if not index.isValid():
             return None
         try:
-            return self.col_contents[index.column()][index.row()]
+            if role == Qt.DisplayRole:
+                return self.col_contents[index.column()][index.row()][0]
+            elif role == Qt.CheckStateRole:
+                checked = self.col_contents[index.column()][index.row()][1]
+                return Qt.Checked if checked else Qt.Unchecked
         except IndexError:
             return None
+
+    def setData(self, index, value, role=Qt.DisplayRole):
+        if not index.isValid():
+            return False
+        if role == Qt.DisplayRole:
+            self.col_contents[index.column()][index.row()][0] = value
+        elif role == Qt.CheckStateRole:
+            checked = value == Qt.Checked
+            self.col_contents[index.column()][index.row()][1] = checked
+        return True
+
+    # TODO KV are all of these true?
+    def flags(self, index):
+        return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
 
     # must implement! abstract parent doesn't define this behaviour
     def headerData(self, section, orientation, role=None):
@@ -875,60 +898,61 @@ class LocationTableModel(QAbstractTableModel):
         return None
 
 
-class LocationTableItem(QStandardItem):
-
-    def __init__(self, txt="", serializedlocntableitem=None):
-        super().__init__()
-
-        # TODO KV does this actually need a timestamp??
-
-        if serializedlocntableitem:
-            self.setEditable(serializedlocntableitem['editable'])
-            self.setText(serializedlocntableitem['text'])
-            self.setCheckable(serializedlocntableitem['checkable'])
-            self.setCheckState(serializedlocntableitem['checkstate'])
-            self.setUserTristate(serializedlocntableitem['usertristate'])
-            # self.setData(serializedlocntableitem['selectedrole'], Qt.UserRole + udr.selectedrole)
-            # self.setData(serializedlocntableitem['texteditrole'], Qt.UserRole + udr.texteditrole)
-            self.setData(serializedlocntableitem['timestamprole'], Qt.UserRole + udr.timestamprole)
-            self.setData(serializedlocntableitem['checkstaterole'], Qt.CheckStateRole)
-            # self.setData(serializedlocntableitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
-            # self.setData(serializedlocntableitem['displayrole'], Qt.DisplayRole)
-            # self._addedinfo = serializedlocntableitem['addedinfo']
-            # self.listitem = LocationListItem(serializedlistitem=serializedlocntableitem['listitem'])
-            # self.listitem.treeitem = self
-        else:
-            self.setEditable(False)
-            self.setText(txt)
-            self.setCheckable(True)
-            self.setCheckState(Qt.Unchecked)
-            self.setUserTristate(False)
-            # self.setData(False, Qt.UserRole+udr.selectedrole)
-            # self.setData(False, Qt.UserRole+udr.texteditrole)
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
-            self.setData(Qt.Unchecked, Qt.CheckStateRole)
-
-    def __repr__(self):
-        return '<LocationTableItem: ' + repr(self.text()) + '>'
-
-    def data(self, index, role):
-        if role == Qt.CheckStateRole:
-            return Qt.Checked
-
-    def serialize(self):
-        return {
-            'editable': self.isEditable(),
-            'text': self.text(),
-            'checkable': self.isCheckable(),
-            'checkstate': self.checkState(),
-            'usertristate': self.isUserTristate(),
-            'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
-            'checkstaterole': self.data(Qt.CheckStateRole),
-        #     'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
-        #     'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
-        #     'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
-        #     'displayrole': self.data(Qt.DisplayRole)
-        }
+# TODO KV I don't think this class is used/necessary
+# class LocationTableItem(QStandardItem):
+#
+#     def __init__(self, txt="", serializedlocntableitem=None):
+#         super().__init__()
+#
+#         # TODO KV does this actually need a timestamp??
+#
+#         if serializedlocntableitem:
+#             self.setEditable(serializedlocntableitem['editable'])
+#             self.setText(serializedlocntableitem['text'])
+#             self.setCheckable(serializedlocntableitem['checkable'])
+#             self.setCheckState(serializedlocntableitem['checkstate'])
+#             self.setUserTristate(serializedlocntableitem['usertristate'])
+#             # self.setData(serializedlocntableitem['selectedrole'], Qt.UserRole + udr.selectedrole)
+#             # self.setData(serializedlocntableitem['texteditrole'], Qt.UserRole + udr.texteditrole)
+#             self.setData(serializedlocntableitem['timestamprole'], Qt.UserRole + udr.timestamprole)
+#             self.setData(serializedlocntableitem['checkstaterole'], Qt.CheckStateRole)
+#             # self.setData(serializedlocntableitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
+#             # self.setData(serializedlocntableitem['displayrole'], Qt.DisplayRole)
+#             # self._addedinfo = serializedlocntableitem['addedinfo']
+#             # self.listitem = LocationListItem(serializedlistitem=serializedlocntableitem['listitem'])
+#             # self.listitem.treeitem = self
+#         else:
+#             self.setEditable(False)
+#             self.setText(txt)
+#             self.setCheckable(True)
+#             self.setCheckState(Qt.Unchecked)
+#             self.setUserTristate(False)
+#             # self.setData(False, Qt.UserRole+udr.selectedrole)
+#             # self.setData(False, Qt.UserRole+udr.texteditrole)
+#             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
+#             self.setData(Qt.Unchecked, Qt.CheckStateRole)
+#
+#     def __repr__(self):
+#         return '<LocationTableItem: ' + repr(self.text()) + '>'
+#
+#     def data(self, index, role):
+#         if role == Qt.CheckStateRole:
+#             return Qt.Checked
+#
+#     def serialize(self):
+#         return {
+#             'editable': self.isEditable(),
+#             'text': self.text(),
+#             'checkable': self.isCheckable(),
+#             'checkstate': self.checkState(),
+#             'usertristate': self.isUserTristate(),
+#             'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
+#             'checkstaterole': self.data(Qt.CheckStateRole),
+#         #     'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
+#         #     'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
+#         #     'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
+#         #     'displayrole': self.data(Qt.DisplayRole)
+#         }
 
 
 class LocationListItem(QStandardItem):

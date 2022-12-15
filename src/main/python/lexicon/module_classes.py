@@ -248,21 +248,42 @@ class MovementModule(ParameterModule):
         return "; ".join(wordlist)
 
 
-class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, hands, timingintervals=None, majorphonloc=False, minorphonloc=False):
-        self._locationtreemodel = locationtreemodel
+# this class stores info about whether an instance of the Location module represents a phonetic/phonological location
+class PhonLocations:
+    # __getattr__ = dict.__getitem__
+    # __setattr__ = dict.__setitem__
+    # __delattr__ = dict.__delitem__
+
+    def __init__(self, phonologicalloc=False, majorphonloc=False, minorphonloc=False, phoneticloc=False):  #, **kwargs):
+        # super().__init__(*kwargs)
+        self._phonologicalloc = phonologicalloc
         self._majorphonloc = majorphonloc
         self._minorphonloc = minorphonloc
-        super().__init__(hands, timingintervals)
+        self._phoneticloc = phoneticloc
+        # self._phonlocs = {
+        #     'phonologicalloc': phonologicalloc,
+        #     'majorphonloc': majorphonloc,
+        #     'minorphonloc': minorphonloc,
+        #     'phoneticloc': phoneticloc
+        # }
+
+    # @property
+    # def phonlocs(self):
+    #     return self._phonlocs
+    #
+    # @phonlocs.setter
+    # def phonlocs(self, phonlocs):
+    #     # TODO KV - validate?
+    #     self._phonlocs = phonlocs
 
     @property
-    def locationtreemodel(self):
-        return self._locationtreemodel
+    def phonologicalloc(self):
+        return self._phonologicalloc
 
-    @locationtreemodel.setter
-    def locationtreemodel(self, locationtreemodel):
+    @phonologicalloc.setter
+    def phonologicalloc(self, phonologicalloc):
         # TODO KV - validate?
-        self._locationtreemodel = locationtreemodel
+        self._phonologicalloc = phonologicalloc
 
     @property
     def majorphonloc(self):
@@ -281,6 +302,127 @@ class LocationModule(ParameterModule):
     def minorphonloc(self, minorphonloc):
         # TODO KV - validate?
         self._minorphonloc = minorphonloc
+
+    @property
+    def phoneticloc(self):
+        return self._phoneticloc
+
+    @phoneticloc.setter
+    def phonlocs(self, phoneticloc):
+        # TODO KV - validate?
+        self._phoneticloc = phoneticloc
+
+
+# this class stores info about what kind of location type (body or signing space) is used by a particular instance of the Location Module
+class LocationType:
+    # __getattr__ = dict.__getitem__
+    # __setattr__ = dict.__setitem__
+    # __delattr__ = dict.__delitem__
+
+    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False):  # , **kwargs):
+        # super().__init__(*kwargs)
+        # if loctypedict:
+        #     # TODO KV validate?
+        #     self._loctype = loctypedict
+        # else:
+        #     self._loctype = {
+        #         'body': False,
+        #         'signingspace': False,
+        #         'bodyanchored': False,
+        #         'purelyspatial': False
+        #     }
+        self._body = body
+        self._signingspace = signingspace
+        self._bodyanchored = bodyanchored
+        self._purelyspatial = purelyspatial
+
+    # @property
+    # def loctype(self):
+    #     return self._loctype
+    #
+    # @loctype.setter
+    # def loctype(self, loctype):
+    #     # TODO KV - validate?
+    #     self._loctype = loctype
+
+    @property
+    def body(self):
+        return self._body
+
+    @body.setter
+    def body(self, checked):
+        # TODO KV - validate?
+        self._body = checked
+        self._signingspace = not checked
+
+    @property
+    def signingspace(self):
+        return self._signingspace
+
+    @signingspace.setter
+    def signingspace(self, checked):
+        # TODO KV - validate?
+        self._signingspace = checked
+        self._body = not checked
+
+    @property
+    def bodyanchored(self):
+        return self._bodyanchored
+
+    @bodyanchored.setter
+    def bodyanchored(self, checked):
+        # TODO KV - validate?
+        self._bodyanchored = checked
+        self._purelyspatial = not checked
+
+    @property
+    def purelyspatial(self):
+        return self._purelyspatial
+
+    @purelyspatial.setter
+    def purelyspatial(self, checked):
+        # TODO KV - validate?
+        self._purelyspatial = checked
+        self._bodyanchored = not checked
+
+
+class LocationModule(ParameterModule):
+    def __init__(self, locationtreemodel, hands, timingintervals=None, phonlocs=None):  # , loctype=None):
+        if phonlocs is None:
+            phonlocs = PhonLocations()
+        # if loctype is None:
+        #     loctype = LocationType()
+        self._locationtreemodel = locationtreemodel
+        self._phonlocs = phonlocs
+        # self._loctype = loctype
+        super().__init__(hands, timingintervals)
+
+    @property
+    def locationtreemodel(self):
+        return self._locationtreemodel
+
+    @locationtreemodel.setter
+    def locationtreemodel(self, locationtreemodel):
+        # TODO KV - validate?
+        self._locationtreemodel = locationtreemodel
+
+    @property
+    def phonlocs(self):
+        return self._phonlocs
+
+    @phonlocs.setter
+    def phonlocs(self, phonlocs):
+        # TODO KV - validate?
+        self._phonlocs = phonlocs
+
+    # @property
+    # def loctype(self):
+    #     return self._loctype
+    #
+    # @loctype.setter
+    # def loctype(self, loctype):
+    #     # TODO KV - validate?
+    #     self._loctype = loctype
 
     def getabbreviation(self):
         # TODO KV these can't be hardcoded like this... fix it!

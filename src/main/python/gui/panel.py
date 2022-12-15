@@ -61,7 +61,7 @@ from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
 from gui.movement_selector import MovementSpecificationLayout
-from gui.location_selector import LocationSpecificationLayout as LocationSpecificationLayout2
+from gui.location_selector import LocationSpecificationLayout
 from gui.handshape_selector import HandConfigSpecificationLayout
 from gui.xslots_selector import XslotSelectorDialog
 from lexicon.lexicon_classes import Sign, GlobalHandshapeInformation, TimingInterval, TimingPoint
@@ -816,16 +816,16 @@ class XslotPanel(QScrollArea):
 
     def handle_location_clicked(self, modulekey):
         locnmodule = self.sign.locationmodules[modulekey]
-        locationtreemodel = locnmodule.locationtreemodel
+        # locationtreemodel = locnmodule.locationtreemodel
         location_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
                                                  hands=locnmodule.hands,
                                                  xslotstructure=self.sign.xslotstructure,
                                                  enable_addnew=False,
-                                                 modulelayout=LocationSpecificationLayout2(self.mainwindow, locationtreemodel),
+                                                 modulelayout=LocationSpecificationLayout(self.mainwindow, locnmodule),
                                                  moduleargs=None,
                                                  timingintervals=locnmodule.timingintervals)
         location_selector.get_savedmodule_signal().connect(
-            lambda locationtree, majorphonloc, minorphonloc, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_location(locationtree, hands, timingintervals, majorphonloc, minorphonloc, modulekey))
+            lambda locationtree, phonlocs, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_location(locationtree, hands, timingintervals, phonlocs, modulekey))
         location_selector.exec_()
 
     def handle_handconfig_clicked(self, modulekey):
@@ -1075,17 +1075,17 @@ class SignSummaryPanel(QScrollArea):
                                                  hands=None,
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                  enable_addnew=True,
-                                                 modulelayout=LocationSpecificationLayout2(self.mainwindow),
+                                                 modulelayout=LocationSpecificationLayout(self.mainwindow),
                                                  moduleargs=None)
-        location_selector.get_savedmodule_signal().connect(lambda locationtree, majorphonloc, minorphonloc, hands, timingintervals, inphase: self.handle_save_location(locationtree, hands, timingintervals, majorphonloc, minorphonloc))
+        location_selector.get_savedmodule_signal().connect(lambda locationtree, phonlocs, hands, timingintervals, inphase: self.handle_save_location(locationtree, hands, timingintervals, phonlocs))
         location_selector.exec_()
 
-    def handle_save_location(self, locationtree, hands_dict, timingintervals, majorphonloc=False, minorphonloc=False, existing_key=None):
+    def handle_save_location(self, locationtree, hands_dict, timingintervals, phonlocs, existing_key=None):
         if existing_key is None or existing_key not in self.sign.locationmodules.keys():
-            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals, majorphonloc, minorphonloc)
+            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals, phonlocs)
         else:
             # self.sign.locationmodules[existing_key] = locationtree
-            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals, majorphonloc, minorphonloc)
+            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals, phonlocs)
         self.sign_updated.emit(self.sign)
 
     def handle_handpartbutton_click(self):
@@ -1264,7 +1264,7 @@ class LocationGroupLayout(QHBoxLayout):
                 viewer.set_value('W', loc['point'])
 
 
-class LocationSpecificationLayout(QVBoxLayout):
+class LocationSpecificationLayout_Old(QVBoxLayout):
     def __init__(self, location_specifications, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
@@ -1462,7 +1462,7 @@ class LocationPointPanel(QGroupBox):
 #         main_layout = QVBoxLayout()
 #         main_frame.setLayout(main_layout)
 #
-#         self.location_layout = LocationSpecificationLayout(location_specifications, app_ctx)
+#         self.location_layout = LocationSpecificationLayout_Old(location_specifications, app_ctx)
 #         self.location_section = CollapsibleSection(title='Location', parent=self)
 #         self.location_section.setContentLayout(self.location_layout)
 #

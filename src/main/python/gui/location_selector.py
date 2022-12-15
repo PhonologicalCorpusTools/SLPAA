@@ -53,71 +53,73 @@ from PyQt5.QtGui import (
 
 from gui.location_view import LocationTreeModel, LocationTableModel, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
+from lexicon.module_classes import LocationModule, PhonLocations, LocationType
 # from gui.xslot_graphics import XslotLinkingLayout
 from gui.module_selector import HandSelectionLayout
 from lexicon.module_classes import delimiter, userdefinedroles as udr
 
 
-# https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-class TreeItemDelegate(QStyledItemDelegate):
-
-    def createEditor(self, parent, option, index):
-        theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
-        theeditor.returnPressed.connect(self.returnkeypressed)
-        return theeditor
-
-    def setEditorData(self, editor, index):
-        editor.setText(index.data(role=Qt.DisplayRole))
-
-    def setModelData(self, editor, model, index):
-        model.itemFromIndex(index).setData(editor.text(), role=Qt.DisplayRole)
-        currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+udr.pathdisplayrole)
-        newpathlevels = currentpath.split(delimiter)
-        newpathlevels[-1] = editor.text()
-        model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+udr.pathdisplayrole)
-
-    def __init__(self):
-        super().__init__()
-        self.commitData.connect(self.validatedata)
-
-    def returnkeypressed(self):
-        print("return pressed")
-        return True
-
-    def validatedata(self, editor):
-        # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
-        valstring = editor.text()
-        isanumber = False
-        if valstring.isnumeric():
-            isanumber = True
-            valnum = int(valstring)
-        elif valstring.replace(".", "").isnumeric():
-            isanumber = True
-            valnum = float(valstring)
-        if valstring not in ["", "#"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
-            errordialog = QErrorMessage(editor.parent())
-            errordialog.showMessage("Number of repetitions must be at least 1 and also a multiple of 0.5")
-            editor.setText("#")
-            # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
-            # editor.setFocus()  # this creates an infinite loop
-
-    def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
-            widget = option.widget
-            style = widget.style() if widget else QApplication.style()
-            opt = QStyleOptionButton()
-            opt.rect = option.rect
-            opt.text = index.data()
-            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
-            style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-        else:
-            QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                opt = QStyleOptionFrame()
-                opt.rect = option.rect
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+# TODO KV this class is not used for location
+# # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
+# class TreeItemDelegate(QStyledItemDelegate):
+#
+#     def createEditor(self, parent, option, index):
+#         theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
+#         theeditor.returnPressed.connect(self.returnkeypressed)
+#         return theeditor
+#
+#     def setEditorData(self, editor, index):
+#         editor.setText(index.data(role=Qt.DisplayRole))
+#
+#     def setModelData(self, editor, model, index):
+#         model.itemFromIndex(index).setData(editor.text(), role=Qt.DisplayRole)
+#         currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+udr.pathdisplayrole)
+#         newpathlevels = currentpath.split(delimiter)
+#         newpathlevels[-1] = editor.text()
+#         model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+udr.pathdisplayrole)
+#
+#     def __init__(self):
+#         super().__init__()
+#         self.commitData.connect(self.validatedata)
+#
+#     def returnkeypressed(self):
+#         print("return pressed")
+#         return True
+#
+#     def validatedata(self, editor):
+#         # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
+#         valstring = editor.text()
+#         isanumber = False
+#         if valstring.isnumeric():
+#             isanumber = True
+#             valnum = int(valstring)
+#         elif valstring.replace(".", "").isnumeric():
+#             isanumber = True
+#             valnum = float(valstring)
+#         if valstring not in ["", "#"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
+#             errordialog = QErrorMessage(editor.parent())
+#             errordialog.showMessage("Number of repetitions must be at least 1 and also a multiple of 0.5")
+#             editor.setText("#")
+#             # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
+#             # editor.setFocus()  # this creates an infinite loop
+#
+#     def paint(self, painter, option, index):
+#         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
+#             widget = option.widget
+#             style = widget.style() if widget else QApplication.style()
+#             opt = QStyleOptionButton()
+#             opt.rect = option.rect
+#             opt.text = index.data()
+#             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
+#             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
+#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+#         else:
+#             QStyledItemDelegate.paint(self, painter, option, index)
+#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+#                 opt = QStyleOptionFrame()
+#                 opt.rect = option.rect
+#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
 
 class ImageDisplayTab(QWidget):
@@ -180,30 +182,35 @@ class ImageDisplayTab(QWidget):
 
 # TODO KV there's another class with the same name in panel.py
 class LocationSpecificationLayout(ModuleSpecificationLayout):
-    saved_location = pyqtSignal(LocationTreeModel, bool, bool, dict, list, int)
+    saved_location = pyqtSignal(LocationTreeModel, PhonLocations, dict, list, int)
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV , movement_specifications,
         super().__init__(**kwargs)
 
-        self.temptestactionstate = False
-        self.checknoteactionstate = True
-        self.checknoteactiontext = ""
+        # TODO KV delete
+        # self.temptestactionstate = False
+        # self.checknoteactionstate = True
+        # self.checknoteactiontext = ""
 
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
         # if moduletoload is not None:
         #     self.treemodel = moduletoload
         # self.rootNode = self.treemodel.invisibleRootItem()
         if moduletoload:
-            if isinstance(moduletoload, LocationTreeModel):
-                self.treemodel = moduletoload
+            if isinstance(moduletoload, LocationModule):
+                self.treemodel = moduletoload.locationtreemodel
+                self.locationtype = self.treemodel.locationtype
+                self.phonlocs = moduletoload.phonlocs
             # elif isinstance(moduletoload, MovementTree):
             #     # TODO KV - make sure listmodel & listitems are also populated
             #     self.treemodel = moduletoload.getMovementTreeModel()
             else:
-                print("moduletoload must be of type LocationTreeModel")
+                print("moduletoload must be of type LocationModule")
         else:
             # self.treemodel.populate(self.rootNode)
             self.treemodel.populate(self.treemodel.invisibleRootItem())
+            self.phonlocs = PhonLocations()
+            self.locationtype = LocationType()
 
         self.listmodel = self.treemodel.listmodel
 
@@ -256,17 +263,17 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         phonological_layout = QVBoxLayout()
         self.phonological_cb = QCheckBox("Phonological location")
+        self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
         phonological_layout.addWidget(self.phonological_cb)
-        # phonological_layout.addWidget(QLabel("Phonological location"))
         phonological_sublayout = QHBoxLayout()
         self.majorphonloc_cb = QCheckBox("Major")
+        self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
         self.minorphonloc_cb = QCheckBox("Minor")
+        self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
         # TODO KV these should only be active if phonological location checkbox is checked
-        # phonological_sublayout.addStretch()ips
-        # phonological_sublayout.addWidget(QLabel("["))
-        phonological_sublayout.addWidget(self.majorphonloc_cb)  # , alignment=Qt.AlignVCenter)
-        phonological_sublayout.addWidget(self.minorphonloc_cb)  # , alignment=Qt.AlignVCenter)
-        # phonological_sublayout.addWidget(QLabel("]"))
+        phonological_sublayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        phonological_sublayout.addWidget(self.majorphonloc_cb)
+        phonological_sublayout.addWidget(self.minorphonloc_cb)
         phonological_sublayout.addStretch()
         phonological_layout.addLayout(phonological_sublayout)
 
@@ -369,6 +376,15 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.enable_location_tools(self.loctype_group.checkedButton() == self.body_radio
                                    or self.signingspace_group.checkedButton() is not None)
 
+        self.refresh()
+
+    def check_phonologicalloc_cb(self, checked):
+        self.phonological_cb.setChecked(True)
+
+    def enable_majorminorphonological_cbs(self, checked):
+        self.majorphonloc_cb.setEnabled(checked)
+        self.minorphonloc_cb.setEnabled(checked)
+
     def selectlistitem(self, locationtreeitem):
         listmodelindex = self.listmodel.indexFromItem(locationtreeitem.listitem)
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
@@ -405,18 +421,25 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
     def handle_toggle_signingspacetype(self, btn):
         self.signingspace_radio.setChecked(btn is not None)
+        self.treemodel.locationtype.signingspace = True
         self.enable_location_tools(btn is not None)
 
         if btn == self.signingspacebody_radio:
             # TODO KV set image and search tool to signing space (body-anchored) content
-            if self.treemodel.locationtype != 'body':
-                self.treemodel.locationtype = 'body'
-                self.refresh_treemodel()
+            # if self.treemodel.locationtype != 'body':
+            #     self.treemodel.locationtype = 'body'
+            #     self.clear_treemodel()
+            if not self.treemodel.locationtype.body:
+                self.treemodel.locationtype.body = True
+                self.clear_treemodel()
         elif btn == self.signingspacespatial_radio:
             # TODO KV set image and search tool to signing space (purely spatial) content
-            if self.treemodel.locationtype != 'purelyspatial':
-                self.treemodel.locationtype = 'purelyspatial'
-                self.refresh_treemodel()
+            # if self.treemodel.locationtype != 'purelyspatial':
+            #     self.treemodel.locationtype = 'purelyspatial'
+            #     self.clear_treemodel()
+            if not self.treemodel.locationtype.purelyspatial:
+                self.treemodel.locationtype.purelyspatial = True
+                self.clear_treemodel()
 
     def handle_toggle_locationtype(self, btn):
         for btn in self.signingspace_group.buttons():
@@ -425,9 +448,12 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         if btn == self.body_radio:
             # TODO KV set image and search tool to body-anchored content
-            if self.treemodel.locationtype != 'body':
-                self.treemodel.locationtype = 'body'
-                self.refresh_treemodel()
+            # if self.treemodel.locationtype != 'body':
+            #     self.treemodel.locationtype = 'body'
+            #     self.clear_treemodel()
+            if not self.treemodel.locationtype.body:
+                self.treemodel.locationtype.body = True
+                self.clear_treemodel()
         elif btn == self.signingspace_radio:
             # TODO KV leave image and search tool disabled
             pass
@@ -436,7 +462,26 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         return self.saved_location
 
     def get_savedmodule_args(self):
-        return (self.treemodel, self.majorphonloc_cb.isChecked(), self.minorphonloc_cb.isChecked())
+        phonlocs = PhonLocations(
+            phonologicalloc=self.phonological_cb.isChecked(),
+            majorphonloc=self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
+            minorphonloc=self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
+            phoneticloc=self.phonetic_cb.isChecked()
+        )
+        locationtype = LocationType(
+            body=self.body_radio.isChecked(),
+            signingspace=self.signingspace_radio.isChecked(),
+            bodyanchored=self.signingspacebody_radio.isEnabled() and self.signingspacebody_radio.isChecked(),
+            purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked()
+        )
+        self.treemodel.locationtype = locationtype
+        # loctype = LocationType(
+        #     body=self.body_radio.isChecked(),
+        #     signingspace=self.signingspace_radio.isChecked(),
+        #     bodyanchored=self.signingspacebody_radio.isChecked(),
+        #     purelyspatial=self.signingspacespatial_radio.isChecked()
+        # )
+        return (self.treemodel, phonlocs)  # , loctype)
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
@@ -465,12 +510,31 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         return super().eventFilter(source, event)
 
     def refresh(self):
-        self.refresh_treemodel()
+        # self.refresh_treemodel()
+        self.refresh_phonlocs()
+        self.refresh_loctype()
+
+    def refresh_loctype(self):
+        loctype = self.treemodel.locationtype
+        self.body_radio.setChecked(loctype.body)
+        self.signingspace_radio.setChecked(loctype.signingspace)
+        self.signingspacebody_radio.setChecked(loctype.bodyanchored)
+        self.signingspacespatial_radio.setChecked(loctype.purelyspatial)
+
+    def refresh_phonlocs(self):
+        self.phonological_cb.setChecked(self.phonlocs.phonologicalloc)
+        self.majorphonloc_cb.setChecked(self.phonlocs.majorphonloc)
+        self.minorphonloc_cb.setChecked(self.phonlocs.minorphonloc)
+        self.phonetic_cb.setChecked(self.phonlocs.phoneticloc)
 
     def clear(self):
-        self.refresh_treemodel()
+        self.clear_treemodel()
+        self.clear_details()
 
-    def refresh_treemodel(self):
+    def clear_details(self):
+        self.update_detailstable(None, None)
+
+    def clear_treemodel(self):
         locationtype = self.treemodel.locationtype
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
         self.treemodel.locationtype = locationtype
@@ -485,6 +549,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.pathslistview.setModel(self.listproxymodel)
 
         # self.combobox.clear()
+        self.clear_details()
 
     def clearlist(self, button):
         numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()

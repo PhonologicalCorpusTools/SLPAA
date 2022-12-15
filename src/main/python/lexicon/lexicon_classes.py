@@ -360,10 +360,13 @@ class Sign:
     def unserializelocationmodules(self, serialized_locnmodules):
         unserialized = {}
         for k in serialized_locnmodules.keys():
-            locntreemodel = serialized_locnmodules[k].getLocationTreeModel()
-            hands = serialized_locnmodules[k].hands
-            timingintervals = serialized_locnmodules[k].timingintervals
-            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals)
+            serialmodule = serialized_locnmodules[k]
+            locntreemodel = serialmodule.getLocationTreeModel()
+            hands = serialmodule.hands
+            timingintervals = serialmodule.timingintervals
+            phonlocs = serialmodule.phonlocs
+            # loctype = serialmodule.loctype
+            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, phonlocs=phonlocs)  # , loctype=loctype)
         self.locationmodules = unserialized
 
     def __hash__(self):
@@ -504,13 +507,13 @@ class Sign:
         self.targetmodules.append(targetmod)
         self.lastmodifiednow()
 
-    def addlocationmodule(self, locationtree, hands_dict, timingintervals, majorphonloc=False, minorphonloc=False):
+    def addlocationmodule(self, locationtree, hands_dict, timingintervals, phonlocs): #, loctype):
         # create and add a brand new one
-        locnmod = LocationModule(locationtree, hands_dict, timingintervals, majorphonloc, minorphonloc)
+        locnmod = LocationModule(locationtree, hands_dict, timingintervals, phonlocs=phonlocs)  # , loctype=loctype)
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
-    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, majorphonloc=False, minorphonloc=False):
+    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, phonlocs):  #, loctype):
         locnmod = self.locationmodules[uniqueid]
         ischanged = False
         if locnmod.locationtreemodel != locationtree:
@@ -522,12 +525,12 @@ class Sign:
         if locnmod.timingintervals != timingintervals:
             locnmod.timingintervals = timingintervals
             ischanged = True
-        if locnmod.majorphonloc != majorphonloc:
-            locnmod.majorphonloc = majorphonloc
+        if locnmod.phonlocs != phonlocs:
+            locnmod.phonlocs = phonlocs
             ischanged = True
-        if locnmod.minorphonloc != minorphonloc:
-            locnmod.minorphonloc = minorphonloc
-            ischanged = True
+        # if locnmod.loctype != loctype:
+        #     locnmod.loctype = loctype
+        #     ischanged = True
         if ischanged:
             self.lastmodifiednow()
 
