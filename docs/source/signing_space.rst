@@ -102,9 +102,9 @@ OR
 b) Symmetry in the horizontal axis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement. For the most part this is simple to assess, but it becomes more complicated in the horizontal axis due to the bilateral symmetry of the human body. It's possible that similar ambiguity could exist in either the vertical or sagittal axis in some cases, but we focus only on the horizontal axis since it has the benefit of being visibly evidenced by its grounding in physiology. 
+Recall that the :ref:`movement direction relation<signtype_movement_direction_relation>` options in the :ref:`sign_type_module` module allow users to specify whether or not both hands are moving in the "same" direction for two-handed signs with a :ref:`perceptual_shape` movement and whether or not both hands are "in phase" in terms of location and orientation. For the most part this is simple to assess, but it becomes more complicated in the horizontal axis due to the natural bilateral symmetry of the human body. It's possible that similar ambiguity could exist in either the vertical or sagittal axis in some cases, but we focus only on the horizontal axis since it has the benefit of being visibly evidenced by its grounding in physiology.
 
-Depending on definition, it could be equally valid that both hands moving to signer's left are moving in the "same" direction, or that both hands moving towards each other (and towards the midline of the body) are moving in the "same" direction. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving left or right are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving left or right are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
+Depending on definition, it could be equally valid that both hands moving to signer's dominant side are moving in the "same" direction, or that both hands moving towards each other (and towards the midline of the body) are moving in the "same" direction. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving towards or away from the signer's dominant side are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving towards or away from the signer's dominant side are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
 
 Compare how the horizontal axis options will apply for `WINDSHIELD_WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ and `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_:
 
@@ -281,14 +281,7 @@ These descriptions may be confusing at first glance. Familiarising yourself with
 
 **This section will describe how the information on the rest of this page applies to body-anchored locations in particular (both the 'on-body locations' and the signing space option defined in terms of a body location).**
 
-.. _symmetry_puzzle:
-
-4. The horizontal axis
-``````````````````````
-
-**I believe that all of the information in this section will be covered throughout the page, so it won't need its own section. I'll double-check to be sure.**
-
-.. note::
+.. comment::
     To include here:
     
     {Introduction to the particular difficulties introduced with horizontal symmetry over any other kind}
