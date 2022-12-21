@@ -21,7 +21,7 @@ This :ref:`module` is used to code the **movement** components of a sign. For mo
 1. Hand applicability and timing
 ````````````````````````````````
 
-Most of the options described in this section apply for every type of module except for :ref:`sign_type_module`. Some module types are best suited to their own slightly modified set of options. In the case of the movement module, this is the case for hand phasing, described below.
+Most of the options described in this section apply for every type of module (except for :ref:`sign_type_module`). Some module types are best suited to their own slightly modified set of options. For the movement module in particular, this is the case for the set of hand selection options adapted for phasing, as described below.
 
 .. comment::
     This section will be included in the documentations for every module type, with details/sign examples/screenshots amended for the given module type
@@ -34,30 +34,32 @@ I. Hand selection and phasing
 .. comment::
     For other module types, this section will just be called "hand selection" and the options will be much simpler
 
-For one-handed movements, select whether the movement described in this module applies to Hand 1 or Hand 2. 
+For one-handed movements, select whether the movement described in this instance of the module applies to Hand 1 or Hand 2. 
 
-For two-handed movements, select whether this module describes a movement where both hands are **in phase** for all parameters (location, hand configuration, and orientation) or one where they are **out of phase** for at least one parameter. These options correspond to the specifications in :ref:`sign_type_module` for the :ref:`Movement timing relation<signtype_movement_timing_relation>` of signs where both hands move similarly. That is, the hands are 'in phase' when they have the same specification for each parameter at the same time, and they are 'out of phase' when they have opposite specifications for at least one parameter at the same time. You will have the opportunity to specify which parameter(s) is/are out of phase for a given module.
+For two-handed movements, select whether this instance of the module describes a movement where both hands are **in phase** for all parameters (location, hand configuration, and orientation) or **out of phase** for at least one parameter. These options correspond to the selections available in :ref:`sign_type_module` for the :ref:`Movement timing relation<signtype_movement_timing_relation>` of signs where both hands move similarly. That is, the hands are 'in phase' when they have the same specification for each parameter at the same time, and they are 'out of phase' when they have opposite specifications for at least one parameter at the same time. You will have the opportunity to specify which parameter(s) is/are out of phase for a given instance of the movement module.
+
+Note that the program will generate two identical linked modules when you select either of the options that apply to both hands, and any future edits to either module will also apply to the other. See :ref:`modularity` for more information on linked modules and how to edit them.
 
 .. note::
     **Symmetry and hand phasing**
     
-    The interpretation of phasing for both location and orientation may depend on the user's interpretation of movement in the horizontal axis, as set in the :ref:`global_settings`. For instance, `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_ may be understood to be either in or out of phase, depending on whether movement towards the same *absolute* (towards H1 or H2 side) direction or towards the same *relative* (ipsilateral or contralateral) direction is valued more. See :ref:`Symmetry in the horizontal axis<axis_symmetry>` for more information.
+    The interpretation of phasing for both location and orientation may depend on the user's interpretation of movement in the horizontal axis, as set in the :ref:`global_settings`. For instance, `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_ may be understood to be either in or out of phase, depending on whether movement towards the same *absolute* (towards H1 or H2 side) direction or towards the same *relative* (ipsilateral or contralateral) direction is valued higher. See :ref:`Symmetry in the horizontal axis<axis_symmetry>` for more information.
 
-Note that the program will generate two identical linked modules when you select either of the options that apply to both hands, and any future edits to either module will also apply to the other. See :ref:`timing_page` for more information on editing modules.
-
-In the following sample coding of `ROW <https://asl-lex.org/visualization/?sign=row>`_, all specifications for both hands are identical and the hands are specified to be in phase for all parameters.:
+In the following sample coding of `ROW <https://asl-lex.org/visualization/?sign=row>`_, all specifications for both hands are identical and the hands are specified to be in phase for all parameters:
 
 .. image:: images/mov_sample_sign_ROW.png
     :width: 750
     :align: left
 
-Meanwhile, the following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since their respective positions within the paths of their circles are at opposite points at the same time:
+This means that the movements for both hands can be described at once to generate two instances of identical movement modules.
+
+The following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since their respective positions within the paths of their circles are at opposite points at the same time:
 
 .. image:: images/mov_sample_sign_THEATER.png
     :width: 750
     :align: left
 
-A single module can still describe the movements of both hands as long as they are indicated to be out of phase (in this case, with respect to location).
+The movements of both hands can still described together as long as they are indicated to be out of phase (in this case, with respect to location). This will also generate two instances of identical movement modules, though they are recorded as out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
 
 .. comment::
     I wanted to keep the ROW/THEATER examples as a comparison for how to approach differences in phasing for circles, but I think this section may also benefit from an example like POPCORN or an orientation change
@@ -87,9 +89,9 @@ II. X-slot selection
 .. warning::
     Under construction
     
-    **(Add descriptions for how to interact with the x-slot field. Link to the timing page for more detail.) Assume that x-slots are enabled, and this section can be skipped if they are not. Add a screenshot for context.** Important notes: no overlapping regions, must make at least one selection, points vs. intervals, functionally identical selection options(?) ← I meant choosing 'whole sign' vs 'first x-slot' for signs with exactly one x-slot, but now I'm wondering how different everything is on the back end if you want to do extra clicking for smaller intervals than necessary in general. That's not important to worry about here, since the best practice is usually to choose the simplest set of intervals and points → larger intervals whenever possible. 
+    **(Add descriptions for how to interact with the x-slot field. Link to the timing page for more detail.) Assume that x-slots are enabled, and this section can be skipped if they are not. Add a screenshot for context.** Important notes: no overlapping regions, must make at least one selection, points vs. intervals, functionally identical selection options(?) ← I meant choosing 'whole sign' vs 'first x-slot' for signs with exactly one x-slot, but now I'm wondering how different everything is on the back end if you want to do extra clicking for smaller intervals than necessary in general. That's not important to worry about here, since the best practice is usually to choose the simplest set of intervals and points → larger intervals whenever possible
     
-    Reference testing: [Napoli2011]_
+    Reference testing: [Napoli2011]_ Napoli2011_
 
 .. _movement_type_entry:
 
