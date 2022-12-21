@@ -89,7 +89,7 @@ II. X-slot selection
 .. warning::
     Under construction
     
-    **(Add descriptions for how to interact with the x-slot field. Link to the timing page for more detail.) Assume that x-slots are enabled, and this section can be skipped if they are not. Add a screenshot for context.** Important notes: no overlapping regions, must make at least one selection, points vs. intervals, functionally identical selection options(?) ← I meant choosing 'whole sign' vs 'first x-slot' for signs with exactly one x-slot, but now I'm wondering how different everything is on the back end if you want to do extra clicking for smaller intervals than necessary in general. That's not important to worry about here, since the best practice is usually to choose the simplest set of intervals and points → larger intervals whenever possible
+    **(Add descriptions for how to interact with the x-slot field. Link to the timing page for more detail.) Assume that x-slots are enabled, and this section can be skipped if they are not. Add a screenshot for context.** Important notes: no overlapping regions, must make at least one selection, points vs. intervals, functionally identical selection options(?) ← as in choosing 'whole sign' vs 'first x-slot' for signs with exactly one x-slot
     
     Reference testing: [Napoli2011]_ Napoli2011_
 
