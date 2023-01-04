@@ -374,18 +374,31 @@ class TreeSearchComboBox(QComboBox):
 # and from saveable form.
 class MovementTree:
 
-    def __init__(self, mvmtmodule):
+    def __init__(self, mvmtmodule=None, mvmttreeonly=None):
 
-        treenode = mvmtmodule.movementtreemodel.invisibleRootItem()
-        self.hands = mvmtmodule.hands
-        self.timingintervals = mvmtmodule.timingintervals
+        # creates a full serializable copy of the movement module, eg for saving to disk
+        if mvmtmodule is not None:
+            treenode = mvmtmodule.movementtreemodel.invisibleRootItem()
+            self.hands = mvmtmodule.hands
+            self.timingintervals = mvmtmodule.timingintervals
 
-        self.numvals = {}
-        self.checkstates = {}
+            self.numvals = {}
+            self.checkstates = {}
 
-        # self.mvmtlist = MovementList(mvmtmodule.listmodel)
+            # self.mvmtlist = MovementList(mvmtmodule.listmodel)
 
-        self.collectdata(treenode)
+            self.collectdata(treenode)
+
+        # creates a serializable copy of only the tree model (not hands or timing intervals), eg for deep-copying
+        elif mvmttreeonly is not None:
+            treenode = mvmttreeonly.invisibleRootItem()
+            self.hands = None
+            self.timingintervals = None
+
+            self.numvals = {}
+            self.checkstates = {}
+
+            self.collectdata(treenode)
 
     def collectdata(self, treenode):
 

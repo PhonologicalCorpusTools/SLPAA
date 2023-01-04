@@ -338,7 +338,7 @@ class Sign:
     def serializemovementmodules(self):
         serialized = {}
         for k in self.movementmodules.keys():
-            serialized[k] = MovementTree(self.movementmodules[k])
+            serialized[k] = MovementTree(mvmtmodule=self.movementmodules[k])
         return serialized
 
     def unserializemovementmodules(self, serialized_mvmtmodules):

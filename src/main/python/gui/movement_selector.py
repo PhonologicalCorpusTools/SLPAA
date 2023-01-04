@@ -1,6 +1,6 @@
 import os
 import json
-from fractions import Fraction
+
 from PyQt5.QtWidgets import (
     QFrame,
     QPushButton,
@@ -132,7 +132,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         # self.rootNode = self.treemodel.invisibleRootItem()
         if moduletoload:
             if isinstance(moduletoload, MovementTreeModel):
-                self.treemodel = moduletoload
+                self.treemodel = MovementTree(mvmttreeonly=moduletoload).getMovementTreeModel()
             # elif isinstance(moduletoload, MovementTree):
             #     # TODO KV - make sure listmodel & listitems are also populated
             #     self.treemodel = moduletoload.getMovementTreeModel()

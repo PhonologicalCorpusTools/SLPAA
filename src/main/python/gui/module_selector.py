@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from PyQt5.QtWidgets import (
     QFrame,
     QPushButton,
@@ -85,6 +87,8 @@ class ModuleSelectorDialog(QDialog):
         self.mainwindow = mainwindow
         if timingintervals is None:
             timingintervals = []
+        else:
+            timingintervals = deepcopy(timingintervals)
 
         main_layout = QVBoxLayout()
 
@@ -138,7 +142,7 @@ class ModuleSelectorDialog(QDialog):
         standard = self.button_box.standardButton(button)
 
         if standard == QDialogButtonBox.Cancel:
-            # TODO KV - BUG? - if we are editing an already-existing movement module, this seems to save anyway
+            # TODO KV - BUG issue #44 - if we are editing an already-existing movement module, this seems to save anyway
             self.reject()
 
         # TODO KV this duplicates the code in the next conditional case
