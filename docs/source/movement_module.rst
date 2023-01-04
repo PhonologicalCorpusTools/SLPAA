@@ -1,62 +1,97 @@
 .. todo::
+    (sign example with orientation or hand configuration out of phase?)
+    continue x-slot selection
+    fix references in the movement type section
+    update / delete refs to “transcription process” in the movement type section
     joint activity description not completed
     movement characteristics not yet started
-    at least one sample coding of the full set of movement modules for a sign (or is this covered in the other project materials?)
-    fix references
-    update / delete refs to “transcription process”
-    type up hand applicability section
-    continue x-slot selection
-    'no movement' sign example(s)
-    sign example(s) with orientation out of phase?
+    at least one sample coding of the full set of movement modules for a sign 
+        (or is this covered in the other project materials?)
         
-.. _movement:
+.. _movement_module:
 
 ***************
 Movement Module
 ***************
 
-This :ref:`module` is used to code the movement components of a sign. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
+This :ref:`module` is used to code the **movement** components of a sign. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
 
-1. Hand applicability and timing options
-````````````````````````````````````````
+.. _move_timing_section:
 
-**Describe what this section will deal with, mention that most of it applies to all module types, add a note about 'no movement' modules**
+1. Hand applicability and timing
+````````````````````````````````
 
-I. Module handedness and phasing (work on the wording here)
-================================
+Most of the options described in this section apply for every type of module (except for :ref:`sign_type_module`). Some module types are best suited to their own slightly modified set of options. For the movement module in particular, this is the case for the set of hand selection options adapted for phasing, as described below.
 
-**Insert here: hand selection and hand phasing options (row/theater, and hopefully a pair that shows orientation phasing). This description will be the same for every module, except for hand phasing which is currently only used here.**
+.. comment::
+    This section will be included in the documentations for every module type, with details/sign examples/screenshots amended for the given module type
 
-`ROW <https://asl-lex.org/visualization/?sign=row>`_
+.. _move_hand_phasing:
+
+I. Hand selection and phasing
+=============================
+
+.. comment::
+    For other module types, this section will just be called "hand selection" and the options will be much simpler
+
+For one-handed movements, select whether the movement described in this instance of the module applies to Hand 1 or Hand 2. 
+
+For two-handed movements, select whether this instance of the module describes a movement where both hands are **in phase** for all parameters (location, hand configuration, and orientation) or **out of phase** for at least one parameter. These options correspond to the selections available in :ref:`sign_type_module` for the :ref:`Movement timing relation<signtype_movement_timing_relation>` of signs where both hands move similarly. That is, the hands are 'in phase' when they have the same specification for each parameter at the same time, and they are 'out of phase' when they have opposite specifications for at least one parameter at the same time. You will have the opportunity to specify which parameter(s) is/are out of phase for a given instance of the movement module.
+
+Note that the program will generate two identical linked modules when you select either of the options that apply to both hands, and any future edits to either module will also apply to the other. See :ref:`modularity` for more information on linked modules and how to edit them.
+
+.. note::
+    **Symmetry and hand phasing**
+    
+    The interpretation of phasing for both location and orientation may depend on the user's interpretation of movement in the horizontal axis, as set in the :ref:`global_settings`. For instance, `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_ may be understood to be either in or out of phase, depending on whether movement towards the same *absolute* (towards H1 or H2 side) direction or towards the same *relative* (ipsilateral or contralateral) direction is valued higher. See :ref:`Symmetry in the horizontal axis<axis_symmetry>` for more information.
+
+In the following sample coding of `ROW <https://asl-lex.org/visualization/?sign=row>`_, all specifications for both hands are identical and the hands are specified to be in phase for all parameters:
 
 .. image:: images/mov_sample_sign_ROW.png
     :width: 750
     :align: left
 
-(blurb)
+This means that the movements for both hands can be described at once to generate two instances of identical movement modules.
 
-`THEATER <https://asl-lex.org/visualization/?sign=theater>`_
+The following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since their respective positions within the paths of their circles are at opposite points at the same time:
 
 .. image:: images/mov_sample_sign_THEATER.png
     :width: 750
     :align: left
 
-(blurb)
+The movements of both hands can still described together as long as they are indicated to be out of phase (in this case, with respect to location). This will also generate two instances of identical movement modules, though they are recorded as out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
+
+.. comment::
+    I wanted to keep the ROW/THEATER examples as a comparison for how to approach differences in phasing for circles, but I think this section may also benefit from an example like POPCORN or an orientation change
+
+.. note::
+    **Phasing for circles in different directions**
+    
+    The examples above for `ROW <https://asl-lex.org/visualization/?sign=row>`_ and `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ show how phasing for location works for circles that are traced out in the same direction for both hands. This can also apply for signs where each hand traces out a circle in the opposite direction to the other hand. 
+    
+    Depending on your choices for the horizontal axis, one of `WASH_FACE_1 <https://asl-lex.org/visualization/?sign=wash_face_1>`_ or `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_  will be an example of a sign with both hands moving in different circular directions. However, both signs are in phase with respect to location either way since the hands reach the :ref:`top of the circle<circular_directions>` at the same time. 
+    
+    Similarly, either `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ or `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_ will be an example of a sign with both hands moving in different circular directions. In this case, both hands are out of phase with respect to location since they reach the :ref:`top of the circle<circular_directions>` at different times. 
+    
+    Consult the descriptions and graphic in :ref:`Movement direction relation<signtype_inclusion_of_perceptual_shape>` for more information.
+
+.. comment::
+    leave the extraneous details here for reference and focus on the important parts in the note above
+
+.. _move_timing_selection:
 
 II. X-slot selection
 ====================
 
-**(This whole section will apply for every module. Add descriptions for how to interact with the x-slot field. Link to the timing page for more detail.)**
+.. comment::
+    This whole section will apply exactly for every module type except nonmanuals, which will need more detail.
 
-.. note::
-    Depending on your choices of how to interact with the program, the step to start adding modules to a sign may come at different points in the coding process.
+.. warning::
+    Under construction
     
-    If :ref:`x-slots<x_slot>` and :ref:`auto-generation<auto_gen>` are both enabled, then code the **movement module(s)** for the sign immediately after entering the :ref:`sign_level_info` and coding the :ref:`sign_type_module`. The movement information is used by the program to generate the appropriate number of x-slots for the sign, and then you'll be able to move on to other sign modules.
-
-    If :ref:`x-slots<x_slot>` are enabled but :ref:`auto-generation<auto_gen>` is not, then you must add the appropriate number of x-slots first before adding any modules at all to the sign.
-
-    See :ref:`global_settings` for more about the program's default behaviour, and how to change these options.
-
+    **(Add descriptions for how to interact with the x-slot field. Link to the timing page for more detail.) Assume that x-slots are enabled, and this section can be skipped if they are not. Add a screenshot for context.** Important notes: no overlapping regions, must make at least one selection, points vs. intervals, functionally identical selection options(?) ← as in choosing 'whole sign' vs 'first x-slot' for signs with exactly one x-slot
+    
+    Reference testing: [Napoli2011]_ Napoli2011_
 
 .. _movement_type_entry:
 
@@ -65,28 +100,31 @@ II. X-slot selection
 
 Select the **movement type** for the current module. The three movement types are mutually exclusive within an instance of a module; that is, a single instance of the module can be specified for only one of these three types of movement. 
 
+.. note::
+    If any portion of a sign includes a prominent moment of intended stillness (for instance, this is a possible analysis of some productions of `ONE <https://asl-lex.org/visualization/?sign=one>`_), select the 'No movement' option. When applicable, this is the only selection within the module as it is mutually exclusive with all other movement options.
+
 Movement type options include:
 
 * :ref:`perceptual_shape`, as in `NORTH <https://asl-lex.org/visualization/?sign=north>`_
 * :ref:`joint_specific_movement`, as in `APPLE <https://asl-lex.org/visualization/?sign=apple>`_
 * :ref:`handshape_change`, as in `HIGH_SCHOOL <https://asl-lex.org/visualization/?sign=high_school>`_
 
-.. note::
-    There is often some flexibility as to whether different components of movement can be counted as separate modules or part of the same one. See :ref:`modularity` for more in-depth discussion of this idea.
-    
-    At a minimum, for signs with multiple (simultaneous and/or sequential) movements, give each movement type its own module. That is, code any :ref:`joint_specific_movement` separately from any movement with :ref:`perceptual_shape` as well as any :ref:`handshape_change`, as these are mutually exclusive by definition. You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`.
-    
-    This means that signs with complex movements like `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ and `EVERY_YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ require at least two movement modules, including a perceptual shape and a joint-specific movement.
-    
-    The number of modules needed to describe a movement may also depend on your choices in terms of :ref:`movement characteristics<movement_chars>` (e.g., how repetitions are coded). 
-
-Note that in SLP-AA, we do not require users to classify movements into the traditional categories of ‘path’ / ‘major’ / ‘primary’ vs. ‘local’ / ‘minor’ / ‘secondary’ movements. Instead, we have classifications for 1) “perceptual shape movements” (e.g., straight, circle, arc), “joint-specific movements” (e.g., twisting, closing), and “handshape changes” (e.g., fingerspelling). As Napoli et al. (2011: 19) point out, “the actual distinction between primary and secondary movement is not uncontroversial and is far from simple.” For example, while wrist movements are typically considered local movements according to articulatory definitions of path and local movement categories (e.g., Brentari, 1998), some of them have been categorized as path movements (van der Kooij, 2002: 229; Sehyr et al., 2021: 269). Furthermore, forcing the choice between path and local movements at the level of phonetic transcription could mask empirical phenomena such as proximalization and distalization (Brentari, 1998), in which both path and local movements can be articulated by non-canonical joints. 
+Note that in SLP-AA, we do not require users to classify movements into the traditional categories of ‘path’ / ‘major’ / ‘primary’ vs. ‘local’ / ‘minor’ / ‘secondary’ movements. Instead, we have classifications for “perceptual shape movements” (e.g., straight, circle, arc), “joint-specific movements” (e.g., twisting, closing), and “handshape changes” (e.g., fingerspelling). As Napoli et al. (2011: 19) point out, “the actual distinction between primary and secondary movement is not uncontroversial and is far from simple.” For example, while wrist movements are typically considered local movements according to articulatory definitions of path and local movement categories (e.g., Brentari, 1998), some of them have been categorized as path movements (van der Kooij, 2002: 229; Sehyr et al., 2021: 269). Furthermore, forcing the choice between path and local movements at the level of phonetic transcription could mask empirical phenomena such as proximalization and distalization (Brentari, 1998), in which both path and local movements can be articulated by non-canonical joints. 
 
 In response to these issues, our system allows any movement in which the hand or arm draws a perceptual shape in space to be classified as perceptual movement, with optional manual specifications of the exact (combination of) joints executing the movement under a separate “joint activity” section. For example, the sign `NORTH <https://asl-lex.org/visualization/?sign=north>`_ is canonically signed as a straight perceptual movement that is articulated at the shoulder. A distalized version of this sign might be produced with an "un-nodding" wrist movement. In such a case, one could code this either as a joint-specific wrist-nod movement OR one could preserve the 'phonological intention' of the perceptual straight movement and simply add the fact that it is articulated with wrist flexion in the :ref:`joint activity<joint_activity_entry>` section.
 
 Traditional local movements (relating to particular joints) defined in the literature are listed under the joint-specific movement section, with the associated joint activities optionally auto-filled (e.g., the joint-specific movement of “closing” can auto-fill to flexion of finger joints in the “joint activity” section). 
 
 Note that after the movement type selections have been made, there are separate additional sections for coding the :ref:`joint activity<joint_activity_entry>` and the :ref:`movement characteristics<movement_chars>`. 
+
+.. note::
+    There is often some flexibility as to whether different components of movement can be counted as separate modules or part of the same one. See :ref:`modularity` for more in-depth discussion of this idea.
+    
+    At minimum, for signs with multiple (simultaneous and/or sequential) movements, give each movement type its own module. That is, code any :ref:`joint_specific_movement` separately from any movement with :ref:`perceptual_shape` as well as any :ref:`handshape_change`, as these are mutually exclusive by definition. You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`.
+    
+    This means that signs with complex movements like `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_ and `EVERY_YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ require at least two movement modules, including a perceptual shape and a joint-specific movement.
+    
+    The number of modules needed to describe a movement may also depend on your choices in terms of :ref:`movement characteristics<movement_chars>` (e.g., how repetitions are coded). 
 
 .. _perceptual_shape_entry:
 
@@ -151,7 +189,7 @@ At most one direction can be selected for each axis, so that a total maximum of 
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (ipsi/contra) or absolute (toward H1/H2), that are described in greater detail in :ref:symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
+The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (ipsi/contra) or absolute (toward H1/H2), that are described in greater detail in :ref:`symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
     
 * **Horizontal axis: relative** [Default]
 
@@ -188,7 +226,7 @@ At most one circular direction can be selected for each plane, so that a total m
     * **Clockwise**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
     * **Counter-clockwise**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
     
-As with :ref:`axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
+As with :ref:`axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
 
 * **Horizontal plane: relative** [Default]
 
@@ -212,7 +250,7 @@ OR
     * **Clockwise**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
     * **Counter-clockwise**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
 
-* **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are *not straight*. This option will be auto-selected if the perceptual movement selected is *straight*.
+* **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are not *straight*. This option will be auto-selected if the perceptual movement selected is *straight*.
 
 .. _joint_specific_movement_entry:
 
@@ -316,4 +354,3 @@ Use the **joint activity** section to add more fine-grained detail about any joi
 ```````````````````````````
 
 ...
-
