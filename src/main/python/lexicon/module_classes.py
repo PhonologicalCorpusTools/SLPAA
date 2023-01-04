@@ -313,37 +313,28 @@ class PhonLocations:
         self._phoneticloc = phoneticloc
 
 
-# this class stores info about what kind of location type (body or signing space) is used by a particular instance of the Location Module
+# this class stores info about what kind of location type (body or signing space)
+# is used by a particular instance of the Location Module
 class LocationType:
-    # __getattr__ = dict.__getitem__
-    # __setattr__ = dict.__setitem__
-    # __delattr__ = dict.__delitem__
 
     def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False):  # , **kwargs):
-        # super().__init__(*kwargs)
-        # if loctypedict:
-        #     # TODO KV validate?
-        #     self._loctype = loctypedict
-        # else:
-        #     self._loctype = {
-        #         'body': False,
-        #         'signingspace': False,
-        #         'bodyanchored': False,
-        #         'purelyspatial': False
-        #     }
         self._body = body
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
 
-    # @property
-    # def loctype(self):
-    #     return self._loctype
-    #
-    # @loctype.setter
-    # def loctype(self, loctype):
-    #     # TODO KV - validate?
-    #     self._loctype = loctype
+    def __repr__(self):
+        repr_str = "nil"
+        if self._body:
+            repr_str = "body"
+        elif self._signingspace:
+            repr_str = "signing space"
+            if self._bodyanchored:
+                repr_str += " (body anchored)"
+            elif self._purelyspatial:
+                repr_str += " (purely spatial)"
+
+        return '<LocationType: ' + repr(repr_str) + '>'
 
     @property
     def body(self):
@@ -384,6 +375,18 @@ class LocationType:
         # TODO KV - validate?
         self._purelyspatial = checked
         self._bodyanchored = not checked
+
+    def usesbodylocations(self):
+        return self._body or self._bodyanchored
+
+    def allfalse(self):
+        return not (self._body or self._signingspace or self._bodyanchored or self._purelyspatial)
+
+    def locationoptions_changed(self, previous):
+        changed = self.usesbodylocations() and previous.purelyspatial
+        changed = changed or (self.purelyspatial and previous.usesbodylocations())
+        changed = changed or (previous.allfalse() and not self.allfalse())
+        return changed
 
 
 class LocationModule(ParameterModule):

@@ -1,6 +1,8 @@
 import os
 import json
 from fractions import Fraction
+from copy import copy
+
 from PyQt5.QtWidgets import (
     QFrame,
     QPushButton,
@@ -59,69 +61,6 @@ from gui.module_selector import HandSelectionLayout
 from lexicon.module_classes import delimiter, userdefinedroles as udr
 
 
-# TODO KV this class is not used for location
-# # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-# class TreeItemDelegate(QStyledItemDelegate):
-#
-#     def createEditor(self, parent, option, index):
-#         theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
-#         theeditor.returnPressed.connect(self.returnkeypressed)
-#         return theeditor
-#
-#     def setEditorData(self, editor, index):
-#         editor.setText(index.data(role=Qt.DisplayRole))
-#
-#     def setModelData(self, editor, model, index):
-#         model.itemFromIndex(index).setData(editor.text(), role=Qt.DisplayRole)
-#         currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+udr.pathdisplayrole)
-#         newpathlevels = currentpath.split(delimiter)
-#         newpathlevels[-1] = editor.text()
-#         model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+udr.pathdisplayrole)
-#
-#     def __init__(self):
-#         super().__init__()
-#         self.commitData.connect(self.validatedata)
-#
-#     def returnkeypressed(self):
-#         print("return pressed")
-#         return True
-#
-#     def validatedata(self, editor):
-#         # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
-#         valstring = editor.text()
-#         isanumber = False
-#         if valstring.isnumeric():
-#             isanumber = True
-#             valnum = int(valstring)
-#         elif valstring.replace(".", "").isnumeric():
-#             isanumber = True
-#             valnum = float(valstring)
-#         if valstring not in ["", "#"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
-#             errordialog = QErrorMessage(editor.parent())
-#             errordialog.showMessage("Number of repetitions must be at least 1 and also a multiple of 0.5")
-#             editor.setText("#")
-#             # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
-#             # editor.setFocus()  # this creates an infinite loop
-#
-#     def paint(self, painter, option, index):
-#         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
-#             widget = option.widget
-#             style = widget.style() if widget else QApplication.style()
-#             opt = QStyleOptionButton()
-#             opt.rect = option.rect
-#             opt.text = index.data()
-#             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
-#             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-#         else:
-#             QStyledItemDelegate.paint(self, painter, option, index)
-#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-#                 opt = QStyleOptionFrame()
-#                 opt.rect = option.rect
-#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-
-
 class ImageDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
@@ -131,7 +70,6 @@ class ImageDisplayTab(QWidget):
 
         main_layout = QHBoxLayout()
 
-        # TODO KV graphics view!
         self.imagedisplay = LocationGraphicsView(app_ctx, frontorback)
         # self.imagedisplay.setMinimumWidth(400)
 
@@ -184,13 +122,8 @@ class ImageDisplayTab(QWidget):
 class LocationSpecificationLayout(ModuleSpecificationLayout):
     saved_location = pyqtSignal(LocationTreeModel, PhonLocations, dict, list, int)
 
-    def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV , movement_specifications,
+    def __init__(self, mainwindow, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
-
-        # TODO KV delete
-        # self.temptestactionstate = False
-        # self.checknoteactionstate = True
-        # self.checknoteactiontext = ""
 
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
         # if moduletoload is not None:
@@ -241,10 +174,10 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # loctype_layout.addWidget(self.signingspace_radio)
         signingspace_layout.addWidget(self.signingspace_radio)
 
-        self.signingspacebody_radio = QRadioButton('body-anchored  /')
+        self.signingspacebody_radio = QRadioButton("body-anchored  /")
         self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
         signingspace_layout.addWidget(self.signingspacebody_radio)
-        self.signingspacespatial_radio = QRadioButton('purely spatial  )')
+        self.signingspacespatial_radio = QRadioButton("purely spatial  )")
         self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
         signingspace_layout.addWidget(self.signingspacespatial_radio)
         signingspace_box = QGroupBox()
@@ -252,14 +185,22 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
         loctype_phonloc_layout.addStretch()
 
-        self.loctype_group = QButtonGroup()
-        self.loctype_group.addButton(self.body_radio)
-        self.loctype_group.addButton(self.signingspace_radio)
-        self.signingspace_group = QButtonGroup()
-        self.signingspace_group.addButton(self.signingspacebody_radio)
-        self.signingspace_group.addButton(self.signingspacespatial_radio)
-        self.loctype_group.buttonToggled.connect(lambda: self.handle_toggle_locationtype(self.loctype_group.checkedButton()))
-        self.signingspace_group.buttonToggled.connect(lambda: self.handle_toggle_signingspacetype(self.signingspace_group.checkedButton()))
+        # self.loctype_maingroup = QButtonGroup()
+        # self.loctype_maingroup.setExclusive(False)
+        self.loctype_subgroup = QButtonGroup()
+        self.loctype_subgroup.addButton(self.body_radio)
+        self.loctype_subgroup.addButton(self.signingspace_radio)
+        self.signingspace_subgroup = QButtonGroup()
+        self.signingspace_subgroup.addButton(self.signingspacebody_radio)
+        self.signingspace_subgroup.addButton(self.signingspacespatial_radio)
+        # self.loctype_maingroup.addButton(self.body_radio)
+        # self.loctype_maingroup.addButton(self.signingspace_radio)
+        # self.loctype_maingroup.addButton(self.signingspacebody_radio)
+        # self.loctype_maingroup.addButton(self.signingspacespatial_radio)
+        # self.loctype_maingroup.buttonToggled.connect(lambda: self.handle_toggle_loctype(self.loctype_subgroup.checkedButton(), self.signingspace_subgroup.checkedButton()))
+        self.loctype_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_locationtype(self.loctype_subgroup.checkedButton()))
+        self.signingspace_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_signingspacetype(self.signingspace_subgroup.checkedButton()))
+        # self.loctype_maingroup.buttonToggled.connect(lambda: self.handle_toggle_locationtyp)
 
         phonological_layout = QVBoxLayout()
         self.phonological_cb = QCheckBox("Phonological location")
@@ -304,8 +245,6 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.combobox.completer().setFilterMode(Qt.MatchContains)
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
         self.combobox.item_selected.connect(self.selectlistitem)
-        # tct = TreeClickTracker(self)  todo kv
-        # self.combobox.installEventFilter(tct)
         search_layout.addWidget(self.combobox)
 
         self.addLayout(search_layout)
@@ -368,13 +307,13 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             pass
             # TODO KV implement for when we're loading an existing location module
         else:
-            for btn in self.loctype_group.buttons() + self.signingspace_group.buttons():
+            for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
                 if mainwindow.app_settings['location']['loctype'] == btn.property('loctype'):
                     btn.setChecked(True)
                     break
 
-        self.enable_location_tools(self.loctype_group.checkedButton() == self.body_radio
-                                   or self.signingspace_group.checkedButton() is not None)
+        self.enablelocationtools(self.loctype_subgroup.checkedButton() == self.body_radio
+                                 or self.signingspace_subgroup.checkedButton() is not None)
 
         self.refresh()
 
@@ -413,50 +352,50 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         othertab.force_zoom(thistab.zoom_slider.value())
         # self.backtab.force_link(ischecked)
 
-    def enable_location_tools(self, enable):
+    def enablelocationtools(self, enable):
         self.combobox.setEnabled(enable)
         self.pathslistview.setEnabled(enable)
         self.detailstableview.setEnabled(enable)
         self.imagetabs.setEnabled(enable)
 
     def handle_toggle_signingspacetype(self, btn):
+        previouslocationtype = copy(self.treemodel.locationtype)
+
         self.signingspace_radio.setChecked(btn is not None)
-        self.treemodel.locationtype.signingspace = True
-        self.enable_location_tools(btn is not None)
+        # if not self.treemodel.locationtype.signingspace:
+        #     self.treemodel.locationtype.signingspace = True
+        # self.enable_location_tools(btn is not None)
 
         if btn == self.signingspacebody_radio:
-            # TODO KV set image and search tool to signing space (body-anchored) content
-            # if self.treemodel.locationtype != 'body':
-            #     self.treemodel.locationtype = 'body'
-            #     self.clear_treemodel()
-            if not self.treemodel.locationtype.body:
-                self.treemodel.locationtype.body = True
-                self.clear_treemodel()
+            if not self.treemodel.locationtype.bodyanchored:
+                self.treemodel.locationtype.bodyanchored = True
         elif btn == self.signingspacespatial_radio:
-            # TODO KV set image and search tool to signing space (purely spatial) content
-            # if self.treemodel.locationtype != 'purelyspatial':
-            #     self.treemodel.locationtype = 'purelyspatial'
-            #     self.clear_treemodel()
             if not self.treemodel.locationtype.purelyspatial:
                 self.treemodel.locationtype.purelyspatial = True
-                self.clear_treemodel()
+
+        self.populate_enable_locationtools(previouslocationtype)
 
     def handle_toggle_locationtype(self, btn):
-        for btn in self.signingspace_group.buttons():
-            btn.setEnabled(self.loctype_group.checkedButton() == self.signingspace_radio)
-        self.enable_location_tools(self.loctype_group.checkedButton() == self.body_radio)
+        previouslocationtype = copy(self.treemodel.locationtype)
+
+        for b in self.signingspace_subgroup.buttons():
+            b.setEnabled(self.loctype_subgroup.checkedButton() == self.signingspace_radio)
 
         if btn == self.body_radio:
-            # TODO KV set image and search tool to body-anchored content
-            # if self.treemodel.locationtype != 'body':
-            #     self.treemodel.locationtype = 'body'
-            #     self.clear_treemodel()
             if not self.treemodel.locationtype.body:
                 self.treemodel.locationtype.body = True
-                self.clear_treemodel()
         elif btn == self.signingspace_radio:
-            # TODO KV leave image and search tool disabled
-            pass
+            if not self.treemodel.locationtype.signingspace:
+                self.treemodel.locationtype.signingspace = True
+
+        self.populate_enable_locationtools(previouslocationtype)
+
+    def populate_enable_locationtools(self, previouslocationtype):
+        newlocationtype = self.treemodel.locationtype
+        if newlocationtype.locationoptions_changed(previouslocationtype):
+            self.clear_treemodel()
+        # set image and search tool to appropriate (either body or spatial) content
+        self.enablelocationtools(newlocationtype.usesbodylocations() or newlocationtype.purelyspatial)
 
     def get_savedmodule_signal(self):
         return self.saved_location

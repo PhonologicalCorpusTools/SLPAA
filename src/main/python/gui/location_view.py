@@ -233,34 +233,34 @@ locn_options_body = {
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
 locn_options_purelyspatial = {
     # ("No movement", fx, rb, u): {},
-    ("Vertical axis", fx, cb, u): {
-        ("High", fx, rb, u): {},
-        ("Mid", fx, rb, u): {},
-        ("Low", fx, rb, u): {},
+    ("Vertical axis", fx, cb, u, None, None, None): {
+        ("High", fx, rb, u, None, None, None): {},
+        ("Mid", fx, rb, u, None, None, None): {},
+        ("Low", fx, rb, u, None, None, None): {},
     },
-    ("Sagittal axis", fx, cb, u): {
-        ("In front", fx, rb, u): {
-            ("Far", fx, rb, u): {},
-            ("Med.", fx, rb, u): {},
-            ("Close", fx, rb, u): {},
+    ("Sagittal axis", fx, cb, u, None, None, None): {
+        ("In front", fx, rb, u, None, None, None): {
+            ("Far", fx, rb, u, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None): {},
         },
-        ("Behind", fx, rb, u): {
-            ("Far", fx, rb, u): {},
-            ("Med.", fx, rb, u): {},
-            ("Close", fx, rb, u): {},
+        ("Behind", fx, rb, u, None, None, None): {
+            ("Far", fx, rb, u, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None): {},
         },
     },
-    ("Horizontal axis", fx, cb, u): {
-        ("Ipsi", fx, rb, u): {
-            ("Far", fx, rb, u): {},
-            ("Med.", fx, rb, u): {},
-            ("Close", fx, rb, u): {},
+    ("Horizontal axis", fx, cb, u, None, None, None): {
+        ("Ipsi", fx, rb, u, None, None, None): {
+            ("Far", fx, rb, u, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None): {},
         },
-        ("Central", fx, rb, u): {},
-        ("Contra", fx, rb, u): {
-            ("Far", fx, rb, u): {},
-            ("Med.", fx, rb, u): {},
-            ("Close", fx, rb, u): {},
+        ("Central", fx, rb, u, None, None, None): {},
+        ("Contra", fx, rb, u, None, None, None): {
+            ("Far", fx, rb, u, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None): {},
         },
     },
 }
@@ -320,7 +320,6 @@ class LocationTreeItem(QStandardItem):
                 self.setData(True, Qt.UserRole + udr.mutuallyexclusiverole)
             else:
                 self.setData(False, Qt.UserRole + udr.mutuallyexclusiverole)
-            # self.setData(mutuallyexclusive, Qt.UserRole+udr.mutuallyexclusiverole)
 
             self.listitem = listit
             if listit is not None:
@@ -638,7 +637,7 @@ class LocationTreeModel(QStandardItemModel):
         self._listmodel = None  # MovementListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
-        self._locationtype = LocationType(body=True)
+        self._locationtype = LocationType()
 
     def updatelistdata(self, topLeft, bottomRight):
         startitem = self.itemFromIndex(topLeft)
@@ -672,21 +671,21 @@ class LocationTreeModel(QStandardItemModel):
         elif structure == {} and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            if self.locationtype.body:
+            if self.locationtype.usesbodylocations():
                 self.populate(parentnode, structure=locn_options_body, pathsofar="")
             elif self.locationtype.purelyspatial:
                 self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())
-            for idx, labelclassifierchecked_7tuple in enumerate(structure.keys()):
-                label = labelclassifierchecked_7tuple[0]
-                editable = labelclassifierchecked_7tuple[1]
-                classifier = labelclassifierchecked_7tuple[2]
-                checked = labelclassifierchecked_7tuple[3]
-                ishandloc = labelclassifierchecked_7tuple[4] == h  # hand vs nonhand
-                allowsurfacespec = labelclassifierchecked_7tuple[5]
-                allowsubareaspec = labelclassifierchecked_7tuple[6]  # sub area or bone/joint
+            for idx, labelclassifierchecked_tuple in enumerate(structure.keys()):
+                label = labelclassifierchecked_tuple[0]
+                editable = labelclassifierchecked_tuple[1]
+                classifier = labelclassifierchecked_tuple[2]
+                checked = labelclassifierchecked_tuple[3]
+                ishandloc = labelclassifierchecked_tuple[4] == h  # hand vs nonhand
+                allowsurfacespec = labelclassifierchecked_tuple[5]
+                allowsubareaspec = labelclassifierchecked_tuple[6]  # sub area or bone/joint
                 ismutuallyexclusive = classifier == rb
                 iseditable = editable == ed
                 if label == subgroup:
@@ -696,7 +695,7 @@ class LocationTreeModel(QStandardItemModel):
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, structure=structure[labelclassifierchecked_7tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup + "_" + pathsofar + "_" + (str(classifier)))
+                    self.populate(parentnode, structure=structure[labelclassifierchecked_tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup + "_" + pathsofar + "_" + (str(classifier)))
 
                 else:
                     # parentnode.setColumnCount(1)
@@ -710,7 +709,7 @@ class LocationTreeModel(QStandardItemModel):
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole+udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole+udr.finalsubgrouprole)
-                    self.populate(thistreenode, structure=structure[labelclassifierchecked_7tuple], pathsofar=pathsofar + label + delimiter)
+                    self.populate(thistreenode, structure=structure[labelclassifierchecked_tuple], pathsofar=pathsofar + label + delimiter)
                     parentnode.appendRow([thistreenode])
 
     @property
@@ -728,29 +727,8 @@ class LocationTreeModel(QStandardItemModel):
         return self._locationtype
 
     @locationtype.setter
-    def locationtype(self, locationtype): # LocationType class
+    def locationtype(self, locationtype):  # LocationType class
         self._locationtype = locationtype
-
-#
-# # TODO KV: need a graphics view instead
-# class MovementTreeView(QTreeView):
-#
-#     # adapted from https://stackoverflow.com/questions/68069548/checkbox-with-persistent-editor
-#     def edit(self, index, trigger, event):
-#         # if the edit involves an index change, there's no event
-#         if (event and index.column() == 0 and index.flags() & Qt.ItemIsUserCheckable and event.type() in (event.MouseButtonPress, event.MouseButtonDblClick) and event.button() == Qt.LeftButton and self.isPersistentEditorOpen(index)):
-#             opt = self.viewOptions()
-#             opt.rect = self.visualRect(index)
-#             opt.features |= opt.HasCheckIndicator
-#             checkRect = self.style().subElementRect(
-#                 QStyle.SE_ItemViewItemCheckIndicator,
-#                 opt, self)
-#             if event.pos() in checkRect:
-#                 if index.data(Qt.CheckStateRole):
-#                     self.model().itemFromIndex(index).uncheck()
-#                 else:
-#                     self.model().itemFromIndex(index).check()
-#         return super().edit(index, trigger, event)
 
 
 class LocationTableView(QTableView):
@@ -896,63 +874,6 @@ class LocationTableModel(QAbstractTableModel):
             return str(section + 1)
 
         return None
-
-
-# TODO KV I don't think this class is used/necessary
-# class LocationTableItem(QStandardItem):
-#
-#     def __init__(self, txt="", serializedlocntableitem=None):
-#         super().__init__()
-#
-#         # TODO KV does this actually need a timestamp??
-#
-#         if serializedlocntableitem:
-#             self.setEditable(serializedlocntableitem['editable'])
-#             self.setText(serializedlocntableitem['text'])
-#             self.setCheckable(serializedlocntableitem['checkable'])
-#             self.setCheckState(serializedlocntableitem['checkstate'])
-#             self.setUserTristate(serializedlocntableitem['usertristate'])
-#             # self.setData(serializedlocntableitem['selectedrole'], Qt.UserRole + udr.selectedrole)
-#             # self.setData(serializedlocntableitem['texteditrole'], Qt.UserRole + udr.texteditrole)
-#             self.setData(serializedlocntableitem['timestamprole'], Qt.UserRole + udr.timestamprole)
-#             self.setData(serializedlocntableitem['checkstaterole'], Qt.CheckStateRole)
-#             # self.setData(serializedlocntableitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
-#             # self.setData(serializedlocntableitem['displayrole'], Qt.DisplayRole)
-#             # self._addedinfo = serializedlocntableitem['addedinfo']
-#             # self.listitem = LocationListItem(serializedlistitem=serializedlocntableitem['listitem'])
-#             # self.listitem.treeitem = self
-#         else:
-#             self.setEditable(False)
-#             self.setText(txt)
-#             self.setCheckable(True)
-#             self.setCheckState(Qt.Unchecked)
-#             self.setUserTristate(False)
-#             # self.setData(False, Qt.UserRole+udr.selectedrole)
-#             # self.setData(False, Qt.UserRole+udr.texteditrole)
-#             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
-#             self.setData(Qt.Unchecked, Qt.CheckStateRole)
-#
-#     def __repr__(self):
-#         return '<LocationTableItem: ' + repr(self.text()) + '>'
-#
-#     def data(self, index, role):
-#         if role == Qt.CheckStateRole:
-#             return Qt.Checked
-#
-#     def serialize(self):
-#         return {
-#             'editable': self.isEditable(),
-#             'text': self.text(),
-#             'checkable': self.isCheckable(),
-#             'checkstate': self.checkState(),
-#             'usertristate': self.isUserTristate(),
-#             'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
-#             'checkstaterole': self.data(Qt.CheckStateRole),
-#         #     'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
-#         #     'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
-#         #     'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
-#         #     'displayrole': self.data(Qt.DisplayRole)
-#         }
 
 
 class LocationListItem(QStandardItem):
@@ -1104,10 +1025,6 @@ class TreeListView(QListView):
 
     def __init__(self):
         super().__init__()
-
-    # def selectionChanged(self, selected, deselected):
-    #     allselectedindexes = self.selectionModel().selectedIndexes()
-    #     # print("all selected", [i.data() for i in allselectedindexes])
 
     def keyPressEvent(self, event):
         key = event.key()
