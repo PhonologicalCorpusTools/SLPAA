@@ -507,13 +507,13 @@ class Sign:
         self.targetmodules.append(targetmod)
         self.lastmodifiednow()
 
-    def addlocationmodule(self, locationtree, hands_dict, timingintervals, phonlocs): #, loctype):
+    def addlocationmodule(self, locationtree, hands_dict, timingintervals, phonlocs, loctype):
         # create and add a brand new one
-        locnmod = LocationModule(locationtree, hands_dict, timingintervals, phonlocs=phonlocs)  # , loctype=loctype)
+        locnmod = LocationModule(locationtree, hands_dict, timingintervals, phonlocs=phonlocs, loctype=loctype)
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
-    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, phonlocs):  #, loctype):
+    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, phonlocs, loctype):
         locnmod = self.locationmodules[uniqueid]
         ischanged = False
         if locnmod.locationtreemodel != locationtree:

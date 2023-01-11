@@ -120,7 +120,7 @@ class ImageDisplayTab(QWidget):
 
 # TODO KV there's another class with the same name in panel.py
 class LocationSpecificationLayout(ModuleSpecificationLayout):
-    saved_location = pyqtSignal(LocationTreeModel, PhonLocations, dict, list, int)
+    saved_location = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, int)
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
@@ -132,8 +132,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         if moduletoload:
             if isinstance(moduletoload, LocationModule):
                 self.treemodel = LocationTreeSerializable(moduletoload.locationtreemodel).getLocationTreeModel()
-                self.locationtype = self.treemodel.locationtype
-                self.phonlocs = moduletoload.phonlocs
+                self.locationtype = copy(self.treemodel.locationtype)
+                self.phonlocs = copy(moduletoload.phonlocs)
             # elif isinstance(moduletoload, MovementTree):
             #     # TODO KV - make sure listmodel & listitems are also populated
             #     self.treemodel = moduletoload.getMovementTreeModel()
@@ -304,10 +304,10 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         selection_layout.addLayout(list_layout)
         self.addLayout(selection_layout)
 
-        if moduletoload is not None:
-            pass
-            # TODO KV implement for when we're loading an existing location module
-        else:
+        # set location type radio buttons as per saved module or global settings
+        if moduletoload is not None:  # load from an existing module
+            self.refresh_loctype()
+        else:  # apply from global settings
             for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
                 if mainwindow.app_settings['location']['loctype'] == btn.property('loctype'):
                     btn.setChecked(True)
@@ -421,7 +421,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         #     bodyanchored=self.signingspacebody_radio.isChecked(),
         #     purelyspatial=self.signingspacespatial_radio.isChecked()
         # )
-        return (self.treemodel, phonlocs)  # , loctype)
+        return (self.treemodel, phonlocs, locationtype)
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
@@ -476,8 +476,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
     def clear_treemodel(self):
         locationtype = self.treemodel.locationtype
-        self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
-        self.treemodel.locationtype = locationtype
+        self.treemodel = LocationTreeModel()  # recreate from scratch
+        self.treemodel.locationtype = locationtype  # give it the same location type it had before
         self.treemodel.populate(self.treemodel.invisibleRootItem())
 
         self.listmodel = self.treemodel.listmodel

@@ -825,7 +825,7 @@ class XslotPanel(QScrollArea):
                                                  moduleargs=None,
                                                  timingintervals=locnmodule.timingintervals)
         location_selector.get_savedmodule_signal().connect(
-            lambda locationtree, phonlocs, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_location(locationtree, hands, timingintervals, phonlocs, modulekey))
+            lambda locationtree, phonlocs, loctype, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_location(locationtree, hands, timingintervals, phonlocs, loctype, existing_key=modulekey))
         location_selector.exec_()
 
     def handle_handconfig_clicked(self, modulekey):
@@ -1077,15 +1077,15 @@ class SignSummaryPanel(QScrollArea):
                                                  enable_addnew=True,
                                                  modulelayout=LocationSpecificationLayout(self.mainwindow),
                                                  moduleargs=None)
-        location_selector.get_savedmodule_signal().connect(lambda locationtree, phonlocs, hands, timingintervals, inphase: self.handle_save_location(locationtree, hands, timingintervals, phonlocs))
+        location_selector.get_savedmodule_signal().connect(lambda locationtree, phonlocs, loctype, hands, timingintervals, inphase: self.handle_save_location(locationtree, hands, timingintervals, phonlocs, loctype))
         location_selector.exec_()
 
-    def handle_save_location(self, locationtree, hands_dict, timingintervals, phonlocs, existing_key=None):
+    def handle_save_location(self, locationtree, hands_dict, timingintervals, phonlocs, loctype, existing_key=None):
         if existing_key is None or existing_key not in self.sign.locationmodules.keys():
-            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals, phonlocs)
+            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals, phonlocs, loctype)
         else:
             # self.sign.locationmodules[existing_key] = locationtree
-            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals, phonlocs)
+            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals, phonlocs, loctype)
         self.sign_updated.emit(self.sign)
 
     def handle_handpartbutton_click(self):

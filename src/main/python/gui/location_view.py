@@ -1,4 +1,5 @@
 import os
+from copy import copy
 
 from PyQt5.QtCore import (
     Qt,
@@ -297,7 +298,7 @@ class LocationTreeItem(QStandardItem):
             self._ishandloc = serializedlocntreeitem['ishandloc']
             self._allowsurfacespec = serializedlocntreeitem['allowsurfacespec']
             self._allowsubareaspec = serializedlocntreeitem['allowsubareaspec']
-            self.detailstable = LocationTableModel(serializedtableitem=serializedlocntreeitem['detailstable'])
+            self.detailstable = LocationTableModel(serializedtablemodel=serializedlocntreeitem['detailstable'])
             self.listitem = LocationListItem(serializedlistitem=serializedlocntreeitem['listitem'])
             self.listitem.treeitem = self
         else:
@@ -589,6 +590,8 @@ class LocationTreeSerializable:
 
         self.collectdata(treenode)
 
+        self.locationtype = copy(locntreemodel.locationtype)
+
     def collectdata(self, treenode):
         if treenode is not None:
             for r in range(treenode.rowCount()):
@@ -610,6 +613,7 @@ class LocationTreeSerializable:
 
     def getLocationTreeModel(self):
         locntreemodel = LocationTreeModel()
+        locntreemodel.locationtype = self.locationtype
         rootnode = locntreemodel.invisibleRootItem()
         locntreemodel.populate(rootnode)
         makelistmodel = locntreemodel.listmodel  # TODO KV   what is this? necessary?
@@ -628,7 +632,7 @@ class LocationTreeSerializable:
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
                     treechild.setCheckState(self.checkstates[pathtext])
-                    treechild.detailstable = self.detailstables[pathtext]
+                    treechild.detailstable = LocationTableModel(serializedtablemodel=self.detailstables[pathtext])
                     self.setvalues(treechild)
 
 

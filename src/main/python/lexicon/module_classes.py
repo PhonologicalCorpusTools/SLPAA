@@ -390,14 +390,14 @@ class LocationType:
 
 
 class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, hands, timingintervals=None, phonlocs=None):  # , loctype=None):
+    def __init__(self, locationtreemodel, hands, timingintervals=None, phonlocs=None, loctype=None):
         if phonlocs is None:
             phonlocs = PhonLocations()
-        # if loctype is None:
-        #     loctype = LocationType()
+        if loctype is None:
+            loctype = LocationType()
         self._locationtreemodel = locationtreemodel
         self._phonlocs = phonlocs
-        # self._loctype = loctype
+        self._loctype = loctype
         super().__init__(hands, timingintervals)
 
     @property
