@@ -369,39 +369,22 @@ class TreeSearchComboBox(QComboBox):
             super().keyPressEvent(event)
 
 
-# This class is a serializable form of the class TODO MovementTreeModel, which is itself not pickleable.
+# This class is a serializable form of the class MovementTreeModel, which is itself not pickleable.
 # Rather than being based on QStandardItemModel, this one uses dictionary structures to convert to
 # and from saveable form.
-class MovementTree:
+class MovementTreeSerializable:
 
-    def __init__(self, mvmtmodule=None, mvmttreeonly=None):
+    def __init__(self, mvmttreemodel):
 
-        # creates a full serializable copy of the movement module, eg for saving to disk
-        if mvmtmodule is not None:
-            treenode = mvmtmodule.movementtreemodel.invisibleRootItem()
-            self.hands = mvmtmodule.hands
-            self.timingintervals = mvmtmodule.timingintervals
+        # creates a full serializable copy of the movement tree, eg for saving to disk
+        treenode = mvmttreemodel.invisibleRootItem()
 
-            self.numvals = {}
-            self.checkstates = {}
+        self.numvals = {}
+        self.checkstates = {}
 
-            # self.mvmtlist = MovementList(mvmtmodule.listmodel)
-
-            self.collectdata(treenode)
-
-        # creates a serializable copy of only the tree model (not hands or timing intervals), eg for deep-copying
-        elif mvmttreeonly is not None:
-            treenode = mvmttreeonly.invisibleRootItem()
-            self.hands = None
-            self.timingintervals = None
-
-            self.numvals = {}
-            self.checkstates = {}
-
-            self.collectdata(treenode)
+        self.collectdata(treenode)
 
     def collectdata(self, treenode):
-
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
@@ -422,7 +405,7 @@ class MovementTree:
         mvmttreemodel = MovementTreeModel()
         rootnode = mvmttreemodel.invisibleRootItem()
         mvmttreemodel.populate(rootnode)
-        makelistmodel = mvmttreemodel.listmodel
+        makelistmodel = mvmttreemodel.listmodel  # TODO KV   what is this? necessary?
         self.setvalues(rootnode)
         return mvmttreemodel
 
@@ -439,6 +422,28 @@ class MovementTree:
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
                     treechild.setCheckState(self.checkstates[pathtext])
                     self.setvalues(treechild)
+
+
+# This class is a serializable form of the class MovementModule, which is itself not pickleable
+# due to its component MovementTreeModel.
+class MovementModuleSerializable:
+
+    def __init__(self, mvmtmodule):
+
+        # creates a full serializable copy of the movement module, eg for saving to disk
+        self.hands = mvmtmodule.hands
+        self.timingintervals = mvmtmodule.timingintervals
+
+        mvmttreemodel = mvmtmodule.movementtreemodel
+        self.movementtree = MovementTreeSerializable(mvmttreemodel)
+    #
+    # def getMovementTreeModel(self):
+    #     mvmttreemodel = MovementTreeModel()
+    #     rootnode = mvmttreemodel.invisibleRootItem()
+    #     mvmttreemodel.populate(rootnode)
+    #     makelistmodel = mvmttreemodel.listmodel
+    #     self.setvalues(rootnode)
+    #     return mvmttreemodel
 
 
 class MovementTreeModel(QStandardItemModel):

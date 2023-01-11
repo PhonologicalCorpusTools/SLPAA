@@ -42,7 +42,7 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.movement_view import MovementTreeModel, MovementTree, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView
+from gui.movement_view import MovementTreeModel, MovementModuleSerializable, MovementTreeSerializable, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView
 # from gui.xslot_graphics import XslotRectButton
 # from gui.signtype_selector import SigntypeSelectorDialog
 # from gui.handshape_selector import HandshapeSelectorDialog
@@ -50,7 +50,7 @@ from gui.movement_view import MovementTreeModel, MovementTree, MovementPathsProx
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 # from gui.xslot_graphics import XslotLinkingLayout
 from gui.module_selector import HandSelectionLayout
-from lexicon.module_classes import delimiter, userdefinedroles as udr
+from lexicon.module_classes import MovementModule, delimiter, userdefinedroles as udr
 
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
@@ -132,12 +132,15 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         # self.rootNode = self.treemodel.invisibleRootItem()
         if moduletoload:
             if isinstance(moduletoload, MovementTreeModel):
-                self.treemodel = MovementTree(mvmttreeonly=moduletoload).getMovementTreeModel()
+                self.treemodel = MovementTreeSerializable(moduletoload).getMovementTreeModel()
+                # self.treemodel = MovementModuleSerializable(mvmttreeonly=moduletoload).getMovementTreeModel()
             # elif isinstance(moduletoload, MovementTree):
             #     # TODO KV - make sure listmodel & listitems are also populated
             #     self.treemodel = moduletoload.getMovementTreeModel()
+            elif isinstance(moduletoload, MovementModule):
+                self.treemodel = MovementTreeSerializable(moduletoload.movementtreemodel).getMovementTreeModel()
             else:
-                print("moduletoload must be of type MovementTreeModel")
+                print("moduletoload must be either of type MovementTreeModel or of type MovementModule")
         else:
             # self.treemodel.populate(self.rootNode)
             self.treemodel.populate(self.treemodel.invisibleRootItem())

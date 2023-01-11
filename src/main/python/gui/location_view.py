@@ -297,7 +297,6 @@ class LocationTreeItem(QStandardItem):
             self._ishandloc = serializedlocntreeitem['ishandloc']
             self._allowsurfacespec = serializedlocntreeitem['allowsurfacespec']
             self._allowsubareaspec = serializedlocntreeitem['allowsubareaspec']
-            self._ishandloc = serializedlocntreeitem['ishandloc']
             self.detailstable = LocationTableModel(serializedtableitem=serializedlocntreeitem['detailstable'])
             self.listitem = LocationListItem(serializedlistitem=serializedlocntreeitem['listitem'])
             self.listitem.treeitem = self
@@ -343,7 +342,8 @@ class LocationTreeItem(QStandardItem):
             'displayrole': self.data(Qt.DisplayRole),
             'addedinfo': self._addedinfo,
             'allowsurfacespec': self._allowsurfacespec,
-            'allowsubareaspec': self._allowsubareaspec
+            'allowsubareaspec': self._allowsubareaspec,
+            'detailstable': LocationTableSerializable(self.detailstable)
             # 'listitem': self.listitem.serialize()  TODO KV why not? the constructor uses it...
         }
 
@@ -576,27 +576,28 @@ class TreeSearchComboBox(QComboBox):
 # This class is a serializable form of the class LocationTreeModel, which is itself not pickleable.
 # Rather than being based on QStandardItemModel, this one uses dictionary structures to convert to
 # and from saveable form.
-class LocationTree:
+class LocationTreeSerializable:
 
-    def __init__(self, locnmodule):
+    def __init__(self, locntreemodel):
 
-        treenode = locnmodule.locationtreemodel.invisibleRootItem()
-        self.hands = locnmodule.hands
-        self.timingintervals = locnmodule.timingintervals
+        # creates a full serializable copy of the location tree, eg for saving to disk
+        treenode = locntreemodel.invisibleRootItem()
 
         self.numvals = {}
         self.checkstates = {}
+        self.detailstables = {}
 
         self.collectdata(treenode)
 
     def collectdata(self, treenode):
-
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
                     checkstate = treechild.checkState()
+                    locntable = treechild.detailstable
+                    self.detailstables[pathtext] = LocationTableSerializable(locntable)
                     editable = treechild.isEditable()
                     if editable:
                         pathsteps = pathtext.split(delimiter)
@@ -611,7 +612,7 @@ class LocationTree:
         locntreemodel = LocationTreeModel()
         rootnode = locntreemodel.invisibleRootItem()
         locntreemodel.populate(rootnode)
-        makelistmodel = locntreemodel.listmodel
+        makelistmodel = locntreemodel.listmodel  # TODO KV   what is this? necessary?
         self.setvalues(rootnode)
         return locntreemodel
 
@@ -627,7 +628,24 @@ class LocationTree:
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
                     treechild.setCheckState(self.checkstates[pathtext])
+                    treechild.detailstable = self.detailstables[pathtext]
                     self.setvalues(treechild)
+
+
+# This class is a serializable form of the class LocationTreeModel, which is itself not pickleable.
+# Rather than being based on QStandardItemModel, this one uses dictionary structures to convert to
+# and from saveable form.
+class LocationModuleSerializable:
+
+    def __init__(self, locnmodule):
+
+        # creates a full serializable copy of the location module, eg for saving to disk
+        self.hands = locnmodule.hands
+        self.timingintervals = locnmodule.timingintervals
+        self.phonlocs = locnmodule.phonlocs
+
+        locntreemodel = locnmodule.locationtreemodel
+        self.locationtree = LocationTreeSerializable(locntreemodel)
 
 
 class LocationTreeModel(QStandardItemModel):
@@ -741,61 +759,15 @@ class LocationTableView(QTableView):
         self.horizontalHeader().resizeSections(QHeaderView.Stretch)
 
 
-# # This class is a serializable form of the class LocationTableModel, which is itself not pickleable.
-# # Rather than being based on QAbstractTableModel, this one uses dictionary structures to convert to
-# # and from saveable form.
-# class LocationTable:
-#
-#     def __init__(self, locntablemodel):
-#
-#         treenode = locnmodule.locationtreemodel.invisibleRootItem()
-#         self.hands = locnmodule.hands
-#         self.timingintervals = locnmodule.timingintervals
-#
-#         self.numvals = {}
-#         self.checkstates = {}
-#
-#         self.collectdata(treenode)
-#
-#     def collectdata(self, treenode):
-#
-#         if treenode is not None:
-#             for r in range(treenode.rowCount()):
-#                 treechild = treenode.child(r, 0)
-#                 if treechild is not None:
-#                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-#                     checkstate = treechild.checkState()
-#                     editable = treechild.isEditable()
-#                     if editable:
-#                         pathsteps = pathtext.split(delimiter)
-#                         parentpathtext = delimiter.join(pathsteps[:-1])
-#                         numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
-#                         self.numvals[parentpathtext] = numericstring
-#
-#                     self.checkstates[pathtext] = checkstate
-#                 self.collectdata(treechild)
-#
-#     def getLocationTreeModel(self):
-#         locntreemodel = LocationTreeModel()
-#         rootnode = locntreemodel.invisibleRootItem()
-#         locntreemodel.populate(rootnode)
-#         makelistmodel = locntreemodel.listmodel
-#         self.setvalues(rootnode)
-#         return locntreemodel
-#
-#     def setvalues(self, treenode):
-#         if treenode is not None:
-#             for r in range(treenode.rowCount()):
-#                 treechild = treenode.child(r, 0)
-#                 if treechild is not None:
-#                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
-#                     parentpathtext = treenode.data(Qt.UserRole+udr.pathdisplayrole)
-#                     if parentpathtext in self.numvals.keys():
-#                         treechild.setText(self.numvals[parentpathtext])
-#                         treechild.setEditable(True)
-#                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
-#                     treechild.setCheckState(self.checkstates[pathtext])
-#                     self.setvalues(treechild)
+# This class is a serializable form of the class LocationTableModel, which is itself not pickleable.
+# Rather than being based on QAbstractTableModel, this one uses the underlying lists from the
+# LocationTableModel to convert to and from saveable form.
+class LocationTableSerializable:
+
+    def __init__(self, locntablemodel):
+        # creates a full serializable copy of the location table, eg for saving to disk
+        self.col_labels = locntablemodel.col_labels
+        self.col_contents = locntablemodel.col_contents
 
 
 class LocationTableModel(QAbstractTableModel):
@@ -803,9 +775,9 @@ class LocationTableModel(QAbstractTableModel):
     def __init__(self, loctext="", ishandloc=False, allowsurfacespec=True, allowsubareaspec=True, serializedtablemodel=None, **kwargs):
         super().__init__(**kwargs)
 
-        if serializedtablemodel is not None:
-            # KV TODO
-            pass
+        if serializedtablemodel is not None:  # from saved table
+            self.col_labels = serializedtablemodel.col_labels
+            self.col_contents = serializedtablemodel.col_contents
 
         else:  # brand new
             self.col_labels = ["", ""]

@@ -3,8 +3,8 @@ from fractions import Fraction
 # from copy import deepcopy
 from datetime import datetime
 
-from gui.movement_view import MovementTree
-from gui.location_view import LocationTree
+from gui.movement_view import MovementModuleSerializable
+from gui.location_view import LocationModuleSerializable
 from gui.xslots_selector import XslotStructure
 from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, TimingInterval, TimingPoint, LocationModule
 
@@ -338,30 +338,30 @@ class Sign:
     def serializemovementmodules(self):
         serialized = {}
         for k in self.movementmodules.keys():
-            serialized[k] = MovementTree(mvmtmodule=self.movementmodules[k])
+            serialized[k] = MovementModuleSerializable(self.movementmodules[k])
         return serialized
 
     def unserializemovementmodules(self, serialized_mvmtmodules):
         unserialized = {}
         for k in serialized_mvmtmodules.keys():
-            mvmttreemodel = serialized_mvmtmodules[k].getMovementTreeModel()
-            hands = serialized_mvmtmodules[k].hands
-            timingintervals = serialized_mvmtmodules[k].timingintervals
+            serialmodule = serialized_mvmtmodules[k]
+            mvmttreemodel = serialmodule.movementtree.getMovementTreeModel()
+            hands = serialmodule.hands
+            timingintervals = serialmodule.timingintervals
             unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals)
         self.movementmodules = unserialized
-
 
     def serializelocationmodules(self):
         serialized = {}
         for k in self.locationmodules.keys():
-            serialized[k] = LocationTree(self.locationmodules[k])
+            serialized[k] = LocationModuleSerializable(self.locationmodules[k])
         return serialized
 
     def unserializelocationmodules(self, serialized_locnmodules):
         unserialized = {}
         for k in serialized_locnmodules.keys():
             serialmodule = serialized_locnmodules[k]
-            locntreemodel = serialmodule.getLocationTreeModel()
+            locntreemodel = serialmodule.locationtree.getLocationTreeModel()
             hands = serialmodule.hands
             timingintervals = serialmodule.timingintervals
             phonlocs = serialmodule.phonlocs

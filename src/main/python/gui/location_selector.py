@@ -53,7 +53,7 @@ from PyQt5.QtGui import (
     QFont
 )
 
-from gui.location_view import LocationTreeModel, LocationTableModel, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
+from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableModel, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 from lexicon.module_classes import LocationModule, PhonLocations, LocationType
 # from gui.xslot_graphics import XslotLinkingLayout
@@ -131,13 +131,14 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         # self.rootNode = self.treemodel.invisibleRootItem()
         if moduletoload:
             if isinstance(moduletoload, LocationModule):
-                self.treemodel = moduletoload.locationtreemodel
+                self.treemodel = LocationTreeSerializable(moduletoload.locationtreemodel).getLocationTreeModel()
                 self.locationtype = self.treemodel.locationtype
                 self.phonlocs = moduletoload.phonlocs
             # elif isinstance(moduletoload, MovementTree):
             #     # TODO KV - make sure listmodel & listitems are also populated
             #     self.treemodel = moduletoload.getMovementTreeModel()
             else:
+                # we have to have the entire module (not just the tree) because of the Phonological Locations info
                 print("moduletoload must be of type LocationModule")
         else:
             # self.treemodel.populate(self.rootNode)
