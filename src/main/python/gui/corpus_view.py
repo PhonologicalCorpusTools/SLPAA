@@ -110,7 +110,7 @@ class CorpusTitleEdit(QLineEdit):
         super().focusInEvent(event)
 
 
-class CorpusView(QWidget):
+class CorpusDisplay(QWidget):
     # selected_gloss = pyqtSignal(str)
     selected_sign = pyqtSignal(Sign)
     title_changed = pyqtSignal(str)
@@ -181,7 +181,7 @@ class CorpusView(QWidget):
     #     self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
     #                                                       QItemSelectionModel.SelectCurrent)
 
-    def updated_signs(self, signs, current_sign):
+    def updated_signs(self, signs, current_sign=None):
         # self.corpus_model.signs.clear()
         # self.corpus_model.signs.extend(signs)
         # self.corpus_model.clear()
@@ -189,7 +189,7 @@ class CorpusView(QWidget):
         # self.corpus_model.signs.sort()
         self.corpus_model.layoutChanged.emit()
 
-        index = list(signs).index(current_sign)
+        index = 0 if current_sign is None else list(signs).index(current_sign)
 
         # TODO KV crash happens at exec of line below, at addition of second sign
         # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt

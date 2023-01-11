@@ -62,171 +62,210 @@ n = "nonhand"
 allow = True
 disallow = False
 
+# if surface, subarea, and/or bone/joint specification is allowed, are there any exceptions to which ones?
+no_exceptions = ()
+
+
+anterior = "Anterior"
+posterior = "Posterior"
+lateral = "Lateral"
+medial = "Medial"
+top = "Top"
+bottom = "Bottom"
+contra_half = "Contra half"
+upper_half = "Upper half"
+whole = "Whole"
+centre = "Centre"
+lower_half = "Lower half"
+ipsi_half = "Ipsi half"
+back = "Back"
+friction = "Friction"
+radial = "Radial"
+ulnar = "Ulnar"
+metacarpophalangeal_joint = "Metacarpophalangeal joint"
+proximal_bone = "Proximal bone"
+proximal_interphalangeal_joint = "Proximal interphalangeal joint"
+medial_bone = "Medial bone"
+distal_interphalangeal_joint = "Distal interphalangeal joint"
+distal_bone = "Distal bone"
+tip = "Tip"
+
+surfaces_nonhand_default = [anterior, posterior, lateral, medial, top, bottom]
+subareas_nonhand_default = [contra_half, upper_half, whole, centre, lower_half, ipsi_half]
+surfaces_hand_default = [back, friction, radial, ulnar]
+bonejoint_hand_default = [metacarpophalangeal_joint, proximal_bone, proximal_interphalangeal_joint,
+                         medial_bone, distal_interphalangeal_joint, distal_bone, tip]
+
+surface_label = "Surface"
+subarea_label = "Sub-area"
+bonejoint_label = "Bone/joint"
+
+
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
 # TODO KV - check specific exceptions etc for each subarea & surface
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
 locn_options_body = {
     # ("No movement", fx, rb, u): {},
-    ("Head", fx, rb, u, n, disallow, allow): {
-        ("Back of head", fx, rb, u, n, disallow, allow): {},
-        ("Top of head", fx, rb, u, n, disallow, allow): {},
-        ("Side of face", fx, rb, u, n, disallow, allow): {
-            ("Side of face - contra", fx, rb, u, n, disallow, allow): {},
-            ("Side of face - ipsi", fx, rb, u, n, disallow, allow): {}
+    ("Head", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {
+        ("Back of head", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+        ("Top of head", fx, rb, u, n, disallow, no_exceptions, allow, (upper_half, lower_half)): {},
+        ("Side of face", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+            ("Side of face - contra", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
+            ("Side of face - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
         },
-        ("Face", fx, rb, u, n, disallow, allow): {
-            ("Temple", fx, rb, u, n, disallow, allow): {
-                ("Temple - contra", fx, rb, u, n, disallow, allow): {},
-                ("Temple - ipsi", fx, rb, u, n, disallow, allow): {}
+        ("Face", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {
+            ("Temple", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                ("Temple - contra", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
+                ("Temple - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
             },
-            ("Above forehead (hairline)", fx, rb, u, n, disallow, allow): {},
-            ("Forehead", fx, rb, u, n, disallow, allow): {},
-            ("Eyebrow", fx, rb, u, n, disallow, allow): {
-                ("Eyebrow - contra", fx, rb, u, n, disallow, allow): {},
-                ("Eyebrow - ipsi", fx, rb, u, n, disallow, allow): {},
-                ("Between eyebrows", fx, rb, u, n, disallow, allow): {}
+            ("Above forehead (hairline)", fx, rb, u, n, disallow, no_exceptions, allow, (upper_half, lower_half)): {},
+            ("Forehead", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+            ("Eyebrow", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                ("Eyebrow - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                ("Eyebrow - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                ("Between eyebrows", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
             },
-            ("Eye", fx, rb, u, n, disallow, allow): {
-                ("Eye - contra", fx, rb, u, n, disallow, allow): {},
-                ("Eye - ipsi", fx, rb, u, n, disallow, allow): {},
-                ("Outer corner of eye", fx, rb, u, n, disallow, allow): {
-                    ("Outer corner of eye - contra", fx, rb, u, n, disallow, disallow): {},
-                    ("Outer corner of eye - ipsi", fx, rb, u, n, disallow, disallow): {}
+            ("Eye", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                ("Eye - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                ("Eye - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                ("Outer corner of eye", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Outer corner of eye - contra", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {},
+                    ("Outer corner of eye - ipsi", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {}
                 },
-                ("Upper eyelid", fx, rb, u, n, disallow, allow): {
-                    ("Upper eyelid - contra", fx, rb, u, n, disallow, allow): {},
-                    ("Upper eyelid - ipsi", fx, rb, u, n, disallow, allow): {}
+                ("Upper eyelid", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Upper eyelid - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Upper eyelid - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Lower eyelid", fx, rb, u, n, disallow, allow): {
-                    ("Lower eyelid - contra", fx, rb, u, n, disallow, allow): {},
-                    ("Lower eyelid - ipsi", fx, rb, u, n, disallow, allow): {}
+                ("Lower eyelid", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Lower eyelid - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Lower eyelid - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
                 }
             },
-            ("Cheek/nose", fx, rb, u, n, disallow, allow): {
-                ("Cheek", fx, rb, u, n, disallow, allow): {
-                    ("Cheek - contra", fx, rb, u, n, disallow, allow): {},
-                    ("Cheek - ipsi", fx, rb, u, n, disallow, allow): {}
+            ("Cheek/nose", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {
+                ("Cheek", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Cheek - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Cheek - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Maxillary process of zygomatic", fx, rb, u, n, disallow, allow): {
-                    ("Maxillary process of zygomatic - contra", fx, rb, u, n, disallow, allow): {},
-                    ("Maxillary process of zygomatic - ipsi", fx, rb, u, n, disallow, allow): {}
+                ("Maxillary process of zygomatic", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Maxillary process of zygomatic - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Maxillary process of zygomatic - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Zygomatic process of temporal bone", fx, rb, u, n, disallow, allow): {
-                    ("Zygomatic process of temporal bone - contra", fx, rb, u, n, disallow, allow): {},
-                    ("Zygomatic process of temporal bone - ipsi", fx, rb, u, n, disallow, allow): {}
+                ("Zygomatic process of temporal bone", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Zygomatic process of temporal bone - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Zygomatic process of temporal bone - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Nose", fx, rb, u, n, disallow, allow): {
-                    ("Nose root", fx, rb, u, n, disallow, allow): {},
-                    ("Nose ridge", fx, rb, u, n, disallow, allow): {},
-                    ("Nose tip", fx, rb, u, n, disallow, allow): {},  # subarea permission is ?? is google sheet
-                    ("Septum", fx, rb, u, n, disallow, allow): {}
+                ("Nose", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {
+                    ("Nose root", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Nose ridge", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Nose tip", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
+                    ("Septum", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
                 }
             },
-            ("Below nose / philtrum", fx, rb, u, n, disallow, allow): {},
-            ("Mouth", fx, rb, u, n, disallow, allow): {
-                ("Lips", fx, rb, u, n, disallow, allow): {
-                    ("Upper lip", fx, rb, u, n, disallow, allow): {},
-                    ("Lower lip", fx, rb, u, n, disallow, allow): {}
+            ("Below nose / philtrum", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+            ("Mouth", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {
+                ("Lips", fx, rb, u, n, disallow, no_exceptions, allow, (upper_half, lower_half)): {
+                    ("Upper lip", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Lower lip", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Corner of mouth - contra", fx, rb, u, n, disallow, disallow): {},
-                ("Corner of mouth - ipsi", fx, rb, u, n, disallow, disallow): {},
-                ("Teeth", fx, rb, u, n, disallow, allow): {
-                    ("Upper teeth", fx, rb, u, n, disallow, allow): {},
-                    ("Lower teeth", fx, rb, u, n, disallow, allow): {}
+                ("Corner of mouth - contra", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {},
+                ("Corner of mouth - ipsi", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {},
+                ("Teeth", fx, rb, u, n, disallow, no_exceptions, allow, (upper_half, lower_half)): {
+                    ("Upper teeth", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Lower teeth", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Tongue", fx, rb, u, n, allow, allow): {},
+                ("Tongue", fx, rb, u, n, allow, tuple([s for s in surfaces_nonhand_default if s not in [anterior, top, bottom]]), allow, (upper_half, lower_half)): {},  # TODO KV resolve question mark from locations spreadsheet
             },
-            ("Ear", fx, rb, u, n, disallow, allow): {
-                ("Ear - contra", fx, rb, u, n, disallow, allow): {},
-                ("Ear - ipsi", fx, rb, u, n, disallow, allow): {},
-                ("Mastoid process", fx, rb, u, n, disallow, allow): {
-                    ("Mastoid process - contra", fx, rb, u, n, disallow, allow): {},
-                    ("Mastoid process - ipsi", fx, rb, u, n, disallow, allow): {}
+            ("Ear", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                ("Ear - contra", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
+                ("Ear - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
+                ("Mastoid process", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Mastoid process - contra", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
+                    ("Mastoid process - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
                 },
-                ("Earlobe", fx, rb, u, n, disallow, allow): {
-                    ("Earlobe - contra", fx, rb, u, n, disallow, allow): {},
-                    ("Earlobe - ipsi", fx, rb, u, n, disallow, allow): {}
+                ("Earlobe", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Earlobe - contra", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
+                    ("Earlobe - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
                 }
             },
-            ("Jaw", fx, rb, u, n, disallow, allow): {
-                ("Jaw - contra", fx, rb, u, n, disallow, allow): {},
-                ("Jaw - ipsi", fx, rb, u, n, disallow, allow): {}
+            ("Jaw", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                ("Jaw - contra", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
+                ("Jaw - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
             },
-            ("Chin", fx, rb, u, n, disallow, allow): {},
-            ("Under chin", fx, rb, u, n, disallow, disallow): {}
+            ("Chin", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+            ("Under chin", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {}
         },
     },
-    ("Neck", fx, rb, u, n, allow, allow): {},
-    ("Torso", fx, rb, u, n, allow, allow): {
-        ("Shoulder", fx, rb, u, n, allow, allow): {
-            ("Shoulder - contra", fx, rb, u, n, allow, allow): {},
-            ("Shoulder - ipsi", fx, rb, u, n, allow, allow): {}
+    ("Neck", fx, rb, u, n, allow, tuple([s for s in surfaces_nonhand_default if s not in [anterior, posterior]]), allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
+    ("Torso", fx, rb, u, n, allow, (medial, top, bottom), allow, no_exceptions): {
+        ("Shoulder", fx, rb, u, n, allow, (medial, bottom), allow, (contra_half, ipsi_half)): {
+            ("Shoulder - contra", fx, rb, u, n, allow, (medial, bottom), allow, no_exceptions): {},
+            ("Shoulder - ipsi", fx, rb, u, n, allow, (medial, bottom), allow, no_exceptions): {}
         },
-        ("Armpit", fx, rb, u, n, disallow, disallow): {
-            ("Armpit - contra", fx, rb, u, n, disallow, disallow): {},
-            ("Armpit - ipsi", fx, rb, u, n, disallow, disallow): {}
+        ("Armpit", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {
+            ("Armpit - contra", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {},
+            ("Armpit - ipsi", fx, rb, u, n, disallow, no_exceptions, disallow, no_exceptions): {}
         },
-        ("Sternum/clavicle area", fx, rb, u, n, disallow, allow): {},
-        ("Chest/breast area", fx, rb, u, n, disallow, allow): {},
-        ("Abdominal/waist area", fx, rb, u, n, disallow, allow): {},
-        ("Pelvis area", fx, rb, u, n, disallow, allow): {},
-        ("Hip", fx, rb, u, n, allow, allow): {
-            ("Hip - contra", fx, rb, u, n, allow, allow): {},
-            ("Hip - ipsi", fx, rb, u, n, allow, allow): {}
+        ("Sternum/clavicle area", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+        ("Chest/breast area", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+        ("Abdominal/waist area", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+        ("Pelvis area", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+        ("Hip", fx, rb, u, n, allow, (medial, top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Hip - contra", fx, rb, u, n, allow, (medial, top, bottom), allow, no_exceptions): {},
+            ("Hip - ipsi", fx, rb, u, n, allow, (medial, top, bottom), allow, no_exceptions): {}
         },
-        ("Groin", fx, rb, u, n, disallow, allow): {},
-        ("Buttocks", fx, rb, u, n, disallow, allow): {
-            ("Buttocks - contra", fx, rb, u, n, disallow, allow): {},
-            ("Buttocks - ipsi", fx, rb, u, n, disallow, allow): {}
+        ("Groin", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
+        ("Buttocks", fx, rb, u, n, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+            ("Buttocks - contra", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
+            ("Buttocks - ipsi", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {}
         }
     },
-    ("Arm (contralateral)", fx, rb, u, n, allow, disallow): {
-        ("Upper arm", fx, rb, u, n, allow, allow): {
-            ("Upper arm above biceps", fx, rb, u, n, allow, allow): {},
-            ("Biceps", fx, rb, u, n, allow, allow): {}
+    ("Arm (contralateral)", fx, rb, u, n, allow, (top, bottom), disallow, no_exceptions): {
+        ("Upper arm", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Upper arm above biceps", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
+            ("Biceps", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
         },
-        ("Elbow", fx, rb, u, n, allow, allow): {},
-        ("Forearm", fx, rb, u, n, allow, allow): {},
-        ("Wrist", fx, rb, u, n, allow, allow): {}
+        ("Elbow", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
+        ("Forearm", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
+        ("Wrist", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
     },
-    ("Legs and feet", fx, rb, u, n, allow, allow): {
-        ("Upper leg", fx, rb, u, n, allow, allow): {
-            ("Upper leg - contra", fx, rb, u, n, allow, allow): {},
-            ("Upper leg - ipsi", fx, rb, u, n, allow, allow): {}
+    ("Legs and feet", fx, rb, u, n, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
+        ("Upper leg", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Upper leg - contra", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {},
+            ("Upper leg - ipsi", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {}
         },
-        ("Knee", fx, rb, u, n, allow, allow): {
-            ("Knee - contra", fx, rb, u, n, allow, allow): {},
-            ("Knee - ipsi", fx, rb, u, n, allow, allow): {}
+        ("Knee", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Knee - contra", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {},
+            ("Knee - ipsi", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {}
         },
-        ("Lower leg", fx, rb, u, n, allow, allow): {
-            ("Lower leg - contra", fx, rb, u, n, allow, allow): {},
-            ("Lower leg - ipsi", fx, rb, u, n, allow, allow): {}
+        ("Lower leg", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Lower leg - contra", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {},
+            ("Lower leg - ipsi", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {}
         },
-        ("Ankle", fx, rb, u, n, allow, allow): {
-            ("Ankle - contra", fx, rb, u, n, allow, allow): {},
-            ("Ankle - ipsi", fx, rb, u, n, allow, allow): {}
+        ("Ankle", fx, rb, u, n, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Ankle - contra", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {},
+            ("Ankle - ipsi", fx, rb, u, n, allow, (top, bottom), allow, no_exceptions): {}
         },
-        ("Foot", fx, rb, u, n, allow, allow): {
-            ("Foot - contra", fx, rb, u, n, allow, allow): {},
-            ("Foot - ipsi", fx, rb, u, n, allow, allow): {}
+        ("Foot", fx, rb, u, n, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
+            ("Foot - contra", fx, rb, u, n, allow, no_exceptions, allow, (upper_half, lower_half)): {},
+            ("Foot - ipsi", fx, rb, u, n, allow, no_exceptions, allow, (upper_half, lower_half)): {}
         }
     },
-    ("Other hand", fx, rb, u, h, allow, disallow): {
-        ("Whole hand", fx, rb, u, h, allow, disallow): {},
-        ("Hand minus fingers", fx, rb, u, h, allow, disallow): {},
-        ("Heel of hand", fx, rb, u, h, allow, allow): {},
-        ("Thumb", fx, rb, u, h, allow, allow): {},
-        ("Fingers", fx, rb, u, h, allow, allow): {},
-        ("Selected fingers", fx, rb, u, h, allow, allow): {},
-        ("Selected fingers and Thumb", fx, rb, u, h, allow, allow): {},
-        ("Finger 1", fx, rb, u, h, allow, allow): {},
-        ("Finger 2", fx, rb, u, h, allow, allow): {},
-        ("Finger 3", fx, rb, u, h, allow, allow): {},
-        ("Finger 4", fx, rb, u, h, allow, allow): {},
-        ("Between Thumb and Finger 1", fx, rb, u, h, allow, disallow): {},
-        ("Between Fingers 1 and 2", fx, rb, u, h, allow, disallow): {},
-        ("Between Fingers 2 and 3", fx, rb, u, h, allow, disallow): {},
-        ("Between Fingers 3 and 4", fx, rb, u, h, allow, disallow): {},
+    ("Other hand", fx, rb, u, h, allow, no_exceptions, disallow, no_exceptions): {
+        ("Whole hand", fx, rb, u, h, allow, no_exceptions, disallow, no_exceptions): {},
+        ("Hand minus fingers", fx, rb, u, h, allow, no_exceptions, disallow, no_exceptions): {},
+        ("Heel of hand", fx, rb, u, h, allow, no_exceptions, allow, no_exceptions): {},
+        ("Thumb", fx, rb, u, h, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
+        ("Fingers", fx, rb, u, h, allow, no_exceptions, allow, no_exceptions): {},
+        ("Selected fingers", fx, rb, u, h, allow, no_exceptions, allow, no_exceptions): {},
+        ("Selected fingers and Thumb", fx, rb, u, h, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
+        ("Finger 1", fx, rb, u, h, allow, no_exceptions, allow, no_exceptions): {},
+        ("Finger 2", fx, rb, u, h, allow, no_exceptions, allow, no_exceptions): {},
+        ("Finger 3", fx, rb, u, h, allow, no_exceptions, allow, no_exceptions): {},
+        ("Finger 4", fx, rb, u, h, allow, no_exceptions, allow, no_exceptions): {},
+        ("Between Thumb and Finger 1", fx, rb, u, h, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+        ("Between Fingers 1 and 2", fx, rb, u, h, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+        ("Between Fingers 2 and 3", fx, rb, u, h, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+        ("Between Fingers 3 and 4", fx, rb, u, h, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
     }
 }
 
@@ -234,53 +273,43 @@ locn_options_body = {
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
 locn_options_purelyspatial = {
     # ("No movement", fx, rb, u): {},
-    ("Vertical axis", fx, cb, u, None, None, None): {
-        ("High", fx, rb, u, None, None, None): {},
-        ("Mid", fx, rb, u, None, None, None): {},
-        ("Low", fx, rb, u, None, None, None): {},
+    ("Vertical axis", fx, cb, u, None, None, None, None, None): {
+        ("High", fx, rb, u, None, None, None, None, None): {},
+        ("Mid", fx, rb, u, None, None, None, None, None): {},
+        ("Low", fx, rb, u, None, None, None, None, None): {},
     },
-    ("Sagittal axis", fx, cb, u, None, None, None): {
-        ("In front", fx, rb, u, None, None, None): {
-            ("Far", fx, rb, u, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None): {},
+    ("Sagittal axis", fx, cb, u, None, None, None, None, None): {
+        ("In front", fx, rb, u, None, None, None, None, None): {
+            ("Far", fx, rb, u, None, None, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None, None, None): {},
         },
-        ("Behind", fx, rb, u, None, None, None): {
-            ("Far", fx, rb, u, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None): {},
+        ("Behind", fx, rb, u, None, None, None, None, None): {
+            ("Far", fx, rb, u, None, None, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None, None, None): {},
         },
     },
-    ("Horizontal axis", fx, cb, u, None, None, None): {
-        ("Ipsi", fx, rb, u, None, None, None): {
-            ("Far", fx, rb, u, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None): {},
+    ("Horizontal axis", fx, cb, u, None, None, None, None, None): {
+        ("Ipsi", fx, rb, u, None, None, None, None, None): {
+            ("Far", fx, rb, u, None, None, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None, None, None): {},
         },
-        ("Central", fx, rb, u, None, None, None): {},
-        ("Contra", fx, rb, u, None, None, None): {
-            ("Far", fx, rb, u, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None): {},
+        ("Central", fx, rb, u, None, None, None, None, None): {},
+        ("Contra", fx, rb, u, None, None, None, None, None): {
+            ("Far", fx, rb, u, None, None, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None, None, None): {},
         },
     },
 }
-
-surfaces_nonhand_default = ["Anterior", "Posterior", "Lateral", "Medial", "Top", "Bottom"]
-subareas_nonhand_default = ["Contra half", "Upper half", "Whole", "Centre", "Lower half", "Ipsi half"]
-surfaces_hand_default = ["Back", "Friction", "Radial", "Ulnar"]
-bonejoint_hand_default = ["Metacarpophalangeal joint", "Proximal bone", "Proximal interphalangeal joint",
-                         "Medial bone", "Distal interphalangeal joint", "Distal bone", "Tip"]
-
-surface_label = "Surface"
-subarea_label = "Sub-area"
-bonejoint_label = "Bone/joint"
 
 
 class LocationTreeItem(QStandardItem):
 
     def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=False, allowsurfacespec=True,
-                 allowsubareaspec=True, addedinfo=None, serializedlocntreeitem=None):
+                 allowsubareaspec=True, addedinfo=None, surface_exceptions=None, subarea_exceptions=None, serializedlocntreeitem=None):
         super().__init__()
 
         if serializedlocntreeitem:
@@ -314,7 +343,12 @@ class LocationTreeItem(QStandardItem):
             self._ishandloc = ishandloc
             self._allowsurfacespec = allowsurfacespec
             self._allowsubareaspec = allowsubareaspec
-            self.detailstable = LocationTableModel(loctext=txt, ishandloc=ishandloc)
+            self.detailstable = LocationTableModel(
+                loctext=txt,
+                ishandloc=ishandloc,
+                surface_exceptions=surface_exceptions,
+                subarea_exceptions=subarea_exceptions
+            )
 
             if mutuallyexclusive:
                 self.setData(True, Qt.UserRole + udr.mutuallyexclusiverole)
@@ -707,7 +741,9 @@ class LocationTreeModel(QStandardItemModel):
                 checked = labelclassifierchecked_tuple[3]
                 ishandloc = labelclassifierchecked_tuple[4] == h  # hand vs nonhand
                 allowsurfacespec = labelclassifierchecked_tuple[5]
-                allowsubareaspec = labelclassifierchecked_tuple[6]  # sub area or bone/joint
+                surface_exceptions = labelclassifierchecked_tuple[6]
+                allowsubareaspec = labelclassifierchecked_tuple[7]  # sub area or bone/joint
+                subarea_exceptions = labelclassifierchecked_tuple[8]
                 ismutuallyexclusive = classifier == rb
                 iseditable = editable == ed
                 if label == subgroup:
@@ -721,7 +757,7 @@ class LocationTreeModel(QStandardItemModel):
 
                 else:
                     # parentnode.setColumnCount(1)
-                    thistreenode = LocationTreeItem(label, ishandloc=ishandloc, allowsurfacespec=allowsurfacespec, allowsubareaspec=allowsubareaspec, mutuallyexclusive=ismutuallyexclusive)
+                    thistreenode = LocationTreeItem(label, ishandloc=ishandloc, allowsurfacespec=allowsurfacespec, allowsubareaspec=allowsubareaspec, mutuallyexclusive=ismutuallyexclusive, surface_exceptions=surface_exceptions, subarea_exceptions=subarea_exceptions)
                     # thistreenode.setData(False, Qt.UserRole+udr.selectedrole)  #  moved to MovementTreeItem.__init__()
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole+udr.pathdisplayrole)
                     thistreenode.setEditable(iseditable)
@@ -776,7 +812,7 @@ class LocationTableSerializable:
 
 class LocationTableModel(QAbstractTableModel):
 
-    def __init__(self, loctext="", ishandloc=False, allowsurfacespec=True, allowsubareaspec=True, serializedtablemodel=None, **kwargs):
+    def __init__(self, loctext="", ishandloc=False, allowsurfacespec=True, allowsubareaspec=True, serializedtablemodel=None, surface_exceptions=None, subarea_exceptions=None, **kwargs):
         super().__init__(**kwargs)
 
         if serializedtablemodel is not None:  # from saved table
@@ -793,16 +829,20 @@ class LocationTableModel(QAbstractTableModel):
 
             if allowsurfacespec:
                 self.col_labels[0] = surface_label
+                if surface_exceptions is None:
+                    surface_exceptions = []
                 col_texts = surfaces_hand_default if ishandloc else surfaces_nonhand_default
+                col_texts = [t for t in col_texts if t not in surface_exceptions]
                 self.col_contents[0] = [[txt, False] for txt in col_texts]
-                # self.col_contents[0] = surfaces_hand_default if ishandloc else surfaces_nonhand_default
                 # TODO KV but what if it's not default?
 
             if allowsubareaspec:
                 self.col_labels[1] = bonejoint_label if ishandloc else subarea_label
+                if subarea_exceptions is None:
+                    subarea_exceptions = []
                 col_texts = bonejoint_hand_default if ishandloc else subareas_nonhand_default
+                col_texts = [t for t in col_texts if t not in subarea_exceptions]
                 self.col_contents[1] = [[txt, False] for txt in col_texts]
-                # self.col_contents[1] = bonejoint_hand_default if ishandloc else subareas_nonhand_default
                 # TODO KV but what if it's not default?
 
     # must implement! abstract parent doesn't define this behaviour

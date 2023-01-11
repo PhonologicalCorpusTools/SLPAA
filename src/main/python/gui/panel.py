@@ -995,7 +995,7 @@ class SignSummaryPanel(QScrollArea):
 
         self.sign_updated.emit(self.sign)
         # self.mainwindow.corpus_view.updated_glosses(self.mainwindow.corpus.get_sign_glosses(), self.sign.signlevel_information.gloss)
-        self.mainwindow.corpus_view.updated_signs(self.mainwindow.corpus.signs, self.sign)
+        self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow, parent=self)

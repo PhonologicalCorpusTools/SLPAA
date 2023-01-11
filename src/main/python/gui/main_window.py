@@ -36,7 +36,7 @@ from fractions import Fraction
 
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
-from gui.corpus_view import CorpusView
+from gui.corpus_view import CorpusDisplay
 from gui.location_definer import LocationDefinerDialog
 from gui.signtype_selector import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
@@ -330,14 +330,14 @@ class MainWindow(QMainWindow):
         corpusname = ""
         if self.corpus and self.corpus.name:
             corpusname = self.corpus.name
-        self.corpus_view = CorpusView(corpusname, parent=self)
+        self.corpus_display = CorpusDisplay(corpusname, parent=self)
         # self.corpus_view.selected_gloss.connect(self.handle_sign_selected)
-        self.corpus_view.selected_sign.connect(self.handle_sign_selected)
-        self.corpus_view.title_changed.connect(self.setCorpusName)
+        self.corpus_display.selected_sign.connect(self.handle_sign_selected)
+        self.corpus_display.title_changed.connect(self.setCorpusName)
 
         self.corpus_scroll = QScrollArea(parent=self)
         self.corpus_scroll.setWidgetResizable(True)
-        self.corpus_scroll.setWidget(self.corpus_view)
+        self.corpus_scroll.setWidget(self.corpus_display)
 
         # self.illustration_scroll = HandIllustrationPanel(self.app_ctx, parent=self)
         #
@@ -1003,14 +1003,14 @@ class MainWindow(QMainWindow):
         #     self.action_delete_sign.setEnabled(True)
 
         if self.corpus.path:
-            self.corpus.name = self.corpus_view.corpus_title.text()
+            self.corpus.name = self.corpus_display.corpus_title.text()
             self.save_corpus_binary()
 
         self.undostack.clear()
 
     @check_unsaved_corpus
     def on_action_saveas(self, clicked):
-        self.corpus.name = self.corpus_view.corpus_title.text()
+        self.corpus.name = self.corpus_display.corpus_title.text()
         name = self.corpus.name
         file_name, _ = QFileDialog.getSaveFileName(self,
                                                    self.tr('Save Corpus'),
@@ -1053,7 +1053,7 @@ class MainWindow(QMainWindow):
 
         self.corpus = Corpus(signs=None, location_definition=deepcopy(SAMPLE_LOCATIONS))
 
-        self.corpus_view.clear()
+        self.corpus_display.clear()
         self.sign_summary.clear()
         self.sign_summary.enable_module_buttons(False)
         self.xslot_panel.refreshsign()
@@ -1070,16 +1070,16 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
-        self.corpus_view.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
+        self.corpus_display.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
 
         # first = self.corpus.get_sign_glosses()[0]
         # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv dict(),
-        self.corpus_view.corpus_title.setText(self.corpus.name)
+        self.corpus_display.corpus_title.setText(self.corpus.name)
         # self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
         # self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
-        self.corpus_view.updated_signs(self.corpus.signs, self.corpus.signs[0])
+        self.corpus_display.updated_signs(self.corpus.signs)
         # self.corpus_view.selected.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
-        self.corpus_view.selected.emit(self.corpus.signs[0].signlevel_information.gloss)
+        self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])  #.signlevel_information.gloss)
 
         return bool(self.corpus)
 
@@ -1091,10 +1091,9 @@ class MainWindow(QMainWindow):
         # self.new_sign = None
         self.action_delete_sign.setEnabled(False)
 
-        self.corpus_view.corpus_view.clearSelection()
+        self.corpus_display.corpus_view.clearSelection()
         self.sign_summary.clear()
         self.sign_summary.handle_signlevelbutton_click()
-
 
     def on_action_delete_sign(self, clicked):
         response = QMessageBox.question(self, 'Delete the selected sign',
@@ -1103,9 +1102,20 @@ class MainWindow(QMainWindow):
             previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
 
             self.corpus.remove_sign(self.current_sign)
-            self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), previous.signlevel_information.gloss)
+            # self.corpus_display.updated_glosses(self.corpus.get_sign_glosses(), previous.signlevel_information.gloss)
+            self.corpus_display.updated_signs(self.corpus.signs, previous)
 
-            self.handle_sign_selected(previous.signlevel_information.gloss)
+            self.select_sign([previous])
+            self.handle_sign_selected(previous)  # .signlevel_information.gloss)
+            # TODO KV need to also have that sign selected in the corpus view, as well as displaying its summary in the xslot view
+
+    # TODO KV finish implementing
+    def select_sign(self, signstoselect):
+        selectionmodel = self.corpus_display.corpus_view.selectionModel()
+        indices = []
+        for sign in signstoselect:
+            indices.append(list(self.corpus.signs).index(sign))
+        print(indices)
 
     # def on_action_predefined_handshape(self, clicked):
     #     if self.predefined_handshape_dialog is None:

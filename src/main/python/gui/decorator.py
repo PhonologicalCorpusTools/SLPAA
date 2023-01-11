@@ -75,7 +75,7 @@ def check_unsaved_corpus(func):
         #     return func(self, *args, **kwargs)
 
         if self.corpus.path is None:
-            self.corpus.name = self.corpus_view.corpus_title.text()
+            self.corpus.name = self.corpus_display.corpus_title.text()
             name = self.corpus.name
             file_name, _ = QFileDialog.getSaveFileName(self,
                                                        self.tr('Save Corpus'),
