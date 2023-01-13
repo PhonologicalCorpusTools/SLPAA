@@ -1,12 +1,11 @@
 .. todo::
-    (sign example with orientation or hand configuration out of phase?)
-    continue x-slot selection
+    write the timing blurb at the beginning
+    fix 'no movement' note
     fix references in the movement type section
     update / delete refs to “transcription process” in the movement type section
     joint activity description not completed
     movement characteristics not yet started
-    at least one sample coding of the full set of movement modules for a sign 
-        (or is this covered in the other project materials?)
+    overview: sample codings of a pair of signs
         
 .. _movement_module:
 
@@ -14,94 +13,25 @@
 Movement Module
 ***************
 
-This :ref:`module` is used to code the **movement** components of a sign. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
+This :ref:`module` is used to code the **movement** components of a sign. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`. 
 
-.. _move_timing_section:
+For movements involving both hands, select whether the movement described in the module is in phase or out of phase (with respect to any of the location, hand configuration, or orientation parameters) according to the description of :ref:`Movement timing relation<signtype_movement_timing_relation>` as it applies in :ref:`sign_type_module`. You will have the opportunity to specify which parameter(s) is/are out of phase for the particular instance of the module.
 
-1. Hand applicability and timing
-````````````````````````````````
-
-Most of the options described in this section apply for every type of module (except for :ref:`sign_type_module`). Some module types are best suited to their own slightly modified set of options. For the movement module in particular, this is the case for the set of hand selection options adapted for phasing, as described below.
-
-.. comment::
-    This section will be included in the documentations for every module type, with details/sign examples/screenshots amended for the given module type
-
-.. _move_hand_phasing:
-
-I. Hand selection and phasing
-=============================
-
-.. comment::
-    For other module types, this section will just be called "hand selection" and the options will be much simpler
-
-For one-handed movements, select whether the movement described in this instance of the module applies to Hand 1 or Hand 2. 
-
-For two-handed movements, select whether this instance of the module describes a movement where both hands are **in phase** for all parameters (location, hand configuration, and orientation) or **out of phase** for at least one parameter. These options correspond to the selections available in :ref:`sign_type_module` for the :ref:`Movement timing relation<signtype_movement_timing_relation>` of signs where both hands move similarly. That is, the hands are 'in phase' when they have the same specification for each parameter at the same time, and they are 'out of phase' when they have opposite specifications for at least one parameter at the same time. You will have the opportunity to specify which parameter(s) is/are out of phase for a given instance of the movement module.
-
-Note that the program will generate two identical linked modules when you select either of the options that apply to both hands, and any future edits to either module will also apply to the other. See :ref:`modularity` for more information on linked modules and how to edit them.
-
-.. note::
-    **Symmetry and hand phasing**
+Modules link to :ref:`x-slots<x_slot>`... For more information on the use of x-slots, ... :ref:`timing_page`
     
-    The interpretation of phasing for both location and orientation may depend on the user's interpretation of movement in the horizontal axis, as set in the :ref:`global_settings`. For instance, `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_ may be understood to be either in or out of phase, depending on whether movement towards the same *absolute* (towards H1 or H2 side) direction or towards the same *relative* (ipsilateral or contralateral) direction is valued higher. See :ref:`Symmetry in the horizontal axis<axis_symmetry>` for more information.
-
-In the following sample coding of `ROW <https://asl-lex.org/visualization/?sign=row>`_, all specifications for both hands are identical and the hands are specified to be in phase for all parameters:
-
-.. image:: images/mov_sample_sign_ROW.png
-    :width: 750
-    :align: left
-
-This means that the movements for both hands can be described at once to generate two instances of identical movement modules.
-
-The following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since their respective positions within the paths of their circles are at opposite points at the same time:
-
-.. image:: images/mov_sample_sign_THEATER.png
-    :width: 750
-    :align: left
-
-The movements of both hands can still described together as long as they are indicated to be out of phase (in this case, with respect to location). This will also generate two instances of identical movement modules, though they are recorded as out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
-
-.. comment::
-    I wanted to keep the ROW/THEATER examples as a comparison for how to approach differences in phasing for circles, but I think this section may also benefit from an example like POPCORN or an orientation change
-
-.. note::
-    **Phasing for circles in different directions**
-    
-    The examples above for `ROW <https://asl-lex.org/visualization/?sign=row>`_ and `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ show how phasing for location works for circles that are traced out in the same direction for both hands. This can also apply for signs where each hand traces out a circle in the opposite direction to the other hand. 
-    
-    Depending on your choices for the horizontal axis, one of `WASH_FACE_1 <https://asl-lex.org/visualization/?sign=wash_face_1>`_ or `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_  will be an example of a sign with both hands moving in different circular directions. However, both signs are in phase with respect to location either way since the hands reach the :ref:`top of the circle<circular_directions>` at the same time. 
-    
-    Similarly, either `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ or `EXPERIMENT <https://asl-lex.org/visualization/?sign=experiment>`_ will be an example of a sign with both hands moving in different circular directions. In this case, both hands are out of phase with respect to location since they reach the :ref:`top of the circle<circular_directions>` at different times. 
-    
-    Consult the descriptions and graphic in :ref:`Movement direction relation<signtype_inclusion_of_perceptual_shape>` for more information.
-
-.. comment::
-    leave the extraneous details here for reference and focus on the important parts in the note above
-
-.. _move_timing_selection:
-
-II. X-slot selection
-====================
-
-.. comment::
-    This whole section will apply exactly for every module type except nonmanuals, which will need more detail.
-
-.. warning::
-    Under construction
-    
-    **(Add descriptions for how to interact with the x-slot field. Link to the timing page for more detail.) Assume that x-slots are enabled, and this section can be skipped if they are not. Add a screenshot for context.** Important notes: no overlapping regions, must make at least one selection, points vs. intervals, functionally identical selection options(?) ← as in choosing 'whole sign' vs 'first x-slot' for signs with exactly one x-slot
-    
-    Reference testing: [Napoli2011]_ Napoli2011_
-
 .. _movement_type_entry:
 
-2. Movement type
+1. Movement type
 `````````````````
 
 Select the **movement type** for the current module. The three movement types are mutually exclusive within an instance of a module; that is, a single instance of the module can be specified for only one of these three types of movement. 
 
 .. note::
-    If any portion of a sign includes a prominent moment of intended stillness (for instance, this is a possible analysis of some productions of `ONE <https://asl-lex.org/visualization/?sign=one>`_), select the 'No movement' option. When applicable, this is the only selection within the module as it is mutually exclusive with all other movement options.
+    **No movement**
+    
+    If any portion of a sign includes a prominent moment of intended stillness (for instance, `MISS <https://asl-lex.org/visualization/?sign=miss>`_ or some productions of `ONE <https://asl-lex.org/visualization/?sign=one>`_), select the 'No movement' option. When applicable, this is the only selection within the module as it is mutually exclusive with all other movement options.
+    
+    **Note: add that this can apply for only one portion of a sign which otherwise does have movement, which is what makes it useful above and beyond the sign type 'no movement' options. (Reference Morgan for 'hold' signs?)**
 
 Movement type options include:
 
@@ -341,7 +271,7 @@ No further details of the handshape change itself need to be provided in this se
 
 .. _joint_activity_entry:
 
-3. Joint activity
+2. Joint activity
 ``````````````````
 
 Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can :ref:`autofill<auto_gen>` the joint movements that are predictable from the selections made earlier within its :ref:`movement type<joint_specific_movement_entry>` section. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
@@ -350,7 +280,26 @@ Use the **joint activity** section to add more fine-grained detail about any joi
 
 .. _movement_chars:
 
-4. Movement characteristics
+3. Movement characteristics
 ```````````````````````````
 
 ...
+
+.. note::
+    **(the language here needs to be updated so that it's not all about phasing, but the examples are useful to show what the module looks like.)**
+
+    In the following sample coding of `ROW <https://asl-lex.org/visualization/?sign=row>`_, all specifications for both hands are identical and the hands are specified to be in phase for all parameters:
+
+    .. image:: images/mov_sample_sign_ROW.png
+        :width: 750
+        :align: left
+
+    This means that the movements for both hands can be described at once to generate two instances of identical movement modules.
+
+    The following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since their respective positions within the paths of their circles are at opposite points at the same time:
+
+    .. image:: images/mov_sample_sign_THEATER.png
+        :width: 750
+        :align: left
+
+    The movements of both hands can still described together as long as they are indicated to be out of phase (in this case, with respect to location). This will also generate two instances of identical movement modules, though they are recorded as out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
