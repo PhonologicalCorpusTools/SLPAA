@@ -103,7 +103,7 @@ OR
     
     There are several places throughout the program where similar or identical terms are used for slightly different contexts. Take care to note the sign component that any given word is meant to be describing to be sure that your choice is accurate.
     
-Assuming that the horizontal axis is defined in relative directions, the words :ref:`ipsilateral` and :ref:`contralateral` can be applied for any (or all) of the movement direction, location, or hand orientation descriptions of a sign:
+    Assuming that the horizontal axis is defined in relative directions, the words :ref:`ipsilateral` and :ref:`contralateral` can be applied for any (or all) of the movement direction, location, or hand orientation descriptions of a sign:
     
     * In `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_, the dominant hand moves in the ipsilateral **direction** (toward the signer's right, in this case), and it changes **location** from the contralateral to the ipsilateral side of the body. The **orientation** of the hand changes in the production of the sign, starting with the finger roots pointing down and the palm facing the ipsilateral direction and finishing with the finger roots pointing up and the palm facing the contralateral direction.
     
