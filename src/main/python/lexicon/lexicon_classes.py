@@ -513,6 +513,10 @@ class Sign:
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
+    def removelocationmodule(self, uniqueid):
+        self.locationmodules.pop(uniqueid)
+        self.lastmodifiednow()
+
     def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, phonlocs, loctype):
         locnmod = self.locationmodules[uniqueid]
         ischanged = False

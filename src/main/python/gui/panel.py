@@ -804,7 +804,7 @@ class XslotPanel(QScrollArea):
         movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
                                                  hands=mvmtmodule.hands,
                                                  xslotstructure=self.sign.xslotstructure,
-                                                 enable_addnew=False,
+                                                 new_instance=False,
                                                  modulelayout=MovementSpecificationLayout(movementtreemodel),
                                                  moduleargs=None,
                                                  timingintervals=mvmtmodule.timingintervals,
@@ -812,6 +812,9 @@ class XslotPanel(QScrollArea):
                                                  inphase=mvmtmodule.inphase)
         movement_selector.get_savedmodule_signal().connect(
             lambda movementtree, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_movement(movementtree, hands, timingintervals, inphase, modulekey))
+        movement_selector.get_deletedmodule_signal().connect(
+            lambda: self.mainwindow.sign_summary.handle_delete_movement(modulekey)
+        )
         movement_selector.exec_()
 
     def handle_location_clicked(self, modulekey):
@@ -820,12 +823,15 @@ class XslotPanel(QScrollArea):
         location_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
                                                  hands=locnmodule.hands,
                                                  xslotstructure=self.sign.xslotstructure,
-                                                 enable_addnew=False,
+                                                 new_instance=False,
                                                  modulelayout=LocationSpecificationLayout(self.mainwindow, locnmodule),
                                                  moduleargs=None,
                                                  timingintervals=locnmodule.timingintervals)
         location_selector.get_savedmodule_signal().connect(
             lambda locationtree, phonlocs, loctype, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_location(locationtree, hands, timingintervals, phonlocs, loctype, existing_key=modulekey))
+        location_selector.get_deletedmodule_signal().connect(
+            lambda: self.mainwindow.sign_summary.handle_delete_location(modulekey)
+        )
         location_selector.exec_()
 
     def handle_handconfig_clicked(self, modulekey):
@@ -835,12 +841,15 @@ class XslotPanel(QScrollArea):
         handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
                                                 hands=hcfgmodule.hands,
                                                 xslotstructure=self.sign.xslotstructure,
-                                                enable_addnew=False,
+                                                new_instance=False,
                                                 modulelayout=HandConfigSpecificationLayout(self.mainwindow, hcfgmodule),  # (handconfiguration, overalloptions)),
                                                 moduleargs=None,
                                                 timingintervals=hcfgmodule.timingintervals)
         handcfg_selector.get_savedmodule_signal().connect(
             lambda configdict, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_handconfig(configdict, hands, timingintervals, modulekey))
+        handcfg_selector.get_deletedmodule_signal().connect(
+            lambda: self.mainwindow.sign_summary.handle_delete_handconfig(modulekey)
+        )
         handcfg_selector.exec_()
 
 # # TODO KV xslot mockup
@@ -1010,13 +1019,20 @@ class SignSummaryPanel(QScrollArea):
         movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
                                                  hands=None,
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                 enable_addnew=True,
+                                                 new_instance=True,
                                                  modulelayout=MovementSpecificationLayout(),
                                                  moduleargs=None,
                                                  includephase=True,
                                                  inphase=None)
         movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals, inphase: self.handle_save_movement(movementtree, hands, timingintervals, inphase))
         movement_selector.exec_()
+
+    def handle_delete_movement(self, existing_key):
+        if existing_key is None or existing_key not in self.sign.movementmodules.keys():
+            print("TODO KV key error: attempting to delete a movement module whose key is not in the list of existing modules")
+        else:
+            self.sign.removemovementmodule(existing_key)
+        self.sign_updated.emit(self.sign)
 
     def handle_save_movement(self, movementtree, hands_dict, timingintervals, inphase, existing_key=None):
         if existing_key is None or existing_key not in self.sign.movementmodules.keys():
@@ -1030,7 +1046,7 @@ class SignSummaryPanel(QScrollArea):
         handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
                                                 hands=None,
                                                 xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                enable_addnew=True,
+                                                new_instance=True,
                                                 modulelayout=HandConfigSpecificationLayout(self.mainwindow),
                                                 moduleargs=None)
         handcfg_selector.get_savedmodule_signal().connect(lambda configdict, hands, timingintervals, inphase: self.handle_save_handconfig(configdict, hands, timingintervals))
@@ -1044,10 +1060,17 @@ class SignSummaryPanel(QScrollArea):
         # if editing_existing:
         #     existing_key = button.text()
         #     moduletoload = self.sign.handshapemodules[existing_key]
-        # # handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, enable_addnew=(not editing_existing), moduletoload=moduletoload, parent=self)
-        # handshape_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, enable_addnew=(not editing_existing), modulelayout=HandshapeSpecificationLayout(self.mainwindow, moduletoload), moduleargs=None)
+        # # handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, new_instance=(not editing_existing), moduletoload=moduletoload, parent=self)
+        # handshape_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, new_instance=(not editing_existing), modulelayout=HandshapeSpecificationLayout(self.mainwindow, moduletoload), moduleargs=None)
         # handshape_selector.get_savedmodule_signal().connect(lambda hs_global, hs_transcription, hands: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, hands, existing_key))
         # handshape_selector.exec_()
+
+    def handle_delete_handconfig(self, existing_key):
+        if existing_key is None or existing_key not in self.sign.handconfigmodules.keys():
+            print("TODO KV key error: attempting to delete a hand config module whose key is not in the list of existing modules")
+        else:
+            self.sign.removehandconfigmodule(existing_key)
+        self.sign_updated.emit(self.sign)
 
     def handle_save_handconfig(self, configdict, hands_dict, timingintervals, existing_key=None):
         handconfiguration = configdict['hand']
@@ -1074,11 +1097,18 @@ class SignSummaryPanel(QScrollArea):
         location_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
                                                  hands=None,
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                 enable_addnew=True,
+                                                 new_instance=True,
                                                  modulelayout=LocationSpecificationLayout(self.mainwindow),
                                                  moduleargs=None)
         location_selector.get_savedmodule_signal().connect(lambda locationtree, phonlocs, loctype, hands, timingintervals, inphase: self.handle_save_location(locationtree, hands, timingintervals, phonlocs, loctype))
         location_selector.exec_()
+
+    def handle_delete_location(self, existing_key):
+        if existing_key is None or existing_key not in self.sign.locationmodules.keys():
+            print("TODO KV key error: attempting to delete a location module whose key is not in the list of existing modules")
+        else:
+            self.sign.removelocationmodule(existing_key)
+        self.sign_updated.emit(self.sign)
 
     def handle_save_location(self, locationtree, hands_dict, timingintervals, phonlocs, loctype, existing_key=None):
         if existing_key is None or existing_key not in self.sign.locationmodules.keys():

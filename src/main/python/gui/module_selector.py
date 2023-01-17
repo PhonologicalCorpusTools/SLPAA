@@ -67,6 +67,9 @@ class ModuleSpecificationLayout(QVBoxLayout):
     def get_savedmodule_signal(self):
         pass
 
+    def get_deletedmodule_signal(self):
+        pass
+
     def refresh(self):
         pass
 
@@ -82,7 +85,7 @@ class ModuleSpecificationLayout(QVBoxLayout):
 
 class ModuleSelectorDialog(QDialog):
 
-    def __init__(self, mainwindow, hands, xslotstructure, enable_addnew, modulelayout, moduleargs, timingintervals=None, includephase=False, inphase=0, **kwargs):
+    def __init__(self, mainwindow, hands, xslotstructure, new_instance, modulelayout, moduleargs, timingintervals=None, includephase=False, inphase=0, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         if timingintervals is None:
@@ -107,18 +110,25 @@ class ModuleSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
+        # If we're creating a brand new instance of a module, then we want a
+        #   "Save and Add Another" button, to allow the user to continue adding new instances.
+        # On the other hand, if we're editing an existing instance of a module, then instead we want a
+        #   "Delete" button, in case the user wants to the delete the instance rather than editing it.
         buttons = None
         applytext = ""
-        if enable_addnew:
+        discardtext = "Delete"
+        if new_instance:
             buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
             applytext = "Save and close"
         else:
-            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Discard | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
             applytext = "Save"
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
-        if enable_addnew:
+        if new_instance:
             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
+        else:
+            self.button_box.button(QDialogButtonBox.Discard).setText(discardtext)
         self.button_box.button(QDialogButtonBox.Apply).setDefault(True)
         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
 
@@ -138,12 +148,18 @@ class ModuleSelectorDialog(QDialog):
     def get_savedmodule_signal(self):
         return self.module_layout.get_savedmodule_signal()
 
+    def get_deletedmodule_signal(self):
+        return self.module_layout.get_deletedmodule_signal()
+
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
 
         if standard == QDialogButtonBox.Cancel:
-            # TODO KV - BUG issue #44 - if we are editing an already-existing movement module, this seems to save anyway
             self.reject()
+
+        elif standard == QDialogButtonBox.Discard:
+            self.module_layout.get_deletedmodule_signal().emit()
+            self.accept()  # TODO KV ???
 
         # TODO KV this duplicates the code in the next conditional case
         elif standard == QDialogButtonBox.Save:  # save and add another

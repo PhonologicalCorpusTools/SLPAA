@@ -122,6 +122,7 @@ class TreeItemDelegate(QStyledItemDelegate):
 # class MovementSpecificationLayout(QVBoxLayout):
 class MovementSpecificationLayout(ModuleSpecificationLayout):
     saved_movement = pyqtSignal(MovementTreeModel, dict, list, int)
+    deleted_movement = pyqtSignal()
 
     def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
@@ -227,6 +228,9 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
     def get_savedmodule_args(self):
         return (self.treemodel,)
 
+    def get_deletedmodule_signal(self):
+        return self.deleted_movement
+
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
 
@@ -291,7 +295,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
 # class MovementSelectorDialog(QDialog):
 #     saved_movement = pyqtSignal(MovementTreeModel, dict)
 #
-#     def __init__(self, mainwindow, enable_addnew=False, moduletoload=None, hands=None, x_start=0, x_end=0, **kwargs):
+#     def __init__(self, mainwindow, new_instance=False, moduletoload=None, hands=None, x_start=0, x_end=0, **kwargs):
 #         super().__init__(**kwargs)
 #         self.mainwindow = mainwindow
 #         self.system_default_movement_specifications = mainwindow.system_default_movement
@@ -313,7 +317,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
 #
 #         buttons = None
 #         applytext = ""
-#         if enable_addnew:
+#         if new_instance:
 #             buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
 #             applytext = "Save and close"
 #         else:
@@ -321,7 +325,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
 #             applytext = "Save"
 #
 #         self.button_box = QDialogButtonBox(buttons, parent=self)
-#         if enable_addnew:
+#         if new_instance:
 #             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
 #         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
 #

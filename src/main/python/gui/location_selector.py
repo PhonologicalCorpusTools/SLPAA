@@ -121,6 +121,7 @@ class ImageDisplayTab(QWidget):
 # TODO KV there's another class with the same name in panel.py
 class LocationSpecificationLayout(ModuleSpecificationLayout):
     saved_location = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, int)
+    deleted_location = pyqtSignal()
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
@@ -400,6 +401,9 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
     def get_savedmodule_signal(self):
         return self.saved_location
+
+    def get_deletedmodule_signal(self):
+        return self.deleted_location
 
     def get_savedmodule_args(self):
         phonlocs = PhonLocations(
