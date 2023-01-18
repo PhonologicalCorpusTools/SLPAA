@@ -76,8 +76,7 @@ mvmtOptionsDict = {
                         ("Contralateral", fx, rb, u): {}
                     },
                 },
-                ("Not relevant", fx, rb, u): {},
-                },
+            },
             ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
                 ("Sagittal", fx, cb, u): {
                     (subgroup, None, 0, None): {
