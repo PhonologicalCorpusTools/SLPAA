@@ -889,7 +889,7 @@ class MainWindow(QMainWindow):
         for sign in self.corpus.signs:
             timedmodules = sign.gettimedmodules()
             for modulecollection in timedmodules:
-                for module in modulecollection:
+                for module in modulecollection.values():
                     timingintervals = module.timingintervals
                     for tint in timingintervals:
                         startfrac = tint.startpoint.fractionalpart

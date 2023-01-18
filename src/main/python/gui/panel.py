@@ -539,12 +539,12 @@ class XslotPanel(QScrollArea):
                 # everything just gets listed vertically
                 for idx, m in enumerate(parammodules.keys()):
                     parammod = parammodules[m]
-                    parammodid = parammod.uniqueid
+                    parammodid = parammod.uniqueid  # TODO KV interesting.... this is different than m
                     if parammod.hands[hand]:
                         paramrect = XslotRectModuleButton(self, module_uniqueid=parammodid,
                                                           text=hand + "." + moduletypeabbrev + str(idx + 1), moduletype=moduletype,
                                                           sign=self.sign)
-                        paramabbrev = m.getabbreviation()
+                        paramabbrev = parammod.getabbreviation()
                         paramrect.setToolTip(paramabbrev)
                         paramrect.setRect(self.current_x,
                                           self.current_y * (self.default_xslot_height + self.verticalspacing),

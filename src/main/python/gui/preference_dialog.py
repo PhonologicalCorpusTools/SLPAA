@@ -100,25 +100,21 @@ class SignDefaultsTab(QWidget):
 
         self.xslots_layout = QHBoxLayout()
         self.xslots_group = QButtonGroup(parent=self)
-        self.xslots_none_radio = QRadioButton('None')
+        self.xslots_none_radio = QRadioButton("None")
         self.xslots_none_radio.setProperty('xslots', 'none')
         self.xslots_none_radio.toggled.connect(self.handle_none_toggled)
         self.xslots_group.addButton(self.xslots_none_radio)
         self.xslots_layout.addWidget(self.xslots_none_radio)
-        self.xslots_manual_radio = QRadioButton('Manual')
+        self.xslots_manual_radio = QRadioButton("Manual")
         self.xslots_manual_radio.setProperty('xslots', 'manual')
         self.xslots_group.addButton(self.xslots_manual_radio)
         self.xslots_layout.addWidget(self.xslots_manual_radio)
-        self.xslots_auto_radio = QRadioButton('Automatic')
+        self.xslots_auto_radio = QRadioButton("Automatic")
         self.xslots_auto_radio.setProperty('xslots', 'auto')
         self.xslots_group.addButton(self.xslots_auto_radio)
         self.xslots_layout.addWidget(self.xslots_auto_radio)
 
-        for button in self.xslots_group.buttons():
-            if self.settings['signdefaults']['xslot_generation'] == button.property('xslots'):
-                button.setChecked(True)
-                break
-        main_layout.addRow(QLabel('X-slot generation:'), self.xslots_layout)
+        main_layout.addRow(QLabel("X-slot generation:"), self.xslots_layout)
 
         self.partialxslots_layout = QVBoxLayout()
         self.partialxslots_group = QButtonGroup(parent=self)
@@ -127,6 +123,7 @@ class SignDefaultsTab(QWidget):
         quarter = Fraction(1, 4)
         third = Fraction(1, 3)
         half = Fraction(1, 2)
+        self.partialxslots_label = QLabel('X-slot points to include:')
         self.partialxslots_quarters_checkbox = QCheckBox("quarters (" + FRACTION_CHAR[quarter] + "n)")
         self.partialxslots_quarters_checkbox.setProperty('partialxslot', str(quarter))
         self.partialxslots_group.addButton(self.partialxslots_quarters_checkbox)
@@ -140,11 +137,15 @@ class SignDefaultsTab(QWidget):
         self.partialxslots_group.addButton(self.partialxslots_halves_checkbox)
         self.partialxslots_layout.addWidget(self.partialxslots_halves_checkbox)
 
+        for button in self.xslots_group.buttons():
+            if self.settings['signdefaults']['xslot_generation'] == button.property('xslots'):
+                button.setChecked(True)
+                break
+
         for button in self.partialxslots_group.buttons():
             fractionstring = button.property('partialxslot')
             fractionchecked = self.settings['signdefaults']['partial_xslots'][fractionstring]
             button.setChecked(fractionchecked)
-        self.partialxslots_label = QLabel('X-slot points to include:')
         main_layout.addRow(self.partialxslots_label, self.partialxslots_layout)
 
     def handle_none_toggled(self, checked):
