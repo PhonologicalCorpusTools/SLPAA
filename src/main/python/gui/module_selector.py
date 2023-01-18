@@ -175,7 +175,7 @@ class ModuleSelectorDialog(QDialog):
             # validate timing interval(s) selection
             timingintervals = self.xslot_layout.gettimingintervals()
             timingvalid = True
-            if len(timingintervals) == 0:
+            if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
                 timingvalid = False
 
             if not (handsvalid and timingvalid):
@@ -211,7 +211,7 @@ class ModuleSelectorDialog(QDialog):
             # validate timing interval(s) selection
             timingintervals = self.xslot_layout.gettimingintervals()
             timingvalid = True
-            if len(timingintervals) == 0:
+            if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
                 timingvalid = False
 
             if not (handsvalid and timingvalid):
