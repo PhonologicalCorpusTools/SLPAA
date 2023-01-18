@@ -250,31 +250,12 @@ class MovementModule(ParameterModule):
 
 # this class stores info about whether an instance of the Location module represents a phonetic/phonological location
 class PhonLocations:
-    # __getattr__ = dict.__getitem__
-    # __setattr__ = dict.__setitem__
-    # __delattr__ = dict.__delitem__
 
-    def __init__(self, phonologicalloc=False, majorphonloc=False, minorphonloc=False, phoneticloc=False):  #, **kwargs):
-        # super().__init__(*kwargs)
+    def __init__(self, phonologicalloc=False, majorphonloc=False, minorphonloc=False, phoneticloc=False):
         self._phonologicalloc = phonologicalloc
         self._majorphonloc = majorphonloc
         self._minorphonloc = minorphonloc
         self._phoneticloc = phoneticloc
-        # self._phonlocs = {
-        #     'phonologicalloc': phonologicalloc,
-        #     'majorphonloc': majorphonloc,
-        #     'minorphonloc': minorphonloc,
-        #     'phoneticloc': phoneticloc
-        # }
-
-    # @property
-    # def phonlocs(self):
-    #     return self._phonlocs
-    #
-    # @phonlocs.setter
-    # def phonlocs(self, phonlocs):
-    #     # TODO KV - validate?
-    #     self._phonlocs = phonlocs
 
     @property
     def phonologicalloc(self):
@@ -308,9 +289,12 @@ class PhonLocations:
         return self._phoneticloc
 
     @phoneticloc.setter
-    def phonlocs(self, phoneticloc):
+    def phoneticloc(self, phoneticloc):
         # TODO KV - validate?
         self._phoneticloc = phoneticloc
+
+    def allfalse(self):
+        return not (self._phoneticloc or self._phonologicalloc or self._majorphonloc or self._minorphonloc)
 
 
 # this class stores info about what kind of location type (body or signing space)

@@ -196,7 +196,7 @@ class ModuleSelectorDialog(QDialog):
                 # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
                 self.hands_layout.clear()
                 self.xslot_layout.clear()
-                self.module_layout.refresh()
+                self.module_layout.clear()  # TODO KV was refresh()....
 
         elif standard == QDialogButtonBox.Apply:  # save and close
 

@@ -126,6 +126,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
     def __init__(self, mainwindow, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
 
+        self.mainwindow = mainwindow
         self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
         # if moduletoload is not None:
         #     self.treemodel = moduletoload
@@ -134,6 +135,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             if isinstance(moduletoload, LocationModule):
                 self.treemodel = LocationTreeSerializable(moduletoload.locationtreemodel).getLocationTreeModel()
                 self.locationtype = copy(self.treemodel.locationtype)
+                self.lastlocationtypewithlist = LocationType()
                 self.phonlocs = copy(moduletoload.phonlocs)
             # elif isinstance(moduletoload, MovementTree):
             #     # TODO KV - make sure listmodel & listitems are also populated
@@ -146,6 +148,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             self.treemodel.populate(self.treemodel.invisibleRootItem())
             self.phonlocs = PhonLocations()
             self.locationtype = LocationType()
+            self.lastlocationtypewithlist = LocationType()
 
         self.listmodel = self.treemodel.listmodel
 
@@ -213,7 +216,6 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
         self.minorphonloc_cb = QCheckBox("Minor")
         self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        # TODO KV these should only be active if phonological location checkbox is checked
         phonological_sublayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         phonological_sublayout.addWidget(self.majorphonloc_cb)
         phonological_sublayout.addWidget(self.minorphonloc_cb)
@@ -254,11 +256,11 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         selection_layout = QHBoxLayout()
 
         self.imagetabs = QTabWidget()
-        self.fronttab = ImageDisplayTab(mainwindow.app_ctx, 'front')
+        self.fronttab = ImageDisplayTab(self.mainwindow.app_ctx, 'front')
         self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.fronttab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.fronttab))
         self.imagetabs.addTab(self.fronttab, "Front")
-        self.backtab = ImageDisplayTab(mainwindow.app_ctx, 'back')
+        self.backtab = ImageDisplayTab(self.mainwindow.app_ctx, 'back')
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.backtab))
         self.imagetabs.addTab(self.backtab, "Back")
@@ -309,10 +311,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         if moduletoload is not None:  # load from an existing module
             self.refresh_loctype()
         else:  # apply from global settings
-            for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
-                if mainwindow.app_settings['location']['loctype'] == btn.property('loctype'):
-                    btn.setChecked(True)
-                    break
+            self.default_loctype()
 
         self.enablelocationtools(self.loctype_subgroup.checkedButton() == self.body_radio
                                  or self.signingspace_subgroup.checkedButton() is not None)
@@ -362,6 +361,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
     def handle_toggle_signingspacetype(self, btn):
         previouslocationtype = copy(self.treemodel.locationtype)
+        if previouslocationtype.usesbodylocations() or previouslocationtype.purelyspatial:
+            self.lastlocationtypewithlist = previouslocationtype
 
         self.signingspace_radio.setChecked(btn is not None)
         # if not self.treemodel.locationtype.signingspace:
@@ -375,10 +376,12 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             if not self.treemodel.locationtype.purelyspatial:
                 self.treemodel.locationtype.purelyspatial = True
 
-        self.populate_enable_locationtools(previouslocationtype)
+        self.populate_enable_locationtools() #previouslocationtype)
 
     def handle_toggle_locationtype(self, btn):
         previouslocationtype = copy(self.treemodel.locationtype)
+        if previouslocationtype.usesbodylocations() or previouslocationtype.purelyspatial:
+            self.lastlocationtypewithlist = previouslocationtype
 
         for b in self.signingspace_subgroup.buttons():
             b.setEnabled(self.loctype_subgroup.checkedButton() == self.signingspace_radio)
@@ -390,11 +393,11 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             if not self.treemodel.locationtype.signingspace:
                 self.treemodel.locationtype.signingspace = True
 
-        self.populate_enable_locationtools(previouslocationtype)
+        self.populate_enable_locationtools()  # previouslocationtype)
 
-    def populate_enable_locationtools(self, previouslocationtype):
+    def populate_enable_locationtools(self): #, previouslocationtype):
         newlocationtype = self.treemodel.locationtype
-        if newlocationtype.locationoptions_changed(previouslocationtype):
+        if newlocationtype.locationoptions_changed(self.lastlocationtypewithlist):  # previouslocationtype):
             self.clear_treemodel()
         # set image and search tool to appropriate (either body or spatial) content
         self.enablelocationtools(newlocationtype.usesbodylocations() or newlocationtype.purelyspatial)
@@ -466,20 +469,49 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.signingspacespatial_radio.setChecked(loctype.purelyspatial)
 
     def refresh_phonlocs(self):
-        self.phonological_cb.setChecked(self.phonlocs.phonologicalloc)
         self.majorphonloc_cb.setChecked(self.phonlocs.majorphonloc)
         self.minorphonloc_cb.setChecked(self.phonlocs.minorphonloc)
+        self.phonological_cb.setChecked(self.phonlocs.phonologicalloc)
         self.phonetic_cb.setChecked(self.phonlocs.phoneticloc)
+        if self.phonlocs.allfalse():
+            self.majorphonloc_cb.setEnabled(True)
+            self.minorphonloc_cb.setEnabled(True)
 
     def clear(self):
         self.clear_treemodel()
         self.clear_details()
+        self.clear_loctype()
+        self.clear_phonlocs()
+
+    def clear_loctype(self):
+        self.locationtype = LocationType()
+        self.default_loctype()
+
+    def default_loctype(self):
+        self.loctype_subgroup.setExclusive(False)
+        self.signingspace_subgroup.setExclusive(False)
+        for btn in self.signingspace_subgroup.buttons() + self.loctype_subgroup.buttons():
+            tempsetting = self.mainwindow.app_settings['location']['loctype']
+            tempproperty = btn.property('loctype')
+            # if self.mainwindow.app_settings['location']['loctype'] == btn.property('loctype'):
+            #     btn.setChecked(True)
+            #     break  # TODO KV why break??
+            btn.setChecked(self.mainwindow.app_settings['location']['loctype'] == btn.property('loctype'))
+        self.loctype_subgroup.setExclusive(True)
+        self.signingspace_subgroup.setExclusive(True)
+        if self.locationtype.allfalse():
+            for btn in self.signingspace_subgroup.buttons():
+                btn.setEnabled(True)
+
+    def clear_phonlocs(self):
+        self.phonlocs = PhonLocations()
+        self.refresh_phonlocs()
 
     def clear_details(self):
         self.update_detailstable(None, None)
 
     def clear_treemodel(self):
-        locationtype = self.treemodel.locationtype
+        locationtype = copy(self.treemodel.locationtype)
         self.treemodel = LocationTreeModel()  # recreate from scratch
         self.treemodel.locationtype = locationtype  # give it the same location type it had before
         self.treemodel.populate(self.treemodel.invisibleRootItem())

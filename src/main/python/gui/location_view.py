@@ -308,8 +308,9 @@ locn_options_purelyspatial = {
 
 class LocationTreeItem(QStandardItem):
 
-    def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=False, allowsurfacespec=True,
-                 allowsubareaspec=True, addedinfo=None, surface_exceptions=None, subarea_exceptions=None, serializedlocntreeitem=None):
+    def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=False,
+                 allowsurfacespec=True, allowsubareaspec=True, addedinfo=None,
+                 surface_exceptions=None, subarea_exceptions=None, serializedlocntreeitem=None):
         super().__init__()
 
         if serializedlocntreeitem:
@@ -325,8 +326,8 @@ class LocationTreeItem(QStandardItem):
             self.setData(serializedlocntreeitem['displayrole'], Qt.DisplayRole)
             self._addedinfo = serializedlocntreeitem['addedinfo']
             self._ishandloc = serializedlocntreeitem['ishandloc']
-            self._allowsurfacespec = serializedlocntreeitem['allowsurfacespec']
-            self._allowsubareaspec = serializedlocntreeitem['allowsubareaspec']
+            # self._allowsurfacespec = serializedlocntreeitem['allowsurfacespec']
+            # self._allowsubareaspec = serializedlocntreeitem['allowsubareaspec']
             self.detailstable = LocationTableModel(serializedtablemodel=serializedlocntreeitem['detailstable'])
             self.listitem = LocationListItem(serializedlistitem=serializedlocntreeitem['listitem'])
             self.listitem.treeitem = self
@@ -341,11 +342,13 @@ class LocationTreeItem(QStandardItem):
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
             self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
             self._ishandloc = ishandloc
-            self._allowsurfacespec = allowsurfacespec
-            self._allowsubareaspec = allowsubareaspec
+            # self._allowsurfacespec = allowsurfacespec
+            # self._allowsubareaspec = allowsubareaspec
             self.detailstable = LocationTableModel(
                 loctext=txt,
                 ishandloc=ishandloc,
+                allowsurfacespec=allowsurfacespec,
+                allowsubareaspec=allowsubareaspec,
                 surface_exceptions=surface_exceptions,
                 subarea_exceptions=subarea_exceptions
             )
@@ -376,27 +379,27 @@ class LocationTreeItem(QStandardItem):
             'ishandloc': self._ishandloc,
             'displayrole': self.data(Qt.DisplayRole),
             'addedinfo': self._addedinfo,
-            'allowsurfacespec': self._allowsurfacespec,
-            'allowsubareaspec': self._allowsubareaspec,
+            # 'allowsurfacespec': self._allowsurfacespec,
+            # 'allowsubareaspec': self._allowsubareaspec,
             'detailstable': LocationTableSerializable(self.detailstable)
             # 'listitem': self.listitem.serialize()  TODO KV why not? the constructor uses it...
         }
 
-    @property
-    def allowsurfacespec(self):
-        return self._allowsurfacespec
-
-    @allowsurfacespec.setter
-    def allowsurfacespec(self, allowsurfacespec):
-        self._allowsurfacespec = allowsurfacespec
-
-    @property
-    def allowsubareaspec(self):
-        return self._allowsubareaspec
-
-    @allowsubareaspec.setter
-    def allowsubareaspec(self, allowsubareaspec):
-        self._allowsubareaspec = allowsubareaspec
+    # @property
+    # def allowsurfacespec(self):
+    #     return self._allowsurfacespec
+    #
+    # @allowsurfacespec.setter
+    # def allowsurfacespec(self, allowsurfacespec):
+    #     self._allowsurfacespec = allowsurfacespec
+    #
+    # @property
+    # def allowsubareaspec(self):
+    #     return self._allowsubareaspec
+    #
+    # @allowsubareaspec.setter
+    # def allowsubareaspec(self, allowsubareaspec):
+    #     self._allowsubareaspec = allowsubareaspec
 
     @property
     def ishandloc(self):
@@ -812,7 +815,8 @@ class LocationTableSerializable:
 
 class LocationTableModel(QAbstractTableModel):
 
-    def __init__(self, loctext="", ishandloc=False, allowsurfacespec=True, allowsubareaspec=True, serializedtablemodel=None, surface_exceptions=None, subarea_exceptions=None, **kwargs):
+    def __init__(self, loctext="", ishandloc=False, allowsurfacespec=True, allowsubareaspec=True,
+                 serializedtablemodel=None, surface_exceptions=None, subarea_exceptions=None, **kwargs):
         super().__init__(**kwargs)
 
         if serializedtablemodel is not None:  # from saved table
@@ -834,7 +838,6 @@ class LocationTableModel(QAbstractTableModel):
                 col_texts = surfaces_hand_default if ishandloc else surfaces_nonhand_default
                 col_texts = [t for t in col_texts if t not in surface_exceptions]
                 self.col_contents[0] = [[txt, False] for txt in col_texts]
-                # TODO KV but what if it's not default?
 
             if allowsubareaspec:
                 self.col_labels[1] = bonejoint_label if ishandloc else subarea_label
@@ -843,7 +846,6 @@ class LocationTableModel(QAbstractTableModel):
                 col_texts = bonejoint_hand_default if ishandloc else subareas_nonhand_default
                 col_texts = [t for t in col_texts if t not in subarea_exceptions]
                 self.col_contents[1] = [[txt, False] for txt in col_texts]
-                # TODO KV but what if it's not default?
 
     # must implement! abstract parent doesn't define this behaviour
     def rowCount(self, parent=None, *args, **kwargs):
