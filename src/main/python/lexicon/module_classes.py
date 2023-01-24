@@ -557,7 +557,7 @@ class TimingPoint:
         self._fractionalpart = fractionalpart
 
     def __repr__(self):
-        return '<TimingPoint: ' + repr(self.wholepart) + ', ' + repr(self._fractionalpart) + '>'
+        return '<TimingPoint: ' + repr(self._wholepart) + ', ' + repr(self._fractionalpart) + '>'
 
     @property
     def wholepart(self):

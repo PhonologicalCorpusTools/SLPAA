@@ -54,6 +54,7 @@ from PyQt5.QtGui import (
 )
 
 from gui.xslot_graphics import XslotLinkingLayout
+from lexicon.module_classes import TimingInterval, TimingPoint
 
 
 # class ModuleSpecificationPanel(TODO KV):
@@ -177,6 +178,9 @@ class ModuleSelectorDialog(QDialog):
             timingvalid = True
             if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
                 timingvalid = False
+            elif self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+                # no x-slots; make the timing interval be for the whole sign
+                timingintervals = [TimingInterval(TimingPoint(0,0), TimingPoint(1,0))]
 
             if not (handsvalid and timingvalid):
                 # refuse to save without hand & timing info
@@ -213,6 +217,9 @@ class ModuleSelectorDialog(QDialog):
             timingvalid = True
             if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
                 timingvalid = False
+            elif self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+                # no x-slots; make the timing interval be for the whole sign
+                timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
 
             if not (handsvalid and timingvalid):
                 # refuse to save without hand & timing info

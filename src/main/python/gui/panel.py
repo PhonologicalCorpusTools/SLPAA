@@ -355,10 +355,6 @@ class XslotPanel(QScrollArea):
         return entryid_string
 
     def addsigntype(self):
-        # signtypetext = "Sign Type (TODO): "
-        # if self.sign.signtype is None:
-        #     signtypetext += "n/a"
-        # else:
         if self.sign.signtype is not None:
             signtypetext = "Sign Type: " + self.sign.signtype.getabbreviation()
             # specslist = [triple for triple in self.sign.signtype.specslist]
@@ -378,12 +374,13 @@ class XslotPanel(QScrollArea):
         self.current_y += 1
 
     def addxslots(self):
+        xslotrects = {}
+        numwholes = self.sign.xslotstructure.number
+        partial = float(self.sign.xslotstructure.additionalfraction)
+        roundedup = numwholes + (1 if partial > 0 else 0)
+        self.onexslot_width = self.xslots_width / roundedup
+
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and self.sign.xslotstructure is not None and self.sign.specifiedxslots:
-            xslotrects = {}
-            numwholes = self.sign.xslotstructure.number
-            partial = float(self.sign.xslotstructure.additionalfraction)
-            roundedup = numwholes + (1 if partial > 0 else 0)
-            self.onexslot_width = self.xslots_width / roundedup
             if numwholes + partial > 0:
                 for i in range(numwholes):
                     xslotrect = XslotRect(self, text="x" + str(i + 1), moduletype='xslot', sign=self.sign)
@@ -410,83 +407,26 @@ class XslotPanel(QScrollArea):
         handtext.setPos(self.x_offset, self.current_y * (self.default_xslot_height + self.verticalspacing))
         self.scene.addItem(handtext)
 
-        # self.addmovement(hand=hand)
         self.addparameter(hand=hand, moduletype='movement')
         self.addhandpart(hand=hand)
-        # self.addlocation(hand=hand)
         self.addparameter(hand=hand, moduletype='location')
         self.addcontact(hand=hand)
         self.addorientation(hand=hand)
-        self.addhandconfig(hand=hand)
-    #
-    # def addmovement(self, hand):
-    #     # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
-    #     num_mvmtmods = len(self.sign.movementmodules)
-    #     if num_mvmtmods > 0:
-    #         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
-    #             # everything just gets listed vertically
-    #             for idx, m in enumerate(self.sign.movementmodules.keys()):
-    #                 mvmtmod = self.sign.movementmodules[m]
-    #                 mvmtmodid = mvmtmod.uniqueid
-    #                 if mvmtmod.hands[hand]:
-    #                     mvmtrect = XslotRectModuleButton(self, module_uniqueid=mvmtmodid, text=hand+".Mov"+str(idx+1), moduletype='movement', sign=self.sign)
-    #                     mvmtabbrev = m.getabbreviation()
-    #                     mvmtrect.setToolTip(mvmtabbrev)
-    #                     mvmtrect.setRect(self.current_x, self.current_y * (self.default_xslot_height + self.verticalspacing), self.xslots_width, self.default_xslot_height)
-    #                     self.current_y += 1
-    #                     self.scene.addItem(mvmtrect)
-    #         else:  # 'manual' or 'auto'
-    #             # associate modules with x-slots
-    #             intervals = []
-    #             points = []
-    #
-    #             for midx, m_id in enumerate(self.sign.movementmodules.keys()):
-    #                 mvmtmod = self.sign.movementmodules[m_id]
-    #                 # mvmtmodid = mvmtmod.uniqueid
-    #                 if mvmtmod.hands[hand]:
-    #                     for tidx, t in enumerate(mvmtmod.timingintervals):
-    #                         if t.ispoint():
-    #                             points.append((midx, m_id, tidx, t))
-    #                         else:
-    #                             intervals.append((midx, m_id, tidx, t))
-    #
-    #             self.addmovementintervals(hand, intervals)
-    #             self.addmovementpoints(hand, points)
-    #
-    # def addmovementintervals(self, hand, intervals):
-    #     for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
-    #         mvmtrect = XslotRectModuleButton(self, module_uniqueid=m_id,
-    #                                          text=hand + ".Mov" + str(midx + 1),
-    #                                          moduletype='movement',
-    #                                          sign=self.sign)
-    #         mvmtabbrev = self.sign.movementmodules[m_id].getabbreviation()
-    #         mvmtrect.setToolTip(mvmtabbrev)
-    #         intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
-    #         anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
-    #         if True in anyoverlaps:
-    #             self.current_y += 1
-    #         mvmtrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
-    #         self.moduleitems.append(mvmtrect)
-    #     self.current_y += 1
-    #
-    # def addmovementpoints(self, hand, points):
-    #     for i_idx, (midx, m_id, tidx, t) in enumerate(points):
-    #         mvmtellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
-    #                                                text=hand + ".Mov" + str(midx + 1),
-    #                                                moduletype='movement',
-    #                                                sign=self.sign)
-    #         mvmtabbrev = self.sign.movementmodules[m_id].getabbreviation()
-    #         mvmtellipse.setToolTip(mvmtabbrev)
-    #         pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
-    #         anyequivalent = [t.startpoint.equivalent(prev_t.startpoint) for prev_t in pointsalreadydone]
-    #         if True in anyequivalent:
-    #             self.current_y += 1
-    #         mvmtellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
-    #         self.moduleitems.append(mvmtellipse)
-    #     self.current_y += 1
+        self.addparameter(hand=hand, moduletype='handconfig')
 
     def getxywh(self, timinginterval):
-        if timinginterval.ispoint():
+        if timinginterval is None:
+            # x-slots aren't a thing; plan a rectangle whose width doesn't mean anything, timing-wise
+            # the rectangle will be for the whole sign (treat it like a whole-sign x-slot)
+            startfrac = 0
+            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction  # TODO KV check
+            widthfrac = endfrac - startfrac
+
+            x = self.x_offset + self.indent + float(startfrac)*self.onexslot_width
+            y = self.current_y * (self.default_xslot_height + self.verticalspacing)
+            w = float(widthfrac) * self.onexslot_width
+            h = self.default_xslot_height
+        elif timinginterval.ispoint():
             # it's a point; plan an ellipse
             yradius = 40
             pointfrac = timinginterval.startpoint.wholepart - 1 + timinginterval.startpoint.fractionalpart
@@ -494,7 +434,7 @@ class XslotPanel(QScrollArea):
             y = self.current_y * (self.default_xslot_height + self.verticalspacing)
             w = 2 * yradius
             h = self.default_xslot_height
-        else:
+        elif not timinginterval.ispoint():
             # it's an interval; plan a rectangle
             if timinginterval == TimingInterval(TimingPoint(0,0),TimingPoint(0,1)):
                 # then it's the whole sign
@@ -516,9 +456,6 @@ class XslotPanel(QScrollArea):
     def addhandpart(self, hand):
         return  # TODO KV implement
 
-    def addlocation(self, hand):
-        return  # TODO KV implement
-
     def addparameter(self, hand, moduletype):
         # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
         moduletypeabbrev = ''
@@ -529,6 +466,9 @@ class XslotPanel(QScrollArea):
         elif moduletype == 'movement':
             parammodules = self.sign.movementmodules
             moduletypeabbrev = 'Mov'
+        elif moduletype == 'handconfig':
+            parammodules = self.sign.handconfigmodules
+            moduletypeabbrev = 'Config'
         else:
             return
         # TODO KV add the rest of the parameter modules when ready
@@ -537,18 +477,16 @@ class XslotPanel(QScrollArea):
         if num_parammods > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
-                for idx, m in enumerate(parammodules.keys()):
-                    parammod = parammodules[m]
-                    parammodid = parammod.uniqueid  # TODO KV interesting.... this is different than m
+
+                for idx, m_id in enumerate(parammodules.keys()):
+                    parammod = parammodules[m_id]
                     if parammod.hands[hand]:
-                        paramrect = XslotRectModuleButton(self, module_uniqueid=parammodid,
+                        paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,  # parammodid,
                                                           text=hand + "." + moduletypeabbrev + str(idx + 1), moduletype=moduletype,
                                                           sign=self.sign)
                         paramabbrev = parammod.getabbreviation()
                         paramrect.setToolTip(paramabbrev)
-                        paramrect.setRect(self.current_x,
-                                          self.current_y * (self.default_xslot_height + self.verticalspacing),
-                                          self.xslots_width, self.default_xslot_height)
+                        paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
                         self.current_y += 1
                         self.scene.addItem(paramrect)
             else:  # 'manual' or 'auto'
@@ -600,145 +538,12 @@ class XslotPanel(QScrollArea):
             paramellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(paramellipse)
         self.current_y += 1
-    #
-    # def addlocation(self, hand):
-    #     # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
-    #     num_locnmods = len(self.sign.locationmodules)
-    #     if num_locnmods > 0:
-    #         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
-    #             # everything just gets listed vertically
-    #             for idx, m in enumerate(self.sign.locationmodules.keys()):
-    #                 locnmod = self.sign.locationmodules[m]
-    #                 locnmodid = locnmod.uniqueid
-    #                 if locnmod.hands[hand]:
-    #                     locnrect = XslotRectModuleButton(self, module_uniqueid=locnmodid, text=hand+".Loc"+str(idx+1), moduletype='location', sign=self.sign)
-    #                     locnabbrev = m.getabbreviation()
-    #                     locnrect.setToolTip(locnabbrev)
-    #                     locnrect.setRect(self.current_x, self.current_y * (self.default_xslot_height + self.verticalspacing), self.xslots_width, self.default_xslot_height)
-    #                     self.current_y += 1
-    #                     self.scene.addItem(locnrect)
-    #         else:  # 'manual' or 'auto'
-    #             # associate modules with x-slots
-    #             intervals = []
-    #             points = []
-    #
-    #             for midx, m_id in enumerate(self.sign.locationmodules.keys()):
-    #                 locnmod = self.sign.locationmodules[m_id]
-    #                 # locnmodid = locnmod.uniqueid
-    #                 if locnmod.hands[hand]:
-    #                     for tidx, t in enumerate(locnmod.timingintervals):
-    #                         if t.ispoint():
-    #                             points.append((midx, m_id, tidx, t))
-    #                         else:
-    #                             intervals.append((midx, m_id, tidx, t))
-    #
-    #             self.addlocationintervals(hand, intervals)
-    #             self.addlocationpoints(hand, points)
-    #
-    # def addlocationintervals(self, hand, intervals):
-    #     for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
-    #         locnrect = XslotRectModuleButton(self, module_uniqueid=m_id,
-    #                                          text=hand + ".Loc" + str(midx + 1),
-    #                                          moduletype='location',
-    #                                          sign=self.sign)
-    #         locnabbrev = self.sign.locationmodules[m_id].getabbreviation()
-    #         locnrect.setToolTip(locnabbrev)
-    #         intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
-    #         anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
-    #         if True in anyoverlaps:
-    #             self.current_y += 1
-    #         locnrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
-    #         self.moduleitems.append(locnrect)
-    #     self.current_y += 1
-    #
-    # def addlocationpoints(self, hand, points):
-    #     for i_idx, (midx, m_id, tidx, t) in enumerate(points):
-    #         locnellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
-    #                                                text=hand + ".Loc" + str(midx + 1),
-    #                                                moduletype='location',
-    #                                                sign=self.sign)
-    #         locnabbrev = self.sign.locationmodules[m_id].getabbreviation()
-    #         locnellipse.setToolTip(locnabbrev)
-    #         pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
-    #         anyequivalent = [t.startpoint.equivalent(prev_t.startpoint) for prev_t in pointsalreadydone]
-    #         if True in anyequivalent:
-    #             self.current_y += 1
-    #         locnellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
-    #         self.moduleitems.append(locnellipse)
-    #     self.current_y += 1
 
     def addcontact(self, hand):
         return  # TODO KV implement
 
     def addorientation(self, hand):
         return  # TODO KV implement
-
-    # TODO KV can this functionality be shared between modules? eg addhandconfig & addmovement have a *lot* of overlap
-    def addhandconfig(self, hand):
-        # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
-        num_hcfgmods = len(self.sign.handconfigmodules)
-        if num_hcfgmods > 0:
-            if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
-                # everything just gets listed vertically
-                for idx, m in enumerate(self.sign.handconfigmodules.keys()):
-                    hcfgmod = self.sign.handconfigmodules[m]
-                    hcfgmodid = hcfgmod.uniqueid
-                    if hcfgmod.hands[hand]:
-                        hcfgrect = XslotRectModuleButton(self, module_uniqueid=hcfgmodid, text=hand+".Config"+str(idx+1), moduletype='handconfig', sign=self.sign)
-                        hcfgabbrev = m.getabbreviation()
-                        hcfgrect.setToolTip(hcfgabbrev)
-                        hcfgrect.setRect(self.current_x, self.current_y * (self.default_xslot_height + self.verticalspacing), self.xslots_width, self.default_xslot_height)
-                        self.current_y += 1
-                        self.scene.addItem(hcfgrect)
-            else:  # 'manual' or 'auto'
-                # associate modules with x-slots
-                intervals = []
-                points = []
-
-                for midx, m_id in enumerate(self.sign.handconfigmodules.keys()):
-                    hcfgmod = self.sign.handconfigmodules[m_id]
-                    # hcfgmodid = hcfgmod.uniqueid
-                    if hcfgmod.hands[hand]:
-                        for tidx, t in enumerate(hcfgmod.timingintervals):
-                            if t.ispoint():
-                                points.append((midx, m_id, tidx, t))
-                            else:
-                                intervals.append((midx, m_id, tidx, t))
-
-                self.addhandconfigintervals(hand, intervals)
-                self.addhandconfigpoints(hand, points)
-
-    def addhandconfigintervals(self, hand, intervals):
-        for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
-            hcfgrect = XslotRectModuleButton(self, module_uniqueid=m_id,
-                                             text=hand + ".Config" + str(midx + 1),
-                                             moduletype='handconfig',
-                                             sign=self.sign)
-            hcfgabbrev = self.sign.handconfigmodules[m_id].getabbreviation()
-            hcfgrect.setToolTip(hcfgabbrev)
-            intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
-            anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
-            if True in anyoverlaps:
-                self.current_y += 1
-            hcfgrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
-            self.moduleitems.append(hcfgrect)
-        self.current_y += 1
-
-    def addhandconfigpoints(self, hand, points):
-        for i_idx, (midx, m_id, tidx, t) in enumerate(points):
-            hcfgellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
-                                                   text=hand + ".Config" + str(midx + 1),
-                                                   moduletype='handconfig',
-                                                   sign=self.sign)
-            hcfgabbrev = self.sign.handconfigmodules[m_id].getabbreviation()
-            hcfgellipse.setToolTip(hcfgabbrev)
-            pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
-            anyequivalent = [t.startpoint.equivalent(prev_t.startpoint) for prev_t in pointsalreadydone]
-            if True in anyequivalent:
-                self.current_y += 1
-            hcfgellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
-            self.moduleitems.append(hcfgellipse)
-        self.current_y += 1
 
     def addgridlines(self):
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and len(self.moduleitems) > 0:
@@ -772,13 +577,13 @@ class XslotPanel(QScrollArea):
     def handle_modulebutton_clicked(self, modulebutton):
         # TODO KV
         moduletype = modulebutton.moduletype
-        if moduletype == "signtype":
+        if moduletype == 'signtype':
             self.handle_signtype_clicked()
         # elif moduletype == "xslot":
         #     self.handle_xslot_clicked()
         else:
             modulekey = modulebutton.module_uniqueid
-            if moduletype == "movement":
+            if moduletype == 'movement':
                 self.handle_movement_clicked(modulekey)
             elif moduletype == 'handconfig':
                 self.handle_handconfig_clicked(modulekey)
@@ -852,24 +657,6 @@ class XslotPanel(QScrollArea):
         )
         handcfg_selector.exec_()
 
-# # TODO KV xslot mockup
-# class XslotImagePanel(QScrollArea):
-#
-#     def __init__(self, mainwindow, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         self.setFrameStyle(QFrame.StyledPanel)
-#         main_frame = QFrame(parent=self)
-#
-#         main_layout = QVBoxLayout()
-#
-#         self.pixmap = QPixmap(mainwindow.app_ctx.xslotimage['xslot'])
-#         self.lbl = QLabel()
-#         self.lbl.setPixmap(self.pixmap)
-#         main_layout.addWidget(self.lbl)
-#         main_frame.setLayout(main_layout)
-#
-#         self.setWidget(main_frame)
 
 class SignSummaryPanel(QScrollArea):
     sign_updated = pyqtSignal(Sign)
@@ -1051,19 +838,6 @@ class SignSummaryPanel(QScrollArea):
                                                 moduleargs=None)
         handcfg_selector.get_savedmodule_signal().connect(lambda configdict, hands, timingintervals, inphase: self.handle_save_handconfig(configdict, hands, timingintervals))
         handcfg_selector.exec_()
-        #
-        # button = self.sender()
-        # # TODO KV
-        # editing_existing = button.property("existingmodule")
-        # existing_key = None
-        # moduletoload = None
-        # if editing_existing:
-        #     existing_key = button.text()
-        #     moduletoload = self.sign.handshapemodules[existing_key]
-        # # handshape_selector = HandshapeSelectorDialog(mainwindow=self.mainwindow, new_instance=(not editing_existing), moduletoload=moduletoload, parent=self)
-        # handshape_selector = ModuleSelectorDialog(mainwindow=self.mainwindow, hands=None, xslotstructure=self.mainwindow.current_sign.xslotstructure, new_instance=(not editing_existing), modulelayout=HandshapeSpecificationLayout(self.mainwindow, moduletoload), moduleargs=None)
-        # handshape_selector.get_savedmodule_signal().connect(lambda hs_global, hs_transcription, hands: self.handle_save_handshape(GlobalHandshapeInformation(hs_global.get_value()), hs_transcription, hands, existing_key))
-        # handshape_selector.exec_()
 
     def handle_delete_handconfig(self, existing_key):
         if existing_key is None or existing_key not in self.sign.handconfigmodules.keys():
@@ -1509,9 +1283,9 @@ class LocationPointPanel(QGroupBox):
 #
 #         self.setWidget(main_frame)
 #
-#     def clear(self, location_specifications, app_ctx):  # TODO KV movement_specifications,
+#     def clear(self, location_specifications, app_ctx):  # movement_specifications,
 #         self.location_layout.clear(location_specifications, app_ctx)
-#         # self.movement_layout.clear(movement_specifications, app_ctx) # TODO KV
+#         # self.movement_layout.clear(movement_specifications, app_ctx)
 #
 #     def set_value(self, value):
 #         self.location_layout.set_value(value)
