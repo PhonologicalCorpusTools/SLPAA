@@ -92,6 +92,13 @@ hooking/un-hooking
 AP add here
 
 
+.. _instance:
+
+instance
+========
+(what one instance of a module is, vs. what we typically mean when discussing the module type more generally)
+
+
 .. _ipsilateral:
 
 ipsilateral
