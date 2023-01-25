@@ -686,7 +686,7 @@ class SignSummaryPanel(QScrollArea):
 
         # TODO KV
         # if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual':  # could also be 'none' or 'auto'
-        self.xslots_button = QPushButton("Specify X-slots")
+        self.xslots_button = QPushButton("  Specify X-slots")
         self.xslots_button.clicked.connect(self.handle_xslotsbutton_click)
         self.module_buttons.append(self.xslots_button)
 

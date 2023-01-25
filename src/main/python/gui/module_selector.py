@@ -54,7 +54,7 @@ from PyQt5.QtGui import (
 )
 
 from gui.xslot_graphics import XslotLinkingLayout
-from lexicon.module_classes import TimingInterval, TimingPoint
+from lexicon.module_classes import TimingInterval, TimingPoint, AddedInfo
 
 
 # class ModuleSpecificationPanel(TODO KV):
@@ -306,6 +306,7 @@ class CheckNoteAction(AbstractLocationAction):  # QWidgetAction):
 
 
 class AddedInfoContextMenu(QMenu):
+    info_added = pyqtSignal(AddedInfo)
 
     def __init__(self, addedinfo):
         super().__init__()
@@ -371,13 +372,14 @@ class AddedInfoContextMenu(QMenu):
             self.addedinfo.other_flag = state
 
     def savemenunotes(self):
-
         self.addedinfo.uncertain_note = self.uncertain_action.text()
         self.addedinfo.estimated_note = self.estimated_action.text()
         self.addedinfo.notspecified_note = self.notspecified_action.text()
         self.addedinfo.variable_note = self.variable_action.text()
         self.addedinfo.exceptional_note = self.exceptional_action.text()
         self.addedinfo.other_note = self.other_action.text()
+
+        self.info_added.emit(self.addedinfo)
 
 
 # TODO KV - need to pull phase info from here as well as hands info

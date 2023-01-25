@@ -74,6 +74,7 @@ class ReminderTab(QWidget):
 
 class SignDefaultsTab(QWidget):
     xslotdivisions_changed = pyqtSignal(dict, dict)
+    xslotgeneration_changed = pyqtSignal(str, str)
 
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
@@ -155,7 +156,12 @@ class SignDefaultsTab(QWidget):
 
     def save_settings(self):
         self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
-        self.settings['signdefaults']['xslot_generation'] = self.xslots_group.checkedButton().property('xslots')
+        previous_xslotgeneration = self.settings['signdefaults']['xslot_generation']
+        new_xslotgeneration = self.xslots_group.checkedButton().property('xslots')
+        self.settings['signdefaults']['xslot_generation'] = new_xslotgeneration
+
+        if previous_xslotgeneration != new_xslotgeneration:
+            self.xslotgeneration_changed.emit(previous_xslotgeneration, new_xslotgeneration)
 
         previouspartials = self.settings['signdefaults']['partial_xslots']
         newpartials = {cb.property('partialxslot'): cb.isChecked() for cb in self.partialxslots_group.buttons()}
@@ -164,6 +170,8 @@ class SignDefaultsTab(QWidget):
         #     self.settings['signdefaults']['partial_xslots'][cb.property('partialxslot')] = cb.isChecked()
         if previouspartials != newpartials:
             self.xslotdivisions_changed.emit(previouspartials, newpartials)
+
+
 
 
 class LocationTab(QWidget):
@@ -211,6 +219,7 @@ class LocationTab(QWidget):
 class PreferenceDialog(QDialog):
     prefs_saved = pyqtSignal()
     xslotdivisions_changed = pyqtSignal(dict, dict)
+    xslotgeneration_changed = pyqtSignal(str, str)
 
     def __init__(self, settings, timingfracsinuse, **kwargs):
         super().__init__(**kwargs)
@@ -232,6 +241,7 @@ class PreferenceDialog(QDialog):
 
         self.signdefaults_tab = SignDefaultsTab(settings, parent=self)
         self.signdefaults_tab.xslotdivisions_changed.connect(self.handle_xslotdivisions_changed)
+        self.signdefaults_tab.xslotgeneration_changed.connect(self.handle_xslotgeneration_changed)
         tabs.addTab(self.signdefaults_tab, 'Sign')
 
         self.location_tab = LocationTab(settings, parent=self)
@@ -243,6 +253,9 @@ class PreferenceDialog(QDialog):
 
         # Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
+
+    def handle_xslotgeneration_changed(self, prev_xslotgen, new_xslotgen):
+        self.xslotgeneration_changed.emit(prev_xslotgen, new_xslotgen)
 
     def handle_xslotdivisions_changed(self, beforedict, afterdict):
         divisionsbefore = [Fraction(fracstring) for fracstring in beforedict.keys() if beforedict[fracstring]]
@@ -272,7 +285,7 @@ class PreferenceDialog(QDialog):
             xslotincompatibilities_msgbox.setText("Your new partial x-slot settings create incompatibilities with previously coded signs that used the old settings. What would you like to do?")
             discardbutton = QPushButton("Discard changes (keep old divisions)")
             # TODO KV implement
-            newsinugnsonlybutton = QPushButton("Apply changes to new signs only (not yet implemented)")  # TODO KV [Tooltip / documentation explains: previously coded signs will have only the old x-slot options both visible and usable; any new signs added will have only the new x-slot options available.]
+            newsignsonlybutton = QPushButton("Apply changes to new signs only (not yet implemented)")  # TODO KV [Tooltip / documentation explains: previously coded signs will have only the old x-slot options both visible and usable; any new signs added will have only the new x-slot options available.]
             # TODO KV implement
             allsignsbutton = QPushButton("Apply changes to all signs (not yet implemented)")  # TODO KV [Tooltip / documentation explains: previously coded signs will keep their coded x-slot selections if they are compatible with the new options, otherwise will lose their associations and need to be recoded; all signs (old and new) will have only the new x-slot options available]. [Add option here: output list of signs that had incompatibilities to a file? or mark in the corpus somehow?]
             xslotincompatibilities_msgbox.addButton(discardbutton, QMessageBox.DestructiveRole)

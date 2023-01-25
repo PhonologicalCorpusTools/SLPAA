@@ -1,18 +1,15 @@
 import os
 import json
+from copy import copy
 
 from PyQt5.QtWidgets import (
     QFrame,
     QPushButton,
-    QRadioButton,
-    QDialog,
     QHBoxLayout,
     QVBoxLayout,
-    QDialogButtonBox,
     QComboBox,
     QLabel,
     QCompleter,
-    QButtonGroup,
     QAbstractItemView,
     QStyledItemDelegate,
     QStyle,
@@ -21,8 +18,6 @@ from PyQt5.QtWidgets import (
     QHeaderView,
     QStyleOptionFrame,
     QErrorMessage,
-    QCheckBox,
-    QSpinBox
 )
 
 from PyQt5.QtCore import (
@@ -32,24 +27,8 @@ from PyQt5.QtCore import (
     pyqtSignal
 )
 
-from PyQt5.QtGui import (
-    QPixmap,
-    QColor,
-    QPen,
-    QBrush,
-    QPolygonF,
-    QTextOption,
-    QFont
-)
-
-from gui.movement_view import MovementTreeModel, MovementModuleSerializable, MovementTreeSerializable, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView
-# from gui.xslot_graphics import XslotRectButton
-# from gui.signtype_selector import SigntypeSelectorDialog
-# from gui.handshape_selector import HandshapeSelectorDialog
-# from lexicon.lexicon_classes import GlobalHandshapeInformation
+from gui.movement_view import MovementTreeModel, MovementTreeSerializable, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
-# from gui.xslot_graphics import XslotLinkingLayout
-from gui.module_selector import HandSelectionLayout
 from lexicon.module_classes import MovementModule, delimiter, userdefinedroles as udr
 
 
@@ -127,10 +106,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
     def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
 
-        self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
-        # if moduletoload is not None:
-        #     self.treemodel = moduletoload
-        # self.rootNode = self.treemodel.invisibleRootItem()
+        self.treemodel = MovementTreeModel()
         if moduletoload:
             if isinstance(moduletoload, MovementTreeModel):
                 self.treemodel = MovementTreeSerializable(moduletoload).getMovementTreeModel()
@@ -143,7 +119,6 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
             else:
                 print("moduletoload must be either of type MovementTreeModel or of type MovementModule")
         else:
-            # self.treemodel.populate(self.rootNode)
             self.treemodel.populate(self.treemodel.invisibleRootItem())
 
         self.listmodel = self.treemodel.listmodel
@@ -247,14 +222,19 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
-            proxyindex = self.pathslistview.currentIndex()
+            proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
+            # proxyindex = self.pathslistview.selectedIndexes()[0]
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
             menu = AddedInfoContextMenu(addedinfo)
+            menu.info_added.connect(lambda newaddedinfo: self.updateaddedinfo(newaddedinfo, listindex.model().itemFromIndex(listindex).treeitem))
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
+
+    def updateaddedinfo(self, newaddedinfo, treeitem):  # TODO KV this shouldn't be necessary but seems to be anyway...?
+        treeitem.addedinfo = newaddedinfo
 
     def refresh(self):
         self.refresh_treemodel()

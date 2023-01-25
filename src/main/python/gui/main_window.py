@@ -879,10 +879,14 @@ class MainWindow(QMainWindow):
 
     def on_action_edit_preference(self):
         pref_dialog = PreferenceDialog(self.app_settings, timingfracsinuse=self.getcurrentlyused_timingfractions(), parent=self)
-        pref_dialog.xslotdivisions_changed.connect(lambda before, after: self.check_xslotdivisions(before, after))
+        # pref_dialog.xslotdivisions_changed.connect(self.check_xslotdivisions)  # lambda before, after: self.check_xslotdivisions(before, after))
+        pref_dialog.xslotgeneration_changed.connect(self.handle_xslotgeneration_changed)
         pref_dialog.prefs_saved.connect(self.xslot_panel.refreshsign)
         pref_dialog.exec_()
         #self.app_settings
+
+    def handle_xslotgeneration_changed(self, prev_xslotgen, new_xslotgen):
+        self.sign_summary.enable_module_buttons(len(self.corpus.signs) > 0)
 
     def getcurrentlyused_timingfractions(self):
         fractionsinuse = []

@@ -1,33 +1,21 @@
 import os
 import json
-from fractions import Fraction
 from copy import copy
 
 from PyQt5.QtWidgets import (
     QFrame,
     QPushButton,
     QRadioButton,
-    QDialog,
     QHBoxLayout,
     QVBoxLayout,
-    QDialogButtonBox,
     QComboBox,
     QLabel,
     QCompleter,
     QButtonGroup,
     QGroupBox,
     QAbstractItemView,
-    QStyledItemDelegate,
-    QLineEdit,
-    QStyle,
-    QStyleOptionButton,
-    QApplication,
     QHeaderView,
-    QListView,
-    QStyleOptionFrame,
-    QErrorMessage,
     QCheckBox,
-    QSpinBox,
     QSlider,
     QTabWidget,
     QWidget,
@@ -43,22 +31,9 @@ from PyQt5.QtCore import (
     QItemSelectionModel
 )
 
-from PyQt5.QtGui import (
-    QPixmap,
-    QColor,
-    QPen,
-    QBrush,
-    QPolygonF,
-    QTextOption,
-    QFont
-)
-
-from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableModel, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
+from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 from lexicon.module_classes import LocationModule, PhonLocations, LocationType
-# from gui.xslot_graphics import XslotLinkingLayout
-from gui.module_selector import HandSelectionLayout
-from lexicon.module_classes import delimiter, userdefinedroles as udr
 
 
 class ImageDisplayTab(QWidget):
@@ -127,10 +102,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         super().__init__(**kwargs)
 
         self.mainwindow = mainwindow
-        self.treemodel = LocationTreeModel()  # movementparameters=movement_specifications)
-        # if moduletoload is not None:
-        #     self.treemodel = moduletoload
-        # self.rootNode = self.treemodel.invisibleRootItem()
+        self.treemodel = LocationTreeModel()
         if moduletoload:
             if isinstance(moduletoload, LocationModule):
                 self.treemodel = LocationTreeSerializable(moduletoload.locationtreemodel).getLocationTreeModel()
@@ -144,7 +116,6 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
                 # we have to have the entire module (not just the tree) because of the Phonological Locations info
                 print("moduletoload must be of type LocationModule")
         else:
-            # self.treemodel.populate(self.rootNode)
             self.treemodel.populate(self.treemodel.invisibleRootItem())
             self.phonlocs = PhonLocations()
             self.locationtype = LocationType()
@@ -422,12 +393,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked()
         )
         self.treemodel.locationtype = locationtype
-        # loctype = LocationType(
-        #     body=self.body_radio.isChecked(),
-        #     signingspace=self.signingspace_radio.isChecked(),
-        #     bodyanchored=self.signingspacebody_radio.isChecked(),
-        #     purelyspatial=self.signingspacespatial_radio.isChecked()
-        # )
+
         return (self.treemodel, phonlocs, locationtype)
 
     def sort(self):
@@ -447,14 +413,20 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
-            proxyindex = self.pathslistview.currentIndex()
+            proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
+            # proxyindex = self.pathslistview.selectedIndexes()[0]
             listindex = proxyindex.model().mapToSource(proxyindex)
-            addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
+            treeitem = listindex.model().itemFromIndex(listindex).treeitem
+            addedinfo = copy(treeitem.addedinfo)
 
             menu = AddedInfoContextMenu(addedinfo)
+            menu.info_added.connect(lambda newaddedinfo: self.updateaddedinfo(newaddedinfo, treeitem))
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
+
+    def updateaddedinfo(self, newaddedinfo, treeitem):  # TODO KV this shouldn't be necessary but seems to be anyway...?
+        treeitem.addedinfo = newaddedinfo
 
     def refresh(self):
         # self.refresh_treemodel()
