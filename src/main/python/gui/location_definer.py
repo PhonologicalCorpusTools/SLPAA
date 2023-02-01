@@ -41,9 +41,9 @@ from PyQt5.QtCore import (
 
 from .helper_widget import EditableTabBar
 from constant import LocationParameter, Locations  # KV TODO , Movements
-from constant import SAMPLE_LOCATIONS
-from copy import copy, deepcopy
-from pprint import pprint
+# from constant import SAMPLE_LOCATIONS
+from copy import deepcopy  #, copy
+# from pprint import pprint
 
 
 #reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview

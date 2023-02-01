@@ -1,34 +1,34 @@
-from PyQt5.QtCore import (
-    Qt,
-    QSize,
-    pyqtSlot,
-    QPoint,
-    QAbstractTableModel,
-    pyqtSignal,
-    QMimeData
-)
-from PyQt5.QtWidgets import (
-    QVBoxLayout,
-    QHBoxLayout,
-    QDialog,
-    QDialogButtonBox,
-    QMessageBox,
-    QTableView,
-    QAction,
-    QAbstractItemView,
-    QMenu,
-    QFrame,
-    QRadioButton,
-    QGroupBox,
-    QPlainTextEdit
-)
-from PyQt5.QtGui import (
-    QIcon,
-    QPixmap,
-    QColor,
-    QDrag,
-    QImage
-)
+# from PyQt5.QtCore import (
+#     Qt,
+#     QSize,
+#     pyqtSlot,
+#     QPoint,
+#     QAbstractTableModel,
+#     pyqtSignal,
+#     QMimeData
+# )
+# from PyQt5.QtWidgets import (
+#     QVBoxLayout,
+#     QHBoxLayout,
+#     QDialog,
+#     QDialogButtonBox,
+#     QMessageBox,
+#     QTableView,
+#     QAction,
+#     QAbstractItemView,
+#     QMenu,
+#     QFrame,
+#     QRadioButton,
+#     QGroupBox,
+#     QPlainTextEdit
+# )
+# from PyQt5.QtGui import (
+#     QIcon,
+#     QPixmap,
+#     QColor,
+#     QDrag,
+#     QImage
+# )
 
 # TODO KV not used?
 # class NoteBox(QGroupBox):

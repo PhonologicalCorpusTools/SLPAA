@@ -9,8 +9,6 @@ from PyQt5.QtWidgets import (
     QToolButton,
     QFrame,
     QDialogButtonBox,
-    QLineEdit,
-    QLabel
 )
 
 from PyQt5.QtGui import (

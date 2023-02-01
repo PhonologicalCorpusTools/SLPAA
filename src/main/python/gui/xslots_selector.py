@@ -1,67 +1,57 @@
-import os
-import json
+# import os
+# import json
 from fractions import Fraction
 from PyQt5.QtWidgets import (
     QFrame,
-    QGridLayout,
-    QLineEdit,
-    QPushButton,
     QDialog,
     QHBoxLayout,
-    QListView,
+    # QListView,
     QVBoxLayout,
-    QBoxLayout,
-    QFileDialog,
-    QWidget,
-    QTabWidget,
-    QTabBar,
+    # QBoxLayout,
+    # QFileDialog,
+    # QWidget,
+    # QTabWidget,
+    # QTabBar,
     QDialogButtonBox,
-    QMessageBox,
-    QSlider,
-    QTreeView,
-    QComboBox,
     QLabel,
-    QCompleter,
-    QAbstractItemView,
-    QStyledItemDelegate,
-    QStyle,
-    QStyleOptionButton,
-    QApplication,
-    QHeaderView,
-    QStyleOptionFrame,
-    QErrorMessage,
+    # QCompleter,
+    # QAbstractItemView,
+    # QStyledItemDelegate,
+    # QStyle,
+    # QStyleOptionButton,
+    # QApplication,
+    # QHeaderView,
+    # QStyleOptionFrame,
+    # QErrorMessage,
     QButtonGroup,
     QRadioButton,
-    QCheckBox,
-    QGroupBox,
     QSpacerItem,
     QSizePolicy,
-    QAbstractButton,
     QSpinBox
 )
 
-from PyQt5.QtGui import (
-    QBrush,
-    QColor,
-    QPen,
-    QPolygonF,
-    QPixmap,
-    QIcon
-)
+# from PyQt5.QtGui import (
+#     QBrush,
+#     QColor,
+#     QPen,
+#     QPolygonF,
+#     QPixmap,
+#     QIcon
+# )
 
 from PyQt5.QtCore import (
-    Qt,
-    QPoint,
-    QRectF,
-    QAbstractListModel,
+    # Qt,
+    # QPoint,
+    # QRectF,
+    # QAbstractListModel,
     pyqtSignal,
-    QSize,
-    QEvent
+    # QSize,
+    # QEvent
 )
 
-from .helper_widget import EditableTabBar
-from copy import copy, deepcopy
-from pprint import pprint
+# from .helper_widget import EditableTabBar
+# from copy import copy, deepcopy
+# from pprint import pprint
 
 
 class XslotsSpecificationLayout(QVBoxLayout):

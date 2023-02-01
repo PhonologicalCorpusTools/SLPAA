@@ -16,7 +16,6 @@ from PyQt5.QtWidgets import (
     QAbstractItemView,
     QMenu,
     QFrame,
-    QRadioButton
 )
 from PyQt5.QtGui import (
     QIcon,

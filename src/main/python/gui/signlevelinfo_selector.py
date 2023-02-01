@@ -4,38 +4,37 @@ from PyQt5.QtWidgets import (
     QFrame,
     QGroupBox,
     QLineEdit,
-    QPushButton,
     QDialog,
     QHBoxLayout,
     QRadioButton,
     QVBoxLayout,
-    QFileDialog,
-    QWidget,
-    QTabWidget,
-    QTabBar,
+    # QFileDialog,
+    # QWidget,
+    # QTabWidget,
+    # QTabBar,
     QDialogButtonBox,
-    QMessageBox,
+    # QMessageBox,
     QPlainTextEdit,
     QButtonGroup,
-    QComboBox,
+    # QComboBox,
     QLabel,
-    QCompleter,
-    QAbstractItemView,
-    QStyledItemDelegate,
-    QStyle,
-    QStyleOptionButton,
-    QApplication,
-    QHeaderView,
-    QStyleOptionFrame,
-    QErrorMessage
+    # QCompleter,
+    # QAbstractItemView,
+    # QStyledItemDelegate,
+    # QStyle,
+    # QStyleOptionButton,
+    # QApplication,
+    # QHeaderView,
+    # QStyleOptionFrame,
+    # QErrorMessage
 )
 
 from PyQt5.QtCore import (
     Qt,
-    QAbstractListModel,
+    # QAbstractListModel,
     pyqtSignal,
     QSize,
-    QEvent
+    # QEvent
 )
 
 from lexicon.lexicon_classes import SignLevelInformation

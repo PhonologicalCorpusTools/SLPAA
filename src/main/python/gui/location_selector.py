@@ -1,9 +1,9 @@
-import os
-import json
+# import os
+# import json
 from copy import copy
 
 from PyQt5.QtWidgets import (
-    QFrame,
+    # QFrame,
     QPushButton,
     QRadioButton,
     QHBoxLayout,
@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import (
 
 from PyQt5.QtCore import (
     Qt,
-    QSize,
+    # QSize,
     QEvent,
     pyqtSignal,
     QItemSelectionModel

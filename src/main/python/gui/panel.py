@@ -1,25 +1,25 @@
-from datetime import date
+# from datetime import date
 from fractions import Fraction
 from itertools import permutations
 from collections import defaultdict
 from PyQt5.QtCore import (
     Qt,
-    QSize,
+    # QSize,
     QRectF,
     QPoint,
     pyqtSignal,
-    QEvent
+    # QEvent
 )
 
 from PyQt5.QtWidgets import (
-    QWidget,
+    # QWidget,
     QScrollArea,
     QVBoxLayout,
     QFrame,
     QLabel,
     QLineEdit,
-    QPlainTextEdit,
-    QGridLayout,
+    # QPlainTextEdit,
+    # QGridLayout,
     QHBoxLayout,
     QCheckBox,
     QGraphicsPolygonItem,
@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QGraphicsEllipseItem,
     QGraphicsTextItem,
-    QButtonGroup,
+    # QButtonGroup,
     QGroupBox,
     QPushButton,
     QColorDialog,
@@ -37,10 +37,10 @@ from PyQt5.QtWidgets import (
     QAbstractItemView,
     QMenu,
     QAction,
-    QRadioButton,
-    QComboBox,
-    QCompleter,
-    QTreeView,
+    # QRadioButton,
+    # QComboBox,
+    # QCompleter,
+    # QTreeView,
     QMessageBox
 )
 
@@ -50,8 +50,8 @@ from PyQt5.QtGui import (
     QPen,
     QBrush,
     QPolygonF,
-    QTextOption,
-    QFont
+    # QTextOption,
+    # QFont
 )
 
 # from gui.hand_configuration import ConfigGlobal, Config
@@ -64,7 +64,7 @@ from gui.movement_selector import MovementSpecificationLayout
 from gui.location_selector import LocationSpecificationLayout
 from gui.handshape_selector import HandConfigSpecificationLayout
 from gui.xslots_selector import XslotSelectorDialog
-from lexicon.lexicon_classes import Sign, GlobalHandshapeInformation, TimingInterval, TimingPoint
+from lexicon.lexicon_classes import Sign, TimingInterval, TimingPoint
 from gui.module_selector import ModuleSelectorDialog
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, XslotSummaryScene, XslotEllipseModuleButton
 
