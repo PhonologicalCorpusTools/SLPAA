@@ -1,3 +1,5 @@
+from copy import copy
+
 from PyQt5.QtCore import (
     Qt,
     QAbstractListModel,
@@ -60,22 +62,23 @@ mvmtOptionsDict = {
             ("Axis direction", fx, cb, u): {  # Choose up to one from each axis to get the complete direction
                 ("Vertical", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},
-                        ("Counterclockwise", fx, rb, u): {}
+                        ("Up", fx, rb, u): {},
+                        ("Down", fx, rb, u): {}
                     },
                 },
                 ("Sagittal", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},
-                        ("Counterclockwise", fx, rb, u): {}
+                        ("Distal", fx, rb, u): {},
+                        ("Proximal", fx, rb, u): {}
                     },
                 },
                 ("Horizontal", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Ipsilateral", fx, rb, u): {},
-                        ("Contralateral", fx, rb, u): {}
+                        ("Ipsilateral", fx, rb, u): {},  # TODO KV or toward H1
+                        ("Contralateral", fx, rb, u): {}  # TODO KV or toward H2
                     },
                 },
+                ("Not relevant", fx, rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
             ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
                 ("Sagittal", fx, cb, u): {
@@ -86,14 +89,14 @@ mvmtOptionsDict = {
                 },
                 ("Horizontal", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},
-                        ("Counterclockwise", fx, rb, u): {}
+                        ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                        ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
                     },
                 },
                 ("Vertical", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},
-                        ("Counterclockwise", fx, rb, u): {}
+                        ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                        ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
                     },
                 },
                 ("Not relevant", fx, rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
