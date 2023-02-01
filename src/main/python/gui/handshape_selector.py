@@ -24,7 +24,7 @@ from PyQt5.QtGui import (
 )
 
 # from gui.panel import HandTranscriptionPanel
-from gui.hand_configuration import ConfigGlobal, Config
+from gui.hand_configuration import Config  # ConfigGlobal
 # from gui.module_selector import HandSelectionLayout
 # from lexicon.lexicon_classes import HandConfiguration
 from gui.module_selector import ModuleSpecificationLayout

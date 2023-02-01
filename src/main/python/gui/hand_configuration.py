@@ -949,6 +949,7 @@ class Config(QGroupBox):
         # self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
+        self._addedinfo = AddedInfo()
         self.add_slot1()
         self.generate_hands()
         self.add_options()
@@ -963,9 +964,11 @@ class Config(QGroupBox):
         self.estimated = QCheckBox('Estimated', parent=self)
         self.uncertain = QCheckBox('Uncertain', parent=self)
         self.incomplete = QCheckBox('Incomplete', parent=self)
+        self.addedinfobutton = AddedInfoPushButton('Additional Info', parent=self)
         option_layout.addWidget(self.estimated)
         option_layout.addWidget(self.uncertain)
         option_layout.addWidget(self.incomplete)
+        option_layout.addWidget(self.addedinfobutton)
         option_layout.addStretch()
 
     def add_slot1(self):
@@ -1041,6 +1044,7 @@ class Config(QGroupBox):
         self.estimated.setChecked(handconfigmodule.overalloptions['estimated'])
         self.uncertain.setChecked(handconfigmodule.overalloptions['uncertain'])
         self.incomplete.setChecked(handconfigmodule.overalloptions['incomplete'])
+        self._addedinfo = handconfigmodule.overalloptions['overall_addedinfo']
 
     def clear(self):
         self.hand.clear()
@@ -1049,6 +1053,7 @@ class Config(QGroupBox):
         self.estimated.setChecked(False)
         self.uncertain.setChecked(False)
         self.incomplete.setChecked(False)
+        self._addedinfo = AddedInfo()
 
     def get_value(self):
         return {
@@ -1057,8 +1062,29 @@ class Config(QGroupBox):
             'estimated': self.estimated.isChecked(),
             'uncertain': self.uncertain.isChecked(),
             'incomplete': self.incomplete.isChecked(),
-            'hand': self.hand.get_value()  # this is a list of field values
+            'hand': self.hand.get_value(),  # this is a list of field values
+            'overall_addedinfo': self._addedinfo
         }
+
+
+class AddedInfoPushButton(QPushButton):
+
+    def __init__(self, title, **kwargs):
+        super().__init__(title, **kwargs)
+        self._addedinfo = AddedInfo()
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    def mouseReleaseEvent(self, event):
+    # def contextMenuEvent(self, event):
+        addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
+        addedinfo_menu.exec_(event.globalPos())
 
 
 class ForearmCheckBox(QCheckBox):
@@ -1080,97 +1106,99 @@ class ForearmCheckBox(QCheckBox):
         addedinfo_menu.exec_(event.globalPos())
 
 
-class ConfigGlobal(QGroupBox):
-    slot_on_focus = pyqtSignal(str)
-    slot_leave = pyqtSignal()
-
-    def __init__(self, title='', **kwargs):
-        super().__init__(title=title, **kwargs)
-
-        self.main_layout = QHBoxLayout()
-        self.main_layout.setSpacing(5)
-        # self.main_layout.addStretch()
-        self.setLayout(self.main_layout)
-        self.add_slot1()
-        self.add_options()
-        self.add_other()
-
-    def add_slot1(self):
-        slot1_layout = QHBoxLayout()
-        # slot1_layout.addStretch()
-        self.main_layout.addLayout(slot1_layout)
-
-        left_bracket = QLabel('[')
-        bracketfont = left_bracket.font()
-        bracketfont.setPixelSize(20)
-        left_bracket.setFont(bracketfont)
-        left_bracket.setFixedSize(QSize(10, 30))
-        left_bracket.setAlignment(Qt.AlignCenter)
-        slot1_layout.addWidget(left_bracket)
-
-        self.slot1 = QCheckBox('Forearm', parent=self)
-        slot1_layout.addWidget(self.slot1)
-
-        right_bracket = QLabel(']1')
-        right_bracket.setFont(bracketfont)
-        right_bracket.setFixedSize(QSize(22, 30))
-        right_bracket.setAlignment(Qt.AlignCenter)
-        slot1_layout.addWidget(right_bracket)
-
-        slot1_layout.addStretch()
-
-    def add_options(self):
-        option_frame = QGroupBox(parent=self)
-        option_layout = QVBoxLayout()
-        option_layout.setSpacing(5)
-        # option_layout.addStretch()
-        option_frame.setLayout(option_layout)
-        self.main_layout.addWidget(option_frame)
-        self.estimated = QCheckBox('Estimated', parent=self)
-        self.uncertain = QCheckBox('Uncertain', parent=self)
-        self.incomplete = QCheckBox('Incomplete', parent=self)
-        option_layout.addWidget(self.estimated)
-        option_layout.addWidget(self.uncertain)
-        option_layout.addWidget(self.incomplete)
-
-    def add_other(self):
-        other_group = QGroupBox(parent=self)
-        other_layout = QVBoxLayout()
-        other_layout.setSpacing(5)
-        # other_layout.addStretch()
-        other_group.setLayout(other_layout)
-        self.main_layout.addWidget(other_group)
-        self.fingerspelled = QCheckBox('Fingerspelled', parent=self)
-        self.initialized = QCheckBox('Initialized', parent=self)
-        other_layout.addWidget(self.fingerspelled)
-        other_layout.addWidget(self.initialized)
-        other_layout.addStretch()
-
-    def clear(self):
-        self.slot1.setChecked(False)
-        self.estimated.setChecked(False)
-        self.uncertain.setChecked(False)
-        self.incomplete.setChecked(False)
-        self.fingerspelled.setChecked(False)
-        self.initialized.setChecked(False)
-
-    def set_value(self, global_handshape_info):
-        self.slot1.setChecked(global_handshape_info.forearm)
-        self.estimated.setChecked(global_handshape_info.estimated)
-        self.uncertain.setChecked(global_handshape_info.uncertain)
-        self.incomplete.setChecked(global_handshape_info.incomplete)
-        self.fingerspelled.setChecked(global_handshape_info.fingerspelled)
-        self.initialized.setChecked(global_handshape_info.initialized)
-
-    def get_value(self):
-        return {
-            'forearm': self.slot1.isChecked(),
-            'estimated': self.estimated.isChecked(),
-            'uncertain': self.uncertain.isChecked(),
-            'incomplete': self.incomplete.isChecked(),
-            'fingerspelled': self.fingerspelled.isChecked(),
-            'initialized': self.initialized.isChecked()
-        }
+# TODO KV i don't 'think this class is used anymore
+# class ConfigGlobal(QGroupBox):
+#     slot_on_focus = pyqtSignal(str)
+#     slot_leave = pyqtSignal()
+#
+#     def __init__(self, title='', **kwargs):
+#         super().__init__(title=title, **kwargs)
+#
+#         self.main_layout = QHBoxLayout()
+#         self.main_layout.setSpacing(5)
+#         # self.main_layout.addStretch()
+#         self.setLayout(self.main_layout)
+#         self.add_slot1()
+#         self.add_options()
+#         self.add_other()
+#
+#     def add_slot1(self):
+#         slot1_layout = QHBoxLayout()
+#         # slot1_layout.addStretch()
+#         self.main_layout.addLayout(slot1_layout)
+#
+#         left_bracket = QLabel('[')
+#         bracketfont = left_bracket.font()
+#         bracketfont.setPixelSize(20)
+#         left_bracket.setFont(bracketfont)
+#         left_bracket.setFixedSize(QSize(10, 30))
+#         left_bracket.setAlignment(Qt.AlignCenter)
+#         slot1_layout.addWidget(left_bracket)
+#
+#         self.slot1 = QCheckBox('Forearm', parent=self)
+#         slot1_layout.addWidget(self.slot1)
+#
+#         right_bracket = QLabel(']1')
+#         right_bracket.setFont(bracketfont)
+#         right_bracket.setFixedSize(QSize(22, 30))
+#         right_bracket.setAlignment(Qt.AlignCenter)
+#         slot1_layout.addWidget(right_bracket)
+#
+#         slot1_layout.addStretch()
+#
+#     def add_options(self):
+#         option_frame = QGroupBox(parent=self)
+#         option_layout = QVBoxLayout()
+#         option_layout.setSpacing(5)
+#         # option_layout.addStretch()
+#         option_frame.setLayout(option_layout)
+#         self.main_layout.addWidget(option_frame)
+#         self.estimated = QCheckBox('Estimated', parent=self)
+#         self.uncertain = QCheckBox('Uncertain', parent=self)
+#         self.incomplete = QCheckBox('Incomplete', parent=self)
+#         option_layout.addWidget(self.estimated)
+#         option_layout.addWidget(self.uncertain)
+#         option_layout.addWidget(self.incomplete)
+#
+#     def add_other(self):
+#         other_group = QGroupBox(parent=self)
+#         other_layout = QVBoxLayout()
+#         other_layout.setSpacing(5)
+#         # other_layout.addStretch()
+#         other_group.setLayout(other_layout)
+#         self.main_layout.addWidget(other_group)
+#         self.fingerspelled = QCheckBox('Fingerspelled', parent=self)
+#         self.initialized = QCheckBox('Initialized', parent=self)
+#         other_layout.addWidget(self.fingerspelled)
+#         other_layout.addWidget(self.initialized)
+#         other_layout.addStretch()
+#
+#     def clear(self):
+#         self.slot1.setChecked(False)
+#         self.estimated.setChecked(False)
+#         self.uncertain.setChecked(False)
+#         self.incomplete.setChecked(False)
+#         self.
+#         self.fingerspelled.setChecked(False)
+#         self.initialized.setChecked(False)
+#
+#     def set_value(self, global_handshape_info):
+#         self.slot1.setChecked(global_handshape_info.forearm)
+#         self.estimated.setChecked(global_handshape_info.estimated)
+#         self.uncertain.setChecked(global_handshape_info.uncertain)
+#         self.incomplete.setChecked(global_handshape_info.incomplete)
+#         self.fingerspelled.setChecked(global_handshape_info.fingerspelled)
+#         self.initialized.setChecked(global_handshape_info.initialized)
+#
+#     def get_value(self):
+#         return {
+#             'forearm': self.slot1.isChecked(),
+#             'estimated': self.estimated.isChecked(),
+#             'uncertain': self.uncertain.isChecked(),
+#             'incomplete': self.incomplete.isChecked(),
+#             'fingerspelled': self.fingerspelled.isChecked(),
+#             'initialized': self.initialized.isChecked()
+#         }
 
 
 class HandConfigurationHand:
