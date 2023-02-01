@@ -1,13 +1,14 @@
+from copy import deepcopy
 from PyQt5.QtWidgets import (
-    QDialog,
+    # QDialog,
     QVBoxLayout,
     QHBoxLayout,
     QFrame,
-    QDialogButtonBox,
-    QGridLayout,
-    QLayout,
+    # QDialogButtonBox,
+    # QGridLayout,
+    # QLayout,
     QScrollArea,
-    QButtonGroup,
+    # QButtonGroup,
     QLabel,
     QSizePolicy
 )
@@ -25,7 +26,7 @@ from PyQt5.QtGui import (
 # from gui.panel import HandTranscriptionPanel
 from gui.hand_configuration import ConfigGlobal, Config
 # from gui.module_selector import HandSelectionLayout
-from lexicon.lexicon_classes import HandConfiguration
+# from lexicon.lexicon_classes import HandConfiguration
 from gui.module_selector import ModuleSpecificationLayout
 from gui.undo_command import TranscriptionUndoCommand
 
@@ -143,7 +144,7 @@ class HandConfigSpecificationLayout(ModuleSpecificationLayout):
         self.panel.config.slot_finish_edit.connect(self.handle_slot_edit)
 
         if moduletoload:
-            self.panel.set_value(moduletoload)
+            self.panel.set_value(deepcopy(moduletoload))
         # TODO KV also load forearm, uncertainty info
 
         main_layout.addWidget(self.panel)

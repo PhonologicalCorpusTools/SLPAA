@@ -1,4 +1,4 @@
-from itertools import chain
+# from itertools import chain
 from fractions import Fraction
 # from copy import deepcopy
 from datetime import datetime
@@ -6,7 +6,8 @@ from datetime import datetime
 from gui.movement_view import MovementModuleSerializable
 from gui.location_view import LocationModuleSerializable
 from gui.xslots_selector import XslotStructure
-from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, TimingInterval, TimingPoint, LocationModule
+from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, LocationModule
+from lexicon.module_classes2 import TimingInterval, TimingPoint
 
 NULL = '\u2205'
 
@@ -197,70 +198,72 @@ class SignLevelInformation:
         self._handdominance = new_handdominance
 
 
-class GlobalHandshapeInformation:
-    def __init__(self, global_handshape_info):
-        self._forearm = global_handshape_info['forearm']
-        self._estimated = global_handshape_info['estimated']
-        self._uncertain = global_handshape_info['uncertain']
-        self._incomplete = global_handshape_info['incomplete']
-        self._fingerspelled = global_handshape_info['fingerspelled']
-        self._initialized = global_handshape_info['initialized']
+# TODO KV this class doesn't seem to be used anymore
+# class GlobalHandshapeInformation:
+#     def __init__(self, global_handshape_info):
+#         self._forearm = global_handshape_info['forearm']
+#         self._estimated = global_handshape_info['estimated']
+#         self._uncertain = global_handshape_info['uncertain']
+#         self._incomplete = global_handshape_info['incomplete']
+#         self._fingerspelled = global_handshape_info['fingerspelled']
+#         self._initialized = global_handshape_info['initialized']
+#
+#     @property
+#     def estimated(self):
+#         return self._estimated
+#
+#     @estimated.setter
+#     def estimated(self, new_is_estimated):
+#         self._estimated = new_is_estimated
+#
+#     @property
+#     def uncertain(self):
+#         return self._uncertain
+#
+#     @uncertain.setter
+#     def uncertain(self, new_is_uncertain):
+#         self._uncertain = new_is_uncertain
+#
+#     @property
+#     def incomplete(self):
+#         return self._incomplete
+#
+#     @incomplete.setter
+#     def incomplete(self, new_is_incomplete):
+#         self._incomplete = new_is_incomplete
+#
+#     @property
+#     def fingerspelled(self):
+#         return self._fingerspelled
+#
+#     @fingerspelled.setter
+#     def fingerspelled(self, new_is_fingerspelled):
+#         self._fingerspelled = new_is_fingerspelled
+#
+#     @property
+#     def initialized(self):
+#         return self._initialized
+#
+#     @initialized.setter
+#     def initialized(self, new_is_initialized):
+#         self._initialized = new_is_initialized
+#
+#     @property
+#     def forearm(self):
+#         return self._forearm
+#
+#     @forearm.setter
+#     def forearm(self, new_is_forearm):
+#         self._forearm = new_is_forearm
 
-    @property
-    def estimated(self):
-        return self._estimated
 
-    @estimated.setter
-    def estimated(self, new_is_estimated):
-        self._estimated = new_is_estimated
-
-    @property
-    def uncertain(self):
-        return self._uncertain
-
-    @uncertain.setter
-    def uncertain(self, new_is_uncertain):
-        self._uncertain = new_is_uncertain
-
-    @property
-    def incomplete(self):
-        return self._incomplete
-
-    @incomplete.setter
-    def incomplete(self, new_is_incomplete):
-        self._incomplete = new_is_incomplete
-
-    @property
-    def fingerspelled(self):
-        return self._fingerspelled
-
-    @fingerspelled.setter
-    def fingerspelled(self, new_is_fingerspelled):
-        self._fingerspelled = new_is_fingerspelled
-
-    @property
-    def initialized(self):
-        return self._initialized
-
-    @initialized.setter
-    def initialized(self, new_is_initialized):
-        self._initialized = new_is_initialized
-
-    @property
-    def forearm(self):
-        return self._forearm
-
-    @forearm.setter
-    def forearm(self, new_is_forearm):
-        self._forearm = new_is_forearm
-
-
-class HandConfiguration:
-    def __init__(self, config):
-
-        # from above
-        # self.hand1 = HandConfigurationHand(hand['fields'])
-        self.config = config
+# TODO KV this class doesn't seem to be used anymore
+# class HandConfiguration:
+#     def __init__(self, config):
+#
+#         # from above
+#         # self.hand1 = HandConfigurationHand(hand['fields'])
+#         self.config = config
 
 
 class LocationPoint:

@@ -1,3 +1,5 @@
+# from copy import copy
+
 from PyQt5.QtCore import (
     Qt,
     QSize,
@@ -15,9 +17,9 @@ from PyQt5.QtWidgets import (
     QCompleter,
     QPushButton,
     QCheckBox,
-    QAction,
-    QMenu,
-    QRadioButton
+    # QAction,
+    # QMenu,
+    # QRadioButton
 )
 
 from PyQt5.QtGui import (
@@ -28,6 +30,8 @@ from itertools import chain
 from constant import NULL, X_IN_BOX, ESTIMATE_BORDER, UNCERTAIN_BACKGROUND, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeNoMatch
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
+from lexicon.module_classes2 import AddedInfo
+from gui.module_selector import AddedInfoContextMenu
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
@@ -41,10 +45,7 @@ class ConfigSlot(QLineEdit):
     def __init__(self, completer_options, descriptions, **kwargs):
         super().__init__(**kwargs)
 
-        self.estimate = False
-        self.uncertain = False
-        self.setProperty('Estimate', self.estimate)
-        self.setProperty('Uncertain', self.uncertain)
+        self.addedinfo = AddedInfo()
 
         # styling
         self.setFixedSize(QSize(20, 20))
@@ -92,9 +93,6 @@ class ConfigSlot(QLineEdit):
             s_num=descriptions[1],
             s_type=descriptions[2])
 
-        # create menu
-        self.create_flag_menu()
-
         self.current_prop = self.get_value()
         self.textChanged.connect(self.on_text_changed)
 
@@ -104,55 +102,28 @@ class ConfigSlot(QLineEdit):
         self.slot_finish_edit.emit(self, self.current_prop, self.get_value())
         self.current_prop = self.get_value()
 
-    def create_flag_menu(self):
-        self.flag_menu = QMenu(parent=self)
-
-        self.flag_estimate_action = QAction('Flag as estimate', parent=self, triggered=self.flag_estimate,
-                                            checkable=True)
-        self.flag_uncertain_action = QAction('Flag as uncertain', parent=self, triggered=self.flag_uncertain,
-                                             checkable=True)
-
-        self.flag_menu.addActions([self.flag_estimate_action, self.flag_uncertain_action])
-
-    def flag_estimate(self):
-        self.estimate = self.flag_estimate_action.isChecked()
-        self.setProperty('Estimate', self.estimate)
-
-        self.setStyle(self.style())
-
-    def flag_uncertain(self):
-        self.uncertain = self.flag_uncertain_action.isChecked()
-        self.setProperty('Uncertain', self.uncertain)
-
-        self.setStyle(self.style())
+    # def handle_info_added(self, addedinfo):
+    #     self.addedinfo = addedinfo
 
     def clear(self):
         if self.num not in {'8', '9', '16', '21', '26', '31'}:
             super().clear()
-            self.flag_estimate_action.setChecked(False)
-            self.flag_uncertain_action.setChecked(False)
-            self.flag_estimate()
-            self.flag_uncertain()
+            self.addedinfo.clear()
             #self.repaint()
 
     def set_value_from_dict(self, d):
         self.setText(d['symbol'])
-        self.flag_estimate_action.setChecked(d['estimate'])
-        self.flag_uncertain_action.setChecked(d['uncertain'])
-        self.flag_estimate()
-        self.flag_uncertain()
+        self.addedinfo = d['addedinfo']
         #self.repaint()
 
     def set_value(self, slot):
         self.setText(slot.symbol)
-        self.flag_estimate_action.setChecked(slot.estimate)
-        self.flag_uncertain_action.setChecked(slot.uncertain)
-        self.flag_estimate()
-        self.flag_uncertain()
+        self.addedinfo = slot.addedinfo
         #self.repaint()
 
     def contextMenuEvent(self, event):
-        self.flag_menu.exec_(event.globalPos())
+        self.addedinfo_menu = AddedInfoContextMenu(self.addedinfo)
+        self.addedinfo_menu.exec_(event.globalPos())
 
     def mousePressEvent(self, event):
         if event.type() == QEvent.MouseButtonPress:
@@ -179,8 +150,7 @@ class ConfigSlot(QLineEdit):
         super().leaveEvent(event)
 
     def get_value(self):
-        return {'slot_number': int(self.num), 'symbol': self.text(), 'estimate': self.estimate,
-                'uncertain': self.uncertain}
+        return {'slot_number': int(self.num), 'symbol': self.text(), 'addedinfo': self.addedinfo}
 
 
 class ConfigField(QWidget):
@@ -809,7 +779,7 @@ class ConfigHand(QWidget):
     slot_leave = pyqtSignal()
     slot_finish_edit = pyqtSignal(QLineEdit, dict, dict)
 
-    def __init__(self, predefined_ctx, parent=None):  # hand_number,
+    def __init__(self, predefined_ctx, parent=None):
         super().__init__(parent=parent)
         # self.hand_number = hand_number
         self.predefined_ctx = predefined_ctx
@@ -1222,17 +1192,17 @@ class HandConfigurationField:
 
     def set_slots(self):
         if self._field_number == 2:
-            self.slot2, self.slot3, self.slot4, self.slot5 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot2, self.slot3, self.slot4, self.slot5 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
         elif self._field_number == 3:
-            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
         elif self._field_number == 4:
-            self.slot16, self.slot17, self.slot18, self.slot19 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot16, self.slot17, self.slot18, self.slot19 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
         elif self._field_number == 5:
-            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
         elif self._field_number == 6:
-            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
         elif self._field_number == 7:
-            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['estimate'], slot['uncertain']) for slot in self._slots]
+            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
 
     def __iter__(self):
         if self._field_number == 2:
@@ -1250,11 +1220,18 @@ class HandConfigurationField:
 
 
 class HandConfigurationSlot:
-    def __init__(self, slot_number, symbol, is_estimate, is_uncertain):
+    def __init__(self, slot_number, symbol, addedinfo):
         self._slot_number = slot_number
         self._symbol = symbol
-        self._estimate = is_estimate
-        self._uncertain = is_uncertain
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     @property
     def slot_number(self):
@@ -1271,20 +1248,3 @@ class HandConfigurationSlot:
     @symbol.setter
     def symbol(self, new_symbol):
         self._symbol = new_symbol
-
-    @property
-    def estimate(self):
-        return self._estimate
-
-    @estimate.setter
-    def estimate(self, new_is_estimate):
-        self._estimate = new_is_estimate
-
-    @property
-    def uncertain(self):
-        return self._uncertain
-
-    @uncertain.setter
-    def uncertain(self, new_is_uncertain):
-        self._uncertain = new_is_uncertain
-

@@ -2,7 +2,6 @@ from copy import deepcopy
 
 from PyQt5.QtWidgets import (
     QFrame,
-    QPushButton,
     QRadioButton,
     QDialog,
     QWidget,
@@ -12,49 +11,49 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QMessageBox,
-    QGraphicsRectItem,
-    QGridLayout,
+    # QGraphicsRectItem,
+    # QGridLayout,
     QDialogButtonBox,
-    QComboBox,
     QMenu,
     QLabel,
-    QCompleter,
+    # QCompleter,
     QButtonGroup,
-    QAbstractItemView,
-    QStyledItemDelegate,
-    QStyle,
-    QStyleOptionButton,
-    QApplication,
-    QHeaderView,
-    QStyleOptionFrame,
-    QErrorMessage,
+    # QAbstractItemView,
+    # QStyledItemDelegate,
+    # QStyle,
+    # QStyleOptionButton,
+    # QApplication,
+    # QHeaderView,
+    # QStyleOptionFrame,
+    # QErrorMessage,
     QCheckBox,
-    QSpinBox,
-    QGraphicsView,
-    QGraphicsScene,
-    QGraphicsEllipseItem,
-    QSizePolicy
+    # QSpinBox,
+    # QGraphicsView,
+    # QGraphicsScene,
+    # QGraphicsEllipseItem,
+    # QSizePolicy
 )
 
 from PyQt5.QtCore import (
-    Qt,
-    QSize,
-    QEvent,
+    # Qt,
+    # QSize,
+    # QEvent,
     pyqtSignal
 )
 
-from PyQt5.QtGui import (
-    QPixmap,
-    QColor,
-    QPen,
-    QBrush,
-    QPolygonF,
-    QTextOption,
-    QFont
-)
+# from PyQt5.QtGui import (
+#     QPixmap,
+#     QColor,
+#     QPen,
+#     QBrush,
+#     QPolygonF,
+#     QTextOption,
+#     QFont
+# )
 
 from gui.xslot_graphics import XslotLinkingLayout
-from lexicon.module_classes import TimingInterval, TimingPoint, AddedInfo
+# from lexicon.module_classes import TimingInterval, TimingPoint
+from lexicon.module_classes2 import AddedInfo, TimingInterval, TimingPoint
 
 
 # class ModuleSpecificationPanel(TODO KV):

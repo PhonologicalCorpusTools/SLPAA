@@ -1,11 +1,11 @@
 from fractions import Fraction
 from num2words import num2words
-import itertools
+# import itertools
 
 from PyQt5.QtWidgets import (
     QGraphicsRectItem,
     QLabel,
-    QHBoxLayout,
+    # QHBoxLayout,
     QGraphicsView,
     QGraphicsScene,
     QVBoxLayout,
@@ -17,24 +17,24 @@ from PyQt5.QtGui import (
     QBrush,
     QColor,
     QPen,
-    QPolygonF,
-    QPixmap,
-    QIcon,
+    # QPolygonF,
+    # QPixmap,
+    # QIcon,
     QTextOption,
-    QFont,
+    # QFont,
 )
 
 from PyQt5.QtCore import (
     Qt,
-    QPoint,
-    QRectF,
-    QAbstractListModel,
+    # QPoint,
+    # QRectF,
+    # QAbstractListModel,
     pyqtSignal,
-    QSize,
-    QEvent
+    # QSize,
+    # QEvent
 )
 
-from lexicon.lexicon_classes import TimingPoint, TimingInterval
+from lexicon.module_classes2 import TimingPoint, TimingInterval
 from constant import FRACTION_CHAR
 
 

@@ -1,13 +1,13 @@
-import os
+# import os
 from copy import copy
 
 from PyQt5.QtCore import (
     Qt,
-    QAbstractListModel,
+    # QAbstractListModel,
     QAbstractTableModel,
     pyqtSignal,
-    QModelIndex,
-    QItemSelectionModel,
+    # QModelIndex,
+    # QItemSelectionModel,
     QSortFilterProxyModel,
     QDateTime,
     QRectF
@@ -21,23 +21,23 @@ from PyQt5.Qt import (
 from PyQt5.QtGui import QPixmap
 
 from PyQt5.QtWidgets import (
-    QWidget,
-    QLabel,
-    QLineEdit,
+    # QWidget,
+    # QLabel,
+    # QLineEdit,
     QListView,
     QHeaderView,
     QTableView,
-    QVBoxLayout,
+    # QVBoxLayout,
     QComboBox,
-    QTreeView,
-    QStyle,
+    # QTreeView,
+    # QStyle,
     QGraphicsView,
     QGraphicsScene,
     QGraphicsPixmapItem
 )
 
-from lexicon.module_classes import AddedInfo, delimiter, LocationType, userdefinedroles as udr
-
+from lexicon.module_classes import delimiter, LocationType, userdefinedroles as udr
+from lexicon.module_classes2 import AddedInfo
 
 # radio button vs checkbox
 rb = "radio button"  # ie mutually exclusive in group / at this level
