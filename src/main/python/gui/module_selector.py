@@ -195,8 +195,6 @@ class ModuleSelectorDialog(QDialog):
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
                 # if self.mainwindow.current_sign is not None:
                 #     self.mainwindow.current_sign.lastmodifiednow()
-                # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
-                # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
                 self.hands_layout.clear()
                 self.xslot_layout.clear()
                 self.module_layout.clear()  # TODO KV was refresh()....
@@ -230,7 +228,6 @@ class ModuleSelectorDialog(QDialog):
                 QMessageBox.critical(self, "Warning", messagestring)
             else:
                 # save info and then close dialog
-                # self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
                 signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals, inphase))
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
                 # if self.mainwindow.current_sign is not None:

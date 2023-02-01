@@ -191,19 +191,19 @@ class AddedInfo:
         self._other_flag = other_flag
         self._other_note = other_note
 
-    def clear(self):
-        self._uncertain_flag = False
-        self._uncertain_note = ""
-        self._estimated_flag = False
-        self._estimated_note = ""
-        self._notspecified_flag = False
-        self._notspecified_note = ""
-        self._variable_flag = False
-        self._variable_note = ""
-        self._exceptional_flag = False
-        self._exceptional_note = ""
-        self._other_flag = False
-        self._other_note = ""
+    # def clear(self):
+    #     self._uncertain_flag = False
+    #     self._uncertain_note = ""
+    #     self._estimated_flag = False
+    #     self._estimated_note = ""
+    #     self._notspecified_flag = False
+    #     self._notspecified_note = ""
+    #     self._variable_flag = False
+    #     self._variable_note = ""
+    #     self._exceptional_flag = False
+    #     self._exceptional_note = ""
+    #     self._other_flag = False
+    #     self._other_note = ""
 
     @property
     def uncertain_flag(self):

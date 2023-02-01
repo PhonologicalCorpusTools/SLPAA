@@ -108,7 +108,7 @@ class ConfigSlot(QLineEdit):
     def clear(self):
         if self.num not in {'8', '9', '16', '21', '26', '31'}:
             super().clear()
-            self.addedinfo.clear()
+            self.addedinfo = AddedInfo()
             #self.repaint()
 
     def set_value_from_dict(self, d):
@@ -122,8 +122,8 @@ class ConfigSlot(QLineEdit):
         #self.repaint()
 
     def contextMenuEvent(self, event):
-        self.addedinfo_menu = AddedInfoContextMenu(self.addedinfo)
-        self.addedinfo_menu.exec_(event.globalPos())
+        addedinfo_menu = AddedInfoContextMenu(self.addedinfo)
+        addedinfo_menu.exec_(event.globalPos())
 
     def mousePressEvent(self, event):
         if event.type() == QEvent.MouseButtonPress:
@@ -983,7 +983,7 @@ class Config(QGroupBox):
         left_bracket.setAlignment(Qt.AlignCenter)
         slot1_layout.addWidget(left_bracket)
 
-        self.slot1 = QCheckBox('Forearm', parent=self)
+        self.slot1 = ForearmCheckBox('Forearm', parent=self)
         slot1_layout.addWidget(self.slot1)
 
         right_bracket = QLabel(']1')
@@ -1037,6 +1037,7 @@ class Config(QGroupBox):
     def set_value(self, handconfigmodule):
         self.hand.set_value(HandConfigurationHand(handconfigmodule.handconfiguration))
         self.slot1.setChecked(handconfigmodule.overalloptions['forearm'])
+        self.slot1.addedinfo = handconfigmodule.overalloptions['forearm_addedinfo']
         self.estimated.setChecked(handconfigmodule.overalloptions['estimated'])
         self.uncertain.setChecked(handconfigmodule.overalloptions['uncertain'])
         self.incomplete.setChecked(handconfigmodule.overalloptions['incomplete'])
@@ -1044,6 +1045,7 @@ class Config(QGroupBox):
     def clear(self):
         self.hand.clear()
         self.slot1.setChecked(False)
+        self.slot1.addedinfo = AddedInfo()
         self.estimated.setChecked(False)
         self.uncertain.setChecked(False)
         self.incomplete.setChecked(False)
@@ -1051,11 +1053,31 @@ class Config(QGroupBox):
     def get_value(self):
         return {
             'forearm': self.slot1.isChecked(),
+            'forearm_addedinfo': self.slot1.addedinfo,
             'estimated': self.estimated.isChecked(),
             'uncertain': self.uncertain.isChecked(),
             'incomplete': self.incomplete.isChecked(),
             'hand': self.hand.get_value()  # this is a list of field values
         }
+
+
+class ForearmCheckBox(QCheckBox):
+
+    def __init__(self, title, **kwargs):
+        super().__init__(title, **kwargs)
+        self._addedinfo = AddedInfo()
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    def contextMenuEvent(self, event):
+        addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
+        addedinfo_menu.exec_(event.globalPos())
 
 
 class ConfigGlobal(QGroupBox):
