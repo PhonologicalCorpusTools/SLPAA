@@ -1,6 +1,4 @@
 .. todo::
-    write the timing blurb at the beginning
-    fix 'no movement' note
     fix references in the movement type section
     update / delete refs to “transcription process” in the movement type section
     joint activity description not completed
@@ -15,9 +13,9 @@ Movement Module
 
 This :ref:`module` is used to code the **movement** components of a sign. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`. 
 
-For movements involving both hands, select whether the movement described in the module is in phase or out of phase (with respect to any of the location, hand configuration, or orientation parameters) according to the description of :ref:`Movement timing relation<signtype_movement_timing_relation>` as it applies in :ref:`sign_type_module`. You will have the opportunity to specify which parameter(s) is/are out of phase for the particular instance of the module.
+For movements involving both hands, select whether the movement described in this :ref:`instance` of the module is in phase or out of phase (with respect to any of the location, hand configuration, or orientation parameters). This selection follows according to the description of :ref:`Movement timing relation<signtype_movement_timing_relation>` as it applies in :ref:`sign_type_module`. You will have the opportunity to specify which parameter(s) is/are out of phase for the particular instance of the module.
 
-Modules link to :ref:`x-slots<x_slot>`... For more information on the use of x-slots, ... :ref:`timing_page`
+Modules link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
 .. _movement_type_entry:
 
@@ -29,9 +27,7 @@ Select the **movement type** for the current module. The three movement types ar
 .. note::
     **No movement**
     
-    If any portion of a sign includes a prominent moment of intended stillness (for instance, `MISS <https://asl-lex.org/visualization/?sign=miss>`_ or some productions of `ONE <https://asl-lex.org/visualization/?sign=one>`_), select the 'No movement' option. When applicable, this is the only selection within the module as it is mutually exclusive with all other movement options.
-    
-    **Note: add that this can apply for only one portion of a sign which otherwise does have movement, which is what makes it useful above and beyond the sign type 'no movement' options. (Reference Morgan for 'hold' signs?)**
+    If any portion of a sign includes a prominent moment of intended stillness (for instance, `MISS <https://asl-lex.org/visualization/?sign=miss>`_ or `ONE <https://www.handspeak.com/word/index.php?id=1554>`_), select the 'No movement' option. When applicable, this is the only selection within the module as it is mutually exclusive with all other movement options. This selection can apply for only one portion of a sign which otherwise does have movement, which is what makes it useful above and beyond the 'no movement' options in :ref:`sign_type_module`.
 
 Movement type options include:
 
