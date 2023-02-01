@@ -616,7 +616,7 @@ class XslotPanel(QScrollArea):
                                                  includephase=True,
                                                  inphase=mvmtmodule.inphase)
         movement_selector.get_savedmodule_signal().connect(
-            lambda movementtree, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_movement(movementtree, hands, timingintervals, inphase, modulekey))
+            lambda movementtree, hands, timingintervals, inphase: self.mainwindow.sign_summary.handle_save_movement(movementtree, hands, timingintervals, inphase, existing_key=modulekey))
         movement_selector.get_deletedmodule_signal().connect(
             lambda: self.mainwindow.sign_summary.handle_delete_movement(modulekey)
         )

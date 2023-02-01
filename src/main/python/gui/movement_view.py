@@ -383,6 +383,7 @@ class MovementTreeSerializable:
 
         self.numvals = {}
         self.checkstates = {}
+        self.addedinfos = {}
 
         self.collectdata(treenode)
 
@@ -393,6 +394,8 @@ class MovementTreeSerializable:
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
                     checkstate = treechild.checkState()
+                    addedinfo = treechild.addedinfo
+                    self.addedinfos[pathtext] = copy(addedinfo)
                     editable = treechild.isEditable()
                     if editable:
                         pathsteps = pathtext.split(delimiter)
@@ -423,6 +426,7 @@ class MovementTreeSerializable:
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
                     treechild.setCheckState(self.checkstates[pathtext])
+                    treechild.addedinfo = copy(self.addedinfos[pathtext])
                     self.setvalues(treechild)
 
 

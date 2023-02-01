@@ -416,17 +416,14 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
             # proxyindex = self.pathslistview.selectedIndexes()[0]
             listindex = proxyindex.model().mapToSource(proxyindex)
-            treeitem = listindex.model().itemFromIndex(listindex).treeitem
-            addedinfo = copy(treeitem.addedinfo)
+            # treeitem = listindex.model().itemFromIndex(listindex).treeitem
+            # addedinfo = copy(treeitem.addedinfo)
+            addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
             menu = AddedInfoContextMenu(addedinfo)
-            menu.info_added.connect(lambda newaddedinfo: self.updateaddedinfo(newaddedinfo, treeitem))
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
-
-    def updateaddedinfo(self, newaddedinfo, treeitem):  # TODO KV this shouldn't be necessary but seems to be anyway...?
-        treeitem.addedinfo = newaddedinfo
 
     def refresh(self):
         # self.refresh_treemodel()

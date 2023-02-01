@@ -624,6 +624,7 @@ class LocationTreeSerializable:
         self.numvals = {}
         self.checkstates = {}
         self.detailstables = {}
+        self.addedinfos = {}
 
         self.collectdata(treenode)
 
@@ -637,6 +638,8 @@ class LocationTreeSerializable:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
                     checkstate = treechild.checkState()
                     locntable = treechild.detailstable
+                    addedinfo = treechild.addedinfo
+                    self.addedinfos[pathtext] = copy(addedinfo)
                     self.detailstables[pathtext] = LocationTableSerializable(locntable)
                     editable = treechild.isEditable()
                     if editable:
@@ -670,6 +673,7 @@ class LocationTreeSerializable:
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
                     treechild.setCheckState(self.checkstates[pathtext])
                     treechild.detailstable = LocationTableModel(serializedtablemodel=self.detailstables[pathtext])
+                    treechild.addedinfo = copy(self.addedinfos[pathtext])
                     self.setvalues(treechild)
 
 
@@ -693,10 +697,34 @@ class LocationTreeModel(QStandardItemModel):
 
     def __init__(self, **kwargs):  #  movementparameters=None,
         super().__init__(**kwargs)
-        self._listmodel = None  # MovementListModel(self)
+        self._listmodel = None  # LocationListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
         self._locationtype = LocationType()
+
+    def tempprintcheckeditems(self):
+        treenode = self.invisibleRootItem()
+        self.printhelper(treenode)
+
+    def tempprinthelper(self, treenode):
+        for r in range(treenode.rowCount()):
+            treechild = treenode.child(r, 0)
+            if treechild is not None:
+                pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                checkstate = treechild.checkState()
+                locntable = treechild.detailstable
+                addedinfo = treechild.addedinfo
+
+                if checkstate == Qt.Checked:
+                    print(pathtext)
+                    checkedlocations = []
+                    for col in locntable.col_contents:
+                        for it in col:
+                            if it[1]:
+                                checkedlocations.append(it[0])
+                    print("detailed locations selected:", checkedlocations)
+                    print(addedinfo)
+            self.tempprinthelper(treechild)
 
     def updatelistdata(self, topLeft, bottomRight):
         startitem = self.itemFromIndex(topLeft)

@@ -846,3 +846,6 @@ class AddedInfo:
     def other_note(self, other_note):
         # TODO KV - validate?
         self._other_note = other_note
+
+    def __repr__(self):
+        return '<AddedInfo: Uncertain (' + str(int(self._uncertain_flag)) + ' / ' + self._uncertain_note + ') ' + 'Estimated (' + str(int(self._estimated_flag)) + ' / ' + self._estimated_note + ') ' + 'Not specified (' + str(int(self._notspecified_flag)) + ' / ' + self._notspecified_note + ') ' + 'Variable (' + str(int(self._variable_flag)) + ' / ' + self._variable_note + ') ' + 'Exceptional (' + str(int(self._exceptional_flag)) + ' / ' + self._exceptional_note + ') ' + 'Other (' + str(int(self._other_flag)) + ' / ' + self._other_note + ')>'

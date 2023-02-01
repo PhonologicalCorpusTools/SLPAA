@@ -228,13 +228,9 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
             menu = AddedInfoContextMenu(addedinfo)
-            menu.info_added.connect(lambda newaddedinfo: self.updateaddedinfo(newaddedinfo, listindex.model().itemFromIndex(listindex).treeitem))
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
-
-    def updateaddedinfo(self, newaddedinfo, treeitem):  # TODO KV this shouldn't be necessary but seems to be anyway...?
-        treeitem.addedinfo = newaddedinfo
 
     def refresh(self):
         self.refresh_treemodel()
