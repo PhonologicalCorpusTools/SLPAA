@@ -11,11 +11,11 @@
 Movement Module
 ***************
 
-This :ref:`module` is used to code the **movement** components of a sign. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`. 
+This :ref:`module` is used to code the **movement** components of a sign. As many :ref:`instances<instance>` of this module as necessary can be called for any given sign coding. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
 
-For movements involving both hands, select whether the movement described in this :ref:`instance` of the module is in phase or out of phase (with respect to any of the location, hand configuration, or orientation parameters). This selection follows according to the description of :ref:`Movement timing relation<signtype_movement_timing_relation>` as it applies in :ref:`sign_type_module`. You will have the opportunity to specify which parameter(s) is/are out of phase for the particular instance of the module.
+Select the hand(s) involved in this instance of the module. For movements involving both hands, select whether the movement described in this :ref:`instance` of the module is in phase or out of phase (with respect to any of the location, hand configuration, or orientation parameters). This selection follows according to the description of :ref:`Movement timing relation<signtype_movement_timing_relation>` as it applies in :ref:`sign_type_module`. You will have the opportunity to specify which parameter(s) is/are out of phase for the particular instance of the module.
 
-Modules link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
+Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
 .. _movement_type_entry:
 
@@ -115,7 +115,7 @@ At most one direction can be selected for each axis, so that a total maximum of 
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (ipsi/contra) or absolute (toward H1/H2), that are described in greater detail in :ref:`symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
+The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module:
     
 * **Horizontal axis: relative** [Default]
 
@@ -131,8 +131,7 @@ OR
     
 * **Not relevant**, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_. Axis direction is not relevant for this sign because the perceptual shape is *circle*, whereas plane is only relevant for other perceptual shapes. This option will be auto-selected if the perceptual movement selected is *circle*.
 
-.. note::
-    In some circumstances, the direction of movement is lexically encoded to be towards a side of the body independent of the signer's handedness. This is the case for `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is towards the signer's left regardless of the signer's dominant hand, and `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is towards the signer's right regardless of the signer's dominant hand. This definition cannot be fully captured by the available selection options for either of the horizontal axis systems, so it would require an additional note elsewhere in the sign coding.
+See :ref:`signing_space_page` for a visual representation of these options.
 
 .. _plane_entry:
 
@@ -152,7 +151,7 @@ At most one circular direction can be selected for each plane, so that a total m
     * **Clockwise**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
     * **Counter-clockwise**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
     
-As with :ref:`axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`symmetry in the horizontal axis<axis_symmetry>`. See :ref:`signing_space_page` for a visual representation of these options, and more information on the horizontal axis in particular. By default, the relative set of options apply for the movement module:
+As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module:
 
 * **Horizontal plane: relative** [Default]
 
@@ -177,6 +176,8 @@ OR
     * **Counter-clockwise**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
 
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are not *straight*. This option will be auto-selected if the perceptual movement selected is *straight*.
+
+See :ref:`signing_space_page` for a visual representation of these options.
 
 .. _joint_specific_movement_entry:
 
@@ -290,12 +291,12 @@ Use the **joint activity** section to add more fine-grained detail about any joi
         :width: 750
         :align: left
 
-    This means that the movements for both hands can be described at once to generate two instances of identical movement modules.
-
-    The following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since their respective positions within the paths of their circles are at opposite points at the same time:
+    The movement of both hands can be coded together within one instance of the module.
+    
+    The following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since they reach the top of the circle at different times:
 
     .. image:: images/mov_sample_sign_THEATER.png
         :width: 750
         :align: left
 
-    The movements of both hands can still described together as long as they are indicated to be out of phase (in this case, with respect to location). This will also generate two instances of identical movement modules, though they are recorded as out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
+    The movements of both hands can still described together in one module instance as long as it is indicated to be out of phase (in this case, with respect to location). This allows for quicker sign coding while retaining key information for searching and analysis.
