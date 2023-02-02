@@ -25,12 +25,13 @@ This page will describe and define the terminology used throughout SLP-AA and he
 
 The program relies on a system of axes and planes to frame three-dimensional space, and these are positioned relative to whichever arbitrary point makes the most sense for each sign component. This system is reapplied in several areas of the program, so many elements operate in the same way and knowing how to use one component will usually also help with being able to understand others.
 
-SLP-AA incorporates the use of :ref:`modules<module>` to code sign aspects like :ref:`Hand Configuration<hand_configuration_module`, :ref:`Location<location_module>`, :ref:`Movement<movement_module>`, :ref:`Orientation<orientation_module>`, and so on. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
+.. note::
+    SLP-AA incorporates the use of :ref:`modules<module>` to code sign aspects like :ref:`Hand Configuration<hand_configuration_module>`, :ref:`Location<location_module>`, :ref:`Movement<movement_module>`, :ref:`Orientation<orientation_module>`, and so on. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
+    
+    Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
 
 .. comment::
     Add links to handpart and contact when available.
-
-Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
 
 .. _axes_entry:
 
@@ -82,7 +83,7 @@ Keep in mind that it is possible to select only the axis itself without a specif
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-The directions for the horizontal axis, however, depend on the preferences of the user. These adhere to one of two models for the horizontal axis, described in greater detail ``elsewhere - not sure yet where to stick the detailed symmetry stuff``. These can be toggled separately for different modules; see the :ref:`global_settings` for how to change these options and to see which model applies by default for each module.
+The directions for the horizontal axis, however, depend on the preferences of the user. These adhere to one of two models for the horizontal axis, either **relative** (:ref:`ipsilateral`/:ref:`contralateral`) or **absolute** (toward H1/H2). This is described in greater detail in :ref:`Symmetry<symmetry_section>` below. The horizontal axis options can be toggled separately for different modules; see the :ref:`global_settings` for how to change these options and to see which one applies by default for each module.
     
 * **Horizontal axis: relative**
 
@@ -145,7 +146,7 @@ When multiple directions are selected within one instance of a module, this is a
 I. Cardinal plane system
 ========================
 
-We can also describe a set of :ref:`cardinal_planes`, where each plane is formed by a pair of the :ref:`cardinal_axes`: described above. **...**
+We can also describe a set of :ref:`cardinal_planes`, where each plane is formed by a pair of the :ref:`cardinal_axes` described above. **...**
 
 .. comment::
     These are the **horizontal**, **vertical**, and **sagittal** planes, shown here:
@@ -235,7 +236,7 @@ When multiple directions are selected within one instance of a module, this is a
 .. _symmetry_section:
 
 3. Symmetry
-~~~~~~~~~~~
+```````````
 
 **What would be included here specifically?** — Body geography, more detail on symmetry across mid-sagittal plane/midline vs. other possible kinds of symmetry, justification for only focusing on this one kind. Ambiguity and confusion in defining "same" direction and location. Our setup is a choice of **prioritizing** one interpretation above the other in relevant contexts, not selecting only one and discarding the other completely. Interchangeability of the systems. Failure (equally for both) in specific circumstances like EAST and WEST.
 
@@ -250,11 +251,28 @@ When multiple directions are selected within one instance of a module, this is a
     
     In some circumstances, the direction of movement is lexically encoded to be towards a side of the body independent of the signer's handedness. This is the case for `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the absolute direction is towards the signer's left regardless of the signer's dominant hand, and `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the absolute direction is towards the signer's right regardless of the signer's dominant hand. This definition cannot be fully captured by the available selection options for either of the horizontal axis systems, so it would require an additional note elsewhere in the sign coding.
 
+.. _symmetry_review:
+
+4. The signing space
+````````````````````
+
+**Detailed summary for quick reference, consisting mostly of a set of visuals and sign examples.**
+
+**Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry. Hopefully this will be a good way to easily reference the important information without digging through the whole page.**
+
+.. image:: images/placeholder.png
+    :width: 750
+    :align: left
+
+.. comment::
+    This placeholder should be replaced with a detailed image that shows a full summary of the set of cardinal axes and planes with all possible directions labelled appropriately (including both sets of options for directions involving the horizontal axis), preferably with a demonstrated reference to the direction of the signer's body. This might be easiest to accomplish if we use a still image and superimpose the relevant information over top of it.
+
 .. comment::
     .. _body_location_relative:
     
     Body-anchored locations
     ```````````````````````
+
 .. warning::
     **This section will describe how the information on the rest of this page applies to body-anchored locations in particular (both the 'on-body locations' and the signing space option defined in terms of a body location).**
     
@@ -271,20 +289,4 @@ When multiple directions are selected within one instance of a module, this is a
     
     {Why the discrepancy? --> Difficulties in articulation mechanisms, anatomical limitations AND strengths}
     
-    -->    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)
-    
-.. _symmetry_review:
-
-4. The signing space
-====================
-
-**Detailed summary for quick reference, consisting mostly of a set of visuals and sign examples.**
-
-**Quick and simple review of everything mentioned so far in terms of the basics of planes and axes, i.e. put these together with detailed illustrating images and just go for an overview of our cartesian system and the labels for each component. Focus on the competing options for describing horizontal symmetry. Hopefully this will be a good way to easily reference the important information without digging through the whole page.**
-
-.. image:: images/placeholder.png
-    :width: 750
-    :align: left
-
-.. comment::
-    This placeholder should be replaced with a detailed image that shows a full summary of the set of cardinal axes and planes with all possible directions labelled appropriately (including both sets of options for directions involving the horizontal axis), preferably with a demonstrated reference to the direction of the signer's body. This might be easiest to accomplish if we use a still image and superimpose the relevant information over top of it.    
+    -->    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)    
