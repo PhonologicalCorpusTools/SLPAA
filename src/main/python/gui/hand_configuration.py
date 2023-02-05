@@ -47,13 +47,27 @@ class ConfigSlot(QLineEdit):
 
         self.addedinfo = AddedInfo()
 
+        self.setProperty('AddedInfo', self.addedinfo.hascontent())
+        # self.setProperty('Estimate', self.estimate)
+        # self.setProperty('Uncertain', self.uncertain)
+
         # styling
-        self.setFixedSize(QSize(20, 20))
-        qss = """
+        self.setFixedSize(QSize(20, 20)) # TODO KV
+        qss = """   
             QLineEdit {{
                 text-align: center;
                 margin: 0;
                 padding: 0;
+            }}
+
+            QLineEdit[AddedInfo=true] {{
+                background: white;
+                border: {estimate_border};
+            }}
+
+            QLineEdit[AddedInfo=false] {{
+                background: white;
+                border: 1px solid grey;
             }}
 
             QLineEdit[Estimate=true][Uncertain=true] {{
@@ -952,24 +966,22 @@ class Config(QGroupBox):
         self._addedinfo = AddedInfo()
         self.add_slot1()
         self.generate_hands()
-        self.add_options()
+        # self.add_options()
 
-    def add_options(self):
-        option_frame = QGroupBox(parent=self)
-        option_layout = QHBoxLayout()
-        option_layout.setSpacing(5)
-        # option_layout.addStretch()
-        option_frame.setLayout(option_layout)
-        self.main_layout.addWidget(option_frame)
-        self.estimated = QCheckBox('Estimated', parent=self)
-        self.uncertain = QCheckBox('Uncertain', parent=self)
-        self.incomplete = QCheckBox('Incomplete', parent=self)
-        self.addedinfobutton = AddedInfoPushButton('Additional Info', parent=self)
-        option_layout.addWidget(self.estimated)
-        option_layout.addWidget(self.uncertain)
-        option_layout.addWidget(self.incomplete)
-        option_layout.addWidget(self.addedinfobutton)
-        option_layout.addStretch()
+    # def add_options(self):
+    #     option_frame = QGroupBox(parent=self)
+    #     option_layout = QHBoxLayout()
+    #     option_layout.setSpacing(5)
+    #     # option_layout.addStretch()
+    #     option_frame.setLayout(option_layout)
+    #     self.main_layout.addWidget(option_frame)
+    #     # self.estimated = QCheckBox('Estimated', parent=self)
+    #     # self.uncertain = QCheckBox('Uncertain', parent=self)
+    #     # self.incomplete = QCheckBox('Incomplete', parent=self)
+    #     # option_layout.addWidget(self.estimated)
+    #     # option_layout.addWidget(self.uncertain)
+    #     # option_layout.addWidget(self.incomplete)
+    #     option_layout.addStretch()
 
     def add_slot1(self):
         slot1_box = QGroupBox(parent=self)
@@ -1041,50 +1053,30 @@ class Config(QGroupBox):
         self.hand.set_value(HandConfigurationHand(handconfigmodule.handconfiguration))
         self.slot1.setChecked(handconfigmodule.overalloptions['forearm'])
         self.slot1.addedinfo = handconfigmodule.overalloptions['forearm_addedinfo']
-        self.estimated.setChecked(handconfigmodule.overalloptions['estimated'])
-        self.uncertain.setChecked(handconfigmodule.overalloptions['uncertain'])
-        self.incomplete.setChecked(handconfigmodule.overalloptions['incomplete'])
+        # self.estimated.setChecked(handconfigmodule.overalloptions['estimated'])
+        # self.uncertain.setChecked(handconfigmodule.overalloptions['uncertain'])
+        # self.incomplete.setChecked(handconfigmodule.overalloptions['incomplete'])
         self._addedinfo = handconfigmodule.overalloptions['overall_addedinfo']
 
     def clear(self):
         self.hand.clear()
         self.slot1.setChecked(False)
         self.slot1.addedinfo = AddedInfo()
-        self.estimated.setChecked(False)
-        self.uncertain.setChecked(False)
-        self.incomplete.setChecked(False)
+        # self.estimated.setChecked(False)
+        # self.uncertain.setChecked(False)
+        # self.incomplete.setChecked(False)
         self._addedinfo = AddedInfo()
 
     def get_value(self):
         return {
             'forearm': self.slot1.isChecked(),
             'forearm_addedinfo': self.slot1.addedinfo,
-            'estimated': self.estimated.isChecked(),
-            'uncertain': self.uncertain.isChecked(),
-            'incomplete': self.incomplete.isChecked(),
+            # 'estimated': self.estimated.isChecked(),
+            # 'uncertain': self.uncertain.isChecked(),
+            # 'incomplete': self.incomplete.isChecked(),
             'hand': self.hand.get_value(),  # this is a list of field values
             'overall_addedinfo': self._addedinfo
         }
-
-
-class AddedInfoPushButton(QPushButton):
-
-    def __init__(self, title, **kwargs):
-        super().__init__(title, **kwargs)
-        self._addedinfo = AddedInfo()
-
-    @property
-    def addedinfo(self):
-        return self._addedinfo
-
-    @addedinfo.setter
-    def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
-
-    def mouseReleaseEvent(self, event):
-    # def contextMenuEvent(self, event):
-        addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
-        addedinfo_menu.exec_(event.globalPos())
 
 
 class ForearmCheckBox(QCheckBox):
@@ -1104,7 +1096,7 @@ class ForearmCheckBox(QCheckBox):
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
         addedinfo_menu.exec_(event.globalPos())
-
+''
 
 # TODO KV i don't 'think this class is used anymore
 # class ConfigGlobal(QGroupBox):
