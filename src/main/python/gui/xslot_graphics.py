@@ -270,7 +270,7 @@ class XslotRectModuleButton(XslotRectButton):
         self.scene().modulerect_clicked.emit(self)
 
 
-class SignSummaryScene(QGraphicsScene):
+class XslotSummaryScene(QGraphicsScene):
     modulerect_clicked = pyqtSignal(XslotRectModuleButton)
     moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton)
 

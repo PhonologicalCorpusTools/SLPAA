@@ -5,7 +5,6 @@ from PyQt5.QtCore import (
 )
 
 from gui.hand_configuration import HandConfigurationHand, PREDEFINED_MAP
-from lexicon.module_classes2 import AddedInfo
 
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
 
@@ -47,22 +46,12 @@ userdefinedroles = UserDefinedRoles({
 # common ancestor for (eg) HandshapeModule, MovementModule, etc
 class ParameterModule:
 
-    def __init__(self, hands, timingintervals=None, addedinfo=None):
+    def __init__(self, hands, timingintervals=None):
         self._hands = hands
         self._timingintervals = []
         if timingintervals is not None:
             self.settimingintervals(timingintervals)
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
-
-    @property
-    def addedinfo(self):
-        return self._addedinfo
-
-    @addedinfo.setter
-    def addedinfo(self, addedinfo):
-        # TODO KV - validate?
-        self._addedinfo = addedinfo
 
     @property
     def hands(self):
@@ -142,10 +131,10 @@ class OrientationModule:
 
 
 class MovementModule(ParameterModule):
-    def __init__(self, movementtreemodel, hands, timingintervals=None, addedinfo=None, inphase=0):
+    def __init__(self, movementtreemodel, hands, timingintervals=None, inphase=0):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase
-        super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(hands, timingintervals)
 
     @property
     def movementtreemodel(self):
@@ -385,7 +374,7 @@ class LocationType:
 
 
 class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, hands, timingintervals=None, addedinfo=None, phonlocs=None, loctype=None):
+    def __init__(self, locationtreemodel, hands, timingintervals=None, phonlocs=None, loctype=None):
         if phonlocs is None:
             phonlocs = PhonLocations()
         if loctype is None:
@@ -393,7 +382,7 @@ class LocationModule(ParameterModule):
         self._locationtreemodel = locationtreemodel
         self._phonlocs = phonlocs
         self._loctype = loctype
-        super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(hands, timingintervals)
 
     @property
     def locationtreemodel(self):
@@ -519,10 +508,10 @@ class LocationModule(ParameterModule):
 
 # TODO KV comments
 class HandConfigurationModule(ParameterModule):
-    def __init__(self, handconfiguration, overalloptions, hands, timingintervals=None, addedinfo=None):
+    def __init__(self, handconfiguration, overalloptions, hands, timingintervals=None):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
-        super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(hands, timingintervals)
 
     @property
     def handconfiguration(self):

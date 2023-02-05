@@ -677,13 +677,6 @@ class LocationTreeSerializable:
                     self.setvalues(treechild)
 
 
-# TODO KV implement this base class; refactor children (eg LocationModuleSerializable) to inherit as much as possible
-class ParameterModuleSerializable:
-
-    def __init__(self, parammod):
-        self.hands = parammod.hands
-
-
 # This class is a serializable form of the class LocationTreeModel, which is itself not pickleable.
 # Rather than being based on QStandardItemModel, this one uses dictionary structures to convert to
 # and from saveable form.
@@ -695,7 +688,6 @@ class LocationModuleSerializable:
         self.hands = locnmodule.hands
         self.timingintervals = locnmodule.timingintervals
         self.phonlocs = locnmodule.phonlocs
-        self.addedinfo = locnmodule.addedinfo
 
         locntreemodel = locnmodule.locationtreemodel
         self.locationtree = LocationTreeSerializable(locntreemodel)

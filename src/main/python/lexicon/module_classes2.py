@@ -177,7 +177,6 @@ class AddedInfo:
                  notspecified_flag=False, notspecified_note="",
                  variable_flag=False, variable_note="",
                  exceptional_flag=False, exceptional_note="",
-                 incomplete_flag=False, incomplete_note="",
                  other_flag=False, other_note=""):
         self._uncertain_flag = uncertain_flag
         self._uncertain_note = uncertain_note
@@ -189,8 +188,6 @@ class AddedInfo:
         self._variable_note = variable_note
         self._exceptional_flag = exceptional_flag
         self._exceptional_note = exceptional_note
-        self._incomplete_flag = incomplete_flag
-        self._incomplete_note = incomplete_note
         self._other_flag = other_flag
         self._other_note = other_note
 
@@ -290,15 +287,6 @@ class AddedInfo:
         self._exceptional_flag = exceptional_flag
 
     @property
-    def incomplete_flag(self):
-        return self._incomplete_flag
-
-    @incomplete_flag.setter
-    def incomplete_flag(self, incomplete_flag):
-        # TODO KV - validate?
-        self._incomplete_flag = incomplete_flag
-
-    @property
     def exceptional_note(self):
         return self._exceptional_note
 
@@ -306,15 +294,6 @@ class AddedInfo:
     def exceptional_note(self, exceptional_note):
         # TODO KV - validate?
         self._exceptional_note = exceptional_note
-
-    @property
-    def incomplete_note(self):
-        return self._incomplete_note
-
-    @incomplete_note.setter
-    def incomplete_note(self, incomplete_note):
-        # TODO KV - validate?
-        self._incomplete_note = incomplete_note
 
     @property
     def other_flag(self):
@@ -341,21 +320,6 @@ class AddedInfo:
         reprstr += 'Not specified (' + str(int(self._notspecified_flag)) + ' / ' + self._notspecified_note + ') '
         reprstr += 'Variable (' + str(int(self._variable_flag)) + ' / ' + self._variable_note + ') '
         reprstr += 'Exceptional (' + str(int(self._exceptional_flag)) + ' / ' + self._exceptional_note + ') '
-        reprstr += 'Incomplete (' + str(int(self._incomplete_flag)) + ' / ' + self._incomplete_note + ') '
         reprstr += 'Other (' + str(int(self._other_flag)) + ' / ' + self._other_note + ')'
         reprstr += '>'
-        return
-
-    def hascontent(self):
-        hasflag = self._uncertain_flag or self._estimated_flag or self._notspecified_flag or self._variable_flag or self._exceptional_flag or self._incomplete_flag or self._other_flag
-        noteslength = len(
-            (
-                    self._uncertain_note +
-                    self._estimated_note +
-                    self._notspecified_note +
-                    self._variable_note +
-                    self._exceptional_note +
-                    self._incomplete_note +
-                    self._other_note
-            ).replace(" ", ""))
-        return hasflag or noteslength > 0
+        return reprstr

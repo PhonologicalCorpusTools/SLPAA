@@ -30,7 +30,6 @@ from PyQt5.QtCore import (
 from gui.movement_view import MovementTreeModel, MovementTreeSerializable, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 from lexicon.module_classes import MovementModule, delimiter, userdefinedroles as udr
-from lexicon.module_classes2 import AddedInfo
 
 
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
@@ -63,7 +62,6 @@ class TreeItemDelegate(QStyledItemDelegate):
         # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
         valstring = editor.text()
         isanumber = False
-        valnum = None
         if valstring.isnumeric():
             isanumber = True
             valnum = int(valstring)
@@ -102,7 +100,7 @@ class TreeItemDelegate(QStyledItemDelegate):
 # TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
 # class MovementSpecificationLayout(QVBoxLayout):
 class MovementSpecificationLayout(ModuleSpecificationLayout):
-    saved_movement = pyqtSignal(MovementTreeModel, dict, list, AddedInfo, int)
+    saved_movement = pyqtSignal(MovementTreeModel, dict, list, int)
     deleted_movement = pyqtSignal()
 
     def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,

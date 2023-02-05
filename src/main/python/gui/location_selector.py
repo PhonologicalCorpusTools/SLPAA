@@ -34,7 +34,6 @@ from PyQt5.QtCore import (
 from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 from lexicon.module_classes import LocationModule, PhonLocations, LocationType
-from lexicon.module_classes2 import AddedInfo
 
 
 class ImageDisplayTab(QWidget):
@@ -96,7 +95,7 @@ class ImageDisplayTab(QWidget):
 
 # TODO KV there's another class with the same name in panel.py
 class LocationSpecificationLayout(ModuleSpecificationLayout):
-    saved_location = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, AddedInfo, int)
+    saved_location = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, int)
     deleted_location = pyqtSignal()
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):
