@@ -27,6 +27,7 @@ from PyQt5.QtWidgets import (
     # QStyleOptionFrame,
     # QErrorMessage,
     QCheckBox,
+    QPushButton,
     # QSpinBox,
     # QGraphicsView,
     # QGraphicsScene,
@@ -83,20 +84,55 @@ class ModuleSpecificationLayout(QVBoxLayout):
         pass
 
 
+class AddedInfoPushButton(QPushButton):
+
+    def __init__(self, title, **kwargs):
+        super().__init__(title, **kwargs)
+        self._addedinfo = AddedInfo()
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    def mouseReleaseEvent(self, event):
+    # def contextMenuEvent(self, event):
+        addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
+        addedinfo_menu.exec_(event.globalPos())
+
+    def clear(self):
+        self._addedinfo = AddedInfo()
+
+
 class ModuleSelectorDialog(QDialog):
 
-    def __init__(self, mainwindow, hands, xslotstructure, new_instance, modulelayout, moduleargs, timingintervals=None, includephase=False, inphase=0, **kwargs):
+    def __init__(self, mainwindow, hands, xslotstructure, new_instance, modulelayout, moduleargs, timingintervals=None, addedinfo=None, includephase=False, inphase=0, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         if timingintervals is None:
             timingintervals = []
         else:
             timingintervals = deepcopy(timingintervals)
+        if addedinfo is None:
+            addedinfo = AddedInfo()
 
         main_layout = QVBoxLayout()
 
+        self.hands_and_addedinfo_layout = QHBoxLayout()
+
         self.hands_layout = HandSelectionLayout(hands, includephase=includephase, inphase=inphase)
-        main_layout.addLayout(self.hands_layout)
+        # main_layout.addLayout(self.hands_layout)
+        self.hands_and_addedinfo_layout.addLayout(self.hands_layout)
+        self.hands_and_addedinfo_layout.addStretch()
+        self.addedinfobutton = AddedInfoPushButton("Module notes")
+        self.addedinfobutton.addedinfo = deepcopy(addedinfo)
+        self.hands_and_addedinfo_layout.addWidget(self.addedinfobutton)
+
+        main_layout.addLayout(self.hands_and_addedinfo_layout)
+
         # self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
         self.xslot_layout = XslotLinkingLayout(xslotstructure, self.mainwindow, parentwidget=self, timingintervals=timingintervals)
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
@@ -171,6 +207,7 @@ class ModuleSelectorDialog(QDialog):
                 handsvalid = False
 
             inphase = self.hands_layout.getphase()
+            addedinfo = self.addedinfobutton.addedinfo
 
             # validate timing interval(s) selection
             timingintervals = self.xslot_layout.gettimingintervals()
@@ -191,11 +228,12 @@ class ModuleSelectorDialog(QDialog):
                 QMessageBox.critical(self, "Warning", messagestring)
             else:
                 # save info and then refresh screen to enter next module
-                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals, inphase))
+                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals, addedinfo, inphase))
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
                 # if self.mainwindow.current_sign is not None:
                 #     self.mainwindow.current_sign.lastmodifiednow()
                 self.hands_layout.clear()
+                self.addedinfobutton.clear()
                 self.xslot_layout.clear()
                 self.module_layout.clear()  # TODO KV was refresh()....
 
@@ -208,6 +246,7 @@ class ModuleSelectorDialog(QDialog):
                 handsvalid = False
 
             inphase = self.hands_layout.getphase()
+            addedinfo = self.addedinfobutton.addedinfo
 
             # validate timing interval(s) selection
             timingintervals = self.xslot_layout.gettimingintervals()
@@ -228,7 +267,7 @@ class ModuleSelectorDialog(QDialog):
                 QMessageBox.critical(self, "Warning", messagestring)
             else:
                 # save info and then close dialog
-                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals, inphase))
+                signalargstuple = (self.module_layout.get_savedmodule_args() + (handsdict, timingintervals, addedinfo, inphase))
                 self.module_layout.get_savedmodule_signal().emit(*signalargstuple)
                 # if self.mainwindow.current_sign is not None:
                 #     self.mainwindow.current_sign.lastmodifiednow()
@@ -339,6 +378,12 @@ class AddedInfoContextMenu(QMenu):
         self.exceptional_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.exceptional_action))
         self.addAction(self.exceptional_action)
 
+        self.incomplete_action = CheckNoteAction("Incomplete")
+        self.incomplete_action.setChecked(self.addedinfo.incomplete_flag)
+        self.incomplete_action.setText(self.addedinfo.incomplete_note)
+        self.incomplete_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.incomplete_action))
+        self.addAction(self.incomplete_action)
+
         self.other_action = CheckNoteAction("Other")
         self.other_action.setChecked(self.addedinfo.other_flag)
         self.other_action.setText(self.addedinfo.other_note)
@@ -364,6 +409,8 @@ class AddedInfoContextMenu(QMenu):
             self.addedinfo.variable_flag = state
         elif whichaction == self.exceptional_action:
             self.addedinfo.exceptional_flag = state
+        elif whichaction == self.incomplete_action:
+            self.addedinfo.incomplete_flag = state
         elif whichaction == self.other_action:
             self.addedinfo.other_flag = state
 
@@ -373,6 +420,7 @@ class AddedInfoContextMenu(QMenu):
         self.addedinfo.notspecified_note = self.notspecified_action.text()
         self.addedinfo.variable_note = self.variable_action.text()
         self.addedinfo.exceptional_note = self.exceptional_action.text()
+        self.addedinfo.incomplete_note = self.incomplete_action.text()
         self.addedinfo.other_note = self.other_action.text()
 
         self.info_added.emit(self.addedinfo)

@@ -29,6 +29,7 @@ from gui.hand_configuration import Config  # ConfigGlobal
 # from lexicon.lexicon_classes import HandConfiguration
 from gui.module_selector import ModuleSpecificationLayout
 from gui.undo_command import TranscriptionUndoCommand
+from lexicon.module_classes2 import AddedInfo
 
 
 class HandTranscriptionPanel(QScrollArea):
@@ -122,7 +123,7 @@ class HandIllustrationPanel(QScrollArea):
 
 # class HandshapeSpecificationLayout(QVBoxLayout):
 class HandConfigSpecificationLayout(ModuleSpecificationLayout):
-    saved_handconfig = pyqtSignal(dict, dict, list, int)
+    saved_handconfig = pyqtSignal(dict, dict, list, AddedInfo, int)
     deleted_handconfig = pyqtSignal()
 
     def __init__(self, mainwindow, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,

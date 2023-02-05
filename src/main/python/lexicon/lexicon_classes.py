@@ -351,7 +351,8 @@ class Sign:
             mvmttreemodel = serialmodule.movementtree.getMovementTreeModel()
             hands = serialmodule.hands
             timingintervals = serialmodule.timingintervals
-            unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals)
+            addedinfo = serialmodule.addedinfo
+            unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals, addedinfo)
         self.movementmodules = unserialized
 
     def serializelocationmodules(self):
@@ -367,9 +368,10 @@ class Sign:
             locntreemodel = serialmodule.locationtree.getLocationTreeModel()
             hands = serialmodule.hands
             timingintervals = serialmodule.timingintervals
+            addedinfo = serialmodule.addedinfo
             phonlocs = serialmodule.phonlocs
             # loctype = serialmodule.loctype
-            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, phonlocs=phonlocs)  # , loctype=loctype)
+            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs)  # , loctype=loctype)
         self.locationmodules = unserialized
 
     def __hash__(self):
@@ -450,7 +452,7 @@ class Sign:
         # TODO KV - validate?
         self._xslotstructure = xslotstruct
 
-    def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals, inphase):
+    def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals, addedinfo, inphase):
         mvmtmod = self.movementmodules[uniqueid]
         ischanged = False
         if mvmtmod.movementtreemodel != movementtree:
@@ -465,12 +467,15 @@ class Sign:
         if mvmtmod.inphase != inphase:
             mvmtmod.inphase = inphase
             ischanged = True
+        if mvmtmod.addedinfo != addedinfo:
+            mvmtmod.addedinfo = addedinfo
+            ischanged = True
         if ischanged:
             self.lastmodifiednow()
 
-    def addmovementmodule(self, movementtree, hands_dict, timingintervals, inphase):
+    def addmovementmodule(self, movementtree, hands_dict, timingintervals, addedinfo, inphase):
         # create and add a brand new one
-        mvmtmod = MovementModule(movementtree, hands_dict, timingintervals, inphase)
+        mvmtmod = MovementModule(movementtree, hands_dict, timingintervals, addedinfo, inphase)
         self.movementmodules[mvmtmod.uniqueid] = mvmtmod
         self.lastmodifiednow()
 
@@ -478,7 +483,7 @@ class Sign:
         self.movementmodules.pop(uniqueid)
         self.lastmodifiednow()
 
-    def updatehandconfigmodule(self, uniqueid, handconfiguration, overalloptions, hands_dict, timingintervals):
+    def updatehandconfigmodule(self, uniqueid, handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo):
         hcfgmod = self.handconfigmodules[uniqueid]
         ischanged = False
         if hcfgmod.handconfiguration != handconfiguration:
@@ -493,12 +498,15 @@ class Sign:
         if hcfgmod.timingintervals != timingintervals:
             hcfgmod.timingintervals = timingintervals
             ischanged = True
+        if hcfgmod.addedinfo != addedinfo:
+            hcfgmod.addedinfo = addedinfo
+            ischanged = True
         if ischanged:
             self.lastmodifiednow()
 
-    def addhandconfigmodule(self, handconfiguration, overalloptions, hands_dict, timingintervals):
+    def addhandconfigmodule(self, handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo):
         # create and add a brand new one
-        hcfgmod = HandConfigurationModule(handconfiguration, overalloptions, hands_dict, timingintervals)
+        hcfgmod = HandConfigurationModule(handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo)
         self.handconfigmodules[hcfgmod.uniqueid] = hcfgmod
         self.lastmodifiednow()
 
@@ -510,9 +518,9 @@ class Sign:
         self.targetmodules.append(targetmod)
         self.lastmodifiednow()
 
-    def addlocationmodule(self, locationtree, hands_dict, timingintervals, phonlocs, loctype):
+    def addlocationmodule(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype):
         # create and add a brand new one
-        locnmod = LocationModule(locationtree, hands_dict, timingintervals, phonlocs=phonlocs, loctype=loctype)
+        locnmod = LocationModule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs=phonlocs, loctype=loctype)
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
@@ -520,7 +528,7 @@ class Sign:
         self.locationmodules.pop(uniqueid)
         self.lastmodifiednow()
 
-    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, phonlocs, loctype):
+    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype):
         locnmod = self.locationmodules[uniqueid]
         ischanged = False
         if locnmod.locationtreemodel != locationtree:
@@ -534,6 +542,9 @@ class Sign:
             ischanged = True
         if locnmod.phonlocs != phonlocs:
             locnmod.phonlocs = phonlocs
+            ischanged = True
+        if locnmod.addedinfo != addedinfo:
+            locnmod.addedinfo = addedinfo
             ischanged = True
         # if locnmod.loctype != loctype:
         #     locnmod.loctype = loctype

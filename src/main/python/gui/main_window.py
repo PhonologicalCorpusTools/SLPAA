@@ -46,7 +46,7 @@ from gui.panel import (
     # HandTranscriptionPanel,
     # HandIllustrationPanel,
     # ParameterPanel,
-    SignSummaryPanel,
+    SignLevelMenuPanel,
     XslotPanel
 )
 from gui.preference_dialog import PreferenceDialog
@@ -223,19 +223,19 @@ class MainWindow(QMainWindow):
         self.action_show_sub_corpus.setCheckable(True)
         self.action_show_sub_corpus.setChecked(self.app_settings['display']['sub_corpus_show'])
 
-        # show/hide sign summary subwindow
-        self.action_show_sub_signsummary = QAction('Show sign summary', parent=self)
-        self.action_show_sub_signsummary.setStatusTip('Show/hide sign summary')
-        self.action_show_sub_signsummary.triggered.connect(self.on_action_show_sub_signsummary)
-        self.action_show_sub_signsummary.setCheckable(True)
-        self.action_show_sub_signsummary.setChecked(self.app_settings['display']['sub_signsummary_show'])
+        # show/hide sign-level options/menu subwindow
+        self.action_show_sub_signlevelmenu = QAction('Show sign-level menu', parent=self)
+        self.action_show_sub_signlevelmenu.setStatusTip('Show/hide sign-level menu')
+        self.action_show_sub_signlevelmenu.triggered.connect(self.on_action_show_sub_signlevelmenu)
+        self.action_show_sub_signlevelmenu.setCheckable(True)
+        self.action_show_sub_signlevelmenu.setChecked(self.app_settings['display']['sub_signlevelmenu_show'])
 
         # show/hide module (xslot) summary subwindow
-        self.action_show_sub_xslotpanel = QAction('Show sign modules summary', parent=self)
-        self.action_show_sub_xslotpanel.setStatusTip('Show/hide sign modules summary')
-        self.action_show_sub_xslotpanel.triggered.connect(self.on_action_show_sub_xslotpanel)
-        self.action_show_sub_xslotpanel.setCheckable(True)
-        self.action_show_sub_xslotpanel.setChecked(self.app_settings['display']['sub_xslotpanel_show'])
+        self.action_show_sub_visualsummary = QAction('Show sign summary', parent=self)
+        self.action_show_sub_visualsummary.setStatusTip('Show/hide sign summary')
+        self.action_show_sub_visualsummary.triggered.connect(self.on_action_show_sub_visualsummary)
+        self.action_show_sub_visualsummary.setCheckable(True)
+        self.action_show_sub_visualsummary.setChecked(self.app_settings['display']['sub_visualsummary_show'])
 
         # TODO KV no longer used
         # # show/hide transcription subwindow
@@ -323,8 +323,8 @@ class MainWindow(QMainWindow):
         menu_edit.addAction(action_default_view)
         menu_edit.addSeparator()
         menu_edit.addAction(self.action_show_sub_corpus)
-        menu_edit.addAction(self.action_show_sub_signsummary)
-        menu_edit.addAction(self.action_show_sub_xslotpanel)
+        menu_edit.addAction(self.action_show_sub_signlevelmenu)
+        menu_edit.addAction(self.action_show_sub_visualsummary)
         # menu_edit.addAction(self.action_show_sub_transcription)
         # menu_edit.addAction(self.action_show_sub_illustration)
         # menu_edit.addAction(self.action_show_sub_parameter)
@@ -364,11 +364,11 @@ class MainWindow(QMainWindow):
         #
         # self.parameter_scroll = ParameterPanel(dict(), self.app_ctx, parent=self)  # TODO KV movement dict(),
 
-        self.sign_summary = SignSummaryPanel(sign=self.current_sign, mainwindow=self, parent=self)
+        self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
-        self.xslot_panel = XslotPanel(mainwindow=self, sign=self.current_sign, parent=self)
+        self.signsummary_panel = XslotPanel(mainwindow=self, sign=self.current_sign, parent=self)
         # self.xslot_image = XslotImagePanel(mainwindow=self, parent=self)
-        self.sign_summary.sign_updated.connect(self.xslot_panel.refreshsign)  #  (self.refreshxslotviews)
+        self.signlevel_panel.sign_updated.connect(self.signsummary_panel.refreshsign)  #  (self.refreshxslotviews)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -386,15 +386,15 @@ class MainWindow(QMainWindow):
         # self.sub_transcription.subwindow_closed.connect(self.on_subwindow_manually_closed)
         # self.main_mdi.addSubWindow(self.sub_transcription)
 
-        self.sub_corpus = SubWindow('Corpus', self.corpus_scroll, parent=self)
+        self.sub_corpus = SubWindow("Corpus", self.corpus_scroll, parent=self)
         self.sub_corpus.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_corpus)
 
-        self.sub_signsummary = SubWindow('Sign', self.sign_summary, parent=self)
-        self.sub_signsummary.subwindow_closed.connect(self.on_subwindow_manually_closed)
-        self.main_mdi.addSubWindow(self.sub_signsummary)
+        self.sub_signlevelmenu = SubWindow("Sign", self.signlevel_panel, parent=self)
+        self.sub_signlevelmenu.subwindow_closed.connect(self.on_subwindow_manually_closed)
+        self.main_mdi.addSubWindow(self.sub_signlevelmenu)
 
-        self.sub_xslot = SubWindow('Modules', self.xslot_panel, parent=self)
+        self.sub_xslot = SubWindow("Summary", self.signsummary_panel, parent=self)
         self.sub_xslot.subwindow_closed.connect(self.on_subwindow_manually_closed)
         self.main_mdi.addSubWindow(self.sub_xslot)
 
@@ -405,8 +405,8 @@ class MainWindow(QMainWindow):
         self.open_initialization_window()
 
     # def refreshxslotviews(self, sign):
-    #     self.sign_summary.enable_module_buttons(True)
-    #     self.xslot_panel.refreshsign(sign)
+    #     self.signlevel_panel.enable_module_buttons(True)
+    #     self.signsummary_panel.refreshsign(sign)
 
     def setCorpusName(self, newtitle):
         if self.corpus is not None:
@@ -464,9 +464,9 @@ class MainWindow(QMainWindow):
                                     sign.signlevel_information.coder, str(sign.signlevel_information.update_date),
                                     sign.signlevel_information.note,
                                     sign.global_handshape_information.forearm,
-                                    sign.global_handshape_information.estimated,
-                                    sign.global_handshape_information.uncertain,
-                                    sign.global_handshape_information.incomplete,
+                                    # sign.global_handshape_information.estimated,
+                                    # sign.global_handshape_information.uncertain,
+                                    # sign.global_handshape_information.incomplete,
                                     sign.global_handshape_information.fingerspelled,
                                     sign.global_handshape_information.initialized]
                             info.extend(sign.handshape_transcription.config.hand.get_hand_transcription_list())
@@ -486,9 +486,9 @@ class MainWindow(QMainWindow):
                                     sign.signlevel_information.coder, str(sign.signlevel_information.update_date),
                                     sign.signlevel_information.note,
                                     sign.global_handshape_information.forearm,
-                                    sign.global_handshape_information.estimated,
-                                    sign.global_handshape_information.uncertain,
-                                    sign.global_handshape_information.incomplete,
+                                    # sign.global_handshape_information.estimated,
+                                    # sign.global_handshape_information.uncertain,
+                                    # sign.global_handshape_information.incomplete,
                                     sign.global_handshape_information.fingerspelled,
                                     sign.global_handshape_information.initialized,
                                     sign.handshape_transcription.config.hand.get_hand_transcription_string(),
@@ -504,10 +504,10 @@ class MainWindow(QMainWindow):
         # self.sub_parameter.setHidden(not self.app_settings['display']['sub_parameter_show'])
         # self.sub_illustration.setHidden(not self.app_settings['display']['sub_illustration_show'])
         # self.sub_transcription.setHidden(not self.app_settings['display']['sub_transcription_show'])
-        self.sub_signsummary.setHidden(not self.app_settings['display']['sub_signsummary_show'])
+        self.sub_signlevelmenu.setHidden(not self.app_settings['display']['sub_signlevelmenu_show'])
         # self.sub_signlevel.setHidden(not self.app_settings['display']['sub_signlevel_show'])
         self.sub_corpus.setHidden(not self.app_settings['display']['sub_corpus_show'])
-        self.sub_xslot.setHidden(not self.app_settings['display']['sub_xslotpanel_show'])
+        self.sub_xslot.setHidden(not self.app_settings['display']['sub_visualsummary_show'])
 
     def on_action_export_subwindow_config(self):
         file_name, file_type = QFileDialog.getSaveFileName(self,
@@ -527,9 +527,9 @@ class MainWindow(QMainWindow):
                 # 'sub_signlevel_show': not self.sub_signlevel.isHidden(),
                 # 'sub_signlevel_pos': (self.sub_signlevel.pos().x(), self.sub_signlevel.pos().y()),
                 # 'sub_signlevel_size': (self.sub_signlevel.size().width(), self.sub_signlevel.size().height()),
-                'sub_signsummary_show': not self.sub_signsummary.isHidden(),
-                'sub_signsummary_pos': (self.sub_signsummary.pos().x(), self.sub_signsummary.pos().y()),
-                'sub_signsummary_size': (self.sub_signsummary.size().width(), self.sub_signsummary.size().height()),
+                'sub_signlevelmenu_show': not self.sub_signlevelmenu.isHidden(),
+                'sub_signlevelmenu_pos': (self.sub_signlevelmenu.pos().x(), self.sub_signlevelmenu.pos().y()),
+                'sub_signlevelmenu_size': (self.sub_signlevelmenu.size().width(), self.sub_signlevelmenu.size().height()),
                 # 'sub_transcription_show': not self.sub_transcription.isHidden(),
                 # 'sub_transcription_pos': (self.sub_transcription.pos().x(), self.sub_transcription.pos().y()),
                 # 'sub_transcription_size': (self.sub_transcription.size().width(), self.sub_transcription.size().height()),
@@ -558,10 +558,10 @@ class MainWindow(QMainWindow):
             with open(file_name, 'r') as f:
                 subwindow_json = json.load(f)
                 for sub, config in subwindow_json.items():
-                    if sub in {'size', 'sub_corpus_size', 'sub_signsummary_size', 'sub_transcription_size',
+                    if sub in {'size', 'sub_corpus_size', 'sub_signlevelmenu_size', 'sub_transcription_size',
                                'sub_illustration_size', 'sub_parameter_size'}:  # 'sub_signlevel_size',
                         self.app_settings['display'][sub] = QSize(*config)
-                    elif sub in {'position', 'sub_corpus_pos', 'sub_signsummary_pos', 'sub_transcription_pos',
+                    elif sub in {'position', 'sub_corpus_pos', 'sub_signlevelmenu_pos', 'sub_transcription_pos',
                                  'sub_illustration_pos', 'sub_parameter_pos'}:  # 'sub_signlevel_pos',
                         self.app_settings['display'][sub] = QPoint(*config)
                     else:
@@ -593,7 +593,7 @@ class MainWindow(QMainWindow):
     def on_action_default_view(self):
         self.sub_corpus.show()
         # self.sub_signlevel.show()
-        self.sub_signsummary.show()
+        self.sub_signlevelmenu.show()
         # self.sub_transcription.show()
         # self.sub_illustration.show()
         # self.sub_parameter.show()
@@ -601,11 +601,11 @@ class MainWindow(QMainWindow):
 
         self.action_show_sub_corpus.setChecked(True)
         # self.action_show_sub_signlevel.setChecked(True)
-        self.action_show_sub_signsummary.setChecked(True)
+        self.action_show_sub_signlevelmenu.setChecked(True)
         # self.action_show_sub_transcription.setChecked(True)
         # self.action_show_sub_illustration.setChecked(True)
         # self.action_show_sub_parameter.setChecked(True)
-        self.action_show_sub_xslotpanel.setChecked(True)
+        self.action_show_sub_visualsummary.setChecked(True)
 
         self.resize(QSize(1280, 755))
         self.move(0, 23)
@@ -616,8 +616,8 @@ class MainWindow(QMainWindow):
         # self.sub_signlevel.resize(QSize(300, 350))
         # self.sub_signlevel.move(QPoint(180, 0))
 
-        self.sub_signsummary.resize(QSize(300, 350))
-        self.sub_signsummary.move(QPoint(180, 0))
+        self.sub_signlevelmenu.resize(QSize(300, 350))
+        self.sub_signlevelmenu.move(QPoint(180, 0))
 
         self.sub_xslot.resize(QSize(800,800))
         self.sub_xslot.move(QPoint(480, 0))
@@ -635,12 +635,12 @@ class MainWindow(QMainWindow):
         if widget == self.corpus_scroll:
             self.action_show_sub_corpus.setChecked(False)
             self.on_action_show_sub_corpus()
-        elif widget == self.sign_summary:
-            self.action_show_sub_signsummary.setChecked(False)
-            self.on_action_show_sub_signsummary()
-        elif widget == self.xslot_panel:
-            self.action_show_sub_xslotpanel.setChecked(False)
-            self.on_action_show_sub_xslotpanel()
+        elif widget == self.signlevel_panel:
+            self.action_show_sub_signlevelmenu.setChecked(False)
+            self.on_action_show_sub_signlevelmenu()
+        elif widget == self.signsummary_panel:
+            self.action_show_sub_visualsummary.setChecked(False)
+            self.on_action_show_sub_visualsummary()
         # elif widget == self.signlevelinfo_scroll:
         #     self.action_show_sub_signlevel.setChecked(False)
         #     self.on_action_show_sub_signlevel()
@@ -661,15 +661,15 @@ class MainWindow(QMainWindow):
             self.sub_corpus.hide()
         self.main_mdi.tileSubWindows()
 
-    def on_action_show_sub_signsummary(self):
-        if self.action_show_sub_signsummary.isChecked():
-            self.sub_signsummary.show()
+    def on_action_show_sub_signlevelmenu(self):
+        if self.action_show_sub_signlevelmenu.isChecked():
+            self.sub_signlevelmenu.show()
         else:
-            self.sub_signsummary.hide()
+            self.sub_signlevelmenu.hide()
         self.main_mdi.tileSubWindows()
 
-    def on_action_show_sub_xslotpanel(self):
-        if self.action_show_sub_xslotpanel.isChecked():
+    def on_action_show_sub_visualsummary(self):
+        if self.action_show_sub_visualsummary.isChecked():
             self.sub_xslot.show()
         else:
             self.sub_xslot.hide()
@@ -724,10 +724,10 @@ class MainWindow(QMainWindow):
         self.current_sign = selected_sign
         # self.new_sign = selected_sign
         self.action_delete_sign.setEnabled(True)
-        self.sign_summary.sign = selected_sign
-        # self.sign_summary.load_movementmodulebuttons()
-        self.sign_summary.enable_module_buttons(True)
-        self.xslot_panel.refreshsign(self.current_sign)
+        self.signlevel_panel.sign = selected_sign
+        # self.signlevel_panel.load_movementmodulebuttons()
+        self.signlevel_panel.enable_module_buttons(True)
+        self.signsummary_panel.refreshsign(self.current_sign)
 
         # self.signlevelinfo_scroll.set_value(selected_sign.signlevel_information)
         # self.transcription_scroll.set_value(selected_sign.global_handshape_information,
@@ -735,7 +735,7 @@ class MainWindow(QMainWindow):
         # self.parameter_scroll.set_value(selected_sign.location)
 
 
-        # self.sign_summary.signgloss_label.setText("Gloss: " + selected_sign.signlevel_information.gloss if selected_sign else "")
+        # self.signlevel_panel.signgloss_label.setText("Gloss: " + selected_sign.signlevel_information.gloss if selected_sign else "")
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -771,13 +771,13 @@ class MainWindow(QMainWindow):
         # self.app_settings['display']['sub_signlevel_pos'] = self.app_qsettings.value('sub_signlevel_pos', defaultValue=QPoint(180, 0))
         # self.app_settings['display']['sub_signlevel_size'] = self.app_qsettings.value('sub_signlevel_size', defaultValue=QSize(300, 350))
 
-        self.app_settings['display']['sub_signsummary_show'] = bool(self.app_qsettings.value('sub_signsummary_show', defaultValue=True))
-        self.app_settings['display']['sub_signsummary_pos'] = self.app_qsettings.value('sub_signsummary_pos', defaultValue=QPoint(180, 0))
-        self.app_settings['display']['sub_signsummary_size'] = self.app_qsettings.value('sub_signsummary_size', defaultValue=QSize(300, 350))
+        self.app_settings['display']['sub_signlevelmenu_show'] = bool(self.app_qsettings.value('sub_signlevelmenu_show', defaultValue=True))
+        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(180, 0))
+        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(300, 350))
 
-        self.app_settings['display']['sub_xslotpanel_show'] = bool(self.app_qsettings.value('sub_xslotpanel_show', defaultValue=True))
-        self.app_settings['display']['sub_xslotpanel_pos'] = self.app_qsettings.value('sub_xslotpanel_pos', defaultValue=QPoint(480, 0))
-        self.app_settings['display']['sub_xslotpanel_size'] = self.app_qsettings.value('sub_xslotpanel_size', defaultValue=QSize(800, 800))
+        self.app_settings['display']['sub_visualsummary_show'] = bool(self.app_qsettings.value('sub_visualsummary_show', defaultValue=True))
+        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(480, 0))
+        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(800, 800))
 
         # self.app_settings['display']['sub_transcription_show'] = bool(self.app_qsettings.value('sub_transcription_show', defaultValue=True))
         # self.app_settings['display']['sub_transcription_pos'] = self.app_qsettings.value('sub_transcription_pos', defaultValue=QPoint(480, 0))
@@ -906,12 +906,12 @@ class MainWindow(QMainWindow):
         pref_dialog = PreferenceDialog(self.app_settings, timingfracsinuse=self.getcurrentlyused_timingfractions(), parent=self)
         # pref_dialog.xslotdivisions_changed.connect(self.check_xslotdivisions)  # lambda before, after: self.check_xslotdivisions(before, after))
         pref_dialog.xslotgeneration_changed.connect(self.handle_xslotgeneration_changed)
-        pref_dialog.prefs_saved.connect(self.xslot_panel.refreshsign)
+        pref_dialog.prefs_saved.connect(self.signsummary_panel.refreshsign)
         pref_dialog.exec_()
         #self.app_settings
 
     def handle_xslotgeneration_changed(self, prev_xslotgen, new_xslotgen):
-        self.sign_summary.enable_module_buttons(len(self.corpus.signs) > 0)
+        self.signlevel_panel.enable_module_buttons(len(self.corpus.signs) > 0)
 
     def getcurrentlyused_timingfractions(self):
         fractionsinuse = []
@@ -1083,9 +1083,9 @@ class MainWindow(QMainWindow):
         self.corpus = Corpus(signs=None, location_definition=deepcopy(SAMPLE_LOCATIONS))
 
         self.corpus_display.clear()
-        self.sign_summary.clear()
-        self.sign_summary.enable_module_buttons(False)
-        self.xslot_panel.refreshsign()
+        self.signlevel_panel.clear()
+        self.signlevel_panel.enable_module_buttons(False)
+        self.signsummary_panel.refreshsign()
         # self.signlevelinfo_scroll.clear(self.app_settings['metadata']['coder'], self.app_settings['signdefaults']['handdominance'])
         # self.transcription_scroll.clear()
         # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx)  # todo kv dict(),
@@ -1121,8 +1121,8 @@ class MainWindow(QMainWindow):
         self.action_delete_sign.setEnabled(False)
 
         self.corpus_display.corpus_view.clearSelection()
-        self.sign_summary.clear()
-        self.sign_summary.handle_signlevelbutton_click()
+        self.signlevel_panel.clear()
+        self.signlevel_panel.handle_signlevelbutton_click()
 
     def on_action_delete_sign(self, clicked):
         response = QMessageBox.question(self, 'Delete the selected sign',

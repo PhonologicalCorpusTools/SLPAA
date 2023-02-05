@@ -161,7 +161,8 @@ mvmtOptionsDict = {
             },
             ("Wiggling/Fluttering", fx, rb, u): {},  # TODO KV autofills to both flexion and extension of selected finger base joints
             ("None of these", fx, rb, u): {}
-        }
+        },
+        ("Handshape change", fx, rb, u): {}
     },
     ("Joint activity", fx, cb, u): {
         ("Complex / multi-joint", fx, cb, u): {},  # from Yurika: if this is selected, the expectation is that nothing else below would be selected, though I guess people could...
@@ -295,6 +296,68 @@ mvmtOptionsDict = {
                 ("Unidirectional", fx, rb, u): {},
                 ("Bidirectional", fx, rb, u): {}
             }
+        },
+        ("Additional characteristics", fx, cb, u): {
+            ("Size", fx, cb, u): {
+                (subgroup, None, 0, None): {
+                    ("Big", fx, rb, u): {},
+                    ("Normal", fx, rb, u): {},
+                    ("Small", fx, rb, u): {},
+                    ("Other:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                },
+                (subgroup, None, 1, None): {
+                    ("Relative to:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                }
+            },
+            ("Speed", fx, cb, u): {
+                (subgroup, None, 0, None): {
+                    ("Fast", fx, rb, u): {},
+                    ("Normal", fx, rb, u): {},
+                    ("Slow", fx, rb, u): {},
+                    ("Other:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                },
+                (subgroup, None, 1, None): {
+                    ("Relative to:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                }
+            },
+            ("Force", fx, cb, u): {
+                (subgroup, None, 0, None): {
+                    ("Strong", fx, rb, u): {},
+                    ("Normal", fx, rb, u): {},
+                    ("Weak", fx, rb, u): {},
+                    ("Other:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                },
+                (subgroup, None, 1, None): {
+                    ("Relative to:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                }
+            },
+            ("Tension", fx, cb, u): {
+                (subgroup, None, 0, None): {
+                    ("Tense", fx, rb, u): {},
+                    ("Normal", fx, rb, u): {},
+                    ("Lax", fx, rb, u): {},
+                    ("Other:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                },
+                (subgroup, None, 1, None): {
+                    ("Relative to:", fx, rb, u): {
+                        # ("Specify", ed, cb, u): {}
+                    },  # TODO KV
+                }
+            },
         }
     }
 }
@@ -383,6 +446,7 @@ class MovementTreeSerializable:
         treenode = mvmttreemodel.invisibleRootItem()
 
         self.numvals = {}
+        self.stringvals = {}
         self.checkstates = {}
         self.addedinfos = {}
 
@@ -401,8 +465,12 @@ class MovementTreeSerializable:
                     if editable:
                         pathsteps = pathtext.split(delimiter)
                         parentpathtext = delimiter.join(pathsteps[:-1])
-                        numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
-                        self.numvals[parentpathtext] = numericstring
+                        userstring = pathsteps[-1]
+                        if userstring.isnumeric():
+                        # numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
+                            self.numvals[parentpathtext] = userstring  # numericstring
+                        else:
+                            self.stringvals[parentpathtext] = userstring
 
                     self.checkstates[pathtext] = checkstate
                 self.collectdata(treechild)
@@ -426,6 +494,10 @@ class MovementTreeSerializable:
                         treechild.setText(self.numvals[parentpathtext])
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
+                    elif parentpathtext in self.stringvals.keys():
+                        treechild.setText(self.stringvals[parentpathtext])
+                        treechild.setEditable(True)
+                        pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
                     treechild.setCheckState(self.checkstates[pathtext])
                     treechild.addedinfo = copy(self.addedinfos[pathtext])
                     self.setvalues(treechild)
@@ -440,6 +512,7 @@ class MovementModuleSerializable:
         # creates a full serializable copy of the movement module, eg for saving to disk
         self.hands = mvmtmodule.hands
         self.timingintervals = mvmtmodule.timingintervals
+        self.addedinfo = mvmtmodule.addedinfo
 
         mvmttreemodel = mvmtmodule.movementtreemodel
         self.movementtree = MovementTreeSerializable(mvmttreemodel)
