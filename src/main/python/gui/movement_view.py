@@ -264,23 +264,30 @@ mvmtOptionsDict = {
             ("Single", fx, rb, u): {},
             ("Repeated", fx, rb, u): {
                 ("Number of repetitions", fx, cb, u): {
-                    ("#", ed, cb, u): {}
+                    ("#", ed, cb, u): {},
+                    ("This number is a minimum", fx, cb, u): {},
                 },  # TODO KV
                 ("Location of repetition", fx, cb, u): {
                     ("Same location", fx, rb, u): {},
                     ("Different location", fx, rb, u): {  # Choose up to one from each column as needed
-                        (subgroup, None, 0, None): {
+                        ("Vertical", fx, cb, u): {
+                            # (subgroup, None, 0, None): {
                             ("Up", fx, rb, u): {},
                             ("Down", fx, rb, u): {}
+                            # },
                         },
-                        (subgroup, None, 1, None): {
+                        ("Sagittal", fx, cb, u): {
+                            # (subgroup, None, 1, None): {
                             ("Distal", fx, rb, u): {},
                             ("Proximal", fx, rb, u): {}
+                            # },
                         },
-                        (subgroup, None, 2, None): {
+                        ("Horizontal", fx, cb, u): {
+                            # (subgroup, None, 2, None): {
                             ("Ipsilateral", fx, rb, u): {},  # TODO KV default ipsi/contra; can choose right/left in settings
                             ("Contralateral", fx, rb, u): {}
-                        }
+                            # }
+                        },
                     }
                 }
             }
