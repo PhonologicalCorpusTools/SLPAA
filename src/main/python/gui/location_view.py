@@ -418,7 +418,7 @@ class LocationTreeItem(QStandardItem):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def updatelistdata(self):
-        if self.parent() and "Number of repetitions" in self.parent().data():
+        if self.parent() and "Specify total number of cycles" in self.parent().data():
             previouslistitemtext = self.listitem.text()
             parentname = self.parent().text()
             updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)

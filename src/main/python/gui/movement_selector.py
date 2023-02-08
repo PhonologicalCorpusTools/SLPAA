@@ -72,7 +72,7 @@ class TreeItemDelegate(QStyledItemDelegate):
             valnum = float(valstring)
         if valstring not in ["", "#"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
             errordialog = QErrorMessage(editor.parent())
-            errordialog.showMessage("Number of repetitions must be at least 1 and also a multiple of 0.5")
+            errordialog.showMessage("Total number of cycles must be at least 1 and also a multiple of 0.5")
             editor.setText("#")
             # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
             # editor.setFocus()  # this creates an infinite loop
@@ -158,7 +158,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
         # TODO KV figure out adding number selector
-        items = self.treemodel.findItems("Number of repetitions", Qt.MatchRecursive)
+        items = self.treemodel.findItems("Specify total number of cycles", Qt.MatchRecursive)
         repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
         self.treedisplay.openPersistentEditor(repsindex)
         self.treedisplay.installEventFilter(self)
@@ -243,7 +243,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
     def refresh_treemodel(self):
         self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
         self.treemodel.populate(self.treemodel.invisibleRootItem())
-        # items = self.treemodel.findItems("Number of repetitions", Qt.MatchRecursive)
+        # items = self.treemodel.findItems("Specify total number of cycles", Qt.MatchRecursive)
         # repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
         # self.treedisplay.openPersistentEditor(repsindex)
 

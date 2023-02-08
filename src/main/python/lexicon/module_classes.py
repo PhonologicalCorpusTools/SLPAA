@@ -5,7 +5,7 @@ from PyQt5.QtCore import (
 )
 
 from gui.hand_configuration import HandConfigurationHand, PREDEFINED_MAP
-from lexicon.module_classes2 import AddedInfo
+from lexicon.module_classes2 import AddedInfo, TimingInterval
 
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
 
@@ -223,6 +223,7 @@ class MovementModule(ParameterModule):
             "2": "2x",
             "3": "3x",
             "4": "4x",  # TODO KV automate the abbreviations for integers
+            ""
             "Same location": "same loc",
             "Different location": "diff. loc",
             "Trilled": "Trilled",

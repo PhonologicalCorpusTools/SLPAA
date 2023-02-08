@@ -90,6 +90,23 @@ class AddedInfoPushButton(QPushButton):
         super().__init__(title, **kwargs)
         self._addedinfo = AddedInfo()
 
+        # styling
+        qss = """   
+            QPushButton[AddedInfo=true] {
+                font: bold;
+                /*border: 2px dashed black;*/
+            }
+    
+            QPushButton[AddedInfo=false] {
+                font: normal;
+                /*border: 1px solid grey;*/
+            }
+        """
+        self.setStyleSheet(qss)
+
+        # self._addedinfo = AddedInfo()
+        self.updateStyle()
+
     @property
     def addedinfo(self):
         return self._addedinfo
@@ -97,11 +114,21 @@ class AddedInfoPushButton(QPushButton):
     @addedinfo.setter
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self.updateStyle()
 
     def mouseReleaseEvent(self, event):
     # def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
+        addedinfo_menu.info_added.connect(self.updateStyle)
         addedinfo_menu.exec_(event.globalPos())
+
+    def updateStyle(self, addedinfo=None):
+        if addedinfo is not None:
+            self._addedinfo = addedinfo
+        self.setProperty('AddedInfo', self._addedinfo.hascontent())
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
 
     def clear(self):
         self._addedinfo = AddedInfo()
@@ -413,6 +440,9 @@ class AddedInfoContextMenu(QMenu):
             self.addedinfo.incomplete_flag = state
         elif whichaction == self.other_action:
             self.addedinfo.other_flag = state
+
+    def focusOutEvent(self, event):
+        self.savemenunotes()
 
     def savemenunotes(self):
         self.addedinfo.uncertain_note = self.uncertain_action.text()

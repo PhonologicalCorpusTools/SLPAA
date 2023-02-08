@@ -336,15 +336,15 @@ class AddedInfo:
 
     def __repr__(self):
         reprstr = '<AddedInfo: '
-        reprstr += 'Uncertain (' + str(int(self._uncertain_flag)) + ' / ' + self._uncertain_note + ') '
-        reprstr += 'Estimated (' + str(int(self._estimated_flag)) + ' / ' + self._estimated_note + ') '
-        reprstr += 'Not specified (' + str(int(self._notspecified_flag)) + ' / ' + self._notspecified_note + ') '
-        reprstr += 'Variable (' + str(int(self._variable_flag)) + ' / ' + self._variable_note + ') '
-        reprstr += 'Exceptional (' + str(int(self._exceptional_flag)) + ' / ' + self._exceptional_note + ') '
-        reprstr += 'Incomplete (' + str(int(self._incomplete_flag)) + ' / ' + self._incomplete_note + ') '
-        reprstr += 'Other (' + str(int(self._other_flag)) + ' / ' + self._other_note + ')'
+        reprstr += 'Uncertain (' + repr(int(self._uncertain_flag)) + ' / ' + repr(self._uncertain_note) + ') '
+        reprstr += 'Estimated (' + repr(int(self._estimated_flag)) + ' / ' + repr(self._estimated_note) + ') '
+        reprstr += 'Not specified (' + repr(int(self._notspecified_flag)) + ' / ' + repr(self._notspecified_note) + ') '
+        reprstr += 'Variable (' + repr(int(self._variable_flag)) + ' / ' + repr(self._variable_note) + ') '
+        reprstr += 'Exceptional (' + repr(int(self._exceptional_flag)) + ' / ' + repr(self._exceptional_note) + ') '
+        reprstr += 'Incomplete (' + repr(int(self._incomplete_flag)) + ' / ' + repr(self._incomplete_note) + ') '
+        reprstr += 'Other (' + repr(int(self._other_flag)) + ' / ' + repr(self._other_note) + ')'
         reprstr += '>'
-        return
+        return reprstr
 
     def hascontent(self):
         hasflag = self._uncertain_flag or self._estimated_flag or self._notspecified_flag or self._variable_flag or self._exceptional_flag or self._incomplete_flag or self._other_flag

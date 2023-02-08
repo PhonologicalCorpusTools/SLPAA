@@ -504,7 +504,7 @@ class MovementTreeSerializable:
                     elif parentpathtext in self.stringvals.keys():
                         treechild.setText(self.stringvals[parentpathtext])
                         treechild.setEditable(True)
-                        pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
+                        pathtext = parentpathtext + delimiter + self.stringvals[parentpathtext]
                     treechild.setCheckState(self.checkstates[pathtext])
                     treechild.addedinfo = copy(self.addedinfos[pathtext])
                     self.setvalues(treechild)
@@ -707,7 +707,7 @@ class MovementTreeItem(QStandardItem):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def updatelistdata(self):
-        if self.parent() and "Number of repetitions" in self.parent().data():
+        if self.parent() and "Specify total number of cycles" in self.parent().data():
             previouslistitemtext = self.listitem.text()
             parentname = self.parent().text()
             updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)

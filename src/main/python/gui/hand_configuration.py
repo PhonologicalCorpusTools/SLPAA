@@ -47,49 +47,31 @@ class ConfigSlot(QLineEdit):
 
         self.addedinfo = AddedInfo()
 
-        self.setProperty('AddedInfo', self.addedinfo.hascontent())
+
         # self.setProperty('Estimate', self.estimate)
         # self.setProperty('Uncertain', self.uncertain)
+        self.updateStyle()
 
         # styling
-        self.setFixedSize(QSize(20, 20)) # TODO KV
+        self.setFixedSize(QSize(20, 20))  # TODO KV
         qss = """   
-            QLineEdit {{
+            QLineEdit {
+                background: white;
                 text-align: center;
                 margin: 0;
                 padding: 0;
-            }}
+            }
 
-            QLineEdit[AddedInfo=true] {{
-                background: white;
-                border: {estimate_border};
-            }}
+            QLineEdit[AddedInfo=true] {
+                font-weight: bold;
+                border: 2px dashed black;
+            }
 
-            QLineEdit[AddedInfo=false] {{
-                background: white;
+            QLineEdit[AddedInfo=false] {
+                font-weight: normal;
                 border: 1px solid grey;
-            }}
-
-            QLineEdit[Estimate=true][Uncertain=true] {{
-                background: {uncertain_background};
-                border: {estimate_border};
-            }}
-
-            QLineEdit[Estimate=true][Uncertain=false] {{
-                background: white;
-                border: {estimate_border};
-            }}
-
-            QLineEdit[Estimate=false][Uncertain=true] {{
-                background: {uncertain_background};
-                border: 1px solid grey;
-            }}
-
-            QLineEdit[Estimate=false][Uncertain=false] {{
-                background: white;
-                border: 1px solid grey;
-            }}
-        """.format(estimate_border=ESTIMATE_BORDER, uncertain_background=UNCERTAIN_BACKGROUND)
+            }
+        """  #.format(estimate_border=ESTIMATE_BORDER, uncertain_background=UNCERTAIN_BACKGROUND)
         self.setStyleSheet(qss)
 
         # set completer
@@ -123,20 +105,27 @@ class ConfigSlot(QLineEdit):
         if self.num not in {'8', '9', '16', '21', '26', '31'}:
             super().clear()
             self.addedinfo = AddedInfo()
-            #self.repaint()
+            # self.setProperty('AddedInfo', self.addedinfo.hascontent())
+            # self.repaint()
+            self.updateStyle()
 
     def set_value_from_dict(self, d):
         self.setText(d['symbol'])
         self.addedinfo = d['addedinfo']
-        #self.repaint()
+        # self.setProperty('AddedInfo', self.addedinfo.hascontent())
+        # self.repaint()
+        self.updateStyle()
 
     def set_value(self, slot):
         self.setText(slot.symbol)
         self.addedinfo = slot.addedinfo
-        #self.repaint()
+        # self.setProperty('AddedInfo', self.addedinfo.hascontent())
+        # self.repaint()
+        self.updateStyle()
 
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self.addedinfo)
+        addedinfo_menu.info_added.connect(self.updateStyle)
         addedinfo_menu.exec_(event.globalPos())
 
     def mousePressEvent(self, event):
@@ -165,6 +154,13 @@ class ConfigSlot(QLineEdit):
 
     def get_value(self):
         return {'slot_number': int(self.num), 'symbol': self.text(), 'addedinfo': self.addedinfo}
+
+    def updateStyle(self):
+        self.setProperty('AddedInfo', self.addedinfo.hascontent())
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
+
 
 
 class ConfigField(QWidget):
