@@ -263,7 +263,7 @@ mvmtOptionsDict = {
         ("Repetition", fx, cb, u): {
             ("Single", fx, rb, u): {},
             ("Repeated", fx, rb, u): {
-                ("Number of repetitions", fx, cb, u): {
+                ("Specify total number of cycles", fx, cb, u): {
                     ("#", ed, cb, u): {},
                     ("This number is a minimum", fx, cb, u): {},
                 },  # TODO KV
