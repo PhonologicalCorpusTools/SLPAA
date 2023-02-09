@@ -84,20 +84,26 @@ mvmtOptionsDict = {
             ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
                 ("Sagittal", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},
-                        ("Counterclockwise", fx, rb, u): {}
+                        ("Distal from top of circle", fx, rb, u): {},
+                        ("Proximal from top of circle", fx, rb, u): {}
+                        # ("Clockwise", fx, rb, u): {},
+                        # ("Counterclockwise", fx, rb, u): {}
                     },
                 },
                 ("Horizontal", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
-                        ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                        ("Ipsilateral from top of circle", fx, rb, u): {},
+                        ("Contralateral from top of circle", fx, rb, u): {}
+                        # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                        # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
                     },
                 },
                 ("Vertical", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
-                        ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                        ("Ipsilateral from top of circle", fx, rb, u): {},
+                        ("Contralateral from top of circle", fx, rb, u): {}
+                        # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                        # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
                     },
                 },
                 ("Not relevant", fx, rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
@@ -264,8 +270,9 @@ mvmtOptionsDict = {
             ("Single", fx, rb, u): {},
             ("Repeated", fx, rb, u): {
                 ("Specify total number of cycles", fx, cb, u): {
-                    ("#", ed, cb, u): {},
-                    ("This number is a minimum", fx, cb, u): {},
+                    ("#", ed, cb, u): {
+                        ("This number is a minimum", fx, cb, u): {},
+                    },
                 },  # TODO KV
                 ("Location of repetition", fx, cb, u): {
                     ("Same location", fx, rb, u): {},
@@ -490,23 +497,39 @@ class MovementTreeSerializable:
         self.setvalues(rootnode)
         return mvmttreemodel
 
-    def setvalues(self, treenode):
+    def setvalues(self, treenode):  # TODO KV make the (pre-20230208) backwards compatibility cleaner
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    oldpathtext = pathtext.replace("Specify total number of cycles", "Number of repetitions")
                     parentpathtext = treenode.data(Qt.UserRole + udr.pathdisplayrole)
+                    oldparentpathtext = None if parentpathtext is None else parentpathtext.replace("Specify total number of cycles", "Number of repetitions")
                     if parentpathtext in self.numvals.keys():
                         treechild.setText(self.numvals[parentpathtext])
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
-                    elif parentpathtext in self.stringvals.keys():
+                    elif oldparentpathtext in self.numvals.keys():
+                        treechild.setText(self.numvals[oldparentpathtext])
+                        treechild.setEditable(True)
+                        pathtext = parentpathtext + delimiter + self.numvals[oldparentpathtext]
+                    elif hasattr(self, 'stringvals') and parentpathtext in self.stringvals.keys():
                         treechild.setText(self.stringvals[parentpathtext])
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.stringvals[parentpathtext]
-                    treechild.setCheckState(self.checkstates[pathtext])
-                    treechild.addedinfo = copy(self.addedinfos[pathtext])
+                    elif hasattr(self, 'stringvals') and oldparentpathtext in self.stringvals.keys():
+                        treechild.setText(self.stringvals[oldparentpathtext])
+                        treechild.setEditable(True)
+                        pathtext = parentpathtext + delimiter + self.stringvals[oldparentpathtext]
+                    if pathtext in self.checkstates.keys():
+                        treechild.setCheckState(self.checkstates[pathtext])
+                    elif oldpathtext in self.checkstates.keys():
+                        treechild.setCheckState(self.checkstates[oldpathtext])
+                    if pathtext in self.addedinfos.keys():
+                        treechild.addedinfo = copy(self.addedinfos[pathtext])
+                    elif oldpathtext in self.addedinfos.keys():
+                        treechild.addedinfo = copy(self.addedinfos[oldpathtext])
                     self.setvalues(treechild)
 
 
@@ -707,7 +730,7 @@ class MovementTreeItem(QStandardItem):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def updatelistdata(self):
-        if self.parent() and "Specify total number of cycles" in self.parent().data():
+        if self.parent() and ("Specify total number of cycles" in self.parent().data() or "Number of repetitions" in self.parent().data()):
             previouslistitemtext = self.listitem.text()
             parentname = self.parent().text()
             updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
