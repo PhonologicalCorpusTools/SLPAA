@@ -412,6 +412,7 @@ class XslotPanel(QScrollArea):
         self.addparameter(hand=hand, moduletype='location')
         self.addcontact(hand=hand)
         self.addorientation(hand=hand)
+        self.addnonmanual(hand=hand)
         self.addparameter(hand=hand, moduletype='handconfig')
 
     def getxywh(self, timinginterval):
@@ -454,6 +455,9 @@ class XslotPanel(QScrollArea):
         return x, y, w, h
 
     def addhandpart(self, hand):
+        return  # TODO KV implement
+
+    def addnonmanual(self, hand):
         return  # TODO KV implement
 
     def addparameter(self, hand, moduletype):
@@ -720,6 +724,11 @@ class SignLevelMenuPanel(QScrollArea):
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
         self.module_buttons.append(self.handshape_button)
 
+        self.nonmanual_button = QPushButton("Non-manual selection")
+        self.nonmanual_button.setProperty("existingmodule", False)
+        self.nonmanual_button.clicked.connect(self.handle_nonmanualbutton_click)
+        self.module_buttons.append(self.nonmanual_button)
+
         main_layout.addWidget(self.signgloss_label)
         main_layout.addWidget(self.signlevel_button)
         for btn in self.module_buttons:
@@ -862,10 +871,6 @@ class SignLevelMenuPanel(QScrollArea):
         # TODO KV
         QMessageBox.information(self, 'Not Available', 'Contact module functionality not yet linked.')
 
-    def handle_handpartbutton_click(self):
-        # TODO KV
-        QMessageBox.information(self, 'Not Available', 'Contact module functionality not yet linked.')
-
     def handle_orientationbutton_click(self):
         # TODO KV
         QMessageBox.information(self, 'Not Available', 'Orientation module functionality not yet linked.')
@@ -898,6 +903,10 @@ class SignLevelMenuPanel(QScrollArea):
     def handle_handpartbutton_click(self):
         # TODO KV
         QMessageBox.information(self, 'Not Available', 'Hand part module functionality not yet linked.')
+
+    def handle_nonmanualbutton_click(self):
+        # TODO KV
+        QMessageBox.information(self, 'Not Available', 'Non-manual module functionality not yet linked.')
 
 # TODO KV no longer used
 # class HandTranscriptionPanel(QScrollArea):
