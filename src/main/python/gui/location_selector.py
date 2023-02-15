@@ -20,7 +20,8 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QWidget,
     QSpacerItem,
-    QSizePolicy
+    QSizePolicy,
+    QGridLayout
 )
 
 from PyQt5.QtCore import (
@@ -36,17 +37,92 @@ from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 from lexicon.module_classes import LocationModule, PhonLocations, LocationType
 from lexicon.module_classes2 import AddedInfo
 
+from PyQt5.QtSvg import QSvgWidget
+
+
+class SvgDisplayWidget(QWidget):
+    def __init__(self, imagepath, **kwargs):
+        super().__init__(**kwargs)
+
+        main_layout = QVBoxLayout()
+
+        self.imagedisplay = QSvgWidget(parent=self)
+        if imagepath != "":
+            self.imagedisplay.load(imagepath)
+            self.imagedisplay.setGeometry(0, 0, 200, 200)
+            self.imagedisplay.renderer().load(imagepath)
+            print(self.imagedisplay.renderer().isValid())
+            self.imagedisplay.show()
+        main_layout.addWidget(self.imagedisplay)
+
+        lastindex = imagepath.rfind("/")
+        self.imagelabel = QLabel(imagepath[lastindex+1:], parent=self)
+        main_layout.addWidget(self.imagelabel)
+
+        self.setLayout(main_layout)
+
+
+class SingleImageDisplayTab(QWidget):
+
+    def __init__(self, imagepath, app_ctx=None, svg=False, **kwargs):
+        super().__init__(**kwargs)
+
+        main_layout = QHBoxLayout()
+
+        self.image = None
+        if not svg:
+            self.image = LocationGraphicsView(app_ctx, specificpath=imagepath)
+        else:
+            self.image = QSvgWidget()
+            self.image.load(imagepath)
+            self.image.setGeometry(0, 0, 200, 200)
+            self.image.renderer().load(imagepath)
+            print(self.image.renderer().isValid())
+            self.image.show()
+
+        main_layout.addWidget(self.image)
+        self.setLayout(main_layout)
+
+
+class SvgDisplayTab(QWidget):
+
+    def __init__(self, imagepath, **kwargs):  #  maxfourimagepaths, **kwargs):
+        super().__init__(**kwargs)
+
+        # nummissing = 4 - len(maxfourimagepaths)
+        # maxfourimagepaths += [""] * nummissing
+        #
+        # main_layout = QGridLayout()
+        # # main_layout = QHBoxLayout()
+        #
+        # self.svg0 = SvgDisplayWidget(maxfourimagepaths[0])
+        # self.svg1 = SvgDisplayWidget(maxfourimagepaths[1])
+        # self.svg2 = SvgDisplayWidget(maxfourimagepaths[2])
+        # self.svg3 = SvgDisplayWidget(maxfourimagepaths[3])
+        #
+        # main_layout.addWidget(self.svg0, 0, 0)
+        # main_layout.addWidget(self.svg1, 0, 1)
+        # main_layout.addWidget(self.svg2, 1, 0)
+        # main_layout.addWidget(self.svg3, 1, 1)
+        #
+        # self.setLayout(main_layout)
+
+        main_layout = QHBoxLayout()
+        self.svg = SvgDisplayWidget(imagepath)
+        main_layout.addWidget(self.svg)
+        self.setLayout(main_layout)
+
 
 class ImageDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
 
-    def __init__(self, app_ctx, frontorback='front', **kwargs):
+    def __init__(self, app_ctx, frontorback='front', specificpath="", **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QHBoxLayout()
 
-        self.imagedisplay = LocationGraphicsView(app_ctx, frontorback)
+        self.imagedisplay = LocationGraphicsView(app_ctx, frontorback=frontorback, specificpath=specificpath)
         # self.imagedisplay.setMinimumWidth(400)
 
         zoom_layout = QVBoxLayout()

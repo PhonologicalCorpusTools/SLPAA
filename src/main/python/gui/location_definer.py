@@ -44,6 +44,7 @@ from constant import LocationParameter, Locations  # KV TODO , Movements
 # from constant import SAMPLE_LOCATIONS
 from copy import deepcopy  #, copy
 # from pprint import pprint
+from gui.location_selector import SvgDisplayTab, SingleImageDisplayTab, ImageDisplayTab
 
 
 #reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
@@ -535,6 +536,61 @@ class LocationDefinerTabWidget(QTabWidget):
             {'_'.join(loc_name.lower().split(sep=' ')): LocationParameter(name=loc_name, image_path=page.image_path, location_polygons=page.locations, default=page.default)\
              for loc_name, page in zip(self.tabbar.get_tab_names(), self.location_definer_pages)}
         )
+
+
+class LocationGraphicsTestDialog(QDialog):
+
+    def __init__(self, app_settings, app_ctx, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+
+        main_layout = QVBoxLayout()
+
+        self.tabs = QTabWidget()
+
+        self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_A4p.png"), "shading_A4p.png")
+        self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_A4p_min-01.svg"), "shading_A4p_min-01.svg")
+        self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_letter.png"), "shading_letter.png")
+        self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_letter.svg"), "shading_letter.svg")
+
+        self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_letter_min.svg"), "shading_letter_min.svg")
+        self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_poster.png"), "shading_poster.png")
+        self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_poster.svg"), "shading_poster.svg")
+        self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_poster_min.svg"), "shading_poster_min.svg")
+
+        self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/layers_posterR.svg"), "layers_posterR.svg")
+        self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/layers/layers_posterR_min.svg"), "layers_posterR_min.svg")
+        self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/layers/Layers_PosterR-01.png"), "Layers_PosterR-01.png")
+        #
+        # self.shadingimagepaths1 = ["gui/shading/shading_A4p.png",
+        #                            "gui/shading/shading_A4p_min-01.svg",
+        #                            "gui/shading/shading_letter.png",
+        #                            "gui/shading/shading_letter.svg"]
+        # self.shadingtab1 = SvgDisplayTab(self.shadingimagepaths1)
+        # self.tabs.addTab(self.shadingtab1, "Shading 1-4")
+        #
+        # self.shadingimagepaths2 = ["gui/shading/shading_letter_min.svg",
+        #                            "gui/shading/shading_poster.png",
+        #                            "gui/shading/shading_poster.svg",
+        #                            "gui/shading/shading_poster_min.svg"]
+        # self.shadingtab2 = SvgDisplayTab(self.shadingimagepaths2)
+        # self.tabs.addTab(self.shadingtab2, "Shading 5-8")
+        #
+        # self.layersimagepaths = ["gui/layers/layers_posterR.svg",
+        #                          "gui/layers/layers_posterR_min.svg",
+        #                          "gui/layers/Layers_PosterR-01.png",
+        #                          ""]
+        # self.layerstab = SvgDisplayTab(self.layersimagepaths)
+        # self.tabs.addTab(self.layerstab, "Layers 1-3")
+        #
+        # self.singletab1 = SingleImageDisplayTab(imagepath="../resources/base/default_location_images/shading/shading_letter.png", app_ctx=app_ctx, svg=False)
+        # self.tabs.addTab(self.singletab1, "Single static")
+        #
+        # self.singletab2 = SingleImageDisplayTab(imagepath="../resources/base/default_location_images/shading/shading_letter_min.svg", app_ctx=None, svg=True)
+        # self.tabs.addTab(self.singletab2, "Single vector")
+
+        main_layout.addWidget(self.tabs)
+        self.setLayout(main_layout)
 
 
 class LocationDefinerDialog(QDialog):
