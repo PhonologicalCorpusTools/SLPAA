@@ -3,8 +3,7 @@
       - add glossary item
   fill out connectedness
       - add glossary item
-  update the screenshot of the selection window
-      - wait until upcoming changes are implemented
+  update the screenshot of the selection window with connectedness and bilateral symmetry
 
 .. _sign_type_module:
 
@@ -118,7 +117,7 @@ a. Movement timing relation
 
 Signs are considered to be **in phase** for a given parameter when both hands have the same specification for that parameter at the same time; likewise, signs are considered to be **out of phase** for a given parameter when the hands have opposite specifications for that parameter at the same time.
             
-Some examples where everything is in phase are `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_.
+Some examples where everything is in phase are `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_ and `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_.
 
 .. note::
     **Phasing and symmetry**
