@@ -84,20 +84,26 @@ mvmtOptionsDict = {
             ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
                 ("Sagittal", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},
-                        ("Counterclockwise", fx, rb, u): {}
+                        ("Distal from top of circle", fx, rb, u): {},
+                        ("Proximal from top of circle", fx, rb, u): {}
+                        # ("Clockwise", fx, rb, u): {},
+                        # ("Counterclockwise", fx, rb, u): {}
                     },
                 },
                 ("Horizontal", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
-                        ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                        ("Ipsilateral from top of circle", fx, rb, u): {},
+                        ("Contralateral from top of circle", fx, rb, u): {}
+                        # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                        # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
                     },
                 },
                 ("Vertical", fx, cb, u): {
                     (subgroup, None, 0, None): {
-                        ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
-                        ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                        ("Ipsilateral from top of circle", fx, rb, u): {},
+                        ("Contralateral from top of circle", fx, rb, u): {}
+                        # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                        # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
                     },
                 },
                 ("Not relevant", fx, rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
@@ -264,8 +270,9 @@ mvmtOptionsDict = {
             ("Single", fx, rb, u): {},
             ("Repeated", fx, rb, u): {
                 ("Specify total number of cycles", fx, cb, u): {
-                    ("#", ed, cb, u): {},
-                    ("This number is a minimum", fx, cb, u): {},
+                    ("#", ed, cb, u): {
+                        ("This number is a minimum", fx, cb, u): {},
+                    },
                 },  # TODO KV
                 ("Location of repetition", fx, cb, u): {
                     ("Same location", fx, rb, u): {},
@@ -315,7 +322,7 @@ mvmtOptionsDict = {
                     },  # TODO KV
                 },
                 (subgroup, None, 1, None): {
-                    ("Relative to:", fx, rb, u): {
+                    ("Relative to:", fx, cb, u): {
                         # ("Specify", ed, cb, u): {}
                     },  # TODO KV
                 }
@@ -330,7 +337,7 @@ mvmtOptionsDict = {
                     },  # TODO KV
                 },
                 (subgroup, None, 1, None): {
-                    ("Relative to:", fx, rb, u): {
+                    ("Relative to:", fx, cb, u): {
                         # ("Specify", ed, cb, u): {}
                     },  # TODO KV
                 }
@@ -345,7 +352,7 @@ mvmtOptionsDict = {
                     },  # TODO KV
                 },
                 (subgroup, None, 1, None): {
-                    ("Relative to:", fx, rb, u): {
+                    ("Relative to:", fx, cb, u): {
                         # ("Specify", ed, cb, u): {}
                     },  # TODO KV
                 }
@@ -360,7 +367,7 @@ mvmtOptionsDict = {
                     },  # TODO KV
                 },
                 (subgroup, None, 1, None): {
-                    ("Relative to:", fx, rb, u): {
+                    ("Relative to:", fx, cb, u): {
                         # ("Specify", ed, cb, u): {}
                     },  # TODO KV
                 }
@@ -490,23 +497,39 @@ class MovementTreeSerializable:
         self.setvalues(rootnode)
         return mvmttreemodel
 
-    def setvalues(self, treenode):
+    def setvalues(self, treenode):  # TODO KV make the (pre-20230208) backwards compatibility cleaner
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    oldpathtext = pathtext.replace("Specify total number of cycles", "Number of repetitions")
                     parentpathtext = treenode.data(Qt.UserRole + udr.pathdisplayrole)
+                    oldparentpathtext = None if parentpathtext is None else parentpathtext.replace("Specify total number of cycles", "Number of repetitions")
                     if parentpathtext in self.numvals.keys():
                         treechild.setText(self.numvals[parentpathtext])
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
-                    elif parentpathtext in self.stringvals.keys():
+                    elif oldparentpathtext in self.numvals.keys():
+                        treechild.setText(self.numvals[oldparentpathtext])
+                        treechild.setEditable(True)
+                        pathtext = parentpathtext + delimiter + self.numvals[oldparentpathtext]
+                    elif hasattr(self, 'stringvals') and parentpathtext in self.stringvals.keys():
                         treechild.setText(self.stringvals[parentpathtext])
                         treechild.setEditable(True)
                         pathtext = parentpathtext + delimiter + self.stringvals[parentpathtext]
-                    treechild.setCheckState(self.checkstates[pathtext])
-                    treechild.addedinfo = copy(self.addedinfos[pathtext])
+                    elif hasattr(self, 'stringvals') and oldparentpathtext in self.stringvals.keys():
+                        treechild.setText(self.stringvals[oldparentpathtext])
+                        treechild.setEditable(True)
+                        pathtext = parentpathtext + delimiter + self.stringvals[oldparentpathtext]
+                    if pathtext in self.checkstates.keys():
+                        treechild.setCheckState(self.checkstates[pathtext])
+                    elif oldpathtext in self.checkstates.keys():
+                        treechild.setCheckState(self.checkstates[oldpathtext])
+                    if pathtext in self.addedinfos.keys():
+                        treechild.addedinfo = copy(self.addedinfos[pathtext])
+                    elif oldpathtext in self.addedinfos.keys():
+                        treechild.addedinfo = copy(self.addedinfos[oldpathtext])
                     self.setvalues(treechild)
 
 
@@ -707,7 +730,7 @@ class MovementTreeItem(QStandardItem):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def updatelistdata(self):
-        if self.parent() and "Specify total number of cycles" in self.parent().data():
+        if self.parent() and ("Specify total number of cycles" in self.parent().data() or "Number of repetitions" in self.parent().data()):
             previouslistitemtext = self.listitem.text()
             parentname = self.parent().text()
             updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
@@ -751,6 +774,7 @@ class MovementTreeItem(QStandardItem):
 
         mysubgroup = self.data(Qt.UserRole+udr.subgroupnamerole)
         subgrouporgeneralsiblings = [sib for sib in siblings if sib.data(Qt.UserRole+udr.subgroupnamerole) == mysubgroup or not sib.data(Qt.UserRole+udr.subgroupnamerole)]
+        subgroupsiblings = [sib for sib in siblings if sib.data(Qt.UserRole+udr.subgroupnamerole) == mysubgroup]
 
         # if I'm ME and in a subgroup, collect siblings from my subgroup and also those at my level but not in any subgroup
         if self.data(Qt.UserRole+udr.mutuallyexclusiverole) and mysubgroup:
@@ -758,9 +782,11 @@ class MovementTreeItem(QStandardItem):
         # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
         elif self.data(Qt.UserRole+udr.mutuallyexclusiverole):
             return siblings
-        # if I'm *not* ME, collect all siblings from my level (in subgroups or no)
-        # I'm not ME but my siblings might be
-        else:
+        # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup
+        elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
+            return subgroupsiblings
+        # if I'm *not* ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
+        elif not self.data(Qt.UserRole+udr.mutuallyexclusiverole):
             return siblings
 
     def checkancestors(self):

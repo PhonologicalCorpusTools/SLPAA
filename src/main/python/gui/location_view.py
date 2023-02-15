@@ -465,6 +465,7 @@ class LocationTreeItem(QStandardItem):
         subgrouporgeneralsiblings = [sib for sib in siblings if
                                      sib.data(Qt.UserRole + udr.subgroupnamerole) == mysubgroup or not sib.data(
                                          Qt.UserRole + udr.subgroupnamerole)]
+        subgroupsiblings = [sib for sib in siblings if sib.data(Qt.UserRole + udr.subgroupnamerole) == mysubgroup]
 
         # if I'm ME and in a subgroup, collect siblings from my subgroup and also those at my level but not in any subgroup
         if self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
@@ -472,9 +473,11 @@ class LocationTreeItem(QStandardItem):
         # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
         elif self.data(Qt.UserRole + udr.mutuallyexclusiverole):
             return siblings
-        # if I'm *not* ME, collect all siblings from my level (in subgroups or no)
-        # I'm not ME but my siblings might be
-        else:
+        # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup
+        elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
+            return subgroupsiblings
+        # if I'm *not* ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
+        elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole):
             return siblings
 
     def checkancestors(self):

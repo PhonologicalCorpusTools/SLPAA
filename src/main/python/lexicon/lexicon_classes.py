@@ -7,7 +7,7 @@ from gui.movement_view import MovementModuleSerializable
 from gui.location_view import LocationModuleSerializable
 from gui.xslots_selector import XslotStructure
 from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, LocationModule
-from lexicon.module_classes2 import TimingInterval, TimingPoint
+from lexicon.module_classes2 import TimingInterval, TimingPoint, AddedInfo
 
 NULL = '\u2205'
 
@@ -351,7 +351,7 @@ class Sign:
             mvmttreemodel = serialmodule.movementtree.getMovementTreeModel()
             hands = serialmodule.hands
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo
+            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # TODO KV for backwards compatibility with pre-20230208 movement modules
             unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals, addedinfo)
         self.movementmodules = unserialized
 
@@ -368,7 +368,7 @@ class Sign:
             locntreemodel = serialmodule.locationtree.getLocationTreeModel()
             hands = serialmodule.hands
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo
+            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # TODO KV for backwards compatibility with pre-20230208 movement modules
             phonlocs = serialmodule.phonlocs
             # loctype = serialmodule.loctype
             unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs)  # , loctype=loctype)
