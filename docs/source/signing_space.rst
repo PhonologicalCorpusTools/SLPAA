@@ -1,5 +1,4 @@
 .. todo::
-    angled plane example
     symmetry!!
     copy sign examples for plane/circular directionality
     replace current placeholders with diagrams
@@ -71,18 +70,18 @@ a) Cardinal directions
 
 The pairs of endpoint directions for each axis are outlined here with sign examples involving a :ref:`perceptual_shape` traced out in the given direction. However, the axis system applies across modules, not just for movement. These examples are meant to clearly display what is meant by each direction label. See the note below for sign coding examples that apply this system to location and orientation as well.
 
-Keep in mind that it is possible to select only the axis itself without a specific endpoint direction wherever a selection for an axis or direction applies in the program. The endpoints for the vertical and sagittal axes are consistent wherever they appear. 
+Keep in mind that it is possible to select only the axis itself without a specific endpoint direction wherever a selection for an axis or direction applies in the program. The endpoints for the sagittal and vertical axes are consistent wherever they appear. 
+
+* **Sagittal axis**
+
+    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
+    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
 
 * **Vertical axis**
 
     * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
     * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
 
-* **Sagittal axis**
-
-    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
-    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
-    
 The directions for the horizontal axis, however, depend on the preferences of the user. These adhere to one of two models for the horizontal axis, either **relative** (:ref:`ipsilateral`/:ref:`contralateral`) or **absolute** (toward H1/H2). This is described in greater detail in :ref:`Symmetry<symmetry_section>` below. The horizontal axis options can be toggled separately for different modules; see the :ref:`global_settings` for how to change these options and to see which one applies by default for each module.
     
 * **Horizontal axis: relative**
@@ -129,7 +128,7 @@ This is also the case for other modules that use the axis system, as in angled o
 
 When multiple axes or directions are selected within one instance of a module, this is always interpreted as an angled axis with all selections applying simultaneously (according to the associated :ref:`timing values<timing_page>`). To instead indicate a sequence of directions, create multiple instances of the applicable module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
-.. comment::
+.. warning::
     From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9). 
 
 .. _planes_entry:
@@ -142,23 +141,21 @@ When multiple axes or directions are selected within one instance of a module, t
 I. Cardinal planes
 ==================
 
-We can also describe a set of :ref:`cardinal_planes`, where each plane is formed by a pair of the :ref:`cardinal_axes` described above. These are the **horizontal**, **vertical**, and **sagittal** planes. The sagittal plane is formed by the sagittal and vertical axes (perpendicular to the horizontal axis). The horizontal plane is formed by the horizontal and sagittal axes (perpendicular to the vertical axis). The vertical plane is formed by the vertical and horizontal axes (perpendicular to the sagittal axis).
+We can also describe a set of :ref:`cardinal_planes`, where each plane is formed by a pair of the :ref:`cardinal_axes` described above. These are the **horizontal**, **vertical**, and **sagittal** planes. 
 
-These are shown here:
+The sagittal plane is formed by the sagittal and vertical axes, and it lies perpendicular to the horizontal axis. The horizontal plane is formed by the horizontal and sagittal axes, and it lies perpendicular to the vertical axis. The vertical plane is formed by the vertical and horizontal axes, and it lies perpendicular to the sagittal axis. These are shown here:
 
 .. image:: images/shared_planes.png
     :width: 750
     :align: left
 
-As with the system of axes, the program is quite flexible so that users can decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body, for example. The central point of origin can be adapted as necessary for the situation, as long as the cardinal planes are always oriented in the same way relative to each other.
+As with the system of axes, the program is quite flexible so that users can decide on an interpretation of the plane system that suits their needs. The planes can be defined relative to the positioning of the signer's body or the direction that they're facing, or to a relevant part of the body, for example. The set of cardinal planes are not fixed in space, and they can move as necessary as long as the planes are always oriented in the same way relative to each other and to the system of cardinal axes as applied for the same circumstance.
 
 .. image:: images/placeholder.png
     :width: 750
     :align: left
 
 **(Multiple sets of planes superimposed to show that they can shift as needed)** 
-
-**(the kind of information that can be recorded with only the 'axis direction' and 'plane' options, without circular directions.)** `WHALE <https://asl-lex.org/visualization/?sign=whale>`_
 
 .. _angled_planes:
 
@@ -167,11 +164,7 @@ II. Angled planes
 
 Planes on an angle are made up of component combinations of two or all three of the cardinal planes. This is indicated in the module by selecting multiple planes at once within a single instance.
 
-Here is a possible coding of `SIGN_EXAMPLE <>`_, highlighting its two component planes within one module:
-
-.. image:: images/placeholder.png
-    :width: 750
-    :align: left
+Also see the section on :ref:`Angled circular directions<angled_circles>` below, which includes a sample coding involving an angled plane.
 
 When multiple planes are selected within one instance of a module, this is always interpreted as an angled plane with all selections applying simultaneously (according to the associated :ref:`timing values<timing_page>`). To instead indicate a sequence where each plane applies separately, create multiple instances of the applicable module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate plane for each one.
 
@@ -180,22 +173,66 @@ When multiple planes are selected within one instance of a module, this is alway
 III. Circular directions
 ========================
 
-**Note that horizontal movements are dependent on the system for horizontal axis movements, so the choice for absolute or relative directions will have an impact here as well.** Introduce the concept of defining circular direction relative to (axis) direction through a single immutable point: in this case, our fixed reference point. the direction applies regardless of whether or not the hand actually travels through the top of the circle or not
+Within each plane, signs involving a circular :ref:`perceptual_shape` can be traced out in one of two circular directions. Unlike the :ref:`Axis direction<axis_directions>` options, this section applies only to the :ref:`movement` module, as it is only relevant for describing motion. 
 
-**State the point on a circle in each plane that we define to be the top of a circle in that plane. Note especially that this notion is independent from movement. Then introduce the idea of circular directionality (in movement) as defined by the (axis) direction of movement through the topmost point for that plane. Needs a set of diagrams. Describe the sagittal plane, then horizontal, then vertical.**
+This section is automatically specified by the program as *not relevant* when the module includes a *straight* perceptual shape.
+
+**Introduce the concept of defining circular direction relative to (axis) direction through a single immutable point: in this case, our fixed reference point.**
+
+**State the point on a circle in each plane that we define to be the top of a circle in that plane. Note especially that this notion is independent from movement. Then define circular directionality (in movement) as defined by the (axis) direction of movement through the topmost point for that plane. Needs a set of diagrams. Describe the sagittal plane, then vertical, then horizontal.**
 
 .. image:: images/placeholder.png
     :width: 750
     :align: left
 
-**(Insert image with circular directions for each plane.)**
+**(Insert image with circular directions relative to the top of the circle for each plane.)**
+
+.. note::
+    **Circular shapes that don't pass through the top of the circle**
+    
+    Circular perceptual shapes can travel at least one full circuit of a circular path, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, or they can travel a smaller section of the circle, as in `SHOVEL <https://asl-lex.org/visualization/?sign=shovel>`_ or `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_. 
+    
+    Even if the hand does not ever reach the point defined as the top of the circle in that plane, the circular direction of the movement is defined in terms of how the hand *would* pass through that point, if it continued on its path. This means that both `SHOVEL <https://asl-lex.org/visualization/?sign=shovel>`_ and `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ would be coded as moving *toward H1 from the top of the circle*, even though only one of these signs actually passes through the top of the circle.
+
+The full set of circular directions are illustrated by sign examples below. Note that there is only one set of circular directions that can apply for the sagittal plane.
+
+* **Sagittal plane**
+
+    * **Distal from the top of the circle**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
+    * **Proximal from the top of the circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
+    
+As with :ref:`Axis direction<axis_directions>`, there are two sets of directions that can apply for planes that involve the horizontal axis (the horizontal and vertical planes). The set of options that will appear in the module window depend on the user preferences for :ref:`movement` as set in the :ref:`global_settings`. The relative (:ref:`ipsilateral`/:ref:`contralateral`) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>` below. By default, the relative set of options apply for Movement:
+
+* **Vertical plane: relative** [Default]
+
+    * **Ipsilateral from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
+    * **Contralateral from the top of the circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+
+* **Horizontal plane: relative** [Default]
+
+    * **Ipsilateral from the top of the circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
+    * **Contralateral from the top of the circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
+    
+OR
+
+* **Vertical plane: absolute**
+    
+    * **Toward H1 side from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ or the left hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+    * **Toward H2 side from the top of the circle**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+
+* **Horizontal plane: absolute**
+    
+    * **Toward H1 side from the top of the circle**, as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
+    * **Toward H2 side from the top of the circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
+
+* **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Circular direction is not relevant for this sign because the perceptual shape is *straight*, whereas circular direction is only relevant for perceptual shapes that are not *straight*.
 
 .. _angled_circles:
 
 IV. Angled circular directions
 ==============================
 
-Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the angled plane of movement by finding the applicable component planes (as described :ref:`above<angled_planes>`), and then continue to code the circular direction by selecting each of the component directions within their respective component (cardinal) planes. 
+Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the angled plane of movement by finding the applicable component planes (as described in :ref:`Angled planes<angled_planes>` above), and then continue to code the circular direction by selecting each of the component directions within their respective component (cardinal) planes. 
 
 See the following illustration for how this works:
 
@@ -225,7 +262,7 @@ When multiple directions are selected within one instance of a module, this is a
 3. Symmetry
 ```````````
 
-**What would be included here specifically?** — Body geography, more detail on symmetry across mid-sagittal plane/midline vs. other possible kinds of symmetry, justification for only focusing on this one kind. Ambiguity and confusion in defining "same" direction and location. Our setup is a choice of **prioritizing** one interpretation above the other in relevant contexts, not selecting only one and discarding the other completely. Interchangeability of the systems.
+**What would be included here specifically?** — Body geography, more detail on symmetry across mid-sagittal plane/midline vs. other possible kinds of symmetry, justification for only focusing on this one kind. Ambiguity and confusion in defining "same" direction and location. Our setup is a choice of **prioritizing** one interpretation above the other in relevant contexts, not selecting only one and discarding the other completely. One of the most important ideas to cover is the *interchangeability of the systems*, and how the program responds to switching between these systems.
 
 .. comment::
     Depending on definition, it could be equally valid that both hands located on the signer's dominant or subordinate side have the "same" location, or that both hands located on their own ipsilateral or contralateral side (relative to the midline of the body) have the "same" location. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is defined for each module with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) directions. For the absolute interpretation, the hands located together on the signer's dominant or subordinate side (such as `SINCE <https://asl-lex.org/visualization/?sign=since>`_) have the "same" location, and the hands mirrored across the midline (such as `ROW <https://asl-lex.org/visualization/?sign=row>`_) have different locations. For the relative interpretation, the hands mirrored across the midline have the "same" direction and the hands located on the signer's dominant or subordinate side have different locations.
