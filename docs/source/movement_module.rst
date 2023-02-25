@@ -105,16 +105,16 @@ Keep in mind that a single module is meant to convey only one direction of movem
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting axis direction consistently, such as always selecting the first direction of motion.
 
+* **Sagittal axis**
+
+    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
+    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
+
 * **Vertical axis**
 
     * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
     * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
 
-* **Sagittal axis**
-
-    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
-    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
-    
 The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module:
     
 * **Horizontal axis: relative** [Default]
@@ -148,32 +148,32 @@ At most one circular direction can be selected for each plane, so that a total m
 
 * **Sagittal plane**
 
-    * **Distal from the top of a circle**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
-    * **Proximal from the top of a circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
+    * **Distal from the top of the circle**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
+    * **Proximal from the top of the circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
     
 As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module:
 
-* **Horizontal plane: relative** [Default]
-
-    * **Ipsilateral from the top of a circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
-    * **Contralateral from the top of a circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
-
 * **Vertical plane: relative** [Default]
 
-    * **Ipsilateral from the top of a circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
-    * **Contralateral from the top of a circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+    * **Ipsilateral from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
+    * **Contralateral from the top of the circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+
+* **Horizontal plane: relative** [Default]
+
+    * **Ipsilateral from the top of the circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
+    * **Contralateral from the top of the circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
     
 OR
-
-* **Horizontal plane: absolute**
-    
-    * **Toward H1 side from the top of a circle**, as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
-    * **Toward H2 side from the top of a circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
 
 * **Vertical plane: absolute**
     
     * **Toward H1 side from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ or the left hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
     * **Toward H2 side from the top of the circle**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+
+* **Horizontal plane: absolute**
+    
+    * **Toward H1 side from the top of the circle**, as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
+    * **Toward H2 side from the top of the circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
 
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are not *straight*.
 
