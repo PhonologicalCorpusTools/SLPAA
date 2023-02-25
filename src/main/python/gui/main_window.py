@@ -37,7 +37,8 @@ from fractions import Fraction
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
-from gui.location_definer import LocationDefinerDialog, LocationGraphicsTestDialog
+from gui.location_definer import LocationDefinerDialog
+from gui.location_selector import LocationGraphicsTestDialog
 from gui.signtype_selector import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import (

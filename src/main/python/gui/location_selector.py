@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (
     QWidget,
     QSpacerItem,
     QSizePolicy,
-    QGridLayout
+    QDialog
 )
 
 from PyQt5.QtCore import (
@@ -29,10 +29,11 @@ from PyQt5.QtCore import (
     # QSize,
     QEvent,
     pyqtSignal,
-    QItemSelectionModel
+    QItemSelectionModel,
+    QUrl
 )
 
-from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem
+from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem, LocationSvgView
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 from lexicon.module_classes import LocationModule, PhonLocations, LocationType
 from lexicon.module_classes2 import AddedInfo
@@ -40,77 +41,123 @@ from lexicon.module_classes2 import AddedInfo
 from PyQt5.QtSvg import QSvgWidget
 
 
-class SvgDisplayWidget(QWidget):
-    def __init__(self, imagepath, **kwargs):
-        super().__init__(**kwargs)
+# TODO KV delete?
+# class SvgDisplayWidget(QWidget):
+#     def __init__(self, imagepath, **kwargs):
+#         super().__init__(**kwargs)
+#
+#         main_layout = QVBoxLayout()
+#
+#         self.imagedisplay = QSvgWidget(parent=self)
+#         if imagepath != "":
+#             self.imagedisplay.load(imagepath)
+#             self.imagedisplay.setGeometry(0, 0, 200, 200)
+#             self.imagedisplay.renderer().load(imagepath)
+#             print(self.imagedisplay.renderer().isValid())
+#             self.imagedisplay.show()
+#         main_layout.addWidget(self.imagedisplay)
+#
+#         lastindex = imagepath.rfind("/")
+#         self.imagelabel = QLabel(imagepath[lastindex+1:], parent=self)
+#         main_layout.addWidget(self.imagelabel)
+#
+#         self.setLayout(main_layout)
 
-        main_layout = QVBoxLayout()
 
-        self.imagedisplay = QSvgWidget(parent=self)
-        if imagepath != "":
-            self.imagedisplay.load(imagepath)
-            self.imagedisplay.setGeometry(0, 0, 200, 200)
-            self.imagedisplay.renderer().load(imagepath)
-            print(self.imagedisplay.renderer().isValid())
-            self.imagedisplay.show()
-        main_layout.addWidget(self.imagedisplay)
-
-        lastindex = imagepath.rfind("/")
-        self.imagelabel = QLabel(imagepath[lastindex+1:], parent=self)
-        main_layout.addWidget(self.imagelabel)
-
-        self.setLayout(main_layout)
-
-
-class SingleImageDisplayTab(QWidget):
-
-    def __init__(self, imagepath, app_ctx=None, svg=False, **kwargs):
-        super().__init__(**kwargs)
-
-        main_layout = QHBoxLayout()
-
-        self.image = None
-        if not svg:
-            self.image = LocationGraphicsView(app_ctx, specificpath=imagepath)
-        else:
-            self.image = QSvgWidget()
-            self.image.load(imagepath)
-            self.image.setGeometry(0, 0, 200, 200)
-            self.image.renderer().load(imagepath)
-            print(self.image.renderer().isValid())
-            self.image.show()
-
-        main_layout.addWidget(self.image)
-        self.setLayout(main_layout)
+# TODO KV delete?
+# class SingleImageDisplayTab(QWidget):
+#
+#     def __init__(self, imagepath, app_ctx=None, svg=False, **kwargs):
+#         super().__init__(**kwargs)
+#
+#         main_layout = QHBoxLayout()
+#
+#         self.image = None
+#         if not svg:
+#             self.image = LocationGraphicsView(app_ctx, specificpath=imagepath)
+#         else:
+#             self.image = LocationSvgView()
+#             self.image.load(QUrl(imagepath))
+#             self.show()
+#         # else:
+#         #     self.image = QSvgWidget()
+#         #     self.image.load(imagepath)
+#         #     self.image.setGeometry(0, 0, 200, 200)
+#         #     self.image.renderer().load(imagepath)
+#         #     print(self.image.renderer().isValid())
+#         #     self.image.show()
+#
+#         main_layout.addWidget(self.image)
+#         self.setLayout(main_layout)
 
 
 class SvgDisplayTab(QWidget):
+    zoomfactor_changed = pyqtSignal(int)
+    linkbutton_toggled = pyqtSignal(bool)
 
     def __init__(self, imagepath, **kwargs):  #  maxfourimagepaths, **kwargs):
         super().__init__(**kwargs)
 
-        # nummissing = 4 - len(maxfourimagepaths)
-        # maxfourimagepaths += [""] * nummissing
-        #
-        # main_layout = QGridLayout()
-        # # main_layout = QHBoxLayout()
-        #
-        # self.svg0 = SvgDisplayWidget(maxfourimagepaths[0])
-        # self.svg1 = SvgDisplayWidget(maxfourimagepaths[1])
-        # self.svg2 = SvgDisplayWidget(maxfourimagepaths[2])
-        # self.svg3 = SvgDisplayWidget(maxfourimagepaths[3])
-        #
-        # main_layout.addWidget(self.svg0, 0, 0)
-        # main_layout.addWidget(self.svg1, 0, 1)
-        # main_layout.addWidget(self.svg2, 1, 0)
-        # main_layout.addWidget(self.svg3, 1, 1)
-        #
-        # self.setLayout(main_layout)
-
         main_layout = QHBoxLayout()
-        self.svg = SvgDisplayWidget(imagepath)
-        main_layout.addWidget(self.svg)
+
+        img_layout = QVBoxLayout()
+
+        self.imagedisplay = LocationSvgView(parent=self, specificpath=imagepath)
+        self.imagedisplay.svg.setZoomFactor(0.25)
+        # self.imagedisplay.setMinimumWidth(400)
+        img_layout.addWidget(self.imagedisplay)
+
+        zoom_layout = QVBoxLayout()
+        # self.zoom_slider = QSlider(Qt.Vertical)
+        # self.zoom_slider.setMinimum(1)
+        # self.zoom_slider.setMaximum(8)
+        # self.zoom_slider.setValue(0)
+        # self.zoom_slider.valueChanged.connect(self.zoom)
+        # zoom_layout.addWidget(self.zoom_slider)
+        # zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
+
+        # self.link_button = QPushButton("Link")
+        # self.link_button.setCheckable(True)
+        # self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
+        # zoom_layout.addWidget(self.link_button)
+        # zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
+
+        main_layout.addLayout(img_layout)
+        main_layout.addLayout(zoom_layout)
+
         self.setLayout(main_layout)
+
+    def zoom(self, scale):
+        factor_from_scale = {
+            1: 0.25,
+            2: 0.33,
+            3: 0.5,
+            4: 1.0,
+            5: 2.0,
+            6: 3.0,
+            7: 4.0,
+            8: 5.0
+        }
+        self.imagedisplay.svg.setZoomFactor(factor_from_scale[scale])
+        # trans_matrix = self.imagedisplay.transform()
+        # trans_matrix.reset()
+        # trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
+        # self.imagedisplay.setTransform(trans_matrix)
+
+        self.zoomfactor_changed.emit(scale)
+
+    def force_zoom(self, scale):
+        self.blockSignals(True)
+        self.zoom_slider.blockSignals(True)
+        self.zoom(scale)
+        self.zoom_slider.setValue(scale)
+        self.blockSignals(False)
+        self.zoom_slider.blockSignals(False)
+
+    def force_link(self, ischecked):
+        self.blockSignals(True)
+        self.link_button.setChecked(ischecked)
+        self.blockSignals(False)
 
 
 class ImageDisplayTab(QWidget):
@@ -424,7 +471,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             if not self.treemodel.locationtype.purelyspatial:
                 self.treemodel.locationtype.purelyspatial = True
 
-        self.populate_enable_locationtools() #previouslocationtype)
+        self.populate_enable_locationtools()  # previouslocationtype)
 
     def handle_toggle_locationtype(self, btn):
         previouslocationtype = copy(self.treemodel.locationtype)
@@ -443,7 +490,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         self.populate_enable_locationtools()  # previouslocationtype)
 
-    def populate_enable_locationtools(self): #, previouslocationtype):
+    def populate_enable_locationtools(self):  # , previouslocationtype):
         newlocationtype = self.treemodel.locationtype
         if newlocationtype.locationoptions_changed(self.lastlocationtypewithlist):  # previouslocationtype):
             self.clear_treemodel()
@@ -583,3 +630,25 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
     def desiredheight(self):
         return 700
+
+
+class LocationGraphicsTestDialog(QDialog):
+
+    def __init__(self, app_settings, app_ctx, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+
+        main_layout = QVBoxLayout()
+
+        self.tabs = QTabWidget()
+
+        for img_name in app_ctx.temp_test_images.keys():
+            self.tabs.addTab(SvgDisplayTab(app_ctx.temp_test_images[img_name]), img_name)
+
+        # # self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_A4p.png"), "shading_A4p.png")
+        # # # self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_A4p_min-01.svg"), "shading_A4p_min-01.svg")
+        # # self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_A4p_min-01.svg"), "shading_A4p_min-01.svg")
+
+        main_layout.addWidget(self.tabs)
+        self.setLayout(main_layout)
+

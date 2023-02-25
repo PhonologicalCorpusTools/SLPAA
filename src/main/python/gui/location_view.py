@@ -1,5 +1,6 @@
-# import os
+import os
 from copy import copy
+import time
 
 from PyQt5.QtCore import (
     Qt,
@@ -10,7 +11,8 @@ from PyQt5.QtCore import (
     # QItemSelectionModel,
     QSortFilterProxyModel,
     QDateTime,
-    QRectF
+    QRectF,
+    QUrl
 )
 
 from PyQt5.Qt import (
@@ -38,6 +40,7 @@ from PyQt5.QtWidgets import (
 
 from lexicon.module_classes import delimiter, LocationType, userdefinedroles as udr
 from lexicon.module_classes2 import AddedInfo
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 # radio button vs checkbox
 rb = "radio button"  # ie mutually exclusive in group / at this level
@@ -1024,10 +1027,18 @@ class LocationGraphicsView(QGraphicsView):
         imagepath = app_ctx.default_location_images['body_hands_' + frontorback]
         if specificpath != "":
             imagepath = specificpath
+
+        # if specificpath.endswith('.svg'):
+        #     self._photo = LocationSvgView()
+        #     self._photo.load(QUrl(imagepath))
+        #     self._scene.addWidget(self._photo)
+        #     self.show()
+        # else:
         self._pixmap = QPixmap(imagepath)
         self._photo = QGraphicsPixmapItem(self._pixmap)
-        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
         self._scene.addItem(self._photo)
+        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
+
         # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
         self.setScene(self._scene)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -1046,6 +1057,51 @@ class LocationGraphicsView(QGraphicsView):
             # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
             self.scale(factor, factor)
 
+
+class LocationSvgView(QGraphicsView):
+
+    def __init__(self, parent=None, viewer_size=600, specificpath=""):
+        super().__init__(parent=parent)
+
+        self.viewer_size = viewer_size
+
+        self._scene = QGraphicsScene(parent=self)
+
+        self.svg = QWebEngineView()
+        # self.svg.urlChanged.connect(self.shownewurl)
+
+        # dir_path = os.path.dirname(os.path.realpath(__file__))
+        # print("dir_path", dir_path)
+        # cwd = os.getcwd()
+        # print("cwd", cwd)
+
+        imageurl = QUrl.fromLocalFile(specificpath)
+        self.svg.load(imageurl)
+        self.svg.show()
+        self._scene.addWidget(self.svg)
+        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
+
+        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
+        self.setScene(self._scene)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
+    #     self.fitInView()
+    #
+    # def fitInView(self, scale=True):
+    #     rect = QRectF(self._photo.pixmap().rect())
+    #     if not rect.isNull():
+    #         self.setSceneRect(rect)
+    #         unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
+    #         self.scale(1 / unity.width(), 1 / unity.height())
+    #         scenerect = self.transform().mapRect(rect)
+    #         factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
+    #         self.factor = factor
+    #         # viewrect = self.viewport().rect()
+    #         # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
+    #         self.scale(factor, factor)
+
+    # TODO KV probably don't need this after all
+    def shownewurl(self, newurl):
+        self.svg.show()
 
 class LocationListModel(QStandardItemModel):
 
