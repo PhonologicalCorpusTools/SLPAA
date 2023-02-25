@@ -41,19 +41,6 @@ from lexicon.lexicon_classes import SignLevelInformation
 from gui.decorator import check_date_format, check_empty_gloss
 
 
-# TODO KV no longer used
-# class SignLevelNote(QPlainTextEdit):
-#     # focus_out = pyqtSignal()
-#
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#
-#     # def focusOutEvent(self, event):
-#     #     # use focusOutEvent as the proxy for finishing editing
-#     #     self.focus_out.emit()
-#     #     super().focusInEvent(event)
-
-
 class SignLevelDateDisplay(QLabel):
     def __init__(self, thedatetime=None, **kwargs):
         super().__init__(**kwargs)
