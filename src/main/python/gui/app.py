@@ -56,7 +56,9 @@ class AppContext(ApplicationContext):
             'shading_letter_min.svg': self.get_resource('temp_test_images/shading_letter_min.svg'),
             'shading_poster.png': self.get_resource('temp_test_images/shading_poster.png'),
             'shading_poster.svg': self.get_resource('temp_test_images/shading_poster.svg'),
-            'shading_poster_min.svg': self.get_resource('temp_test_images/shading_poster_min.svg')
+            'shading_poster_min.svg': self.get_resource('temp_test_images/shading_poster_min.svg'),
+            'symmetry_sample.png': self.get_resource('temp_test_images/symmetry_sample.png'),
+            'symmetry_sample.svg': self.get_resource('temp_test_images/symmetry_sample.svg')
         }
 
     @cached_property
