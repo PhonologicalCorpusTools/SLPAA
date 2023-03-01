@@ -123,7 +123,7 @@ This is also the case for other modules that use the axis system, as in angled o
 When multiple axes or directions are selected within one instance of a module, this is always interpreted as an angled axis with all selections applying simultaneously (according to the associated :ref:`timing values<timing_page>`). To instead indicate a sequence of directions, create multiple instances of the applicable module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 .. warning::
-    (For Kathleen and Oksana)
+    **(For Kathleen and Oksana)**
     
     From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9). 
 
@@ -274,25 +274,77 @@ When multiple directions are selected within one instance of a module, this is a
 3. Symmetry
 ```````````
 
-**What would be included here specifically?** — Body geography, more detail on symmetry across mid-sagittal plane/midline vs. other possible kinds of symmetry, justification for only focusing on this one kind. Ambiguity and confusion in defining "same" direction and location. Our setup is a choice of **prioritizing** one interpretation above the other in relevant contexts, not selecting only one and discarding the other completely. One of the most important ideas to cover is the *interchangeability of the systems*, and how the program responds to switching between these systems.
+SLP-AA uses two interchangeable systems for interpreting horizontal symmetry, which apply to any specifications that involve the horizontal axis. This is the horizontal axis itself for :ref:`Axis directions<axis_directions>` and the vertical and horizontal planes for :ref:`Circular directions<circular_directions>`—all other cardinal axes and planes lie perpendicular to the horizontal axis.
 
-.. comment::
-    There is no articulatory difference between the dominant hand moving to the H1 side or in the ipsilateral direction. These systems are only superficially different, and the information coded in each one can be recovered from the other. The biggest differences between using one or the other pertain to the :ref:`sign_type_module` options. Since the options are interchangeable, the choice is only a matter of user preference.
+...
 
-.. comment::
-    Depending on definition, it could be equally valid that both hands located on the signer's dominant or subordinate side have the "same" location, or that both hands located on their own ipsilateral or contralateral side (relative to the midline of the body) have the "same" location. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is defined for each module with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) directions. For the absolute interpretation, the hands located together on the signer's dominant or subordinate side (such as `SINCE <https://asl-lex.org/visualization/?sign=since>`_) have the "same" location, and the hands mirrored across the midline (such as `ROW <https://asl-lex.org/visualization/?sign=row>`_) have different locations. For the relative interpretation, the hands mirrored across the midline have the "same" direction and the hands located on the signer's dominant or subordinate side have different locations.
+There is no articulatory difference, for instance, between the dominant hand moving to the H1 side or in the ipsilateral direction. These systems are only superficially different, and the information coded in each one can be recovered from the other. The biggest differences between using one or the other pertain to the :ref:`sign_type_module` options. Since the options are interchangeable, the choice is only a matter of user preference.
+
+.. note::
+    **Exclusion of other kinds of symmetry**
     
-    Depending on definition, it could be equally valid that both hands moving to signer's dominant or subordinate side are moving in the "same" direction, or that both hands moving towards or away from each other (and also usually towards or away from the midline of the body) are moving in the "same" direction. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is always displayed with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) options. For the absolute interpretation, the hands moving towards or away from the signer's dominant side are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving towards or away from the signer's dominant side are moving in different directions. By default, the relative (ipsi-contra) option applies until or unless the user decides to change it in the :ref:`global_settings`.
+    Though there may be noteworthy information to focus on for other kinds of symmetry, we have only incorporated consideration for one particular kind of symmetry into the design of the program due to the natural bilateral symmetry of the human body. For instance, we don't know of any signs that involve both hands moving in opposite :ref:`circular directions<circular_directions>` in the sagittal plane (as this is articulatorily very difficult), but there are many signs that involve the hands moving in opposite circular directions in the vertical and horizontal plane.
+    
+    **(this is not in polished form, but I also want to work in terminology for the mid-saggital plane either here or above, which may benefit from a glossary entry)**
+
+.. warning::
+    **(My notes for this section)**
+    
+    * define what these systems are
+    
+        * independent for each module
+        * equal, interchangeable, retrievable from each other
+            
+            * i.e. this is primarily a difference of NOTATION, but it can be changed to better align with whichever phonological conception you subscribe to
+            
+        * link to the global settings
+    
+    * explain that they are both accurate, but the choice involves prioritizing one kind of interpretation over the other
+    
+        * this is to reduce ambiguity and allow for explicit and rigorous definitions of sign type especially
+        * selecting one interpretation does not mean discarding the other
+        
+    * point out parts of the program that rely on these interpretations, and should be interacted with differently depending on the choice
+    
+        * phasing? currently sign type has the note on phasing and symmetry
+        * anything that mentions the "same" or "different" direction, location, orientation, etc.
 
 .. comment::
-    due to the natural bilateral symmetry of the human body. (It's possible that similar ambiguity could exist in either the vertical or sagittal axis in some cases, but we focus only on the horizontal axis since it has the benefit of a clear axis midpoint and grounding in physiology.)
+    {Introduction to the particular difficulties introduced with horizontal symmetry over any other kind}
+    
+    →    {The (set of) sagittal plane(s) as normal to the horizontal axis}
+        
+    {Anatomical symmetry across the "midline," or whatever terminology}
+    
+    →    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry (more consistent with our system and faithful to a 3D conception of the signing space), or plane of bisection, or other. Specifically the **mid-sagittal** plane, rather than any given sagittal plane. (i.e. symmetry in terms of actual physical symmetry)
+    
+    {Why the discrepancy? --> Difficulties in articulation mechanisms, anatomical limitations AND strengths}
+    
+    →    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)
+
+.. warning::
+    **(Under construction)**
+    
+    Depending on definition, it could be equally valid that both hands moving to signer's dominant or subordinate side are moving in the "same" direction, or that both hands moving towards or away from each other (and also usually towards or away from the midline of the body) are moving in the "same" direction. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is displayed with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) options for each module. For the absolute interpretation, the hands moving towards or away from the signer's dominant side are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving towards or away from the signer's dominant side are moving in different directions. These options can be changed in the :ref:`global_settings`.
+
+.. comment::
+        Depending on definition, it could be equally valid that both hands located on the signer's dominant or subordinate side have the "same" location, or that both hands located on their own ipsilateral or contralateral side (relative to the midline of the body) have the "same" location. In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is defined for each module with **absolute** (toward H1 or H2 side) or **relative** (ipsi-contra) directions. For the absolute interpretation, the hands located together on the signer's dominant or subordinate side (such as `SINCE <https://asl-lex.org/visualization/?sign=since>`_) have the "same" location, and the hands mirrored across the midline (such as `ROW <https://asl-lex.org/visualization/?sign=row>`_) have different locations. For the relative interpretation, the hands mirrored across the midline have the "same" direction and the hands located on the signer's dominant or subordinate side have different locations.
+
+.. warning::
+    **(For Kathleen and Oksana)** - relevant to the note below
+    
+    From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
+    
+    Resolved by giving examples of EAST and WEST? Reference J&L.
+    
+    (We don't use right and left for the absolute directions anymore, but the reference could still be helpful - Nico)
 
 .. note::
     **Left and right vs. H1 and H2 side**
     
-    In some circumstances, the direction of movement is lexically encoded to be towards a side of the body independent of the signer's handedness. This is the case for `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the direction of movement is towards the signer's left (regardless of the signer's dominant hand), and `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the direction of movement is towards the signer's right. Both the absolute and relative models can describe the articulated movement in these signs, but neither one can capture the the full implications of the lexical definition as it applies across signers. This would require an additional note elsewhere in the sign coding.
+    In some circumstances, the direction of movement is lexically encoded to be towards a side of the body independent of the signer's handedness. This is the case for `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the direction of movement is towards the signer's left (regardless of the signer's dominant hand), and `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the direction of movement is towards the signer's right. 
     
-    Both options for movement in a horizontal axis in SLP-AA can describe productions of these (and any other) signs, but this particular lexical definition would not be fully captured using only the phonetic descriptors available in the movement module. It may be helpful to indicate this definition elsewhere in the sign coding.
+    Both of the models for the horizontal axis used in SLP-AA can describe the articulated movement in these (and any other) signs, but neither one can capture the the full implications of the lexical definition using only the phonetic descriptors available in the :ref:`movement_module`. For signs like this, it may be helpful to indicate the definition elsewhere in the sign coding.
 
 .. _symmetry_review:
 
@@ -309,22 +361,4 @@ When multiple directions are selected within one instance of a module, this is a
 
 .. warning::
     This placeholder should be replaced with a detailed image (or set of images) that shows a full summary of the set of cardinal axes and planes with all possible directions labelled appropriately, including both sets of options for directions involving the horizontal axis. This would preferably be shown with a demonstrated reference to the direction of the signer's body.
-
-.. comment::
-    From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
-    
-    Resolved by giving examples of EAST and WEST? Reference J&L.
-
-.. comment::
-    {Introduction to the particular difficulties introduced with horizontal symmetry over any other kind}
-    
-    -->    {The (set of) sagittal plane(s) as normal to the horizontal axis}
-        
-    {Anatomical symmetry across the "midline," or whatever terminology}
-    
-    -->    Terminology: Line of bi-lateral symmetry (from Battison), or plane of horizontal symmetry, or plane of bisection, or other. Specifically the **mid-sagittal** plane, rather than any given sagittal plane. (i.e. symmetry in terms of actual physical symmetry)
-    
-    {Why the discrepancy? --> Difficulties in articulation mechanisms, anatomical limitations AND strengths}
-    
-    -->    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)
 
