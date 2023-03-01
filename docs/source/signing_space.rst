@@ -123,6 +123,8 @@ This is also the case for other modules that use the axis system, as in angled o
 When multiple axes or directions are selected within one instance of a module, this is always interpreted as an angled axis with all selections applying simultaneously (according to the associated :ref:`timing values<timing_page>`). To instead indicate a sequence of directions, create multiple instances of the applicable module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 .. warning::
+    (For Kathleen and Oksana)
+    
     From the 'to mention' doc: It might be useful to give some examples of how our perceptual movement direction combination (e.g., up-ipsi, etc.) correspond to Johnson & Liddell’s (2021) vertical and horizontal “directions of bearing” (p.140-141, fig. 8-9). 
 
 .. _planes_entry:
@@ -173,7 +175,7 @@ We define a point to be the **top of a circle** for any given circular shape in 
 
 Consider the sagittal plane. This is easily conceptualized to have a 'top' point of a circle at the highest (or most **up**) point. While the hand sits at the top of the circle, it can move within the plane away from the speaker in the **distal** direction or toward the speaker in the **proximal** direction before continuing to complete the circular shape. This means that the set of options for circular directions in the sagittal plane are *proximal from the top of the circle* (as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_) and *distal from the top of the circle* (as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_).
 
-.. img::images/placeholder.png
+.. image:: images/placeholder.png
     :width: 750
     :align: left
 
@@ -183,7 +185,7 @@ Since this system is based on axis direction, the distinction between the **rela
 
 The vertical plane similarly has a clear 'top' point of a circle at the highest (or most **up**) point. While the hand sits at the top of the circle, it can move within the plane to one horizontal side or the other. The dominant hand, for instance, can move in the **ipsilateral** direction/toward the **H1 side** or in the **contralateral** direction/toward the **H2 side** before continuing to complete the circular shape. This means that the relative set of options for circular directions in the vertical plane are *ipsilateral from the top of the circle* (as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_) and *contralateral from the top of the circle* (as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_), and the absolute set of options are *toward the H1 side from the top of the circle* (as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ or the left hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_) and *toward the H2 side from the top of the circle* (as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_).
 
-.. img::images/placeholder.png
+.. image:: images/placeholder.png
     :width: 750
     :align: left
 
@@ -191,7 +193,7 @@ The vertical plane similarly has a clear 'top' point of a circle at the highest 
 
 The horizontal plane does not have a clear point that would be considered the 'top' of a circle, so we define it to be the point that is furthest away from the speaker (or the most **distal** point). When the hand sits at that point, it can also move to either side in a horizontal direction. This means that the same set of circular directions applies for the horizontal plane as for the vertical: the relative set of options in the horizontal plane are *ipsilateral from the top of the circle* (as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_) and *contralateral from the top of the circle* (as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_), and the absolute set of options are *toward the H1 side from the top of the circle* (as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_) and *toward the H2 side from the top of the circle* (as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_).
 
-.. img::images/placeholder.png
+.. image:: images/placeholder.png
     :width: 750
     :align: left
 
@@ -252,11 +254,6 @@ When multiple directions are selected within one instance of a module, this is a
 .. comment::
     due to the natural bilateral symmetry of the human body. (It's possible that similar ambiguity could exist in either the vertical or sagittal axis in some cases, but we focus only on the horizontal axis since it has the benefit of a clear axis midpoint and grounding in physiology.)
 
-.. warning::
-    From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
-    
-    Resolved by giving examples of EAST and WEST? Reference J&L.
-
 .. note::
     **Left and right vs. H1 and H2 side**
     
@@ -277,8 +274,13 @@ When multiple directions are selected within one instance of a module, this is a
     :width: 750
     :align: left
 
+.. warning::
+    This placeholder should be replaced with a detailed image (or set of images) that shows a full summary of the set of cardinal axes and planes with all possible directions labelled appropriately, including both sets of options for directions involving the horizontal axis. This would preferably be shown with a demonstrated reference to the direction of the signer's body.
+
 .. comment::
-    This placeholder should be replaced with a detailed image that shows a full summary of the set of cardinal axes and planes with all possible directions labelled appropriately (including both sets of options for directions involving the horizontal axis), preferably with a demonstrated reference to the direction of the signer's body. This might be easiest to accomplish if we use a still image and superimpose the relevant information over top of it.
+    From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
+    
+    Resolved by giving examples of EAST and WEST? Reference J&L.
 
 .. comment::
     {Introduction to the particular difficulties introduced with horizontal symmetry over any other kind}
@@ -291,4 +293,5 @@ When multiple directions are selected within one instance of a module, this is a
     
     {Why the discrepancy? --> Difficulties in articulation mechanisms, anatomical limitations AND strengths}
     
-    -->    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.) 
+    -->    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)
+
