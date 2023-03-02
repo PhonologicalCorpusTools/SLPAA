@@ -132,9 +132,9 @@ When multiple axes or directions are selected within one instance of a module, t
 2. Planes
 ``````````
 
-We can also describe a set of :ref:`cardinal_planes`, where each plane is formed by a pair of the :ref:`cardinal_axes` described above. These are the **horizontal**, **vertical**, and **sagittal** planes. 
+We can also describe a set of :ref:`cardinal_planes`, where each plane is formed by a pair of the :ref:`cardinal_axes` described above. These are the **horizontal**, **vertical**, and **sagittal** planes. Each plane is perpendicular to the other two.
 
-The sagittal plane is formed by the sagittal and vertical axes, and it lies perpendicular to the horizontal axis. The horizontal plane is formed by the horizontal and sagittal axes, and it lies perpendicular to the vertical axis. The vertical plane is formed by the vertical and horizontal axes, and it lies perpendicular to the sagittal axis. These are shown here:
+The sagittal plane is formed by the sagittal and vertical axes. The horizontal plane is formed by the horizontal and sagittal axes. The vertical plane is formed by the vertical and horizontal axes. These are shown here:
 
 .. image:: images/shared_planes.png
     :width: 750
@@ -159,19 +159,21 @@ As with the system of axes, the program is quite flexible so that users can deci
 
 .. _circular_directions:
 
-I. Circular directions
+I. Circular (non-straight) directions
 ======================
 
-Within each plane, signs involving a circular :ref:`perceptual_shape` can be traced out in one of two circular directions. Unlike the :ref:`Axis direction<axis_directions>` options, this section applies only to the :ref:`movement_module`, as it is only relevant for describing motion.
+Within each plane, signs involving a non-straight :ref:`perceptual_shape` (e.g., circles, arcs, 7, etc.) can be traced out in one of two circular directions. Unlike the :ref:`Axis direction<axis_directions>` options, this section applies only to the :ref:`movement_module`, as it is only relevant for describing motion.
 
 .. _circular_definitions:
 
 a) Defining circular direction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Rather than defining formal definitions of which direction is meant to be 'clockwise' or 'counter-clockwise' for each plane, which is not always memorable or intuitive and can be difficult to keep track of through changing perspectives, the system for circular direction in SLP-AA is built directly on the system for :ref:`Axis direction<axis_directions>`. 
+Note that this section applies to any :ref:`perceptual_shape` sign other than *straight*. (For a *straight* perceptual shape sign, circular direction is automatically selected by the program as *not relevant*.)
 
-We define a point to be the **top of a circle** for any given circular shape in each of the three :ref:`cardinal_planes`, and then the circular direction follows based on the axis direction of the hand as it moves through that point. If the hand does not reach the top of the circle, then the direction is defined based on how the hand **would** move through the top point if it continued in the same direction. This applies for any :ref:`perceptual_shape` sign other than *straight*. (For a *straight* perceptual shape sign, circular direction is automatically selected by the program as *not relevant*.)
+Rather than defining formal definitions of which direction is meant to be 'clockwise' or 'counter-clockwise' for each plane, which is not always memorable or intuitive and can be difficult to keep track of through changing perspectives (and also may not apply consistently depending on whether a signer is right- or left-handed), the system for circular direction in SLP-AA is built directly on the system for :ref:`Axis direction<axis_directions>`. 
+
+We define a point to be the **top of a circle** for any given circular shape in each of the three :ref:`cardinal_planes`, and then the circular direction follows based on the axis direction of the hand as it moves through that point. If the hand does not reach the top of the circle in a particular sign,  the direction should still be defined based on how the hand **would** move through the top point if it continued in the same direction. It also should not matter where the hand happens to start making the circle; the definition of the circle is defined by where the hand moves from the top (whenever it happens to get there). 
 
 Consider the sagittal plane. This is easily conceptualized to have a 'top' point of a circle at the highest (or most **up**) point. While the hand sits at the top of the circle, it can move within the plane away from the speaker in the distal direction or toward the speaker in the proximal direction before continuing to complete the circular shape. 
 
