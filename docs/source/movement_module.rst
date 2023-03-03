@@ -282,6 +282,11 @@ Use the **joint activity** section to add more fine-grained detail about any joi
 
 ...
 
+.. todo::
+    Some notes to use as starting points for some of these characteristics:
+    ‘repeated in a different location’ — that would be used for what Hope Morgan calls “dispersed” signs, like HOME (https://asl-lex.org/visualization/?sign=home)
+    'trill' -- this is for “small, rapidly repeated dynamic elements during the production of signs” (to quote Brentari 1996:45). This most typically happens with small joint-specific movements as in DIRTY (https://asl-lex.org/visualization/?sign=dirty), which is described as having the fingers ‘flutter’ in the dictionary. 
+
 .. note::
     **(the language here needs to be updated so that it's not all about phasing, but the examples are useful to show what the module looks like.)**
 
