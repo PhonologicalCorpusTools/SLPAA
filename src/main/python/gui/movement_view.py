@@ -541,6 +541,7 @@ class MovementModuleSerializable:
 
         # creates a full serializable copy of the movement module, eg for saving to disk
         self.hands = mvmtmodule.hands
+        self.inphase = mvmtmodule.inphase
         self.timingintervals = mvmtmodule.timingintervals
         self.addedinfo = mvmtmodule.addedinfo
 

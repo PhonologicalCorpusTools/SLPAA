@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import (
     QWidget,
     QAction,
     QWidgetAction,
+    QSpacerItem,
+    QSizePolicy,
     QLineEdit,
     QHBoxLayout,
     QVBoxLayout,
@@ -36,7 +38,7 @@ from PyQt5.QtWidgets import (
 )
 
 from PyQt5.QtCore import (
-    # Qt,
+    Qt,
     # QSize,
     # QEvent,
     pyqtSignal
@@ -157,6 +159,7 @@ class ModuleSelectorDialog(QDialog):
         self.addedinfobutton = AddedInfoPushButton("Module notes")
         self.addedinfobutton.addedinfo = deepcopy(addedinfo)
         self.hands_and_addedinfo_layout.addWidget(self.addedinfobutton)
+        self.hands_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
         main_layout.addLayout(self.hands_and_addedinfo_layout)
 
@@ -467,35 +470,101 @@ class HandSelectionLayout(QHBoxLayout):
         self.includephase = includephase
 
         self.hands_label = QLabel("This module applies to:")
+
         self.hands_group = QButtonGroup()
         self.hand1_radio = QRadioButton("Hand 1")
         self.hand2_radio = QRadioButton("Hand 2")
-        self.addWidget(self.hands_label)
-        self.addWidget(self.hand1_radio)
-        self.addWidget(self.hand2_radio)
-
         self.bothhands_radio = QRadioButton("Both hands")
-        self.bothinphase_radio = QRadioButton("Both hands (in phase)")
-        self.bothoutofphase_radio = QRadioButton("Both hands (out of phase)")
         self.hands_group.addButton(self.hand1_radio)
         self.hands_group.addButton(self.hand2_radio)
-        if self.includephase:
-            self.hands_group.addButton(self.bothinphase_radio)
-            self.hands_group.addButton(self.bothoutofphase_radio)
-            self.addWidget(self.bothinphase_radio)
-            self.addWidget(self.bothoutofphase_radio)
-        else:
-            self.hands_group.addButton(self.bothhands_radio)
-            self.addWidget(self.bothhands_radio)
+        self.hands_group.addButton(self.bothhands_radio)
+        self.hands_group.buttonToggled.connect(self.handle_handsgroup_toggled)
 
+        # won't get displayed/used for all module types, but they are instantiated nonetheless to avoid potential reference errors
+        self.bothhands_group = QButtonGroup()
+        self.bothhands_group.setExclusive(False)
+        self.bothhands_group.buttonToggled.connect(self.handle_bothhandsgroup_toggled)
+        self.bothconnected_cb = QCheckBox("Moving as a connected unit")
+        self.bothinphase_cb = QCheckBox("In phase")
+        self.bothoutofphaseNEW_radio = QRadioButton("Out of phase")
+        self.bothhands_group.addButton(self.bothconnected_cb)
+        self.bothhands_group.addButton(self.bothinphase_cb)
+        self.bothhands_group.addButton(self.bothoutofphaseNEW_radio)
+
+        main_layout = QHBoxLayout()
+
+        # for most modules-- just H1, H2, or Both
+        if not self.includephase:
+            main_layout.addWidget(self.hands_label)
+            main_layout.addWidget(self.hand1_radio)
+            main_layout.addWidget(self.hand2_radio)
+            main_layout.addWidget(self.bothhands_radio)
+
+        # for Movement module-- H1, H2, Both (including in phase / out of phase / moving as connected unit)
+        else:
+            hands_layout = QHBoxLayout()
+
+            hands_layout.addWidget(self.hands_label)
+            hands_layout.addWidget(self.hand1_radio)
+            hands_layout.addWidget(self.hand2_radio)
+
+            # hands_layout.addStretch()
+            main_layout.addLayout(hands_layout)
+            main_layout.setAlignment(hands_layout, Qt.AlignTop)
+
+            bothhands_layout = QVBoxLayout()
+            bothhands_layout.addWidget(self.bothhands_radio)
+            phase_spacedlayout = QHBoxLayout()
+            phase_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+            phase_layout = QVBoxLayout()
+            phase_layout.addWidget(self.bothconnected_cb)
+            phase_layout.addWidget(self.bothinphase_cb)
+            phase_layout.addWidget(self.bothoutofphaseNEW_radio)
+            phase_spacedlayout.addLayout(phase_layout)
+            bothhands_layout.addLayout(phase_spacedlayout)
+
+            main_layout.addLayout(bothhands_layout)
+
+        self.addLayout(main_layout)
         self.addStretch()
 
         if hands is not None:
             self.sethands(hands)
         self.setphase(inphase)
 
+    def handle_handsgroup_toggled(self, btn, ischecked):
+        selectedbutton = self.hands_group.checkedButton()
+        if selectedbutton == self.bothhands_radio:
+            # enable sub options
+            for btn in self.bothhands_group.buttons():
+                btn.setEnabled(True)
+        else:
+            # disable sub options
+            for btn in self.bothhands_group.buttons():
+                btn.setEnabled(False)
+
+    def handle_bothhandsgroup_toggled(self, btn, ischecked):
+        if not ischecked:
+            # don't need to do anything special
+            return
+
+        # ensure the parent is checked
+        self.bothhands_radio.setChecked(True)
+        siblings = [b for b in self.bothhands_group.buttons() if b != btn]
+
+        if isinstance(btn, QCheckBox):
+            # uncheck any radio button siblings
+            for sib in siblings:
+                if isinstance(sib, QRadioButton):
+                    sib.setChecked(False)
+
+        elif isinstance(btn, QRadioButton):
+            # uncheck *all* other siblings
+            for sib in siblings:
+                sib.setChecked(False)
+
     def gethands(self):
-        both = self.bothhands_radio.isChecked() or self.bothinphase_radio.isChecked() or self.bothoutofphase_radio.isChecked()
+        both = self.bothhands_radio.isChecked()  #  or self.bothinphase_radio.isChecked() or self.bothoutofphase_radio.isChecked()
         return {
             'H1': self.hand1_radio.isChecked() or both,
             'H2': self.hand2_radio.isChecked() or both
@@ -510,21 +579,45 @@ class HandSelectionLayout(QHBoxLayout):
             self.hand2_radio.setChecked(True)
 
     def getphase(self):
-        if self.bothinphase_radio.isChecked():
-            return 1
-        elif self.bothoutofphase_radio.isChecked():
-            return 2
-        else:
-            return 0
+        if not self.bothconnected_cb.isChecked():
+            # original options - these are mutually exclusive
+            if self.bothinphase_cb.isChecked():
+                return 1
+            elif self.bothoutofphaseNEW_radio.isChecked():
+                return 2
+            else:
+                return 0
+        elif self.bothconnected_cb.isChecked():
+            # these are mutually exclusive
+            if self.bothinphase_cb.isChecked():
+                return 4
+            elif self.bothoutofphaseNEW_radio.isChecked():
+                # it shouldn't be possible to have both "connected" and "out of phase" checked, but... just in case?
+                return 5
+            else:
+                return 3
+
 
     def setphase(self, inphase):
-        if inphase == 1:
-            self.bothinphase_radio.setChecked(True)
-        elif inphase == 2:
-            self.bothoutofphase_radio.setChecked(True)
+        self.bothconnected_cb.setChecked((inphase >= 3))
+
+        if inphase % 3 == 1:
+            self.bothinphase_cb.setChecked(True)
+        elif inphase % 3 == 2:
+            self.bothoutofphaseNEW_radio.setChecked(True)
+    #
+    # def getconnected(self):
+    #     if self.bothconnected_cb.isChecked():
+    #         return 1
+    #     else:
+    #         return 0
+    #
+    # def setconnected(self, connected):
+    #     if connected == 1:
+    #         self.bothconnected_cb.setChecked(True)
 
     def clear(self):
         self.hands_group.setExclusive(False)
-        for b in self.hands_group.buttons():
+        for b in self.hands_group.buttons() + self.bothhands_group.buttons():
             b.setChecked(False)
         self.hands_group.setExclusive(True)

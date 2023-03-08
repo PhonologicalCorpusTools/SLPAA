@@ -350,9 +350,10 @@ class Sign:
             serialmodule = serialized_mvmtmodules[k]
             mvmttreemodel = serialmodule.movementtree.getMovementTreeModel()
             hands = serialmodule.hands
+            inphase = serialmodule.inphase if serialmodule.inphase is not None else 0
             timingintervals = serialmodule.timingintervals
             addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # TODO KV for backwards compatibility with pre-20230208 movement modules
-            unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals, addedinfo)
+            unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals, addedinfo, inphase)
         self.movementmodules = unserialized
 
     def serializelocationmodules(self):

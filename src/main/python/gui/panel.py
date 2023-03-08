@@ -822,7 +822,7 @@ class SignLevelMenuPanel(QScrollArea):
                                                  modulelayout=MovementSpecificationLayout(),
                                                  moduleargs=None,
                                                  includephase=True,
-                                                 inphase=None)
+                                                 inphase=0)
         movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals, addedinfo, inphase: self.handle_save_movement(movementtree, hands, timingintervals, addedinfo, inphase))
         movement_selector.exec_()
 
