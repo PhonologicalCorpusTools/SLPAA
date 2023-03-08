@@ -3,7 +3,7 @@
       - add glossary item
   fill out connectedness
       - add glossary item
-  update the screenshot of the selection window with connectedness and bilateral symmetry
+ update the screenshot of the selection window with connectedness and bilateral symmetry
 
 .. _sign_type_module:
 
@@ -124,7 +124,7 @@ Some examples where everything is in phase are `WHEELCHAIR <https://asl-lex.org/
     
     Phasing becomes a little more complicated with the added consideration of *symmetry*. SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) terms. See :ref:`Symmetry<symmetry_section>` for more in-depth information as to what this means.
     
-    This means that the interpretation of phasing for both location and orientation may depend on the user's preferences for the horizontal axis. If Location is defined in terms of relative directions, `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ would be considered "in phase" for location, as both hands have the **same specification** (contralateral or ipsilateral) at the same time. If Location is defined in terms of absolute directions, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ would be considered "in phase" for location, as both hands have the **same specification** (H1 or H2 side) at the same time. See the illustration below for more information.
+    This means that the interpretation of phasing for both location and orientation may depend on the user's preferences for the horizontal axis. If the :ref:`location_module` is defined in terms of relative directions, `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ would be considered "in phase" for the location parameter, as both hands have the **same specification** (contralateral or ipsilateral) at the same time. If Location is defined in terms of absolute directions, `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ would be considered "in phase" for the location parameter, as both hands have the **same specification** (H1 or H2 side) at the same time. See the illustration below for more information.
     
     .. image:: images/signtype_straight_movements.png
        :width: 80%
