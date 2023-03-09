@@ -82,6 +82,7 @@ mvmtOptionsDict = {
                 ("Not relevant", fx, rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
             ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
+                ("H1 and H2 move in different directions", fx, cb, u): {},
                 ("Sagittal", fx, cb, u): {
                     (subgroup, None, 0, None): {
                         ("Distal from top of circle", fx, rb, u): {},
