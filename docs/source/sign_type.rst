@@ -27,11 +27,9 @@ Select this if the sign involves only one hand.
     
     If the forearm, elbow, or wrist of the H2 is involved in a sign where H2 does not participate in movement, there are several ways this could be coded in SLP-AA. Users should define their own conventions for consistency. Some options are:
     
-    #. The user can decide to specify the sign as one-handed in Sign Type and still include the use of H2 in the specifications of contact and location, or
-    
-    #. The user can specify the sign as one-handed in Sign Type and still select "forearm involved" in the hand configuration module for H1, or 
-    
-    #. The user can specify the sign as two-handed, also specifying that "only H1 moves". 
+        #. The user can decide to specify the sign as one-handed in Sign Type and still include the use of H2 in the specifications of contact and location, or
+        #. The user can specify the sign as one-handed in Sign Type and still select "forearm involved" in the hand configuration module for H1, or 
+        #. The user can specify the sign as two-handed, also specifying that "only H1 moves". 
     
     For example, the sign `CRACKER <https://asl-lex.org/visualization/?sign=cracker>`_ could be coded as one-handed, with H1 making contact to H2 at the elbow; one-handed, with "forearm involved" selected in the hand configuration module; or two-handed, with only H1 specified as moving. The sign `TABLE <https://asl-lex.org/visualization/?sign=table>`_ could be coded with the same basic options, with the additional possibility of coding the contact that H2 makes with the elbow of H1 in a separate location module and contact module.
 
@@ -47,9 +45,9 @@ Select this if both hands are involved in the sign. See the note above if only t
 I. Hand configuration relation
 ==============================
 
-* "H1 and H2 use the same set(s) of hand configurations" should be selected if all the hand configurations used at any point during the sign are shared between both hands. This can be because the hand configurations never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), or because the hand configurations change but involve the same configurations on both hands (e.g., `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_). In the latter case, the hand configurations can alternate (e.g., `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) or change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
+* "H1 and H2 use the same set(s) of hand configurations" should be selected if all the hand configurations used at any point during the sign are shared between both hands. This can be because the hand configurations never change (e.g., `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_), or because the hand configurations change but involve the same configurations on both hands (e.g., `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_). In the latter case, the hand configurations can alternate (e.g., `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_) or change at the same time as each other (e.g., `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_).
 
-* "H1 and H2 use different set(s) of hand configurations" should be selected if the two hands have at least one different hand configuration from each other within the sign; that is, a hand configuration that appears on one hand never appears on the other hand. This could be because they never have the same hand configuration, such as `SHOW <https://asl-lex.org/visualization/?sign=show>`_, or because they share a hand configuration for only part of the sign, such as `EVERY-YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_.
+* "H1 and H2 use different set(s) of hand configurations" should be selected if the two hands have at least one different hand configuration from each other within the sign; that is, a hand configuration that appears on one hand never appears on the other hand. This could be because they never have the same hand configuration, such as `SHOW <https://asl-lex.org/visualization/?sign=show>`_, or because they share a hand configuration for only part of the sign, such as `EVERY YEAR <https://www.signingsavvy.com/sign/EVERY+YEAR>`_ or `MOUNTAIN <https://www.handspeak.com/word/search/index.php?id=2686>`_.
 
 .. _signtype_contact_relation:
 
@@ -58,7 +56,7 @@ II. Contact relation
 
 * "H1 and H2 maintain contact throughout sign" should be selected if the contact is maintained between both hands throughout the duration of the sign. This can happen when both hands move together, such as `SHOW <https://asl-lex.org/visualization/?sign=show>`_ or `CAREFUL <https://www.handspeak.com/word/search/index.php?id=328>`_, or when the two hands are stationary in space but involve local movements, as in `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_ or `HOLD HANDS <https://asl-lex.org/visualization/?sign=hold_hands>`_.
 
-* "H1 and H2 do not maintain contact" should be selected if contact is not maintained throughout the sign. This includes signs that have no contact between the hands (e.g., `STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, or `MILK <https://asl-lex.org/visualization/?sign=milk_2>`_) and signs that have momentary contact which is not maintained throughout the sign, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_.
+* "H1 and H2 do not maintain contact" should be selected if contact is not maintained throughout the sign. This includes signs that have no contact between the hands (e.g., `STRUGGLE <https://asl-lex.org/visualization/?sign=struggle>`_, `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_, or `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_) and signs that have momentary contact which is not maintained throughout the sign, such as `CRUCIFY <https://www.handspeak.com/word/search/index.php?id=7840>`_.
 
 .. _bilateral_symmetry_relation:
 
@@ -67,15 +65,15 @@ III. Bilateral symmetry relation
 
 * "H1 and H2 are bilaterally symmetric" should be selected if the hands are mirrored in all of hand configuration, orientation, movement, location, and contact for the duration of the sign. That is, every aspect of one hand is identical across the midline of the body for the other hand at each moment (e.g. `STARBUCKS <https://asl-lex.org/visualization/?sign=starbucks>`_, `SHIRT_2 <https://asl-lex.org/visualization/?sign=shirt_2>`_, or `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_).
 
-* "H1 and H2 are not bilaterally symmetric" should be selected if any aspect of the sign for one hand is not mirrored for the other hand at any moment. This could be because one part of the sign is not symmetric (e.g. `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_), the set of movements are not shared between the two hands (e.g. `STALK <https://www.handspeak.com/word/4168/>`_), the set of hand configurations are not shared between the two hands (e.g. `SHOW <https://asl-lex.org/visualization/?sign=show>`_), the hands move in different relative directions (e.g. `WINDHSIELD WIPERS <https://www.handspeak.com/word/3918/>`_, see :ref:`Symmetry<symmetry_section>` for more information), the hands move out of phase (e.g. `THEATER <https://asl-lex.org/visualization/?sign=theater>`_), the hands are not positioned horizontally (e.g. `HIPPO <https://asl-lex.org/visualization/?sign=hippo>`_) and so on.
+* "H1 and H2 are not bilaterally symmetric" should be selected if any aspect of the sign for one hand is not mirrored for the other hand at any moment. This could be because one part of the sign is not symmetric (e.g. `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_), the set of movements are not shared between the two hands (e.g. `STALK <https://www.handspeak.com/word/4168/>`_), the set of hand configurations are not shared between the two hands (e.g. `SHOW <https://asl-lex.org/visualization/?sign=show>`_), the hands move in different relative directions (e.g. `WINDHSIELD WIPERS <https://www.handspeak.com/word/3918/>`_, see :ref:`Symmetry<symmetry_section>` for more information), the hands move out of phase (e.g. `THEATER <https://asl-lex.org/visualization/?sign=theater>`_), the hands are not positioned horizontally (e.g. `HIPPO <https://asl-lex.org/visualization/?sign=hippo>`_), and so on.
 
 .. note::
     There are many ways for a sign to fail to be bilaterally symmetric that also overlap with other selections in the Sign Type module. It is impossible for "H1 and H2 are bilaterally symmetric" to combine with any of: 
     
-    * "H1 and H2 use different set(s) of hand configurations"
-    * "Only 1 hand moves"
-    * "H1 and H2 move differently"
-    * "Sequential" movements
+        * "H1 and H2 use different set(s) of hand configurations"
+        * "Only 1 hand moves"
+        * "H1 and H2 move differently"
+        * "Sequential" movements
 
 .. _signtype_movement_relation: 
 
