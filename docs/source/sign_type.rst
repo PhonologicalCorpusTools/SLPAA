@@ -1,6 +1,5 @@
 .. todo::
-  fill out bilateral symmetry
-      - add glossary item
+    slightly altered screenshot with sequential/simultaneous
 
 .. _sign_type_module:
 
@@ -66,7 +65,17 @@ II. Contact relation
 III. Bilateral symmetry relation
 ================================
 
-**(new section - add description here)**
+* "H1 and H2 are bilaterally symmetric" should be selected if the hands are mirrored in all of hand configuration, orientation, movement, location, and contact for the duration of the sign. That is, every aspect of one hand is identical across the midline of the body for the other hand at each moment (e.g. `STARBUCKS <https://asl-lex.org/visualization/?sign=starbucks>`_, `SHIRT_2 <https://asl-lex.org/visualization/?sign=shirt_2>`_, or `WHEELCHAIR <https://asl-lex.org/visualization/?sign=wheelchair>`_).
+
+* "H1 and H2 are not bilaterally symmetric" should be selected if any aspect of the sign for one hand is not mirrored for the other hand at any moment. This could be because one part of the sign is not symmetric (e.g. `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_), the set of movements are not shared between the two hands (e.g. `STALK <https://www.handspeak.com/word/4168/>`_), the set of hand configurations are not shared between the two hands (e.g. `SHOW <https://asl-lex.org/visualization/?sign=show>`_), the hands move in different relative directions (e.g. `WINDHSIELD WIPERS <https://www.handspeak.com/word/3918/>`_, see :ref:`Symmetry<symmetry_section>` for more information), the hands move out of phase (e.g. `THEATER <https://asl-lex.org/visualization/?sign=theater>`_), the hands are not positioned horizontally (e.g. `HIPPO <https://asl-lex.org/visualization/?sign=hippo>`_) and so on.
+
+.. note::
+    There are many ways for a sign to fail to be bilaterally symmetric that also overlap with other selections in the Sign Type module. It is impossible for "H1 and H2 are bilaterally symmetric" to combine with any of: 
+    
+    * "H1 and H2 use different set(s) of hand configurations"
+    * "Only 1 hand moves"
+    * "H1 and H2 move differently"
+    * "Sequential" movements
 
 .. _signtype_movement_relation: 
 
@@ -92,6 +101,8 @@ IV. Movement relation
 
 Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/index.php?id=2563>`_:
 
+**(update with sequential/simultaneous)**
+
    .. image:: images/signtype_COMPARE.png
-      :width: 750
+      :width: 100%
       :align: center
