@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QCompleter,
     QButtonGroup,
     QGroupBox,
+    QStackedWidget,
     QAbstractItemView,
     QHeaderView,
     QCheckBox,
@@ -21,7 +22,12 @@ from PyQt5.QtWidgets import (
     QWidget,
     QSpacerItem,
     QSizePolicy,
-    QDialog
+    QDialog,
+    QStyledItemDelegate,
+    QStyleOptionButton,
+    QStyle,
+    QStyleOptionFrame,
+    QApplication,
 )
 
 from PyQt5.QtCore import (
@@ -33,62 +39,25 @@ from PyQt5.QtCore import (
     QUrl
 )
 
-from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem, LocationSvgView
+from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem, LocationSvgView, LocationTreeView
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
-from lexicon.module_classes import LocationModule, PhonLocations, LocationType
+from lexicon.module_classes import LocationModule, PhonLocations, LocationType, userdefinedroles as udr
 from lexicon.module_classes2 import AddedInfo
 
 from PyQt5.QtSvg import QSvgWidget
 
 
-# TODO KV delete?
-# class SvgDisplayWidget(QWidget):
-#     def __init__(self, imagepath, **kwargs):
-#         super().__init__(**kwargs)
+# def tempprinttreemodel(tm):
+#     print("treemodel contents...")
+#     print("location type: ", tm.locationtype)
+#     tempprinttmhelper(tm.invisibleRootItem())
 #
-#         main_layout = QVBoxLayout()
 #
-#         self.imagedisplay = QSvgWidget(parent=self)
-#         if imagepath != "":
-#             self.imagedisplay.load(imagepath)
-#             self.imagedisplay.setGeometry(0, 0, 200, 200)
-#             self.imagedisplay.renderer().load(imagepath)
-#             print(self.imagedisplay.renderer().isValid())
-#             self.imagedisplay.show()
-#         main_layout.addWidget(self.imagedisplay)
-#
-#         lastindex = imagepath.rfind("/")
-#         self.imagelabel = QLabel(imagepath[lastindex+1:], parent=self)
-#         main_layout.addWidget(self.imagelabel)
-#
-#         self.setLayout(main_layout)
-
-
-# TODO KV delete?
-# class SingleImageDisplayTab(QWidget):
-#
-#     def __init__(self, imagepath, app_ctx=None, svg=False, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         main_layout = QHBoxLayout()
-#
-#         self.image = None
-#         if not svg:
-#             self.image = LocationGraphicsView(app_ctx, specificpath=imagepath)
-#         else:
-#             self.image = LocationSvgView()
-#             self.image.load(QUrl(imagepath))
-#             self.show()
-#         # else:
-#         #     self.image = QSvgWidget()
-#         #     self.image.load(imagepath)
-#         #     self.image.setGeometry(0, 0, 200, 200)
-#         #     self.image.renderer().load(imagepath)
-#         #     print(self.image.renderer().isValid())
-#         #     self.image.show()
-#
-#         main_layout.addWidget(self.image)
-#         self.setLayout(main_layout)
+# def tempprinttmhelper(node, indent=""):
+#     for r in range(node.rowCount()):
+#         ch = node.child(r)
+#         print(indent + ch.text() + " / " + str(ch.checkState()))
+#         tempprinttmhelper(ch, indent=indent + " ")
 
 
 class SvgDisplayTab(QWidget):
@@ -215,6 +184,65 @@ class ImageDisplayTab(QWidget):
         self.blockSignals(False)
 
 
+# https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
+# TODO KV can this be combined with the one for movement?
+class LocationTreeItemDelegate(QStyledItemDelegate):
+
+    def paint(self, painter, option, index):
+        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
+            widget = option.widget
+            style = widget.style() if widget else QApplication.style()
+            opt = QStyleOptionButton()
+            opt.rect = option.rect
+            opt.text = index.data()
+            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
+            style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+        else:
+            QStyledItemDelegate.paint(self, painter, option, index)
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+                opt = QStyleOptionFrame()
+                opt.rect = option.rect
+                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+
+
+class AxisTreeWidget(QWidget):
+    # zoomfactor_changed = pyqtSignal(int)
+    # linkbutton_toggled = pyqtSignal(bool)
+
+    def __init__(self, treemodel, **kwargs):
+        super().__init__(**kwargs)
+
+        main_layout = QHBoxLayout()
+
+        self._treemodel = treemodel
+
+        self.treedisplay = LocationTreeView()
+        self.treedisplay.setItemDelegate(LocationTreeItemDelegate())
+        self.treedisplay.setHeaderHidden(True)
+        self.treedisplay.setModel(self.treemodel)
+
+        # self.treedisplay.installEventFilter(self)
+        # self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # TODO KV this causes a crash
+        self.treedisplay.setMinimumWidth(400)
+
+        main_layout.addWidget(self.treedisplay)
+
+        self.setLayout(main_layout)
+
+    @property
+    def treemodel(self):
+        # if self._treemodel is None:
+        #     self._treemodel = LocationTreeModel(self)
+        return self._treemodel
+
+    @treemodel.setter
+    def treemodel(self, treemod):
+        self._treemodel = treemod
+        self.treedisplay.setModel(self._treemodel)
+
+
 # TODO KV - add undo, ...
 
 # TODO KV there's another class with the same name in panel.py
@@ -226,141 +254,62 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         super().__init__(**kwargs)
 
         self.mainwindow = mainwindow
-        self.treemodel = LocationTreeModel()
-        if moduletoload:
-            if isinstance(moduletoload, LocationModule):
-                self.treemodel = LocationTreeSerializable(moduletoload.locationtreemodel).getLocationTreeModel()
-                self.locationtype = copy(self.treemodel.locationtype)
-                self.lastlocationtypewithlist = LocationType()
-                self.phonlocs = copy(moduletoload.phonlocs)
-            # elif isinstance(moduletoload, MovementTree):
-            #     # TODO KV - make sure listmodel & listitems are also populated
-            #     self.treemodel = moduletoload.getMovementTreeModel()
-            else:
-                # we have to have the entire module (not just the tree) because of the Phonological Locations info
-                print("moduletoload must be of type LocationModule")
-        else:
-            self.treemodel.populate(self.treemodel.invisibleRootItem())
-            self.phonlocs = PhonLocations()
-            self.locationtype = LocationType()
-            self.lastlocationtypewithlist = LocationType()
 
-        self.listmodel = self.treemodel.listmodel
+        # This layout has three separate location trees, so that we can flip back and forth between
+        # location types without losing intermediate information. However, once the save button is
+        # clicked only the tree for the current location type is saved with the module.
+        self.treemodel_body = None
+        self.treemodel_spatial = None
+        self.treemodel_axis = None
+        self.listmodel_axis = None
+        self.listmodel_body = None
+        self.listmodel_spatial = None
+        self.recreate_treeandlistmodels()
 
-        self.comboproxymodel = LocationPathsProxyModel(wantselected=False) #, parent=self.listmodel
-        self.comboproxymodel.setSourceModel(self.listmodel)
+        if moduletoload is not None and isinstance(moduletoload, LocationModule):
+            loctypetoload = moduletoload.locationtreemodel.locationtype
+            phonlocstoload = moduletoload.phonlocs
+            # make a copy, so that the module is not being edited directly via this layout
+            # (otherwise "cancel" doesn't actually revert to the original contents)
+            treemodeltoload = LocationTreeSerializable(moduletoload.locationtreemodel).getLocationTreeModel()
 
-        self.listproxymodel = LocationPathsProxyModel(wantselected=True)
-        self.listproxymodel.setSourceModel(self.listmodel)
-
+        # create layout with buttons for location type (body, signing space, etc)
+        # and for phonological locations (phonological, phonetic, etc)
         loctype_phonloc_layout = QHBoxLayout()
-
-        loctype_phonloc_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
-
-        body_layout = QHBoxLayout()
-
-        self.body_radio = QRadioButton("Body")
-        self.body_radio.setProperty('loctype', 'body')
-        body_layout.addWidget(self.body_radio)
-        body_layout.addSpacerItem(QSpacerItem(150, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
-        body_box = QGroupBox()
-        body_box.setLayout(body_layout)
-        loctype_phonloc_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
-
-        signingspace_layout = QHBoxLayout()
-
-        self.signingspace_radio = QRadioButton("Signing space  (")
-        self.signingspace_radio.setProperty('loctype', 'signingspace')
-        # loctype_layout.addWidget(self.signingspace_radio)
-        signingspace_layout.addWidget(self.signingspace_radio)
-
-        self.signingspacebody_radio = QRadioButton("body-anchored  /")
-        self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
-        signingspace_layout.addWidget(self.signingspacebody_radio)
-        self.signingspacespatial_radio = QRadioButton("purely spatial  )")
-        self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
-        signingspace_layout.addWidget(self.signingspacespatial_radio)
-        signingspace_box = QGroupBox()
-        signingspace_box.setLayout(signingspace_layout)
-        loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
-        loctype_phonloc_layout.addStretch()
-
-        # self.loctype_maingroup = QButtonGroup()
-        # self.loctype_maingroup.setExclusive(False)
-        self.loctype_subgroup = QButtonGroup()
-        self.loctype_subgroup.addButton(self.body_radio)
-        self.loctype_subgroup.addButton(self.signingspace_radio)
-        self.signingspace_subgroup = QButtonGroup()
-        self.signingspace_subgroup.addButton(self.signingspacebody_radio)
-        self.signingspace_subgroup.addButton(self.signingspacespatial_radio)
-        # self.loctype_maingroup.addButton(self.body_radio)
-        # self.loctype_maingroup.addButton(self.signingspace_radio)
-        # self.loctype_maingroup.addButton(self.signingspacebody_radio)
-        # self.loctype_maingroup.addButton(self.signingspacespatial_radio)
-        # self.loctype_maingroup.buttonToggled.connect(lambda: self.handle_toggle_loctype(self.loctype_subgroup.checkedButton(), self.signingspace_subgroup.checkedButton()))
-        self.loctype_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_locationtype(self.loctype_subgroup.checkedButton()))
-        self.signingspace_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_signingspacetype(self.signingspace_subgroup.checkedButton()))
-        # self.loctype_maingroup.buttonToggled.connect(lambda: self.handle_toggle_locationtyp)
-
-        phonological_layout = QVBoxLayout()
-        self.phonological_cb = QCheckBox("Phonological location")
-        self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
-        phonological_layout.addWidget(self.phonological_cb)
-        phonological_sublayout = QHBoxLayout()
-        self.majorphonloc_cb = QCheckBox("Major")
-        self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        self.minorphonloc_cb = QCheckBox("Minor")
-        self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        phonological_sublayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        phonological_sublayout.addWidget(self.majorphonloc_cb)
-        phonological_sublayout.addWidget(self.minorphonloc_cb)
-        phonological_sublayout.addStretch()
-        phonological_layout.addLayout(phonological_sublayout)
-
-        phonetic_layout = QVBoxLayout()
-        self.phonetic_cb = QCheckBox("Phonetic location")
-        phonetic_layout.addWidget(self.phonetic_cb)
-        phonetic_layout.addStretch()
-
-        loctype_phonloc_layout.addLayout(phonological_layout)
-        loctype_phonloc_layout.addLayout(phonetic_layout)
-        loctype_phonloc_layout.addStretch()
-
+        self.build_loctype_phonloc_layout(loctype_phonloc_layout)
         self.addLayout(loctype_phonloc_layout)
 
-        # TODO KV - do something with major / minor location info
+        # set buttons and treemodel according to the existing module being loaded (if applicable)
+        if moduletoload is not None:
+            self.set_loctype_buttons_from_content(loctypetoload)
+            self.set_phonloc_buttons_from_content(phonlocstoload)
+            self.setcurrenttreemodel(treemodeltoload)
+        else:
+            self.clear_loctype_buttons_to_default()
 
+        # create list proxies (for search and for selected options list)
+        # and set them to refer to list model for current location type
+        self.comboproxymodel = LocationPathsProxyModel(wantselected=False) #, parent=self.listmodel
+        self.comboproxymodel.setSourceModel(self.getcurrentlistmodel())  # self.listmodel)
+        self.listproxymodel = LocationPathsProxyModel(wantselected=True)
+        self.listproxymodel.setSourceModel(self.getcurrentlistmodel())  # self.listmodel)
+
+        # create layout with combobox for searching location items
         search_layout = QHBoxLayout()
-        search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
-
-        self.combobox = TreeSearchComboBox(self)
-        self.combobox.setModel(self.comboproxymodel)
-        self.combobox.setCurrentIndex(-1)
-        self.combobox.adjustSize()
-        self.combobox.setEditable(True)
-        self.combobox.setInsertPolicy(QComboBox.NoInsert)
-        self.combobox.setFocusPolicy(Qt.StrongFocus)
-        self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
-        self.combobox.completer().setFilterMode(Qt.MatchContains)
-        self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
-        self.combobox.item_selected.connect(self.selectlistitem)
-        search_layout.addWidget(self.combobox)
-
+        self.build_search_layout(search_layout)
         self.addLayout(search_layout)
 
+        # create layout with visual selection widget (whether image or tree) and list view for selected location options
         selection_layout = QHBoxLayout()
+        self.build_selection_layout(selection_layout)
+        self.addLayout(selection_layout)
 
-        self.imagetabs = QTabWidget()
-        self.fronttab = ImageDisplayTab(self.mainwindow.app_ctx, 'front')
-        self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
-        self.fronttab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.fronttab))
-        self.imagetabs.addTab(self.fronttab, "Front")
-        self.backtab = ImageDisplayTab(self.mainwindow.app_ctx, 'back')
-        self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
-        self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.backtab))
-        self.imagetabs.addTab(self.backtab, "Back")
+        self.enablelocationtools()
 
-        selection_layout.addWidget(self.imagetabs)
+    def build_selection_layout(self, selection_layout):
+
+        self.locationselectionwidget = LocationSelectionWidget(self.mainwindow, self.getcurrenttreemodel())  # self.treemodel)
+        selection_layout.addWidget(self.locationselectionwidget)
 
         list_layout = QVBoxLayout()
 
@@ -400,18 +349,156 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         list_layout.addWidget(self.detailstableview)
 
         selection_layout.addLayout(list_layout)
-        self.addLayout(selection_layout)
 
-        # set location type radio buttons as per saved module or global settings
-        if moduletoload is not None:  # load from an existing module
-            self.refresh_loctype()
-        else:  # apply from global settings
-            self.default_loctype()
+    def build_search_layout(self, search_layout):
 
-        self.enablelocationtools(self.loctype_subgroup.checkedButton() == self.body_radio
-                                 or self.signingspace_subgroup.checkedButton() is not None)
+        search_layout.addWidget(QLabel("Enter tree node"))
 
-        self.refresh()
+        self.combobox = TreeSearchComboBox(self)
+        self.combobox.setModel(self.comboproxymodel)
+        self.combobox.setCurrentIndex(-1)
+        self.combobox.adjustSize()
+        self.combobox.setEditable(True)
+        self.combobox.setInsertPolicy(QComboBox.NoInsert)
+        self.combobox.setFocusPolicy(Qt.StrongFocus)
+        self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
+        self.combobox.completer().setFilterMode(Qt.MatchContains)
+        self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.combobox.item_selected.connect(self.selectlistitem)
+        search_layout.addWidget(self.combobox)
+
+    def getcurrentlocationtype(self):
+        locationtype = LocationType(
+            body=self.body_radio.isChecked(),
+            signingspace=self.signingspace_radio.isChecked(),
+            bodyanchored=self.signingspacebody_radio.isEnabled() and self.signingspacebody_radio.isChecked(),
+            purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked(),
+            axis=self.axis_radio.isChecked()
+        )
+        return locationtype
+
+    def getcurrentphonlocs(self):
+        phonlocs = PhonLocations(
+            phonologicalloc=self.phonological_cb.isChecked(),
+            majorphonloc=self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
+            minorphonloc=self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
+            phoneticloc=self.phonetic_cb.isChecked()
+        )
+        return phonlocs
+
+    def build_loctype_phonloc_layout(self, loctype_phonloc_layout):
+
+        loctype_phonloc_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
+
+        body_layout = QHBoxLayout()
+        self.body_radio = QRadioButton("Body")
+        self.body_radio.setProperty('loctype', 'body')
+        body_layout.addWidget(self.body_radio)
+        body_layout.addSpacerItem(QSpacerItem(60, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
+        body_box = QGroupBox()
+        body_box.setLayout(body_layout)
+        loctype_phonloc_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
+
+        signingspace_layout = QHBoxLayout()
+
+        self.signingspace_radio = QRadioButton("Signing space  (")
+        self.signingspace_radio.setProperty('loctype', 'signingspace')
+        # loctype_layout.addWidget(self.signingspace_radio)
+        signingspace_layout.addWidget(self.signingspace_radio)
+
+        self.signingspacebody_radio = QRadioButton("body-anchored  /")
+        self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
+        signingspace_layout.addWidget(self.signingspacebody_radio)
+        self.signingspacespatial_radio = QRadioButton("purely spatial  )")
+        self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
+        signingspace_layout.addWidget(self.signingspacespatial_radio)
+        signingspace_box = QGroupBox()
+        signingspace_box.setLayout(signingspace_layout)
+        loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
+
+        axis_layout = QHBoxLayout()
+
+        self.axis_radio = QRadioButton("Axis of relation")
+        self.axis_radio.setProperty('loctype', 'axis')
+        axis_layout.addWidget(self.axis_radio)
+        axis_layout.addSpacerItem(QSpacerItem(40, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
+        axis_box = QGroupBox()
+        axis_box.setLayout(axis_layout)
+        loctype_phonloc_layout.addWidget(axis_box, alignment=Qt.AlignVCenter)
+
+        loctype_phonloc_layout.addStretch()
+
+        self.loctype_subgroup = QButtonGroup()
+        self.loctype_subgroup.addButton(self.body_radio)
+        self.loctype_subgroup.addButton(self.signingspace_radio)
+        self.loctype_subgroup.addButton(self.axis_radio)
+        self.signingspace_subgroup = QButtonGroup()
+        self.signingspace_subgroup.addButton(self.signingspacebody_radio)
+        self.signingspace_subgroup.addButton(self.signingspacespatial_radio)
+        self.loctype_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_locationtype(self.loctype_subgroup.checkedButton()))
+        self.signingspace_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_signingspacetype(self.signingspace_subgroup.checkedButton()))
+
+        phonological_layout = QVBoxLayout()
+        self.phonological_cb = QCheckBox("Phonological location")
+        self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
+        phonological_layout.addWidget(self.phonological_cb)
+        phonological_sublayout = QHBoxLayout()
+        self.majorphonloc_cb = QCheckBox("Major")
+        self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
+        self.minorphonloc_cb = QCheckBox("Minor")
+        self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
+        phonological_sublayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        phonological_sublayout.addWidget(self.majorphonloc_cb)
+        phonological_sublayout.addWidget(self.minorphonloc_cb)
+        phonological_sublayout.addStretch()
+        phonological_layout.addLayout(phonological_sublayout)
+
+        phonetic_layout = QVBoxLayout()
+        self.phonetic_cb = QCheckBox("Phonetic location")
+        phonetic_layout.addWidget(self.phonetic_cb)
+        phonetic_layout.addStretch()
+
+        loctype_phonloc_layout.addLayout(phonological_layout)
+        loctype_phonloc_layout.addLayout(phonetic_layout)
+        loctype_phonloc_layout.addStretch()
+
+    def getcurrenttreemodel(self):
+        if self.getcurrentlocationtype().axis:
+            return self.treemodel_axis
+        elif self.getcurrentlocationtype().usesbodylocations():
+            return self.treemodel_body
+        elif self.getcurrentlocationtype().purelyspatial:
+            return self.treemodel_spatial
+        else:
+            return LocationTreeModel()
+
+    def getcurrentlistmodel(self):
+        if self.getcurrentlocationtype().axis:
+            return self.listmodel_axis
+        elif self.getcurrentlocationtype().usesbodylocations():
+            return self.listmodel_body
+        elif self.getcurrentlocationtype().purelyspatial:
+            return self.listmodel_spatial
+        else:
+            return LocationTreeModel().listmodel
+
+    def setcurrenttreemodel(self, tm):
+        if self.getcurrentlocationtype().axis:
+            self.treemodel_axis = tm
+        elif self.getcurrentlocationtype().usesbodylocations():
+            self.treemodel_body = tm
+        elif self.getcurrentlocationtype().purelyspatial:
+            self.treemodel_spatial = tm
+
+        self.setcurrentlistmodel(self.getcurrenttreemodel().listmodel)
+
+    def setcurrentlistmodel(self, lm):
+        if self.getcurrentlocationtype().axis:
+            self.listmodel_axis = lm
+        elif self.getcurrentlocationtype().usesbodylocations():
+            self.listmodel_body = lm
+        elif self.getcurrentlocationtype().purelyspatial:
+            self.listmodel_spatial = lm
 
     def check_phonologicalloc_cb(self, checked):
         self.phonological_cb.setChecked(True)
@@ -421,7 +508,7 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.minorphonloc_cb.setEnabled(checked)
 
     def selectlistitem(self, locationtreeitem):
-        listmodelindex = self.listmodel.indexFromItem(locationtreeitem.listitem)
+        listmodelindex = self.getcurrentlistmodel().indexFromItem(locationtreeitem.listitem)
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
 
@@ -436,66 +523,45 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             self.detailstableview.setModel(LocationTreeItem().detailstable)
 
         self.detailstableview.horizontalHeader().resizeSections(QHeaderView.Stretch)
-
-    def handle_zoomfactor_changed(self, scale):
-        if self.fronttab.link_button.isChecked() or self.backtab.link_button.isChecked():
-            self.fronttab.force_zoom(scale)
-            self.backtab.force_zoom(scale)
-
-    def handle_linkbutton_toggled(self, ischecked, thistab):
-        othertab = self.fronttab if thistab == self.backtab else self.backtab
-        othertab.force_link(ischecked)
-        othertab.force_zoom(thistab.zoom_slider.value())
-        # self.backtab.force_link(ischecked)
-
-    def enablelocationtools(self, enable):
-        self.combobox.setEnabled(enable)
-        self.pathslistview.setEnabled(enable)
-        self.detailstableview.setEnabled(enable)
-        self.imagetabs.setEnabled(enable)
+    #
+    # def handle_zoomfactor_changed(self, scale):
+    #     if self.fronttab.link_button.isChecked() or self.backtab.link_button.isChecked():
+    #         self.fronttab.force_zoom(scale)
+    #         self.backtab.force_zoom(scale)
+    #
+    # def handle_linkbutton_toggled(self, ischecked, thistab):
+    #     othertab = self.fronttab if thistab == self.backtab else self.backtab
+    #     othertab.force_link(ischecked)
+    #     othertab.force_zoom(thistab.zoom_slider.value())
+    #     # self.backtab.force_link(ischecked)
 
     def handle_toggle_signingspacetype(self, btn):
-        previouslocationtype = copy(self.treemodel.locationtype)
-        if previouslocationtype.usesbodylocations() or previouslocationtype.purelyspatial:
-            self.lastlocationtypewithlist = previouslocationtype
-
-        self.signingspace_radio.setChecked(btn is not None)
-        # if not self.treemodel.locationtype.signingspace:
-        #     self.treemodel.locationtype.signingspace = True
-        # self.enable_location_tools(btn is not None)
-
-        if btn == self.signingspacebody_radio:
-            if not self.treemodel.locationtype.bodyanchored:
-                self.treemodel.locationtype.bodyanchored = True
-        elif btn == self.signingspacespatial_radio:
-            if not self.treemodel.locationtype.purelyspatial:
-                self.treemodel.locationtype.purelyspatial = True
-
-        self.populate_enable_locationtools()  # previouslocationtype)
+        if btn is not None and btn.isChecked():
+            self.signingspace_radio.setChecked(True)
+        self.enablelocationtools()  # TODO KV should this be inside the if?
 
     def handle_toggle_locationtype(self, btn):
-        previouslocationtype = copy(self.treemodel.locationtype)
-        if previouslocationtype.usesbodylocations() or previouslocationtype.purelyspatial:
-            self.lastlocationtypewithlist = previouslocationtype
+        if btn is not None and btn.isChecked():
+            for b in self.signingspace_subgroup.buttons():
+                b.setEnabled(btn == self.signingspace_radio)
+        self.enablelocationtools()  # TODO KV should this be inside the if?
 
-        for b in self.signingspace_subgroup.buttons():
-            b.setEnabled(self.loctype_subgroup.checkedButton() == self.signingspace_radio)
+    def enablelocationtools(self):
+        self.refresh_listproxies()
+        # use current locationtype (from buttons) to determine whether/how things get enabled
+        anyexceptpurelyspatial = self.getcurrentlocationtype().usesbodylocations() or self.getcurrentlocationtype().purelyspatial or self.getcurrentlocationtype().axis
+        enableselectionwidget = anyexceptpurelyspatial
+        enablecomboboxandlistview = anyexceptpurelyspatial
+        enabledetailstable = self.getcurrentlocationtype().usesbodylocations() or False # TODO KV what was I going to add a third column for again?
 
-        if btn == self.body_radio:
-            if not self.treemodel.locationtype.body:
-                self.treemodel.locationtype.body = True
-        elif btn == self.signingspace_radio:
-            if not self.treemodel.locationtype.signingspace:
-                self.treemodel.locationtype.signingspace = True
+        self.locationselectionwidget.setlocationtype(self.getcurrentlocationtype(), treemodel=self.getcurrenttreemodel())
+        self.locationselectionwidget.setEnabled(enableselectionwidget)
 
-        self.populate_enable_locationtools()  # previouslocationtype)
+        self.combobox.setEnabled(enablecomboboxandlistview)
+        self.pathslistview.setEnabled(enablecomboboxandlistview)
 
-    def populate_enable_locationtools(self):  # , previouslocationtype):
-        newlocationtype = self.treemodel.locationtype
-        if newlocationtype.locationoptions_changed(self.lastlocationtypewithlist):  # previouslocationtype):
-            self.clear_treemodel()
-        # set image and search tool to appropriate (either body or spatial) content
-        self.enablelocationtools(newlocationtype.usesbodylocations() or newlocationtype.purelyspatial)
+        self.update_detailstable(None, None)
+        self.detailstableview.setEnabled(enabledetailstable)
 
     def get_savedmodule_signal(self):
         return self.saved_location
@@ -504,21 +570,9 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         return self.deleted_location
 
     def get_savedmodule_args(self):
-        phonlocs = PhonLocations(
-            phonologicalloc=self.phonological_cb.isChecked(),
-            majorphonloc=self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
-            minorphonloc=self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
-            phoneticloc=self.phonetic_cb.isChecked()
-        )
-        locationtype = LocationType(
-            body=self.body_radio.isChecked(),
-            signingspace=self.signingspace_radio.isChecked(),
-            bodyanchored=self.signingspacebody_radio.isEnabled() and self.signingspacebody_radio.isChecked(),
-            purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked()
-        )
-        self.treemodel.locationtype = locationtype
-
-        return (self.treemodel, phonlocs, locationtype)
+        phonlocs = self.getcurrentphonlocs()
+        locationtype = self.getcurrentlocationtype()
+        return (self.getcurrenttreemodel(), phonlocs, locationtype)
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
@@ -549,87 +603,160 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         return super().eventFilter(source, event)
 
-    def refresh(self):
-        # self.refresh_treemodel()
-        self.refresh_phonlocs()
-        self.refresh_loctype()
+    def set_phonloc_buttons_from_content(self, phonlocs):
+        self.clear_phonlocs_buttons()
+        self.majorphonloc_cb.setChecked(phonlocs.majorphonloc)
+        self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
+        self.phonological_cb.setChecked(phonlocs.phonologicalloc)
+        self.phonetic_cb.setChecked(phonlocs.phoneticloc)
 
-    def refresh_loctype(self):
-        loctype = self.treemodel.locationtype
-        self.body_radio.setChecked(loctype.body)
-        self.signingspace_radio.setChecked(loctype.signingspace)
-        self.signingspacebody_radio.setChecked(loctype.bodyanchored)
-        self.signingspacespatial_radio.setChecked(loctype.purelyspatial)
-
-    def refresh_phonlocs(self):
-        self.majorphonloc_cb.setChecked(self.phonlocs.majorphonloc)
-        self.minorphonloc_cb.setChecked(self.phonlocs.minorphonloc)
-        self.phonological_cb.setChecked(self.phonlocs.phonologicalloc)
-        self.phonetic_cb.setChecked(self.phonlocs.phoneticloc)
-        if self.phonlocs.allfalse():
-            self.majorphonloc_cb.setEnabled(True)
-            self.minorphonloc_cb.setEnabled(True)
+    def clear_phonlocs_buttons(self):
+        self.majorphonloc_cb.setChecked(False)
+        self.minorphonloc_cb.setChecked(False)
+        self.phonological_cb.setChecked(False)
+        self.phonetic_cb.setChecked(False)
+        self.majorphonloc_cb.setEnabled(True)
+        self.minorphonloc_cb.setEnabled(True)
 
     def clear(self):
-        self.clear_treemodel()
+        self.clear_loctype_buttons_to_default()
+        self.clear_phonlocs_buttons()
+        self.recreate_treeandlistmodels()
+        self.refresh_listproxies()
         self.clear_details()
-        self.clear_loctype()
-        self.clear_phonlocs()
+        self.locationselectionwidget.setlocationtype(None)
 
-    def clear_loctype(self):
-        self.locationtype = LocationType()
-        self.default_loctype()
+    def recreate_treeandlistmodels(self):
+        self.treemodel_body = LocationTreeModel()
+        self.treemodel_body.locationtype = LocationType(body=True)
+        self.treemodel_body.populate(self.treemodel_body.invisibleRootItem())
+        self.treemodel_spatial = LocationTreeModel()
+        self.treemodel_spatial.locationtype = LocationType(signingspace=True, purelyspatial=True)
+        self.treemodel_spatial.populate(self.treemodel_spatial.invisibleRootItem())
+        self.treemodel_axis = LocationTreeModel()
+        self.treemodel_axis.locationtype = LocationType(axis=True)
+        self.treemodel_axis.populate(self.treemodel_axis.invisibleRootItem())
 
-    def default_loctype(self):
+        self.listmodel_body = self.treemodel_body.listmodel
+        self.listmodel_spatial = self.treemodel_spatial.listmodel
+        self.listmodel_axis = self.treemodel_axis.listmodel
+
+    def clear_loctype_buttons_to_default(self):
+        defaultloctype = LocationType()
+        loctype_setting = self.mainwindow.app_settings['location']['loctype']
+        if loctype_setting == 'axis':
+            defaultloctype.axis = True
+        elif loctype_setting == 'body':
+            defaultloctype.body = True
+        elif loctype_setting.startswith('signingspace'):
+            defaultloctype.signingspace = True
+            if loctype_setting == 'signingspace_spatial':
+                defaultloctype.purelyspatial = True
+            elif loctype_setting == 'signingspace_body':
+                defaultloctype.bodyanchored = True
+        self.set_loctype_buttons_from_content(defaultloctype)
+
+    def set_loctype_buttons_from_content(self, loctype):
+
+        self.loctype_subgroup.blockSignals(True)
+        self.signingspace_subgroup.blockSignals(True)
         self.loctype_subgroup.setExclusive(False)
         self.signingspace_subgroup.setExclusive(False)
-        for btn in self.signingspace_subgroup.buttons() + self.loctype_subgroup.buttons():
-            tempsetting = self.mainwindow.app_settings['location']['loctype']
-            tempproperty = btn.property('loctype')
-            # if self.mainwindow.app_settings['location']['loctype'] == btn.property('loctype'):
-            #     btn.setChecked(True)
-            #     break  # TODO KV why break??
-            btn.setChecked(self.mainwindow.app_settings['location']['loctype'] == btn.property('loctype'))
+
+        for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
+            btn.setChecked(False)
+
+        if loctype.axis:
+            self.axis_radio.setChecked(True)
+        elif loctype.body:
+            self.body_radio.setChecked(True)
+        elif loctype.signingspace:
+            self.signingspace_radio.setChecked(True)
+            if loctype.purelyspatial:
+                self.signingspacespatial_radio.setChecked(True)
+            elif loctype.bodyanchored:
+                self.signingspacebody_radio.setChecked(True)
+
+        for btn in self.signingspace_subgroup.buttons():
+            btn.setEnabled(not loctype.axis and not loctype.body)
+
         self.loctype_subgroup.setExclusive(True)
         self.signingspace_subgroup.setExclusive(True)
-        if self.locationtype.allfalse():
-            for btn in self.signingspace_subgroup.buttons():
-                btn.setEnabled(True)
-
-    def clear_phonlocs(self):
-        self.phonlocs = PhonLocations()
-        self.refresh_phonlocs()
+        self.loctype_subgroup.blockSignals(False)
+        self.signingspace_subgroup.blockSignals(False)
 
     def clear_details(self):
         self.update_detailstable(None, None)
 
-    def clear_treemodel(self):
-        locationtype = copy(self.treemodel.locationtype)
-        self.treemodel = LocationTreeModel()  # recreate from scratch
-        self.treemodel.locationtype = locationtype  # give it the same location type it had before
-        self.treemodel.populate(self.treemodel.invisibleRootItem())
+    def refresh_listproxies(self):
 
-        self.listmodel = self.treemodel.listmodel
-
-        self.comboproxymodel.setSourceModel(self.listmodel)
-        self.listproxymodel.setSourceModel(self.listmodel)
+        self.comboproxymodel.setSourceModel(self.getcurrentlistmodel())
+        self.listproxymodel.setSourceModel(self.getcurrentlistmodel())
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.pathslistview.setModel(self.listproxymodel)
 
-        # self.combobox.clear()
-        self.clear_details()
-
     def clearlist(self, button):
-        numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()
+        numtoplevelitems = self.getcurrenttreemodel().invisibleRootItem().rowCount()
         for rownum in range(numtoplevelitems):
-            self.treemodel.invisibleRootItem().child(rownum, 0).uncheck(force=True)
+            self.getcurrenttreemodel().invisibleRootItem().child(rownum, 0).uncheck(force=True)
 
     def desiredwidth(self):
         return 500
 
     def desiredheight(self):
         return 700
+
+
+class LocationSelectionWidget(QStackedWidget):
+
+    def __init__(self, mainwindow, treemodel, locationtype=None, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = mainwindow
+
+        # self.imageslayout = QHBoxLayout()
+        self.imagetabs = QTabWidget()
+        self.fronttab = ImageDisplayTab(self.mainwindow.app_ctx, 'front')
+        self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
+        self.fronttab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.fronttab))
+        self.imagetabs.addTab(self.fronttab, "Front")
+        self.backtab = ImageDisplayTab(self.mainwindow.app_ctx, 'back')
+        self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
+        self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.backtab))
+        self.imagetabs.addTab(self.backtab, "Back")
+        # self.imageslayout.addWidget(self.imagetabs)
+        self.addWidget(self.imagetabs)
+
+        # self.treelayout = QHBoxLayout()
+        self.axistreewidget = AxisTreeWidget(treemodel)
+        # self.treelayout.addWidget(self.axistreewidget)
+        self.addWidget(self.axistreewidget)
+
+        self.setlocationtype(locationtype)
+
+    def setlocationtype(self, locationtype, treemodel=None):
+        # print("setlocationtype")
+        if treemodel is not None:
+            self.axistreewidget.treemodel = treemodel
+        if locationtype is not None and locationtype.axis:
+            # self.setLayout(self.treelayout)
+            # print("setting current widget to axistreewidget")
+            # tempprinttreemodel(self.axistreewidget.treemodel)
+            self.setCurrentWidget(self.axistreewidget)
+        else:
+            # self.setLayout(self.imageslayout)
+            self.setCurrentWidget(self.imagetabs)
+
+    def handle_zoomfactor_changed(self, scale):
+        if self.fronttab.link_button.isChecked() or self.backtab.link_button.isChecked():
+            self.fronttab.force_zoom(scale)
+            self.backtab.force_zoom(scale)
+
+    def handle_linkbutton_toggled(self, ischecked, thistab):
+        othertab = self.fronttab if thistab == self.backtab else self.backtab
+        othertab.force_link(ischecked)
+        othertab.force_zoom(thistab.zoom_slider.value())
+        # self.backtab.force_link(ischecked)
 
 
 class LocationGraphicsTestDialog(QDialog):

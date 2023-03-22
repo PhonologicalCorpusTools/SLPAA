@@ -892,6 +892,11 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.endGroup()  # signdefaults
 
+        self.app_qsettings.beginGroup('location')
+        self.app_qsettings.setValue('loctype', self.app_settings['location']['loctype'])
+        self.app_qsettings.endGroup()  # location
+
+
     def on_action_define_location(self):
         location_definer = LocationDefinerDialog(self.system_default_locations, self.corpus.location_definition, self.app_settings, self.app_ctx, parent=self)
         location_definer.saved_locations.connect(self.save_new_locations)

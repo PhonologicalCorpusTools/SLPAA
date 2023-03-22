@@ -31,8 +31,9 @@ from PyQt5.QtWidgets import (
     QTableView,
     # QVBoxLayout,
     QComboBox,
-    # QTreeView,
+    QTreeView,
     # QStyle,
+    QAbstractItemView,
     QGraphicsView,
     QGraphicsScene,
     QGraphicsPixmapItem
@@ -308,6 +309,21 @@ locn_options_purelyspatial = {
     },
 }
 
+locn_options_axisofreln = {
+    ("Vertical", fx, cb, u, None, None, None, None, None): {
+        ("H1 is above H2", fx, rb, u, None, None, None, None, None): {},
+        ("H1 is below H2", fx, rb, u, None, None, None, None, None): {},
+    },
+    ("Horizontal", fx, cb, u, None, None, None, None, None): {
+        ("H1 is to H1 side of H2", fx, rb, u, None, None, None, None, None): {},
+        ("H1 is to H2 side of H2", fx, rb, u, None, None, None, None, None): {},
+    },
+    ("Sagittal", fx, cb, u, None, None, None, None, None): {
+        ("H1 is in front of H2", fx, rb, u, None, None, None, None, None): {},
+        ("H1 is behind H2", fx, rb, u, None, None, None, None, None): {},
+    },
+}
+
 
 class LocationTreeItem(QStandardItem):
 
@@ -561,7 +577,7 @@ class TreeSearchComboBox(QComboBox):
 
             if self.currentText():
                 # self.parentlayout.treedisplay.collapseAll()
-                itemstoselect = gettreeitemsinpath(self.parentlayout.treemodel, self.currentText(), delim=delimiter)
+                itemstoselect = gettreeitemsinpath(self.parentlayout.getcurrenttreemodel(), self.currentText(), delim=delimiter)
                 for item in itemstoselect:
                     if item.checkState() == Qt.Unchecked:
                         item.setCheckState(Qt.PartiallyChecked)
@@ -707,6 +723,14 @@ class LocationModuleSerializable:
         self.locationtree = LocationTreeSerializable(locntreemodel)
 
 
+class LocationTreeView(QTreeView):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.setEditTriggers(QAbstractItemView.DoubleClicked | QAbstractItemView.SelectedClicked)
+
+
 class LocationTreeModel(QStandardItemModel):
 
     def __init__(self, **kwargs):  #  movementparameters=None,
@@ -714,7 +738,7 @@ class LocationTreeModel(QStandardItemModel):
         self._listmodel = None  # LocationListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updatelistdata)
-        self._locationtype = LocationType()
+        self._locationtype = LocationType()  # TODO KV this shouldn't change, now that we have several copies available for the selectionlayout
 
     def tempprintcheckeditems(self):
         treenode = self.invisibleRootItem()
@@ -772,10 +796,12 @@ class LocationTreeModel(QStandardItemModel):
         elif structure == {} and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            if self.locationtype.usesbodylocations():
+            if self._locationtype.usesbodylocations():
                 self.populate(parentnode, structure=locn_options_body, pathsofar="")
-            elif self.locationtype.purelyspatial:
+            elif self._locationtype.purelyspatial:
                 self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
+            elif self._locationtype.axis:
+                self.populate(parentnode, structure=locn_options_axisofreln, pathsofar="")
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())
@@ -1102,6 +1128,7 @@ class LocationSvgView(QGraphicsView):
     # TODO KV probably don't need this after all
     def shownewurl(self, newurl):
         self.svg.show()
+
 
 class LocationListModel(QStandardItemModel):
 

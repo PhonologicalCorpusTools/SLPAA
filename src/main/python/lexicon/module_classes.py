@@ -39,6 +39,8 @@ userdefinedroles = UserDefinedRoles({
     'subgroupnamerole': 6,
     'nodedisplayrole': 7,
     'timestamprole': 8,
+    'isuserspecifiablerole': 9,
+    'userspecifiedvaluerole': 10,
 })
 
 
@@ -313,11 +315,12 @@ class PhonLocations:
 # is used by a particular instance of the Location Module
 class LocationType:
 
-    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False):  # , **kwargs):
+    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False, axis=False):  # , **kwargs):
         self._body = body
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
+        self._axis = axis
 
     def __repr__(self):
         repr_str = "nil"
@@ -329,8 +332,27 @@ class LocationType:
                 repr_str += " (body anchored)"
             elif self._purelyspatial:
                 repr_str += " (purely spatial)"
+        elif self._axis:
+            repr_str = "axis of relation"
 
         return '<LocationType: ' + repr(repr_str) + '>'
+
+    @property
+    def axis(self):
+        if not hasattr(self, '_axis'):
+            self._axis = False
+        return self._axis
+
+    @axis.setter
+    def axis(self, checked):
+        # TODO KV - validate?
+        self._axis = checked
+
+        if checked:
+            self._signingspace = False
+            self._bodyanchored = False
+            self._purelyspatial = False
+            self._body = False
 
     @property
     def body(self):
@@ -340,7 +362,12 @@ class LocationType:
     def body(self, checked):
         # TODO KV - validate?
         self._body = checked
-        self._signingspace = not checked
+
+        if checked:
+            self._signingspace = False
+            self._bodyanchored = False
+            self._purelyspatial = False
+            self._axis = False
 
     @property
     def signingspace(self):
@@ -350,7 +377,10 @@ class LocationType:
     def signingspace(self, checked):
         # TODO KV - validate?
         self._signingspace = checked
-        self._body = not checked
+
+        if checked:
+            self._body = False
+            self._axis = False
 
     @property
     def bodyanchored(self):
@@ -360,7 +390,13 @@ class LocationType:
     def bodyanchored(self, checked):
         # TODO KV - validate?
         self._bodyanchored = checked
-        self._purelyspatial = not checked
+
+        if checked:
+            self._signingspace = True
+
+            self._purelyspatial = False
+            self._body = False
+            self._axis = False
 
     @property
     def purelyspatial(self):
@@ -370,30 +406,34 @@ class LocationType:
     def purelyspatial(self, checked):
         # TODO KV - validate?
         self._purelyspatial = checked
-        self._bodyanchored = not checked
+
+        if checked:
+            self._signingspace = True
+
+            self._bodyanchored = False
+            self._body = False
+            self._axis = False
 
     def usesbodylocations(self):
         return self._body or self._bodyanchored
 
     def allfalse(self):
-        return not (self._body or self._signingspace or self._bodyanchored or self._purelyspatial)
+        return not (self._body or self._signingspace or self._bodyanchored or self._purelyspatial or self._axis)
 
     def locationoptions_changed(self, previous):
-        changed = self.usesbodylocations() and previous.purelyspatial
-        changed = changed or (self.purelyspatial and previous.usesbodylocations())
+        changed = self.usesbodylocations() and (previous.purelyspatial or previous.axis)
+        changed = changed or (self.purelyspatial and (previous.usesbodylocations() or previous.axis))
+        changed = changed or (self.axis and (previous.usesbodylocations() or previous.purelyspatial))
         changed = changed or (previous.allfalse() and not self.allfalse())
         return changed
 
 
 class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, hands, timingintervals=None, addedinfo=None, phonlocs=None, loctype=None):
+    def __init__(self, locationtreemodel, hands, timingintervals=None, addedinfo=None, phonlocs=None):
         if phonlocs is None:
             phonlocs = PhonLocations()
-        if loctype is None:
-            loctype = LocationType()
         self._locationtreemodel = locationtreemodel
         self._phonlocs = phonlocs
-        self._loctype = loctype
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
 
     @property
@@ -413,15 +453,6 @@ class LocationModule(ParameterModule):
     def phonlocs(self, phonlocs):
         # TODO KV - validate?
         self._phonlocs = phonlocs
-
-    # @property
-    # def loctype(self):
-    #     return self._loctype
-    #
-    # @loctype.setter
-    # def loctype(self, loctype):
-    #     # TODO KV - validate?
-    #     self._loctype = loctype
 
     def getabbreviation(self):
         # TODO KV these can't be hardcoded like this... fix it!

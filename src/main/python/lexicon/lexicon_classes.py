@@ -371,8 +371,7 @@ class Sign:
             timingintervals = serialmodule.timingintervals
             addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # TODO KV for backwards compatibility with pre-20230208 movement modules
             phonlocs = serialmodule.phonlocs
-            # loctype = serialmodule.loctype
-            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs)  # , loctype=loctype)
+            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs)
         self.locationmodules = unserialized
 
     def __hash__(self):
@@ -521,7 +520,7 @@ class Sign:
 
     def addlocationmodule(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype):
         # create and add a brand new one
-        locnmod = LocationModule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs=phonlocs, loctype=loctype)
+        locnmod = LocationModule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs=phonlocs)
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
@@ -547,9 +546,6 @@ class Sign:
         if locnmod.addedinfo != addedinfo:
             locnmod.addedinfo = addedinfo
             ischanged = True
-        # if locnmod.loctype != loctype:
-        #     locnmod.loctype = loctype
-        #     ischanged = True
         if ischanged:
             self.lastmodifiednow()
 
