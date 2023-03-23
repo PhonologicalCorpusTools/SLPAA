@@ -183,6 +183,7 @@ class XslotRectLinkingButton(XslotRectButton):
 
 
 class XslotEllipseModuleButton(QGraphicsEllipseItem):
+
     def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None):  # xslot_whole=0, xslot_part=None,
         super().__init__()
         self.parentwidget = parentwidget
@@ -190,6 +191,7 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         self.moduletype = moduletype
         self.sign = sign
         # self.mainwindow = mainwindow
+        self.samemodule_buttons = []
 
         self.setAcceptHoverEvents(True)
         self.hover = False
@@ -205,10 +207,17 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
     def hoverEnterEvent(self, event):
         self.hover = True
         self.update()
+        self.update_partners_hover(True)
+
+    def update_partners_hover(self, hovering):
+        for moduleellipse in self.samemodule_buttons:
+            moduleellipse.hover = hovering
+            moduleellipse.update()
 
     def hoverLeaveEvent(self, event):
         self.hover = False
         self.update()
+        self.update_partners_hover(False)
 
     def currentbrush(self):
         if self.hover:
@@ -261,6 +270,7 @@ class XslotRectModuleButton(XslotRectButton):
     def __init__(self, parentwidget, module_uniqueid=0, **kwargs):
         super().__init__(parentwidget, **kwargs)
         self.module_uniqueid = module_uniqueid
+        self.samemodule_buttons = []
 
     def mousePressEvent(self, event):
         pass
@@ -268,6 +278,19 @@ class XslotRectModuleButton(XslotRectButton):
     def mouseReleaseEvent(self, event):
         # print("mouse released on module rectangle")
         self.scene().modulerect_clicked.emit(self)
+
+    def hoverEnterEvent(self, event):
+        super().hoverEnterEvent(event)
+        self.update_partners_hover(True)
+
+    def hoverLeaveEvent(self, event):
+        super().hoverLeaveEvent(event)
+        self.update_partners_hover(False)
+
+    def update_partners_hover(self, hovering):
+        for modulerect in self.samemodule_buttons:
+            modulerect.hover = hovering
+            modulerect.update()
 
 
 class SignSummaryScene(QGraphicsScene):

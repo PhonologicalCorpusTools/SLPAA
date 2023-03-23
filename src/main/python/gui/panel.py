@@ -512,6 +512,7 @@ class XslotPanel(QScrollArea):
 
                 self.addparameterintervals(hand, intervals, moduletype, moduletypeabbrev, parammodules)
                 self.addparameterpoints(hand, points, moduletype, moduletypeabbrev, parammodules)
+                self.assign_hover_partners()
 
     def condense_timingintervals(self, intervals):
         condensed_intervals = []
@@ -562,6 +563,13 @@ class XslotPanel(QScrollArea):
             paramrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(paramrect)
         self.current_y += 1
+
+    # TODO KV I don't know that I'm a big fan of having every single module button know about every other module button
+    # from the same module instance, but at this point it seemed the most effective way to sync the hover behaviour
+    def assign_hover_partners(self):
+        for modbtn in self.moduleitems:
+            hover_partners = [b for b in self.moduleitems if b != modbtn and b.text[2:] == modbtn.text[2:]]
+            modbtn.samemodule_buttons = hover_partners
 
     def addparameterpoints(self, hand, points, moduletype, moduletypeabbrev, parammodules):
         for i_idx, (midx, m_id, tidx, t) in enumerate(points):
