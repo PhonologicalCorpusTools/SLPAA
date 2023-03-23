@@ -53,7 +53,7 @@ class ParameterModule:
         self._hands = hands
         self._timingintervals = []
         if timingintervals is not None:
-            self.settimingintervals(timingintervals)
+            self.timingintervals = timingintervals
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
 
@@ -90,38 +90,8 @@ class ParameterModule:
 
     @timingintervals.setter
     def timingintervals(self, timingintervals):
-        self.settimingintervals(timingintervals)
-
-    def settimingintervals(self, timingintervals):
-        self._timingintervals = []
-        # add one at a time
-        for tint in timingintervals:
-            self.add_timinginterval(tint)
-
-    def add_timinginterval(self, timinginterval):
-        # TODO KV - look for possible simplifications
-        if self._timingintervals == []:
-            self._timingintervals.append(timinginterval)
-        else:
-            needtocombine = False
-            idx = 0
-            while not needtocombine and idx < len(self._timingintervals):
-                existinginterval = self._timingintervals[idx]
-                if existinginterval.endpoint.equivalent(timinginterval.startpoint):
-                    # the new interval starts right where the existing one ends; combine them and re-add
-                    # (in case there's another interval that the newly-combined would also end up linking up with)
-                    needtocombine = True
-                    self._timingintervals.remove(existinginterval)
-                    self.add_timinginterval(TimingInterval(existinginterval.startpoint, timinginterval.endpoint))
-                elif existinginterval.startpoint.equivalent(timinginterval.endpoint):
-                    # the existing interval starts right where the new one ends; combine them and re-add
-                    # (in case there's another interval that the newly-combined would also end up linking up with)
-                    needtocombine = True
-                    self._timingintervals.remove(existinginterval)
-                    self.add_timinginterval(TimingInterval(timinginterval.startpoint, existinginterval.endpoint))
-                idx += 1
-            if not needtocombine:
-                self._timingintervals.append(timinginterval)
+        # TODO KV - validate?
+        self._timingintervals = [t for t in timingintervals]
 
     def getabbreviation(self):
         return "TODO no abbreviations implemented yet"

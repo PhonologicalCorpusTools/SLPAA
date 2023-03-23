@@ -286,8 +286,7 @@ class XslotLinkingLayout(QVBoxLayout):
         if xslotstruct is None:
             print("no x-slot structure!")
 
-        self.link_intro_label = QLabel(
-            "Click on the relevant point(s) or interval(s) to link this module.")  # ("Link this module to the interval/point")
+        self.link_intro_label = QLabel("Click on the relevant point(s) or interval(s) to link this module.")
         self.addWidget(self.link_intro_label)
 
         self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=self.timingintervals)
@@ -573,7 +572,7 @@ class XslotLinkScene(QGraphicsScene):
                 endpoint = TimingPoint(self.numwholes, self.additionalfrac)
             else:
                 endpoint = TimingPoint(self.numwholes, 1)
-            if TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1)) in self.xslotlinks:  # self.timingintervals:
+            if TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1)) in self.xslotlinks:
                 selecttheinterval = True
             xslotrect = XslotRectLinkingButton(self, text="whole sign", moduletype='xslot', selected=selecttheinterval)
             xslotrect.setRect(self.x_offset, yloc, float(self.xslot_width*(self.numwholes+self.additionalfrac)), self.rect_height)

@@ -622,6 +622,7 @@ class Corpus:
         return '<CORPUS: ' + repr(self.name) + '>'
 
 
+# TODO KV temporary testing function - delete eventually!
 if __name__ == '__main__':
 
     # test TimingPoint

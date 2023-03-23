@@ -502,7 +502,9 @@ class XslotPanel(QScrollArea):
                     parammod = parammodules[m_id]
                     # parammodid = parammod.uniqueid
                     if parammod.hands[hand]:
-                        for tidx, t in enumerate(parammod.timingintervals):
+                        condensed_timingintervals = self.condense_timingintervals(parammod.timingintervals)
+                        # for tidx, t in enumerate(parammod.timingintervals):
+                        for tidx, t in enumerate(condensed_timingintervals):
                             if t.ispoint():
                                 points.append((midx, m_id, tidx, t))
                             else:
@@ -510,6 +512,40 @@ class XslotPanel(QScrollArea):
 
                 self.addparameterintervals(hand, intervals, moduletype, moduletypeabbrev, parammodules)
                 self.addparameterpoints(hand, points, moduletype, moduletypeabbrev, parammodules)
+
+    def condense_timingintervals(self, intervals):
+        condensed_intervals = []
+        # add one at a time
+        for tint in intervals:
+            self.add_timinginterval_tocondensed(tint, condensed_intervals)
+        return condensed_intervals
+
+    def add_timinginterval_tocondensed(self, timinginterval, condensed_intervals):
+        # TODO KV - look for possible simplifications
+        if condensed_intervals == []:
+            condensed_intervals.append(timinginterval)
+        else:
+            needtocombine = False
+            idx = 0
+            while not needtocombine and idx < len(condensed_intervals):
+                existinginterval = condensed_intervals[idx]
+                if existinginterval.endpoint.equivalent(timinginterval.startpoint):
+                    # the new interval starts right where the existing one ends; combine them and re-add
+                    # (in case there's another interval that the newly-combined one would also link up with)
+                    needtocombine = True
+                    condensed_intervals.remove(existinginterval)
+                    self.add_timinginterval_tocondensed(TimingInterval(existinginterval.startpoint, timinginterval.endpoint), condensed_intervals)
+                elif existinginterval.startpoint.equivalent(timinginterval.endpoint):
+                    # the existing interval starts right where the new one ends; combine them and re-add
+                    # (in case there's another interval that the newly-combined one would also link up with)
+                    needtocombine = True
+                    condensed_intervals.remove(existinginterval)
+                    self.add_timinginterval_tocondensed(TimingInterval(timinginterval.startpoint, existinginterval.endpoint), condensed_intervals)
+                idx += 1
+            if not needtocombine:
+                condensed_intervals.append(timinginterval)
+
+            return condensed_intervals
 
     def addparameterintervals(self, hand, intervals, moduletype, moduletypeabbrev, parammodules):
         for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
