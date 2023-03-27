@@ -120,8 +120,15 @@ class TimingInterval:
     def ispoint(self):
         return self._startpoint == self._endpoint
 
+    # TODO KV delete? - I don't think this is used anywhere except in lexicon_classes.py testing
     def containsinterval(self, otherinterval):
-        return self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint
+        return self.iswholesign() or (self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint)
+        # if self.iswholesign():
+        #     return True
+        # elif self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint:
+        #     return True
+        # else:
+        #     return False
 
     def before(self, other):
         if isinstance(other, TimingPoint):
@@ -159,11 +166,18 @@ class TimingInterval:
 
     def overlapsinterval(self, other):
         if isinstance(other, TimingInterval):
-            if (self.startpoint < other.startpoint and self.endpoint > other.startpoint) or (other.startpoint < self.endpoint and other.endpoint > self.startpoint):
+            if self.iswholesign() or other.iswholesign():
+                return True
+            # elif (self.startpoint < other.startpoint and self.endpoint > other.startpoint) or (other.startpoint < self.endpoint and other.endpoint > self.startpoint):
+            # either other starts at or in self, or self starts at or in other
+            elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint) or (other.startpoint <= self.startpoint and other.endpoint > self.startpoint):
                 return True
         return False
 
-    # TODO KV - overlapping and/or contianing checking methods?
+    def iswholesign(self):
+        return self.startpoint == TimingPoint(0, 0) and self.endpoint == TimingPoint(0, 1)
+
+    # TODO KV - overlapping and/or containing checking methods?
 
     def __repr__(self):
         return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
