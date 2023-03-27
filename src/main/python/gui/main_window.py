@@ -1080,8 +1080,9 @@ class MainWindow(QMainWindow):
 
     def load_corpus_binary(self, path):
         with open(path, 'rb') as f:
-            # return pickle.load(f)
-            return Corpus(serializedcorpus=pickle.load(f))
+            corpus = Corpus(serializedcorpus=pickle.load(f))
+            corpus.path = path  # in case you are loading a corpus that was originally created on a different machine / in a different location
+            return corpus
 
     def on_action_copy(self, clicked):
         pass
