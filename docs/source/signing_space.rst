@@ -1,8 +1,12 @@
 .. todo::
-    symmetry!!
+    horizontal, vertical, sagittal
+    finish up circular direction descriptions
+    symmetry!! → recent complications
+        - no place for phasing and symmetry yet (work on Movement stuff first)
+        - different context from before for 'same'/'different' directions
+        - high degree of overlap with bilateral symmetry in Sign Type
     replace current placeholders with diagrams
         - summary image
-        - top of a circle/circular directions x3
         - multiple sets of axes superimposed on one image
         - multiple sets of planes superimposed on one image
     add references
@@ -36,7 +40,7 @@ The program relies on a system of axes and planes to frame three-dimensional spa
 1. Axes
 ````````
 
-The primary spatial system used in SLP-AA is based on a set of three :ref:`cardinal_axes`: the **horizontal**, **vertical**, and **sagittal** axes.
+The primary spatial system used in SLP-AA is based on a set of three :ref:`cardinal_axes`: the **horizontal**, **vertical**, and **sagittal** axes. Each axis is perpendicular to the other two.
 
 These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down from a generic reference point, the horizontal extends to the left and right, and the sagittal axis extends forwards and backwards. These can be seen here, labelled with SLP-AA's :ref:`default direction settings<axis_default>`:
 
@@ -160,9 +164,9 @@ As with the system of axes, the program is quite flexible so that users can deci
 .. _circular_directions:
 
 I. Circular (non-straight) directions
-======================
+=====================================
 
-Within each plane, signs involving a non-straight :ref:`perceptual_shape` (e.g., circles, arcs, 7, etc.) can be traced out in one of two circular directions. Unlike the :ref:`Axis direction<axis_directions>` options, this section applies only to the :ref:`movement_module`, as it is only relevant for describing motion.
+Within each plane, signs involving a non-straight :ref:`perceptual_shape` (e.g., circles, arcs, zigzags, etc.) can be traced out in one of two circular directions. Unlike the :ref:`Axis direction<axis_directions>` options, this section applies only to the :ref:`movement_module`, as it is only relevant for describing motion.
 
 .. _circular_definitions:
 
@@ -175,44 +179,27 @@ Rather than defining formal definitions of which direction is meant to be 'clock
 
 We define a point to be the **top of a circle** for any given circular shape in each of the three :ref:`cardinal_planes`, and then the circular direction follows based on the axis direction of the hand as it moves through that point. If the hand does not reach the top of the circle in a particular sign,  the direction should still be defined based on how the hand **would** move through the top point if it continued in the same direction. It also should not matter where the hand happens to start making the circle; the definition of the circle is defined by where the hand moves from the top (whenever it happens to get there). 
 
-Consider the sagittal plane. This is easily conceptualized to have a 'top' point of a circle at the highest (or most **up**) point. While the hand sits at the top of the circle, it can move within the plane away from the speaker in the distal direction or toward the speaker in the proximal direction before continuing to complete the circular shape. 
+.. note::
 
-The set of options for circular directions in the sagittal plane are:
+    **Circles and symmetry**
 
-* **Proximal from the top of the circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
-* **Distal from the top of the circle**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
+    Since this system is based on axis direction, the distinction between the **relative** (:ref:`ipsilateral`/:ref:`contralateral`) and **absolute** (toward H1/H2) models for the horizontal axis applies here as well, and it will affect the vertical and horizontal planes. These models are described in greater detail in :ref:`Symmetry<symmetry_section>` below. The set of options for circular direction will correspond to your choices for the :ref:`movement_module` as set in the :ref:`global_settings`, which means that the relative set of options applies by default unless you choose to change it.
 
-.. image:: images/placeholder.png
+**Horizontal plane**
+
+The horizontal plane does not have a clear point that would be considered the 'top' of a circle, so we define it to be the point that is furthest away from the speaker (that is, the most **distal** point). When the hand sits at that point, it can start to move to either side in a horizontal direction. The dominant hand, for instance, can move in the ipsilateral direction (toward the H1 side) or in the contralateral direction (toward the H2 side) before continuing to complete the circular shape.
+
+.. image:: images/mov_circles_horizontal_1.png
     :width: 750
     :align: left
 
-**(Single image for sagittal plane only, clearly indicating the top of the circle and the two circular directions. This should be shown relative to the speaker's body.)**
+From the perspective of the signer, **...**
 
-Since this system is based on axis direction, the distinction between the **relative** (:ref:`ipsilateral`/:ref:`contralateral`) and **absolute** (toward H1/H2) models for the horizontal axis applies here as well, and it will affect the vertical and horizontal planes. These models are described in greater detail in :ref:`Symmetry<symmetry_section>` below. The set of options for circular direction will correspond to your choices for the :ref:`movement_module` as set in the :ref:`global_settings`, which means that the relative set of options applies by default unless you choose to change it.
-
-The vertical plane similarly has a clear 'top' point of a circle at the highest (or most **up**) point. While the hand sits at the top of the circle, it can move within the plane to one horizontal side or the other. The dominant hand, for instance, can move in the ipsilateral direction/toward the H1 side or in the contralateral direction/toward the H2 side before continuing to complete the circular shape. 
-
-The set of options for circular directions in the vertical plane are:
-
-Relative [Default]
-
-* **Ipsilateral from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
-* **Contralateral from the top of the circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
-
-OR
-
-Absolute
-
-* **Toward H1 side from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ or the left hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
-* **Toward H2 side from the top of the circle**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
-
-.. image:: images/placeholder.png
+.. image:: images/mov_circles_horizontal_2.png
     :width: 750
     :align: left
 
-**(Single image for vertical plane only, clearly indicating the top of the circle and the two circular directions. This should be shown relative to the speaker's body.)**
-
-The horizontal plane does not have a clear point that would be considered the 'top' of a circle, so we define it to be the point that is furthest away from the speaker (or the most **distal** point). When the hand sits at that point, it can also move to either side in a horizontal direction. This means that the same set of circular directions applies for the horizontal plane as for the vertical. 
+Facing towards the signer, **...**
 
 The set of options for circular directions in the horizontal plane are:
 
@@ -228,11 +215,50 @@ Absolute
 * **Toward H1 side from the top of the circle**, as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
 * **Toward H2 side from the top of the circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
 
-.. image:: images/placeholder.png
+**Vertical plane**
+
+The vertical plane has a clear 'top' point of a circle at the highest (that is, most **up**) point. While the hand sits at the top of the circle, it can start to move within the plane toward one horizontal side or the other. This means that the same set of circular directions applies for the vertical plane as for the horizontal plane.
+
+.. image:: images/mov_circles_vertical_1.png
     :width: 750
     :align: left
 
-**(Single image for horizontal plane only, clearly indicating the top of the circle and the two circular directions. This should be shown relative to the speaker's body.)**
+From the perspective of the signer, **...**
+
+.. image:: images/mov_circles_vertical_2.png
+    :width: 750
+    :align: left
+
+Facing towards the signer, **...**
+
+The set of options for circular directions in the vertical plane are:
+
+Relative [Default]
+
+* **Ipsilateral from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
+* **Contralateral from the top of the circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+
+OR
+
+Absolute
+
+* **Toward H1 side from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ or the left hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+* **Toward H2 side from the top of the circle**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
+
+**Sagittal plane**
+
+The sagittal plane also has a clear 'top' point of a circle at the highest (that is, most **up**) point. While the hand sits at the top of the circle, it can start to move within the plane away from the speaker in the distal direction or toward the speaker in the proximal direction before continuing to complete the circular shape. 
+
+.. image:: images/mov_circles_sagittal.png
+    :width: 750
+    :align: left
+
+**(Description?)**
+
+The set of options for circular directions in the sagittal plane are:
+
+* **Proximal from the top of the circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
+* **Distal from the top of the circle**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
 
 .. note::
     **Circular shapes that don't pass through the top of the circle**
@@ -246,7 +272,7 @@ Absolute
 b) Angled circular directions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the angled plane of movement by finding the applicable component planes (as described in :ref:`Angled planes<angled_planes>` above), and then continue to code the circular direction by selecting each of the component directions within their respective component (cardinal) planes. 
+Sometimes circular shapes are traced within an **angled plane** rather than one of the :ref:`cardinal_planes`, as in `SOCIALIZE <https://www.handspeak.com/word/index.php?id=2014>`_ and `TWIRL <https://asl-lex.org/visualization/?sign=twirl>`_. In this case, code the angled plane of movement by finding the applicable component planes (as described in the note on angled planes above), and then continue to code the circular direction by selecting each of the component directions within their respective component (cardinal) planes. 
 
 See the following illustration for how this works:
 
