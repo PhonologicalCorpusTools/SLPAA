@@ -1,9 +1,13 @@
 .. todo::
-    fix references in the movement type section
-    update / delete refs to “transcription process” in the movement type section
+    update phasing and connectedness options under 'both hands'
+    add notes for 'different directions' checkbox in axis direction and plane
+    work on movement type
+        - fix references
+        - update / delete refs to “transcription process”
     joint activity description not completed
     movement characteristics not yet started
     overview: sample codings of a pair of signs
+
         
 .. _movement_module:
 
@@ -13,7 +17,19 @@ Movement Module
 
 This :ref:`module` is used to code the **movement** components of a sign. As many :ref:`instances<instance>` of this module as necessary can be called for any given sign coding. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
 
-Select the hand(s) involved in this instance of the module. For movements involving both hands, select whether the movement described in this :ref:`instance` of the module is in phase or out of phase (with respect to any of the location, hand configuration, or orientation parameters). This selection follows according to the description of :ref:`Movement timing relation<signtype_movement_timing_relation>` as it applies in :ref:`sign_type_module`. You will have the opportunity to specify which parameter(s) is/are out of phase for the particular instance of the module.
+.. warning::
+    * **Update with new connectedness and phasing options**
+    * **Remove references to 'Movement timing relation'**
+    
+    Select the hand(s) involved in this instance of the module. For movements involving both hands, select whether the movement described in this :ref:`instance` of the module is in phase or out of phase (with respect to any of the location, hand configuration, or orientation parameters). This selection follows according to the description of :ref:`Movement timing relation<signtype_movement_timing_relation>` as it applies in :ref:`sign_type_module`. You will have the opportunity to specify which parameter(s) is/are out of phase for the particular instance of the module.
+
+.. comment::
+    ( ) H1 only
+    ( ) H2 only
+    ( ) Both hands
+        [ ] moving as a connected unit
+        [ ] in phase
+        ( ) out of phase
 
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
@@ -105,16 +121,6 @@ Keep in mind that a single module is meant to convey only one direction of movem
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting axis direction consistently, such as always selecting the first direction of motion.
 
-* **Sagittal axis**
-
-    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
-    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
-
-* **Vertical axis**
-
-    * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
-    * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
-
 The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module:
     
 * **Horizontal axis: relative** [Default]
@@ -128,6 +134,18 @@ OR
     
     * **Toward H1**, as in the right hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
     * **Toward H2**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the right hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
+    
+The endpoints for the vertical and sagittal axes are consistent wherever they appear. 
+    
+* **Vertical axis**
+
+    * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
+    * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
+    
+* **Sagittal axis**
+
+    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
+    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
 * **Not relevant**, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_. Axis direction is not relevant for this sign because the perceptual shape is *circle*, whereas plane is only relevant for other perceptual shapes.
 
@@ -146,23 +164,25 @@ Keep in mind that a single module is meant to convey only one direction of movem
 
 At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting circular direction consistently, such as always selecting the first direction of motion.
 
-* **Sagittal plane**
+As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module.
 
-    * **Distal from the top of the circle**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
-    * **Proximal from the top of the circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
-    
-As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module:
+* **Horizontal plane: relative** [Default]
+
+    * **Ipsilateral from the top of the circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
+    * **Contralateral from the top of the circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
+
+OR
+
+* **Horizontal plane: absolute**
+
+    * **Toward H1 side from the top of the circle**, as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
+    * **Toward H2 side from the top of the circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
 
 * **Vertical plane: relative** [Default]
 
     * **Ipsilateral from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
     * **Contralateral from the top of the circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
 
-* **Horizontal plane: relative** [Default]
-
-    * **Ipsilateral from the top of the circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
-    * **Contralateral from the top of the circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
-    
 OR
 
 * **Vertical plane: absolute**
@@ -170,10 +190,10 @@ OR
     * **Toward H1 side from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ or the left hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
     * **Toward H2 side from the top of the circle**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
 
-* **Horizontal plane: absolute**
-    
-    * **Toward H1 side from the top of the circle**, as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
-    * **Toward H2 side from the top of the circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
+* **Sagittal plane**
+
+    * **Distal from the top of the circle**, as in `BICYCLE <https://asl-lex.org/visualization/?sign=bicycle>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
+    * **Proximal from the top of the circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
 
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are not *straight*.
 
@@ -279,8 +299,6 @@ Use the **joint activity** section to add more fine-grained detail about any joi
 
 3. Movement characteristics
 ```````````````````````````
-
-...
 
 .. todo::
     Some notes to use as starting points for some of these characteristics:
