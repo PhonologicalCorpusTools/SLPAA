@@ -29,6 +29,10 @@ from PyQt5.QtWidgets import (
 from lexicon.module_classes import delimiter, userdefinedroles as udr
 from lexicon.module_classes2 import AddedInfo
 
+# for backwards compatibility
+specifytotalcycles_str = "Specify total number of cycles"
+numberofreps_str = "Number of repetitions"
+
 rb = "radio button"  # ie mutually exclusive in group / at this level
 cb = "checkbox"  # ie not mutually exlusive
 ed = "editable" 
@@ -270,7 +274,7 @@ mvmtOptionsDict = {
         ("Repetition", fx, cb, u): {
             ("Single", fx, rb, u): {},
             ("Repeated", fx, rb, u): {
-                ("Specify total number of cycles", fx, cb, u): {
+                (specifytotalcycles_str, fx, cb, u): {
                     ("#", ed, cb, u): {
                         ("This number is a minimum", fx, cb, u): {},
                     },
@@ -481,7 +485,7 @@ class MovementTreeSerializable:
                         pathsteps = pathtext.split(delimiter)
                         parentpathtext = delimiter.join(pathsteps[:-1])
                         userstring = pathsteps[-1]
-                        if userstring.isnumeric():
+                        if userstring.replace(".", "").isnumeric():
                         # numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
                             self.numvals[parentpathtext] = userstring  # numericstring
                         else:
@@ -504,9 +508,9 @@ class MovementTreeSerializable:
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                    oldpathtext = pathtext.replace("Specify total number of cycles", "Number of repetitions")
+                    oldpathtext = pathtext.replace(specifytotalcycles_str, numberofreps_str)
                     parentpathtext = treenode.data(Qt.UserRole + udr.pathdisplayrole)
-                    oldparentpathtext = None if parentpathtext is None else parentpathtext.replace("Specify total number of cycles", "Number of repetitions")
+                    oldparentpathtext = None if parentpathtext is None else parentpathtext.replace(specifytotalcycles_str, numberofreps_str)
                     if parentpathtext in self.numvals.keys():
                         treechild.setText(self.numvals[parentpathtext])
                         treechild.setEditable(True)
@@ -732,16 +736,24 @@ class MovementTreeItem(QStandardItem):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def updatelistdata(self):
-        if self.parent() and ("Specify total number of cycles" in self.parent().data() or "Number of repetitions" in self.parent().data()):
-            previouslistitemtext = self.listitem.text()
+        if self.parent() and (specifytotalcycles_str == self.parent().text() or numberofreps_str == self.parent().text()):
+            # then we're updating the item that specifies the total number of cycles
+            listitemformertext = self.listitem.text()
             parentname = self.parent().text()
-            updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
-            if delimiter in previouslistitemtext[updatetextstartindex:]:
-                updatetextstopindex = previouslistitemtext.index(delimiter, updatetextstartindex)
-            else:
-                updatetextstopindex = len(previouslistitemtext)+1
-            selftext = self.text()
-            self.listitem.updatetext(previouslistitemtext[:updatetextstartindex] + selftext + previouslistitemtext[updatetextstopindex:])
+            updatetextstartindex = listitemformertext.index(parentname) + len(parentname + delimiter)
+            listitemnewtext = listitemformertext[:updatetextstartindex] + self.text()
+            self.listitem.updatetext(listitemnewtext)
+
+            self.child(0,0).updatelistdata()
+            
+        elif self.parent() and self.parent().parent() and (specifytotalcycles_str == self.parent().parent().text() or numberofreps_str == self.parent().parent().text()):
+            # then we're updating the item that specifies whether the number of cycles is a minimum
+            listitemformertext = self.listitem.text()
+            parentname = self.parent().text()
+            grandparentname = self.parent().parent().text()
+            updatetextstartindex = listitemformertext.index(grandparentname) + len(grandparentname + delimiter)
+            listitemnewtext = listitemformertext[:updatetextstartindex] + grandparentname + delimiter + parentname + delimiter + self.text()
+            self.listitem.updatetext(listitemnewtext)
 
     def check(self, fully=True):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
