@@ -65,6 +65,7 @@ mvmtOptionsDict = {
                 }
             },
             ("Axis direction", fx, cb, u): {  # Choose up to one from each axis to get the complete direction
+                ("H1 and H2 move in opposite directions", fx, cb, u): {},
                 ("Vertical", fx, cb, u): {
                     (subgroup, None, 0, None): {
                         ("Up", fx, rb, u): {},
@@ -86,7 +87,7 @@ mvmtOptionsDict = {
                 ("Not relevant", fx, rb, u): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
             ("Plane", fx, cb, u): {  # choose as many as needed, but only one direction per plane
-                ("H1 and H2 move in different directions", fx, cb, u): {},
+                ("H1 and H2 move in opposite directions", fx, cb, u): {},
                 ("Sagittal", fx, cb, u): {
                     (subgroup, None, 0, None): {
                         ("Distal from top of circle", fx, rb, u): {},
@@ -499,8 +500,24 @@ class MovementTreeSerializable:
         rootnode = mvmttreemodel.invisibleRootItem()
         mvmttreemodel.populate(rootnode)
         makelistmodel = mvmttreemodel.listmodel  # TODO KV   what is this? necessary?
+        self.backwardcompatibility()
         self.setvalues(rootnode)
         return mvmttreemodel
+
+    # TODO KV note that this currently only deals with the change from "different directions" to "opposite directions"
+    # eventually it'd be nice to get the "specify total number of cycles" vs "number of repetitions" stuff in here too
+    def backwardcompatibility(self):
+        for stored_dict in [self.numvals, self.stringvals, self.checkstates, self.addedinfos]:
+            pairstoadd = {}
+            keystoremove = []
+            for k in stored_dict.keys():
+                if "H1 and H2 move in different directions" in k:
+                    pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
+                    keystoremove.append(k)
+            for newkey in pairstoadd.keys():
+                stored_dict[newkey] = pairstoadd[newkey]
+            for oldkey in keystoremove:
+                stored_dict.pop(oldkey)
 
     def setvalues(self, treenode):  # TODO KV make the (pre-20230208) backwards compatibility cleaner
         if treenode is not None:
