@@ -91,110 +91,39 @@ II. Body-anchored location
 
 Select a reference location from the :ref:`List of body locations<body_location_list>`. 
 
-Then select the appropriate reference to that location. **(max one from each axis)**
-
-=====
-Ipsilateral to
-=====
-Far
-Med.
-Close
-=====
-Contralateral to
-=====
-Far
-Med.
-Close
-=====
+Then select the appropriate reference to that location. **(max one from each axis, not required to choose one from each)**
 
 .. list-table::
    :widths: 25 25 50
-   :header-rows: 1
+   :header-rows: 0
 
-   * - Ipsilateral to
-     - Heading row 1, column 2
-     - Heading row 1, column 3
-   * - Far
-     -
-     - Row 1, column 3
-   * - Med.
-     - Row 2, column 2
-     - Row 2, column 3
-   * - Close
-     - Row 3, column 2
-     - Row 3, column 3
-
-.. list-table::
-   :widths: 25 25 50
-   :header-rows: 1
-
-   * - Ipsilateral to
-     - Heading row 1, column 2
-     - Heading row 1, column 3
-   * - Far
-     -
-     - Row 1, column 3
-   * - Med.
-     - Row 2, column 2
-     - Row 2, column 3
-   * - Close
-     - Row 3, column 2
-     - Row 3, column 3
-
-( ) Ipsilateral to
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-    
-( ) Contralateral to
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-
------
-
-( ) Above
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-    
-( ) Below
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-
------
-
-( ) In front of
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-    
-( ) Behind
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
+   * - **Ipsilateral to**
+     - **Above**
+     - **In front of**
+   * -    Far
+     -    Far
+     -    Far
+   * -    Med.
+     -    Med.
+     -    Med.
+   * -    Close
+     -    Close
+     -    Close
+   * - **Contralateral to**
+     - **Below**
+     - **Behind**
+   * -    Far
+     -    Far
+     -    Far
+   * -    Med.
+     -    Med.
+     -    Med.
+   * -    Close
+     -    Close
+     -    Close
     
 .. warning::
-    **Will this option allow selecting sub-areas as well? yes.** We use abbreviations for joints in Hand Config (mcp, pip, dip for metacarpophalangeal, proximal interphalangeal, distal interphalangeal) – this will also be the case for the Location sub-menus. This makes room for “Relation” to take up a third column for body-anchored signing space locations.
+    **Will this option allow selecting sub-areas as well? yes.** We use abbreviations for joints in Hand Config – this will also be the case for the Location sub-menus. This makes room for “Relation” to take up a third column for body-anchored signing space locations.
 
 .. _purely_spatial_location:
 
@@ -210,55 +139,40 @@ Close
 
 **(The program expects exactly one selection from each axis. Defaults may be set as mid/in front med/central, though I'm not sure this is decided concretely.)**
 
-Horizontal axis:    
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
 
-( ) Ipsi
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-    
-( ) Central
-
-( ) Contra
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-
------
-
-Vertical axis:
-
-( ) High
-
-( ) Mid
-
-( ) Low
-
------
-
-Sagittal axis:
-
-( ) In front
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
-    
-( ) Behind
-
-    ( ) Far
-    
-    ( ) Med.
-    
-    ( ) Close
+   * - Horizontal axis:
+     - Vertical axis:
+     - Sagittal axis:
+   * - **Ipsi**
+     - **High**
+     - **In front**
+   * -    Far
+     - **Mid**
+     -    Far
+   * -    Med.
+     - **Low**
+     -    Med.
+   * -    Close
+     -
+     -    Close
+   * - **Central**
+     - 
+     -
+   * - **Contra**
+     -
+     - **Behind**
+   * - Far
+     -
+     - Far
+   * - Med.
+     -
+     - Med.
+   * - Close
+     -
+     - Close
 
 4. Axis of relation (between H1 and H2)
 ```````````````````````````````````````
