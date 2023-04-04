@@ -1,5 +1,6 @@
 .. todo::
     add the list of body locations and suboptions
+    axis of relation and contact?
     
 .. comment::
     Outstanding issue: Allow any particular individual selection to be tagged as ‘major phonological location’ or ‘minor phonological location’ (e.g., if someone selects eyebrow / head, they can tag ‘head’ as the major phonological location and ‘eyebrow’ as the minor one). At the moment, we can only tag the whole module as a (major/minor) phonological or phonetic location.
@@ -65,8 +66,8 @@ Choose from the body location list or navigate the image view window to select a
 
 .. _body_location_list:
 
-List of body locations
-~~~~~~~~~~~~~~~~~~~~~~
+a) List of body locations
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. warning::
     * **(Insert list of body locations from KCH Body locations-Proposal_streamlined)**
@@ -78,6 +79,101 @@ List of body locations
             * mcp = metacarpophalangeal joint
             * pip = proximal interphalangeal joint
             * dip = distal interphalangeal joint
+
+Main body:
+
+* Head
+
+    * Back of head
+    * Top of head
+    * Side of face
+    
+        * Side of face - contra
+        * Side of face - ipsi
+    
+    * Face
+    
+        * Temple
+        
+            * Temple - contra
+            * Temple - ipsi
+        
+        * Above forehead (hair line)
+        * Forehead
+        * Eyebrow
+        
+            * Eyebrow - contra
+            * Eyebrow - ipsi
+            * Between eyebrows
+        
+        * Eye
+        
+            * Eye - contra
+            * Eye - ipsi
+            * Outer corner of eye
+            
+                * Outer corner of eye - contra
+                * Outer corner of eye - ipsi
+            
+            * Upper eyelid
+            
+            * ...
+        
+        * Cheek/nose
+
+* Neck
+* Torso
+* (Contralateral) ARm
+* Legs and Feet
+
+
+The other hand:
+
+* Whole hand
+
+    *
+
+* Hand minus fingers
+
+    *
+
+* Heel of hand
+* Thumb
+
+    *
+
+* Fingers
+
+    *
+
+* Selected fingers
+
+    *
+
+* Selected fingers and thumb
+
+    *
+
+* Finger 1
+
+    *
+
+* Finger 2
+
+    *
+
+* Finger 3
+
+    *
+
+* Finger 4
+
+    *
+
+* Between thumb and finger 1
+* Between finger 1 and 2
+* Between finger 2 and 3
+* Between finger 3 and 4
 
 .. _body_anchored_location:
 
@@ -94,33 +190,33 @@ Select a reference location from the :ref:`List of body locations<body_location_
 Then select the appropriate reference to that location. **(max one from each axis, not required to choose one from each)**
 
 .. list-table::
-   :widths: 25 25 50
+   :widths: 30 30 30
    :header-rows: 0
 
    * - **Ipsilateral to**
      - **Above**
      - **In front of**
-   * -  Far
-     -  Far
-     -  Far
-   * -  Med.
-     -  Med.
-     -  Med.
-   * -  Close
-     -  Close
-     -  Close
+   * -   Far
+     -   Far
+     -   Far
+   * -   Med.
+     -   Med.
+     -   Med.
+   * -   Close
+     -   Close
+     -   Close
    * - **Contralateral to**
      - **Below**
      - **Behind**
-   * -  Far
-     -  Far
-     -  Far
-   * -  Med.
-     -  Med.
-     -  Med.
-   * -  Close
-     -  Close
-     -  Close
+   * -   Far
+     -   Far
+     -   Far
+   * -   Med.
+     -   Med.
+     -   Med.
+   * -   Close
+     -   Close
+     -   Close
     
 .. warning::
     **Will this option allow selecting sub-areas as well? yes.** We use abbreviations for joints in Hand Config – this will also be the case for the Location sub-menus. This makes room for “Relation” to take up a third column for body-anchored signing space locations.
@@ -137,10 +233,10 @@ Then select the appropriate reference to that location. **(max one from each axi
 
 **Simple set of options, no additional images for this in the program.** The window with the body locations will be replaced with the applicable tree structure, so the module with this selection looks more like Movement. **(Does the same configuration of windows still apply, with two areas on the right side? There doesn't seem to be another necessary set of information, so I assume that it only shows the dropdown menu and the selected list item.)**
 
-**(The program expects exactly one selection from each axis. Defaults may be set as mid/in front med/central, though I'm not sure this is decided concretely.)**
+Make exactly one selection from each axis:
 
 .. list-table::
-   :widths: 25 25 50
+   :widths: 30 30 30
    :header-rows: 1
 
    * - Horizontal axis:
@@ -149,52 +245,51 @@ Then select the appropriate reference to that location. **(max one from each axi
    * - **Ipsi**
      - **High**
      - **In front**
-   * -  Far
+   * -   Far
      - **Mid**
-     -  Far
-   * -  Med.
+     -   Far
+   * -   Med.
      - **Low**
-     -  Med.
-   * -  Close
+     -   Med.
+   * -   Close
      -
-     -  Close
+     -   Close
    * - **Central**
      - 
      -
    * - **Contra**
      -
      - **Behind**
-   * -  Far
+   * -   Far
      -
-     -  Far
-   * -  Med.
+     -   Far
+   * -   Med.
      -
-     -  Med.
-   * -  Close
+     -   Med.
+   * -   Close
      -
-     -  Close
+     -   Close
+
+**(Defaults may be set as central/mid/in front med., though I'm not sure this is decided concretely.)**
 
 4. Axis of relation (between H1 and H2)
 ```````````````````````````````````````
 
-**(Describe some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)** No mention of how this Location type is expected to interact with Contact.
+**(Some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)** No mention of how this Location type is expected to interact with Contact.
 
-            [ ] Horizontal
-            
-                ( ) H1 is to H1 side of H2
-                
-                ( ) H1 is to H2 side of H2
-                
-            [ ] Vertical
-            
-                ( ) H1 is above H2
-                
-                ( ) H1 is below H2
-                
-            [ ] Sagittal
-            
-                ( ) H1 is in front of H2
-                
-                ( ) H1 is behind H2
+Make up to one selection from each axis to describe the relationship between H1 and H2. You can also select the axis of relation itself without specifying the way the hands are arranged along that axis.
 
------
+* **Horizontal**
+
+    * H1 is to H1 side of H2
+    * H1 is to H2 side of H2
+
+* **Vertical**
+
+    * H1 is above H2
+    * H1 is below H2
+
+* **Sagittal**
+
+    * H1 is in front of H2
+    * H1 is behind H2
