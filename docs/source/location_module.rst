@@ -1,6 +1,5 @@
 .. todo::
     add the list of body locations and suboptions
-    horizontal rule?
     
 .. comment::
     Outstanding issue: Allow any particular individual selection to be tagged as ‘major phonological location’ or ‘minor phonological location’ (e.g., if someone selects eyebrow / head, they can tag ‘head’ as the major phonological location and ‘eyebrow’ as the minor one). At the moment, we can only tag the whole module as a (major/minor) phonological or phonetic location.
@@ -90,31 +89,56 @@ Select a reference location from the :ref:`List of body locations<body_location_
 
 Then select the appropriate reference to that location. **(max one from each axis)**
 
-( ) Ipsilateral to     
+( ) Ipsilateral to
+
     ( ) Far
-    ( ) Med.
-    ( ) Close            
-( ) Contralateral to   
-    ( ) Far
-    ( ) Med.
-    ( ) Close  
     
-( ) Above        
-    ( ) Far
     ( ) Med.
+    
     ( ) Close
-( ) Below        
+    
+( ) Contralateral to
+
     ( ) Far
+    
     ( ) Med.
+    
     ( ) Close
 
-( ) In front of
+------
+
+( ) Above
+
     ( ) Far
+    
     ( ) Med.
+    
     ( ) Close
-( ) Behind
+    
+( ) Below
+
     ( ) Far
+    
     ( ) Med.
+    
+    ( ) Close
+
+------
+
+( ) In front of
+
+    ( ) Far
+    
+    ( ) Med.
+    
+    ( ) Close
+    
+( ) Behind
+
+    ( ) Far
+    
+    ( ) Med.
+    
     ( ) Close
     
 .. warning::
@@ -135,29 +159,53 @@ Then select the appropriate reference to that location. **(max one from each axi
 **(The program expects exactly one selection from each axis. Defaults may be set as mid/in front med/central, though I'm not sure this is decided concretely.)**
 
 Horizontal axis:    
-( ) Ipsi          
+
+( ) Ipsi
+
     ( ) Far
+    
     ( ) Med.
+    
     ( ) Close
+    
 ( ) Central
-( ) Contra                            
+
+( ) Contra
+
     ( ) Far
+    
     ( ) Med.
+    
     ( ) Close
+
+------
 
 Vertical axis:
-( ) High               
-( ) Mid               
+
+( ) High
+
+( ) Mid
+
 ( ) Low
 
+------
+
 Sagittal axis:
+
 ( ) In front
+
     ( ) Far
+    
     ( ) Med.
+    
     ( ) Close
+    
 ( ) Behind
+
     ( ) Far
+    
     ( ) Med.
+    
     ( ) Close
 
 4. Axis of relation (between H1 and H2)
@@ -166,13 +214,23 @@ Sagittal axis:
 **(Describe some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)** No mention of how this Location type is expected to interact with Contact.
 
             [ ] Horizontal
+            
                 ( ) H1 is to H1 side of H2
+                
                 ( ) H1 is to H2 side of H2
+                
             [ ] Vertical
+            
                 ( ) H1 is above H2
+                
                 ( ) H1 is below H2
+                
             [ ] Sagittal
+            
                 ( ) H1 is in front of H2
+                
                 ( ) H1 is behind H2
 
--------------------------------------------------------------
+-----
+
+----------
