@@ -100,27 +100,27 @@ Then select the appropriate reference to that location. **(max one from each axi
    * - **Ipsilateral to**
      - **Above**
      - **In front of**
-   * -    Far
-     -    Far
-     -    Far
-   * -    Med.
-     -    Med.
-     -    Med.
-   * -    Close
-     -    Close
-     -    Close
+   * -  Far
+     -  Far
+     -  Far
+   * -  Med.
+     -  Med.
+     -  Med.
+   * -  Close
+     -  Close
+     -  Close
    * - **Contralateral to**
      - **Below**
      - **Behind**
-   * -    Far
-     -    Far
-     -    Far
-   * -    Med.
-     -    Med.
-     -    Med.
-   * -    Close
-     -    Close
-     -    Close
+   * -  Far
+     -  Far
+     -  Far
+   * -  Med.
+     -  Med.
+     -  Med.
+   * -  Close
+     -  Close
+     -  Close
     
 .. warning::
     **Will this option allow selecting sub-areas as well? yes.** We use abbreviations for joints in Hand Config – this will also be the case for the Location sub-menus. This makes room for “Relation” to take up a third column for body-anchored signing space locations.
@@ -149,30 +149,30 @@ Then select the appropriate reference to that location. **(max one from each axi
    * - **Ipsi**
      - **High**
      - **In front**
-   * -    Far
+   * -  Far
      - **Mid**
-     -    Far
-   * -    Med.
+     -  Far
+   * -  Med.
      - **Low**
-     -    Med.
-   * -    Close
+     -  Med.
+   * -  Close
      -
-     -    Close
+     -  Close
    * - **Central**
      - 
      -
    * - **Contra**
      -
      - **Behind**
-   * - Far
+   * -  Far
      -
-     - Far
-   * - Med.
+     -  Far
+   * -  Med.
      -
-     - Med.
-   * - Close
+     -  Med.
+   * -  Close
      -
-     - Close
+     -  Close
 
 4. Axis of relation (between H1 and H2)
 ```````````````````````````````````````
