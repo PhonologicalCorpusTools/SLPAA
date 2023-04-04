@@ -54,7 +54,7 @@ Choose from the body location list or navigate the image view window to select a
     * how to navigate the image view
         
         * selecting, zooming, flipping images, 'link' button
-        * (overlapping regions?)
+        * **(overlapping regions?)**
         
     * how to access the locations text list in the dropdown box, and how to add them to the top window
     * how to interact with sub-menus, how the columns are set up in the lower window
@@ -74,6 +74,10 @@ List of body locations
         * maximal list of sub-areas and surfaces
         * for each location area, the set of sub-areas and surfaces that can apply for that area
         * include both the shortened and full versions of joint names
+        
+            * mcp = metacarpophalangeal joint
+            * pip = proximal interphalangeal joint
+            * dip = distal interphalangeal joint
 
 .. _body_anchored_location:
 
@@ -88,6 +92,54 @@ II. Body-anchored location
 Select a reference location from the :ref:`List of body locations<body_location_list>`. 
 
 Then select the appropriate reference to that location. **(max one from each axis)**
+
+=====
+Ipsilateral to
+=====
+Far
+Med.
+Close
+=====
+Contralateral to
+=====
+Far
+Med.
+Close
+=====
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Ipsilateral to
+     - Heading row 1, column 2
+     - Heading row 1, column 3
+   * - Far
+     -
+     - Row 1, column 3
+   * - Med.
+     - Row 2, column 2
+     - Row 2, column 3
+   * - Close
+     - Row 3, column 2
+     - Row 3, column 3
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Ipsilateral to
+     - Heading row 1, column 2
+     - Heading row 1, column 3
+   * - Far
+     -
+     - Row 1, column 3
+   * - Med.
+     - Row 2, column 2
+     - Row 2, column 3
+   * - Close
+     - Row 3, column 2
+     - Row 3, column 3
 
 ( ) Ipsilateral to
 
@@ -105,7 +157,7 @@ Then select the appropriate reference to that location. **(max one from each axi
     
     ( ) Close
 
-------
+-----
 
 ( ) Above
 
@@ -123,7 +175,7 @@ Then select the appropriate reference to that location. **(max one from each axi
     
     ( ) Close
 
-------
+-----
 
 ( ) In front of
 
@@ -178,7 +230,7 @@ Horizontal axis:
     
     ( ) Close
 
-------
+-----
 
 Vertical axis:
 
@@ -188,7 +240,7 @@ Vertical axis:
 
 ( ) Low
 
-------
+-----
 
 Sagittal axis:
 
@@ -232,5 +284,3 @@ Sagittal axis:
                 ( ) H1 is behind H2
 
 -----
-
-----------
