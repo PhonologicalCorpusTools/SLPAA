@@ -1,6 +1,4 @@
 .. todo::
-    horizontal, vertical, sagittal
-    finish up circular direction descriptions
     symmetry!! → recent complications
         - no place for phasing and symmetry yet (work on Movement stuff first)
         - different context from before for 'same'/'different' directions
@@ -42,7 +40,7 @@ The program relies on a system of axes and planes to frame three-dimensional spa
 
 The primary spatial system used in SLP-AA is based on a set of three :ref:`cardinal_axes`: the **horizontal**, **vertical**, and **sagittal** axes. Each axis is perpendicular to the other two.
 
-These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The vertical axis extends in a straight line up and down from a generic reference point, the horizontal extends to the left and right, and the sagittal axis extends forwards and backwards. These can be seen here, labelled with SLP-AA's :ref:`default direction settings<axis_default>`:
+These axes can be described in reference to any given point on the signer's body or in the general signing space, depending on what is required for the situation. The horizontal extends to the left and right from a generic reference point, the vertical axis extends in a straight line up and down, and the sagittal axis extends forwards and backwards. These can be seen here, labelled with SLP-AA's :ref:`default direction settings<axis_default>`:
 
 .. image:: images/shared_axes.png
     :width: 750
@@ -68,19 +66,9 @@ a) Cardinal axis directions
 
 The pairs of endpoint directions for each axis are outlined here with sign examples involving a :ref:`perceptual_shape` traced out in the given direction. However, the axis system applies across modules, not just for movement. These examples are meant to clearly display what is meant by each direction label. See the note below for sign coding examples that apply this system to location and orientation as well.
 
-Keep in mind that it is possible to select only the axis itself without a specific endpoint direction wherever a selection for an axis or direction applies in the program. The endpoints for the sagittal and vertical axes are consistent wherever they appear. 
+Keep in mind that it is possible to select only the axis itself without a specific endpoint direction wherever a selection for an axis or direction applies in the program. 
 
-* **Sagittal axis**
-
-    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
-    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
-
-* **Vertical axis**
-
-    * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
-    * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
-
-The directions for the horizontal axis, however, depend on the preferences of the user. These adhere to one of two models for the horizontal axis, either **relative** (:ref:`ipsilateral`/:ref:`contralateral`) or **absolute** (toward H1/H2). This is described in greater detail in :ref:`Symmetry<symmetry_section>` below. The horizontal axis options can be toggled separately for different modules; see the :ref:`global_settings` for how to change these options and to see which one applies by default for each module.
+The directions for the horizontal axis depend on the preferences of the user. These adhere to one of two models for the horizontal axis, either **relative** (:ref:`ipsilateral`/:ref:`contralateral`) or **absolute** (toward H1/H2). This is described in greater detail in :ref:`Symmetry<symmetry_section>` below. The horizontal axis options can be toggled separately for different modules; see the :ref:`global_settings` for how to change these options and to see which one applies by default for each module.
     
 * **Horizontal axis: relative**
 
@@ -93,6 +81,18 @@ OR
     
     * **Toward H1**, as in the right hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
     * **Toward H2**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the right hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
+
+The endpoints for the vertical and sagittal axes are consistent wherever they appear. 
+
+* **Vertical axis**
+
+    * **Up**, as in `UMBRELLA <https://asl-lex.org/visualization/?sign=umbrella>`_ or `NORTH <https://asl-lex.org/visualization/?sign=north>`_
+    * **Down**, as in `LOSE_GAME <https://asl-lex.org/visualization/?sign=lose_game>`_ or `DRAW <https://asl-lex.org/visualization/?sign=draw>`_
+    
+* **Sagittal axis**
+
+    * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
+    * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
 
 .. note::
     **Axis direction for location and orientation**
@@ -138,7 +138,7 @@ When multiple axes or directions are selected within one instance of a module, t
 
 We can also describe a set of :ref:`cardinal_planes`, where each plane is formed by a pair of the :ref:`cardinal_axes` described above. These are the **horizontal**, **vertical**, and **sagittal** planes. Each plane is perpendicular to the other two.
 
-The sagittal plane is formed by the sagittal and vertical axes. The horizontal plane is formed by the horizontal and sagittal axes. The vertical plane is formed by the vertical and horizontal axes. These are shown here:
+The horizontal plane is formed by the horizontal and sagittal axes. The vertical plane is formed by the vertical and horizontal axes. The sagittal plane is formed by the sagittal and vertical axes. These are shown here:
 
 .. image:: images/shared_planes.png
     :width: 750
@@ -180,7 +180,6 @@ Rather than defining formal definitions of which direction is meant to be 'clock
 We define a point to be the **top of a circle** for any given circular shape in each of the three :ref:`cardinal_planes`, and then the circular direction follows based on the axis direction of the hand as it moves through that point. If the hand does not reach the top of the circle in a particular sign,  the direction should still be defined based on how the hand **would** move through the top point if it continued in the same direction. It also should not matter where the hand happens to start making the circle; the definition of the circle is defined by where the hand moves from the top (whenever it happens to get there). 
 
 .. note::
-
     **Circles and symmetry**
 
     Since this system is based on axis direction, the distinction between the **relative** (:ref:`ipsilateral`/:ref:`contralateral`) and **absolute** (toward H1/H2) models for the horizontal axis applies here as well, and it will affect the vertical and horizontal planes. These models are described in greater detail in :ref:`Symmetry<symmetry_section>` below. The set of options for circular direction will correspond to your choices for the :ref:`movement_module` as set in the :ref:`global_settings`, which means that the relative set of options applies by default unless you choose to change it.
@@ -189,17 +188,17 @@ We define a point to be the **top of a circle** for any given circular shape in 
 
 The horizontal plane does not have a clear point that would be considered the 'top' of a circle, so we define it to be the point that is furthest away from the speaker (that is, the most **distal** point). When the hand sits at that point, it can start to move to either side in a horizontal direction. The dominant hand, for instance, can move in the ipsilateral direction (toward the H1 side) or in the contralateral direction (toward the H2 side) before continuing to complete the circular shape.
 
+Directions in the horizontal plane from the perspective of the signer:
+
 .. image:: images/mov_circles_horizontal_1.png
     :width: 750
     :align: left
 
-From the perspective of the signer, **...**
+Directions in the horizontal plane when facing the signer:
 
 .. image:: images/mov_circles_horizontal_2.png
     :width: 750
     :align: left
-
-Facing towards the signer, **...**
 
 The set of options for circular directions in the horizontal plane are:
 
@@ -219,17 +218,17 @@ Absolute
 
 The vertical plane has a clear 'top' point of a circle at the highest (that is, most **up**) point. While the hand sits at the top of the circle, it can start to move within the plane toward one horizontal side or the other. This means that the same set of circular directions applies for the vertical plane as for the horizontal plane.
 
+Directions in the vertical plane from the perspective of the signer:
+
 .. image:: images/mov_circles_vertical_1.png
     :width: 750
     :align: left
 
-From the perspective of the signer, **...**
+Directions in the vertical plane when facing the signer:
 
 .. image:: images/mov_circles_vertical_2.png
     :width: 750
     :align: left
-
-Facing towards the signer, **...**
 
 The set of options for circular directions in the vertical plane are:
 
@@ -252,8 +251,6 @@ The sagittal plane also has a clear 'top' point of a circle at the highest (that
 .. image:: images/mov_circles_sagittal.png
     :width: 750
     :align: left
-
-**(Description?)**
 
 The set of options for circular directions in the sagittal plane are:
 
