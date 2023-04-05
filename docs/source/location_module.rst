@@ -2,6 +2,7 @@
     list of body locations and suboptions
         may be better to include the full list in a separate page
     axis of relation and contact?
+    acting as a connected unit description
     
 .. comment::
     Outstanding issue: Allow any particular individual selection to be tagged as ‘major phonological location’ or ‘minor phonological location’ (e.g., if someone selects eyebrow / head, they can tag ‘head’ as the major phonological location and ‘eyebrow’ as the minor one). At the moment, we can only tag the whole module as a (major/minor) phonological or phonetic location.
@@ -16,24 +17,26 @@ This :ref:`module` is used to code the **location** components of a sign. As man
 
 Select the hand(s) involved in this instance of the module.
 
+.. warning::
+    **Both hands acting as a connected unit**
+    
+    From system overview: this option is intended to accomplish a similar thing as in the movement module, in that it allows a single specification to be given for H1 while applying to both hands. But e.g. if the specification is ‘ipsilateral shoulder’ then it is interpreted as meaning that both hands are on the SAME shoulder, ipsilateral for H1 (as in `SINCE <https://asl-lex.org/visualization/?sign=since>`_ or `RESPONSIBILITY <https://asl-lex.org/visualization/?sign=responsibility>`_) – it could be used in conjunction with an axis of relation and / or a connected movement module, but it wouldn’t have to
+
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
 
 .. note::
     Each module instance can optionally be tagged as a phonological location, a phonetic location, or both of these at once. If the instance of the module is selected as a phonological location, it can optionally be further described as a major or minor phonological location.
     
 .. warning::
-    There also needs to be more discussion somewhere around here for the difference between our broad use of 'location' vs. how the term is usually defined phonologically.
+    **(For Kathleen and Oksana)**
+    
+    There should be some discussion somewhere around here for the difference between our broad use of 'location' vs. how the term is usually defined phonologically.
 
-.. _location_type:
-
-1. Location type
-`````````````````
-
-**(Description of the highest-level options for types of locations to describe in the program.)**
+**(Start with a basic description of the highest-level options for types of locations available in the program.)**
 
 .. _body_location_section:
 
-2. Body and body-anchored locations
+1. Body and body-anchored locations
 ```````````````````````````````````
 
 **(Explain differences between how these options function in the program, and list possible uses for the distinction.)**
@@ -65,8 +68,6 @@ Choose from the :ref:`location_list` or navigate the image view window to select
         
     * mutually exclusive location options within an instance of the module
 
-
-
 .. _body_anchored_location:
 
 II. Body-anchored location
@@ -83,8 +84,11 @@ Then select the appropriate reference to that location. **(max one from each axi
 
 .. list-table::
    :widths: 30 30 30
-   :header-rows: 0
+   :header-rows: 1
 
+   * - Horizontal axis
+     - Vertical axis
+     - Sagittal axis
    * - **Ipsilateral to**
      - **Above**
      - **In front of**
@@ -115,8 +119,8 @@ Then select the appropriate reference to that location. **(max one from each axi
 
 .. _purely_spatial_location:
 
-3. Purely spatial locations
-```````````````````````````
+2. Purely spatial location
+``````````````````````````
 
 .. note::
     **Linked contact modules**
@@ -131,9 +135,9 @@ Make exactly one selection from each axis:
    :widths: 30 30 30
    :header-rows: 1
 
-   * - Horizontal axis:
-     - Vertical axis:
-     - Sagittal axis:
+   * - Horizontal axis
+     - Vertical axis
+     - Sagittal axis
    * - **Ipsi**
      - **High**
      - **In front**
@@ -164,7 +168,7 @@ Make exactly one selection from each axis:
 
 **(Defaults may be set as central/mid/in front med., though I'm not sure this is decided concretely.)**
 
-4. Axis of relation (between H1 and H2)
+3. Axis of relation (between H1 and H2)
 ```````````````````````````````````````
 
 **(Some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)** No mention of how this Location type is expected to interact with Contact.
