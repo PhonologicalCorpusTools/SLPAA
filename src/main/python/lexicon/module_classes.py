@@ -9,19 +9,6 @@ from lexicon.module_classes2 import AddedInfo, TimingInterval
 
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
 
-# userdefinedroles = {
-#     'selectedrole': 0,
-#     'pathdisplayrole': 1,
-#     'mutuallyexclusiverole': 2,
-#     'texteditrole': 3,
-#     'lastingrouprole': 4,
-#     'finalsubgrouprole': 5,
-#     'subgroupnamerole': 6,
-#     'nodedisplayrole': 7,
-#     'timestamprole': 8,
-# }
-#
-
 
 class UserDefinedRoles(dict):
     __getattr__ = dict.__getitem__
@@ -31,16 +18,52 @@ class UserDefinedRoles(dict):
 
 userdefinedroles = UserDefinedRoles({
     'selectedrole': 0,
+        # selectedrole:
+        # Used by MovementTreeItem, LocationTreeItem, MovementListItem, LocationListItem to indicate
+        # whether they are selected by the user. Not exactly the same as ...Item.checkState() because:
+        #   (1) selectedrole only uses True & False whereas checkstate has none/partial/full, and
+        #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
     'pathdisplayrole': 1,
+        # pathdisplayrole:
+        # TODO KV description
     'mutuallyexclusiverole': 2,
-    'texteditrole': 3,
+        # mutuallyexclusiverole:
+        # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
+        # which also involves its display as a radio button vs a checkbox.
+    # 'unusedrole': 3,  # currently unused; can repurpose if needed
+        # unusedrole:
+        # TODO KV description
     'lastingrouprole': 4,
+        # lastingrouprole:
+        # TODO KV description
     'finalsubgrouprole': 5,
+        # finalsubgrouprole:
+        # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
+        # also in the *last* subgroup in its section. Such a subgroup will not have a horizontal line drawn after it.
     'subgroupnamerole': 6,
+        # subgroupnamerole:
+        # Used by MovementTreeItem & LocationTreeItem to identify which items are grouped together. Such
+        # subgroups are separated from other siblings by a horizontal line in the tree, and item selection
+        # is often (always?) mutually exclusive within the subgroup.
     'nodedisplayrole': 7,
+        # nodedisplayrole:
+        # Used by MovementListItem & LocationListItem to store just the corresponding treeitem's node name
+        # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
     'timestamprole': 8,
+        # timestamprole:
+        # TODO KV description
     'isuserspecifiablerole': 9,
+        # isuserspecifiablerole:
+        # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
+        # If 0, the corresponding QStandardItem (ie, the "editable part") is marked not editable; the user cannot change its value;
+        # If 1, the corresponding QStandardItem is marked editable but must be a number, >= 1, and a multiple of 0.5;
+        # If 2, the corrresponding QStandardItem is marked editable but must be a number;
+        # If 3, the corrresponding QStandardItem is marked editable with no restrictions.
+        # This kind of editable functionality was formerly achieved via a separate (subsidiary) editable MovementTreeItem.
+
     'userspecifiedvaluerole': 10,
+        # userspecifiedvaluerole:
+        # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
 })
 
 

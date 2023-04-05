@@ -300,6 +300,7 @@ class Sign:
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
+            # print("unserializing movement modules for sign", self._signlevel_information.gloss)
             self.unserializemovementmodules(serializedsign['mov modules'])
             self.handpartmodules = serializedsign['hpt modules']
             self.unserializelocationmodules(serializedsign['loc modules'])
@@ -348,6 +349,10 @@ class Sign:
         unserialized = {}
         for k in serialized_mvmtmodules.keys():
             serialmodule = serialized_mvmtmodules[k]
+            # print('unserializing movement module', serialmodule.movementtree)
+            # print(serialmodule.movementtree.checkstates)
+            # if hasattr(serialmodule.movementtree, 'userspecifiedvalues'):
+            #     print(serialmodule.movementtree.userspecifiedvalues)
             mvmttreemodel = serialmodule.movementtree.getMovementTreeModel()
             hands = serialmodule.hands
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0

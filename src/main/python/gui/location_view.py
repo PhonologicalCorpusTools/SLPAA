@@ -339,7 +339,7 @@ class LocationTreeItem(QStandardItem):
             self.setCheckState(serializedlocntreeitem['checkstate'])
             self.setUserTristate(serializedlocntreeitem['usertristate'])
             self.setData(serializedlocntreeitem['selectedrole'], Qt.UserRole + udr.selectedrole)
-            self.setData(serializedlocntreeitem['texteditrole'], Qt.UserRole + udr.texteditrole)
+            # self.setData(serializedlocntreeitem['texteditrole'], Qt.UserRole + udr.texteditrole)
             self.setData(serializedlocntreeitem['timestamprole'], Qt.UserRole + udr.timestamprole)
             self.setData(serializedlocntreeitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
             self.setData(serializedlocntreeitem['displayrole'], Qt.DisplayRole)
@@ -357,7 +357,7 @@ class LocationTreeItem(QStandardItem):
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
             self.setData(False, Qt.UserRole + udr.selectedrole)
-            self.setData(False, Qt.UserRole + udr.texteditrole)
+            # self.setData(False, Qt.UserRole + udr.texteditrole)
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
             self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
             self._ishandloc = ishandloc
@@ -393,7 +393,7 @@ class LocationTreeItem(QStandardItem):
             'usertristate': self.isUserTristate(),
             'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
             'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
-            'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
+            # 'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
             'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
             'ishandloc': self._ishandloc,
             'displayrole': self.data(Qt.DisplayRole),
@@ -436,18 +436,18 @@ class LocationTreeItem(QStandardItem):
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
-    def updatelistdata(self):
-        if self.parent() and "Specify total number of cycles" in self.parent().data():
-            previouslistitemtext = self.listitem.text()
-            parentname = self.parent().text()
-            updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
-            if delimiter in previouslistitemtext[updatetextstartindex:]:
-                updatetextstopindex = previouslistitemtext.index(delimiter, updatetextstartindex)
-            else:
-                updatetextstopindex = len(previouslistitemtext) + 1
-            selftext = self.text()
-            self.listitem.updatetext(
-                previouslistitemtext[:updatetextstartindex] + selftext + previouslistitemtext[updatetextstopindex:])
+    # def updatelistdata(self):
+    #     if self.parent() and "Specify total number of cycles" in self.parent().data():
+    #         previouslistitemtext = self.listitem.text()
+    #         parentname = self.parent().text()
+    #         updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
+    #         if delimiter in previouslistitemtext[updatetextstartindex:]:
+    #             updatetextstopindex = previouslistitemtext.index(delimiter, updatetextstartindex)
+    #         else:
+    #             updatetextstopindex = len(previouslistitemtext) + 1
+    #         selftext = self.text()
+    #         self.listitem.updatetext(
+    #             previouslistitemtext[:updatetextstartindex] + selftext + previouslistitemtext[updatetextstopindex:])
 
     def check(self, fully=True):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
@@ -643,7 +643,7 @@ class LocationTreeSerializable:
         # creates a full serializable copy of the location tree, eg for saving to disk
         treenode = locntreemodel.invisibleRootItem()
 
-        self.numvals = {}
+        self.numvals = {}  # deprecated
         self.checkstates = {}
         self.detailstables = {}
         self.addedinfos = {}
@@ -664,11 +664,11 @@ class LocationTreeSerializable:
                     self.addedinfos[pathtext] = copy(addedinfo)
                     self.detailstables[pathtext] = LocationTableSerializable(locntable)
                     editable = treechild.isEditable()
-                    if editable:
-                        pathsteps = pathtext.split(delimiter)
-                        parentpathtext = delimiter.join(pathsteps[:-1])
-                        numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
-                        self.numvals[parentpathtext] = numericstring
+                    # if editable:  # TODO KV do this the same way as movement tree
+                    #     pathsteps = pathtext.split(delimiter)
+                    #     parentpathtext = delimiter.join(pathsteps[:-1])
+                    #     numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
+                    #     self.numvals[parentpathtext] = numericstring
 
                     self.checkstates[pathtext] = checkstate
                 self.collectdata(treechild)
@@ -737,36 +737,36 @@ class LocationTreeModel(QStandardItemModel):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
         self.itemChanged.connect(self.updateCheckState)
-        self.dataChanged.connect(self.updatelistdata)
+        # self.dataChanged.connect(self.updatelistdata)
         self._locationtype = LocationType()  # TODO KV this shouldn't change, now that we have several copies available for the selectionlayout
 
-    def tempprintcheckeditems(self):
-        treenode = self.invisibleRootItem()
-        self.printhelper(treenode)
+    # def tempprintcheckeditems(self):
+    #     treenode = self.invisibleRootItem()
+    #     self.printhelper(treenode)
+    #
+    # def tempprinthelper(self, treenode):
+    #     for r in range(treenode.rowCount()):
+    #         treechild = treenode.child(r, 0)
+    #         if treechild is not None:
+    #             pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+    #             checkstate = treechild.checkState()
+    #             locntable = treechild.detailstable
+    #             addedinfo = treechild.addedinfo
+    #
+    #             if checkstate == Qt.Checked:
+    #                 print(pathtext)
+    #                 checkedlocations = []
+    #                 for col in locntable.col_contents:
+    #                     for it in col:
+    #                         if it[1]:
+    #                             checkedlocations.append(it[0])
+    #                 print("detailed locations selected:", checkedlocations)
+    #                 print(addedinfo)
+    #         self.tempprinthelper(treechild)
 
-    def tempprinthelper(self, treenode):
-        for r in range(treenode.rowCount()):
-            treechild = treenode.child(r, 0)
-            if treechild is not None:
-                pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                checkstate = treechild.checkState()
-                locntable = treechild.detailstable
-                addedinfo = treechild.addedinfo
-
-                if checkstate == Qt.Checked:
-                    print(pathtext)
-                    checkedlocations = []
-                    for col in locntable.col_contents:
-                        for it in col:
-                            if it[1]:
-                                checkedlocations.append(it[0])
-                    print("detailed locations selected:", checkedlocations)
-                    print(addedinfo)
-            self.tempprinthelper(treechild)
-
-    def updatelistdata(self, topLeft, bottomRight):
-        startitem = self.itemFromIndex(topLeft)
-        startitem.updatelistdata()
+    # def updatelistdata(self, topLeft, bottomRight):
+    #     startitem = self.itemFromIndex(topLeft)
+    #     startitem.updatelistdata()
 
     def updateCheckState(self, item):
         thestate = item.checkState()

@@ -20,14 +20,21 @@ from PyQt5.QtWidgets import (
     QErrorMessage,
 )
 
+from PyQt5.Qt import (
+    QStandardItem,
+    # QStandardItemModel
+)
+
 from PyQt5.QtCore import (
     Qt,
     # QSize,
     QEvent,
-    pyqtSignal
+    pyqtSignal,
+    QAbstractListModel
 )
 
-from gui.movement_view import MovementTreeModel, MovementTreeSerializable, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView
+# TODO KV can this be combined with the one for location?
+from gui.movement_view import MovementTreeModel, MovementTreeSerializable, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView, MovementTreeItem, MovementListItem
 from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
 from lexicon.module_classes import MovementModule, delimiter, userdefinedroles as udr
 from lexicon.module_classes2 import AddedInfo
@@ -36,46 +43,47 @@ from lexicon.module_classes2 import AddedInfo
 # https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
 class TreeItemDelegate(QStyledItemDelegate):
 
-    def createEditor(self, parent, option, index):
-        theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
-        theeditor.returnPressed.connect(self.returnkeypressed)
-        return theeditor
-
-    def setEditorData(self, editor, index):
-        editor.setText(index.data(role=Qt.DisplayRole))
-
-    def setModelData(self, editor, model, index):
-        model.itemFromIndex(index).setData(editor.text(), role=Qt.DisplayRole)
-        currentpath = model.itemFromIndex(index).data(role=Qt.UserRole+udr.pathdisplayrole)
-        newpathlevels = currentpath.split(delimiter)
-        newpathlevels[-1] = editor.text()
-        model.itemFromIndex(index).setData(delimiter.join(newpathlevels), role=Qt.UserRole+udr.pathdisplayrole)
-
-    def __init__(self):
-        super().__init__()
-        self.commitData.connect(self.validatedata)
+    # def createEditor(self, parent, option, index):
+    #     theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
+    #     theeditor.returnPressed.connect(self.returnkeypressed)
+    #     return theeditor
+    #
+    # def setEditorData(self, editor, index):
+    #     editor.setText(index.data(role=Qt.DisplayRole))
+    #
+    # def setModelData(self, editor, model, index):
+    #     editableitem = model.itemFromIndex(index)
+    #     if isinstance(editableitem, QStandardItem) and not isinstance(editableitem, MovementTreeItem) and not isinstance(editableitem, MovementListItem):
+    #         # then this is the editable part of a movement tree item
+    #         treeitem = editableitem.parent().child(editableitem.row(), 0)
+    #         editableitem.setData(editor.text(), role=Qt.DisplayRole)
+    #
+    # def __init__(self):
+    #     super().__init__()
+    #     self.commitData.connect(self.validatedata)
 
     def returnkeypressed(self):
         print("return pressed")
         return True
 
-    def validatedata(self, editor):
-        # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
-        valstring = editor.text()
-        isanumber = False
-        valnum = None
-        if valstring.isnumeric():
-            isanumber = True
-            valnum = int(valstring)
-        elif valstring.replace(".", "").isnumeric():
-            isanumber = True
-            valnum = float(valstring)
-        if valstring not in ["", "#"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
-            errordialog = QErrorMessage(editor.parent())
-            errordialog.showMessage("Total number of cycles must be at least 1 and also a multiple of 0.5")
-            editor.setText("#")
-            # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
-            # editor.setFocus()  # this creates an infinite loop
+    # def validatedata(self, editor):
+    #     pass
+    #     # # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
+    #     # valstring = editor.text()
+    #     # isanumber = False
+    #     # valnum = 0
+    #     # if valstring.isnumeric():
+    #     #     isanumber = True
+    #     #     valnum = int(valstring)
+    #     # elif valstring.replace(".", "").isnumeric():
+    #     #     isanumber = True
+    #     #     valnum = float(valstring)
+    #     # if valstring not in ["", "specify"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
+    #     #     errordialog = QErrorMessage(editor.parent())
+    #     #     errordialog.showMessage("Total number of cycles must be at least 1 and also a multiple of 0.5")
+    #     #     editor.setText("#")
+    #     #     # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
+    #     #     # editor.setFocus()  # this creates an infinite loop
 
     def paint(self, painter, option, index):
         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
@@ -111,11 +119,8 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         self.treemodel = MovementTreeModel()
         if moduletoload:
             if isinstance(moduletoload, MovementTreeModel):
+                # moduletoload.tempprinttreemodel()
                 self.treemodel = MovementTreeSerializable(moduletoload).getMovementTreeModel()
-                # self.treemodel = MovementModuleSerializable(mvmttreeonly=moduletoload).getMovementTreeModel()
-            # elif isinstance(moduletoload, MovementTree):
-            #     # TODO KV - make sure listmodel & listitems are also populated
-            #     self.treemodel = moduletoload.getMovementTreeModel()
             elif isinstance(moduletoload, MovementModule):
                 self.treemodel = MovementTreeSerializable(moduletoload.movementtreemodel).getMovementTreeModel()
             else:
@@ -157,10 +162,20 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         self.treedisplay.setItemDelegate(TreeItemDelegate())
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
-        # TODO KV figure out adding number selector
-        items = self.treemodel.findItems("Specify total number of cycles", Qt.MatchRecursive)
-        repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
-        self.treedisplay.openPersistentEditor(repsindex)
+        # # TODO KV figure out adding number selector
+        # items = self.treemodel.findItems("Specify total number of cycles", Qt.MatchRecursive)
+        # repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
+        # self.treedisplay.openPersistentEditor(repsindex)
+
+        userspecifiableitems = self.treemodel.findItemsByRoleValues(Qt.UserRole+udr.isuserspecifiablerole, [1, 2, 3])
+        usi_names = [usi.data() for usi in userspecifiableitems]
+        # print("userspecifiableitems", userspecifiableitems)
+        editableitems = [it.editablepart() for it in userspecifiableitems]
+        # print("number of corresponding editableitems", len(editableitems))
+        # editableitemindices = []
+        for it in editableitems:
+            self.treedisplay.openPersistentEditor(self.treemodel.indexFromItem(it))
+
         self.treedisplay.installEventFilter(self)
         self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.treedisplay.setMinimumWidth(400)
