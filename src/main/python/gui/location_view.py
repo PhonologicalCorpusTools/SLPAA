@@ -319,8 +319,8 @@ locn_options_axisofreln = {
         ("H1 is to H2 side of H2", fx, rb, u, None, None, None, None, None): {},
     },
     ("Sagittal", fx, cb, u, None, None, None, None, None): {
-        ("H1 is in front of H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is behind H2", fx, rb, u, None, None, None, None, None): {},
+        ("H1 is more distal than H2", fx, rb, u, None, None, None, None, None): {},
+        ("H1 is more proximal than H2", fx, rb, u, None, None, None, None, None): {},
     },
 }
 
@@ -679,8 +679,30 @@ class LocationTreeSerializable:
         rootnode = locntreemodel.invisibleRootItem()
         locntreemodel.populate(rootnode)
         makelistmodel = locntreemodel.listmodel  # TODO KV   what is this? necessary?
+        self.backwardcompatibility()
         self.setvalues(rootnode)
         return locntreemodel
+
+    # 
+    def backwardcompatibility(self):
+        # if not hasattr(self, 'userspecifiedvalues'):
+        #     self.userspecifiedvalues = {}
+        for stored_dict in [self.checkstates, self.addedinfos, self.detailstables]:  # self.numvals, self.stringvals,
+            pairstoadd = {}
+            keystoremove = []
+            for k in stored_dict.keys():
+                if "H1 is in front of H2" in k:
+                    pairstoadd[k.replace("H1 is in front of H2", "H1 is more distal than H2")] = stored_dict[k]
+                    keystoremove.append(k)
+                if "H1 is behind H2" in k:
+                    pairstoadd[k.replace("H1 is behind H2", "H1 is more proximal than H2")] = stored_dict[k]
+                    keystoremove.append(k)
+
+            for oldkey in keystoremove:
+                stored_dict.pop(oldkey)
+
+            for newkey in pairstoadd.keys():
+                stored_dict[newkey] = pairstoadd[newkey]
 
     def setvalues(self, treenode):
         if treenode is not None:
