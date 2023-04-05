@@ -708,7 +708,7 @@ class MovementTreeModel(QStandardItemModel):
             previoustext = treeitem.data(Qt.UserRole+udr.userspecifiedvaluerole)
             updatedtext = self.validateeditedtext(proposedtext, userspecifiability, previoustext)
 
-            editableitem.setText(updatedtext)
+            editableitem.setText("specify" if updatedtext == "" else updatedtext)
             treeitem.setData(updatedtext, role=Qt.UserRole+udr.userspecifiedvaluerole) # this auto-updates the list item and its display as well
 
     # def updatelistdata(self, topLeft, bottomRight):
@@ -743,9 +743,6 @@ class MovementTreeModel(QStandardItemModel):
             elif userspecifiability == ed_3:
                 messagestring += "anything (unrestricted)"
             QMessageBox.critical(None, "Warning", messagestring)
-        else:
-            if updatedtext == "":
-                updatedtext = "specify"
 
         return updatedtext
 
@@ -1135,9 +1132,9 @@ class MovementListItem(QStandardItem):
 
             if self.treeitem.data(Qt.UserRole+udr.isuserspecifiablerole):
                 currentlistdisplay = self.data(Qt.DisplayRole)
-                if re.search(" \[.*\]$", currentlistdisplay) is None:
-                    currentlistdisplay += " []"
-                newlistdisplay = re.sub(" \[.*\]$", " [" + value + "]", currentlistdisplay)
+                newlistdisplay = re.sub(" \[.*\]$", "", currentlistdisplay)
+                if value != "":
+                    newlistdisplay += " [" + value + "]"
                 self.setData(newlistdisplay, Qt.DisplayRole)
 
     def __repr__(self):
