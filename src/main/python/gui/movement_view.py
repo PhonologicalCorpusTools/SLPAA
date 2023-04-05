@@ -710,6 +710,8 @@ class MovementTreeModel(QStandardItemModel):
 
             editableitem.setText("specify" if updatedtext == "" else updatedtext)
             treeitem.setData(updatedtext, role=Qt.UserRole+udr.userspecifiedvaluerole) # this auto-updates the list item and its display as well
+            if treeitem.data(role=Qt.UserRole+udr.userspecifiedvaluerole) != "" and treeitem.checkState() != Qt.Checked:
+                treeitem.check(fully=True)
 
     # def updatelistdata(self, topLeft, bottomRight):
     #     startitem = self.itemFromIndex(topLeft)
