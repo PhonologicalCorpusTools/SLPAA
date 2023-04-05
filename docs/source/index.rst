@@ -17,13 +17,15 @@ Contents:
    sign_type.rst
    modularity.rst
    timing.rst
+   signing_space.rst
+   hand_configuration_module.rst
    predefined_handshapes.rst
    setting_preferences.rst
    terminology.rst
-   signing_space.rst
    transcription_process.rst
-   orientation_module.rst
    movement_module.rst
+   location_module.rst
+   orientation_module.rst
    global_settings.rst
    glossary.rst
    references.rst
