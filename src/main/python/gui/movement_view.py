@@ -279,10 +279,6 @@ mvmtOptionsDict = {
         ("Repetition", fx, cb, u, 154): {
             ("Single", fx, rb, u, 155): {},
             ("Repeated", fx, rb, u, 156): {
-                # (specifytotalcycles_str, fx, cb, u, 156): {
-                #     ("#", ed, cb, u, 157): {
-                #         ("This number is a minimum", fx, cb, u, 158): {},
-                #     },  # TODO KV
                 (specifytotalcycles_str, ed_1, cb, u, 156): {
                     # ("#", ed, cb, u, 157): {
                     ("This number is a minimum", fx, cb, u, 158): {},
@@ -331,20 +327,10 @@ mvmtOptionsDict = {
                     ("Big", fx, rb, u, 182): {},
                     ("Normal", fx, rb, u, 183): {},
                     ("Small", fx, rb, u, 184): {},
-                    # ("Other", fx, rb, u, 185): {
-                    #     ("Specify", ed, cb, u, 186): {}
-                    # },  # TODO KV
-                    ("Other", ed_3, rb, u, 185): {
-                        # ("Specify", ed, cb, u, 186): {}
-                    },
+                    ("Other", ed_3, rb, u, 185): {},
                 },
                 (subgroup, None, 1, None, 187): {
-                    # ("Relative to:", fx, cb, u, 188): {
-                    #     ("Specify", ed, cb, u, 189): {}
-                    # },  # TODO KV
-                    ("Relative to", ed_3, cb, u, 188): {
-                        # ("Specify", ed, cb, u, 189): {}
-                    },
+                    ("Relative to", ed_3, cb, u, 188): {},
                 }
             },
             ("Speed", fx, cb, u, 190): {
@@ -352,20 +338,10 @@ mvmtOptionsDict = {
                     ("Fast", fx, rb, u, 192): {},
                     ("Normal", fx, rb, u, 193): {},
                     ("Slow", fx, rb, u, 194): {},
-                    # ("Other:", fx, rb, u, 195): {
-                    #     ("Specify", ed, cb, u, 196): {}
-                    # },  # TODO KV
-                    ("Other", ed_3, rb, u, 195): {
-                        # ("Specify", ed, cb, u, 196): {}
-                    },
+                    ("Other", ed_3, rb, u, 195): {},
                 },
                 (subgroup, None, 1, None, 197): {
-                    # ("Relative to:", fx, cb, u, 198): {
-                    #     ("Specify", ed, cb, u, 199): {}
-                    # },  # TODO KV
-                    ("Relative to", ed_3, cb, u, 198): {
-                        # ("Specify", ed, cb, u, 199): {}
-                    },
+                    ("Relative to", ed_3, cb, u, 198): {},
                 }
             },
             ("Force", fx, cb, u, 200): {
@@ -373,20 +349,10 @@ mvmtOptionsDict = {
                     ("Strong", fx, rb, u, 202): {},
                     ("Normal", fx, rb, u, 203): {},
                     ("Weak", fx, rb, u, 204): {},
-                    # ("Other:", fx, rb, u, 205): {
-                    #     ("Specify", ed, cb, u, 206): {}
-                    # },  # TODO KV
-                    ("Other", ed_3, rb, u, 205): {
-                        # ("Specify", ed, cb, u, 206): {}
-                    },
+                    ("Other", ed_3, rb, u, 205): {},
                 },
                 (subgroup, None, 1, None, 207): {
-                    # ("Relative to:", fx, cb, u, 208): {
-                    #     ("Specify", ed, cb, u, 209): {}
-                    # },  # TODO KV
-                    ("Relative to", ed_3, cb, u, 208): {
-                        # ("Specify", ed, cb, u, 209): {}
-                    },
+                    ("Relative to", ed_3, cb, u, 208): {},
                 }
             },
             ("Tension", fx, cb, u, 210): {
@@ -394,20 +360,10 @@ mvmtOptionsDict = {
                     ("Tense", fx, rb, u, 212): {},
                     ("Normal", fx, rb, u, 213): {},
                     ("Lax", fx, rb, u, 214): {},
-                    # ("Other:", fx, rb, u, 215): {
-                    #     ("Specify", ed, cb, u, 216): {}
-                    # },  # TODO KV
-                    ("Other", ed_3, rb, u, 215): {
-                        # ("Specify", ed, cb, u, 216): {}
-                    },
+                    ("Other", ed_3, rb, u, 215): {},
                 },
                 (subgroup, None, 1, None, 217): {
-                    # ("Relative to:", fx, cb, u, 218): {
-                    #     ("Specify", ed, cb, u, 219): {}
-                    # },  # TODO KV
-                    ("Relative to", ed_3, cb, u, 218): {
-                        # ("Specify", ed, cb, u, 219): {}
-                    },
+                    ("Relative to", ed_3, cb, u, 218): {},
                 }
             }
         }
@@ -518,15 +474,6 @@ class MovementTreeSerializable:
                     userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
                     if iseditable:
                         self.userspecifiedvalues[pathtext] = userspecifiedvalue
-                    # # editable = treechild.isEditable()
-                    # if isuserspecifiable:  # editable:
-                    #     pathsteps = pathtext.split(delimiter)
-                    #     parentpathtext = delimiter.join(pathsteps[:-1])
-                    #     userstring = pathsteps[-1]
-                    #     if userstring.replace(".", "").isnumeric():
-                    #         self.numvals[parentpathtext] = userstring
-                    #     else:
-                    #         self.stringvals[parentpathtext] = userstring
 
                     self.checkstates[pathtext] = checkstate
                 self.collectdata(treechild)
@@ -540,10 +487,11 @@ class MovementTreeSerializable:
         self.setvalues(rootnode)
         return mvmttreemodel
 
-    # TODO KV eventually it'd be nice to get the rest of the "specify total number of cycles" vs "number of repetitions" stuff in here too (from self.setvalues)
     def backwardcompatibility(self):
+        hadtoaddusv = False
         if not hasattr(self, 'userspecifiedvalues'):
             self.userspecifiedvalues = {}
+            hadtoaddusv = True
         for stored_dict in [self.checkstates, self.addedinfos]:  # self.numvals, self.stringvals,
             pairstoadd = {}
             keystoremove = []
@@ -552,26 +500,29 @@ class MovementTreeSerializable:
                     pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
                     keystoremove.append(k)
 
-                elif k.endswith(specifytotalcycles_str) or k.endswith(numberofreps_str):
-                    pairstoadd[k.replace(numberofreps_str, specifytotalcycles_str)] = stored_dict[k]
-                    keystoremove.append(k)
+                if hadtoaddusv:
 
-                if "This number is a minimum" in k:  # delimiter + "#" + delimiter + "This number is a minimum" in k:
-                    pairstoadd[k.replace(delimiter + "#" + delimiter, delimiter)] = stored_dict[k]
-                    keystoremove.append(k)
-                elif (specifytotalcycles_str + delimiter in k or numberofreps_str + delimiter in k):  # and not "This number is a minimum" in k
-                    # then we're looking at the item that stores info about the specified number of repetitions
-                    newkey = k.replace(numberofreps_str, specifytotalcycles_str)
-                    newkey = newkey[:newkey.index(specifytotalcycles_str+delimiter) + len(specifytotalcycles_str)]# "Movement characteristics" + delimiter + "Repetition" + delimiter + "Repeated" + delimiter + specifytotalcycles_str
-                    remainingtext = ""
-                    if specifytotalcycles_str in k:
-                        remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(specifytotalcycles_str + delimiter):]
-                    elif numberofreps_str in k:
-                        remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(numberofreps_str + delimiter):]
+                    if k.endswith(specifytotalcycles_str) or k.endswith(numberofreps_str):
+                        pairstoadd[k.replace(numberofreps_str, specifytotalcycles_str)] = stored_dict[k]
+                        keystoremove.append(k)
 
-                    if len(remainingtext) > 0 and delimiter not in remainingtext and remainingtext != "#":
-                        numcycles = remainingtext
-                        self.userspecifiedvalues[newkey] = numcycles
+                    elif "This number is a minimum" in k:
+                        pairstoadd[k.replace(delimiter + "#" + delimiter, delimiter)] = stored_dict[k]
+                        keystoremove.append(k)
+
+                    elif (specifytotalcycles_str + delimiter in k or numberofreps_str + delimiter in k):
+                        # then we're looking at the item that stores info about the specified number of repetitions
+                        newkey = k.replace(numberofreps_str, specifytotalcycles_str)
+                        newkey = newkey[:newkey.index(specifytotalcycles_str+delimiter) + len(specifytotalcycles_str)]
+                        remainingtext = ""
+                        if specifytotalcycles_str in k:
+                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(specifytotalcycles_str + delimiter):]
+                        elif numberofreps_str in k:
+                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(numberofreps_str + delimiter):]
+
+                        if len(remainingtext) > 0 and delimiter not in remainingtext and remainingtext != "#":
+                            numcycles = remainingtext
+                            self.userspecifiedvalues[newkey] = numcycles
 
             for oldkey in keystoremove:
                 stored_dict.pop(oldkey)
@@ -579,48 +530,22 @@ class MovementTreeSerializable:
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
-    def setvalues(self, treenode):  # TODO KV make the (pre-20230208) backwards compatibility cleaner
+    def setvalues(self, treenode):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                    oldpathtext = pathtext.replace(specifytotalcycles_str, numberofreps_str)
-                    parentpathtext = treenode.data(Qt.UserRole + udr.pathdisplayrole)
-                    # oldparentpathtext = None if parentpathtext is None else parentpathtext.replace(specifytotalcycles_str, numberofreps_str)
-                    # if parentpathtext in self.numvals.keys():
-                    #     treechild.setText(self.numvals[parentpathtext])
-                    #     treechild.setEditable(True)
-                    #     pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
-                    # elif oldparentpathtext in self.numvals.keys():
-                    #     treechild.setText(self.numvals[oldparentpathtext])
-                    #     treechild.setEditable(True)
-                    #     pathtext = parentpathtext + delimiter + self.numvals[oldparentpathtext]
-                    # elif hasattr(self, 'stringvals') and parentpathtext in self.stringvals.keys():
-                    #     treechild.setText(self.stringvals[parentpathtext])
-                    #     treechild.setEditable(True)
-                    #     pathtext = parentpathtext + delimiter + self.stringvals[parentpathtext]
-                    # elif hasattr(self, 'stringvals') and oldparentpathtext in self.stringvals.keys():
-                    #     treechild.setText(self.stringvals[oldparentpathtext])
-                    #     treechild.setEditable(True)
-                    #     pathtext = parentpathtext + delimiter + self.stringvals[oldparentpathtext]
                     if pathtext in self.checkstates.keys():
                         treechild.setCheckState(self.checkstates[pathtext])
-                    elif oldpathtext in self.checkstates.keys():
-                        treechild.setCheckState(self.checkstates[oldpathtext])
 
                     if pathtext in self.addedinfos.keys():
                         treechild.addedinfo = copy(self.addedinfos[pathtext])
-                    elif oldpathtext in self.addedinfos.keys():
-                        treechild.addedinfo = copy(self.addedinfos[oldpathtext])
 
                     if pathtext in self.userspecifiedvalues.keys():
-                        treechild.setData(self.userspecifiedvalues[pathtext], Qt.UserRole + udr.userspecifiedvaluerole)  # this also updates the associated list item as well as its display
-                        # treechild.listitem.
-                        # # TODO KV do i need to set the list item data or will that get done automatically?
+                        # this also updates the associated list item as well as its display
+                        treechild.setData(self.userspecifiedvalues[pathtext], Qt.UserRole + udr.userspecifiedvaluerole)
                         treechild.editablepart().setText(self.userspecifiedvalues[pathtext])
-                    # don't have to check for oldpathtext because userspecifiedvalues was added after the # of reps vocab change
-
 
                     self.setvalues(treechild)
 
@@ -651,12 +576,11 @@ class MovementModuleSerializable:
 
 class MovementTreeModel(QStandardItemModel):
 
-    def __init__(self, **kwargs):  #  movementparameters=None,
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._listmodel = None  # MovementListModel(self)
         self.setColumnCount(2)
         self.itemChanged.connect(self.updateCheckState)
-        # self.dataChanged.connect(self.updatelistdata)
         self.dataChanged.connect(self.updaterelateddata)
 
     # def tempprinttreemodel(self):
@@ -678,11 +602,6 @@ class MovementTreeModel(QStandardItemModel):
             possiblevalues = [possiblevalues]
         if parentnode is None:
             parentnode = self.invisibleRootItem()
-
-        # items = []
-        # for pv in possiblevalues:
-        #     match_indices = self.match(self.index(0, 0), role, pv, hits=-1)
-        #     items.extend([self.itemFromIndex(m) for m in match_indices])
 
         items = []
         numchildren = parentnode.rowCount()
@@ -709,13 +628,9 @@ class MovementTreeModel(QStandardItemModel):
             updatedtext = self.validateeditedtext(proposedtext, userspecifiability, previoustext)
 
             editableitem.setText("specify" if updatedtext == "" else updatedtext)
-            treeitem.setData(updatedtext, role=Qt.UserRole+udr.userspecifiedvaluerole) # this auto-updates the list item and its display as well
+            treeitem.setData("" if updatedtext == "specify" else updatedtext, role=Qt.UserRole+udr.userspecifiedvaluerole) # this auto-updates the list item and its display as well
             if treeitem.data(role=Qt.UserRole+udr.userspecifiedvaluerole) != "" and treeitem.checkState() != Qt.Checked:
                 treeitem.check(fully=True)
-
-    # def updatelistdata(self, topLeft, bottomRight):
-    #     startitem = self.itemFromIndex(topLeft)
-    #     startitem.updatelistdata()
 
     def validateeditedtext(self, proposedtext, userspecifiability, previoustext):
         valid = False
@@ -802,15 +717,12 @@ class MovementTreeModel(QStandardItemModel):
                     self.populate(parentnode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
 
                 else:
-                    # parentnode.setColumnCount(1)
                     thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
                     thistreenode.setData(userspecifiability, Qt.UserRole+udr.isuserspecifiablerole)
                     editablepart = QStandardItem()
                     editablepart.setEditable(iseditable)
                     editablepart.setText("specify" if iseditable else "")
-                    # thistreenode.setData(False, Qt.UserRole+udr.selectedrole)  #  moved to MovementTreeItem.__init__()
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole + udr.pathdisplayrole)
-                    # thistreenode.setEditable(isuserspecifiable)
                     thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
                     if issubgroup:
                         thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
@@ -859,7 +771,6 @@ class MovementTreeItem(QStandardItem):
         self.setEditable(False)
 
         if serializedmvmtitem:
-            # self.setEditable(serializedmvmtitem['editable'])
             self.setText(serializedmvmtitem['text'])
             self.setCheckable(serializedmvmtitem['checkable'])
             self.setCheckState(serializedmvmtitem['checkstate'])
@@ -868,7 +779,6 @@ class MovementTreeItem(QStandardItem):
             # self.setData(serializedmvmtitem['texteditrole'], Qt.UserRole+udr.texteditrole)
             self.setData(serializedmvmtitem['timestamprole'], Qt.UserRole+udr.timestamprole)
             self.setData(serializedmvmtitem['isuserspecifiablerole'], Qt.UserRole+udr.isuserspecifiablerole)
-            temp_usv = serializedmvmtitem['userspecifiedvaluerole']
             self.setData(serializedmvmtitem['userspecifiedvaluerole'], Qt.UserRole+udr.userspecifiedvaluerole)
             self.setData(serializedmvmtitem['mutuallyexclusiverole'], Qt.UserRole+udr.mutuallyexclusiverole)
             self.setData(serializedmvmtitem['displayrole'], Qt.DisplayRole)
@@ -876,7 +786,6 @@ class MovementTreeItem(QStandardItem):
             self.listitem = MovementListItem(serializedlistitem=serializedmvmtitem['listitem'])
             self.listitem.treeitem = self
         else:
-            # self.setEditable(False)
             self.setText(txt)
             self.setCheckable(True)
             self.setCheckState(Qt.Unchecked)
@@ -892,7 +801,6 @@ class MovementTreeItem(QStandardItem):
                 self.setData(True, Qt.UserRole+udr.mutuallyexclusiverole)
             else:
                 self.setData(False, Qt.UserRole+udr.mutuallyexclusiverole)
-            # self.setData(mutuallyexclusive, Qt.UserRole+mutuallyexclusiverole)
 
             self.listitem = listit
             if listit is not None:
@@ -910,7 +818,6 @@ class MovementTreeItem(QStandardItem):
 
     def serialize(self):
         return {
-            # 'editable': self.isEditable(),
             'text': self.text(),
             'checkable': self.isCheckable(),
             'checkstate': self.checkState(),
@@ -945,46 +852,6 @@ class MovementTreeItem(QStandardItem):
     @nodetypeID.setter
     def nodetypeID(self, nodetypeID):
         self._nodetypeID = nodetypeID if nodetypeID is not None else -1
-
-    # def updatelistdata(self):
-    #     if self.data(Qt.UserRole + udr.isuserspecifiablerole):
-    #         specifiedvalue = self.editablepart().text()
-    #         listitem = self.listitem
-    #         listitem.setData(specifiedvalue, Qt.UserRole + udr.userspecifiedvaluerole)
-    #         listitem.updatetext(listitem.data(Qt.UserRole + udr.pathdisplayrole) + " [" + specifiedvalue + "]")
-
-
-
-        # names = ["Specify total number of cycles", "Number of repetitions"]
-        # names_present = [n in self.data() for n in names]
-        # for i in range(len(names_present)):
-        #     if names_present[i]:
-        #         previouslistitemtext = self.listitem.text()
-        #         updatetextstartindex = previouslistitemtext.index(names[i]+" [")
-        #         updatetextstopindex = previouslistitemtext.index("]", updatetextstartindex)
-        #     editable_value = self.editablepart().text()
-        #     print("editable_value", editable_value)
-        #     self.listitem.updatetext(previouslistitemtext[:updatetextstartindex] + editable_value + previouslistitemtext[updatetextstopindex:])
-
-
-        # if self.parent() and (specifytotalcycles_str == self.parent().text() or numberofreps_str == self.parent().text()):
-        #     # then we're updating the item that specifies the total number of cycles
-        #     listitemformertext = self.listitem.text()
-        #     parentname = self.parent().text()
-        #     updatetextstartindex = listitemformertext.index(parentname) + len(parentname + delimiter)
-        #     listitemnewtext = listitemformertext[:updatetextstartindex] + self.text()
-        #     self.listitem.updatetext(listitemnewtext)
-        #
-        #     self.child(0,0).updatelistdata()
-        #
-        # elif self.parent() and self.parent().parent() and (specifytotalcycles_str == self.parent().parent().text() or numberofreps_str == self.parent().parent().text()):
-        #     # then we're updating the item that specifies whether the number of cycles is a minimum
-        #     listitemformertext = self.listitem.text()
-        #     parentname = self.parent().text()
-        #     grandparentname = self.parent().parent().text()
-        #     updatetextstartindex = listitemformertext.index(grandparentname) + len(grandparentname + delimiter)
-        #     listitemnewtext = listitemformertext[:updatetextstartindex] + grandparentname + delimiter + parentname + delimiter + self.text()
-        #     self.listitem.updatetext(listitemnewtext)
 
     def check(self, fully=True):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
@@ -1117,17 +984,6 @@ class MovementListItem(QStandardItem):
                 self.treeitem.listitem = self
             self.setData(False, Qt.UserRole+udr.selectedrole)
 
-    # def serialize(self):
-    #     serialized = {
-    #         'editable': self.isEditable(),
-    #         'text': self.text(),
-    #         'nodedisplayrole': self.data(Qt.UserRole+udr.nodedisplayrole),
-    #         'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
-    #         'checkable': self.isCheckable(),
-    #         'selectedrole': self.data(Qt.UserRole+udr.selectedrole)
-    #     }
-    #     return serialized
-
     def setData(self, value, role=Qt.DisplayRole):
         super().setData(value, role)
         if role == Qt.UserRole + udr.userspecifiedvaluerole and hasattr(self, "treeitem") and self.treeitem is not None:
@@ -1144,10 +1000,6 @@ class MovementListItem(QStandardItem):
 
     def updateuserspecifiedvalue(self, usv):
         self.setData()
-
-    # TODO KV no longer used?
-    # def updatetext(self, txt=""):
-    #     self.setText(txt)
 
     def unselectpath(self):
         self.treeitem.uncheck()
@@ -1200,16 +1052,8 @@ class MovementListModel(QStandardItemModel):
             self.populate(treeparentnode)
             self.treemodel.listmodel = self
 
-    # def serialize(self):
-    #     serialized = []
-    #     for rownum in range(self.rowCount()):
-    #         serialized.append(self.item(rownum, 0).serialize())
-    #     return serialized
-
     def populate(self, treenode):
-        # colcount = 1  # TODO KV treenode.columnCount()
         for r in range(treenode.rowCount()):
-            # for colnum in range(colcount):
             treechild = treenode.child(r, 0)
             if treechild is not None:
                 pathtext = treechild.data(role=Qt.UserRole+udr.pathdisplayrole)
@@ -1226,10 +1070,6 @@ class TreeListView(QListView):
 
     def __init__(self):
         super().__init__()
-
-    # def selectionChanged(self, selected, deselected):
-    #     allselectedindexes = self.selectionModel().selectedIndexes()
-    #     # print("all selected", [i.data() for i in allselectedindexes])
 
     def keyPressEvent(self, event):
         key = event.key()

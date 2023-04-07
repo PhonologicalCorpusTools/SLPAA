@@ -66,25 +66,6 @@ class TreeItemDelegate(QStyledItemDelegate):
         print("return pressed")
         return True
 
-    # def validatedata(self, editor):
-    #     pass
-    #     # # TODO KV right now validation looks exactly the same for all edits; is this desired behaviour?
-    #     # valstring = editor.text()
-    #     # isanumber = False
-    #     # valnum = 0
-    #     # if valstring.isnumeric():
-    #     #     isanumber = True
-    #     #     valnum = int(valstring)
-    #     # elif valstring.replace(".", "").isnumeric():
-    #     #     isanumber = True
-    #     #     valnum = float(valstring)
-    #     # if valstring not in ["", "specify"] and (valnum % 0.5 != 0 or valnum < 1 or not isanumber):
-    #     #     errordialog = QErrorMessage(editor.parent())
-    #     #     errordialog.showMessage("Total number of cycles must be at least 1 and also a multiple of 0.5")
-    #     #     editor.setText("#")
-    #     #     # TODO KV is there a way to reset the focus on the editor to force the user to fix the value without just emptying the lineedit?
-    #     #     # editor.setFocus()  # this creates an infinite loop
-
     def paint(self, painter, option, index):
         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
             widget = option.widget
@@ -162,17 +143,9 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         self.treedisplay.setItemDelegate(TreeItemDelegate())
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
-        # # TODO KV figure out adding number selector
-        # items = self.treemodel.findItems("Specify total number of cycles", Qt.MatchRecursive)
-        # repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
-        # self.treedisplay.openPersistentEditor(repsindex)
 
         userspecifiableitems = self.treemodel.findItemsByRoleValues(Qt.UserRole+udr.isuserspecifiablerole, [1, 2, 3])
-        usi_names = [usi.data() for usi in userspecifiableitems]
-        # print("userspecifiableitems", userspecifiableitems)
         editableitems = [it.editablepart() for it in userspecifiableitems]
-        # print("number of corresponding editableitems", len(editableitems))
-        # editableitemindices = []
         for it in editableitems:
             self.treedisplay.openPersistentEditor(self.treemodel.indexFromItem(it))
 
@@ -258,9 +231,6 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
     def refresh_treemodel(self):
         self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
         self.treemodel.populate(self.treemodel.invisibleRootItem())
-        # items = self.treemodel.findItems("Specify total number of cycles", Qt.MatchRecursive)
-        # repsindex = self.treemodel.indexFromItem(items[0].child(0, 0))
-        # self.treedisplay.openPersistentEditor(repsindex)
 
         self.listmodel = self.treemodel.listmodel
 
@@ -283,113 +253,3 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
 
     def desiredheight(self):
         return 700
-
-
-# class MovementSelectorDialog(QDialog):
-#     saved_movement = pyqtSignal(MovementTreeModel, dict)
-#
-#     def __init__(self, mainwindow, new_instance=False, moduletoload=None, hands=None, x_start=0, x_end=0, **kwargs):
-#         super().__init__(**kwargs)
-#         self.mainwindow = mainwindow
-#         self.system_default_movement_specifications = mainwindow.system_default_movement
-#
-#         main_layout = QVBoxLayout()
-#
-#         self.hands_layout = HandSelectionLayout(hands)
-#         main_layout.addLayout(self.hands_layout)
-#         self.xslot_layout = XslotLinkingLayout(x_start, x_end, self.mainwindow)
-#         main_layout.addLayout(self.xslot_layout)
-#
-#         self.movement_layout = MovementSpecificationLayout(moduletoload=moduletoload)
-#         main_layout.addLayout(self.movement_layout)
-#
-#         separate_line = QFrame()
-#         separate_line.setFrameShape(QFrame.HLine)
-#         separate_line.setFrameShadow(QFrame.Sunken)
-#         main_layout.addWidget(separate_line)
-#
-#         buttons = None
-#         applytext = ""
-#         if new_instance:
-#             buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-#             applytext = "Save and close"
-#         else:
-#             buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-#             applytext = "Save"
-#
-#         self.button_box = QDialogButtonBox(buttons, parent=self)
-#         if new_instance:
-#             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
-#         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
-#
-#         # TODO KV keep? from orig locationdefinerdialog:
-#         #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
-#         self.button_box.clicked.connect(self.handle_button_click)
-#
-#         main_layout.addWidget(self.button_box)
-#
-#         self.setLayout(main_layout)
-#         self.setMinimumSize(QSize(500, 700))
-#
-#     def handle_button_click(self, button):
-#         standard = self.button_box.standardButton(button)
-#
-#         if standard == QDialogButtonBox.Cancel:
-#             # TODO KV - BUG? - if we are editing an already-existing movement module, this seems to save anyway
-#             self.reject()
-#
-#         elif standard == QDialogButtonBox.Save:  # save and add another
-#             # save info and then refresh screen to enter next movemement module
-#             self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
-#             # self.movement_layout.clearlist(None)  # TODO KV should this use "restore defaults" instead?
-#             self.hands_layout.clear()
-#             self.movement_layout.refresh_treemodel()
-#
-#         elif standard == QDialogButtonBox.Apply:  # save and close
-#             # save info and then close dialog
-#             self.saved_movement.emit(self.movement_layout.treemodel, self.hands_layout.gethands())
-#             self.accept()
-#
-#         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
-#             # TODO KV -- where should the "defaults" be defined?
-#             self.movement_layout.clearlist(button)
-#             self.hands_layout.clear()
-#
-#     #     # elif standard == QDialogButtonBox.NoButton:
-#     #     #     action_role = button.property('ActionRole')
-#     #     #     if action_role == 'Export':
-#     #     #         file_name, file_type = QFileDialog.getSaveFileName(self,
-#     #     #                                                            self.tr('Export Locations'),
-#     #     #                                                            os.path.join(
-#     #     #                                                                self.app_settings['storage'][
-#     #     #                                                                    'recent_folder'],
-#     #     #                                                                'locations.json'),
-#     #     #                                                            self.tr('JSON Files (*.json)'))
-#     #     #
-#     #     #         if file_name:
-#     #     #             with open(file_name, 'w') as f:
-#     #     #                 json.dump(self.location_tab.get_locations().get_attr_dict(), f, sort_keys=True, indent=4)
-#     #     #
-#     #     #             QMessageBox.information(self, 'Locations Exported',
-#     #     #                                     'Locations have been successfully exported!')
-#     #     #     elif action_role == 'Import':
-#     #     #         file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Import Locations'),
-#     #     #                                                            self.app_settings['storage']['recent_folder'],
-#     #     #                                                            self.tr('JSON Corpus (*.json)'))
-#     #     #         if file_name:
-#     #     #             with open(file_name, 'r') as f:
-#     #     #                 location_json = json.load(f)
-#     #     #                 imported_locations = Locations(
-#     #     #                     {loc_id: LocationParameter(name=param['name'],
-#     #     #                                                image_path=param['image_path'],
-#     #     #                                                location_polygons=param['location_polygons'],
-#     #     #                                                default=param['default'])
-#     #     #                      for loc_id, param in location_json.items()}
-#     #     #                 )
-#     #     #                 self.location_tab.import_locations(imported_locations)
-#     #     #                 self.saved_locations.emit(self.location_tab.get_locations())
-#
-#         # TODO KV - continue copying from class LocationDefinerDialog in location_definer
-
-
-

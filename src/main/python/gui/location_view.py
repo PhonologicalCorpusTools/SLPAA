@@ -109,7 +109,6 @@ bonejoint_label = "Bone/joint"
 # TODO KV - check specific exceptions etc for each subarea & surface
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
 locn_options_body = {
-    # ("No movement", fx, rb, u): {},
     ("Head", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {
         ("Back of head", fx, rb, u, n, disallow, no_exceptions, allow, no_exceptions): {},
         ("Top of head", fx, rb, u, n, disallow, no_exceptions, allow, (upper_half, lower_half)): {},
@@ -276,7 +275,6 @@ locn_options_body = {
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
 # unless we're going to reference the same code (as for moevment) for building the tree & list models
 locn_options_purelyspatial = {
-    # ("No movement", fx, rb, u): {},
     ("Vertical axis", fx, cb, u, None, None, None, None, None): {
         ("High", fx, rb, u, None, None, None, None, None): {},
         ("Mid", fx, rb, u, None, None, None, None, None): {},
@@ -435,19 +433,6 @@ class LocationTreeItem(QStandardItem):
     @addedinfo.setter
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
-
-    # def updatelistdata(self):
-    #     if self.parent() and "Specify total number of cycles" in self.parent().data():
-    #         previouslistitemtext = self.listitem.text()
-    #         parentname = self.parent().text()
-    #         updatetextstartindex = previouslistitemtext.index(parentname) + len(parentname + delimiter)
-    #         if delimiter in previouslistitemtext[updatetextstartindex:]:
-    #             updatetextstopindex = previouslistitemtext.index(delimiter, updatetextstartindex)
-    #         else:
-    #             updatetextstopindex = len(previouslistitemtext) + 1
-    #         selftext = self.text()
-    #         self.listitem.updatetext(
-    #             previouslistitemtext[:updatetextstartindex] + selftext + previouslistitemtext[updatetextstopindex:])
 
     def check(self, fully=True):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
@@ -683,7 +668,7 @@ class LocationTreeSerializable:
         self.setvalues(rootnode)
         return locntreemodel
 
-    # 
+    #
     def backwardcompatibility(self):
         # if not hasattr(self, 'userspecifiedvalues'):
         #     self.userspecifiedvalues = {}
@@ -759,7 +744,6 @@ class LocationTreeModel(QStandardItemModel):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
         self.itemChanged.connect(self.updateCheckState)
-        # self.dataChanged.connect(self.updatelistdata)
         self._locationtype = LocationType()  # TODO KV this shouldn't change, now that we have several copies available for the selectionlayout
 
     # def tempprintcheckeditems(self):
@@ -785,10 +769,6 @@ class LocationTreeModel(QStandardItemModel):
     #                 print("detailed locations selected:", checkedlocations)
     #                 print(addedinfo)
     #         self.tempprinthelper(treechild)
-
-    # def updatelistdata(self, topLeft, bottomRight):
-    #     startitem = self.itemFromIndex(topLeft)
-    #     startitem.updatelistdata()
 
     def updateCheckState(self, item):
         thestate = item.checkState()
@@ -849,9 +829,7 @@ class LocationTreeModel(QStandardItemModel):
                     self.populate(parentnode, structure=structure[labelclassifierchecked_tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup + "_" + pathsofar + "_" + (str(classifier)))
 
                 else:
-                    # parentnode.setColumnCount(1)
                     thistreenode = LocationTreeItem(label, ishandloc=ishandloc, allowsurfacespec=allowsurfacespec, allowsubareaspec=allowsubareaspec, mutuallyexclusive=ismutuallyexclusive, surface_exceptions=surface_exceptions, subarea_exceptions=subarea_exceptions)
-                    # thistreenode.setData(False, Qt.UserRole+udr.selectedrole)  #  moved to MovementTreeItem.__init__()
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole+udr.pathdisplayrole)
                     thistreenode.setEditable(iseditable)
                     thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
@@ -1007,20 +985,10 @@ class LocationListItem(QStandardItem):
                 self.treeitem.listitem = self
             self.setData(False, Qt.UserRole+udr.selectedrole)
 
-    # def serialize(self):
-    #     serialized = {
-    #         'editable': self.isEditable(),
-    #         'text': self.text(),
-    #         'nodedisplayrole': self.data(Qt.UserRole+udr.nodedisplayrole),
-    #         'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
-    #         'checkable': self.isCheckable(),
-    #         'selectedrole': self.data(Qt.UserRole+udr.selectedrole)
-    #     }
-    #     return serialized
-
     def __repr__(self):
         return '<LocationListItem: ' + repr(self.text()) + '>'
 
+    # TODO KV no longer used?
     def updatetext(self, txt=""):
         self.setText(txt)
 
@@ -1162,12 +1130,6 @@ class LocationListModel(QStandardItemModel):
             treeparentnode = self.treemodel.invisibleRootItem()
             self.populate(treeparentnode)
             self.treemodel.listmodel = self
-
-    # def serialize(self):
-    #     serialized = []
-    #     for rownum in range(self.rowCount()):
-    #         serialized.append(self.item(rownum, 0).serialize())
-    #     return serialized
 
     def populate(self, treenode):
         # colcount = 1  # TODO KV treenode.columnCount()
