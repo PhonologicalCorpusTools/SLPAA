@@ -523,14 +523,19 @@ class XslotPanel(QScrollArea):
 
     def add_timinginterval_tocondensed(self, timinginterval, condensed_intervals):
         # TODO KV - look for possible simplifications
-        if condensed_intervals == []:
+        if timinginterval.ispoint():
+            # the one we're adding is a point; don't condense it with anything
             condensed_intervals.append(timinginterval)
         else:
+            # the one we're adding is an interval; see if there's another interval(s) to combine it with
             needtocombine = False
             idx = 0
             while not needtocombine and idx < len(condensed_intervals):
                 existinginterval = condensed_intervals[idx]
-                if existinginterval.endpoint.equivalent(timinginterval.startpoint):
+                if existinginterval.ispoint():
+                    # skip this one; we don't condense points with anything
+                    pass
+                elif existinginterval.endpoint.equivalent(timinginterval.startpoint):
                     # the new interval starts right where the existing one ends; combine them and re-add
                     # (in case there's another interval that the newly-combined one would also link up with)
                     needtocombine = True
@@ -546,7 +551,7 @@ class XslotPanel(QScrollArea):
             if not needtocombine:
                 condensed_intervals.append(timinginterval)
 
-            return condensed_intervals
+        return condensed_intervals
 
     def addparameterintervals(self, hand, intervals, moduletype, moduletypeabbrev, parammodules):
         for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
