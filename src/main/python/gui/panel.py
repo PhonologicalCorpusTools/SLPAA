@@ -690,7 +690,7 @@ class XslotPanel(QScrollArea):
                                                  includephase=1,
                                                  inphase=locnmodule.inphase)
         location_selector.get_savedmodule_signal().connect(
-            lambda locationtree, phonlocs, loctype, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_location(locationtree, hands, timingintervals, addedinfo, phonlocs, loctype, existing_key=modulekey))
+            lambda locationtree, phonlocs, loctype, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_location(locationtree, hands, timingintervals, addedinfo, phonlocs, loctype, inphase, existing_key=modulekey))
         location_selector.get_deletedmodule_signal().connect(
             lambda: self.mainwindow.signlevel_panel.handle_delete_location(modulekey)
         )
