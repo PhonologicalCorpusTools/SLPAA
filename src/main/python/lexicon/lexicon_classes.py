@@ -376,7 +376,8 @@ class Sign:
             timingintervals = serialmodule.timingintervals
             addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # TODO KV for backwards compatibility with pre-20230208 movement modules
             phonlocs = serialmodule.phonlocs
-            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs)
+            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # TODO KV for backwards compatibility with pre-20230410 location modules
+            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
         self.locationmodules = unserialized
 
     def __hash__(self):
@@ -523,9 +524,9 @@ class Sign:
         self.targetmodules.append(targetmod)
         self.lastmodifiednow()
 
-    def addlocationmodule(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype):
+    def addlocationmodule(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase):
         # create and add a brand new one
-        locnmod = LocationModule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs=phonlocs)
+        locnmod = LocationModule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
@@ -533,7 +534,7 @@ class Sign:
         self.locationmodules.pop(uniqueid)
         self.lastmodifiednow()
 
-    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype):
+    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase):
         locnmod = self.locationmodules[uniqueid]
         ischanged = False
         if locnmod.locationtreemodel != locationtree:
@@ -544,6 +545,9 @@ class Sign:
             ischanged = True
         if locnmod.timingintervals != timingintervals:
             locnmod.timingintervals = timingintervals
+            ischanged = True
+        if locnmod.inphase != inphase:
+            locnmod.inphase = inphase
             ischanged = True
         if locnmod.phonlocs != phonlocs:
             locnmod.phonlocs = phonlocs

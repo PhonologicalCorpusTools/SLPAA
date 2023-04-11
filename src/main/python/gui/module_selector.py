@@ -138,7 +138,7 @@ class AddedInfoPushButton(QPushButton):
 
 class ModuleSelectorDialog(QDialog):
 
-    def __init__(self, mainwindow, hands, xslotstructure, new_instance, modulelayout, moduleargs, timingintervals=None, addedinfo=None, includephase=False, inphase=0, **kwargs):
+    def __init__(self, mainwindow, hands, xslotstructure, new_instance, modulelayout, moduleargs, timingintervals=None, addedinfo=None, includephase=0, inphase=0, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
         if timingintervals is None:
@@ -462,12 +462,20 @@ class AddedInfoContextMenu(QMenu):
 # TODO KV - need to pull phase info from here as well as hands info
 class HandSelectionLayout(QHBoxLayout):
 
-    def __init__(self, hands=None, includephase=False, inphase=0, **kwargs):
+    def __init__(self, hands=None, includephase=0, inphase=0, **kwargs):
         super().__init__(**kwargs)
 
         self.setSpacing(25)
 
-        self.includephase = includephase
+        self.include_bothhands_suboptions = 0
+        if isinstance(includephase, bool) and includephase:
+            self.include_bothhands_suboptions = 2
+        elif isinstance(includephase, int):
+            self.include_bothhands_suboptions = includephase
+        # self.include_bothhands_suboptions...
+        # 0 --> do not include [previously includephase=False]
+        # 1 --> include only "As a connected unit"
+        # 2 --> include both "As a connected unit" and "in phase" / "out of phase" [previously includephase=True]
 
         self.hands_label = QLabel("This module applies to:")
 
@@ -484,7 +492,7 @@ class HandSelectionLayout(QHBoxLayout):
         self.bothhands_group = QButtonGroup()
         self.bothhands_group.setExclusive(False)
         self.bothhands_group.buttonToggled.connect(self.handle_bothhandsgroup_toggled)
-        self.bothconnected_cb = QCheckBox("Moving as a connected unit")
+        self.bothconnected_cb = QCheckBox("As a connected unit")
         self.bothinphase_cb = QCheckBox("In phase")
         self.bothoutofphaseNEW_radio = QRadioButton("Out of phase")
         self.bothhands_group.addButton(self.bothconnected_cb)
@@ -493,14 +501,15 @@ class HandSelectionLayout(QHBoxLayout):
 
         main_layout = QHBoxLayout()
 
-        # for most modules-- just H1, H2, or Both
-        if not self.includephase:
+        # for most module types-- just H1, H2, Both
+        if self.include_bothhands_suboptions == 0:
             main_layout.addWidget(self.hands_label)
             main_layout.addWidget(self.hand1_radio)
             main_layout.addWidget(self.hand2_radio)
             main_layout.addWidget(self.bothhands_radio)
 
-        # for Movement module-- H1, H2, Both (including in phase / out of phase / moving as connected unit)
+        # for (eg) movement or location -- H1, H2, Both (plus one or more suboptions)
+        # self.include_bothhands_suboptions is 1 (only one suboption: Connected) or 2 (several suboptions: Connected, In Phase, Out of Phase)
         else:
             hands_layout = QHBoxLayout()
 
@@ -514,14 +523,15 @@ class HandSelectionLayout(QHBoxLayout):
 
             bothhands_layout = QVBoxLayout()
             bothhands_layout.addWidget(self.bothhands_radio)
-            phase_spacedlayout = QHBoxLayout()
-            phase_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-            phase_layout = QVBoxLayout()
-            phase_layout.addWidget(self.bothconnected_cb)
-            phase_layout.addWidget(self.bothinphase_cb)
-            phase_layout.addWidget(self.bothoutofphaseNEW_radio)
-            phase_spacedlayout.addLayout(phase_layout)
-            bothhands_layout.addLayout(phase_spacedlayout)
+            bothhands_sub_spacedlayout = QHBoxLayout()
+            bothhands_sub_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+            bothhands_sub_layout = QVBoxLayout()
+            bothhands_sub_layout.addWidget(self.bothconnected_cb)
+            if self.include_bothhands_suboptions == 2:
+                bothhands_sub_layout.addWidget(self.bothinphase_cb)
+                bothhands_sub_layout.addWidget(self.bothoutofphaseNEW_radio)
+            bothhands_sub_spacedlayout.addLayout(bothhands_sub_layout)
+            bothhands_layout.addLayout(bothhands_sub_spacedlayout)
 
             main_layout.addLayout(bothhands_layout)
 
@@ -605,16 +615,6 @@ class HandSelectionLayout(QHBoxLayout):
             self.bothinphase_cb.setChecked(True)
         elif inphase % 3 == 2:
             self.bothoutofphaseNEW_radio.setChecked(True)
-    #
-    # def getconnected(self):
-    #     if self.bothconnected_cb.isChecked():
-    #         return 1
-    #     else:
-    #         return 0
-    #
-    # def setconnected(self, connected):
-    #     if connected == 1:
-    #         self.bothconnected_cb.setChecked(True)
 
     def clear(self):
         self.hands_group.setExclusive(False)

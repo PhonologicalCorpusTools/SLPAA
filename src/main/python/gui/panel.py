@@ -667,7 +667,7 @@ class XslotPanel(QScrollArea):
                                                  moduleargs=None,
                                                  timingintervals=mvmtmodule.timingintervals,
                                                  addedinfo=mvmtmodule.addedinfo,
-                                                 includephase=True,
+                                                 includephase=2,
                                                  inphase=mvmtmodule.inphase)
         movement_selector.get_savedmodule_signal().connect(
             lambda movementtree, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_movement(movementtree, hands, timingintervals, addedinfo, inphase, existing_key=modulekey))
@@ -686,7 +686,9 @@ class XslotPanel(QScrollArea):
                                                  modulelayout=LocationSpecificationLayout(self.mainwindow, locnmodule),
                                                  moduleargs=None,
                                                  timingintervals=locnmodule.timingintervals,
-                                                 addedinfo=locnmodule.addedinfo)
+                                                 addedinfo=locnmodule.addedinfo,
+                                                 includephase=1,
+                                                 inphase=locnmodule.inphase)
         location_selector.get_savedmodule_signal().connect(
             lambda locationtree, phonlocs, loctype, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_location(locationtree, hands, timingintervals, addedinfo, phonlocs, loctype, existing_key=modulekey))
         location_selector.get_deletedmodule_signal().connect(
@@ -705,7 +707,7 @@ class XslotPanel(QScrollArea):
                                                 modulelayout=HandConfigSpecificationLayout(self.mainwindow, hcfgmodule),  # (handconfiguration, overalloptions)),
                                                 moduleargs=None,
                                                 timingintervals=hcfgmodule.timingintervals,
-                                                 addedinfo=hcfgmodule.addedinfo)
+                                                addedinfo=hcfgmodule.addedinfo)
         handcfg_selector.get_savedmodule_signal().connect(
             lambda configdict, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_handconfig(configdict, hands, timingintervals, addedinfo, modulekey))
         handcfg_selector.get_deletedmodule_signal().connect(
@@ -870,7 +872,7 @@ class SignLevelMenuPanel(QScrollArea):
                                                  new_instance=True,
                                                  modulelayout=MovementSpecificationLayout(),
                                                  moduleargs=None,
-                                                 includephase=True,
+                                                 includephase=2,
                                                  inphase=0)
         movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals, addedinfo, inphase: self.handle_save_movement(movementtree, hands, timingintervals, addedinfo, inphase))
         movement_selector.exec_()
@@ -930,8 +932,10 @@ class SignLevelMenuPanel(QScrollArea):
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                  new_instance=True,
                                                  modulelayout=LocationSpecificationLayout(self.mainwindow),
-                                                 moduleargs=None)
-        location_selector.get_savedmodule_signal().connect(lambda locationtree, phonlocs, loctype, hands, timingintervals, addedinfo, inphase: self.handle_save_location(locationtree, hands, timingintervals, addedinfo, phonlocs, loctype))
+                                                 moduleargs=None,
+                                                 includephase=1,
+                                                 inphase=0)
+        location_selector.get_savedmodule_signal().connect(lambda locationtree, phonlocs, loctype, hands, timingintervals, addedinfo, inphase: self.handle_save_location(locationtree, hands, timingintervals, addedinfo, phonlocs, loctype, inphase))
         location_selector.exec_()
 
     def handle_delete_location(self, existing_key):
@@ -941,12 +945,12 @@ class SignLevelMenuPanel(QScrollArea):
             self.sign.removelocationmodule(existing_key)
         self.sign_updated.emit(self.sign)
 
-    def handle_save_location(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, existing_key=None):
+    def handle_save_location(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase, existing_key=None):
         if existing_key is None or existing_key not in self.sign.locationmodules.keys():
-            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype)
+            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase)
         else:
             # self.sign.locationmodules[existing_key] = locationtree
-            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype)
+            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase)
         self.sign_updated.emit(self.sign)
 
     def handle_handpartbutton_click(self):

@@ -139,7 +139,7 @@ class OrientationModule:
 class MovementModule(ParameterModule):
     def __init__(self, movementtreemodel, hands, timingintervals=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
-        self._inphase = inphase
+        self._inphase = inphase    # TODO KV is "inphase" actually the best name for this attribute?
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
 
     @property
@@ -422,10 +422,11 @@ class LocationType:
 
 
 class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, hands, timingintervals=None, addedinfo=None, phonlocs=None):
+    def __init__(self, locationtreemodel, hands, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
         if phonlocs is None:
             phonlocs = PhonLocations()
         self._locationtreemodel = locationtreemodel
+        self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
         self._phonlocs = phonlocs
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
 
@@ -446,6 +447,15 @@ class LocationModule(ParameterModule):
     def phonlocs(self, phonlocs):
         # TODO KV - validate?
         self._phonlocs = phonlocs
+
+    @property
+    def inphase(self):
+        return self._inphase
+
+    @inphase.setter
+    def inphase(self, inphase):
+        # TODO KV - validate?
+        self._inphase = inphase
 
     def getabbreviation(self):
         # TODO KV these can't be hardcoded like this... fix it!

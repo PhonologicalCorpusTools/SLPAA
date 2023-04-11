@@ -722,6 +722,7 @@ class LocationModuleSerializable:
 
         # creates a full serializable copy of the location module, eg for saving to disk
         self.hands = locnmodule.hands
+        self.inphase = locnmodule.inphase
         self.timingintervals = locnmodule.timingintervals
         self.phonlocs = locnmodule.phonlocs
         self.addedinfo = locnmodule.addedinfo
