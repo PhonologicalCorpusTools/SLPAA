@@ -35,6 +35,8 @@ class SignLevelInformation:
             self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
+            # backward compatibility for attribute added 20230412!
+            self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._handdominance = serializedsignlevelinfo['handdominance']
         elif signlevel_info is not None:
             self._entryid = signlevel_info['entryid']
@@ -48,6 +50,8 @@ class SignLevelInformation:
             self._datecreated = signlevel_info['date created']
             self._datelastmodified = signlevel_info['date last modified']
             self._note = signlevel_info['note']
+            # backward compatibility for attribute added 20230412!
+            self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._handdominance = signlevel_info['handdominance']
         else:
             print("TODO KV no sign level info; what to do?")
@@ -61,7 +65,7 @@ class SignLevelInformation:
                 aresame = False
             if self._coder != other.coder or self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
                 aresame = False
-            if self._note != other.note or self._handdominance != other.handdominance:
+            if self._note != other.note or self._fingerspelled != other.fingerspelled or self._handdominance != other.handdominance:
                 aresame = False
         else:
             aresame = False
@@ -79,6 +83,7 @@ class SignLevelInformation:
             'date created': self._datecreated.timestamp(),
             'date last modified': self._datelastmodified.timestamp(),
             'note': self._note,
+            'fingerspelled': self._fingerspelled,
             'handdominance': self._handdominance
         }
 
@@ -111,6 +116,14 @@ class SignLevelInformation:
     @lemma.setter
     def lemma(self, new_lemma):
         self._lemma = new_lemma
+
+    @property
+    def fingerspelled(self):
+        return self._fingerspelled
+
+    @fingerspelled.setter
+    def fingerspelled(self, new_fingerspelled):
+        self._fingerspelled = new_fingerspelled
 
     @property
     def source(self):
