@@ -51,7 +51,7 @@ class SignLevelInformation:
             self._datelastmodified = signlevel_info['date last modified']
             self._note = signlevel_info['note']
             # backward compatibility for attribute added 20230412!
-            self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
+            self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
             self._handdominance = signlevel_info['handdominance']
         else:
             print("TODO KV no sign level info; what to do?")
