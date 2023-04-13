@@ -419,6 +419,7 @@ class MainWindow(QMainWindow):
         if self.corpus is not None:
             self.corpus.name = newtitle
 
+    # TODO KV this needs an overhaul
     def on_action_export_handshape_transcription_csv(self):
         export_csv_dialog = ExportCSVDialog(self.app_settings, parent=self)
         if export_csv_dialog.exec_():
