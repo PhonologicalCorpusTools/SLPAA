@@ -31,7 +31,7 @@ Select this if the sign involves only one hand.
         #. The user can specify the sign as one-handed in Sign Type and still select "forearm involved" in the hand configuration module for H1, or 
         #. The user can specify the sign as two-handed, also specifying that "only H1 moves". 
     
-    For example, the sign `CRACKER <https://asl-lex.org/visualization/?sign=cracker>`_ could be coded as one-handed, with H1 making contact to H2 at the elbow; one-handed, with "forearm involved" selected in the hand configuration module; or two-handed, with only H1 specified as moving. The sign `TABLE <https://asl-lex.org/visualization/?sign=table>`_ could be coded with the same basic options, with the additional possibility of coding the contact that H2 makes with the elbow of H1 in a separate location module and contact module.
+    For example, the sign `CRACKER <https://asl-lex.org/visualization/?sign=cracker>`_ could be coded as one-handed, with H1 making contact to H2 at the elbow; one-handed, with "forearm involved" selected using the :ref:`hand_configuration_module`; or two-handed, with only H1 specified as moving. The sign `TABLE <https://asl-lex.org/visualization/?sign=table>`_ could be coded with the same basic options, with the additional possibility of coding the contact that H2 makes with the elbow of H1 in linked instances of the :ref:`location_module` and the :ref:`contact_module`.
 
 .. _signtype_two_hands:
 
@@ -70,7 +70,7 @@ III. Bilateral symmetry relation
 .. note::
     **Incompatible specifications in Sign Type**
     
-    There are many ways for a sign to fail to be bilaterally symmetric that also overlap with other selections in the Sign Type module. It is impossible for a selection of "H1 and H2 are bilaterally symmetric" to combine with any of: 
+    There are many ways for a sign to fail to be bilaterally symmetric that also overlap with other selections in the :ref:`sign_type_module`. It is impossible for a selection of "H1 and H2 are bilaterally symmetric" to combine with any of: 
     
         * "H1 and H2 use different set(s) of hand configurations"
         * "Only 1 hand moves"
