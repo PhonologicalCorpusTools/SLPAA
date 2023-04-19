@@ -313,7 +313,6 @@ class Sign:
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
-            # print("unserializing movement modules for sign", self._signlevel_information.gloss)
             self.unserializemovementmodules(serializedsign['mov modules'])
             self.handpartmodules = serializedsign['hpt modules']
             self.unserializelocationmodules(serializedsign['loc modules'])

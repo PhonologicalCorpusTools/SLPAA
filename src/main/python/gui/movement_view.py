@@ -30,6 +30,7 @@ from PyQt5.QtWidgets import (
 
 from lexicon.module_classes import delimiter, userdefinedroles as udr
 from lexicon.module_classes2 import AddedInfo
+from gui.location_view import ParameterModuleSerializable
 
 # for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"
@@ -459,9 +460,9 @@ class MovementTreeSerializable:
         self.addedinfos = {}
         self.userspecifiedvalues = {}
 
-        self.collectdata(treenode)
+        self.collectdatafromMovementTreeModel(treenode)
 
-    def collectdata(self, treenode):
+    def collectdatafromMovementTreeModel(self, treenode):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
@@ -476,7 +477,7 @@ class MovementTreeSerializable:
                         self.userspecifiedvalues[pathtext] = userspecifiedvalue
 
                     self.checkstates[pathtext] = checkstate
-                self.collectdata(treechild)
+                self.collectdatafromMovementTreeModel(treechild)
 
     def getMovementTreeModel(self):
         mvmttreemodel = MovementTreeModel()
@@ -484,7 +485,7 @@ class MovementTreeSerializable:
         mvmttreemodel.populate(rootnode)
         makelistmodel = mvmttreemodel.listmodel  # TODO KV   what is this? necessary?
         self.backwardcompatibility()
-        self.setvalues(rootnode)
+        self.setvaluesinMovementTreeModel(rootnode)
         return mvmttreemodel
 
     def backwardcompatibility(self):
@@ -530,7 +531,7 @@ class MovementTreeSerializable:
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
-    def setvalues(self, treenode):
+    def setvaluesinMovementTreeModel(self, treenode):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
@@ -547,23 +548,19 @@ class MovementTreeSerializable:
                         treechild.setData(self.userspecifiedvalues[pathtext], Qt.UserRole + udr.userspecifiedvaluerole)
                         treechild.editablepart().setText(self.userspecifiedvalues[pathtext])
 
-                    self.setvalues(treechild)
+                    self.setvaluesinMovementTreeModel(treechild)
 
 
 # This class is a serializable form of the class MovementModule, which is itself not pickleable
 # due to its component MovementTreeModel.
-class MovementModuleSerializable:
+class MovementModuleSerializable(ParameterModuleSerializable):
 
     def __init__(self, mvmtmodule):
+        super().__init__(mvmtmodule)
 
         # creates a full serializable copy of the movement module, eg for saving to disk
-        self.hands = mvmtmodule.hands
         self.inphase = mvmtmodule.inphase
-        self.timingintervals = mvmtmodule.timingintervals
-        self.addedinfo = mvmtmodule.addedinfo
-
-        mvmttreemodel = mvmtmodule.movementtreemodel
-        self.movementtree = MovementTreeSerializable(mvmttreemodel)
+        self.movementtree = MovementTreeSerializable(mvmtmodule.movementtreemodel)
     #
     # def getMovementTreeModel(self):
     #     mvmttreemodel = MovementTreeModel()
