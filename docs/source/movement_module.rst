@@ -1,11 +1,10 @@
 .. todo::
-    update phasing and connectedness options under 'both hands'
-    add notes for 'opposite directions' checkbox in axis direction and plane
+    how to approach connectedness
     work on movement type
         - fix references
         - update / delete refs to “transcription process”
-    joint activity description not completed
-    movement characteristics not yet started
+    joint activity
+    movement characteristics
     overview: sample codings of a pair of signs
         
 .. _movement_module:
@@ -16,16 +15,22 @@ Movement Module
 
 This :ref:`module` is used to code the **movement** components of a sign. As many :ref:`instances<instance>` of this module as necessary can be called for any given sign coding. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
 
-.. warning::
-    Select the hand(s) involved in this instance of the module. For movements involving both hands, you can also specify whether the movement described in this :ref:`instance` of the module is in phase or out of phase. If the hands are not out of phase, you can also select whether the hands are moving as a connected unit.
-    
-    ( ) H1 only
-    ( ) H2 only
-    ( ) Both hands
-        [ ] moving as a connected unit
-        [ ] in phase
-        ( ) out of phase
+Select the hand(s) involved in this instance of the module. For movements involving both hands, you can also optionally specify whether the movement described in this :ref:`instance` of the module is in phase or out of phase. If the hands are not out of phase, you can also choose to select if the hands are moving as a connected unit.
 
+.. note::
+    **Phasing**
+    
+    Movements should be selected to be *in phase* if the hands have the same specifications for Movement at the same time, and they should be selected as *out of phase* if the specifications are the same for each hand but with different timing. In either case, choose the specifications that apply to H1, and the specifications for H2 will be predictable from the indication of phasing.
+    
+    For instance, a two-handed :ref:`joint_specific_movement` (like `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_) may use one category of movement (like :ref:`Closing/Opening<closing_opening>`) for both hands, though the specification for each hand within that category is *out of phase* with the other (as in, one hand is *closing* while the other one is *opening*).
+    
+    A two-handed :ref:`perceptual_shape` movement is *out of phase* if the hands reach different points of the perceptual shape at the same time, as in `PACK <https://asl-lex.org/visualization/?sign=pack>`_ or `THEATER <https://asl-lex.org/visualization/?sign=theater>`_. Conversely, the movement is *in phase* if both hands reach the same point of the perceptual shape at the same time, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_ or `BLANKET <https://asl-lex.org/visualization/?sign=blanket>`_.
+    
+.. warning::
+    **Connectedness?**
+    
+    We may want an additional note, a glossary entry, a reference to literature, or some combination of these to give information on connectedness.
+    
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
 .. _movement_type_entry:
@@ -33,7 +38,7 @@ Module instances link to generic :ref:`x-slots<x_slot>` to record information ab
 1. Movement type
 `````````````````
 
-Select the **movement type** for the current module. The three movement types are mutually exclusive within an instance of a module; that is, a single instance of the module can be specified for only one of these three types of movement. 
+Select the **movement type** for the current module. The three movement types are mutually exclusive within an instance of a module; that is, a single instance of the module can be specified for only one of these three types of movement.
 
 .. note::
     **No movement**
@@ -72,6 +77,9 @@ Make your selections from this section if you are coding a movement with :ref:`p
 
 .. note::
     As with the other movement types, a module with this specification cannot be combined with the selections for a :ref:`handshape_change` or a movement with :ref:`joint_specific_movement`. To code any information about other movements in the sign, add additional movement module(s) with the appropriate movement type(s). You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`. For example, to code the sign `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_, one would need two separate instances of the movement module, one for the straight (perceptual shape) movement of the hands and one for the joint-specific opening and closing movements.
+
+.. comment::
+    note for conventions / documentation: similar to the 'connected' options -- if this is checked, we assume the direction is specified for H1. So e.g. if 'move in different directions' is checked along with 'distal from top of circle,' then we assume this means that H1 moves away from the body from the top of the circle, while H2 moves toward the body from the top of the circle. If it weren't checked, then we assume both H1 and H2 move distally from the top of the circle. Note that for planes that include the horizontal axis, this can be confusing! "different directions" = H1 moves ipsilaterally and H2 moves contralaterally (or vice versa) at the same time -- this means that they will both be going e.g. clockwise. The direction that is evaluated for 'sameness' or 'difference' is the one listed in the menu!
 
 .. _shape_entry:
 
@@ -115,15 +123,17 @@ This section is automatically specified by the program as *not relevant* when th
 .. note::
     **Both hands moving in opposite axis directions**
     
-    (Add here)
+    If the hands have opposite specifications for axis direction within each applicable axis, select this checkbox and continue to fill out the instance of the module as it applies to H1. The axis direction for H2 can then be defined implicitly without coding another instance of Movement for each hand.
     
-    Note: corresponds to the selection options within the program, specific to the settings for the module, mention symmetry
+    Take care in consideration of the horizontal axis, since SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where the default for Movement is set as relative directions. (Consult the :ref:`global_settings` for information on changing these options for each module.)
+    
+    This means that the interpretation of what is considered the "opposite" direction may depend on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ has the **same** axis direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time. If Movement is defined in terms of absolute directions, the movement in `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ has the **same** axis direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time. See :ref:`Symmetry<symmetry_section>` for more information.
 
 Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the section on :ref:`Angled axes<angled_axes>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting axis direction consistently, such as always selecting the first direction of motion.
 
-The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module:
+The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for Movement:
     
 * **Horizontal axis: relative** [Default]
 
@@ -149,7 +159,7 @@ The endpoints for the vertical and sagittal axes are consistent wherever they ap
     * **Distal**, as in `NEXT <https://asl-lex.org/visualization/?sign=next>`_ or `SINCE <https://asl-lex.org/visualization/?sign=since>`_
     * **Proximal**, as in `BEFORE <https://asl-lex.org/visualization/?sign=before>`_ 
     
-* **Not relevant**, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_. Axis direction is not relevant for this sign because the perceptual shape is *circle*, whereas plane is only relevant for other perceptual shapes.
+* **Not relevant**, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_. Axis direction is not relevant for this sign because the perceptual shape is *circle*, whereas axis direction is only relevant for other perceptual shapes.
 
 See :ref:`signing_space_page` for a visual representation of these options.
 
@@ -165,9 +175,13 @@ This section is automatically specified by the program as *not relevant* when th
 .. note::
     **Both hands moving in opposite circular directions**
     
-    (Add here)
+    If the hands have opposite specifications for circular direction within each applicable plane, select this checkbox and continue to fill out the instance of the module as it applies to H1. The circular direction for H2 can then be defined implicitly without coding another instance of Movement for each hand.
     
-    Note: corresponds to the selection options within the program, specific to the settings for the module, mention symmetry
+    Take care in consideration of the horizontal and vertical planes, since SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where the default for Movement is set as relative directions. (Consult the :ref:`global_settings` for information on changing these options for each module.)
+    
+    This means that the interpretation of what is considered the "opposite" direction may depend on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_ has the **same** circular direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time. If Movement is defined in terms of absolute directions, the movement in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ has the **same** circular direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time. See :ref:`Symmetry<symmetry_section>` for more information.
+    
+    This option would also apply in cases that do not involve the horizontal axis, which means both hands would move in circles in opposite directions in only the sagittal plane. We do not know of any such cases, as they are biomechanically difficult.
 
 Keep in mind that a single module is meant to convey only one direction of movement, so a selection of a combination of planes is interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the sections on :ref:`Angled planes<angled_planes>` and :ref:`Angled circular directions<angled_circles>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
@@ -208,6 +222,25 @@ OR
 
 See :ref:`signing_space_page` for a visual representation of these options.
 
+.. note::
+    **(Work on terminology: no references to "parameter" and updates to in phase/out of phase)**
+
+    In the following sample coding of the movement in `ROW <https://asl-lex.org/visualization/?sign=row>`_, ``all specifications for both hands are identical and the hands are specified to be in phase for all parameters``:
+
+    .. image:: images/mov_sample_sign_ROW.png
+        :width: 750
+        :align: left
+
+    The movement of both hands can be coded together within one instance of the module.
+    
+    The following sample coding of the movement in `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that ``the hands are indicated to be out of phase, since they reach the top of the circle at different times``:
+
+    .. image:: images/mov_sample_sign_THEATER.png
+        :width: 750
+        :align: left
+
+    The movements of both hands can still be described together in one module instance as long as it is indicated to be out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
+
 .. _joint_specific_movement_entry:
 
 II. Joint-specific movements
@@ -226,7 +259,7 @@ The joint-specific movement options are as follows:
 
 :ref:`Nodding/Un-nodding<nodding_unnodding>`
 
-* **Nodding**should be selected if the movement begins with a flexion of the wrist, such as `CORN_3 <https://asl-lex.org/visualization/?sign=corn_3>`_. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as `CAN <https://asl-lex.org/visualization/?sign=can>`_, or signs where there is a repeated, unidirectional nodding, such as `YES <https://asl-lex.org/visualization/?sign=yes>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of the wrist. 
+* **Nodding** should be selected if the movement begins with a flexion of the wrist, such as `CORN_3 <https://asl-lex.org/visualization/?sign=corn_3>`_. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as `CAN <https://asl-lex.org/visualization/?sign=can>`_, or signs where there is a repeated, unidirectional nodding, such as `YES <https://asl-lex.org/visualization/?sign=yes>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of the wrist. 
  
 * **Un-nodding** should be selected if the movement begins with an extension of the wrist, or if it is the only movement involved, for example `GIVE_UP <https://asl-lex.org/visualization/?sign=give_up>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of the wrist. 
 
@@ -312,23 +345,5 @@ Use the **joint activity** section to add more fine-grained detail about any joi
 .. todo::
     Some notes to use as starting points for some of these characteristics:
     ‘repeated in a different location’ — that would be used for what Hope Morgan calls “dispersed” signs, like HOME (https://asl-lex.org/visualization/?sign=home)
-    'trill' -- this is for “small, rapidly repeated dynamic elements during the production of signs” (to quote Brentari 1996:45). This most typically happens with small joint-specific movements as in DIRTY (https://asl-lex.org/visualization/?sign=dirty), which is described as having the fingers ‘flutter’ in the dictionary. 
-
-.. note::
-    **(the language here needs to be updated so that it's not all about phasing, but the examples are useful to show what the module looks like.)**
-
-    In the following sample coding of `ROW <https://asl-lex.org/visualization/?sign=row>`_, all specifications for both hands are identical and the hands are specified to be in phase for all parameters:
-
-    .. image:: images/mov_sample_sign_ROW.png
-        :width: 750
-        :align: left
-
-    The movement of both hands can be coded together within one instance of the module.
+    'trill' -- this is for “small, rapidly repeated dynamic elements during the production of signs” (to quote Brentari 1996:45). This most typically happens with small joint-specific movements as in DIRTY (https://asl-lex.org/visualization/?sign=dirty), which is described as having the fingers ‘flutter’ in the dictionary.
     
-    The following sample coding of `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since they reach the top of the circle at different times:
-
-    .. image:: images/mov_sample_sign_THEATER.png
-        :width: 750
-        :align: left
-
-    The movements of both hands can still be described together in one module instance as long as it is indicated to be out of phase (in this case, with respect to location). This allows for quicker sign coding while retaining key information for searching and analysis.
