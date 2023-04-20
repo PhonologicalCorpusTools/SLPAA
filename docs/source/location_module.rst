@@ -1,5 +1,7 @@
 .. todo::
     acting as a connected unit
+        use SINCE
+    "add linked contact module" button
     
 .. comment::
     Outstanding issue: Allow any particular individual selection to be tagged as ‘major phonological location’ or ‘minor phonological location’ (e.g., if someone selects eyebrow / head, they can tag ‘head’ as the major phonological location and ‘eyebrow’ as the minor one). At the moment, we can only tag the whole module as a (major/minor) phonological or phonetic location.
@@ -10,7 +12,12 @@
 Location Module
 ***************
 
-This :ref:`module` is used to code the **location** components of a sign. As many :ref:`instances<instance>` of this module as necessary can be called for any given sign coding. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`. 
+This :ref:`module` is used to code the **location** components of a sign. As many :ref:`instances<instance>` of this module as necessary can be called for any given sign coding. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
+
+.. warning::
+    **(For Kathleen and Oksana)**
+    
+    There should be some discussion somewhere around here for the difference between our broad use of 'location' vs. how the term is usually defined phonologically.
 
 Select the hand(s) involved in this instance of the module.
 
@@ -22,12 +29,9 @@ Select the hand(s) involved in this instance of the module.
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
 
 .. note::
-    Each module instance can optionally be tagged as a phonological location, a phonetic location, or both of these at once. If the instance of the module is selected as a phonological location, it can optionally be further described as a major or minor phonological location.
+    **Phonological locations**
     
-.. warning::
-    **(For Kathleen and Oksana)**
-    
-    There should be some discussion somewhere around here for the difference between our broad use of 'location' vs. how the term is usually defined phonologically.
+    Each module instance can optionally be tagged as a phonological location, a phonetic location, or both of these at once. If it is selected to be a phonological location, it can optionally be further described as a major or minor phonological location. These selections will apply to the entire instance of the module.
 
 **(Start with a basic description of the highest-level options for types of locations available in the program.)**
 
@@ -46,7 +50,7 @@ I. Body location
 .. note::
     **Linked contact modules**
     
-    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* this module will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
+    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* Location will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
 
 Choose from the list of :ref:`predefined_locations` or navigate the image view window to select a body location.
 
@@ -77,7 +81,7 @@ II. Body-anchored location
 
 Select a reference location from the list of :ref:`predefined_locations`. 
 
-Then select the appropriate reference to that location. **(max one from each axis, not required to choose one from each)**
+Select the appropriate reference position to the selected body location. A maximum of one selection can be made from each axis (column), though it is not required to make a specification from every axis:
 
 .. list-table::
    :widths: 30 30 30
@@ -126,7 +130,7 @@ Then select the appropriate reference to that location. **(max one from each axi
 
 **Simple set of options, no additional images for this in the program.** The window with the body locations will be replaced with the applicable tree structure, so the module with this selection looks more like Movement. **(Does the same configuration of windows still apply, with two areas on the right side? There doesn't seem to be another necessary set of information, so I assume that it only shows the dropdown menu and the selected list item.)**
 
-Make exactly one selection from each axis:
+Make exactly one selection from each axis (column), leaving no axis unspecified:
 
 .. list-table::
    :widths: 30 30 30
@@ -166,12 +170,12 @@ Make exactly one selection from each axis:
 **(Defaults may be set as central/mid/in front med., though I'm not sure this is decided concretely.)**
 
 3. Axis of relation
-```````````````````
+````````````````````
 
 .. note::
     **Linked contact modules**
     
-    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* this module will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
+    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* Location will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
 
 **(Some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)**
 
