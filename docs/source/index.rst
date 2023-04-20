@@ -23,9 +23,11 @@ Contents:
    setting_preferences.rst
    terminology.rst
    transcription_process.rst
+   orientation_module.rst
    movement_module.rst
    location_module.rst
-   orientation_module.rst
+   predefined_locations.rst
+   contact_module.rst
    global_settings.rst
    glossary.rst
    references.rst
