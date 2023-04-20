@@ -3,11 +3,11 @@
         - maybe combine contra/ipsi (or H1/H2 side) into one list item below the main item
     allowable suboptions for each location
 
-.. _location_list:
+.. _predefined_locations:
 
-*************
-Location List
-*************
+********************
+Predefined Locations
+********************
 
 .. warning::
     * **(Insert list of body locations from KCH Body locations-Proposal_streamlined)**
@@ -25,7 +25,6 @@ Location List
 
 .. _body_location_list:
 
-`````````````````
 1. Body locations
 `````````````````
 
@@ -34,11 +33,8 @@ Location List
 
 .. _head_locations:
 
-====
 Head
 ====
-
-**Head**
 
 **Head>Back of head**
 
@@ -178,19 +174,13 @@ Head
 
 .. _neck_location:
 
-====
 Neck
 ====
 
-**Neck**
-
 .. _torso_locations:
 
-=====
 Torso
 =====
-
-**Torso**
 
 **Torso>Shoulder**
     
@@ -228,11 +218,8 @@ Torso
 
 .. _arm_locations:
 
-=================
 Contralateral arm
 =================
-
-**Arm (contralateral)**
 
 **Arm (contralateral)>Upper arm**
 
@@ -248,11 +235,8 @@ Contralateral arm
 
 .. _legs_feet_locations:
 
-=============
 Legs and feet
 =============
-
-**Legs and feet**
 
 **Legs and feet>Upper leg**
 
@@ -286,7 +270,6 @@ Legs and feet
 
 .. _hand_location_list:
 
-`````````````````
 2. Hand locations
 `````````````````
 
