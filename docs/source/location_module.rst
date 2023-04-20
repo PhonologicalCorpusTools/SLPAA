@@ -1,8 +1,5 @@
 .. todo::
-    list of body locations and suboptions
-        may be better to include the full list in a separate page
-    axis of relation and contact?
-    acting as a connected unit description
+    acting as a connected unit
     
 .. comment::
     Outstanding issue: Allow any particular individual selection to be tagged as ‘major phonological location’ or ‘minor phonological location’ (e.g., if someone selects eyebrow / head, they can tag ‘head’ as the major phonological location and ‘eyebrow’ as the minor one). At the moment, we can only tag the whole module as a (major/minor) phonological or phonetic location.
@@ -49,9 +46,9 @@ I. Body location
 .. note::
     **Linked contact modules**
     
-    For this selection, the program expects a linked contact module. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* this module will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
+    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* this module will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
 
-Choose from the :ref:`location_list` or navigate the image view window to select a body location.
+Choose from the list of :ref:`predefined_locations` or navigate the image view window to select a body location.
 
 .. warning::
     **To include here:**
@@ -76,9 +73,9 @@ II. Body-anchored location
 .. note::
     **Linked contact modules**
     
-    The program expects there to be no associated contact module for this type of location. If there is one, it will be flagged.
+    The program expects there to be no associated :ref:`contact_module` for this type of location. If there is one, it will be flagged.
 
-Select a reference location from the :ref:`location_list`. 
+Select a reference location from the list of :ref:`predefined_locations`. 
 
 Then select the appropriate reference to that location. **(max one from each axis, not required to choose one from each)**
 
@@ -91,7 +88,7 @@ Then select the appropriate reference to that location. **(max one from each axi
      - Sagittal axis
    * - **Ipsilateral to**
      - **Above**
-     - **In front of**
+     - **Distal to**
    * -   Far
      -   Far
      -   Far
@@ -103,7 +100,7 @@ Then select the appropriate reference to that location. **(max one from each axi
      -   Close
    * - **Contralateral to**
      - **Below**
-     - **Behind**
+     - **Proximal to**
    * -   Far
      -   Far
      -   Far
@@ -125,7 +122,7 @@ Then select the appropriate reference to that location. **(max one from each axi
 .. note::
     **Linked contact modules**
     
-    The program expects there to be no associated contact module for this type of location. If there is one, it will be flagged.
+    The program expects there to be no associated :ref:`contact_module` for this type of location. If there is one, it will be flagged.
 
 **Simple set of options, no additional images for this in the program.** The window with the body locations will be replaced with the applicable tree structure, so the module with this selection looks more like Movement. **(Does the same configuration of windows still apply, with two areas on the right side? There doesn't seem to be another necessary set of information, so I assume that it only shows the dropdown menu and the selected list item.)**
 
@@ -140,7 +137,7 @@ Make exactly one selection from each axis:
      - Sagittal axis
    * - **Ipsi**
      - **High**
-     - **In front**
+     - **Distal**
    * -   Far
      - **Mid**
      -   Far
@@ -155,7 +152,7 @@ Make exactly one selection from each axis:
      -
    * - **Contra**
      -
-     - **Behind**
+     - **Proximal**
    * -   Far
      -
      -   Far
@@ -168,10 +165,15 @@ Make exactly one selection from each axis:
 
 **(Defaults may be set as central/mid/in front med., though I'm not sure this is decided concretely.)**
 
-3. Axis of relation (between H1 and H2)
-```````````````````````````````````````
+3. Axis of relation
+```````````````````
 
-**(Some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)** No mention of how this Location type is expected to interact with Contact.
+.. note::
+    **Linked contact modules**
+    
+    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* this module will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
+
+**(Some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)**
 
 Make up to one selection from each axis to describe the relationship between H1 and H2. You can also select the axis of relation itself without specifying the way the hands are arranged along that axis.
 
@@ -187,5 +189,5 @@ Make up to one selection from each axis to describe the relationship between H1 
 
 * **Sagittal**
 
-    * H1 is in front of H2
-    * H1 is behind H2
+    * H1 is more distal than H2
+    * H1 is more proximal than H2
