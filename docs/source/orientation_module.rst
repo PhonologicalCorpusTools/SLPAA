@@ -22,7 +22,7 @@ Module instances link to generic :ref:`x-slots<x_slot>` to record information ab
 1. Absolute orientation
 ```````````````````````
 
-Orientation modules can be :ref:`auto-generated<auto_gen>` based on the existing coded :ref:`movement_module<Movement Modules>` for that sign. You can change the program's :ref:`automated_processes` in the :ref:`global_settings`.
+Orientation modules can be :ref:`auto-generated<auto_gen>` based on the existing coded :ref:`Movement Modules<movement_module>` for that sign. You can change the program's :ref:`automated_processes` in the :ref:`global_settings`.
 
 The orientation of the hand is described using only two specifications: the palm direction and the finger root direction. These terms will be further explained below in their respective sections. Both directions must be selected for a full and accurate coding of orientation.
 
@@ -101,4 +101,6 @@ In the sign `GAME <https://asl-lex.org/visualization/?sign=game>`_, the finger r
 .. _relative_orientation:
 
 2. Relative orientation
-``````````````````````` 
+```````````````````````
+
+**(Add here)**
