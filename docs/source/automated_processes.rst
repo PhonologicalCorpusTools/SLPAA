@@ -1,9 +1,14 @@
-.. comment::
-  This page will be for describing the program's auto-generation and autolinking of x-slots, autofilling of joint activity, etc.
+.. todo::
+  This page will be for describing the program's auto-generation and autolinking of x-slots, module auto-generation, autofilling of joint activity, etc.
 
-.. _auto_gen:
+.. _automated_processes:
 
 *******************
 Automated Processes
 *******************
+
+.. _auto_gen:
+
+Auto-generation of modules
+``````````````````````````
 
