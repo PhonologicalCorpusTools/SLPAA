@@ -84,7 +84,7 @@ Keep in mind that a single :ref:`instance` of the module is meant to convey only
     * - **Contralateral**
       - **Down**
       - **Proximal**
-    * - OR
+    * -    OR
       -
       -
     * - **H1 side**
