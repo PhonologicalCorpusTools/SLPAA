@@ -292,6 +292,19 @@ locn_options_body = {
 #   allow surfaces?, relevant exceptions to list of surfaces,
 #   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
 locn_options_purelyspatial = {
+    ("Horizontal axis", fx, cb, u, None, None, None, None, None): {
+        ("Ipsi", fx, rb, u, None, None, None, None, None): {
+            ("Far", fx, rb, u, None, None, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None, None, None): {},
+        },
+        ("Central", fx, rb, u, None, None, None, None, None): {},
+        ("Contra", fx, rb, u, None, None, None, None, None): {
+            ("Far", fx, rb, u, None, None, None, None, None): {},
+            ("Med.", fx, rb, u, None, None, None, None, None): {},
+            ("Close", fx, rb, u, None, None, None, None, None): {},
+        },
+    },
     ("Vertical axis", fx, cb, u, None, None, None, None, None): {
         ("High", fx, rb, u, None, None, None, None, None): {},
         ("Mid", fx, rb, u, None, None, None, None, None): {},
@@ -309,19 +322,6 @@ locn_options_purelyspatial = {
             ("Close", fx, rb, u, None, None, None, None, None): {},
         },
     },
-    ("Horizontal axis", fx, cb, u, None, None, None, None, None): {
-        ("Ipsi", fx, rb, u, None, None, None, None, None): {
-            ("Far", fx, rb, u, None, None, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None, None, None): {},
-        },
-        ("Central", fx, rb, u, None, None, None, None, None): {},
-        ("Contra", fx, rb, u, None, None, None, None, None): {
-            ("Far", fx, rb, u, None, None, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None, None, None): {},
-        },
-    },
 }
 
 # tuple elements are:
@@ -329,13 +329,13 @@ locn_options_purelyspatial = {
 #   allow surfaces?, relevant exceptions to list of surfaces,
 #   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
 locn_options_axisofreln = {
-    ("Vertical", fx, cb, u, None, None, None, None, None): {
-        ("H1 is above H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is below H2", fx, rb, u, None, None, None, None, None): {},
-    },
     ("Horizontal", fx, cb, u, None, None, None, None, None): {
         ("H1 is to H1 side of H2", fx, rb, u, None, None, None, None, None): {},
         ("H1 is to H2 side of H2", fx, rb, u, None, None, None, None, None): {},
+    },
+    ("Vertical", fx, cb, u, None, None, None, None, None): {
+        ("H1 is above H2", fx, rb, u, None, None, None, None, None): {},
+        ("H1 is below H2", fx, rb, u, None, None, None, None, None): {},
     },
     ("Sagittal", fx, cb, u, None, None, None, None, None): {
         ("H1 is more distal than H2", fx, rb, u, None, None, None, None, None): {},

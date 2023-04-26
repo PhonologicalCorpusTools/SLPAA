@@ -71,6 +71,12 @@ mvmtOptionsDict = {
             },
             ("Axis direction", fx, cb, u, 17): {  # Choose up to one from each axis to get the complete direction
                 ("H1 and H2 move in opposite directions", fx, cb, u, 18): {},
+                ("Horizontal", fx, cb, u, 27): {
+                    (subgroup, None, 0, None, 28): {
+                        ("Ipsilateral", fx, rb, u, 29): {},  # TODO KV or toward H1
+                        ("Contralateral", fx, rb, u, 30): {}  # TODO KV or toward H2
+                    },
+                },
                 ("Vertical", fx, cb, u, 19): {
                     (subgroup, None, 0, None, 20): {
                         ("Up", fx, rb, u, 21): {},
@@ -83,24 +89,10 @@ mvmtOptionsDict = {
                         ("Proximal", fx, rb, u, 26): {}
                     },
                 },
-                ("Horizontal", fx, cb, u, 27): {
-                    (subgroup, None, 0, None, 28): {
-                        ("Ipsilateral", fx, rb, u, 29): {},  # TODO KV or toward H1
-                        ("Contralateral", fx, rb, u, 30): {}  # TODO KV or toward H2
-                    },
-                },
                 ("Not relevant", fx, rb, u, 31): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
             ("Plane", fx, cb, u, 32): {  # choose as many as needed, but only one direction per plane
                 ("H1 and H2 move in opposite directions", fx, cb, u, 33): {},
-                ("Sagittal", fx, cb, u, 34): {
-                    (subgroup, None, 0, None, 35): {
-                        ("Distal from top of circle", fx, rb, u, 36): {},
-                        ("Proximal from top of circle", fx, rb, u, 37): {}
-                        # ("Clockwise", fx, rb, u): {},
-                        # ("Counterclockwise", fx, rb, u): {}
-                    },
-                },
                 ("Horizontal", fx, cb, u, 38): {
                     (subgroup, None, 0, None, 39): {
                         ("Ipsilateral from top of circle", fx, rb, u, 40): {},
@@ -115,6 +107,14 @@ mvmtOptionsDict = {
                         ("Contralateral from top of circle", fx, rb, u, 45): {}
                         # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
                         # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                    },
+                },
+                ("Sagittal", fx, cb, u, 34): {
+                    (subgroup, None, 0, None, 35): {
+                        ("Distal from top of circle", fx, rb, u, 36): {},
+                        ("Proximal from top of circle", fx, rb, u, 37): {}
+                        # ("Clockwise", fx, rb, u): {},
+                        # ("Counterclockwise", fx, rb, u): {}
                     },
                 },
                 ("Not relevant", fx, rb, u, 46): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
@@ -288,6 +288,12 @@ mvmtOptionsDict = {
                 ("Location of repetition", fx, cb, u, 159): {
                     ("Same location", fx, rb, u, 160): {},
                     ("Different location", fx, rb, u, 161): {  # Choose up to one from each column as needed
+                        ("Horizontal", fx, cb, u, 168): {
+                            # (subgroup, None, 2, None): {
+                            ("Ipsilateral", fx, rb, u, 169): {},  # TODO KV default ipsi/contra; can choose right/left in settings
+                            ("Contralateral", fx, rb, u, 170): {}
+                            # }
+                        },
                         ("Vertical", fx, cb, u, 162): {
                             # (subgroup, None, 0, None): {
                             ("Up", fx, rb, u, 163): {},
@@ -299,12 +305,6 @@ mvmtOptionsDict = {
                             ("Distal", fx, rb, u, 166): {},
                             ("Proximal", fx, rb, u, 167): {}
                             # },
-                        },
-                        ("Horizontal", fx, cb, u, 168): {
-                            # (subgroup, None, 2, None): {
-                            ("Ipsilateral", fx, rb, u, 169): {},  # TODO KV default ipsi/contra; can choose right/left in settings
-                            ("Contralateral", fx, rb, u, 170): {}
-                            # }
                         },
                     }
                 }
