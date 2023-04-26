@@ -5,6 +5,7 @@ from datetime import datetime
 
 from gui.movement_view import MovementModuleSerializable
 from gui.location_view import LocationModuleSerializable
+from gui.signtype_selector import Signtype
 from gui.xslots_selector import XslotStructure
 from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, LocationModule
 from lexicon.module_classes2 import TimingInterval, TimingPoint, AddedInfo
@@ -310,7 +311,9 @@ class Sign:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'])
             # self._datecreated = serializedsign['date created']
             # self._datelastmodified = serializedsign['date last modified']
-            self._signtype = serializedsign['type']
+            self._signtype = Signtype(serializedsign['type'].specslist)
+            if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
+                self._signtype.addedinfo = serializedsign['type'].addedinfo
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
             self.unserializemovementmodules(serializedsign['mov modules'])
