@@ -15,3 +15,18 @@ Module instances link to generic :ref:`x-slots<x_slot>` to record information ab
 (terminology: :ref:`hand_configuration` to mean something slightly different than :ref:`handshape`.)
 
 See the list of :ref:`predefined_handshapes`.
+
+.. list-table:: Optional title
+    :widths: 25 40 25
+    :header-rows: 1
+    
+    * - column 1 header
+      - column 2 header
+      - column 3 header
+    * - row 1, column 1
+      -
+      - row 1, column 3
+    * -
+      - row 2, column 2
+      - row 3, column 3
+
