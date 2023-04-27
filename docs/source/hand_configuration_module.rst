@@ -15,12 +15,3 @@ Module instances link to generic :ref:`x-slots<x_slot>` to record information ab
 (terminology: :ref:`hand_configuration` to mean something slightly different than :ref:`handshape`.)
 
 See the list of :ref:`predefined_handshapes`.
-
-#. This is the first ordered list item.
-#. This is the second ordered list item.
-
-    * This is an embedded unordered list item.
-    * Ditto.
-
-#. Back to the third item of the ordered list.
-
