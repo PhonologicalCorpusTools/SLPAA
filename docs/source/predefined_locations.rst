@@ -1,6 +1,7 @@
 .. todo::
-    rework organization
-        - maybe combine contra/ipsi (or H1/H2 side) into one list item below the main item
+    add blurb for discontiguous ipsi/contra selectable areas
+    description for each area?
+    placeholder for images
     allowable suboptions for each location
 
 .. _predefined_locations:
@@ -42,17 +43,13 @@ Head
 
 **Head>Side of face**
 
-**Head>Side of face>Side of face - contra**
-
-**Head>Side of face>Side of face - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face**
 
 **Head>Face>Temple**
 
-**Head>Face>Temple>Temple - contra**
-
-**Head>Face>Temple>Temple - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Above forehead (hairline)**
 
@@ -60,55 +57,39 @@ Head
 
 **Head>Face>Eyebrow**
 
-**Head>Face>Eyebrow>Eyebrow - contra**
-
-**Head>Face>Eyebrow>Eyebrow - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Eyebrow>Between eyebrows**
 
 **Head>Face>Eye**
 
-**Head>Face>Eye>Eye - contra**
-
-**Head>Face>Eye>Eye - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Eye>Outer corner of eye**
 
-**Head>Face>Eye>Outer corner of eye>Outer corner of eye - contra**
-
-**Head>Face>Eye>Outer corner of eye>Outer corner of eye - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Eye>Upper eyelid**
 
-**Head>Face>Eye>Upper eyelid>Upper eyelid - contra**
-
-**Head>Face>Eye>Upper eyelid>Upper eyelid - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Eye>Lower eyelid**
 
-**Head>Face>Eye>Lower eyelid>Lower eyelid - contra**
-
-**Head>Face>Eye>Lower eyelid>Lower eyelid - ipsi**
+→ ipsi/contra discontiguous sublocations
             
 **Head>Face>Cheek/nose**
 
 **Head>Face>Cheek/nose>Cheek**
 
-**Head>Face>Cheek/nose>Cheek>Cheek - contra**
-
-**Head>Face>Cheek/nose>Cheek>Cheek - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Cheek/nose>Maxillary process of zygomatic**
 
-**Head>Face>Cheek/nose>Maxillary process of zygomatic - contra**
-
-**Head>Face>Cheek/nose>Maxillary process of zygomatic - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Cheek/nose>Zygomatic process of temporal bone**
 
-**Head>Face>Cheek/nose>Zygomatic process of temporal bone>Zygomatic process of temporal bone - contra**
-
-**Head>Face>Cheek/nose>Zygomatic process of temporal bone>Zygomatic process of temporal bone - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Cheek/nose>Nose**
 
@@ -132,9 +113,7 @@ Head
 
 **Head>Face>Mouth>Corner of mouth**
 
-**Head>Face>Mouth>Corner of mouth>Corner of mouth - contra**
-
-**Head>Face>Mouth>Corner of mouth>Corner of mouth - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Mouth>Teeth**
 
@@ -146,27 +125,19 @@ Head
 
 **Head>Face>Ear**
 
-**Head>Face>Ear>Ear - contra**
-
-**Head>Face>Ear>Ear - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Ear>Mastoid process**
 
-**Head>Face>Ear>Mastoid process>Mastoid process - contra**
-
-**Head>Face>Ear>Mastoid process>Mastoid process - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Ear>Earlobe**
 
-**Head>Face>Ear>Earlobe>Earlobe - contra**
-
-**Head>Face>Ear>Earlobe>Earlobe - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Jaw**
 
-**Head>Face>Jaw>Jaw - contra**
-
-**Head>Face>Jaw>Jaw - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Head>Face>Chin**
 
@@ -184,15 +155,11 @@ Torso
 
 **Torso>Shoulder**
     
-**Torso>Shoulder>Shoulder - contra**
-        
-**Torso>Shoulder>Shoulder - ipsi**
+→ ipsi/contra discontiguous sublocations
         
 **Torso>Armpit**
     
-**Torso>Armpit>Armpit - contra**
-
-**Torso>Armpit>Armpit - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Torso>Sternum/clavicle area**
 
@@ -204,17 +171,13 @@ Torso
 
 **Torso>Hip**
     
-**Torso>Hip>Hip - contra**
-        
-**Torso>Hip>Hip - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Torso>Groin**
 
 **Torso>Buttocks**
 
-**Torso>Buttocks>Buttocks - contra**
-
-**Torso>Buttocks>Buttocks - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 .. _arm_locations:
 
@@ -240,33 +203,23 @@ Legs and feet
 
 **Legs and feet>Upper leg**
 
-**Legs and feet>Upper leg>Upper leg - contra**
-
-**Legs and feet>Upper leg>Upper leg - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Legs and feet>Knee**
 
-**Legs and feet>Knee>Knee - contra**
-
-**Legs and feet>Knee>Knee - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Legs and feet>Lower leg**
 
-**Legs and feet>Lower leg>Lower leg - contra**
-
-**Legs and feet>Lower leg>Lower leg - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Legs and feet>Ankle**
 
-**Legs and feet>Ankle>Ankle - contra**
-
-**Legs and feet>Ankle>Ankle - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 **Legs and feet>Foot**
 
-**Legs and feet>Foot>Foot - contra**
-
-**Legs and feet>Foot>Foot - ipsi**
+→ ipsi/contra discontiguous sublocations
 
 .. _hand_location_list:
 
