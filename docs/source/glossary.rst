@@ -10,20 +10,12 @@ cardinal axes
 =============
 A set of three axes in space that are all perpendicular to one another and cross at a point of origin. Each axis extends in two directions. No matter where the point of origin lands or how a given axis is oriented, these always remain positioned the same way relative to each other. 
 
-.. image:: images/shared_planes_orientations.jpg
-    :width: 750
-    :align: left
-
 
 .. _cardinal_planes:
 
 cardinal planes
 ===============
 A set of three planes in space that are all perpendicular to one another and cross at a point of origin. Each plane extends on a flat surface in every possible direction, including along two :ref:`cardinal_axes` (and perpendicular to the third). No matter where the point of origin lands or how a given plane is oriented, these always remain positioned the same way relative to each other.
-
-.. image:: images/shared_planes_orientations.jpg
-    :width: 750
-    :align: left
 
 
 .. _closing_opening:
@@ -41,6 +33,13 @@ Opening: extension of all joints of the selected fingers, such that the handshap
     insert link to video example if/when available
 
 
+.. _connected:
+
+connected
+=========
+**(add here)**
+
+
 .. _contralateral:
 
 contralateral
@@ -48,6 +47,13 @@ contralateral
 This refers to a side of the body relative to a pertinent hand of the signer: in this case, it is the opposite side of the body from the hand that is under discussion. The hand would have to cross laterally over the :ref:`mid_sagittal_plane` to reach this side.
 
 The H2 side of the signer's body is contralateral to H1, and the H1 side of the signer's body is contralateral to H2.
+
+
+.. _dispersed:
+
+dispersed
+=========
+**(add here)**
 
 
 .. _entry_ID: 
@@ -90,7 +96,7 @@ gloss
 
 handshape
 =========
-Holistic description of a standard phonological handshape, e.g., the 'B' handshape in ASL. In SLP-AA, there are 'pre-defined' handshapes whose full :ref:`hand_configuration` is already specified in the :ref:`hand_configuration_module`.
+Holistic description of a standard phonological handshape, e.g., the 'B' handshape in ASL. In SLP-AA, there is a set of :ref:`predefined_handshapes` whose full :ref:`hand_configuration` is already specified in the :ref:`hand_configuration_module`.
 
 
 .. _handshape_change:
@@ -126,7 +132,7 @@ Un-hooking: **add here**
 
 instance
 ========
-A single instance of a :ref:`module` is a completed coding of the necessary selections within that type of module. The set of selections are determined by the user, and any part (or all) of this set can be accessed and edited through the :ref:`Sign summary window<sign_summary>`. For most types of modules in SLP-AA, an entire instance can be duplicated or removed as desired.
+A single instance of a :ref:`module` is a completed coding of the necessary selections within that type of module. The set of selections are decided by the user, and any part (or all) of this set can be accessed and edited through the :ref:`Sign summary window<sign_summary>`. A fully-coded sign in a corpus is then made up of its :ref:`sign_level_info`, its :ref:`sign_type` specifications, and the necessary instances of each type of module.
 
 
 .. _ipsilateral:
@@ -144,7 +150,7 @@ joint-specific movement
 =======================
 A "joint-specific movement" is one of the three primary types of movement that are coded in SLP-AA (the other two being :ref:`perceptual_shape` and :ref:`handshape_change`). These movements are characterized as being produced based on and understood by the movements of the joints involved in the motion. The default list of joint movements that can be selected for this movement type can be found in the :ref:`Joint-specific movements<joint_specific_movement_entry>` section.
 
-Joint-specific movements are often comparable to traditional 'local' movements, except that this selection only applies when the movement can be characterized solely based on a single, particular change in joint articulation (not related to a change in the base handshape). There is some possible overlap between perceptual shape and joint-specific movements in some cases, so care should be taken when selecting between these. For example, flexion of the selected finger base joints could either be coded as :ref:`flattening<flattening_straightening>` or as a "straight" perceptual shape.
+Joint-specific movements are often comparable to traditional 'local' movements, except that this selection only applies when the movement can be characterized solely based on a particular change in joint articulation. There is some possible overlap between perceptual shape and joint-specific movements in some cases, so care should be taken when selecting between these. For example, flexion of the selected finger base joints could either be coded as :ref:`flattening<flattening_straightening>` or as a "straight" perceptual shape.
 
 .. comment::
   This example is meant to show that the choice between 'perceptual shape' and 'joint-specific movement' is a phonological one in the cases where either one could reasonably apply. The difference is not purely articulatory. This is also true for traditional terms like 'path' and 'local' movements.
@@ -161,14 +167,14 @@ lemma
 
 mid-sagittal plane
 ==================
-The sagittal plane centered directly in the middle of the body. The body is bilaterally symmetric across this plane, so it must be given special considerations for horizontal :ref:`Symmetry<symmetry_section>`.
+The particular sagittal plane that is centered directly at the midline of the body. The body is bilaterally symmetric across this plane, so it must be given special considerations in terms of :ref:`Symmetry<symmetry_section>`.
 
 
 .. _module:
 
 module
 ======
-This term is used to describe the full set of possible specifications that a user can then make selections from for a given type of module (as in the :ref:`movement_module`, :ref:`location_module`, :ref:`sign_type_module` and so on) in SLP-AA. When not referenced in connection to a particular module, this term applies abstractly to the modular functionality of the program. For more information, visit the :ref:`modularity` section.
+This term is used to describe the full set of possible selections available to choose from for a given type of module in SLP-AA: these are the :ref:`movement_module`, the :ref:`hand_part_module`, the :ref:`location_module`, the :ref:`relation_module`, the :ref:`orientation_module`, the :ref:`hand_configuration_module`, and the :ref:`nonmanual_module`. When not referenced in connection to a particular type of module, this term applies abstractly to the modular functionality of the program. For more information, visit the :ref:`modularity` section.
 
 See :ref:`instance` of a module.
 
