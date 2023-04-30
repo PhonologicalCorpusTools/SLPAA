@@ -27,7 +27,9 @@ Contents:
    movement_module.rst
    location_module.rst
    predefined_locations.rst
-   contact_module.rst
+   hand_part_module.rst
+   relation_module.rst
+   nonmanual_module.rst
    global_settings.rst
    glossary.rst
    references.rst
