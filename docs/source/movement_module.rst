@@ -26,10 +26,10 @@ Select the hand(s) involved in this instance of the module. For movements involv
     
     A two-handed :ref:`perceptual_shape` movement is *out of phase* if the hands reach different points of the perceptual shape at the same time, as in `PACK <https://asl-lex.org/visualization/?sign=pack>`_ or `THEATER <https://asl-lex.org/visualization/?sign=theater>`_. Conversely, the movement is *in phase* if both hands reach the same point of the perceptual shape at the same time, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_ or `BLANKET <https://asl-lex.org/visualization/?sign=blanket>`_.
     
-.. warning::
-    **Connectedness?**
+.. note::
+    **Connectedness**
     
-    We may want an additional note, a glossary entry, a reference to literature, or some combination of these to give information on connectedness.
+    **(Add here)**: reference Morgan's dissertation and/or book. Add glossary term for :ref:`connected`.
     
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
@@ -43,7 +43,7 @@ Select the **movement type** for the current module. The three movement types ar
 .. note::
     **No movement**
     
-    If any portion of a sign includes a prominent moment of intended stillness (for instance, `MISS <https://asl-lex.org/visualization/?sign=miss>`_ or `ONE <https://www.handspeak.com/word/index.php?id=1554>`_), select the 'No movement' option. When applicable, this is the only selection within the module as it is mutually exclusive with all other movement options. This selection can apply for only one portion of a sign which otherwise does have movement, which is what makes it useful above and beyond the 'no movement' options in :ref:`sign_type_module`.
+    If any portion of a sign includes a prominent moment of intended stillness (for instance, `MISS <https://asl-lex.org/visualization/?sign=miss>`_ or `ONE <https://www.handspeak.com/word/index.php?id=1554>`_), select the 'No movement' option. When applicable, this is the only selection within the module as it is mutually exclusive with all other movement options. This selection can apply for only one portion of a sign which otherwise does have movement, which is what makes it useful above and beyond the 'no movement' options in :ref:`sign_type`.
 
 Movement type options include:
 
@@ -55,7 +55,7 @@ Note that in SLP-AA, we do not require users to classify movements into the trad
 
 In response to these issues, our system allows any movement in which the hand or arm draws a perceptual shape in space to be classified as perceptual movement, with optional manual specifications of the exact (combination of) joints executing the movement under a separate “joint activity” section. For example, the sign `NORTH <https://asl-lex.org/visualization/?sign=north>`_ is canonically signed as a straight perceptual movement that is articulated at the shoulder. A distalized version of this sign might be produced with an "un-nodding" wrist movement. In such a case, one could code this either as a joint-specific wrist-nod movement OR one could preserve the 'phonological intention' of the perceptual straight movement and simply add the fact that it is articulated with wrist flexion in the :ref:`joint activity<joint_activity_entry>` section.
 
-Traditional local movements (relating to particular joints) defined in the literature are listed under the joint-specific movement section, with the associated joint activities optionally auto-filled (e.g., the joint-specific movement of “closing” can auto-fill to flexion of finger joints in the “joint activity” section). 
+Traditional local movements (relating to particular joints) defined in the literature are listed under the joint-specific movement section, with the associated joint activities optionally autofilled (e.g., the joint-specific movement of “closing” can autofill to flexion of finger joints in the “joint activity” section). 
 
 Note that after the movement type selections have been made, there are separate additional sections for coding the :ref:`joint activity<joint_activity_entry>` and the :ref:`movement characteristics<movement_chars>`. 
 
@@ -129,7 +129,7 @@ This section is automatically specified by the program as *not relevant* when th
     
     This means that the interpretation of what is considered the "opposite" direction may depend on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ has the **same** axis direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time. If Movement is defined in terms of absolute directions, the movement in `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ has the **same** axis direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time. See :ref:`Symmetry<symmetry_section>` for more information.
 
-Keep in mind that a single module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the section on :ref:`Angled axes<angled_axes>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
+Keep in mind that a single :ref:`instance` of the module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the section on :ref:`Angled axes<angled_axes>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting axis direction consistently, such as always selecting the first direction of motion.
 
@@ -183,7 +183,7 @@ This section is automatically specified by the program as *not relevant* when th
     
     This option would also apply in cases that do not involve the horizontal axis, which means both hands would move in circles in opposite directions in only the sagittal plane. We do not know of any such cases, as they are biomechanically difficult.
 
-Keep in mind that a single module is meant to convey only one direction of movement, so a selection of a combination of planes is interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the sections on :ref:`Angled planes<angled_planes>` and :ref:`Angled circular directions<angled_circles>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
+Keep in mind that a single :ref:`instance` of the module is meant to convey only one direction of movement, so a selection of a combination of planes is interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the sections on :ref:`Angled planes<angled_planes>` and :ref:`Angled circular directions<angled_circles>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting circular direction consistently, such as always selecting the first direction of motion.
 
@@ -346,4 +346,3 @@ Use the **joint activity** section to add more fine-grained detail about any joi
     Some notes to use as starting points for some of these characteristics:
     ‘repeated in a different location’ — that would be used for what Hope Morgan calls “dispersed” signs, like HOME (https://asl-lex.org/visualization/?sign=home)
     'trill' -- this is for “small, rapidly repeated dynamic elements during the production of signs” (to quote Brentari 1996:45). This most typically happens with small joint-specific movements as in DIRTY (https://asl-lex.org/visualization/?sign=dirty), which is described as having the fingers ‘flutter’ in the dictionary.
-    
