@@ -1,15 +1,13 @@
 .. todo::
     slightly altered screenshot with sequential/simultaneous
 
-.. _sign_type_module:
+.. _sign_type:
 
-****************
-Sign Type Module
-****************
+*********
+Sign Type
+*********
 
-This :ref:`module` is used to identify the highest-category sign characteristics by selecting specifications for the behaviours of each hand (H1 & H2) both separately and in relation to each other, if applicable.
-
-This module is atypical in that only one :ref:`instance` can be called for each sign, and the information coded within it applies to the sign as a whole. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
+This selection window is used to identify the highest-category sign characteristics by specifying the behaviours of each hand (H1 & H2) both separately and in relation to each other, if applicable. The information coded in this window applies to the sign as a whole, similarly to :ref:`sign_level_info`.
 
 .. _signtype_one_hand: 
 
@@ -104,5 +102,5 @@ Example coding for the sign `COMPARE <https://www.handspeak.com/word/search/inde
 **(update with sequential/simultaneous)**
 
    .. image:: images/signtype_COMPARE.png
-      :width: 100%
+      :width: 70%
       :align: center
