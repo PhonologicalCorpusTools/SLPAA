@@ -503,9 +503,12 @@ class LocationTreeItem(QStandardItem):
         # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
         elif self.data(Qt.UserRole + udr.mutuallyexclusiverole):
             return siblings
-        # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup
+        # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup and also those at my level but not in any subgroup
         elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
-            return subgroupsiblings
+            return subgrouporgeneralsiblings
+        # # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup
+        # elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
+        #     return subgroupsiblings
         # if I'm *not* ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
         elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole):
             return siblings
