@@ -311,7 +311,8 @@ class Sign:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'])
             # self._datecreated = serializedsign['date created']
             # self._datelastmodified = serializedsign['date last modified']
-            self._signtype = Signtype(serializedsign['type'].specslist)
+            signtype = serializedsign['type']
+            self._signtype = Signtype(signtype.specslist) if signtype is not None else None
             if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
                 self._signtype.addedinfo = serializedsign['type'].addedinfo
             self._xslotstructure = serializedsign['xslot structure']
