@@ -714,7 +714,6 @@ class MovementTreeModel(QStandardItemModel):
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())
-            keyslist = list(structure.keys())
             for idx, labelclassifierchecked_5tuple in enumerate(structure.keys()):
                 label = labelclassifierchecked_5tuple[0]
                 userspecifiability = labelclassifierchecked_5tuple[1]
