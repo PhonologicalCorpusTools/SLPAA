@@ -60,7 +60,6 @@ userdefinedroles = UserDefinedRoles({
         # If 2, the corrresponding QStandardItem is marked editable but must be a number;
         # If 3, the corrresponding QStandardItem is marked editable with no restrictions.
         # This kind of editable functionality was formerly achieved via a separate (subsidiary) editable MovementTreeItem.
-
     'userspecifiedvaluerole': 10,
         # userspecifiedvaluerole:
         # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.

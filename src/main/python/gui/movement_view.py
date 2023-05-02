@@ -70,23 +70,29 @@ mvmtOptionsDict = {
                 }
             },
             ("Axis direction", fx, cb, u, 17): {  # Choose up to one from each axis to get the complete direction
-                ("H1 and H2 move in opposite directions", fx, cb, u, 18): {},
-                ("Horizontal", fx, cb, u, 19): {
-                    (subgroup, None, 0, None, 20): {
-                        ("Ipsilateral", fx, rb, u, 21): {},  # TODO KV or toward H1
-                        ("Contralateral", fx, rb, u, 22): {}  # TODO KV or toward H2
-                    },
+                # ("H1 and H2 move in opposite directions", fx, cb, u, 18): {},
+                (subgroup, None, 0, None, 18): {
+                    ("H1 and H2 move toward each other", fx, rb, u, 18.1): {},
+                    ("H1 and H2 move away from each other", fx, rb, u, 18.2): {},
                 },
-                ("Vertical", fx, cb, u, 23): {
-                    (subgroup, None, 0, None, 24): {
-                        ("Up", fx, rb, u, 25): {},
-                        ("Down", fx, rb, u, 26): {}
+                (subgroup, None, 1, None, 19): {
+                    ("Horizontal", fx, cb, u, 19.1): {
+                        (subgroup, None, 0, None, 20): {
+                            ("Ipsilateral", fx, rb, u, 21): {},  # TODO KV or toward H1
+                            ("Contralateral", fx, rb, u, 22): {}  # TODO KV or toward H2
+                        },
                     },
-                },
-                ("Sagittal", fx, cb, u, 27): {
-                    (subgroup, None, 0, None, 28): {
-                        ("Distal", fx, rb, u, 29): {},
-                        ("Proximal", fx, rb, u, 30): {}
+                    ("Vertical", fx, cb, u, 23): {
+                        (subgroup, None, 0, None, 24): {
+                            ("Up", fx, rb, u, 25): {},
+                            ("Down", fx, rb, u, 26): {}
+                        },
+                    },
+                    ("Sagittal", fx, cb, u, 27): {
+                        (subgroup, None, 0, None, 28): {
+                            ("Distal", fx, rb, u, 29): {},
+                            ("Proximal", fx, rb, u, 30): {}
+                        },
                     },
                 },
                 ("Not relevant", fx, rb, u, 31): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
@@ -497,8 +503,20 @@ class MovementTreeSerializable:
             pairstoadd = {}
             keystoremove = []
             for k in stored_dict.keys():
+
+                # 1. "H1 and H2 move in different directions" (under either axis driectin or plane, in perceptual shape)
+                #   --> "H1 and H2 move in opposite directions"
+                # 2. Then later... "H1 and H2 move in opposite directions" (under axis direction only)
+                #   --> "H1 and H2 move toward each other" (along with an independent addition of "... away ...")
                 if "H1 and H2 move in different directions" in k:
-                    pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
+                    if "Axis direction" in k:
+                        pairstoadd[k.replace("in different directions", "toward each other")] = stored_dict[k]
+                        keystoremove.append(k)
+                    elif "Place" in k:
+                        pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
+                        keystoremove.append(k)
+                elif "H1 and H2 move in opposite directions" in k and "Axis direction" in k:
+                    pairstoadd[k.replace("in opposite directions", "toward each other")] = stored_dict[k]
                     keystoremove.append(k)
 
                 if hadtoaddusv:
@@ -891,9 +909,9 @@ class MovementTreeItem(QStandardItem):
         # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
         elif self.data(Qt.UserRole+udr.mutuallyexclusiverole):
             return siblings
-        # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup
+        # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup and also those at my level but not in any subgroup
         elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
-            return subgroupsiblings
+            return subgrouporgeneralsiblings
         # if I'm *not* ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
         elif not self.data(Qt.UserRole+udr.mutuallyexclusiverole):
             return siblings
