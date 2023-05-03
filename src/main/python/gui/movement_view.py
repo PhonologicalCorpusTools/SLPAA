@@ -512,8 +512,8 @@ class MovementTreeSerializable:
                     if "Axis direction" in k:
                         pairstoadd[k.replace("in different directions", "toward each other")] = stored_dict[k]
                         keystoremove.append(k)
-                    elif "Place" in k:
-                        pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
+                    elif "Plane" in k:
+                        pairstoadd[k.replace("move in different directions", "move in opposite directions")] = stored_dict[k]
                         keystoremove.append(k)
                 elif "H1 and H2 move in opposite directions" in k and "Axis direction" in k:
                     pairstoadd[k.replace("in opposite directions", "toward each other")] = stored_dict[k]
