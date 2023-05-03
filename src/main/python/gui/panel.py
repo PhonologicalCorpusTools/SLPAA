@@ -732,56 +732,63 @@ class SignLevelMenuPanel(QScrollArea):
 
         self._sign = sign
         self.system_default_signtype = mainwindow.system_default_signtype
+        self.sign_buttons = []
         self.module_buttons = []
 
         self.signgloss_label = QLabel("Sign: " + sign.signlevel_information.gloss if sign else "")
         self.signlevel_button = QPushButton("Sign-level information")
         self.signlevel_button.clicked.connect(self.handle_signlevelbutton_click)
 
-        self.signtype_button = QPushButton("Sign type selection")
+        self.signtype_button = QPushButton("Sign type information")
         self.signtype_button.clicked.connect(self.handle_signtypebutton_click)
-        self.module_buttons.append(self.signtype_button)
+        self.sign_buttons.append(self.signtype_button)
 
         # TODO KV
         # if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual':  # could also be 'none' or 'auto'
-        self.xslots_button = QPushButton("  Specify X-slots")
+        self.xslots_button = QPushButton("X-slot information")
         self.xslots_button.clicked.connect(self.handle_xslotsbutton_click)
-        self.module_buttons.append(self.xslots_button)
+        self.sign_buttons.append(self.xslots_button)
 
-        self.movement_button = QPushButton("Movement selection")
+        self.movement_button = QPushButton("Add movement module")
         self.movement_button.setProperty("existingmodule", False)
         self.movement_button.clicked.connect(self.handle_movementbutton_click)
         self.module_buttons.append(self.movement_button)
 
-        self.handpart_button = QPushButton("Hand part selection")
+        self.handpart_button = QPushButton("Add hand part module")
         self.handpart_button.setProperty("existingmodule", False)
         self.handpart_button.clicked.connect(self.handle_handpartbutton_click)
         self.module_buttons.append(self.handpart_button)
 
-        self.location_button = QPushButton("Location selection")
+        self.location_button = QPushButton("Add location module")
         self.location_button.clicked.connect(self.handle_locationbutton_click)
         self.module_buttons.append(self.location_button)
 
-        self.contact_button = QPushButton("Contact selection")
+        self.contact_button = QPushButton("Add contact module")
         self.contact_button.clicked.connect(self.handle_contactbutton_click)
         self.module_buttons.append(self.contact_button)
 
-        self.orientation_button = QPushButton("Orientation selection")
+        self.orientation_button = QPushButton("Add orientation module")
         self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
         self.module_buttons.append(self.orientation_button)
 
-        self.handshape_button = QPushButton("Hand configuration selection")
+        self.handshape_button = QPushButton("Add hand configuration module")
         self.handshape_button.setProperty("existingmodule", False)
         self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
         self.module_buttons.append(self.handshape_button)
 
-        self.nonmanual_button = QPushButton("Non-manual selection")
+        self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
         self.nonmanual_button.clicked.connect(self.handle_nonmanualbutton_click)
         self.module_buttons.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
         main_layout.addWidget(self.signlevel_button)
+        for btn in self.sign_buttons:
+            main_layout.addWidget(btn)
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(line)
         for btn in self.module_buttons:
             main_layout.addWidget(btn)
         self.enable_module_buttons(False)
@@ -801,7 +808,7 @@ class SignLevelMenuPanel(QScrollArea):
         enablexslotbutton = yesorno and self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual'
         enablesigntypebutton = yesorno and self.sign is not None
 
-        for btn in self.module_buttons:
+        for btn in self.sign_buttons + self.module_buttons:
             btn.setEnabled(enableparametermodulebuttons)
         self.signtype_button.setEnabled(enablesigntypebutton)
         self.xslots_button.setEnabled(enablexslotbutton)
