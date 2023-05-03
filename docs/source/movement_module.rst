@@ -168,26 +168,34 @@ See :ref:`signing_space_page` for a visual representation of these options.
 c) Plane
 ~~~~~~~~
 
-In some cases, it is useful to specify not just the axis but also the **plane** (or combination of planes) that is relevant to describe the movement being coded in a particular module. For each selected plane, you can also choose a **circular direction** if desired. See :ref:`Circular directions<circular_directions>` for a description of what we define to be the 'top of a circle' for each plane.
+In some cases, it is useful to specify not just the axis but also the **plane** (or combination of planes) that is relevant to describe the movement being coded. For each selected plane, you can also choose a **circular direction** if desired.
 
 This section is automatically specified by the program as *not relevant* when the module includes a *straight* perceptual shape.
 
-.. note::
-    **Both hands moving in opposite circular directions**
-    
-    If the hands have opposite specifications for circular direction within each applicable plane, select this checkbox and continue to fill out the instance of the module as it applies to H1. The circular direction for H2 can then be defined implicitly without coding another instance of Movement for each hand.
-    
-    Take care in consideration of the horizontal and vertical planes, since SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where the default for Movement is set as relative directions. (Consult the :ref:`global_settings` for information on changing these options for each module.)
-    
-    This means that the interpretation of what is considered the "opposite" direction may depend on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_ has the **same** circular direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time. If Movement is defined in terms of absolute directions, the movement in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ has the **same** circular direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time. See :ref:`Symmetry<symmetry_section>` for more information.
-    
-    This option would also apply in cases that do not involve the horizontal axis, which means both hands would move in circles in opposite directions in only the sagittal plane. We do not know of any such cases, as they are biomechanically difficult.
+If the hands have opposite specifications for circular direction within every applicable plane, select the checkbox for *H1 and H2 move in opposite directions* and continue to fill out the instance of the module as it applies to H1. The circular direction for H2 can then be defined implicitly without coding another :ref:`instance` of Movement for each hand.
 
-Keep in mind that a single :ref:`instance` of the module is meant to convey only one direction of movement, so a selection of a combination of planes is interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the sections on :ref:`Angled planes<angled_planes>` and :ref:`Angled circular directions<angled_circles>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
+.. note::
+    **Opposite horizontal directions**
+    
+    Take care in consideration of what the "opposite" direction means in the horizontal and vertical planes. SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where relative directions are the default for Movement. (Consult the :ref:`global_settings` for information on changing these options for each module.)
+    
+    This means that the interpretation of what is considered the "opposite" direction depends in some cases on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_ has the **same** circular direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time and share the same **specification**. If Movement is defined in terms of absolute directions, the movement in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ has the **same** circular direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time and share the same **specification**. 
+    
+    .. image:: images/signtype_circular_movements.png
+        :width: 750
+        :align: center
+    
+    See :ref:`Symmetry<symmetry_section>` for more information.
+    
+    This option could also apply in cases that do not involve the horizontal axis, which means both hands move in circles in opposite directions in only the sagittal plane. We do not know of any such cases, as they are biomechanically difficult.
+
+Keep in mind that a single instance of the module is meant to convey only one direction of movement, so a selection of a combination of planes is interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the sections on :ref:`Angled planes<angled_planes>` and :ref:`Angled circular directions<angled_circles>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting circular direction consistently, such as always selecting the first direction of motion.
 
 As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module.
+
+See :ref:`Circular directions<circular_directions>` for a description of what we define to be the 'top of a circle' for each plane.
 
 * **Horizontal plane: relative** [Default]
 
