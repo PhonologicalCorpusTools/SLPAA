@@ -1,8 +1,9 @@
 .. todo::
-    intro descriptions
-    acting as a connected unit blurb
-        use SINCE
-    "add linked relation module" button?
+    text introductions for both location type sections
+    note on connectedness
+    finish the body location section
+    default location type in global settings?
+    "add/go to linked relation module" button?
     
 .. comment::
     Outstanding issue: Allow any particular individual selection to be tagged as ‘major phonological location’ or ‘minor phonological location’ (e.g., if someone selects eyebrow / head, they can tag ‘head’ as the major phonological location and ‘eyebrow’ as the minor one). At the moment, we can only tag the whole module as a (major/minor) phonological or phonetic location.
@@ -36,7 +37,7 @@ Module instances link to generic :ref:`x-slots<x_slot>` to record information ab
     
     Each module instance can optionally be tagged as a phonological location, a phonetic location, or both of these at once. If it is selected to be a phonological location, it can optionally be further described as a major or minor phonological location. These selections will apply to the entire instance of the module.
 
-**(Start here with a basic description of the highest-level options for types of locations available in the program. Back to three: Body and Signing Space > Body-anchored act the same way, and Purely Spatial is completely different.)**
+There are three possible types of locations that can be described in this module. There are :ref:`Body and body-anchored locations<body_location_section>`, which have the same functionality in this module, and there are :ref:Purely spatial locations<purely_spatial_location>`.
 
 Most Location options adhere to one of two models to describe the horizontal sides of the body, either **relative** (:ref:`ipsilateral`/:ref:`contralateral` side) or **absolute** (H1/H2 side). These are described in greater detail in :ref:`Symmetry<symmetry_section>`. These options can be toggled separately for different modules, and the relative set applies by default for Location. See the :ref:`global_settings` for how to change these options.
 
@@ -45,7 +46,9 @@ Most Location options adhere to one of two models to describe the horizontal sid
 1. Body and body-anchored locations
 ```````````````````````````````````
 
-**(Explain differences between how these options function in the program, and list possible uses for the distinction.)** Note that these are functionally identical within an instance of this module type, but differences surface in other ways, like searching.
+**(Intro: what is a body/body-anchored location in general?)**
+
+**(Explain differences between how the two function in the program: identical within the module, different implications for analysis. List possible uses for the distinction.)** Note that these movement types are functionally identical within an instance of Location, but differences surface in other ways, like how a linked instance of the :ref:`relation_module` might be coded. The distinction can also be helpful for searching and analysis.
 
 .. note::
     **Linked modules**
@@ -67,12 +70,9 @@ Choose from the list of :ref:`predefined_locations` or navigate the image view w
     * how to access the locations text list in the dropdown box, and how to add them to the top window
     * how to interact with sub-menus, how the columns are set up in the lower window
         
-        * exists **only** relative to the selection in the locations list window
+        * these exist **only** relative to the selection in the locations list window
         
     * mutually exclusive location options within an instance of the module
-
-.. warning::
-    We use abbreviations for joints in Hand Config – this will also be the case for the Location sub-menus.
 
 .. _purely_spatial_location:
 
@@ -86,18 +86,18 @@ Choose from the list of :ref:`predefined_locations` or navigate the image view w
     
     The program expects there to be no associated :ref:`Hand Part<hand_part_module>` or :ref:`relation_module` for this type of location. If there is one, it will be flagged.
 
-Make exactly one selection from each axis (each represented by a column in the table below), leaving no axis unspecified. Some axis locations allow an optional distance specification (close/medium/far) to add more detail about the degree of extension of the arms.
+Make exactly one selection from each axis (each represented by a column in the table below), leaving no axis unspecified. Some axis locations allow an optional distance specification (close/medium/far) to add more detail about the degree of extension of the arms. **(Defaults may be central/mid/in front medium, though I'm not sure this is decided concretely.)**
 
 Note that only one set of options for the horizontal axis will apply, depending on user preference, and the relative set applies by default for Location. See :ref:`Symmetry<symmetry_section>` for more information, and :ref:`global_settings` to change which set of options appears in each module.
 
 .. list-table::
-   :widths: 30 30 30 30
+   :widths: 40 40 30 30
    :header-rows: 1
 
-   * - Horizontal axis (relative)
-     - Horizontal axis (absolute)
-     - Vertical axis
-     - Sagittal axis
+   * - Horizontal (relative)
+     - Horizontal (absolute)
+     - Vertical
+     - Sagittal
    * - **Ipsi**
      - **H1 side**
      - **High**
@@ -135,4 +135,4 @@ Note that only one set of options for the horizontal axis will apply, depending 
      -
      -   Far
 
-**(Defaults may be set as central/mid/in front med., though I'm not sure this is decided concretely.)**
+See :ref:`signing_space` for a visual description of the axis system.
