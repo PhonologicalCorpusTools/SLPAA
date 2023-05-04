@@ -1,7 +1,8 @@
 .. todo::
-    acting as a connected unit
+    intro descriptions
+    acting as a connected unit blurb
         use SINCE
-    "add linked contact module" button
+    "add linked relation module" button?
     
 .. comment::
     Outstanding issue: Allow any particular individual selection to be tagged as ‘major phonological location’ or ‘minor phonological location’ (e.g., if someone selects eyebrow / head, they can tag ‘head’ as the major phonological location and ‘eyebrow’ as the minor one). At the moment, we can only tag the whole module as a (major/minor) phonological or phonetic location.
@@ -21,10 +22,12 @@ This :ref:`module` is used to code the **location** components of a sign. As man
 
 Select the hand(s) involved in this instance of the module.
 
-.. warning::
-    **Both hands acting as a connected unit**
+.. note::
+    **As a connected unit**
     
-    From system overview: this option is intended to accomplish a similar thing as in the movement module, in that it allows a single specification to be given for H1 while applying to both hands. But e.g. if the specification is ‘ipsilateral shoulder’ then it is interpreted as meaning that both hands are on the SAME shoulder, ipsilateral for H1 (as in `SINCE <https://asl-lex.org/visualization/?sign=since>`_ or `RESPONSIBILITY <https://asl-lex.org/visualization/?sign=responsibility>`_) – it could be used in conjunction with an axis of relation and / or a connected movement module, but it wouldn’t have to
+    (Add here) reference Morgan and link to the glossary entry :ref:`connected`.
+    
+    From system overview: this option is intended to accomplish a similar thing as in the movement module, in that it allows a single specification to be given for H1 while applying to both hands. But e.g. if the specification is ‘ipsilateral shoulder’ then it is interpreted as meaning that both hands are on the SAME shoulder, ipsilateral for H1 (as in `SINCE <https://asl-lex.org/visualization/?sign=since>`_ or `RESPONSIBILITY <https://asl-lex.org/visualization/?sign=responsibility>`_) – it could be used in conjunction with an axis of relation and / or a connected movement module, but it wouldn’t have to.
 
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
 
@@ -33,24 +36,23 @@ Module instances link to generic :ref:`x-slots<x_slot>` to record information ab
     
     Each module instance can optionally be tagged as a phonological location, a phonetic location, or both of these at once. If it is selected to be a phonological location, it can optionally be further described as a major or minor phonological location. These selections will apply to the entire instance of the module.
 
-**(Start with a basic description of the highest-level options for types of locations available in the program.)**
+**(Start here with a basic description of the highest-level options for types of locations available in the program. Back to three: Body and Signing Space > Body-anchored act the same way, and Purely Spatial is completely different.)**
+
+Most Location options adhere to one of two models to describe the horizontal sides of the body, either **relative** (:ref:`ipsilateral`/:ref:`contralateral` side) or **absolute** (H1/H2 side). These are described in greater detail in :ref:`Symmetry<symmetry_section>`. These options can be toggled separately for different modules, and the relative set applies by default for Location. See the :ref:`global_settings` for how to change these options.
 
 .. _body_location_section:
 
 1. Body and body-anchored locations
 ```````````````````````````````````
 
-**(Explain differences between how these options function in the program, and list possible uses for the distinction.)**
-
-.. _body_location:
-
-I. Body location
-================
+**(Explain differences between how these options function in the program, and list possible uses for the distinction.)** Note that these are functionally identical within an instance of this module type, but differences surface in other ways, like searching.
 
 .. note::
-    **Linked contact modules**
+    **Linked modules**
     
-    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* Location will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
+    For these kinds of locations, the program expects a linked instance of the :ref:`relation_module`. This instance of the module will be flagged if it is unlinked. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* Location will have a "save and add linked relation module" type of button in addition to the regular set of save buttons.)
+    
+    These kinds of locations can also take a linked instance of the :ref:`hand_part_module` if desired.
 
 Choose from the list of :ref:`predefined_locations` or navigate the image view window to select a body location.
 
@@ -69,129 +71,68 @@ Choose from the list of :ref:`predefined_locations` or navigate the image view w
         
     * mutually exclusive location options within an instance of the module
 
-.. _body_anchored_location:
-
-II. Body-anchored location
-==========================
-
-.. note::
-    **Linked contact modules**
-    
-    The program expects there to be no associated :ref:`contact_module` for this type of location. If there is one, it will be flagged.
-
-Select a reference location from the list of :ref:`predefined_locations`. 
-
-Select the appropriate reference position to the selected body location. A maximum of one selection can be made from each axis (column), though it is not required to make a specification from every axis:
-
-.. list-table::
-   :widths: 30 30 30
-   :header-rows: 1
-
-   * - Horizontal axis
-     - Vertical axis
-     - Sagittal axis
-   * - **Ipsilateral to**
-     - **Above**
-     - **Distal to**
-   * -   Far
-     -   Far
-     -   Far
-   * -   Med.
-     -   Med.
-     -   Med.
-   * -   Close
-     -   Close
-     -   Close
-   * - **Contralateral to**
-     - **Below**
-     - **Proximal to**
-   * -   Far
-     -   Far
-     -   Far
-   * -   Med.
-     -   Med.
-     -   Med.
-   * -   Close
-     -   Close
-     -   Close
-    
 .. warning::
-    **Will this option allow selecting sub-areas as well? yes.** We use abbreviations for joints in Hand Config – this will also be the case for the Location sub-menus. This makes room for “Relation” to take up a third column for body-anchored signing space locations.
+    We use abbreviations for joints in Hand Config – this will also be the case for the Location sub-menus.
 
 .. _purely_spatial_location:
 
 2. Purely spatial location
 ``````````````````````````
 
+**(What this section is for/how it differs from body locations.)**
+
 .. note::
-    **Linked contact modules**
+    **Linked modules**
     
-    The program expects there to be no associated :ref:`contact_module` for this type of location. If there is one, it will be flagged.
+    The program expects there to be no associated :ref:`Hand Part<hand_part_module>` or :ref:`relation_module` for this type of location. If there is one, it will be flagged.
 
-**Simple set of options, no additional images for this in the program.** The window with the body locations will be replaced with the applicable tree structure, so the module with this selection looks more like Movement. **(Does the same configuration of windows still apply, with two areas on the right side? There doesn't seem to be another necessary set of information, so I assume that it only shows the dropdown menu and the selected list item.)**
+Make exactly one selection from each axis (each represented by a column in the table below), leaving no axis unspecified. Some axis locations allow an optional distance specification (close/medium/far) to add more detail about the degree of extension of the arms.
 
-Make exactly one selection from each axis (column), leaving no axis unspecified:
+Note that only one set of options for the horizontal axis will apply, depending on user preference, and the relative set applies by default for Location. See :ref:`Symmetry<symmetry_section>` for more information, and :ref:`global_settings` to change which set of options appears in each module.
 
 .. list-table::
-   :widths: 30 30 30
+   :widths: 30 30 30 30
    :header-rows: 1
 
-   * - Horizontal axis
+   * - Horizontal axis (relative)
+     - Horizontal axis (absolute)
      - Vertical axis
      - Sagittal axis
    * - **Ipsi**
+     - **H1 side**
      - **High**
      - **Distal**
-   * -   Far
-     - **Mid**
-     -   Far
-   * -   Med.
-     - **Low**
-     -   Med.
    * -   Close
-     -
      -   Close
+     - **Mid**
+     -   Close
+   * -   Medium
+     -   Medium
+     - **Low**
+     -   Medium
+   * -   Far
+     -   Far
+     -
+     -   Far
    * - **Central**
+     - **Central**
      - 
      -
    * - **Contra**
+     - **H2 side**
      -
      - **Proximal**
-   * -   Far
-     -
-     -   Far
-   * -   Med.
-     -
-     -   Med.
    * -   Close
+     -   Close
      -
      -   Close
+   * -   Medium
+     -   Medium
+     -
+     -   Medium
+   * -   Far
+     -   Far
+     -
+     -   Far
 
 **(Defaults may be set as central/mid/in front med., though I'm not sure this is decided concretely.)**
-
-3. Axis of relation
-````````````````````
-
-.. note::
-    **Linked contact modules**
-    
-    For this selection, the program expects a linked :ref:`contact_module`. The module will be flagged if there is no contact module. (Some discussion has happened about how the program will prompt the user for this to be made clear. The important thing to note is that *only* Location will have a "save and add linked contact module" type of button in addition to the regular set of save buttons.)
-
-**(Some cases where we anticipate that this will be useful: connected signs, and possibly classifier constructions.)**
-
-Make up to one selection from each axis to describe the relationship between H1 and H2. You can also select the axis of relation itself without specifying the way the hands are arranged along that axis.
-
-* **Horizontal**
-
-    * H1 is to H1 side of H2
-    * H1 is to H2 side of H2
-
-* **Vertical**
-
-    * H1 is above H2
-    * H1 is below H2
-
-* **Sagittal**
-
-    * H1 is more distal than H2
-    * H1 is more proximal than H2
