@@ -1,17 +1,14 @@
 .. todo::
-    update screenshot of SOCIALIZE
-    symmetry!! → recent complications
-        - high degree of overlap with bilateral symmetry in Sign Type
-        - also make mention of the stuff in Movement
-        - may want to mention connectedness (Movement, Location)
+    update screenshots of SOCIALIZE and FOCUS
     replace current placeholders with diagrams
-        - summary image
         - multiple sets of axes superimposed on one image
         - multiple sets of planes superimposed on one image
+        - summary image
     add references
         - Johnson & Liddell
-        - (potentially) Battison
+        - (potentially) Battison 1978
         - Canadian ASL dictionary?
+    keep track of the comments at the bottom of 'symmetry'
 
 .. comment:: 
     The documentations guidelines outline the information to be represented on this page as a general explanation of body geography, symmetry, planes, axes, the 'top' of a circle in each plane, anatomical position, and ipsi-contra definitions.
@@ -52,7 +49,7 @@ There is a good amount of flexibility in the program for users to decide on an i
     :width: 750
     :align: left
 
-**(Multiple sets of axes superimposed to show that they can shift as needed - should be possible to duplicate the layers of axes over the image above and have them offset in different locations as long as this isn't too messy)**
+**(Multiple sets of axes superimposed to show that they can shift as needed.)**
 
 .. _axis_directions:
 
@@ -177,7 +174,7 @@ Note that this section applies to any :ref:`perceptual_shape` sign other than *s
 
 Rather than defining formal definitions of which direction is meant to be 'clockwise' or 'counter-clockwise' for each plane, which is not always memorable or intuitive and can be difficult to keep track of through changing perspectives (and also may not apply consistently depending on whether a signer is right- or left-handed), the system for circular direction in SLP-AA is built directly on the system for :ref:`Axis direction<axis_directions>`. 
 
-We define a point to be the **top of a circle** for any given circular shape in each of the three :ref:`cardinal_planes`, and then the circular direction follows based on the axis direction of the hand as it moves through that point. If the hand does not reach the top of the circle in a particular sign,  the direction should still be defined based on how the hand **would** move through the top point if it continued in the same direction. It also should not matter where the hand happens to start making the circle; the definition of the circle is defined by where the hand moves from the top (whenever it happens to get there). 
+We define a point to be the **top of a circle** for any given circular shape in each of the three :ref:`cardinal_planes`, and then the circular direction follows based on the axis direction of the hand as it moves through that point. If the hand does not reach the top of the circle in a particular sign,  the direction should still be defined based on how the hand **would** move through the top point if it continued in the same direction. It also does not matter where the hand happens to start making the circle; the circular direction is determined by where the hand moves from the top, whenever it happens to get there.
 
 .. note::
     **Circles and symmetry**
@@ -292,45 +289,37 @@ When multiple directions are selected within one instance of a module, this is a
 3. Symmetry
 ```````````
 
-SLP-AA uses a simple and adaptable spatial structure to describe the position and movement of the hands and body while signing. This is built on :ref:`Axis locations and directions<axis_directions>` for :ref:`cardinal_axes`, and the same set of directions as they apply to :ref:`Circular directions<circular_directions>` for :ref:`cardinal_planes`. These selection options apply across the program :ref:`modules<module>` where relevant, including the :ref:`movement_module`, the :ref:`Location<location_module>` and :ref:`Hand Part<hand_part_module>` modules, the :ref:`relation_module`, the :ref:`orientation_module`, and the :ref:`nonmanual_module`.
-
-.. comment::
-    **(Introduce the problem)**
-
-Depending on interpretation, it could be equally valid that both hands moving toward (or located at) the signer's dominant or subordinate side have the "same" direction (or location), or that both hands moving (or located) in a way that forms a mirror image across the midline of the body have the "same" direction (or location). That is, ...
-
-.. comment::
-    **(Introduce the solution, mention bilateral symmetry and midline of the body here?)**
+SLP-AA uses a simple and adaptable spatial structure to describe the position and movement of the hands and body while signing. This is built on :ref:`Axis locations and directions<axis_directions>` for :ref:`cardinal_axes`, and the same set of directions as they apply to :ref:`Circular directions<circular_directions>` for :ref:`cardinal_planes`. These selection options apply across the program's :ref:`modules<module>` where relevant, including the :ref:`movement_module`, the :ref:`Location<location_module>` and :ref:`Hand Part<hand_part_module>` modules, the :ref:`relation_module`, the :ref:`orientation_module`, and the :ref:`nonmanual_module`.
 
 All of this involves two interchangeable models for interpreting horizontal symmetry, which apply to any specifications that involve the horizontal axis, including the horizontal axis itself and the vertical and horizontal planes. All other cardinal planes and axes lie perpendicular to the horizontal axis, so this particular kind of symmetry will not apply.
 
-.. comment::
-    **(Specify the details of the solution)**
+.. note::
+    **Why two models?**
 
-In order to remain explicit as to what this means and allow for precise analysis, SLP-AA allows for users to select whether the horizontal axis is displayed with **absolute** (moving toward, facing, or located at H1/H2 side) or **relative** (moving toward, facing, or located at :ref:`ipsilateral`/:ref:`contralateral` side) options for each module. 
+    Depending on interpretation, it could be equally valid that both hands moving toward (or positioned at) the signer's dominant or subordinate side have the "same" direction (or position), or that both hands moving (or positioned) in a way that forms a mirror image across the midline of the body have the "same" direction (or position). We want to allow for either interpretation to be able to take priority in any given corpus.
+
+    In `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_, both hands are following the same circular path in space at the same time, and in `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_, both hands are following the same paths in their own respective directions at the same time. Both of these movements are intuitive to produce and interpret as long as the hands are moving horizontally in some way.
     
-For the absolute interpretation, the hands moving towards or away from the signer's dominant side are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving towards or away from the signer's dominant side are moving in different directions.
+    For each of the spatial models available in SLP-AA to describe these movements, both hands will **share** a specification for movement direction for one of these examples, and they will have **opposite** specifications for the other example.
+
+In order to remain explicit as to the phonetic details of each sign and allow for simpler phonological analysis, users can choose whether selections involving the horizontal axis are displayed with **absolute** options (moving toward, facing, or located at the signer's H1/H2 side) or **relative** options (moving toward, facing, or located at each hand's :ref:`ipsilateral`/:ref:`contralateral` side) for each module. These can be changed in the :ref:`global_settings`.
+
+For the absolute interpretation, the hands moving towards or away from the signer's dominant side are moving in the "same" direction and the hands moving towards or away from each other are moving in different directions. The hands share a specification when they are on the same side of the body or when they are following the same path in space, like `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_.
+
+For the relative interpretation, the hands moving towards or away from each other are moving in the "same" direction and the hands moving towards or away from the signer's dominant side are moving in different directions. The hands share a specification when they are mirrored across both sides of the body or each moving in their own respective direction, like `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_.
+
+Crucially, any kind of sign can still be described accurately with either interpretation. There is no articulatory difference, for instance, between the dominant hand moving to the H1 side or in the ipsilateral direction, and similarly for the subordinate hand moving to the H2 side or in the ipsilateral direction. 
+
+The choice is only a matter of prioritizing one interpretation over the other for coding purposes, and selecting one interpretation does not mean discarding the other as inaccurate. In fact, all of the information recorded in one model can easily be recovered and converted to the other. Since the models are interchangeable, it is a matter of user preference for the particular corpus and/or module.
 
 .. note::
     **Exclusion of other kinds of symmetry**
     
-    Though there may be noteworthy information to focus on for other kinds of symmetry, we have only incorporated consideration for symmetry in the horizontal axis into the design of the program. We give this particular attention due to the natural bilateral symmetry of the human body across both sides of the :ref:`mid_sagittal_plane`, which is perpendicular to the horizontal axis.
+    Though there may be noteworthy information to focus on for other kinds of symmetry, we have only incorporated consideration for symmetry in the horizontal axis into the design of the program. We give this particular attention due to the natural bilateral symmetry of the human body across both sides of the :ref:`mid_sagittal_plane`.
     
-    For instance, we don't have any examples of signs that involve both hands moving in opposite :ref:`circular directions<circular_directions>` in the sagittal plane (as this is articulatorily very difficult), but there are many examples of signs that involve the hands moving in any combination of circular directions in the vertical and horizontal plane.
+    For instance, we don't have any examples of signs that involve both hands moving in opposite :ref:`circular directions<circular_directions>` in the sagittal plane (as this is articulatorily very difficult), but there are many examples of signs that involve the hands moving in any combination of circular directions in the vertical and horizontal planes.
     
------
-
-(interchangeability, retrievability, equally faithful to the phonetics:)
-
-There is no articulatory difference, for instance, between the dominant hand moving to the H1 side or in the ipsilateral direction. These systems are only superficially different, and the information coded in each one can be recovered from the other. **(The biggest differences between using one or the other pertain to the :ref:`sign_type` options. No longer true! Sign Type has nothing to do with this anymore. Does Movement?)** Since the options are interchangeable, the choice is a matter of user preference for the particular corpus.
-
-**(This is a matter of prioritizing one interpretation over the other. Selecting one interpretation does not necessarily mean discarding the other.)** allows the user to select which one they value higher
-
-(Benefits: reduces ambiguity, flexible)
-
-(module and corpus independence: link to :ref:`global_settings`.)
-
-.. warning:: 
+.. comment:: 
     Point out parts of the program that rely on these interpretations, and should be interacted with differently depending on the choice.
     
         * movement: perceptual shape *axis direction* and *plane* options (only *circular direction*)
@@ -344,30 +333,20 @@ There is no articulatory difference, for instance, between the dominant hand mov
             * location: whole instance of module can be flagged as connected, no explicit phasing
             * internally, we don't apply the question of phasing to horizontal movements at all (only vertical straight shapes and all sagittal shapes)
         
-        * anything that mentions the "same" or "different" direction, location, orientation, etc.
+        * anything that mentions the "same" or "different/opposite" direction, location, orientation, etc.
             
-            * as of now, this is **only** in movement>perceptual shape for Plane.
+            * as of now, this is **only** in *Movement>Perceptual shape* for *Plane*.
 
 .. comment::
-    {Why the discrepancy? --> Difficulties in articulation mechanisms, anatomical limitations AND strengths}
+    {Why the discrepancy? Why is horizontal symmetry special?}
     
-    →    Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis). Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with. (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' and how the 'simultaneous except handshape/location/orientation' options are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)
-
-.. warning::
-    **(For Kathleen and Oksana)** - relevant to the note below
+    → Difficulties in articulation mechanisms, anatomical limitations AND strengths
     
-    From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
+    → Comment on low instances of simultaneous movement along sufficiently different axes and/or planes for each hand, and link this to difficulties wrapping our heads around complex combinations of movement in the mid-sagittal plane (the only one that does not involve the horizontal axis).
     
-    Resolved by giving examples of EAST and WEST? Reference J&L.
+    → Like trying to pat your head and rub your stomach, it takes more concentration and effort than moving in what we can easily conceptualize as the 'same' direction, with all of the baggage that that generalization comes along with.
     
-    (We don't use right and left for the absolute directions anymore, but the reference could still be helpful - Nico)
-
-.. note::
-    **Left and right vs. H1 and H2 side**
-    
-    In some circumstances, the direction of movement is lexically encoded to be towards a side of the body independent of the signer's handedness. This is the case for `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the direction of movement is towards the signer's left (regardless of the signer's dominant hand), and `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the direction of movement is towards the signer's right.
-    
-    Both of the models for the horizontal axis used in SLP-AA can describe the articulated movement in these (and any other) signs, but neither one can capture the the full implications of the lexical definition using only the phonetic descriptors available in the :ref:`movement_module`. For signs like this, it may be helpful to indicate the definition elsewhere in the sign coding, like in the notes of the :ref:`sign_level_info`.
+    → (Also link this to our broad categories in sign type for moving 'similarly' vs. 'differently' are more likely to apply with only minimal/predictable differences, e.g. simple alternation.)
 
 .. _symmetry_review:
 
