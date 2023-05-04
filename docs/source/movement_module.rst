@@ -1,5 +1,5 @@
 .. todo::
-    how to approach connectedness
+    note on connectedness
     work on movement type
         - fix references
         - update / delete refs to “transcription process”
@@ -26,10 +26,26 @@ Select the hand(s) involved in this instance of the module. For movements involv
     
     A two-handed :ref:`perceptual_shape` movement is *out of phase* if the hands reach different points of the perceptual shape at the same time, as in `PACK <https://asl-lex.org/visualization/?sign=pack>`_ or `THEATER <https://asl-lex.org/visualization/?sign=theater>`_. Conversely, the movement is *in phase* if both hands reach the same point of the perceptual shape at the same time, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_ or `BLANKET <https://asl-lex.org/visualization/?sign=blanket>`_.
     
+        In the following sample coding of the movement in `ROW <https://asl-lex.org/visualization/?sign=row>`_, all specifications for both hands are identical and the movement is in phase:
+
+    .. image:: images/mov_sample_sign_ROW.png
+        :width: 750
+        :align: center
+    
+    The movement of both hands can easily be described together in one instance of Movement.
+    
+    The following sample coding of the movement in `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that the hands are indicated to be out of phase, since they reach the top of the circle at different times:
+
+    .. image:: images/mov_sample_sign_THEATER.png
+        :width: 750
+        :align: center
+
+    The movements of both hands can still be described together in one module instance as long as they are indicated to be out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
+    
 .. note::
     **Connectedness**
     
-    **(Add here)**: reference Morgan's dissertation and/or book. Add glossary term for :ref:`connected`.
+    **(Add short description here)**: reference Morgan's dissertation and/or book. Add glossary term for :ref:`connected`.
     
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
@@ -125,6 +141,8 @@ This section is automatically specified by the program as *not relevant* when th
     
     If the hands have opposite specifications for axis direction within each applicable axis, select this checkbox and continue to fill out the instance of the module as it applies to H1. The axis direction for H2 can then be defined implicitly without coding another instance of Movement for each hand.
     
+    This selection does not apply for signs where the hands move along different (sets of) axes, like `TAPE <https://asl-lex.org/visualization/?sign=tape>`.
+    
     Take care in consideration of the horizontal axis, since SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where the default for Movement is set as relative directions. (Consult the :ref:`global_settings` for information on changing these options for each module.)
     
     This means that the interpretation of what is considered the "opposite" direction may depend on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ has the **same** axis direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time. If Movement is defined in terms of absolute directions, the movement in `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ has the **same** axis direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time. See :ref:`Symmetry<symmetry_section>` for more information.
@@ -162,6 +180,22 @@ The endpoints for the vertical and sagittal axes are consistent wherever they ap
 * **Not relevant**, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_. Axis direction is not relevant for this sign because the perceptual shape is *circle*, whereas axis direction is only relevant for other perceptual shapes.
 
 See :ref:`signing_space_page` for a visual representation of these options.
+
+.. warning::
+    **(For Kathleen and Oksana)** - relevant to the note below
+    
+    From the 'to mention' doc: One example of where right-left rather than ipsi-contra distinction is useful, if not necessary, is indicating (referential?) signs, as described in Johnson & Liddell 2021 (p. 136-138). Maybe give this example?
+    
+    Resolved by giving examples of EAST and WEST? Reference J&L.
+    
+    (We don't use right and left for the absolute directions anymore, but the reference could still be helpful - Nico)
+
+.. note::
+    **Left and right vs. H1 and H2 side**
+    
+    In some circumstances, the direction of movement is lexically encoded to be towards a side of the body independent of the signer's handedness. This is the case for `WEST <https://asl-lex.org/visualization/?sign=west>`_, where the direction of movement is towards the signer's left (regardless of the signer's dominant hand), and `EAST <https://asl-lex.org/visualization/?sign=east>`_, where the direction of movement is towards the signer's right.
+    
+    Both of the models for the horizontal axis used in SLP-AA can describe the articulated movement in these (and any other) signs, but neither one can capture the the full implications of the lexical definition using only the phonetic descriptors available in Movement. For signs like this, it may be helpful to indicate the definition elsewhere in the sign coding, like in the notes of the :ref:`sign_level_info`.
 
 .. _plane_entry:
 
@@ -229,25 +263,6 @@ OR
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are not *straight*.
 
 See :ref:`signing_space_page` for a visual representation of these options.
-
-.. note::
-    **(Work on terminology: no references to "parameter" and updates to in phase/out of phase)**
-
-    In the following sample coding of the movement in `ROW <https://asl-lex.org/visualization/?sign=row>`_, ``all specifications for both hands are identical and the hands are specified to be in phase for all parameters``:
-
-    .. image:: images/mov_sample_sign_ROW.png
-        :width: 750
-        :align: left
-
-    The movement of both hands can be coded together within one instance of the module.
-    
-    The following sample coding of the movement in `THEATER <https://asl-lex.org/visualization/?sign=theater>`_ is similar except that ``the hands are indicated to be out of phase, since they reach the top of the circle at different times``:
-
-    .. image:: images/mov_sample_sign_THEATER.png
-        :width: 750
-        :align: left
-
-    The movements of both hands can still be described together in one module instance as long as it is indicated to be out of phase. This allows for quicker sign coding while retaining key information for searching and analysis.
 
 .. _joint_specific_movement_entry:
 
