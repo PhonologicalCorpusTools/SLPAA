@@ -5,7 +5,6 @@
         - update / delete refs to “transcription process”
     joint activity
     movement characteristics
-    overview: sample codings of a pair of signs
         
 .. _movement_module:
 
