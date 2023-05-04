@@ -3,6 +3,7 @@
     work on movement type
         - fix references
         - update / delete refs to “transcription process”
+    axis direction: change 'both hands move in opposite directions' to the new button menu
     joint activity
     movement characteristics
         
@@ -44,7 +45,7 @@ Select the hand(s) involved in this instance of the module. For movements involv
 .. note::
     **Connectedness**
     
-    **(Add short description here)**: reference Morgan's dissertation and/or book. Add glossary term for :ref:`connected`.
+    **(Add short description here)**: reference Morgan's dissertation and/or book. Link to glossary term for :ref:`connected`.
     
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
@@ -93,9 +94,6 @@ Make your selections from this section if you are coding a movement with :ref:`p
 .. note::
     As with the other movement types, a module with this specification cannot be combined with the selections for a :ref:`handshape_change` or a movement with :ref:`joint_specific_movement`. To code any information about other movements in the sign, add additional movement module(s) with the appropriate movement type(s). You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`. For example, to code the sign `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_, one would need two separate instances of the movement module, one for the straight (perceptual shape) movement of the hands and one for the joint-specific opening and closing movements.
 
-.. comment::
-    note for conventions / documentation: similar to the 'connected' options -- if this is checked, we assume the direction is specified for H1. So e.g. if 'move in different directions' is checked along with 'distal from top of circle,' then we assume this means that H1 moves away from the body from the top of the circle, while H2 moves toward the body from the top of the circle. If it weren't checked, then we assume both H1 and H2 move distally from the top of the circle. Note that for planes that include the horizontal axis, this can be confusing! "different directions" = H1 moves ipsilaterally and H2 moves contralaterally (or vice versa) at the same time -- this means that they will both be going e.g. clockwise. The direction that is evaluated for 'sameness' or 'difference' is the one listed in the menu!
-
 .. _shape_entry:
 
 a) Shape
@@ -135,12 +133,10 @@ Select an **axis direction** (or a combination of axis directions) that describe
 
 This section is automatically specified by the program as *not relevant* when the module includes a *circle* perceptual shape.
 
+If the hands have opposite specifications for axis direction within every applicable axis, select the checkbox for *H1 and H2 move in opposite directions* and continue to fill out the instance of the module as it applies to H1. The axis direction for H2 can then be defined implicitly without coding another :ref:`instance` of Movement for each hand. This selection does not apply for signs where the hands move along different (sets of) axes, like `TAPE <https://asl-lex.org/visualization/?sign=tape>`.
+
 .. note::
-    **Both hands moving in opposite axis directions**
-    
-    If the hands have opposite specifications for axis direction within each applicable axis, select this checkbox and continue to fill out the instance of the module as it applies to H1. The axis direction for H2 can then be defined implicitly without coding another instance of Movement for each hand.
-    
-    This selection does not apply for signs where the hands move along different (sets of) axes, like `TAPE <https://asl-lex.org/visualization/?sign=tape>`.
+    **Opposite horizontal directions**
     
     Take care in consideration of the horizontal axis, since SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where the default for Movement is set as relative directions. (Consult the :ref:`global_settings` for information on changing these options for each module.)
     
