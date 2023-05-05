@@ -182,16 +182,11 @@ class CorpusDisplay(QWidget):
     #                                                       QItemSelectionModel.SelectCurrent)
 
     def updated_signs(self, signs, current_sign=None):
-        # self.corpus_model.signs.clear()
-        # self.corpus_model.signs.extend(signs)
-        # self.corpus_model.clear()
         self.corpus_model.setsigns(signs)
-        # self.corpus_model.signs.sort()
         self.corpus_model.layoutChanged.emit()
 
         index = 0 if current_sign is None else list(signs).index(current_sign)
 
-        # TODO KV crash happens at exec of line below, at addition of second sign
         # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
         sourcemodelindex = self.corpus_view.model().index(index, 0)
         proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
@@ -199,22 +194,10 @@ class CorpusDisplay(QWidget):
         # self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
         #                                                   QItemSelectionModel.SelectCurrent)
 
-    # def remove_gloss(self, gloss):
-    #     self.corpus_model.glosses.remove(gloss)
-    #     self.corpus_model.layoutChanged.emit()
-    #     self.corpus_view.clearSelection()
-
     def remove_sign(self, sign):
         self.corpus_model.signs.remove(sign)
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
-
-    # def clear(self):
-    #     self.corpus_title.setText("")
-    #
-    #     self.corpus_model.glosses.clear()
-    #     self.corpus_model.layoutChanged.emit()
-    #     self.corpus_view.clearSelection()
 
     def clear(self):
         self.corpus_title.setText("")

@@ -1119,16 +1119,11 @@ class MainWindow(QMainWindow):
         self.corpus = self.load_corpus_binary(file_name)
         self.corpus_display.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
 
-        # first = self.corpus.get_sign_glosses()[0]
-        # self.parameter_scroll.clear(self.corpus.location_definition, self.app_ctx) # todo kv dict(),
-        self.corpus_display.corpus_title.setText(self.corpus.name)
-        # self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
-        # self.corpus_view.selected_gloss.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
         self.corpus_display.updated_signs(self.corpus.signs)
-        # self.corpus_view.selected.emit(self.corpus.get_sign_by_gloss(first).signlevel_information.gloss)
-        self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])  #.signlevel_information.gloss)
+        if len(self.corpus.signs) > 0:
+            self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
 
-        return bool(self.corpus)
+        return self.corpus is not None  # bool(Corpus)
 
     def on_action_close(self, clicked):
         self.close()
