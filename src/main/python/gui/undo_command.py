@@ -1,8 +1,6 @@
-#from PyQt5.QtCore import ()
 from PyQt5.QtWidgets import (
     QUndoCommand
 )
-#from PyQt5.QtGui import ()
 
 
 class TranscriptionUndoCommand(QUndoCommand):

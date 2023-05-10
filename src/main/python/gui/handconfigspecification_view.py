@@ -1,4 +1,4 @@
-# from copy import copy
+from copy import deepcopy
 
 from PyQt5.QtCore import (
     Qt,
@@ -8,6 +8,8 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtWidgets import (
     QWidget,
+    QFrame,
+    QScrollArea,
     QLineEdit,
     QLabel,
     QHBoxLayout,
@@ -16,10 +18,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QCompleter,
     QPushButton,
-    QCheckBox,
-    # QAction,
-    # QMenu,
-    # QRadioButton
+    QCheckBox
 )
 
 from PyQt5.QtGui import (
@@ -27,11 +26,13 @@ from PyQt5.QtGui import (
 )
 
 from itertools import chain
-from constant import NULL, X_IN_BOX, ESTIMATE_BORDER, UNCERTAIN_BACKGROUND, PREDEFINED_MAP
+from constant import NULL, X_IN_BOX, PREDEFINED_MAP  # ESTIMATE_BORDER, UNCERTAIN_BACKGROUND,
 from lexicon.predefined_handshape import HandshapeNoMatch
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
-from lexicon.module_classes2 import AddedInfo
-from gui.module_selector import AddedInfoContextMenu
+from lexicon.module_classes import AddedInfo, HandConfigurationModule
+from gui.modulespecification_widgets import AddedInfoContextMenu
+from lexicon.module_classes import HandConfigurationHand
+from gui.undo_command import TranscriptionUndoCommand
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
@@ -1092,197 +1093,142 @@ class ForearmCheckBox(QCheckBox):
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
         addedinfo_menu.exec_(event.globalPos())
-''
-
-# TODO KV i don't 'think this class is used anymore
-# class ConfigGlobal(QGroupBox):
-#     slot_on_focus = pyqtSignal(str)
-#     slot_leave = pyqtSignal()
-#
-#     def __init__(self, title='', **kwargs):
-#         super().__init__(title=title, **kwargs)
-#
-#         self.main_layout = QHBoxLayout()
-#         self.main_layout.setSpacing(5)
-#         # self.main_layout.addStretch()
-#         self.setLayout(self.main_layout)
-#         self.add_slot1()
-#         self.add_options()
-#         self.add_other()
-#
-#     def add_slot1(self):
-#         slot1_layout = QHBoxLayout()
-#         # slot1_layout.addStretch()
-#         self.main_layout.addLayout(slot1_layout)
-#
-#         left_bracket = QLabel('[')
-#         bracketfont = left_bracket.font()
-#         bracketfont.setPixelSize(20)
-#         left_bracket.setFont(bracketfont)
-#         left_bracket.setFixedSize(QSize(10, 30))
-#         left_bracket.setAlignment(Qt.AlignCenter)
-#         slot1_layout.addWidget(left_bracket)
-#
-#         self.slot1 = QCheckBox('Forearm', parent=self)
-#         slot1_layout.addWidget(self.slot1)
-#
-#         right_bracket = QLabel(']1')
-#         right_bracket.setFont(bracketfont)
-#         right_bracket.setFixedSize(QSize(22, 30))
-#         right_bracket.setAlignment(Qt.AlignCenter)
-#         slot1_layout.addWidget(right_bracket)
-#
-#         slot1_layout.addStretch()
-#
-#     def add_options(self):
-#         option_frame = QGroupBox(parent=self)
-#         option_layout = QVBoxLayout()
-#         option_layout.setSpacing(5)
-#         # option_layout.addStretch()
-#         option_frame.setLayout(option_layout)
-#         self.main_layout.addWidget(option_frame)
-#         self.estimated = QCheckBox('Estimated', parent=self)
-#         self.uncertain = QCheckBox('Uncertain', parent=self)
-#         self.incomplete = QCheckBox('Incomplete', parent=self)
-#         option_layout.addWidget(self.estimated)
-#         option_layout.addWidget(self.uncertain)
-#         option_layout.addWidget(self.incomplete)
-#
-#     def add_other(self):
-#         other_group = QGroupBox(parent=self)
-#         other_layout = QVBoxLayout()
-#         other_layout.setSpacing(5)
-#         # other_layout.addStretch()
-#         other_group.setLayout(other_layout)
-#         self.main_layout.addWidget(other_group)
-#         self.fingerspelled = QCheckBox('Fingerspelled', parent=self)
-#         self.initialized = QCheckBox('Initialized', parent=self)
-#         other_layout.addWidget(self.fingerspelled)
-#         other_layout.addWidget(self.initialized)
-#         other_layout.addStretch()
-#
-#     def clear(self):
-#         self.slot1.setChecked(False)
-#         self.estimated.setChecked(False)
-#         self.uncertain.setChecked(False)
-#         self.incomplete.setChecked(False)
-#         self.
-#         self.fingerspelled.setChecked(False)
-#         self.initialized.setChecked(False)
-#
-#     def set_value(self, global_handshape_info):
-#         self.slot1.setChecked(global_handshape_info.forearm)
-#         self.estimated.setChecked(global_handshape_info.estimated)
-#         self.uncertain.setChecked(global_handshape_info.uncertain)
-#         self.incomplete.setChecked(global_handshape_info.incomplete)
-#         self.fingerspelled.setChecked(global_handshape_info.fingerspelled)
-#         self.initialized.setChecked(global_handshape_info.initialized)
-#
-#     def get_value(self):
-#         return {
-#             'forearm': self.slot1.isChecked(),
-#             'estimated': self.estimated.isChecked(),
-#             'uncertain': self.uncertain.isChecked(),
-#             'incomplete': self.incomplete.isChecked(),
-#             'fingerspelled': self.fingerspelled.isChecked(),
-#             'initialized': self.initialized.isChecked()
-#         }
 
 
-class HandConfigurationHand:
-    def __init__(self, fields):
-        self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
 
-    def __iter__(self):
-        return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
+class HandConfigSpecificationPanel(QFrame):  # ModuleSpecificationWidget):
 
-    def get_hand_transcription_list(self):
-        return [slot.symbol for slot in self.__iter__()]
+    def __init__(self, moduletoload=None, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
 
-    def get_hand_transcription_string(self):
-        return ''.join(self.get_hand_transcription_list())
+        main_layout = QHBoxLayout()
 
-    def is_empty(self):
-        return self.get_hand_transcription_list() == [
-            '', '', '', '',
-            '', '', NULL, '/', '', '', '', '', '', '',
-            '1', '', '', '',
-            '', '2', '', '', '',
-            '', '3', '', '', '',
-            '', '4', '', '', ''
-        ]
+        self.panel = HandTranscriptionPanel(self.mainwindow.app_ctx.predefined)
+        self.panel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)  # QSizePolicy.MinimumExpanding,
+        self.illustration = HandIllustrationPanel(self.mainwindow.app_ctx, parent=self)
+        self.illustration.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)  # QSizePolicy.MinimumExpanding,
+        self.panel.config.slot_on_focus.connect(self.panel.update_details_label)
+        self.panel.config.slot_num_on_focus.connect(self.illustration.update_hand_illustration)
+        self.panel.config.slot_leave.connect(self.panel.update_details_label)
+        self.panel.config.slot_leave.connect(self.illustration.set_neutral_img)
+        self.panel.config.slot_finish_edit.connect(self.handle_slot_edit)
 
+        if moduletoload:
+            self.panel.set_value(deepcopy(moduletoload))
+        # TODO KV also load forearm, uncertainty info
 
-class HandConfigurationField:
-    def __init__(self, field_number, slots):
-        self._field_number = field_number
-        self._slots = slots
+        main_layout.addWidget(self.panel)
+        main_layout.addWidget(self.illustration)
+        self.setLayout(main_layout)
 
-        self.set_slots()
+    def handle_slot_edit(self, slot, old_prop, new_prop):
+        undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
+        self.mainwindow.undostack.push(undo_command)
 
-    @property
-    def field_number(self):
-        return self._field_number
+    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
+        configdict = self.panel.config.get_value()
+        handconfiguration = configdict['hand']
+        overalloptions = {k: v for (k, v) in configdict.items() if k != 'hand'}
+        return HandConfigurationModule(handconfiguration=handconfiguration, overalloptions=overalloptions, hands=handsdict, timingintervals=timingintervals, addedinfo=addedinfo)
 
-    @field_number.setter
-    def field_number(self, new_field_number):
-        self._field_number = new_field_number
+    def refresh(self):
+        self.clear()
 
-    def set_slots(self):
-        if self._field_number == 2:
-            self.slot2, self.slot3, self.slot4, self.slot5 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
-        elif self._field_number == 3:
-            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
-        elif self._field_number == 4:
-            self.slot16, self.slot17, self.slot18, self.slot19 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
-        elif self._field_number == 5:
-            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
-        elif self._field_number == 6:
-            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
-        elif self._field_number == 7:
-            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
+    def clear(self):
+        self.panel.clear()
 
-    def __iter__(self):
-        if self._field_number == 2:
-            return [self.slot2, self.slot3, self.slot4, self.slot5].__iter__()
-        elif self._field_number == 3:
-            return [self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15].__iter__()
-        elif self._field_number == 4:
-            return [self.slot16, self.slot17, self.slot18, self.slot19].__iter__()
-        elif self._field_number == 5:
-            return [self.slot20, self.slot21, self.slot22, self.slot23, self.slot24].__iter__()
-        elif self._field_number == 6:
-            return [self.slot25, self.slot26, self.slot27, self.slot28, self.slot29].__iter__()
-        elif self._field_number == 7:
-            return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
+    def desiredwidth(self):
+        return 2000
+
+    def desiredheight(self):
+        return 400
 
 
-class HandConfigurationSlot:
-    def __init__(self, slot_number, symbol, addedinfo):
-        self._slot_number = slot_number
-        self._symbol = symbol
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+class HandTranscriptionPanel(QScrollArea):
+    selected_hand = pyqtSignal(int)
 
-    @property
-    def addedinfo(self):
-        return self._addedinfo
+    def __init__(self, predefined_ctx, **kwargs):
+        super().__init__(**kwargs)
 
-    @addedinfo.setter
-    def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self.setFrameStyle(QFrame.StyledPanel)
+        main_frame = QFrame(parent=self)
 
-    @property
-    def slot_number(self):
-        return self._slot_number
+        main_layout = QVBoxLayout()
+        main_frame.setLayout(main_layout)
 
-    @slot_number.setter
-    def slot_number(self, new_slot_number):
-        self._slot_number = new_slot_number
+        config_layout = QVBoxLayout()
 
-    @property
-    def symbol(self):
-        return self._symbol
+        self.config = Config(predefined_ctx, parent=self)
+        config_layout.addWidget(self.config)
 
-    @symbol.setter
-    def symbol(self, new_symbol):
-        self._symbol = new_symbol
+        self.details_label = QLabel()
+        config_layout.addWidget(self.details_label)
+
+        main_layout.addLayout(config_layout)
+
+        self.setWidget(main_frame)
+
+    def sizeHint(self):
+        return QSize(1300, 400)
+
+    def update_details_label(self, text=""):
+        self.details_label.setText(text)
+
+    def clear(self):
+        self.config.clear()
+
+    def set_value(self, handconfigmodule):
+        self.config.set_value(handconfigmodule)
+
+    def get_hand_transcription(self, hand=None):
+        if hand is None:
+            hand = self.selected_hand_group.checkedId()
+
+        if hand == 1:
+            return self.config.hand.get_hand_transcription_list()
+        elif hand == 2:
+            return self.config.hand2.get_hand_transcription_list()
+
+    def set_predefined(self, transcription_list, hand=None):
+        if hand is None:
+            hand = self.selected_hand_group.checkedId()
+
+        if hand == 1:
+            self.config.hand.set_predefined(transcription_list)
+        elif hand == 2:
+            self.config.hand2.set_predefined(transcription_list)
+
+
+class HandIllustrationPanel(QScrollArea):
+    def __init__(self, app_ctx, **kwargs):
+        super().__init__(**kwargs)
+        self.app_ctx = app_ctx
+
+        main_frame = QFrame(parent=self)
+
+        self.setFrameStyle(QFrame.StyledPanel)
+        main_layout = QVBoxLayout()
+        main_frame.setLayout(main_layout)
+
+        self.hand_illustration = QLabel()
+        self.hand_illustration.setFixedSize(QSize(400, 400))
+        self.set_neutral_img()
+        main_layout.addWidget(self.hand_illustration)
+
+        self.setWidget(main_frame)
+
+    def update_hand_illustration(self, num):
+        hand_img = QPixmap(self.app_ctx.hand_illustrations['slot' + str(num)])
+        self.set_img(hand_img)
+
+    def set_neutral_img(self):
+        neutral_img = QPixmap(self.app_ctx.hand_illustrations['neutral'])
+        self.hand_illustration.setPixmap(
+            neutral_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
+        self.hand_illustration.repaint()
+
+    def set_img(self, new_img):
+        self.hand_illustration.setPixmap(
+            new_img.scaled(self.hand_illustration.width(), self.hand_illustration.height(), Qt.KeepAspectRatio))
+        self.hand_illustration.repaint()

@@ -2,12 +2,7 @@
 import os
 
 from PyQt5.QtWidgets import (
-    # QGraphicsPolygonItem,
-    # QGraphicsView,
-    # QGraphicsScene,
-    # QGraphicsPixmapItem,
     QFrame,
-    # QGridLayout,
     QLineEdit,
     QPushButton,
     QDialog,
@@ -15,33 +10,11 @@ from PyQt5.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QFileDialog,
-    # QWidget,
-    # QTabWidget,
-    # QTabBar,
     QDialogButtonBox,
     QMessageBox,
-    # QSlider,
-    # QApplication,
     QGroupBox,
     QRadioButton
 )
-
-# from PyQt5.QtGui import (
-#     QBrush,
-#     QColor,
-#     QPen,
-#     QPolygonF,
-#     QPixmap,
-#     QIcon
-# )
-#
-# from PyQt5.QtCore import (
-#     Qt,
-#     QPoint,
-#     QRectF,
-#     QAbstractListModel,
-#     pyqtSignal
-# )
 
 
 class LocationGroup(QGroupBox):

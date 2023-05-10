@@ -1,14 +1,9 @@
 from fractions import Fraction
 from num2words import num2words
-# import itertools
 
 from PyQt5.QtWidgets import (
     QGraphicsRectItem,
-    QLabel,
-    # QHBoxLayout,
-    QGraphicsView,
     QGraphicsScene,
-    QVBoxLayout,
     QMessageBox,
     QGraphicsEllipseItem
 )
@@ -17,24 +12,15 @@ from PyQt5.QtGui import (
     QBrush,
     QColor,
     QPen,
-    # QPolygonF,
-    # QPixmap,
-    # QIcon,
     QTextOption,
-    # QFont,
 )
 
 from PyQt5.QtCore import (
     Qt,
-    # QPoint,
-    # QRectF,
-    # QAbstractListModel,
     pyqtSignal,
-    # QSize,
-    # QEvent
 )
 
-from lexicon.module_classes2 import TimingPoint, TimingInterval
+from lexicon.module_classes import TimingPoint, TimingInterval
 from constant import FRACTION_CHAR
 
 
@@ -68,7 +54,8 @@ class XslotPointLabel(QGraphicsRectItem):
 
 class XslotRect(QGraphicsRectItem):
 
-    def __init__(self, parentwidget, xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="", moduletype=None, sign=None, proportionfill=1):
+    def __init__(self, parentwidget, xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="",
+                 moduletype=None, sign=None, proportionfill=1):
         super().__init__()
         self.inactivebrush = QBrush(Qt.gray)
         self.setAcceptHoverEvents(False)
@@ -129,7 +116,7 @@ class XslotRect(QGraphicsRectItem):
 
 class XslotRectButton(XslotRect):
 
-    def __init__(self, parentwidget, selected=False, **kwargs):  # xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="", moduletype=None, sign=None, proportionfill=1, selected=False):
+    def __init__(self, parentwidget, selected=False, **kwargs):
         super().__init__(parentwidget, **kwargs)
         self.setAcceptHoverEvents(True)
         self.hover = False
@@ -179,12 +166,12 @@ class XslotRectLinkingButton(XslotRectButton):
 
     def mouseReleaseEvent(self, event):
         self.toggle()
-        self.parentwidget.linkingrect_clicked.emit(self)  # self.xslot_whole, self.xslot_part_start, self.xslot_part_end)
+        self.parentwidget.linkingrect_clicked.emit(self)
 
 
 class XslotEllipseModuleButton(QGraphicsEllipseItem):
 
-    def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None):  # xslot_whole=0, xslot_part=None,
+    def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None):
         super().__init__()
         self.parentwidget = parentwidget
         self.text = text
@@ -298,42 +285,10 @@ class SignSummaryScene(QGraphicsScene):
     moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton)
 
 
-class XslotLinkingLayout(QVBoxLayout):
-
-    def __init__(self, xslotstructure, mainwindow, parentwidget, timingintervals=None, **kwargs):
-        super().__init__(**kwargs)
-        self.mainwindow = mainwindow
-        self.parentwidget = parentwidget
-        self.timingintervals = [] if timingintervals is None else timingintervals
-        xslotstruct = self.mainwindow.current_sign.xslotstructure
-        if xslotstruct is None:
-            print("no x-slot structure!")
-
-        self.link_intro_label = QLabel("Click on the relevant point(s) or interval(s) to link this module.")
-        self.addWidget(self.link_intro_label)
-
-        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=self.timingintervals)
-        self.xslotlinkview = QGraphicsView(self.xslotlinkscene)
-        self.xslotlinkview.setFixedHeight(self.xslotlinkscene.scene_height+50)
-        # self.xslotlinkview.setFixedSize(self.xslotlinkscene.scene_width+100, self.xslotlinkscene.scene_height+50)
-        # self.xslotlinkview.setSceneRect(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height)
-        # self.xslotlinkview.fitInView(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height, Qt.KeepAspectRatio)
-        # self.xslotvlinkview.setGeometry(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height)
-        self.addWidget(self.xslotlinkview)
-
-    def gettimingintervals(self):
-        return self.xslotlinkscene.xslotlinks
-
-    def clear(self):
-        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=[])
-        self.xslotlinkview.setScene(self.xslotlinkscene)
-
-
 class XSlotCheckbox(QGraphicsRectItem):
 
     def __init__(self, xslot_whole, xslot_part, parentwidget, textsize=30, penwidth=2, checked=False):  # sidelength=20
         super().__init__()
-        # self.mainwindow = mainwindow
         self.parentwidget = parentwidget
 
         # self.sidelength = sidelength
@@ -351,26 +306,18 @@ class XSlotCheckbox(QGraphicsRectItem):
         pen = QPen()
         pen.setStyle(Qt.SolidLine)
         pen.setWidth(self.penwidth)
-        pen.setColor(QColor(0,120,215) if self.hover else Qt.black)
+        pen.setColor(QColor(0, 120, 215) if self.hover else Qt.black)
         return pen
 
     def hoverEnterEvent(self, event):
-        # if self.moduletype in ["signtype", "movement", "handshape"]:
-        # self.setBrush(self.hoverbrush)
-        # self.setPen(self.hoverpen)
         self.hover = True
         self.update()
 
     def hoverLeaveEvent(self, event):
-        # if self.moduletype in ["signtype", "movement", "handshape"]:
-        # self.setBrush(self.restingbrush())
-        # self.setPen(self.restingpen())
         self.hover = False
         self.update()
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
-
         # turn off brush - we're just drawing text
         brush = painter.brush()
         brush.setStyle(Qt.NoBrush)
@@ -396,19 +343,19 @@ class XSlotCheckbox(QGraphicsRectItem):
 
     def mouseReleaseEvent(self, event):
         self.toggle()
-        self.parentwidget.checkbox_toggled.emit(self)  # self.xslot_whole, self.xslot_part)
+        self.parentwidget.checkbox_toggled.emit(self)
 
 
 class XslotLinkScene(QGraphicsScene):
     checkbox_toggled = pyqtSignal(XSlotCheckbox)
     linkingrect_clicked = pyqtSignal(XslotRectLinkingButton)
 
-    def __init__(self, parentwidget, mainwindow=None, timingintervals=None):
-        super().__init__()
-
-        self.mainwindow = mainwindow
+    def __init__(self, parentwidget, timingintervals=None, **kwargs):
+        super().__init__(**kwargs)
         self.parentwidget = parentwidget
+        self.mainwindow = self.parentwidget.mainwindow
         # self.timingintervals = timingintervals
+
         self.scene_width = 1500
         self.rect_height = 25
         self.checkbox_size = 25
@@ -429,7 +376,6 @@ class XslotLinkScene(QGraphicsScene):
         self.fractionalpoints = list(set(self.fractionalpoints))
         self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
-        # self.xslotlinks = []
         self.xslotlinks = [] if timingintervals is None else timingintervals
 
         # TODO KV do we need this modularity now that there's only one row of them?
@@ -486,7 +432,8 @@ class XslotLinkScene(QGraphicsScene):
 
         if not success:
             QMessageBox.information(self.parentwidget, "X-slot clash",
-                                    "The attempted selection overlaps with an existing selection. Please first de-select the initial selection if you wish to continue.")
+                                    "The attempted selection overlaps with an existing selection. "
+                                    + "Please first de-select the initial selection if you wish to continue.")
             xslotgraphicsitem.toggle()
 
         return success
@@ -508,14 +455,14 @@ class XslotLinkScene(QGraphicsScene):
         for whole in range(1, self.numwholes+1):
             for part in self.fractionalpoints:
                 checkthebox = False
-                if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:  # self.timingintervals:
+                if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:
                     checkthebox = True
                 cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
                 checkboxes[(whole, part)] = cb
         whole = self.numwholes+1
         for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac and (fp > 0 or self.additionalfrac > 0)]:
             checkthebox = False
-            if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:  # self.timingintervals:
+            if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:
                 checkthebox = True
             cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
             checkboxes[(whole, part)] = cb
@@ -579,7 +526,13 @@ class XslotLinkScene(QGraphicsScene):
                     temptint = TimingInterval(TimingPoint(whole, part_start), TimingPoint(whole, part_end))
                     if temptint in self.xslotlinks:  # self.timingintervals:
                         selecttheinterval = True
-                    xslotrect = XslotRectLinkingButton(self, xslot_whole=whole, xslot_part_start=part_start, xslot_part_end=part_end, text=text, moduletype='xslot', selected=selecttheinterval)
+                    xslotrect = XslotRectLinkingButton(self,
+                                                       xslot_whole=whole,
+                                                       xslot_part_start=part_start,
+                                                       xslot_part_end=part_end,
+                                                       text=text,
+                                                       moduletype='xslot',
+                                                       selected=selecttheinterval)
                     xloc = 0 + (whole_i + (frac_j/denom)) * self.xslot_width + self.x_offset  # - (self.pen_width * num_rects)
                     xslotrect.setRect(xloc, yloc, float(self.xslot_width * frac_size), self.rect_height)
                     self.addItem(xslotrect)

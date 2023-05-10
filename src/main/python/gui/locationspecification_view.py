@@ -1,9 +1,12 @@
-# import os
-# import json
-from copy import copy
 
 from PyQt5.QtWidgets import (
-    # QFrame,
+    QListView,
+    QTableView,
+    QTreeView,
+    QGraphicsView,
+    QFrame,
+    QGraphicsScene,
+    QGraphicsPixmapItem,
     QPushButton,
     QRadioButton,
     QHBoxLayout,
@@ -22,7 +25,6 @@ from PyQt5.QtWidgets import (
     QWidget,
     QSpacerItem,
     QSizePolicy,
-    QDialog,
     QStyledItemDelegate,
     QStyleOptionButton,
     QStyle,
@@ -30,232 +32,276 @@ from PyQt5.QtWidgets import (
     QApplication,
 )
 
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+
 from PyQt5.QtCore import (
+    QRectF,
+    QUrl,
     Qt,
-    # QSize,
     QEvent,
     pyqtSignal,
-    QItemSelectionModel,
-    QUrl
+    QItemSelectionModel
 )
 
-from gui.location_view import LocationTreeModel, LocationTreeSerializable, LocationTableView, LocationPathsProxyModel, TreeSearchComboBox, TreeListView, LocationGraphicsView, LocationTreeItem, LocationSvgView, LocationTreeView
-from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
-from lexicon.module_classes import LocationModule, PhonLocations, LocationType, userdefinedroles as udr
-from lexicon.module_classes2 import AddedInfo
+from PyQt5.QtGui import (
+    QPixmap
+)
 
-from PyQt5.QtSvg import QSvgWidget
-
-
-# def tempprinttreemodel(tm):
-#     print("treemodel contents...")
-#     print("location type: ", tm.locationtype)
-#     tempprinttmhelper(tm.invisibleRootItem())
-#
-#
-# def tempprinttmhelper(node, indent=""):
-#     for r in range(node.rowCount()):
-#         ch = node.child(r)
-#         print(indent + ch.text() + " / " + str(ch.checkState()))
-#         tempprinttmhelper(ch, indent=indent + " ")
+from lexicon.module_classes import delimiter, LocationModule, PhonLocations, userdefinedroles as udr
+from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
+    LocationType, LocationPathsProxyModel
+from serialization.serialization_classes import LocationTreeSerializable
+from gui.modulespecification_widgets import AddedInfoContextMenu
 
 
-class SvgDisplayTab(QWidget):
-    zoomfactor_changed = pyqtSignal(int)
-    linkbutton_toggled = pyqtSignal(bool)
+class LocationTreeView(QTreeView):
 
-    def __init__(self, imagepath, **kwargs):  #  maxfourimagepaths, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        main_layout = QHBoxLayout()
-
-        img_layout = QVBoxLayout()
-
-        self.imagedisplay = LocationSvgView(parent=self, specificpath=imagepath)
-        self.imagedisplay.svg.setZoomFactor(0.25)
-        # self.imagedisplay.setMinimumWidth(400)
-        img_layout.addWidget(self.imagedisplay)
-
-        zoom_layout = QVBoxLayout()
-        # self.zoom_slider = QSlider(Qt.Vertical)
-        # self.zoom_slider.setMinimum(1)
-        # self.zoom_slider.setMaximum(8)
-        # self.zoom_slider.setValue(0)
-        # self.zoom_slider.valueChanged.connect(self.zoom)
-        # zoom_layout.addWidget(self.zoom_slider)
-        # zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
-
-        # self.link_button = QPushButton("Link")
-        # self.link_button.setCheckable(True)
-        # self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
-        # zoom_layout.addWidget(self.link_button)
-        # zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
-
-        main_layout.addLayout(img_layout)
-        main_layout.addLayout(zoom_layout)
-
-        self.setLayout(main_layout)
-
-    def zoom(self, scale):
-        factor_from_scale = {
-            1: 0.25,
-            2: 0.33,
-            3: 0.5,
-            4: 1.0,
-            5: 2.0,
-            6: 3.0,
-            7: 4.0,
-            8: 5.0
-        }
-        self.imagedisplay.svg.setZoomFactor(factor_from_scale[scale])
-        # trans_matrix = self.imagedisplay.transform()
-        # trans_matrix.reset()
-        # trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
-        # self.imagedisplay.setTransform(trans_matrix)
-
-        self.zoomfactor_changed.emit(scale)
-
-    def force_zoom(self, scale):
-        self.blockSignals(True)
-        self.zoom_slider.blockSignals(True)
-        self.zoom(scale)
-        self.zoom_slider.setValue(scale)
-        self.blockSignals(False)
-        self.zoom_slider.blockSignals(False)
-
-    def force_link(self, ischecked):
-        self.blockSignals(True)
-        self.link_button.setChecked(ischecked)
-        self.blockSignals(False)
+        self.setEditTriggers(QAbstractItemView.DoubleClicked | QAbstractItemView.SelectedClicked)
 
 
-class ImageDisplayTab(QWidget):
-    zoomfactor_changed = pyqtSignal(int)
-    linkbutton_toggled = pyqtSignal(bool)
+class LocnTreeSearchComboBox(QComboBox):
+    item_selected = pyqtSignal(LocationTreeItem)
 
-    def __init__(self, app_ctx, frontorback='front', specificpath="", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, parentlayout=None):
+        super().__init__()
+        self.refreshed = True
+        self.lasttextentry = ""
+        self.lastcompletedentry = ""
+        self.parentlayout = parentlayout
 
-        main_layout = QHBoxLayout()
+    def keyPressEvent(self, event):
+        key = event.key()
+        modifiers = event.modifiers()
 
-        self.imagedisplay = LocationGraphicsView(app_ctx, frontorback=frontorback, specificpath=specificpath)
-        # self.imagedisplay.setMinimumWidth(400)
+        if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
 
-        zoom_layout = QVBoxLayout()
+            if self.currentText():
+                # self.parentlayout.treedisplay.collapseAll()
+                itemstoselect = gettreeitemsinpath(self.parentlayout.getcurrenttreemodel(),
+                                                   self.currentText(),
+                                                   delim=delimiter)
+                for item in itemstoselect:
+                    if item.checkState() == Qt.Unchecked:
+                        item.setCheckState(Qt.PartiallyChecked)
+                    # self.parentlayout.treedisplay.setExpanded(item.index(), True)
+                itemstoselect[-1].setCheckState(Qt.Checked)
+                self.item_selected.emit(itemstoselect[-1])
+                self.setCurrentIndex(-1)
 
-        self.zoom_slider = QSlider(Qt.Vertical)
-        self.zoom_slider.setMinimum(1)
-        self.zoom_slider.setMaximum(10)
-        self.zoom_slider.setValue(0)
-        self.zoom_slider.valueChanged.connect(self.zoom)
-        zoom_layout.addWidget(self.zoom_slider)
-        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
+        if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
+            if self.refreshed:
+                self.lasttextentry = self.currentText()
+                self.refreshed = False
 
-        self.link_button = QPushButton("Link")
-        self.link_button.setCheckable(True)
-        self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
-        zoom_layout.addWidget(self.link_button)
-        zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
+            if self.lastcompletedentry:
+                # cycle to first line of next entry that starts with the last-entered text
+                foundcurrententry = False
+                foundnextentry = False
+                i = 0
+                while self.completer().setCurrentRow(i) and not foundnextentry:
+                    completionoption = self.completer().currentCompletion()
+                    if completionoption.lower().startswith(self.lastcompletedentry.lower()):
+                        foundcurrententry = True
+                    elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() \
+                            and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
+                        foundnextentry = True
+                        if delimiter in completionoption[len(self.lasttextentry):]:
+                            self.setEditText(
+                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                        else:
+                            self.setEditText(completionoption)
+                        self.lastcompletedentry = self.currentText()
+                    i += 1
+            else:
+                # cycle to first line of first entry that starts with the last-entered text
+                foundnextentry = False
+                i = 0
+                while self.completer().setCurrentRow(i) and not foundnextentry:
+                    completionoption = self.completer().currentCompletion()
+                    if completionoption.lower().startswith(self.lasttextentry.lower()):
+                        foundnextentry = True
+                        if delimiter in completionoption[len(self.lasttextentry):]:
+                            self.setEditText(
+                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                        else:
+                            self.setEditText(completionoption)
+                        self.lastcompletedentry = self.currentText()
+                    i += 1
 
-        main_layout.addWidget(self.imagedisplay)
-        main_layout.addLayout(zoom_layout)
-
-        self.setLayout(main_layout)
-
-    def zoom(self, scale):
-        trans_matrix = self.imagedisplay.transform()
-        trans_matrix.reset()
-        trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
-        self.imagedisplay.setTransform(trans_matrix)
-
-        self.zoomfactor_changed.emit(scale)
-
-    def force_zoom(self, scale):
-        self.blockSignals(True)
-        self.zoom_slider.blockSignals(True)
-        self.zoom(scale)
-        self.zoom_slider.setValue(scale)
-        self.blockSignals(False)
-        self.zoom_slider.blockSignals(False)
-
-    def force_link(self, ischecked):
-        self.blockSignals(True)
-        self.link_button.setChecked(ischecked)
-        self.blockSignals(False)
-
-
-# https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-# TODO KV can this be combined with the one for movement?
-class LocationTreeItemDelegate(QStyledItemDelegate):
-
-    def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
-            widget = option.widget
-            style = widget.style() if widget else QApplication.style()
-            opt = QStyleOptionButton()
-            opt.rect = option.rect
-            opt.text = index.data()
-            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
-            style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
         else:
-            QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                opt = QStyleOptionFrame()
-                opt.rect = option.rect
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+            self.refreshed = True
+            self.lasttextentry = ""
+            self.lastcompletedentry = ""
+            super().keyPressEvent(event)
 
 
-class AxisTreeWidget(QWidget):
-    # zoomfactor_changed = pyqtSignal(int)
-    # linkbutton_toggled = pyqtSignal(bool)
+class LocnTreeListView(QListView):
 
-    def __init__(self, treemodel, **kwargs):
+    def __init__(self):
+        super().__init__()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        # modifiers = event.modifiers()
+
+        if key == Qt.Key_Delete:
+            indexesofselectedrows = self.selectionModel().selectedRows()
+            selectedlistitems = []
+            for itemindex in indexesofselectedrows:
+                listitemindex = self.model().mapToSource(itemindex)
+                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
+                selectedlistitems.append(listitem)
+            for listitem in selectedlistitems:
+                listitem.unselectpath()
+            # self.model().dataChanged.emit()
+
+
+class LocationGraphicsView(QGraphicsView):
+
+    def __init__(self, app_ctx, frontorback='front', parent=None, viewer_size=400, specificpath=""):
+        super().__init__(parent=parent)
+
+        self.viewer_size = viewer_size
+
+        self._scene = QGraphicsScene(parent=self)
+        imagepath = app_ctx.default_location_images['body_hands_' + frontorback]
+        if specificpath != "":
+            imagepath = specificpath
+
+        # if specificpath.endswith('.svg'):
+        #     self._photo = LocationSvgView()
+        #     self._photo.load(QUrl(imagepath))
+        #     self._scene.addWidget(self._photo)
+        #     self.show()
+        # else:
+        self._pixmap = QPixmap(imagepath)
+        self._photo = QGraphicsPixmapItem(self._pixmap)
+        self._scene.addItem(self._photo)
+        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
+
+        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
+        self.setScene(self._scene)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.fitInView()
+
+    def fitInView(self, scale=True):
+        rect = QRectF(self._photo.pixmap().rect())
+        if not rect.isNull():
+            self.setSceneRect(rect)
+            unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
+            self.scale(1 / unity.width(), 1 / unity.height())
+            scenerect = self.transform().mapRect(rect)
+            factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
+            self.factor = factor
+            # viewrect = self.viewport().rect()
+            # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
+            self.scale(factor, factor)
+
+
+class LocationSvgView(QGraphicsView):
+
+    def __init__(self, parent=None, viewer_size=600, specificpath=""):
+        super().__init__(parent=parent)
+
+        self.viewer_size = viewer_size
+
+        self._scene = QGraphicsScene(parent=self)
+
+        self.svg = QWebEngineView()
+        # self.svg.urlChanged.connect(self.shownewurl)
+
+        # dir_path = os.path.dirname(os.path.realpath(__file__))
+        # print("dir_path", dir_path)
+        # cwd = os.getcwd()
+        # print("cwd", cwd)
+
+        imageurl = QUrl.fromLocalFile(specificpath)
+        self.svg.load(imageurl)
+        self.svg.show()
+        self._scene.addWidget(self.svg)
+        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
+
+        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
+        self.setScene(self._scene)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
+    #     self.fitInView()
+    #
+    # def fitInView(self, scale=True):
+    #     rect = QRectF(self._photo.pixmap().rect())
+    #     if not rect.isNull():
+    #         self.setSceneRect(rect)
+    #         unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
+    #         self.scale(1 / unity.width(), 1 / unity.height())
+    #         scenerect = self.transform().mapRect(rect)
+    #         factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
+    #         self.factor = factor
+    #         # viewrect = self.viewport().rect()
+    #         # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
+    #         self.scale(factor, factor)
+
+    # TODO KV probably don't need this after all
+    def shownewurl(self, newurl):
+        self.svg.show()
+
+
+class LocationTableView(QTableView):
+    def __init__(self, locationtreeitem=None, **kwargs):
         super().__init__(**kwargs)
 
-        main_layout = QHBoxLayout()
+        # set the table model
+        locntablemodel = LocationTableModel(parent=self)
+        self.setModel(locntablemodel)
+        self.horizontalHeader().resizeSections(QHeaderView.Stretch)
 
-        self._treemodel = treemodel
 
-        self.treedisplay = LocationTreeView()
-        self.treedisplay.setItemDelegate(LocationTreeItemDelegate())
-        self.treedisplay.setHeaderHidden(True)
-        self.treedisplay.setModel(self.treemodel)
+def gettreeitemsinpath(treemodel, pathstring, delim="/"):
+    pathlist = pathstring.split(delim)
+    pathitemslists = []
+    for level in pathlist:
+        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
+    validpathsoftreeitems = findvaliditemspaths(pathitemslists)
+    return validpathsoftreeitems[0]
 
-        # self.treedisplay.installEventFilter(self)
-        # self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # TODO KV this causes a crash
-        self.treedisplay.setMinimumWidth(400)
 
-        main_layout.addWidget(self.treedisplay)
+def findvaliditemspaths(pathitemslists):
+    validpaths = []
+    if len(pathitemslists) > 1:  # the path is longer than 1 level
+        # pathitemslistslotohi = pathitemslists[::-1]
+        for lastitem in pathitemslists[-1]:
+            for secondlastitem in pathitemslists[-2]:
+                if lastitem.parent() == secondlastitem:
+                    higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
+                    for higherpath in higherpaths:
+                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
+                            validpaths.append(higherpath + [lastitem])
+    elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
+        for lastitem in pathitemslists[0]:
+            # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
+            validpaths.append([lastitem])
+    else:
+        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
+        # but just in case...
+        validpaths = []
 
-        self.setLayout(main_layout)
-
-    @property
-    def treemodel(self):
-        # if self._treemodel is None:
-        #     self._treemodel = LocationTreeModel(self)
-        return self._treemodel
-
-    @treemodel.setter
-    def treemodel(self, treemod):
-        self._treemodel = treemod
-        self.treedisplay.setModel(self._treemodel)
+    return validpaths
 
 
 # TODO KV - add undo, ...
 
-# TODO KV there's another class with the same name in panel.py
-class LocationSpecificationLayout(ModuleSpecificationLayout):
-    saved_location = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, AddedInfo, int)
-    deleted_location = pyqtSignal()
+class LocationSpecificationPanel(QFrame):
+    # module_saved = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, AddedInfo, int)
+    # module_deleted = pyqtSignal()
 
-    def __init__(self, mainwindow, moduletoload=None, **kwargs):
+    def __init__(self, moduletoload=None, **kwargs):  # mainwindow,
         super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
 
-        self.mainwindow = mainwindow
+        main_layout = QVBoxLayout()
 
-        # This layout has three separate location trees, so that we can flip back and forth between
+        # This widget has three separate location trees, so that we can flip back and forth between
         # location types without losing intermediate information. However, once the save button is
         # clicked only the tree for the current location type is saved with the module.
         self.treemodel_body = None
@@ -271,13 +317,15 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
             phonlocstoload = moduletoload.phonlocs
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
-            treemodeltoload = LocationTreeSerializable(moduletoload.locationtreemodel).getLocationTreeModel()
+            treemodeltoload = LocationTreeModel(LocationTreeSerializable(moduletoload.locationtreemodel))
 
         # create layout with buttons for location type (body, signing space, etc)
         # and for phonological locations (phonological, phonetic, etc)
-        loctype_phonloc_layout = QHBoxLayout()
-        self.build_loctype_phonloc_layout(loctype_phonloc_layout)
-        self.addLayout(loctype_phonloc_layout)
+        # loctype_phonloc_layout = QHBoxLayout()
+        # self.create_loctype_phonloc_layout(loctype_phonloc_layout)
+        loctype_phonloc_layout = self.create_loctype_phonloc_layout()
+        # self.addLayout(loctype_phonloc_layout)
+        main_layout.addLayout(loctype_phonloc_layout)
 
         # set buttons and treemodel according to the existing module being loaded (if applicable)
         if moduletoload is not None:
@@ -289,31 +337,38 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         # create list proxies (for search and for selected options list)
         # and set them to refer to list model for current location type
-        self.comboproxymodel = LocationPathsProxyModel(wantselected=False) #, parent=self.listmodel
-        self.comboproxymodel.setSourceModel(self.getcurrentlistmodel())  # self.listmodel)
+        self.comboproxymodel = LocationPathsProxyModel(wantselected=False)
+        self.comboproxymodel.setSourceModel(self.getcurrentlistmodel())
         self.listproxymodel = LocationPathsProxyModel(wantselected=True)
-        self.listproxymodel.setSourceModel(self.getcurrentlistmodel())  # self.listmodel)
+        self.listproxymodel.setSourceModel(self.getcurrentlistmodel())
 
         # create layout with combobox for searching location items
-        search_layout = QHBoxLayout()
-        self.build_search_layout(search_layout)
-        self.addLayout(search_layout)
+        # search_layout = QHBoxLayout()
+        # self.create_search_layout(search_layout)
+        search_layout = self.create_search_layout()
+        # self.addLayout(search_layout)
+        main_layout.addLayout(search_layout)
 
         # create layout with visual selection widget (whether image or tree) and list view for selected location options
-        selection_layout = QHBoxLayout()
-        self.build_selection_layout(selection_layout)
-        self.addLayout(selection_layout)
+        # selection_layout = QHBoxLayout()
+        # self.build_selection_layout(selection_layout)
+        selection_layout = self.create_selection_layout()
+        # self.addLayout(selection_layout)
+        main_layout.addLayout(selection_layout)
+
+        self.setLayout(main_layout)
 
         self.enablelocationtools()
 
-    def build_selection_layout(self, selection_layout):
+    def create_selection_layout(self):
+        selection_layout = QHBoxLayout()
 
-        self.locationselectionwidget = LocationSelectionWidget(self.mainwindow, self.getcurrenttreemodel())  # self.treemodel)
+        self.locationselectionwidget = LocationSelectionWidget(treemodel=self.getcurrenttreemodel(), parent=self)
         selection_layout.addWidget(self.locationselectionwidget)
 
         list_layout = QVBoxLayout()
 
-        self.pathslistview = TreeListView()
+        self.pathslistview = LocnTreeListView()
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(300)
@@ -350,11 +405,14 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
         selection_layout.addLayout(list_layout)
 
-    def build_search_layout(self, search_layout):
+        return selection_layout
+
+    def create_search_layout(self):
+        search_layout = QHBoxLayout()
 
         search_layout.addWidget(QLabel("Enter tree node"))
 
-        self.combobox = TreeSearchComboBox(self)
+        self.combobox = LocnTreeSearchComboBox(self)
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
@@ -366,6 +424,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
         self.combobox.item_selected.connect(self.selectlistitem)
         search_layout.addWidget(self.combobox)
+
+        return search_layout
 
     def getcurrentlocationtype(self):
         locationtype = LocationType(
@@ -386,7 +446,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         )
         return phonlocs
 
-    def build_loctype_phonloc_layout(self, loctype_phonloc_layout):
+    def create_loctype_phonloc_layout(self):
+        loctype_phonloc_layout = QHBoxLayout()
 
         loctype_phonloc_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
 
@@ -435,8 +496,10 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.signingspace_subgroup = QButtonGroup()
         self.signingspace_subgroup.addButton(self.signingspacebody_radio)
         self.signingspace_subgroup.addButton(self.signingspacespatial_radio)
-        self.loctype_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_locationtype(self.loctype_subgroup.checkedButton()))
-        self.signingspace_subgroup.buttonToggled.connect(lambda btn, wastoggled: self.handle_toggle_signingspacetype(self.signingspace_subgroup.checkedButton()))
+        self.loctype_subgroup.buttonToggled.connect(lambda btn, wastoggled:
+                                                    self.handle_toggle_locationtype(self.loctype_subgroup.checkedButton()))
+        self.signingspace_subgroup.buttonToggled.connect(lambda btn, wastoggled:
+                                                         self.handle_toggle_signingspacetype(self.signingspace_subgroup.checkedButton()))
 
         phonological_layout = QVBoxLayout()
         self.phonological_cb = QCheckBox("Phonological location")
@@ -461,6 +524,8 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         loctype_phonloc_layout.addLayout(phonological_layout)
         loctype_phonloc_layout.addLayout(phonetic_layout)
         loctype_phonloc_layout.addStretch()
+
+        return loctype_phonloc_layout
 
     def getcurrenttreemodel(self):
         if self.getcurrentlocationtype().axis:
@@ -549,10 +614,12 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
     def enablelocationtools(self):
         self.refresh_listproxies()
         # use current locationtype (from buttons) to determine whether/how things get enabled
-        anyexceptpurelyspatial = self.getcurrentlocationtype().usesbodylocations() or self.getcurrentlocationtype().purelyspatial or self.getcurrentlocationtype().axis
+        anyexceptpurelyspatial = self.getcurrentlocationtype().usesbodylocations() \
+                                 or self.getcurrentlocationtype().purelyspatial \
+                                 or self.getcurrentlocationtype().axis
         enableselectionwidget = anyexceptpurelyspatial
         enablecomboboxandlistview = anyexceptpurelyspatial
-        enabledetailstable = self.getcurrentlocationtype().usesbodylocations() or False # TODO KV what was I going to add a third column for again?
+        enabledetailstable = self.getcurrentlocationtype().usesbodylocations()
 
         self.locationselectionwidget.setlocationtype(self.getcurrentlocationtype(), treemodel=self.getcurrenttreemodel())
         self.locationselectionwidget.setEnabled(enableselectionwidget)
@@ -563,23 +630,21 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
         self.update_detailstable(None, None)
         self.detailstableview.setEnabled(enabledetailstable)
 
-    def get_savedmodule_signal(self):
-        return self.saved_location
-
-    def get_deletedmodule_signal(self):
-        return self.deleted_location
-
-    def get_savedmodule_args(self):
+    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
         phonlocs = self.getcurrentphonlocs()
-        locationtype = self.getcurrentlocationtype()
-        return (self.getcurrenttreemodel(), phonlocs, locationtype)
+        return LocationModule(self.getcurrenttreemodel(),
+                              hands=handsdict,
+                              timingintervals=timingintervals,
+                              addedinfo=addedinfo,
+                              phonlocs=phonlocs,
+                              inphase=inphase)
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
 
     def eventFilter(self, source, event):
 
-        # adapted from https://stackoverflow.com/questions/26021808/how-can-i-intercept-when-a-widget-loses-its-focus
+        # Ref: adapted from https://stackoverflow.com/questions/26021808/how-can-i-intercept-when-a-widget-loses-its-focus
         # if (event.type() == QEvent.FocusOut):  # and source is items[0].child(0, 0)):
         #     print('TODO KV eventFilter: focus out', source)
         #     # return true here to bypass default behaviour
@@ -710,19 +775,21 @@ class LocationSpecificationLayout(ModuleSpecificationLayout):
 
 class LocationSelectionWidget(QStackedWidget):
 
-    def __init__(self, mainwindow, treemodel, locationtype=None, **kwargs):
+    def __init__(self, treemodel, locationtype=None, **kwargs):  # mainwindow,
         super().__init__(**kwargs)
-        self.mainwindow = mainwindow
+        self.mainwindow = self.parent().mainwindow
 
         # self.imageslayout = QHBoxLayout()
         self.imagetabs = QTabWidget()
         self.fronttab = ImageDisplayTab(self.mainwindow.app_ctx, 'front')
         self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
-        self.fronttab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.fronttab))
+        self.fronttab.linkbutton_toggled.connect(lambda ischecked:
+                                                 self.handle_linkbutton_toggled(ischecked, self.fronttab))
         self.imagetabs.addTab(self.fronttab, "Front")
         self.backtab = ImageDisplayTab(self.mainwindow.app_ctx, 'back')
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
-        self.backtab.linkbutton_toggled.connect(lambda ischecked: self.handle_linkbutton_toggled(ischecked, self.backtab))
+        self.backtab.linkbutton_toggled.connect(lambda ischecked:
+                                                self.handle_linkbutton_toggled(ischecked, self.backtab))
         self.imagetabs.addTab(self.backtab, "Back")
         # self.imageslayout.addWidget(self.imagetabs)
         self.addWidget(self.imagetabs)
@@ -759,23 +826,116 @@ class LocationSelectionWidget(QStackedWidget):
         # self.backtab.force_link(ischecked)
 
 
-class LocationGraphicsTestDialog(QDialog):
+class ImageDisplayTab(QWidget):
+    zoomfactor_changed = pyqtSignal(int)
+    linkbutton_toggled = pyqtSignal(bool)
 
-    def __init__(self, app_settings, app_ctx, **kwargs):
+    def __init__(self, app_ctx, frontorback='front', specificpath="", **kwargs):
         super().__init__(**kwargs)
-        self.app_settings = app_settings
 
-        main_layout = QVBoxLayout()
+        main_layout = QHBoxLayout()
 
-        self.tabs = QTabWidget()
+        self.imagedisplay = LocationGraphicsView(app_ctx, frontorback=frontorback, specificpath=specificpath)
+        # self.imagedisplay.setMinimumWidth(400)
 
-        for img_name in app_ctx.temp_test_images.keys():
-            self.tabs.addTab(SvgDisplayTab(app_ctx.temp_test_images[img_name]), img_name)
+        zoom_layout = QVBoxLayout()
 
-        # # self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_A4p.png"), "shading_A4p.png")
-        # # # self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_A4p_min-01.svg"), "shading_A4p_min-01.svg")
-        # # self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_A4p_min-01.svg"), "shading_A4p_min-01.svg")
+        self.zoom_slider = QSlider(Qt.Vertical)
+        self.zoom_slider.setMinimum(1)
+        self.zoom_slider.setMaximum(10)
+        self.zoom_slider.setValue(0)
+        self.zoom_slider.valueChanged.connect(self.zoom)
+        zoom_layout.addWidget(self.zoom_slider)
+        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
 
-        main_layout.addWidget(self.tabs)
+        self.link_button = QPushButton("Link")
+        self.link_button.setCheckable(True)
+        self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
+        zoom_layout.addWidget(self.link_button)
+        zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
+
+        main_layout.addWidget(self.imagedisplay)
+        main_layout.addLayout(zoom_layout)
+
         self.setLayout(main_layout)
+
+    def zoom(self, scale):
+        trans_matrix = self.imagedisplay.transform()
+        trans_matrix.reset()
+        trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
+        self.imagedisplay.setTransform(trans_matrix)
+
+        self.zoomfactor_changed.emit(scale)
+
+    def force_zoom(self, scale):
+        self.blockSignals(True)
+        self.zoom_slider.blockSignals(True)
+        self.zoom(scale)
+        self.zoom_slider.setValue(scale)
+        self.blockSignals(False)
+        self.zoom_slider.blockSignals(False)
+
+    def force_link(self, ischecked):
+        self.blockSignals(True)
+        self.link_button.setChecked(ischecked)
+        self.blockSignals(False)
+
+
+class AxisTreeWidget(QWidget):
+    # zoomfactor_changed = pyqtSignal(int)
+    # linkbutton_toggled = pyqtSignal(bool)
+
+    def __init__(self, treemodel, **kwargs):
+        super().__init__(**kwargs)
+
+        main_layout = QHBoxLayout()
+
+        self._treemodel = treemodel
+
+        self.treedisplay = LocationTreeView()
+        self.treedisplay.setItemDelegate(LocationTreeItemDelegate())
+        self.treedisplay.setHeaderHidden(True)
+        self.treedisplay.setModel(self.treemodel)
+
+        # self.treedisplay.installEventFilter(self)
+        # self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # TODO KV this causes a crash
+        self.treedisplay.setMinimumWidth(400)
+
+        main_layout.addWidget(self.treedisplay)
+
+        self.setLayout(main_layout)
+
+    @property
+    def treemodel(self):
+        # if self._treemodel is None:
+        #     self._treemodel = LocationTreeModel(self)
+        return self._treemodel
+
+    @treemodel.setter
+    def treemodel(self, treemod):
+        self._treemodel = treemod
+        self.treedisplay.setModel(self._treemodel)
+
+
+# Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
+# TODO KV can this be combined with the one for movement?
+class LocationTreeItemDelegate(QStyledItemDelegate):
+
+    def paint(self, painter, option, index):
+        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
+            widget = option.widget
+            style = widget.style() if widget else QApplication.style()
+            opt = QStyleOptionButton()
+            opt.rect = option.rect
+            opt.text = index.data()
+            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
+            style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+        else:
+            QStyledItemDelegate.paint(self, painter, option, index)
+            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+                opt = QStyleOptionFrame()
+                opt.rect = option.rect
+                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 

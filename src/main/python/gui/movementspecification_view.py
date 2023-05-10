@@ -1,9 +1,8 @@
-# import os
-# import json
-# from copy import copy
 
 from PyQt5.QtWidgets import (
-    # QFrame,
+    QListView,
+    QFrame,
+    QTreeView,
     QPushButton,
     QHBoxLayout,
     QVBoxLayout,
@@ -17,31 +16,169 @@ from PyQt5.QtWidgets import (
     QApplication,
     QHeaderView,
     QStyleOptionFrame,
-    QErrorMessage,
-)
-
-from PyQt5.Qt import (
-    QStandardItem,
-    # QStandardItemModel
 )
 
 from PyQt5.QtCore import (
     Qt,
-    # QSize,
     QEvent,
-    pyqtSignal,
-    QAbstractListModel
 )
 
-# TODO KV can this be combined with the one for location?
-from gui.movement_view import MovementTreeModel, MovementTreeSerializable, MovementPathsProxyModel, TreeSearchComboBox, TreeListView, MovementTreeView, MovementTreeItem, MovementListItem
-from gui.module_selector import ModuleSpecificationLayout, AddedInfoContextMenu
-from lexicon.module_classes import MovementModule, delimiter, userdefinedroles as udr
-from lexicon.module_classes2 import AddedInfo
+from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
+from models.movement_models import MovementTreeModel, MovementPathsProxyModel
+from serialization.serialization_classes import MovementTreeSerializable
+# from gui.module_selector import AddedInfoContextMenu  # , ModuleSpecificationWidget
+from gui.modulespecification_widgets import AddedInfoContextMenu
 
 
-# https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-class TreeItemDelegate(QStyledItemDelegate):
+class MvmtTreeSearchComboBox(QComboBox):
+
+    def __init__(self, parentlayout=None):
+        super().__init__()
+        self.refreshed = True
+        self.lasttextentry = ""
+        self.lastcompletedentry = ""
+        self.parentlayout = parentlayout
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        modifiers = event.modifiers()
+
+        if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
+
+            if self.currentText():
+                self.parentlayout.treedisplay.collapseAll()
+                itemstoselect = gettreeitemsinpath(self.parentlayout.treemodel, self.currentText(), delim=delimiter)
+                for item in itemstoselect:
+                    if item.checkState() == Qt.Unchecked:
+                        item.setCheckState(Qt.PartiallyChecked)
+                    self.parentlayout.treedisplay.setExpanded(item.index(), True)
+                itemstoselect[-1].setCheckState(Qt.Checked)
+                self.setCurrentIndex(-1)
+
+        if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
+            if self.refreshed:
+                self.lasttextentry = self.currentText()
+                self.refreshed = False
+
+            if self.lastcompletedentry:
+                # cycle to first line of next entry that starts with the last-entered text
+                foundcurrententry = False
+                foundnextentry = False
+                i = 0
+                while self.completer().setCurrentRow(i) and not foundnextentry:
+                    completionoption = self.completer().currentCompletion()
+                    if completionoption.lower().startswith(self.lastcompletedentry.lower()):
+                        foundcurrententry = True
+                    elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
+                        foundnextentry = True
+                        if delimiter in completionoption[len(self.lasttextentry):]:
+                            self.setEditText(
+                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                        else:
+                            self.setEditText(completionoption)
+                        self.lastcompletedentry = self.currentText()
+                    i += 1
+            else:
+            # if not self.lastcompletedentry:
+                # cycle to first line of first entry that starts with the last-entered text
+                foundnextentry = False
+                i = 0
+                while self.completer().setCurrentRow(i) and not foundnextentry:
+                    completionoption = self.completer().currentCompletion()
+                    if completionoption.lower().startswith(self.lasttextentry.lower()):
+                        foundnextentry = True
+                        if delimiter in completionoption[len(self.lasttextentry):]:
+                            self.setEditText(
+                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                        else:
+                            self.setEditText(completionoption)
+                        self.lastcompletedentry = self.currentText()
+                    i += 1
+
+        else:
+            self.refreshed = True
+            self.lasttextentry = ""
+            self.lastcompletedentry = ""
+            super().keyPressEvent(event)
+
+
+
+class MovementTreeView(QTreeView):
+
+    # Ref: adapted from https://stackoverflow.com/questions/68069548/checkbox-with-persistent-editor
+    def edit(self, index, trigger, event):
+        # if the edit involves an index change, there's no event
+        if (event and index.column() == 0 and index.flags() & Qt.ItemIsUserCheckable and event.type() in (event.MouseButtonPress, event.MouseButtonDblClick) and event.button() == Qt.LeftButton and self.isPersistentEditorOpen(index)):
+            opt = self.viewOptions()
+            opt.rect = self.visualRect(index)
+            opt.features |= opt.HasCheckIndicator
+            checkRect = self.style().subElementRect(
+                QStyle.SE_ItemViewItemCheckIndicator,
+                opt, self)
+            if event.pos() in checkRect:
+                if index.data(Qt.CheckStateRole):
+                    self.model().itemFromIndex(index).uncheck()
+                else:
+                    self.model().itemFromIndex(index).check()
+        return super().edit(index, trigger, event)
+
+
+
+class MvmtTreeListView(QListView):
+
+    def __init__(self):
+        super().__init__()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        # modifiers = event.modifiers()
+
+        if key == Qt.Key_Delete:
+            indexesofselectedrows = self.selectionModel().selectedRows()
+            selectedlistitems = []
+            for itemindex in indexesofselectedrows:
+                listitemindex = self.model().mapToSource(itemindex)
+                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
+                selectedlistitems.append(listitem)
+            for listitem in selectedlistitems:
+                listitem.unselectpath()
+            # self.model().dataChanged.emit()
+
+
+def gettreeitemsinpath(treemodel, pathstring, delim="/"):
+    pathlist = pathstring.split(delim)
+    pathitemslists = []
+    for level in pathlist:
+        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
+    validpathsoftreeitems = findvaliditemspaths(pathitemslists)
+    return validpathsoftreeitems[0]
+
+
+def findvaliditemspaths(pathitemslists):
+    validpaths = []
+    if len(pathitemslists) > 1:  # the path is longer than 1 level
+        # pathitemslistslotohi = pathitemslists[::-1]
+        for lastitem in pathitemslists[-1]:
+            for secondlastitem in pathitemslists[-2]:
+                if lastitem.parent() == secondlastitem:
+                    higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
+                    for higherpath in higherpaths:
+                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
+                            validpaths.append(higherpath + [lastitem])
+    elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
+        for lastitem in pathitemslists[0]:
+            # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
+            validpaths.append([lastitem])
+    else:
+        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
+        # but just in case...
+        validpaths = []
+
+    return validpaths
+
+
+# Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
+class MvmtTreeItemDelegate(QStyledItemDelegate):
 
     # def createEditor(self, parent, option, index):
     #     theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
@@ -88,22 +225,20 @@ class TreeItemDelegate(QStyledItemDelegate):
 # TODO KV - add undo, ...
 
 
-# TODO KV - copied from locationspecificationlayout - make sure contents are adjusted for movement
-# class MovementSpecificationLayout(QVBoxLayout):
-class MovementSpecificationLayout(ModuleSpecificationLayout):
-    saved_movement = pyqtSignal(MovementTreeModel, dict, list, AddedInfo, int)
-    deleted_movement = pyqtSignal()
+class MovementSpecificationPanel(QFrame):  # (ModuleSpecificationWidget):
 
     def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
         super().__init__(**kwargs)
+
+        main_layout = QVBoxLayout()
 
         self.treemodel = MovementTreeModel()
         if moduletoload:
             if isinstance(moduletoload, MovementTreeModel):
                 # moduletoload.tempprinttreemodel()
-                self.treemodel = MovementTreeSerializable(moduletoload).getMovementTreeModel()
+                self.treemodel = MovementTreeModel(MovementTreeSerializable(moduletoload))
             elif isinstance(moduletoload, MovementModule):
-                self.treemodel = MovementTreeSerializable(moduletoload.movementtreemodel).getMovementTreeModel()
+                self.treemodel = MovementTreeModel(MovementTreeSerializable(moduletoload.movementtreemodel))
             else:
                 print("moduletoload must be either of type MovementTreeModel or of type MovementModule")
         else:
@@ -120,7 +255,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         search_layout = QHBoxLayout()
         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
 
-        self.combobox = TreeSearchComboBox(self)
+        self.combobox = MvmtTreeSearchComboBox(self)
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
@@ -135,12 +270,13 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
         # self.combobox.installEventFilter(tct)
         search_layout.addWidget(self.combobox)
 
-        self.addLayout(search_layout)
+        # self.addLayout(search_layout)
+        main_layout.addLayout(search_layout)
 
         selection_layout = QHBoxLayout()
 
         self.treedisplay = MovementTreeView()
-        self.treedisplay.setItemDelegate(TreeItemDelegate())
+        self.treedisplay.setItemDelegate(MvmtTreeItemDelegate())
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
 
@@ -157,7 +293,7 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
 
         list_layout = QVBoxLayout()
 
-        self.pathslistview = TreeListView()
+        self.pathslistview = MvmtTreeListView()
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)
@@ -185,22 +321,19 @@ class MovementSpecificationLayout(ModuleSpecificationLayout):
 
         list_layout.addLayout(buttons_layout)
         selection_layout.addLayout(list_layout)
-        self.addLayout(selection_layout)
+        # self.addLayout(selection_layout)
+        main_layout.addLayout(selection_layout)
 
-    def get_savedmodule_signal(self):
-        return self.saved_movement
+        self.setLayout(main_layout)
 
-    def get_savedmodule_args(self):
-        return (self.treemodel,)
-
-    def get_deletedmodule_signal(self):
-        return self.deleted_movement
+    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
+        return MovementModule(self.treemodel, hands=handsdict, timingintervals=timingintervals, addedinfo=addedinfo, inphase=inphase)
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
 
     def eventFilter(self, source, event):
-        # adapted from https://stackoverflow.com/questions/26021808/how-can-i-intercept-when-a-widget-loses-its-focus
+        # Ref: adapted from https://stackoverflow.com/questions/26021808/how-can-i-intercept-when-a-widget-loses-its-focus
         # if (event.type() == QEvent.FocusOut):  # and source is items[0].child(0, 0)):
         #     print('TODO KV eventFilter: focus out', source)
         #     # return true here to bypass default behaviour

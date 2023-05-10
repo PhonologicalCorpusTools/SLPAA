@@ -54,7 +54,7 @@ class CollapsibleSection(QWidget):
         self.headerLine.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
 
         self.contentArea.setStyleSheet('QScrollArea { background-color: white; border: none; }')
-        self.contentArea.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed) # todo kv was expading, fixed
+        self.contentArea.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)  # TODO KV was expanding, fixed
 
         # start out collapsed
         self.contentArea.setMaximumHeight(0)
@@ -92,7 +92,7 @@ class CollapsibleSection(QWidget):
         self.contentArea.setLayout(contentLayout)
 
         collapsedHeight = self.sizeHint().height() - self.contentArea.maximumHeight()
-        contentHeight = 800 # todo kv: was contentLayout.sizeHint().height()
+        contentHeight = 800  # TODO KV was contentLayout.sizeHint().height()
 
         for i in range(self.toggleAnimation.animationCount()-1):
             spoilerAnimation = self.toggleAnimation.animationAt(i)

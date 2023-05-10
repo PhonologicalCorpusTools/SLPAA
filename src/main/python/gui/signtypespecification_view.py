@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
     QSpacerItem,
     QSizePolicy,
     QAbstractButton,
-    QPushButton
+    QWidget
 )
 
 from PyQt5.QtCore import (
@@ -23,11 +23,14 @@ from PyQt5.QtCore import (
     QEvent
 )
 
-from gui.module_selector import AddedInfoPushButton, AddedInfo
+from gui.modulespecification_dialog import AddedInfoPushButton
+from lexicon.module_classes import Signtype
 
-class SigntypeSpecificationLayout(QVBoxLayout):
+class SigntypeSpecificationPanel(QFrame):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        main_layout = QVBoxLayout()
 
         self.buttongroups = []
 
@@ -173,7 +176,6 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.firstrow_layout.addStretch()
         self.firstrow_layout.addWidget(self.addedinfobutton)
         self.signtype_layout.addLayout(self.firstrow_layout)
-        # self.signtype_layout.addWidget(self.handstype_unspec_radio)
         self.signtype_layout.addWidget(self.handstype_1h_radio)
 
         ## begin layout for 1-handed sign options
@@ -278,13 +280,18 @@ class SigntypeSpecificationLayout(QVBoxLayout):
         self.signtype_box.setLayout(self.signtype_layout)
         # end layout for sign type (highest level)
 
-        self.addWidget(self.signtype_box)
+        main_layout.addWidget(self.signtype_box)
+        self.setLayout(main_layout)
 
         # ensure that Unspecified is selected by default
         # TODO KV keep this? or does loadspecs preclude it?
         # self.handstype_unspec_radio.toggle()
 
     def setsigntype(self, signtype):
+        # clear all
+        self.clear()
+
+        # then reset according to input signtype
         allbuttons = [btn for btngrp in self.buttongroups for btn in btngrp.buttons()]
         signtypepaths = [btn.property('abbreviation.path') for btn in allbuttons]
         nolongeravailable = []  # for backward compatibility
@@ -302,6 +309,14 @@ class SigntypeSpecificationLayout(QVBoxLayout):
                 signtype.specslist.remove(spec)
 
         self.addedinfobutton.addedinfo = deepcopy(signtype.addedinfo)
+
+    # uncheck all buttons
+    def clear(self):
+        for g in self.buttongroups:
+            g.setExclusive(False)
+            for b in g.buttons():
+                b.setChecked(False)
+            g.setExclusive(True)
 
     def getsigntype(self):
         addedinfo = self.addedinfobutton.addedinfo
@@ -321,69 +336,6 @@ class SigntypeSpecificationLayout(QVBoxLayout):
     def getButtonGroup(self, thebutton):
         groups = [bg for bg in self.buttongroups if thebutton in bg.buttons()]
         return groups[0]
-
-
-class Signtype:
-
-    def __init__(self, specslist, addedinfo=None):
-        # specslist is a list of triples:
-        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
-        #   the second element is the corresponding abbreviation
-        #   the third element is a flag indicating whether or not to include this abbreviation in the concise form
-
-        # TODO KV actually pairs! first element is full signtype property composed of abbreviations
-        # second element is flag
-        self._specslist = specslist
-        # TODO KV need backward compatibility for this
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
-
-    @property
-    def addedinfo(self):
-        return self._addedinfo
-
-    @addedinfo.setter
-    def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
-
-    @property
-    def specslist(self):
-        return self._specslist
-
-    @specslist.setter
-    def specslist(self, specslist):
-        self._specslist = specslist
-
-    def getabbreviation(self):
-        abbrevsdict = self.convertspecstodict()
-        abbreviationtext = self.makeabbreviationstring(abbrevsdict)
-        abbreviationtext = abbreviationtext.strip()[1:-1]  # effectively remove the top-level ()'s
-        return abbreviationtext
-
-    def makeabbreviationstring(self, abbrevsdict):
-        if abbrevsdict == {}:
-            return ""
-        else:
-            abbrevlist = []
-            abbrevstr = ""
-            for k in abbrevsdict.keys():
-                abbrevlist.append(k + self.makeabbreviationstring(abbrevsdict[k]))
-            abbrevstr += "; ".join(abbrevlist)
-            return " (" + abbrevstr + ")"
-
-    def convertspecstodict(self):
-        abbrevsdict = {}
-        specscopy = [duple for duple in self._specslist]
-        for duple in specscopy:
-            if duple[1]:  # this is the flag to include the abbreviation in the concise form
-                pathlist = duple[0].split('.')  # this is the path of abbreviations to this particular setting
-                self.ensurepathindict(pathlist, abbrevsdict)
-        return abbrevsdict
-
-    def ensurepathindict(self, pathelements, abbrevsdict):
-        if len(pathelements) > 0:
-            if pathelements[0] not in abbrevsdict.keys():
-                abbrevsdict[pathelements[0]] = {}
-            self.ensurepathindict(pathelements[1:], abbrevsdict[pathelements[0]])
 
 
 class SigntypeButtonGroup(QButtonGroup):
@@ -495,21 +447,24 @@ class SigntypeCheckBox(QCheckBox):
 class SigntypeSelectorDialog(QDialog):
     saved_signtype = pyqtSignal(Signtype)
 
-    def __init__(self, signtypetoload, mainwindow, **kwargs):
+    def __init__(self, signtypetoload, **kwargs):  # mainwindow,
         super().__init__(**kwargs)
+
+        # TODO KV delete self.app_settings = app_settings
+        self.mainwindow = self.parent().mainwindow
+
         if signtypetoload is not None:
             self.signtype = signtypetoload
         else:
-            self.signtype = mainwindow.system_default_signtype  # TODO KV delete self.parent().system_default_signtype
+            self.signtype = self.mainwindow.system_default_signtype  # TODO KV delete self.parent().system_default_signtype
 
-        # TODO KV delete self.app_settings = app_settings
-        self.mainwindow = mainwindow
-
-        self.signtype_layout = SigntypeSpecificationLayout()  # TODO KV delete app_ctx)
-        self.signtype_layout.setsigntype(self.signtype)
+        self.signtype_widget = SigntypeSpecificationPanel()
+        # self.signtype_layout = SigntypeSpecificationLayout()  # TODO KV delete app_ctx)
+        self.signtype_widget.setsigntype(self.signtype)
 
         main_layout = QVBoxLayout()
-        main_layout.addLayout(self.signtype_layout)
+        # main_layout.addLayout(self.signtype_layout)
+        main_layout.addWidget(self.signtype_widget)
 
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
@@ -541,11 +496,13 @@ class SigntypeSelectorDialog(QDialog):
         #         self.movement_tab.remove_all_pages()
         #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
-            newsigntype = self.signtype_layout.getsigntype()
+            # newsigntype = self.signtype_layout.getsigntype()
+            newsigntype = self.signtype_widget.getsigntype()
             self.saved_signtype.emit(newsigntype)
             if self.mainwindow.current_sign is not None and self.signtype != newsigntype:
                 self.mainwindow.current_sign.lastmodifiednow()
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            self.signtype_layout.setsigntype(self.mainwindow.system_default_signtype)
+            # self.signtype_layout.setsigntype(self.mainwindow.system_default_signtype)
+            self.signtype_widget.setsigntype(self.mainwindow.system_default_signtype)

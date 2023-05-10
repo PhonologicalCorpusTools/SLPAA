@@ -1,11 +1,14 @@
 from datetime import datetime
+from fractions import Fraction
+from itertools import chain
 
 from PyQt5.QtCore import (
     Qt,
 )
 
-from gui.hand_configuration import HandConfigurationHand, PREDEFINED_MAP
-from lexicon.module_classes2 import AddedInfo, TimingInterval
+# from gui.hand_configuration import PREDEFINED_MAP
+from constant import NULL, PREDEFINED_MAP
+PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
 
@@ -78,6 +81,7 @@ class ParameterModule:
             self.timingintervals = timingintervals
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
+        # self._moduletype = ""
 
     @property
     def addedinfo(self):
@@ -96,6 +100,15 @@ class ParameterModule:
     def hands(self, hands):
         # TODO KV - validate?
         self._hands = hands
+
+    # @property
+    # def moduletype(self):
+    #     return self._hands
+    #
+    # @moduletype.setter
+    # def moduletype(self, moduletype):
+    #     # TODO KV - validate?
+    #     self._moduletype = moduletype
 
     @property
     def uniqueid(self):
@@ -119,20 +132,195 @@ class ParameterModule:
         return "TODO no abbreviations implemented yet"
 
 
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class TargetModule:
-    def __init__(self):
-        # TODO KV implement
-        pass
+class SignLevelInformation:
+    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
+        # self.settings = app_settings
+        if serializedsignlevelinfo is not None:
+            self._entryid = serializedsignlevelinfo['entryid']
+            self._gloss = serializedsignlevelinfo['gloss']
+            self._lemma = serializedsignlevelinfo['lemma']
+            self._source = serializedsignlevelinfo['source']
+            self._signer = serializedsignlevelinfo['signer']
+            self._frequency = serializedsignlevelinfo['frequency']
+            self._coder = serializedsignlevelinfo['coder']
+            # self._update_date = signlevel_info['date']
+            self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
+            self._note = serializedsignlevelinfo['note']
+            # backward compatibility for attribute added 20230412!
+            self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
+            self._handdominance = serializedsignlevelinfo['handdominance']
+        elif signlevel_info is not None:
+            self._entryid = signlevel_info['entryid']
+            self._gloss = signlevel_info['gloss']
+            self._lemma = signlevel_info['lemma']
+            self._source = signlevel_info['source']
+            self._signer = signlevel_info['signer']
+            self._frequency = signlevel_info['frequency']
+            self._coder = signlevel_info['coder']
+            # self._update_date = signlevel_info['date']
+            self._datecreated = signlevel_info['date created']
+            self._datelastmodified = signlevel_info['date last modified']
+            self._note = signlevel_info['note']
+            # backward compatibility for attribute added 20230412!
+            self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
+            self._handdominance = signlevel_info['handdominance']
+        else:
+            print("TODO KV no sign level info; what to do?")
 
+    def __eq__(self, other):
+        aresame = True
+        if isinstance(other, SignLevelInformation):
+            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
+                aresame = False
+            if self._source != other.source or self._signer != other.signer or self._frequency != other.frequency:
+                aresame = False
+            if self._coder != other.coder or self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
+                aresame = False
+            if self._note != other.note or self._fingerspelled != other.fingerspelled or self._handdominance != other.handdominance:
+                aresame = False
+        else:
+            aresame = False
+        return aresame
 
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class OrientationModule:
-    def __init__(self):
-        # TODO KV implement
-        pass
+    def serialize(self):
+        return {
+            'entryid': self._entryid,
+            'gloss': self._gloss,
+            'lemma': self._lemma,
+            'source': self._source,
+            'signer': self._signer,
+            'frequency': self._frequency,
+            'coder': self._coder,
+            'date created': self._datecreated.timestamp(),
+            'date last modified': self._datelastmodified.timestamp(),
+            'note': self._note,
+            'fingerspelled': self._fingerspelled,
+            'handdominance': self._handdominance
+        }
+
+    @property
+    def entryid(self):
+        return self._entryid
+
+    @entryid.setter
+    def entryid(self, new_entryid):
+        self._entryid = new_entryid
+    #
+    # def entryid_string(self):
+    #     numdigits = self.settings['display']['entryid_digits']
+    #     entryid_string = str(self._entryid)
+    #     entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
+    #     return entryid_string
+
+    @property
+    def gloss(self):
+        return self._gloss
+
+    @gloss.setter
+    def gloss(self, new_gloss):
+        self._gloss = new_gloss
+
+    @property
+    def lemma(self):
+        return self._lemma
+
+    @lemma.setter
+    def lemma(self, new_lemma):
+        self._lemma = new_lemma
+
+    @property
+    def fingerspelled(self):
+        return self._fingerspelled
+
+    @fingerspelled.setter
+    def fingerspelled(self, new_fingerspelled):
+        self._fingerspelled = new_fingerspelled
+
+    @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, new_source):
+        self._source = new_source
+
+    @property
+    def signer(self):
+        return self._signer
+
+    @signer.setter
+    def signer(self, new_signer):
+        self._signer = new_signer
+
+    @property
+    def frequency(self):
+        return self._frequency
+
+    @frequency.setter
+    def frequency(self, new_frequency):
+        self._frequency = new_frequency
+
+    @property
+    def coder(self):
+        return self._coder
+
+    @coder.setter
+    def coder(self, new_coder):
+        self._coder = new_coder
+    #
+    # @property
+    # def update_date(self):
+    #     return self._update_date
+    #
+    # @update_date.setter
+    # def update_date(self, new_update_date):
+    #     self._update_date = new_update_date
+
+    @property
+    def datecreated(self):
+        return self._datecreated
+
+    # input should be a datetime object
+    @datecreated.setter
+    def datecreated(self, new_datecreated):
+        self._datecreated = new_datecreated
+
+    @property
+    def datelastmodified(self):
+        return self._datelastmodified
+
+    # input should be a datetime object
+    @datelastmodified.setter
+    def datelastmodified(self, new_datelastmodified):
+        self._datelastmodified = new_datelastmodified
+
+    def lastmodifiednow(self):
+        self._datelastmodified = datetime.now()
+
+    @property
+    def note(self):
+        return self._note
+
+    @note.setter
+    def note(self, new_note):
+        self._note = new_note
+
+    @property
+    def signtype(self):
+        return self._signtype
+
+    @signtype.setter
+    def signtype(self, new_signtype):
+        self._signtype = new_signtype
+
+    @property
+    def handdominance(self):
+        return self._handdominance
+
+    @handdominance.setter
+    def handdominance(self, new_handdominance):
+        self._handdominance = new_handdominance
 
 
 class MovementModule(ParameterModule):
@@ -140,6 +328,7 @@ class MovementModule(ParameterModule):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase    # TODO KV is "inphase" actually the best name for this attribute?
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        self._moduletype = 'Mov'
 
     @property
     def movementtreemodel(self):
@@ -420,6 +609,445 @@ class LocationType:
         return changed
 
 
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class TimingPoint:
+
+    def __init__(self, wholepart, fractionalpart):
+        self._wholepart = wholepart
+        self._fractionalpart = fractionalpart
+
+    def __repr__(self):
+        return '<TimingPoint: ' + repr(self._wholepart) + ', ' + repr(self._fractionalpart) + '>'
+
+    @property
+    def wholepart(self):
+        return self._wholepart
+
+    @wholepart.setter
+    def wholepart(self, wholepart):
+        self._wholepart = wholepart
+
+    @property
+    def fractionalpart(self):
+        return self._fractionalpart
+
+    @fractionalpart.setter
+    def fractionalpart(self, fractionalpart):
+        self._fractionalpart = fractionalpart
+
+    def __eq__(self, other):
+        if isinstance(other, TimingPoint):
+            if self._wholepart == other.wholepart and self._fractionalpart == other.fractionalpart:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    # do not implement this, because TimingPoint objects are mutable
+    # def __hash__(self):
+    #     pass
+
+    def __lt__(self, other):
+        if isinstance(other, TimingPoint):
+            if self._wholepart < other.wholepart:
+                # if not(self._fractionalpart == 1 and other.fractionalpart == 0):
+                return True
+            elif self._wholepart == other.wholepart:
+                if self._fractionalpart < other.fractionalpart:
+                    return True
+        return False
+
+    def equivalent(self, other):
+        if isinstance(other, TimingPoint):
+            return self.adjacent(other) or self.__eq__(other)
+
+    def adjacent(self, other):
+        if isinstance(other, TimingPoint):
+            if self.fractionalpart == 1 and other.fractionalpart == 0 and (self.wholepart + 1 == other.wholepart):
+                return True
+            elif other.fractionalpart == 1 and self.fractionalpart == 0 and (other.wholepart + 1 == self.wholepart):
+                return True
+            else:
+                return False
+
+    def __gt__(self, other):
+        if isinstance(other, TimingPoint):
+            return other.__lt__(self)
+        return False
+
+    def __le__(self, other):
+        return not self.__gt__(other)
+
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
+    def before(self, other):
+        if isinstance(other, TimingPoint):
+            return self.__lt__(other)
+        elif isinstance(other, TimingInterval):
+            return other.after(self)
+        return False
+
+    def after(self, other):
+        if isinstance(other, TimingPoint):
+            return self.__gt__(other)
+        elif isinstance(other, TimingInterval):
+            return other.before(self)
+        return False
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class TimingInterval:
+
+    # startpt (type TimingPoint) = the point at which this xslot interval begins
+    # endpt (type TimingPoint) = the point at which this xslot interval ends
+    def __init__(self, startpt, endpt):
+        self.setinterval(startpt, endpt)
+
+    @property
+    def startpoint(self):
+        return self._startpoint
+
+    @property
+    def endpoint(self):
+        return self._endpoint
+
+    def points(self):
+        return self.startpoint(), self.endpoint()
+
+    def setinterval(self, startpt, endpt):
+        if startpt <= endpt:
+            self._startpoint = startpt
+            self._endpoint = endpt
+        else:
+            print("error: start point is larger than endpoint", startpt, endpt)
+            # TODO throw an error?
+
+    def ispoint(self):
+        return self._startpoint == self._endpoint
+
+    # TODO KV delete? - I don't think this is used anywhere except in lexicon_classes.py testing
+    def containsinterval(self, otherinterval):
+        return self.iswholesign() or (self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint)
+        # if self.iswholesign():
+        #     return True
+        # elif self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint:
+        #     return True
+        # else:
+        #     return False
+
+    def before(self, other):
+        if isinstance(other, TimingPoint):
+            return self.endpoint < other
+        elif isinstance(other, TimingInterval):
+            if other.ispoint():
+                return self.endpoint < other.startpoint
+            elif not self.ispoint():
+                return self.endpoint <= other.startpoint
+            else:
+                return other.after(self)
+        return False
+
+    def after(self, other):
+        if isinstance(other, TimingPoint):
+            return self.startpoint > other
+        elif isinstance(other, TimingInterval):
+            if other.ispoint():
+                return self.startpoint > other.endpoint
+            elif not self.ispoint():
+                return self.startpoint >= other.endpoint
+            else:
+                return other.before(self)
+        return False
+
+    def adjacent(self, other):
+        if isinstance(other, TimingInterval):
+            return self.endpoint.equivalent(other.startpoint) or other.endpoint.equivalent(self.startpoint)
+        return False
+
+    def __eq__(self, other):
+        if isinstance(other, TimingInterval):
+            return self.startpoint == other.startpoint and self.endpoint == other.endpoint
+        return False
+
+    def overlapsinterval(self, other):
+        if isinstance(other, TimingInterval):
+            if self.iswholesign() or other.iswholesign():
+                return True
+            # elif (self.startpoint < other.startpoint and self.endpoint > other.startpoint) or (other.startpoint < self.endpoint and other.endpoint > self.startpoint):
+            # either other starts at or in self, or self starts at or in other
+            elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint) or (other.startpoint <= self.startpoint and other.endpoint > self.startpoint):
+                return True
+        return False
+
+    def iswholesign(self):
+        return self.startpoint == TimingPoint(0, 0) and self.endpoint == TimingPoint(0, 1)
+
+    # TODO KV - overlapping and/or containing checking methods?
+
+    def __repr__(self):
+        return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
+
+
+class AddedInfo:
+
+    def __init__(self,
+                 uncertain_flag=False, uncertain_note="",
+                 estimated_flag=False, estimated_note="",
+                 notspecified_flag=False, notspecified_note="",
+                 variable_flag=False, variable_note="",
+                 exceptional_flag=False, exceptional_note="",
+                 incomplete_flag=False, incomplete_note="",
+                 other_flag=False, other_note=""):
+        self._uncertain_flag = uncertain_flag
+        self._uncertain_note = uncertain_note
+        self._estimated_flag = estimated_flag
+        self._estimated_note = estimated_note
+        self._notspecified_flag = notspecified_flag
+        self._notspecified_note = notspecified_note
+        self._variable_flag = variable_flag
+        self._variable_note = variable_note
+        self._exceptional_flag = exceptional_flag
+        self._exceptional_note = exceptional_note
+        self._incomplete_flag = incomplete_flag
+        self._incomplete_note = incomplete_note
+        self._other_flag = other_flag
+        self._other_note = other_note
+
+    # def clear(self):
+    #     self._uncertain_flag = False
+    #     self._uncertain_note = ""
+    #     self._estimated_flag = False
+    #     self._estimated_note = ""
+    #     self._notspecified_flag = False
+    #     self._notspecified_note = ""
+    #     self._variable_flag = False
+    #     self._variable_note = ""
+    #     self._exceptional_flag = False
+    #     self._exceptional_note = ""
+    #     self._other_flag = False
+    #     self._other_note = ""
+
+    @property
+    def uncertain_flag(self):
+        return self._uncertain_flag
+
+    @uncertain_flag.setter
+    def uncertain_flag(self, uncertain_flag):
+        # TODO KV - validate?
+        self._uncertain_flag = uncertain_flag
+
+    @property
+    def uncertain_note(self):
+        return self._uncertain_note
+
+    @uncertain_note.setter
+    def uncertain_note(self, uncertain_note):
+        # TODO KV - validate?
+        self._uncertain_note = uncertain_note
+
+    @property
+    def estimated_flag(self):
+        return self._estimated_flag
+
+    @estimated_flag.setter
+    def estimated_flag(self, estimated_flag):
+        # TODO KV - validate?
+        self._estimated_flag = estimated_flag
+
+    @property
+    def estimated_note(self):
+        return self._estimated_note
+
+    @estimated_note.setter
+    def estimated_note(self, estimated_note):
+        # TODO KV - validate?
+        self._estimated_note = estimated_note
+
+    @property
+    def notspecified_flag(self):
+        return self._notspecified_flag
+
+    @notspecified_flag.setter
+    def notspecified_flag(self, notspecified_flag):
+        # TODO KV - validate?
+        self._notspecified_flag = notspecified_flag
+
+    @property
+    def notspecified_note(self):
+        return self._notspecified_note
+
+    @notspecified_note.setter
+    def notspecified_note(self, notspecified_note):
+        # TODO KV - validate?
+        self._notspecified_note = notspecified_note
+
+    @property
+    def variable_flag(self):
+        return self._variable_flag
+
+    @variable_flag.setter
+    def variable_flag(self, variable_flag):
+        # TODO KV - validate?
+        self._variable_flag = variable_flag
+
+    @property
+    def variable_note(self):
+        return self._variable_note
+
+    @variable_note.setter
+    def variable_note(self, variable_note):
+        # TODO KV - validate?
+        self._variable_note = variable_note
+
+    @property
+    def exceptional_flag(self):
+        return self._exceptional_flag
+
+    @exceptional_flag.setter
+    def exceptional_flag(self, exceptional_flag):
+        # TODO KV - validate?
+        self._exceptional_flag = exceptional_flag
+
+    @property
+    def incomplete_flag(self):
+        return self._incomplete_flag
+
+    @incomplete_flag.setter
+    def incomplete_flag(self, incomplete_flag):
+        # TODO KV - validate?
+        self._incomplete_flag = incomplete_flag
+
+    @property
+    def exceptional_note(self):
+        return self._exceptional_note
+
+    @exceptional_note.setter
+    def exceptional_note(self, exceptional_note):
+        # TODO KV - validate?
+        self._exceptional_note = exceptional_note
+
+    @property
+    def incomplete_note(self):
+        return self._incomplete_note
+
+    @incomplete_note.setter
+    def incomplete_note(self, incomplete_note):
+        # TODO KV - validate?
+        self._incomplete_note = incomplete_note
+
+    @property
+    def other_flag(self):
+        return self._other_flag
+
+    @other_flag.setter
+    def other_flag(self, other_flag):
+        # TODO KV - validate?
+        self._other_flag = other_flag
+
+    @property
+    def other_note(self):
+        return self._other_note
+
+    @other_note.setter
+    def other_note(self, other_note):
+        # TODO KV - validate?
+        self._other_note = other_note
+
+    def __repr__(self):
+        reprstr = '<AddedInfo: '
+        reprstr += 'Uncertain (' + repr(int(self._uncertain_flag)) + ' / ' + repr(self._uncertain_note) + ') '
+        reprstr += 'Estimated (' + repr(int(self._estimated_flag)) + ' / ' + repr(self._estimated_note) + ') '
+        reprstr += 'Not specified (' + repr(int(self._notspecified_flag)) + ' / ' + repr(self._notspecified_note) + ') '
+        reprstr += 'Variable (' + repr(int(self._variable_flag)) + ' / ' + repr(self._variable_note) + ') '
+        reprstr += 'Exceptional (' + repr(int(self._exceptional_flag)) + ' / ' + repr(self._exceptional_note) + ') '
+        reprstr += 'Incomplete (' + repr(int(self._incomplete_flag)) + ' / ' + repr(self._incomplete_note) + ') '
+        reprstr += 'Other (' + repr(int(self._other_flag)) + ' / ' + repr(self._other_note) + ')'
+        reprstr += '>'
+        return reprstr
+
+    def hascontent(self):
+        hasflag = self._uncertain_flag or self._estimated_flag or self._notspecified_flag or self._variable_flag or self._exceptional_flag or self._incomplete_flag or self._other_flag
+        noteslength = len(
+            (
+                    self._uncertain_note +
+                    self._estimated_note +
+                    self._notspecified_note +
+                    self._variable_note +
+                    self._exceptional_note +
+                    self._incomplete_note +
+                    self._other_note
+            ).replace(" ", ""))
+        return hasflag or noteslength > 0
+
+
+class Signtype:
+
+    def __init__(self, specslist, addedinfo=None):
+        # specslist is a list of triples:
+        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
+        #   the second element is the corresponding abbreviation
+        #   the third element is a flag indicating whether or not to include this abbreviation in the concise form
+
+        # TODO KV actually pairs! first element is full signtype property composed of abbreviations
+        # second element is flag
+        self._specslist = specslist
+        # TODO KV need backward compatibility for this
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    @property
+    def specslist(self):
+        return self._specslist
+
+    @specslist.setter
+    def specslist(self, specslist):
+        self._specslist = specslist
+
+    def getabbreviation(self):
+        abbrevsdict = self.convertspecstodict()
+        abbreviationtext = self.makeabbreviationstring(abbrevsdict)
+        abbreviationtext = abbreviationtext.strip()[1:-1]  # effectively remove the top-level ()'s
+        return abbreviationtext
+
+    def makeabbreviationstring(self, abbrevsdict):
+        if abbrevsdict == {}:
+            return ""
+        else:
+            abbrevlist = []
+            abbrevstr = ""
+            for k in abbrevsdict.keys():
+                abbrevlist.append(k + self.makeabbreviationstring(abbrevsdict[k]))
+            abbrevstr += "; ".join(abbrevlist)
+            return " (" + abbrevstr + ")"
+
+    def convertspecstodict(self):
+        abbrevsdict = {}
+        specscopy = [duple for duple in self._specslist]
+        for duple in specscopy:
+            if duple[1]:  # this is the flag to include the abbreviation in the concise form
+                pathlist = duple[0].split('.')  # this is the path of abbreviations to this particular setting
+                self.ensurepathindict(pathlist, abbrevsdict)
+        return abbrevsdict
+
+    def ensurepathindict(self, pathelements, abbrevsdict):
+        if len(pathelements) > 0:
+            if pathelements[0] not in abbrevsdict.keys():
+                abbrevsdict[pathelements[0]] = {}
+            self.ensurepathindict(pathelements[1:], abbrevsdict[pathelements[0]])
+
+
 class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, hands, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
         if phonlocs is None:
@@ -428,6 +1056,7 @@ class LocationModule(ParameterModule):
         self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
         self._phonlocs = phonlocs
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        self._moduletype = 'Loc'
 
     @property
     def locationtreemodel(self):
@@ -557,6 +1186,7 @@ class HandConfigurationModule(ParameterModule):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        self._moduletype = 'Config'
 
     @property
     def handconfiguration(self):
@@ -592,328 +1222,152 @@ class HandConfigurationModule(ParameterModule):
 
         return predefinedname + fieldstext
 
-# TODO KV the below three classes moved to lexicon.module_classes2
-#
-# # TODO KV comments
-# # TODO KV - for parameter modules and x-slots
-# class TimingPoint:
-#
-#     def __init__(self, wholepart, fractionalpart):
-#         self._wholepart = wholepart
-#         self._fractionalpart = fractionalpart
-#
-#     def __repr__(self):
-#         return '<TimingPoint: ' + repr(self._wholepart) + ', ' + repr(self._fractionalpart) + '>'
-#
-#     @property
-#     def wholepart(self):
-#         return self._wholepart
-#
-#     @wholepart.setter
-#     def wholepart(self, wholepart):
-#         self._wholepart = wholepart
-#
-#     @property
-#     def fractionalpart(self):
-#         return self._fractionalpart
-#
-#     @fractionalpart.setter
-#     def fractionalpart(self, fractionalpart):
-#         self._fractionalpart = fractionalpart
-#
-#     def __eq__(self, other):
-#         if isinstance(other, TimingPoint):
-#             if self._wholepart == other.wholepart and self._fractionalpart == other.fractionalpart:
-#                 return True
-#         return False
-#
-#     def __ne__(self, other):
-#         return not self.__eq__(other)
-#
-#     # do not implement this, because TimingPoint objects are mutable
-#     # def __hash__(self):
-#     #     pass
-#
-#     def __lt__(self, other):
-#         if isinstance(other, TimingPoint):
-#             if self._wholepart < other.wholepart:
-#                 # if not(self._fractionalpart == 1 and other.fractionalpart == 0):
-#                 return True
-#             elif self._wholepart == other.wholepart:
-#                 if self._fractionalpart < other.fractionalpart:
-#                     return True
-#         return False
-#
-#     def equivalent(self, other):
-#         if isinstance(other, TimingPoint):
-#             return self.adjacent(other) or self.__eq__(other)
-#
-#     def adjacent(self, other):
-#         if isinstance(other, TimingPoint):
-#             if self.fractionalpart == 1 and other.fractionalpart == 0 and (self.wholepart + 1 == other.wholepart):
-#                 return True
-#             elif other.fractionalpart == 1 and self.fractionalpart == 0 and (other.wholepart + 1 == self.wholepart):
-#                 return True
-#             else:
-#                 return False
-#
-#     def __gt__(self, other):
-#         if isinstance(other, TimingPoint):
-#             return other.__lt__(self)
-#         return False
-#
-#     def __le__(self, other):
-#         return not self.__gt__(other)
-#
-#     def __ge__(self, other):
-#         return not self.__lt__(other)
-#
-#     def before(self, other):
-#         if isinstance(other, TimingPoint):
-#             return self.__lt__(other)
-#         elif isinstance(other, TimingInterval):
-#             return other.after(self)
-#         return False
-#
-#     def after(self, other):
-#         if isinstance(other, TimingPoint):
-#             return self.__gt__(other)
-#         elif isinstance(other, TimingInterval):
-#             return other.before(self)
-#         return False
-#
-#
-# # TODO KV comments
-# # TODO KV - for parameter modules and x-slots
-# class TimingInterval:
-#
-#     # startpt (type TimingPoint) = the point at which this xslot interval begins
-#     # endpt (type TimingPoint) = the point at which this xslot interval ends
-#     def __init__(self, startpt, endpt):
-#         self.setinterval(startpt, endpt)
-#
-#     @property
-#     def startpoint(self):
-#         return self._startpoint
-#
-#     @property
-#     def endpoint(self):
-#         return self._endpoint
-#
-#     def points(self):
-#         return self.startpoint(), self.endpoint()
-#
-#     def setinterval(self, startpt, endpt):
-#         if startpt <= endpt:
-#             self._startpoint = startpt
-#             self._endpoint = endpt
-#         else:
-#             print("error: start point is larger than endpoint", startpt, endpt)
-#             # TODO throw an error?
-#
-#     def ispoint(self):
-#         return self._startpoint == self._endpoint
-#
-#     def containsinterval(self, otherinterval):
-#         return self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint
-#
-#     def before(self, other):
-#         if isinstance(other, TimingPoint):
-#             return self.endpoint < other
-#         elif isinstance(other, TimingInterval):
-#             if other.ispoint():
-#                 return self.endpoint < other.startpoint
-#             elif not self.ispoint():
-#                 return self.endpoint <= other.startpoint
-#             else:
-#                 return other.after(self)
-#         return False
-#
-#     def after(self, other):
-#         if isinstance(other, TimingPoint):
-#             return self.startpoint > other
-#         elif isinstance(other, TimingInterval):
-#             if other.ispoint():
-#                 return self.startpoint > other.endpoint
-#             elif not self.ispoint():
-#                 return self.startpoint >= other.endpoint
-#             else:
-#                 return other.before(self)
-#         return False
-#
-#     def adjacent(self, other):
-#         if isinstance(other, TimingInterval):
-#             return self.endpoint.equivalent(other.startpoint) or other.endpoint.equivalent(self.startpoint)
-#         return False
-#
-#     def __eq__(self, other):
-#         if isinstance(other, TimingInterval):
-#             return self.startpoint == other.startpoint and self.endpoint == other.endpoint
-#         return False
-#
-#     def overlapsinterval(self, other):
-#         if isinstance(other, TimingInterval):
-#             if (self.startpoint < other.startpoint and self.endpoint > other.startpoint) or (other.startpoint < self.endpoint and other.endpoint > self.startpoint):
-#                 return True
-#         return False
-#
-#     # TODO KV - overlapping and/or contianing checking methods?
-#
-#     def __repr__(self):
-#         return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
 
-#
-# class AddedInfo:
-#
-#     def __init__(self,
-#                  uncertain_flag=False, uncertain_note="",
-#                  estimated_flag=False, estimated_note="",
-#                  notspecified_flag=False, notspecified_note="",
-#                  variable_flag=False, variable_note="",
-#                  exceptional_flag=False, exceptional_note="",
-#                  other_flag=False, other_note=""):
-#         self._uncertain_flag = uncertain_flag
-#         self._uncertain_note = uncertain_note
-#         self._estimated_flag = estimated_flag
-#         self._estimated_note = estimated_note
-#         self._notspecified_flag = notspecified_flag
-#         self._notspecified_note = notspecified_note
-#         self._variable_flag = variable_flag
-#         self._variable_note = variable_note
-#         self._exceptional_flag = exceptional_flag
-#         self._exceptional_note = exceptional_note
-#         self._other_flag = other_flag
-#         self._other_note = other_note
-#
-#     def clear(self):
-#         self._uncertain_flag = False
-#         self._uncertain_note = ""
-#         self._estimated_flag = False
-#         self._estimated_note = ""
-#         self._notspecified_flag = False
-#         self._notspecified_note = ""
-#         self._variable_flag = False
-#         self._variable_note = ""
-#         self._exceptional_flag = False
-#         self._exceptional_note = ""
-#         self._other_flag = False
-#         self._other_note = ""
-#
-#     @property
-#     def uncertain_flag(self):
-#         return self._uncertain_flag
-#
-#     @uncertain_flag.setter
-#     def uncertain_flag(self, uncertain_flag):
-#         # TODO KV - validate?
-#         self._uncertain_flag = uncertain_flag
-#
-#     @property
-#     def uncertain_note(self):
-#         return self._uncertain_note
-#
-#     @uncertain_note.setter
-#     def uncertain_note(self, uncertain_note):
-#         # TODO KV - validate?
-#         self._uncertain_note = uncertain_note
-#
-#     @property
-#     def estimated_flag(self):
-#         return self._estimated_flag
-#
-#     @estimated_flag.setter
-#     def estimated_flag(self, estimated_flag):
-#         # TODO KV - validate?
-#         self._estimated_flag = estimated_flag
-#
-#     @property
-#     def estimated_note(self):
-#         return self._estimated_note
-#
-#     @estimated_note.setter
-#     def estimated_note(self, estimated_note):
-#         # TODO KV - validate?
-#         self._estimated_note = estimated_note
-#
-#     @property
-#     def notspecified_flag(self):
-#         return self._notspecified_flag
-#
-#     @notspecified_flag.setter
-#     def notspecified_flag(self, notspecified_flag):
-#         # TODO KV - validate?
-#         self._notspecified_flag = notspecified_flag
-#
-#     @property
-#     def notspecified_note(self):
-#         return self._notspecified_note
-#
-#     @notspecified_note.setter
-#     def notspecified_note(self, notspecified_note):
-#         # TODO KV - validate?
-#         self._notspecified_note = notspecified_note
-#
-#     @property
-#     def variable_flag(self):
-#         return self._variable_flag
-#
-#     @variable_flag.setter
-#     def variable_flag(self, variable_flag):
-#         # TODO KV - validate?
-#         self._variable_flag = variable_flag
-#
-#     @property
-#     def variable_note(self):
-#         return self._variable_note
-#
-#     @variable_note.setter
-#     def variable_note(self, variable_note):
-#         # TODO KV - validate?
-#         self._variable_note = variable_note
-#
-#     @property
-#     def exceptional_flag(self):
-#         return self._exceptional_flag
-#
-#     @exceptional_flag.setter
-#     def exceptional_flag(self, exceptional_flag):
-#         # TODO KV - validate?
-#         self._exceptional_flag = exceptional_flag
-#
-#     @property
-#     def exceptional_note(self):
-#         return self._exceptional_note
-#
-#     @exceptional_note.setter
-#     def exceptional_note(self, exceptional_note):
-#         # TODO KV - validate?
-#         self._exceptional_note = exceptional_note
-#
-#     @property
-#     def other_flag(self):
-#         return self._other_flag
-#
-#     @other_flag.setter
-#     def other_flag(self, other_flag):
-#         # TODO KV - validate?
-#         self._other_flag = other_flag
-#
-#     @property
-#     def other_note(self):
-#         return self._other_note
-#
-#     @other_note.setter
-#     def other_note(self, other_note):
-#         # TODO KV - validate?
-#         self._other_note = other_note
-#
-#     def __repr__(self):
-#         reprstr = '<AddedInfo: '
-#         reprstr += 'Uncertain (' + str(int(self._uncertain_flag)) + ' / ' + self._uncertain_note + ') '
-#         reprstr += 'Estimated (' + str(int(self._estimated_flag)) + ' / ' + self._estimated_note + ') '
-#         reprstr += 'Not specified (' + str(int(self._notspecified_flag)) + ' / ' + self._notspecified_note + ') '
-#         reprstr += 'Variable (' + str(int(self._variable_flag)) + ' / ' + self._variable_note + ') '
-#         reprstr += 'Exceptional (' + str(int(self._exceptional_flag)) + ' / ' + self._exceptional_note + ') '
-#         reprstr += 'Other (' + str(int(self._other_flag)) + ' / ' + self._other_note + ')'
-#         reprstr += '>'
-#         return reprstr
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class TargetModule:
+    def __init__(self):
+        # TODO KV implement
+        pass
+
+
+# TODO KV comments
+# TODO KV - for parameter modules and x-slots
+class OrientationModule:
+    def __init__(self):
+        # TODO KV implement
+        pass
+
+
+class HandConfigurationHand:
+    def __init__(self, fields):
+        self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
+
+    def __iter__(self):
+        return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
+
+    def get_hand_transcription_list(self):
+        return [slot.symbol for slot in self.__iter__()]
+
+    def get_hand_transcription_string(self):
+        return ''.join(self.get_hand_transcription_list())
+
+    def is_empty(self):
+        return self.get_hand_transcription_list() == [
+            '', '', '', '',
+            '', '', NULL, '/', '', '', '', '', '', '',
+            '1', '', '', '',
+            '', '2', '', '', '',
+            '', '3', '', '', '',
+            '', '4', '', '', ''
+        ]
+
+
+class HandConfigurationField:
+    def __init__(self, field_number, slots):
+        self._field_number = field_number
+        self._slots = slots
+
+        self.set_slots()
+
+    @property
+    def field_number(self):
+        return self._field_number
+
+    @field_number.setter
+    def field_number(self, new_field_number):
+        self._field_number = new_field_number
+
+    def set_slots(self):
+        if self._field_number == 2:
+            self.slot2, self.slot3, self.slot4, self.slot5 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
+        elif self._field_number == 3:
+            self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
+        elif self._field_number == 4:
+            self.slot16, self.slot17, self.slot18, self.slot19 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
+        elif self._field_number == 5:
+            self.slot20, self.slot21, self.slot22, self.slot23, self.slot24 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
+        elif self._field_number == 6:
+            self.slot25, self.slot26, self.slot27, self.slot28, self.slot29 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
+        elif self._field_number == 7:
+            self.slot30, self.slot31, self.slot32, self.slot33, self.slot34 = [HandConfigurationSlot(slot['slot_number'], slot['symbol'], slot['addedinfo']) for slot in self._slots]
+
+    def __iter__(self):
+        if self._field_number == 2:
+            return [self.slot2, self.slot3, self.slot4, self.slot5].__iter__()
+        elif self._field_number == 3:
+            return [self.slot6, self.slot7, self.slot8, self.slot9, self.slot10, self.slot11, self.slot12, self.slot13, self.slot14, self.slot15].__iter__()
+        elif self._field_number == 4:
+            return [self.slot16, self.slot17, self.slot18, self.slot19].__iter__()
+        elif self._field_number == 5:
+            return [self.slot20, self.slot21, self.slot22, self.slot23, self.slot24].__iter__()
+        elif self._field_number == 6:
+            return [self.slot25, self.slot26, self.slot27, self.slot28, self.slot29].__iter__()
+        elif self._field_number == 7:
+            return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
+
+
+class HandConfigurationSlot:
+    def __init__(self, slot_number, symbol, addedinfo):
+        self._slot_number = slot_number
+        self._symbol = symbol
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    @property
+    def slot_number(self):
+        return self._slot_number
+
+    @slot_number.setter
+    def slot_number(self, new_slot_number):
+        self._slot_number = new_slot_number
+
+    @property
+    def symbol(self):
+        return self._symbol
+
+    @symbol.setter
+    def symbol(self, new_symbol):
+        self._symbol = new_symbol
+
+
+class XslotStructure:
+
+    def __init__(self, number=1, fractionalpoints=None, additionalfraction=Fraction()):
+        # integer
+        self._number = number
+        # list of Fractions objects = the fractions of whole xslots to display and make available to select
+        self._fractionalpoints = [] if fractionalpoints is None else fractionalpoints
+        # Fraction object = the additional part of an x-slot on top of the wholes
+        self._additionalfraction = additionalfraction
+
+    @property
+    def number(self):
+        return self._number
+
+    @number.setter
+    def number(self, number):
+        self._number = number
+
+    @property
+    def fractionalpoints(self):
+        return self._fractionalpoints
+
+    @fractionalpoints.setter
+    def fractionalpoints(self, fractionalpoints):
+        self._fractionalpoints = fractionalpoints
+
+    @property
+    def additionalfraction(self):
+        return self._additionalfraction
+
+    @additionalfraction.setter
+    def additionalfraction(self, additionalfraction):
+        self._additionalfraction = additionalfraction
