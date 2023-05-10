@@ -94,12 +94,6 @@ class AppContext(ApplicationContext):
             'slot34': self.get_resource('illustrations/slot34.jpg')
         }
 
-    # @cached_property
-    # def xslotimage(self):
-    #     return {
-    #         'xslot': self.get_resource('xslotsample.png')
-    #     }
-
     @cached_property
     def predefined(self):
         return {
@@ -265,7 +259,7 @@ class AppContext(ApplicationContext):
             'Y': self.get_resource('predefined/Y.png'),
             'combined-Y+middle': self.get_resource('predefined/combined-Y+middle.png'),
             'combined-Y+U': self.get_resource('predefined/combined-Y+U.png'),
-            # 'modified-Y': self.get_resource('predefined/modified-Y.png'),  # TODO KV April deleted this file 20211115
+            # 'modified-Y': self.get_resource('predefined/modified-Y.png'),  # this file was deleted 20211115
 
             'open-palm': self.get_resource('predefined/open-palm.png')
         }
