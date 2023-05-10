@@ -437,11 +437,11 @@ class PredefinedTableModel(QAbstractTableModel):
             return None
 
         value = self.get_value(index)
-        if role == Qt.DisplayRole:# or role == Qt.EditRole:
+        if role == Qt.DisplayRole:  # or role == Qt.EditRole:
             return PREDEFINED_MAP[value].name if value in PREDEFINED_MAP.keys() else None
         elif role == Qt.AccessibleTextRole:
             return value if value else None
-        #elif role == Qt.TextAlignmentRole:
+        # elif role == Qt.TextAlignmentRole:
         #    return Qt.AlignCenter
         elif role == Qt.DecorationRole:
             return QIcon(self.predefined_images[value]) if value in PREDEFINED_MAP else None
@@ -674,16 +674,14 @@ class PredefinedHandshapeView(QTableView):
         else:
             super().startDrag(event)
 
-    '''
-    def moveCursor(self, cursorAction, modifiers):
-        current = QTableView.moveCursor(self, cursorAction, modifiers)
-        x = self.visualRect(current).topLeft().x()
-        frozen_width = self.frozenTableView.columnWidth(0) + self.frozenTableView.columnWidth(1)
-        if cursorAction == self.MoveLeft and current.column() > 1 and x < frozen_width:
-            new_value = self.horizontalScrollBar().value() + x - frozen_width
-            self.horizontalScrollBar().setValue(new_value)
-        return current
-    '''
+    # def moveCursor(self, cursorAction, modifiers):
+    #     current = QTableView.moveCursor(self, cursorAction, modifiers)
+    #     x = self.visualRect(current).topLeft().x()
+    #     frozen_width = self.frozenTableView.columnWidth(0) + self.frozenTableView.columnWidth(1)
+    #     if cursorAction == self.MoveLeft and current.column() > 1 and x < frozen_width:
+    #         new_value = self.horizontalScrollBar().value() + x - frozen_width
+    #         self.horizontalScrollBar().setValue(new_value)
+    #     return current
 
 
 class PredefinedHandshapeDialog(QDialog):

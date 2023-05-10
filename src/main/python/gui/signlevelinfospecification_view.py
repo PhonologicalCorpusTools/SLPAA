@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from PyQt5.QtWidgets import (
-    QFrame,
     QLineEdit,
     QDialog,
     QFrame,
@@ -9,7 +8,6 @@ from PyQt5.QtWidgets import (
     QFormLayout,
     QRadioButton,
     QVBoxLayout,
-    QWidget,
     QDialogButtonBox,
     QPlainTextEdit,
     QButtonGroup,
@@ -54,7 +52,6 @@ class SignLevelInfoPanel(QFrame):
         super().__init__(**kwargs)
 
         self.mainwindow = self.parent().mainwindow
-        # self.parentwidget = parentwidget
 
         self.settings = self.mainwindow.app_settings
         self.coder = self.settings['metadata']['coder']
@@ -124,7 +121,6 @@ class SignLevelInfoPanel(QFrame):
 
         self.set_value()
 
-        # self.addLayout(main_layout)
         self.setLayout(main_layout)
 
     def entryid(self):

@@ -288,8 +288,6 @@ def findvaliditemspaths(pathitemslists):
     return validpaths
 
 
-# TODO KV - add undo, ...
-
 class LocationSpecificationPanel(ModuleSpecificationPanel):
 
     def __init__(self, moduletoload=None, **kwargs):

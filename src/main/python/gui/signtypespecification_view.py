@@ -14,8 +14,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QSpacerItem,
     QSizePolicy,
-    QAbstractButton,
-    QWidget
+    QAbstractButton
 )
 
 from PyQt5.QtCore import (
@@ -26,6 +25,7 @@ from PyQt5.QtCore import (
 from gui.modulespecification_dialog import AddedInfoPushButton
 from lexicon.module_classes import Signtype
 
+
 class SigntypeSpecificationPanel(QFrame):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -35,7 +35,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.buttongroups = []
 
         # TODO KV should button properties be integers instead of strings,
-        # so it's easier to add more user-specified options?
+        #   so it's easier to add more user-specified options?
 
         # buttons and groups for highest level
         self.handstype_group = SigntypeButtonGroup(prt=self)
@@ -186,7 +186,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.onehand_layout.addWidget(self.handstype_1hnomove_radio)
         self.onehand_spacedlayout.addLayout(self.onehand_layout)
         self.signtype_layout.addLayout(self.onehand_spacedlayout)
-        self.handstype_1h_radio.setChildlayout(self.onehand_spacedlayout)
+        self.handstype_1h_radio.setchildlayout(self.onehand_spacedlayout)
         ## end layout for 1-handed sign options
 
         self.signtype_layout.addWidget(self.handstype_2h_radio)
@@ -238,7 +238,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.movement_1h_layout.addWidget(self.handstype_2hmvmtoneH2_radio)
         self.movement_1h_spacedlayout.addLayout(self.movement_1h_layout)
         self.movement_layout.addLayout(self.movement_1h_spacedlayout)
-        self.handstype_2hmvmtone_radio.setChildlayout(self.movement_1h_spacedlayout)
+        self.handstype_2hmvmtone_radio.setchildlayout(self.movement_1h_spacedlayout)
         #### end layout for 2-handed movement relation in which only one hand moves
 
         self.movement_layout.addWidget(self.handstype_2hmvmtboth_radio)
@@ -259,7 +259,7 @@ class SigntypeSpecificationPanel(QFrame):
 
         self.movement_2h_spacedlayout.addLayout(self.movement_2h_layout)
         self.movement_layout.addLayout(self.movement_2h_spacedlayout)
-        self.handstype_2hmvmtboth_radio.setChildlayout(self.movement_2h_spacedlayout)
+        self.handstype_2hmvmtboth_radio.setchildlayout(self.movement_2h_spacedlayout)
         #### end layout for 2-handed movement relation in which both hands move
 
         self.movement_layout.addWidget(self.handstype_2hmvmtboth_radio)
@@ -273,7 +273,7 @@ class SigntypeSpecificationPanel(QFrame):
 
         self.signtype_layout.addLayout(self.twohand_spacedlayout)
 
-        self.handstype_2h_radio.setChildlayout(self.twohand_spacedlayout)
+        self.handstype_2h_radio.setchildlayout(self.twohand_spacedlayout)
         ## end layout for 2-handed sign options
 
         self.signtype_box = QGroupBox("Sign type")
@@ -303,7 +303,8 @@ class SigntypeSpecificationPanel(QFrame):
                 nolongeravailable.append(spec)
         if len(nolongeravailable) > 1:
             print(
-                "This sign had sign type options specified that are no longer available and will be removed if you click 'save' (but not 'cancel'). Please make note of the following characteristics:")
+                "This sign had sign type options specified that are no longer available and will be removed" +
+                " if you click 'save' (but not 'cancel'). Please make note of the following characteristics:")
             for spec in nolongeravailable:
                 print(spec[0])
                 signtype.specslist.remove(spec)
@@ -366,6 +367,7 @@ class SigntypeButtonGroup(QButtonGroup):
             if b.childlayout:
                 self.enableChildWidgets(False, b.childlayout)
 
+    # TODO KV if all of these subsections are implemented  with widgets instead of layouts, is this part easier?
     # parent can be widget or layout
     def enableChildWidgets(self, yesorno, parent):
         if isinstance(parent, QAbstractButton):
@@ -397,14 +399,14 @@ class SigntypeRadioButton(QRadioButton):
     def __init__(self, txt="", parentbutton=None):
         super().__init__(text=txt)
         self.parentbutton = parentbutton
-        self.toggled.connect(self.checkParent)
+        self.toggled.connect(self.checkparent)
         self.childlayout = None
 
-    def checkParent(self, checked):
+    def checkparent(self, checked):
         if checked and self.parentbutton:
             self.parentbutton.setChecked(True)
 
-    def setChildlayout(self, clayout):
+    def setchildlayout(self, clayout):
         self.childlayout = clayout
 
     def __repr__(self):
@@ -456,14 +458,12 @@ class SigntypeSelectorDialog(QDialog):
         if signtypetoload is not None:
             self.signtype = signtypetoload
         else:
-            self.signtype = self.mainwindow.system_default_signtype  # TODO KV delete self.parent().system_default_signtype
+            self.signtype = self.mainwindow.system_default_signtype
 
         self.signtype_widget = SigntypeSpecificationPanel()
-        # self.signtype_layout = SigntypeSpecificationLayout()  # TODO KV delete app_ctx)
         self.signtype_widget.setsigntype(self.signtype)
 
         main_layout = QVBoxLayout()
-        # main_layout.addLayout(self.signtype_layout)
         main_layout.addWidget(self.signtype_widget)
 
         separate_line = QFrame()
@@ -496,7 +496,6 @@ class SigntypeSelectorDialog(QDialog):
         #         self.movement_tab.remove_all_pages()
         #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
-            # newsigntype = self.signtype_layout.getsigntype()
             newsigntype = self.signtype_widget.getsigntype()
             self.saved_signtype.emit(newsigntype)
             if self.mainwindow.current_sign is not None and self.signtype != newsigntype:
@@ -504,5 +503,4 @@ class SigntypeSelectorDialog(QDialog):
             self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            # self.signtype_layout.setsigntype(self.mainwindow.system_default_signtype)
             self.signtype_widget.setsigntype(self.mainwindow.system_default_signtype)

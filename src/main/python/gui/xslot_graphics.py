@@ -38,7 +38,6 @@ class XslotPointLabel(QGraphicsRectItem):
         self.align = align
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
 
         # turn pen off while filling rectangle
         painter.setBrush(Qt.NoBrush)
@@ -64,20 +63,18 @@ class XslotRect(QGraphicsRectItem):
         self.moduletype = moduletype
         self.proportionfill = proportionfill
         self.sign = sign
-        # self.mainwindow = mainwindow
 
         self.xslot_whole = xslot_whole  # if 0 it's the whole sign
         self.xslot_part_start = Fraction(0) if xslot_part_start is None else xslot_part_start
         self.xslot_part_end = Fraction(1) if xslot_part_end is None else xslot_part_end
 
     def currentbrush(self):
-        return QBrush(Qt.white)  # self.unselectedbrush
+        return QBrush(Qt.white)
 
     def currentpen(self):
-        return QPen(Qt.black)  # self.unselectedpen
+        return QPen(Qt.black)
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
 
         # turn pen off while filling rectangle
         painter.setPen(Qt.NoPen)
@@ -132,27 +129,27 @@ class XslotRectButton(XslotRect):
 
     def currentbrush(self):
         if self.hover:
-            return QColor(0, 120, 215)  # self.hoverbrush
+            return QColor(0, 120, 215)
         else:
             return self.restingbrush()
 
     def currentpen(self):
         if self.hover:
-            return QPen(Qt.black)  # self.hoverpen
+            return QPen(Qt.black)
         else:
             return self.restingpen()
 
     def restingbrush(self):
         if self.selected:
-            return QBrush(Qt.black)  # self.selectedbrush
+            return QBrush(Qt.black)
         else:
-            return QBrush(Qt.white)  # self.unselectedbrush
+            return QBrush(Qt.white)
 
     def restingpen(self):
         if self.selected:
-            return QPen(Qt.white)  # self.selectedpen
+            return QPen(Qt.white)
         else:
-            return QPen(Qt.black)  # self.unselectedpen
+            return QPen(Qt.black)
 
     def toggle(self):
         self.selected = not self.selected
@@ -208,18 +205,17 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
 
     def currentbrush(self):
         if self.hover:
-            return QColor(0, 120, 215)  # self.hoverbrush
+            return QColor(0, 120, 215)
         else:
-            return QBrush(Qt.white)  # self.unselectedbrush
+            return QBrush(Qt.white)
 
     def currentpen(self):
         if self.hover:
-            return QPen(Qt.black)  # self.hoverpen
+            return QPen(Qt.black)
         else:
-            return QPen(Qt.black)  # self.unselectedpen
+            return QPen(Qt.black)
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
 
         # turn pen off while filling ellipse
         painter.setPen(Qt.NoPen)
@@ -263,7 +259,6 @@ class XslotRectModuleButton(XslotRectButton):
         pass
 
     def mouseReleaseEvent(self, event):
-        # print("mouse released on module rectangle")
         self.scene().modulerect_clicked.emit(self)
 
     def hoverEnterEvent(self, event):
@@ -354,7 +349,6 @@ class XslotLinkScene(QGraphicsScene):
         super().__init__(**kwargs)
         self.parentwidget = parentwidget
         self.mainwindow = self.parentwidget.mainwindow
-        # self.timingintervals = timingintervals
 
         self.scene_width = 1500
         self.rect_height = 25
@@ -414,7 +408,9 @@ class XslotLinkScene(QGraphicsScene):
                     newly_selected = "a point" if timinginterval.ispoint() else "an interval"
                     already_selected = "an existing " + ("interval" if timinginterval.ispoint() else "point")
                     response = QMessageBox.question(self.parentwidget, 'Adjacent point',
-                                                    "You have selected " + newly_selected + " adjacent to " + already_selected + ". Would you like to collapse the point into the interval?")
+                                                    "You have selected " + newly_selected + " adjacent to " +
+                                                    already_selected +
+                                                    ". Would you like to collapse the point into the interval?")
                     if response == QMessageBox.Yes:
                         if timinginterval.ispoint():
                             xslotgraphicsitem.toggle()

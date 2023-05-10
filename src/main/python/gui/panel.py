@@ -289,7 +289,7 @@ class SignSummaryPanel(QScrollArea):
         self.moduleitems = []
         self.gridlinestart = 0
         self.refreshsign()  # self.sign)
-        self.xslotview = QGraphicsView(self.scene)  # , self)  # XslotGraphicsView(self.scene, self)
+        self.xslotview = QGraphicsView(self.scene)
         self.xslotview.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.xslotview.setGeometry(0, 0, 1000, 600)
         main_layout.addWidget(self.xslotview)
@@ -317,7 +317,6 @@ class SignSummaryPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            # signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid_string())
             signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
         signleveltext.setPos(self.x_offset, self.current_y*(self.default_xslot_height+self.verticalspacing))
         self.current_y += 1
@@ -486,10 +485,8 @@ class SignSummaryPanel(QScrollArea):
 
                 for midx, m_id in enumerate(parammodules.keys()):
                     parammod = parammodules[m_id]
-                    # parammodid = parammod.uniqueid
                     if parammod.hands[hand]:
                         condensed_timingintervals = self.condense_timingintervals(parammod.timingintervals)
-                        # for tidx, t in enumerate(parammod.timingintervals):
                         for tidx, t in enumerate(condensed_timingintervals):
                             if t.ispoint():
                                 points.append((midx, m_id, tidx, t))
@@ -601,7 +598,6 @@ class SignSummaryPanel(QScrollArea):
                 for mult in range(d + 1):
                     fractionalpoints.append(Fraction(mult, d))
             fractionalpoints = list(set(fractionalpoints))
-            # self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
             for whole in range(0, whole_xslots+1):
                 for frac in fractionalpoints:
@@ -640,7 +636,7 @@ class SignSummaryPanel(QScrollArea):
 
     def handle_save_signtype(self, signtype):
         self.sign.signtype = signtype
-        self.refreshsign()  # self.sign)
+        self.refreshsign()
 
     def handle_movement_clicked(self, modulekey):
         mvmtmodule = self.sign.movementmodules[modulekey]
@@ -820,7 +816,6 @@ class SignLevelMenuPanel(QScrollArea):
             self.mainwindow.handle_sign_selected(self.sign)
 
         self.sign_updated.emit(self.sign)
-        # self.mainwindow.corpus_view.updated_glosses(self.mainwindow.corpus.get_sign_glosses(), self.sign.signlevel_information.gloss)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
 
     def handle_signtypebutton_click(self):

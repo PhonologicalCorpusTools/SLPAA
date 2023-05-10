@@ -1,4 +1,3 @@
-
 from PyQt5.QtWidgets import (
     QListView,
     QTreeView,
@@ -76,8 +75,7 @@ class MvmtTreeSearchComboBox(QComboBox):
                             self.setEditText(completionoption)
                         self.lastcompletedentry = self.currentText()
                     i += 1
-            else:
-            # if not self.lastcompletedentry:
+            else:  # ie, not self.lastcompletedentry
                 # cycle to first line of first entry that starts with the last-entered text
                 foundnextentry = False
                 i = 0
@@ -119,7 +117,6 @@ class MovementTreeView(QTreeView):
                 else:
                     self.model().itemFromIndex(index).check()
         return super().edit(index, trigger, event)
-
 
 
 class MvmtTreeListView(QListView):
@@ -220,8 +217,6 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
 
-# TODO KV - add undo, ...
-
 
 class MovementSpecificationPanel(ModuleSpecificationPanel):
 
@@ -241,7 +236,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         self.listmodel = self.treemodel.listmodel
 
-        self.comboproxymodel = MovementPathsProxyModel(wantselected=False) #, parent=self.listmodel
+        self.comboproxymodel = MovementPathsProxyModel(wantselected=False)
         self.comboproxymodel.setSourceModel(self.listmodel)
 
         self.listproxymodel = MovementPathsProxyModel(wantselected=True)
@@ -304,8 +299,6 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.sortcombo = QComboBox()
         self.sortcombo.addItems(["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
-        # self.sortcombo.completer().setCompletionMode(QCompleter.PopupCompletion)
-        # self.sortcombo.currentTextChanged.connect(self.listproxymodel.sort(self.sortcombo.currentText()))
         self.sortcombo.currentTextChanged.connect(self.sort)
         buttons_layout.addWidget(self.sortcombo)
         buttons_layout.addStretch()
@@ -316,7 +309,6 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         list_layout.addLayout(buttons_layout)
         selection_layout.addLayout(list_layout)
-        # self.addLayout(selection_layout)
         main_layout.addLayout(selection_layout)
 
         self.setLayout(main_layout)
@@ -357,7 +349,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.refresh_treemodel()
 
     def refresh_treemodel(self):
-        self.treemodel = MovementTreeModel()  # movementparameters=movement_specifications)
+        self.treemodel = MovementTreeModel()
         self.treemodel.populate(self.treemodel.invisibleRootItem())
 
         self.listmodel = self.treemodel.listmodel
