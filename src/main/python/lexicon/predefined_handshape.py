@@ -1,5 +1,6 @@
 NULL = '\u2205'
 
+
 class PredefinedHandshape:
     def __init__(self, name, filename, canonical):
         self._name = name

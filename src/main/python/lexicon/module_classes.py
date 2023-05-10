@@ -6,11 +6,10 @@ from PyQt5.QtCore import (
     Qt,
 )
 
-# from gui.hand_configuration import PREDEFINED_MAP
 from constant import NULL, PREDEFINED_MAP
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
-delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the mvmt window?
+delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
 
 class UserDefinedRoles(dict):
@@ -81,7 +80,6 @@ class ParameterModule:
             self.timingintervals = timingintervals
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
-        # self._moduletype = ""
 
     @property
     def addedinfo(self):
@@ -100,15 +98,6 @@ class ParameterModule:
     def hands(self, hands):
         # TODO KV - validate?
         self._hands = hands
-
-    # @property
-    # def moduletype(self):
-    #     return self._hands
-    #
-    # @moduletype.setter
-    # def moduletype(self, moduletype):
-    #     # TODO KV - validate?
-    #     self._moduletype = moduletype
 
     @property
     def uniqueid(self):
@@ -134,7 +123,6 @@ class ParameterModule:
 
 class SignLevelInformation:
     def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
-        # self.settings = app_settings
         if serializedsignlevelinfo is not None:
             self._entryid = serializedsignlevelinfo['entryid']
             self._gloss = serializedsignlevelinfo['gloss']
@@ -143,7 +131,6 @@ class SignLevelInformation:
             self._signer = serializedsignlevelinfo['signer']
             self._frequency = serializedsignlevelinfo['frequency']
             self._coder = serializedsignlevelinfo['coder']
-            # self._update_date = signlevel_info['date']
             self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
@@ -158,7 +145,6 @@ class SignLevelInformation:
             self._signer = signlevel_info['signer']
             self._frequency = signlevel_info['frequency']
             self._coder = signlevel_info['coder']
-            # self._update_date = signlevel_info['date']
             self._datecreated = signlevel_info['date created']
             self._datelastmodified = signlevel_info['date last modified']
             self._note = signlevel_info['note']
@@ -206,12 +192,6 @@ class SignLevelInformation:
     @entryid.setter
     def entryid(self, new_entryid):
         self._entryid = new_entryid
-    #
-    # def entryid_string(self):
-    #     numdigits = self.settings['display']['entryid_digits']
-    #     entryid_string = str(self._entryid)
-    #     entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
-    #     return entryid_string
 
     @property
     def gloss(self):
@@ -268,14 +248,6 @@ class SignLevelInformation:
     @coder.setter
     def coder(self, new_coder):
         self._coder = new_coder
-    #
-    # @property
-    # def update_date(self):
-    #     return self._update_date
-    #
-    # @update_date.setter
-    # def update_date(self, new_update_date):
-    #     self._update_date = new_update_date
 
     @property
     def datecreated(self):
@@ -306,13 +278,13 @@ class SignLevelInformation:
     def note(self, new_note):
         self._note = new_note
 
-    @property
-    def signtype(self):
-        return self._signtype
-
-    @signtype.setter
-    def signtype(self, new_signtype):
-        self._signtype = new_signtype
+    # @property
+    # def signtype(self):
+    #     return self._signtype
+    #
+    # @signtype.setter
+    # def signtype(self, new_signtype):
+    #     self._signtype = new_signtype
 
     @property
     def handdominance(self):
@@ -609,7 +581,6 @@ class LocationType:
         return changed
 
 
-
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
 class TimingPoint:
@@ -653,7 +624,6 @@ class TimingPoint:
     def __lt__(self, other):
         if isinstance(other, TimingPoint):
             if self._wholepart < other.wholepart:
-                # if not(self._fractionalpart == 1 and other.fractionalpart == 0):
                 return True
             elif self._wholepart == other.wholepart:
                 if self._fractionalpart < other.fractionalpart:
@@ -725,20 +695,10 @@ class TimingInterval:
             self._endpoint = endpt
         else:
             print("error: start point is larger than endpoint", startpt, endpt)
-            # TODO throw an error?
+            # TODO KV throw an error?
 
     def ispoint(self):
         return self._startpoint == self._endpoint
-
-    # TODO KV delete? - I don't think this is used anywhere except in lexicon_classes.py testing
-    def containsinterval(self, otherinterval):
-        return self.iswholesign() or (self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint)
-        # if self.iswholesign():
-        #     return True
-        # elif self._startpoint <= otherinterval.startpoint and self._endpoint >= otherinterval.endpoint:
-        #     return True
-        # else:
-        #     return False
 
     def before(self, other):
         if isinstance(other, TimingPoint):
@@ -778,7 +738,6 @@ class TimingInterval:
         if isinstance(other, TimingInterval):
             if self.iswholesign() or other.iswholesign():
                 return True
-            # elif (self.startpoint < other.startpoint and self.endpoint > other.startpoint) or (other.startpoint < self.endpoint and other.endpoint > self.startpoint):
             # either other starts at or in self, or self starts at or in other
             elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint) or (other.startpoint <= self.startpoint and other.endpoint > self.startpoint):
                 return True
@@ -817,20 +776,6 @@ class AddedInfo:
         self._incomplete_note = incomplete_note
         self._other_flag = other_flag
         self._other_note = other_note
-
-    # def clear(self):
-    #     self._uncertain_flag = False
-    #     self._uncertain_note = ""
-    #     self._estimated_flag = False
-    #     self._estimated_note = ""
-    #     self._notspecified_flag = False
-    #     self._notspecified_note = ""
-    #     self._variable_flag = False
-    #     self._variable_note = ""
-    #     self._exceptional_flag = False
-    #     self._exceptional_note = ""
-    #     self._other_flag = False
-    #     self._other_note = ""
 
     @property
     def uncertain_flag(self):
