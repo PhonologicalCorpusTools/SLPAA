@@ -11,7 +11,6 @@ from lexicon.module_classes import userdefinedroles as udr
 from models.movement_models import fx
 
 
-# TODO KV implement this base class; refactor children (eg LocationModuleSerializable) to inherit as much as possible
 class ParameterModuleSerializable:
 
     def __init__(self, parammod):
