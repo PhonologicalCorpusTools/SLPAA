@@ -373,19 +373,19 @@ class HandSelectionPanel(QFrame):
             self.hand2_radio.setChecked(True)
 
     def getphase(self):
-        if not self.bothconnected_cb.isChecked():
+        if not self.bothconnected_cb.isEnabled() or not self.bothconnected_cb.isChecked():
             # original options - these are mutually exclusive
-            if self.bothinphase_cb.isChecked():
+            if self.bothinphase_cb.isEnabled() and self.bothinphase_cb.isChecked():
                 return 1
-            elif self.bothoutofphase_radio.isChecked():
+            elif self.bothoutofphase_radio.isEnabled() and self.bothoutofphase_radio.isChecked():
                 return 2
             else:
                 return 0
-        elif self.bothconnected_cb.isChecked():
+        elif self.bothconnected_cb.isEnabled() and self.bothconnected_cb.isChecked():
             # these are mutually exclusive
-            if self.bothinphase_cb.isChecked():
+            if self.bothinphase_cb.isEnabled() and self.bothinphase_cb.isChecked():
                 return 4
-            elif self.bothoutofphase_radio.isChecked():
+            elif self.bothoutofphase_radio.isEnabled() and self.bothoutofphase_radio.isChecked():
                 # it shouldn't be possible to have both "connected" and "out of phase" checked, but... just in case?
                 return 5
             else:
