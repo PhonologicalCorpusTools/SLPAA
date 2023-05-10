@@ -7,13 +7,10 @@ from PyQt5.QtCore import (
     QAbstractTableModel
 )
 
-
-
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
 )
-
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
 from serialization_classes import LocationTableSerializable
@@ -323,14 +320,13 @@ locn_options_axisofreln = {
 }
 
 
-
 class LocationTreeModel(QStandardItemModel):
 
-    def __init__(self, serializedlocntree=None, **kwargs):  #  movementparameters=None,
+    def __init__(self, serializedlocntree=None, **kwargs):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
         self.itemChanged.connect(self.updateCheckState)
-        self._locationtype = LocationType()  # TODO KV this shouldn't change, now that we have several copies available for the selectionlayout
+        self._locationtype = LocationType()
 
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
@@ -344,7 +340,7 @@ class LocationTreeModel(QStandardItemModel):
     # ensure that any info stored in this LocationTreeSerializable under older keys (paths),
     # is updated to reflect the newer text for those outdated keys
     def backwardcompatibility(self):
-        for stored_dict in [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]:  # self.numvals, self.stringvals,
+        for stored_dict in [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]:
             pairstoadd = {}
             keystoremove = []
             for k in stored_dict.keys():
@@ -368,17 +364,10 @@ class LocationTreeModel(QStandardItemModel):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
-                    # parentpathtext = treenode.data(Qt.UserRole+udr.pathdisplayrole)
-                    # if parentpathtext in self.numvals.keys():
-                    #     treechild.setText(self.numvals[parentpathtext])
-                    #     treechild.setEditable(True)
-                    #     pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
                     if pathtext in self.serializedlocntree.checkstates.keys():
                         treechild.setCheckState(self.serializedlocntree.checkstates[pathtext])
-
                     if pathtext in self.serializedlocntree.addedinfos.keys():
                         treechild.addedinfo = copy(self.serializedlocntree.addedinfos[pathtext])
-
                     if pathtext in self.serializedlocntree.detailstables.keys():
                         treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[pathtext])
 
@@ -424,10 +413,6 @@ class LocationTreeModel(QStandardItemModel):
             # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
             # (3) it was force-unchecked as a result of ME/sibling interaction
             item.uncheck(force=False)
-        # if thestate in [Qt.Checked, Qt.PartiallyChecked]:
-        #     item.check(thestate == Qt.Checked)
-        # else:
-        #     item.uncheck()
 
     def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         if structure == {} and pathsofar != "":
@@ -450,8 +435,6 @@ class LocationTreeModel(QStandardItemModel):
                 editable = labelclassifierchecked_tuple[1]
                 classifier = labelclassifierchecked_tuple[2]
                 checked = labelclassifierchecked_tuple[3]
-                # handnonhand = labelclassifierchecked_tuple[4]
-                # ishandloc = 0 if handnonhand == nh else (1 if handnonhand == hb else 2) # == hb  # hand vs nonhand  # ishandloc used to be only False (==0) / True (==1)
                 ishandloc = labelclassifierchecked_tuple[4]
                 allowsurfacespec = labelclassifierchecked_tuple[5]
                 surface_exceptions = labelclassifierchecked_tuple[6]
@@ -722,7 +705,7 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
 
 class LocationTreeItem(QStandardItem):
 
-    def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=nh,  # ishandloc used to be only False (==0) / True (==1)
+    def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=nh,
                  allowsurfacespec=True, allowsubareaspec=True, addedinfo=None,
                  surface_exceptions=None, subarea_exceptions=None, serializedlocntreeitem=None):
         super().__init__()
@@ -734,7 +717,6 @@ class LocationTreeItem(QStandardItem):
             self.setCheckState(serializedlocntreeitem['checkstate'])
             self.setUserTristate(serializedlocntreeitem['usertristate'])
             self.setData(serializedlocntreeitem['selectedrole'], Qt.UserRole + udr.selectedrole)
-            # self.setData(serializedlocntreeitem['texteditrole'], Qt.UserRole + udr.texteditrole)
             self.setData(serializedlocntreeitem['timestamprole'], Qt.UserRole + udr.timestamprole)
             self.setData(serializedlocntreeitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
             self.setData(serializedlocntreeitem['displayrole'], Qt.DisplayRole)
@@ -744,9 +726,6 @@ class LocationTreeItem(QStandardItem):
                 # then we need some backwards compatibility action because as of 20230418,
                 # ishandloc is a string with 3 possible values... not just a boolean
                 self._ishandloc = hb if self._ishandloc else nh
-            # self._allowsurfacespec = serializedlocntreeitem['allowsurfacespec']
-            # self._allowsubareaspec = serializedlocntreeitem['allowsubareaspec']
-            # self.detailstable = LocationTableModel(ishandloc=self._ishandloc, serializedtablemodel=serializedlocntreeitem['detailstable'])
             self.detailstable = LocationTableModel(serializedtablemodel=serializedlocntreeitem['detailstable'])
             self.listitem = LocationListItem(serializedlistitem=serializedlocntreeitem['listitem'])
             self.listitem.treeitem = self
@@ -757,12 +736,9 @@ class LocationTreeItem(QStandardItem):
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
             self.setData(False, Qt.UserRole + udr.selectedrole)
-            # self.setData(False, Qt.UserRole + udr.texteditrole)
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
             self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
             self._ishandloc = ishandloc
-            # self._allowsurfacespec = allowsurfacespec
-            # self._allowsubareaspec = allowsubareaspec
             self.detailstable = LocationTableModel(
                 loctext=txt,
                 ishandloc=ishandloc,
@@ -793,32 +769,13 @@ class LocationTreeItem(QStandardItem):
             'usertristate': self.isUserTristate(),
             'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
             'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
-            # 'texteditrole': self.data(Qt.UserRole + udr.texteditrole),
             'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
             'ishandloc': self._ishandloc,
             'displayrole': self.data(Qt.DisplayRole),
             'addedinfo': self._addedinfo,
-            # 'allowsurfacespec': self._allowsurfacespec,
-            # 'allowsubareaspec': self._allowsubareaspec,
             'detailstable': LocationTableSerializable(self.detailstable)
             # 'listitem': self.listitem.serialize()  TODO KV why not? the constructor uses it...
         }
-
-    # @property
-    # def allowsurfacespec(self):
-    #     return self._allowsurfacespec
-    #
-    # @allowsurfacespec.setter
-    # def allowsurfacespec(self, allowsurfacespec):
-    #     self._allowsurfacespec = allowsurfacespec
-    #
-    # @property
-    # def allowsubareaspec(self):
-    #     return self._allowsubareaspec
-    #
-    # @allowsubareaspec.setter
-    # def allowsubareaspec(self, allowsubareaspec):
-    #     self._allowsubareaspec = allowsubareaspec
 
     @property
     def ishandloc(self):
@@ -901,15 +858,12 @@ class LocationTreeItem(QStandardItem):
         self.listitem.setData(False, Qt.UserRole + udr.selectedrole)
         self.setData(False, Qt.UserRole + udr.selectedrole)
 
-        # TODO KV - can't just uncheck a radio button... or can we?
-
         if force:  # force-clear this item and all its descendants - have to start at the bottom?
-            # self.forceuncheck()
             # force-uncheck all descendants
             if self.hascheckedchild():
                 for r in range(self.rowCount()):
-                    for c in range(self.columnCount()):
-                        ch = self.child(r, c)
+                    for colnum in range(self.columnCount()):
+                        ch = self.child(r, colnum)
                         if ch is not None:
                             ch.uncheck(force=True)
             self.setCheckState(Qt.Unchecked)
@@ -939,12 +893,12 @@ class LocationTreeItem(QStandardItem):
         numcols = self.columnCount()
         r = 0
         while not foundone and r < numrows:
-            c = 0
-            while not foundone and c < numcols:
-                child = self.child(r, c)
+            colnum = 0
+            while not foundone and colnum < numcols:
+                child = self.child(r, colnum)
                 if child is not None:
                     foundone = child.checkState() in [Qt.Checked, Qt.PartiallyChecked]
-                c += 1
+                colnum += 1
             r += 1
         return foundone
 

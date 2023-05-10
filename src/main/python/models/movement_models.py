@@ -7,8 +7,6 @@ from PyQt5.QtCore import (
     QDateTime
 )
 
-
-
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
@@ -18,7 +16,6 @@ from PyQt5.Qt import (
 from PyQt5.QtWidgets import (
     QMessageBox
 )
-
 
 from lexicon.module_classes import userdefinedroles as udr, delimiter, AddedInfo
 
@@ -369,7 +366,6 @@ mvmtOptionsDict = {
 }
 
 
-
 class MovementTreeItem(QStandardItem):
 
     def __init__(self, txt="", listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
@@ -383,7 +379,6 @@ class MovementTreeItem(QStandardItem):
             self.setCheckState(serializedmvmtitem['checkstate'])
             self.setUserTristate(serializedmvmtitem['usertristate'])
             self.setData(serializedmvmtitem['selectedrole'], Qt.UserRole+udr.selectedrole)
-            # self.setData(serializedmvmtitem['texteditrole'], Qt.UserRole+udr.texteditrole)
             self.setData(serializedmvmtitem['timestamprole'], Qt.UserRole+udr.timestamprole)
             self.setData(serializedmvmtitem['isuserspecifiablerole'], Qt.UserRole+udr.isuserspecifiablerole)
             self.setData(serializedmvmtitem['userspecifiedvaluerole'], Qt.UserRole+udr.userspecifiedvaluerole)
@@ -398,7 +393,6 @@ class MovementTreeItem(QStandardItem):
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
             self.setData(False, Qt.UserRole+udr.selectedrole)
-            # self.setData(False, Qt.UserRole+udr.texteditrole)
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
             self.setData(fx, Qt.UserRole+udr.isuserspecifiablerole)
             self.setData("", Qt.UserRole+udr.userspecifiedvaluerole)
@@ -430,7 +424,6 @@ class MovementTreeItem(QStandardItem):
             'checkstate': self.checkState(),
             'usertristate': self.isUserTristate(),
             'selectedrole': self.data(Qt.UserRole+udr.selectedrole),
-            # 'texteditrole': self.data(Qt.UserRole+udr.texteditrole),
             'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
             'mutuallyexclusiverole': self.data(Qt.UserRole+udr.mutuallyexclusiverole),
             'displayrole': self.data(Qt.DisplayRole),
@@ -520,15 +513,12 @@ class MovementTreeItem(QStandardItem):
         self.listitem.setData(False, Qt.UserRole+udr.selectedrole)
         self.setData(False, Qt.UserRole+udr.selectedrole)
 
-        # TODO KV - can't just uncheck a radio button... or can we?
-
         if force:  # force-clear this item and all its descendants - have to start at the bottom?
-            # self.forceuncheck()
             # force-uncheck all descendants
             if self.hascheckedchild():
                 for r in range(self.rowCount()):
-                    for c in [0]:  # range(self.columnCount()):
-                        ch = self.child(r, c)
+                    for colnum in [0]:
+                        ch = self.child(r, colnum)
                         if ch is not None:
                             ch.uncheck(force=True)
             self.setCheckState(Qt.Unchecked)
@@ -558,12 +548,12 @@ class MovementTreeItem(QStandardItem):
         numcols = self.columnCount()
         r = 0
         while not foundone and r < numrows:
-            c = 0
-            while not foundone and c < numcols:
-                child = self.child(r, c)
+            colnum = 0
+            while not foundone and colnum < numcols:
+                child = self.child(r, colnum)
                 if child is not None:
                     foundone = child.checkState() in [Qt.Checked, Qt.PartiallyChecked]
-                c += 1
+                colnum += 1
             r += 1
         return foundone
 
@@ -868,10 +858,6 @@ class MovementTreeModel(QStandardItemModel):
             # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
             # (3) it was force-unchecked as a result of ME/sibling interaction
             item.uncheck(force=False)
-        # if thestate in [Qt.Checked, Qt.PartiallyChecked]:
-        #     item.check(thestate == Qt.Checked)
-        # else:
-        #     item.uncheck()
 
     def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         if structure == {} and pathsofar != "":

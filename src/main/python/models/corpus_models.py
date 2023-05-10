@@ -5,16 +5,6 @@ from PyQt5.QtCore import (
     QItemSelectionModel
 )
 
-from PyQt5.QtWidgets import (
-    QWidget,
-    QLabel,
-    QLineEdit,
-    QListView,
-    QVBoxLayout,
-    QHBoxLayout,
-    QComboBox
-)
-
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
@@ -24,7 +14,6 @@ from PyQt5.Qt import (
 datecreatedrole = 1
 datemodifiedrole = 2
 entryidrole = 3
-
 
 
 class CorpusItem(QStandardItem):
@@ -62,7 +51,6 @@ class CorpusModel(QStandardItemModel):
             signitem = CorpusItem(sign)
             self.appendRow(signitem)
         self.modelupdated.emit()
-        # self.dataChanged.emit()
 
 
 # class CorpusModel(QAbstractItemModel):
