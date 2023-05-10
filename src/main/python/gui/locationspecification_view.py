@@ -51,7 +51,7 @@ from lexicon.module_classes import delimiter, LocationModule, PhonLocations, use
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
 from serialization.serialization_classes import LocationTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 
 
 class LocationTreeView(QTreeView):
@@ -291,7 +291,7 @@ def findvaliditemspaths(pathitemslists):
 
 # TODO KV - add undo, ...
 
-class LocationSpecificationPanel(QFrame):
+class LocationSpecificationPanel(ModuleSpecificationPanel):
     # module_saved = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, AddedInfo, int)
     # module_deleted = pyqtSignal()
 

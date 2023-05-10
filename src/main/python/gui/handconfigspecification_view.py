@@ -30,7 +30,7 @@ from constant import NULL, X_IN_BOX, PREDEFINED_MAP  # ESTIMATE_BORDER, UNCERTAI
 from lexicon.predefined_handshape import HandshapeNoMatch
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
 from lexicon.module_classes import AddedInfo, HandConfigurationModule
-from gui.modulespecification_widgets import AddedInfoContextMenu
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 from lexicon.module_classes import HandConfigurationHand
 from gui.undo_command import TranscriptionUndoCommand
 
@@ -47,10 +47,6 @@ class ConfigSlot(QLineEdit):
         super().__init__(**kwargs)
 
         self.addedinfo = AddedInfo()
-
-
-        # self.setProperty('Estimate', self.estimate)
-        # self.setProperty('Uncertain', self.uncertain)
         self.updateStyle()
 
         # styling
@@ -72,7 +68,7 @@ class ConfigSlot(QLineEdit):
                 font-weight: normal;
                 border: 1px solid grey;
             }
-        """  #.format(estimate_border=ESTIMATE_BORDER, uncertain_background=UNCERTAIN_BACKGROUND)
+        """
         self.setStyleSheet(qss)
 
         # set completer
@@ -161,7 +157,6 @@ class ConfigSlot(QLineEdit):
         self.style().unpolish(self)
         self.style().polish(self)
         self.update()
-
 
 
 class ConfigField(QWidget):
@@ -963,29 +958,11 @@ class Config(QGroupBox):
         self._addedinfo = AddedInfo()
         self.add_slot1()
         self.generate_hands()
-        # self.add_options()
-
-    # def add_options(self):
-    #     option_frame = QGroupBox(parent=self)
-    #     option_layout = QHBoxLayout()
-    #     option_layout.setSpacing(5)
-    #     # option_layout.addStretch()
-    #     option_frame.setLayout(option_layout)
-    #     self.main_layout.addWidget(option_frame)
-    #     # self.estimated = QCheckBox('Estimated', parent=self)
-    #     # self.uncertain = QCheckBox('Uncertain', parent=self)
-    #     # self.incomplete = QCheckBox('Incomplete', parent=self)
-    #     # option_layout.addWidget(self.estimated)
-    #     # option_layout.addWidget(self.uncertain)
-    #     # option_layout.addWidget(self.incomplete)
-    #     option_layout.addStretch()
 
     def add_slot1(self):
         slot1_box = QGroupBox(parent=self)
         slot1_layout = QHBoxLayout()
         slot1_layout.setSpacing(5)
-        # slot1_layout.addStretch()
-        # self.main_layout.addLayout(slot1_layout)
 
         left_bracket = QLabel('[')
         bracketfont = left_bracket.font()
@@ -1018,10 +995,6 @@ class Config(QGroupBox):
 
         self.predefined_button = QPushButton("Load predefined handshape")
         self.predefined_button.clicked.connect(self.load_predefined)
-        # hand_layout = QHBoxLayout()
-        # hand_layout.addWidget(self.predefined_button)
-        # hand_layout.addWidget(self.hand)
-        # self.main_layout.addLayout(hand_layout)
         hand_box = QGroupBox(parent=self)
         hand_layout = QVBoxLayout()
         hand_layout.setSpacing(5)
@@ -1034,9 +1007,6 @@ class Config(QGroupBox):
         hand_layout.addLayout(predefined_layout)
         hand_layout.addWidget(self.hand)
         self.main_layout.addWidget(hand_box)
-        # self.main_layout.addLayout(hand_layout)
-        # self.main_layout.addWidget(self.predefined_button)
-        # self.main_layout.addWidget(self.hand)
 
     def load_predefined(self):
         predefined_handshape_dialog = PredefinedHandshapeDialog(self.predefined_ctx, parent=self)
@@ -1050,27 +1020,18 @@ class Config(QGroupBox):
         self.hand.set_value(HandConfigurationHand(handconfigmodule.handconfiguration))
         self.slot1.setChecked(handconfigmodule.overalloptions['forearm'])
         self.slot1.addedinfo = handconfigmodule.overalloptions['forearm_addedinfo']
-        # self.estimated.setChecked(handconfigmodule.overalloptions['estimated'])
-        # self.uncertain.setChecked(handconfigmodule.overalloptions['uncertain'])
-        # self.incomplete.setChecked(handconfigmodule.overalloptions['incomplete'])
         self._addedinfo = handconfigmodule.overalloptions['overall_addedinfo']
 
     def clear(self):
         self.hand.clear()
         self.slot1.setChecked(False)
         self.slot1.addedinfo = AddedInfo()
-        # self.estimated.setChecked(False)
-        # self.uncertain.setChecked(False)
-        # self.incomplete.setChecked(False)
         self._addedinfo = AddedInfo()
 
     def get_value(self):
         return {
             'forearm': self.slot1.isChecked(),
             'forearm_addedinfo': self.slot1.addedinfo,
-            # 'estimated': self.estimated.isChecked(),
-            # 'uncertain': self.uncertain.isChecked(),
-            # 'incomplete': self.incomplete.isChecked(),
             'hand': self.hand.get_value(),  # this is a list of field values
             'overall_addedinfo': self._addedinfo
         }
@@ -1095,8 +1056,7 @@ class ForearmCheckBox(QCheckBox):
         addedinfo_menu.exec_(event.globalPos())
 
 
-
-class HandConfigSpecificationPanel(QFrame):  # ModuleSpecificationWidget):
+class HandConfigSpecificationPanel(ModuleSpecificationPanel):
 
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)

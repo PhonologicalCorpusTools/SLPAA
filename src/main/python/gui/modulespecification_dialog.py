@@ -49,6 +49,8 @@ class ModuleSelectorDialog(QDialog):
             addedinfo = deepcopy(moduletoload.addedinfo)
             hands = moduletoload.hands
             new_instance = False
+            if hasattr(moduletoload, '_inphase'):
+                inphase = moduletoload.inphase
 
         main_layout = QVBoxLayout()
 

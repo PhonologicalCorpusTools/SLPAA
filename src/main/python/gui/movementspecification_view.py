@@ -26,8 +26,7 @@ from PyQt5.QtCore import (
 from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
 from serialization.serialization_classes import MovementTreeSerializable
-# from gui.module_selector import AddedInfoContextMenu  # , ModuleSpecificationWidget
-from gui.modulespecification_widgets import AddedInfoContextMenu
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 
 
 class MvmtTreeSearchComboBox(QComboBox):
@@ -225,22 +224,19 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
 # TODO KV - add undo, ...
 
 
-class MovementSpecificationPanel(QFrame):  # (ModuleSpecificationWidget):
+class MovementSpecificationPanel(ModuleSpecificationPanel):
 
-    def __init__(self, moduletoload=None, **kwargs):  # TODO KV app_ctx, movement_specifications,
+    def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QVBoxLayout()
 
         self.treemodel = MovementTreeModel()
-        if moduletoload:
-            if isinstance(moduletoload, MovementTreeModel):
-                # moduletoload.tempprinttreemodel()
-                self.treemodel = MovementTreeModel(MovementTreeSerializable(moduletoload))
-            elif isinstance(moduletoload, MovementModule):
+        if moduletoload is not None:
+            if isinstance(moduletoload, MovementModule):
                 self.treemodel = MovementTreeModel(MovementTreeSerializable(moduletoload.movementtreemodel))
             else:
-                print("moduletoload must be either of type MovementTreeModel or of type MovementModule")
+                print("moduletoload must be of type MovementModule")
         else:
             self.treemodel.populate(self.treemodel.invisibleRootItem())
 

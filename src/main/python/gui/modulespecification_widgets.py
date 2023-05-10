@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QAction,
     QWidgetAction,
     QLineEdit,
+    QFrame,
     QHBoxLayout,
     QMenu,
     QCheckBox,
@@ -16,6 +17,12 @@ from PyQt5.QtWidgets import (
 
 
 from lexicon.module_classes import AddedInfo
+
+
+class ModuleSpecificationPanel(QFrame):
+
+    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
+        pass
 
 
 class AddedInfoPushButton(QPushButton):
