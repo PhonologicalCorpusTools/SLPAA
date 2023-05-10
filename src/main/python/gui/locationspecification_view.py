@@ -291,8 +291,6 @@ def findvaliditemspaths(pathitemslists):
 # TODO KV - add undo, ...
 
 class LocationSpecificationPanel(ModuleSpecificationPanel):
-    # module_saved = pyqtSignal(LocationTreeModel, PhonLocations, LocationType, dict, list, AddedInfo, int)
-    # module_deleted = pyqtSignal()
 
     def __init__(self, moduletoload=None, **kwargs):  # mainwindow,
         super().__init__(**kwargs)
@@ -533,6 +531,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             return self.treemodel_body
         elif self.getcurrentlocationtype().purelyspatial:
             return self.treemodel_spatial
+        elif self.getcurrentlocationtype().signingspace:
+            treemodel = LocationTreeModel()
+            treemodel.locationtype = self.getcurrentlocationtype()
+            return treemodel
         else:
             return LocationTreeModel()
 
@@ -543,6 +545,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             return self.listmodel_body
         elif self.getcurrentlocationtype().purelyspatial:
             return self.listmodel_spatial
+        elif self.getcurrentlocationtype().signingspace:
+            treemodel = LocationTreeModel()
+            treemodel.locationtype = self.getcurrentlocationtype()
+            return treemodel.listmodel
         else:
             return LocationTreeModel().listmodel
 
