@@ -942,9 +942,8 @@ class Config(QGroupBox):
     slot_leave = pyqtSignal()
     slot_finish_edit = pyqtSignal(QLineEdit, dict, dict)
 
-    def __init__(self, predefined_ctx, **kwargs):  # title, config_number,
+    def __init__(self, predefined_ctx, **kwargs):
         super().__init__(title='Hand Configuration', **kwargs)
-        # self.config_number = config_number
         self.predefined_ctx = predefined_ctx
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         # self.setStyleSheet('QGroupBox{margin: 0; padding: 0}')

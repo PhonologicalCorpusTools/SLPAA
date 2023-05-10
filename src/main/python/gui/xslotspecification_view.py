@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QDialog,
     QHBoxLayout,
     QVBoxLayout,
-    QWidget,
     QDialogButtonBox,
     QLabel,
     QButtonGroup,
@@ -58,7 +57,7 @@ class XslotSpecificationPanel(QFrame):
             partial_radio.setProperty('fraction', fraction)
             self.partial_buttongroup.addButton(partial_radio)
             self.fraction_layout.addWidget(partial_radio)
-        if len(self.avail_denoms) == 0:  # else:
+        if len(self.avail_denoms) == 0:
             self.nopartials_label = QLabel("You do not have any fractional x-slot points selected in Global Settings.")
             self.fraction_layout.addWidget(self.nopartials_label)
 

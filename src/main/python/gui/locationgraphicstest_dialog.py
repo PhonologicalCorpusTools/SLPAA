@@ -18,7 +18,7 @@ class SvgDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
 
-    def __init__(self, imagepath, **kwargs):  #  maxfourimagepaths, **kwargs):
+    def __init__(self, imagepath, **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QHBoxLayout()

@@ -447,7 +447,7 @@ class SigntypeCheckBox(QCheckBox):
 class SigntypeSelectorDialog(QDialog):
     saved_signtype = pyqtSignal(Signtype)
 
-    def __init__(self, signtypetoload, **kwargs):  # mainwindow,
+    def __init__(self, signtypetoload, **kwargs):
         super().__init__(**kwargs)
 
         # TODO KV delete self.app_settings = app_settings

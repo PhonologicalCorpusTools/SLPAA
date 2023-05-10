@@ -635,8 +635,7 @@ class MainWindow(QMainWindow):
         if not response:  # close the window or press cancel
             self.on_action_new_corpus(False)
 
-    def handle_sign_selected(self, sign):  # gloss):
-        # selected_sign = self.corpus.get_sign_by_gloss(gloss)
+    def handle_sign_selected(self, sign):
         selected_sign = sign
 
         self.current_sign = selected_sign

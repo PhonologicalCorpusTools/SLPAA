@@ -292,7 +292,7 @@ def findvaliditemspaths(pathitemslists):
 
 class LocationSpecificationPanel(ModuleSpecificationPanel):
 
-    def __init__(self, moduletoload=None, **kwargs):  # mainwindow,
+    def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
@@ -780,7 +780,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
 class LocationSelectionWidget(QStackedWidget):
 
-    def __init__(self, treemodel, locationtype=None, **kwargs):  # mainwindow,
+    def __init__(self, treemodel, locationtype=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 

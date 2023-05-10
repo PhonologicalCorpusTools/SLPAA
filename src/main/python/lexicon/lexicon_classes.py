@@ -308,7 +308,7 @@ class Sign:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, highestID=0):  # movement_definition=None,
+    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, highestID=0):
         if serializedcorpus:
             self.name = serializedcorpus['name']
             self.signs = set([Sign(serializedsign=s) for s in serializedcorpus['signs']])

@@ -524,7 +524,7 @@ class XslotLinkScene(QGraphicsScene):
                     part_end = Fraction(frac_j+1, denom)
                     selecttheinterval = False
                     temptint = TimingInterval(TimingPoint(whole, part_start), TimingPoint(whole, part_end))
-                    if temptint in self.xslotlinks:  # self.timingintervals:
+                    if temptint in self.xslotlinks:
                         selecttheinterval = True
                     xslotrect = XslotRectLinkingButton(self,
                                                        xslot_whole=whole,

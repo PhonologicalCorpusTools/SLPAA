@@ -50,7 +50,7 @@ class SignLevelDateDisplay(QLabel):
 # TODO KV redo the order in which init creates itself
 class SignLevelInfoPanel(QFrame):
 
-    def __init__(self, signlevelinfo, **kwargs):  # parentwidget=None, **kwargs): mainwindow,
+    def __init__(self, signlevelinfo, **kwargs):
         super().__init__(**kwargs)
 
         self.mainwindow = self.parent().mainwindow

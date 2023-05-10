@@ -260,7 +260,7 @@ class SingleLocationViewer(QGraphicsView):
 
 class SignSummaryPanel(QScrollArea):
 
-    def __init__(self, mainwindow, sign=None, **kwargs):  # mainwindow,
+    def __init__(self, mainwindow, sign=None, **kwargs):
         super().__init__(**kwargs)
         self.sign = sign
         self.mainwindow = mainwindow

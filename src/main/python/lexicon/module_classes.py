@@ -468,7 +468,7 @@ class PhonLocations:
 # is used by a particular instance of the Location Module
 class LocationType:
 
-    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False, axis=False):  # , **kwargs):
+    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False, axis=False):
         self._body = body
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored

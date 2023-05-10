@@ -690,7 +690,7 @@ class PredefinedHandshapeDialog(QDialog):
     transcription = pyqtSignal(tuple)
     selected_hand = pyqtSignal(int)
 
-    def __init__(self, predefined_images, **kwargs):  #focused_hand, **kwargs):
+    def __init__(self, predefined_images, **kwargs):
         super().__init__(**kwargs)
         self.resize(750, 750)
         self.setWindowTitle('Predefined Handshapes')
