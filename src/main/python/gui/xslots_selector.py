@@ -1,28 +1,11 @@
-# import os
-# import json
 from fractions import Fraction
 from PyQt5.QtWidgets import (
     QFrame,
     QDialog,
     QHBoxLayout,
-    # QListView,
     QVBoxLayout,
-    # QBoxLayout,
-    # QFileDialog,
-    # QWidget,
-    # QTabWidget,
-    # QTabBar,
     QDialogButtonBox,
     QLabel,
-    # QCompleter,
-    # QAbstractItemView,
-    # QStyledItemDelegate,
-    # QStyle,
-    # QStyleOptionButton,
-    # QApplication,
-    # QHeaderView,
-    # QStyleOptionFrame,
-    # QErrorMessage,
     QButtonGroup,
     QRadioButton,
     QSpacerItem,
@@ -30,28 +13,9 @@ from PyQt5.QtWidgets import (
     QSpinBox
 )
 
-# from PyQt5.QtGui import (
-#     QBrush,
-#     QColor,
-#     QPen,
-#     QPolygonF,
-#     QPixmap,
-#     QIcon
-# )
-
 from PyQt5.QtCore import (
-    # Qt,
-    # QPoint,
-    # QRectF,
-    # QAbstractListModel,
     pyqtSignal,
-    # QSize,
-    # QEvent
 )
-
-# from .helper_widget import EditableTabBar
-# from copy import copy, deepcopy
-# from pprint import pprint
 
 
 class XslotsSpecificationLayout(QVBoxLayout):
