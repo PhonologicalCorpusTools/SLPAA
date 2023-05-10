@@ -1,11 +1,9 @@
 from fractions import Fraction
 from num2words import num2words
-# import itertools
 
 from PyQt5.QtWidgets import (
     QGraphicsRectItem,
     QLabel,
-    # QHBoxLayout,
     QGraphicsView,
     QGraphicsScene,
     QVBoxLayout,
@@ -17,21 +15,12 @@ from PyQt5.QtGui import (
     QBrush,
     QColor,
     QPen,
-    # QPolygonF,
-    # QPixmap,
-    # QIcon,
     QTextOption,
-    # QFont,
 )
 
 from PyQt5.QtCore import (
     Qt,
-    # QPoint,
-    # QRectF,
-    # QAbstractListModel,
     pyqtSignal,
-    # QSize,
-    # QEvent
 )
 
 from lexicon.module_classes2 import TimingPoint, TimingInterval
@@ -129,7 +118,7 @@ class XslotRect(QGraphicsRectItem):
 
 class XslotRectButton(XslotRect):
 
-    def __init__(self, parentwidget, selected=False, **kwargs):  # xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="", moduletype=None, sign=None, proportionfill=1, selected=False):
+    def __init__(self, parentwidget, selected=False, **kwargs):
         super().__init__(parentwidget, **kwargs)
         self.setAcceptHoverEvents(True)
         self.hover = False
@@ -179,12 +168,12 @@ class XslotRectLinkingButton(XslotRectButton):
 
     def mouseReleaseEvent(self, event):
         self.toggle()
-        self.parentwidget.linkingrect_clicked.emit(self)  # self.xslot_whole, self.xslot_part_start, self.xslot_part_end)
+        self.parentwidget.linkingrect_clicked.emit(self)
 
 
 class XslotEllipseModuleButton(QGraphicsEllipseItem):
 
-    def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None):  # xslot_whole=0, xslot_part=None,
+    def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None):
         super().__init__()
         self.parentwidget = parentwidget
         self.text = text
@@ -396,7 +385,7 @@ class XSlotCheckbox(QGraphicsRectItem):
 
     def mouseReleaseEvent(self, event):
         self.toggle()
-        self.parentwidget.checkbox_toggled.emit(self)  # self.xslot_whole, self.xslot_part)
+        self.parentwidget.checkbox_toggled.emit(self)
 
 
 class XslotLinkScene(QGraphicsScene):
@@ -508,14 +497,14 @@ class XslotLinkScene(QGraphicsScene):
         for whole in range(1, self.numwholes+1):
             for part in self.fractionalpoints:
                 checkthebox = False
-                if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:  # self.timingintervals:
+                if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:
                     checkthebox = True
                 cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
                 checkboxes[(whole, part)] = cb
         whole = self.numwholes+1
         for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac and (fp > 0 or self.additionalfrac > 0)]:
             checkthebox = False
-            if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:  # self.timingintervals:
+            if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:
                 checkthebox = True
             cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
             checkboxes[(whole, part)] = cb
@@ -577,10 +566,10 @@ class XslotLinkScene(QGraphicsScene):
                     part_end = Fraction(frac_j+1, denom)
                     selecttheinterval = False
                     temptint = TimingInterval(TimingPoint(whole, part_start), TimingPoint(whole, part_end))
-                    if temptint in self.xslotlinks:  # self.timingintervals:
+                    if temptint in self.xslotlinks:
                         selecttheinterval = True
                     xslotrect = XslotRectLinkingButton(self, xslot_whole=whole, xslot_part_start=part_start, xslot_part_end=part_end, text=text, moduletype='xslot', selected=selecttheinterval)
-                    xloc = 0 + (whole_i + (frac_j/denom)) * self.xslot_width + self.x_offset  # - (self.pen_width * num_rects)
+                    xloc = 0 + (whole_i + (frac_j/denom)) * self.xslot_width + self.x_offset
                     xslotrect.setRect(xloc, yloc, float(self.xslot_width * frac_size), self.rect_height)
                     self.addItem(xslotrect)
                     met_total = whole_i + ((frac_j+2)/denom) > total
