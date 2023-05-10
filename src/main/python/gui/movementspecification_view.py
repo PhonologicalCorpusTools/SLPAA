@@ -1,7 +1,6 @@
 
 from PyQt5.QtWidgets import (
     QListView,
-    QFrame,
     QTreeView,
     QPushButton,
     QHBoxLayout,
@@ -25,7 +24,7 @@ from PyQt5.QtCore import (
 
 from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
-from serialization.serialization_classes import MovementTreeSerializable
+from serialization_classes import MovementTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 
 

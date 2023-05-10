@@ -46,7 +46,7 @@ from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS
 from lexicon.lexicon_classes import Corpus
-from serialization.serialization_classes import renamed_load
+from serialization_classes import renamed_load
 
 
 class SubWindow(QMdiSubWindow):

@@ -8,13 +8,10 @@ from PyQt5.QtCore import (
 )
 
 from lexicon.module_classes import userdefinedroles as udr
-
 from models.movement_models import fx
 
 
-
 # TODO KV implement this base class; refactor children (eg LocationModuleSerializable) to inherit as much as possible
-# TODO KV this class definition should be somewhere more general (ie, it's not just for location-related stuff)
 class ParameterModuleSerializable:
 
     def __init__(self, parammod):
@@ -47,14 +44,6 @@ class MovementModuleSerializable(ParameterModuleSerializable):
         # creates a full serializable copy of the movement module, eg for saving to disk
         self.inphase = mvmtmodule.inphase
         self.movementtree = MovementTreeSerializable(mvmtmodule.movementtreemodel)
-    #
-    # def getMovementTreeModel(self):
-    #     mvmttreemodel = MovementTreeModel()
-    #     rootnode = mvmttreemodel.invisibleRootItem()
-    #     mvmttreemodel.populate(rootnode)
-    #     makelistmodel = mvmttreemodel.listmodel
-    #     self.setvalues(rootnode)
-    #     return mvmttreemodel
 
 
 # This class is a serializable form of the class MovementTreeModel, which is itself not pickleable.
@@ -91,90 +80,6 @@ class MovementTreeSerializable:
 
                     self.checkstates[pathtext] = checkstate
                 self.collectdatafromMovementTreeModel(treechild)
-
-    # def getMovementTreeModel(self):
-    #     mvmttreemodel = MovementTreeModel()
-    #     rootnode = mvmttreemodel.invisibleRootItem()
-    #     mvmttreemodel.populate(rootnode)
-    #     makelistmodel = mvmttreemodel.listmodel  # TODO KV   what is this? necessary?
-    #     self.backwardcompatibility()
-    #     self.setvaluesinMovementTreeModel(rootnode)
-    #     return mvmttreemodel
-    #
-    # def backwardcompatibility(self):
-    #     hadtoaddusv = False
-    #     if not hasattr(self, 'userspecifiedvalues'):
-    #         self.userspecifiedvalues = {}
-    #         hadtoaddusv = True
-    #     for stored_dict in [self.checkstates, self.addedinfos]:  # self.numvals, self.stringvals,
-    #         pairstoadd = {}
-    #         keystoremove = []
-    #         for k in stored_dict.keys():
-    #
-    #             # 1. "H1 and H2 move in different directions" (under either axis driectin or plane, in perceptual shape)
-    #             #   --> "H1 and H2 move in opposite directions"
-    #             # 2. Then later... "H1 and H2 move in opposite directions" (under axis direction only)
-    #             #   --> "H1 and H2 move toward each other" (along with an independent addition of "... away ...")
-    #             if "H1 and H2 move in different directions" in k:
-    #                 if "Axis direction" in k:
-    #                     pairstoadd[k.replace("in different directions", "toward each other")] = stored_dict[k]
-    #                     keystoremove.append(k)
-    #                 elif "Place" in k:
-    #                     pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
-    #                     keystoremove.append(k)
-    #             elif "H1 and H2 move in opposite directions" in k and "Axis direction" in k:
-    #                 pairstoadd[k.replace("in opposite directions", "toward each other")] = stored_dict[k]
-    #                 keystoremove.append(k)
-    #
-    #             if hadtoaddusv:
-    #
-    #                 if k.endswith(specifytotalcycles_str) or k.endswith(numberofreps_str):
-    #                     pairstoadd[k.replace(numberofreps_str, specifytotalcycles_str)] = stored_dict[k]
-    #                     keystoremove.append(k)
-    #
-    #                 elif "This number is a minimum" in k:
-    #                     pairstoadd[k.replace(delimiter + "#" + delimiter, delimiter)] = stored_dict[k]
-    #                     keystoremove.append(k)
-    #
-    #                 elif (specifytotalcycles_str + delimiter in k or numberofreps_str + delimiter in k):
-    #                     # then we're looking at the item that stores info about the specified number of repetitions
-    #                     newkey = k.replace(numberofreps_str, specifytotalcycles_str)
-    #                     newkey = newkey[:newkey.index(specifytotalcycles_str+delimiter) + len(specifytotalcycles_str)]
-    #                     remainingtext = ""
-    #                     if specifytotalcycles_str in k:
-    #                         remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(specifytotalcycles_str + delimiter):]
-    #                     elif numberofreps_str in k:
-    #                         remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(numberofreps_str + delimiter):]
-    #
-    #                     if len(remainingtext) > 0 and delimiter not in remainingtext and remainingtext != "#":
-    #                         numcycles = remainingtext
-    #                         self.userspecifiedvalues[newkey] = numcycles
-    #
-    #         for oldkey in keystoremove:
-    #             stored_dict.pop(oldkey)
-    #
-    #         for newkey in pairstoadd.keys():
-    #             stored_dict[newkey] = pairstoadd[newkey]
-    #
-    # def setvaluesinMovementTreeModel(self, treenode):
-    #     if treenode is not None:
-    #         for r in range(treenode.rowCount()):
-    #             treechild = treenode.child(r, 0)
-    #             if treechild is not None:
-    #                 pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-    #                 if pathtext in self.checkstates.keys():
-    #                     treechild.setCheckState(self.checkstates[pathtext])
-    #
-    #                 if pathtext in self.addedinfos.keys():
-    #                     treechild.addedinfo = copy(self.addedinfos[pathtext])
-    #
-    #                 if pathtext in self.userspecifiedvalues.keys():
-    #                     # this also updates the associated list item as well as its display
-    #                     treechild.setData(self.userspecifiedvalues[pathtext], Qt.UserRole + udr.userspecifiedvaluerole)
-    #                     treechild.editablepart().setText(self.userspecifiedvalues[pathtext])
-    #
-    #                 self.setvaluesinMovementTreeModel(treechild)
-
 
 
 # This class is a serializable form of the class LocationTreeModel, which is itself not pickleable.
@@ -221,64 +126,6 @@ class LocationTreeSerializable:
                     #     self.userspecifiedvalues[pathtext] = userspecifiedvalue
 
                 self.collectdatafromLocationTreeModel(treechild)
-    #
-    # # create, populate, and return a LocationTreeModel based on the values stored in this LocationTreeSerializable
-    # def getLocationTreeModel(self):
-    #     locntreemodel = LocationTreeModel()
-    #     locntreemodel.locationtype = self.locationtype
-    #     rootnode = locntreemodel.invisibleRootItem()
-    #     locntreemodel.populate(rootnode)
-    #     makelistmodel = locntreemodel.listmodel  # TODO KV   what is this? necessary?
-    #     self.backwardcompatibility()
-    #     self.setvaluesinLocationTreeModel(rootnode)
-    #     return locntreemodel
-    #
-    # # ensure that any info stored in this LocationTreeSerializable under older keys (paths),
-    # # is updated to reflect the newer text for those outdated keys
-    # def backwardcompatibility(self):
-    #     # hadtoaddusv = False
-    #     # if not hasattr(self, 'userspecifiedvalues'):
-    #     #     self.userspecifiedvalues = {}
-    #     #     hadtoaddusv = True
-    #     for stored_dict in [self.checkstates, self.addedinfos, self.detailstables]:  # self.numvals, self.stringvals,
-    #         pairstoadd = {}
-    #         keystoremove = []
-    #         for k in stored_dict.keys():
-    #             if "H1 is in front of H2" in k:
-    #                 pairstoadd[k.replace("H1 is in front of H2", "H1 is more distal than H2")] = stored_dict[k]
-    #                 keystoremove.append(k)
-    #             if "H1 is behind H2" in k:
-    #                 pairstoadd[k.replace("H1 is behind H2", "H1 is more proximal than H2")] = stored_dict[k]
-    #                 keystoremove.append(k)
-    #
-    #         for oldkey in keystoremove:
-    #             stored_dict.pop(oldkey)
-    #
-    #         for newkey in pairstoadd.keys():
-    #             stored_dict[newkey] = pairstoadd[newkey]
-    #
-    # # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
-    # def setvaluesinLocationTreeModel(self, treenode):
-    #     if treenode is not None:
-    #         for r in range(treenode.rowCount()):
-    #             treechild = treenode.child(r, 0)
-    #             if treechild is not None:
-    #                 pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
-    #                 # parentpathtext = treenode.data(Qt.UserRole+udr.pathdisplayrole)
-    #                 # if parentpathtext in self.numvals.keys():
-    #                 #     treechild.setText(self.numvals[parentpathtext])
-    #                 #     treechild.setEditable(True)
-    #                 #     pathtext = parentpathtext + delimiter + self.numvals[parentpathtext]
-    #                 if pathtext in self.checkstates.keys():
-    #                     treechild.setCheckState(self.checkstates[pathtext])
-    #
-    #                 if pathtext in self.addedinfos.keys():
-    #                     treechild.addedinfo = copy(self.addedinfos[pathtext])
-    #
-    #                 if pathtext in self.detailstables.keys():
-    #                     treechild.detailstable.updatefromserialtable(self.detailstables[pathtext])
-    #
-    #                 self.setvaluesinLocationTreeModel(treechild)
 
 
 # This class is a serializable form of the class LocationTableModel, which is itself not pickleable.
@@ -312,12 +159,12 @@ class RenameUnpickler(pickle.Unpickler):
             module_updated = "lexicon.module_classes"
         elif class_orig in ["LocationTreeItem", "LocationTreeModel", "LocationTableModel", "LocationListItem", "LocationListModel"] and module_orig == "gui.location_view":
             module_updated = "models.location_models"
-        elif class_orig in ["LocationTreeSerializable", "LocationModuleSerializable", "LocationTableSerializable"] and module_orig == "gui.location_view":
-            module_updated = "serialization.serialization_classes"
-        elif class_orig in ["ParameterModuleSerializable"] and module_orig == "gui.location_view":
-            module_updated = "serialization.serialization_classes"
-        elif class_orig in ["MovementTreeSerializable", "MovementModuleSerializable"] and module_orig == "gui.movement_view":
-            module_updated = "serialization.serialization_classes"
+        elif class_orig in ["LocationTreeSerializable", "LocationModuleSerializable", "LocationTableSerializable"] and module_orig in ["gui.location_view", "serialization.serialization_classes"]:
+            module_updated = "serialization_classes"
+        elif class_orig in ["ParameterModuleSerializable"] and module_orig in ["gui.location_view", "serialization.serialization_classes"]:
+            module_updated = "serialization_classes"
+        elif class_orig in ["MovementTreeSerializable", "MovementModuleSerializable"] and module_orig in ["gui.movement_view", "serialization.serialization_classes"]:
+            module_updated = "serialization_classes"
         elif class_orig in ["MovementTreeItem", "MovementTreeModel", "MovementListItem", "MovementListModel"] and module_orig == "gui.movement_view":
             module_updated = "models.movement_models"
         elif class_orig in ["Signtype"] and module_orig == "gui.signtype_selector":

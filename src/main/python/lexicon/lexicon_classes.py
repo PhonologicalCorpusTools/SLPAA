@@ -1,5 +1,5 @@
 from models.movement_models import MovementTreeModel
-from serialization.serialization_classes import LocationModuleSerializable, MovementModuleSerializable
+from serialization_classes import LocationModuleSerializable, MovementModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure

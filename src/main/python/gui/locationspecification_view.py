@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QTableView,
     QTreeView,
     QGraphicsView,
-    QFrame,
     QGraphicsScene,
     QGraphicsPixmapItem,
     QPushButton,
@@ -50,7 +49,7 @@ from PyQt5.QtGui import (
 from lexicon.module_classes import delimiter, LocationModule, PhonLocations, userdefinedroles as udr
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
-from serialization.serialization_classes import LocationTreeSerializable
+from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 
 

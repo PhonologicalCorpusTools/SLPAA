@@ -16,7 +16,7 @@ from PyQt5.Qt import (
 
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
-from serialization.serialization_classes import LocationTableSerializable
+from serialization_classes import LocationTableSerializable
 
 
 # radio button vs checkbox
