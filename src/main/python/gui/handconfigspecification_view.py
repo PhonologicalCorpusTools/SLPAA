@@ -1,4 +1,5 @@
 from copy import deepcopy
+from itertools import chain
 
 from PyQt5.QtCore import (
     Qt,
@@ -25,15 +26,14 @@ from PyQt5.QtGui import (
     QPixmap
 )
 
-from itertools import chain
-from constant import NULL, X_IN_BOX, PREDEFINED_MAP  # ESTIMATE_BORDER, UNCERTAIN_BACKGROUND,
+from constant import NULL, X_IN_BOX, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeNoMatch
+from lexicon.module_classes import AddedInfo, HandConfigurationModule, HandConfigurationHand
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
-from lexicon.module_classes import AddedInfo, HandConfigurationModule
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
-from lexicon.module_classes import HandConfigurationHand
 from gui.undo_command import TranscriptionUndoCommand
 
+# redefine from imported value
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 
