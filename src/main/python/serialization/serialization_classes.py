@@ -341,53 +341,6 @@ class RenameUnpickler(pickle.Unpickler):
         elif class_orig in ["TimingPoint", "TimingInterval", "AddedInfo"] and module_orig == "lexicon.module_classes2":
             module_updated = "lexicon.module_classes"
 
-        # if class_orig in ["SigntypeSpecificationWidget", "SigntypeButtonGroup", "SigntypeRadioButton", "SigntypeCheckBox", "SigntypeSelectorDialog"]:
-        #     module_updated = "gui.signtypespecification_view"
-        # elif class_orig in ["XslotsSpecificationWidget", "XslotSelectorDialog"]:
-        #     module_updated = "gui.xslotspecification_view"
-        # elif class_orig in ["XslotPointLabel", "XslotRect", "XslotRectButton", "XslotRectLinkingButton", "XslotEllipseModuleButton", "XslotRectModuleButton", "SignSummaryScene", "XSlotCheckbox", "XslotLinkScene"]:
-        #     module_updated = "gui.xslot_graphics"
-        # elif class_orig in ["SignLevelDateDisplay", "SignLevelInfoWidget", "SignlevelinfoSelectorDialog"]:
-        #     module_updated = "gui.signlevelinfospecification_view"
-        # elif class_orig in ["MovementTreeView", "MvmtTreeListView", "MvmtTreeItemDelegate", "MovementSpecificationWidget"]:
-        #     module_updated = "gui.movementspecification_view"
-        # elif class_orig in ["TreeSearchComboBox"] and module_orig == "gui.movement_view":
-        #     module_updated = "gui.movementspecification_view"
-        #     class_updated = "MvmtTreeSearchComboBox"
-        # elif class_orig in ["TreeSearchComboBox"] and module_orig == "gui.location_view":
-        #     module_updated = "gui.locationspecification_view"
-        #     class_updated = "LocnTreeSearchComboBox"
-        # elif class_orig in ["AddedInfoPushButton", "AddedInfoContextMenu", "AbstractLocationAction", "CheckNoteAction"]:
-        #     module_updated = "gui.modulespecification_widgets"
-        # elif class_orig in ["ModuleSelectorDialogNEW", "XslotLinkingWidget", "HandSelectionWidget"]:
-        #     module_updated = "gui.modulespecification_dialog"
-        # elif class_orig in ["LocationTreeView", "LocnTreeListView", "LocationGraphicsView", "LocationSvgView", "LocationTableView", "LocationSpecificationWidget", "LocationSelectionWidget", "ImageDisplayTab", "AxisTreeWidget", "LocationTreeItemDelegate"]:
-        #     module_updated = "gui.locationspecification_view"
-        # elif class_orig in ["SvgDisplayTab", "LocationGraphicsTestDialog"]:
-        #     module_updated = "gui.locationgraphicstest_dialog"
-        # elif class_orig in ["ConfigSlot", "ConfigField", "ConfigHand", "Config", "ForearmCheckBox", "HandConfigSpecificationWidget", "HandTranscriptionPanel", "HandIllustrationPanel"]:
-        #     module_updated = "gui.handconfigspecification_view"
-        # # elif class_orig in ["CorpusTitleEdit", "CorpusDisplay"]:
-        # #     module_updated = "gui.corpus_view"
-        # elif class_orig in ["CorpusItem", "CorpusModel", "CorpusSortProxyModel"]:
-        #     module_updated = "models.corpus_models"
-        # elif class_orig in ["CorpusItem", "CorpusModel", "CorpusSortProxyModel"]:
-        #     module_updated = "models.corpus_models"
-        # elif class_orig in ["LocationTreeModel", "LocationListModel", "LocationTableModel", "LocationListItem", "LocationPathsProxyModel", "LocationTreeItem"]:
-        #     module_updated = "models.location_models"
-        # elif class_orig in ["UserDefinedRoles", "ParameterModule", "SignLevelInformation", "MovementModule", "PhonLocations", "LocationType", "TimingPoint", "TimingInterval", "AddedInfo", "Signtype", "LocationModule", "HandConfigurationModule", "TargetModule", "OrientationModule", "HandConfigurationHand", "HandConfigurationField", "HandConfigurationSlot", "XslotStructure"]:
-        #     module_updated = "lexicon.module_classes"
-        # elif class_orig in ["mvmtOptionsDict", "MovementTreeItem", "MovementListItem", "MovementPathsProxyModel", "MovementListModel", "MovementTreeModel"]:
-        #     module_updated = "models.movement_models"
-        # elif class_orig in ["MovementTreeSerializable", "MovementModuleSerializable", "LocationTreeSerializable", "LocationTableSerializable", "LocationModuleSerializable", "ParameterModuleSerializable"]:
-        #     module_updated = "serialization.serialization_classes"
-        # elif class_orig in ["TreeListView"] and module_orig == "gui.movement_view":
-        #     class_updated = "MvmtTreeListView"
-        #     module_updated = "gui.movementspecification_view"
-        # elif class_orig in ["TreeListView"] and module_orig == "gui.location_view":
-        #     class_updated = "LocnTreeListView"
-        #     module_updated = "gui.locationspecification_view"
-
         return super(RenameUnpickler, self).find_class(module_updated, class_updated)
 
 
