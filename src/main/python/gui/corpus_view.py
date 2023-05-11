@@ -32,7 +32,6 @@ class CorpusTitleEdit(QLineEdit):
 
 
 class CorpusDisplay(QWidget):
-    # selected_gloss = pyqtSignal(str)
     selected_sign = pyqtSignal(Sign)
     title_changed = pyqtSignal(str)
 
@@ -90,18 +89,6 @@ class CorpusDisplay(QWidget):
         # self.selected_gloss.emit(gloss)
         self.selected_sign.emit(sign)
 
-    # def updated_glosses(self, glosses, current_gloss):
-    #     self.corpus_model.glosses.clear()
-    #     self.corpus_model.glosses.extend(glosses)
-    #     self.corpus_model.glosses.sort()
-    #     self.corpus_model.layoutChanged.emit()
-    #
-    #     index = self.corpus_model.glosses.index(current_gloss)
-    #
-    #     # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
-    #     self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
-    #                                                       QItemSelectionModel.SelectCurrent)
-
     def updated_signs(self, signs, current_sign=None):
         # self.corpus_model.signs.clear()
         # self.corpus_model.signs.extend(signs)
@@ -128,7 +115,6 @@ class CorpusDisplay(QWidget):
     def clear(self):
         self.corpus_title.setText("")
 
-        # self.corpus_model.signs.clear()
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()

@@ -1,6 +1,7 @@
 import os
 import functools
 from datetime import date
+
 from PyQt5.QtWidgets import (
     QMessageBox,
     QFileDialog

@@ -358,7 +358,7 @@ class HandSelectionPanel(QFrame):
                 sib.setChecked(False)
 
     def gethands(self):
-        both = self.bothhands_radio.isChecked()  #  or self.bothinphase_radio.isChecked() or self.bothoutofphase_radio.isChecked()
+        both = self.bothhands_radio.isChecked()
         return {
             'H1': self.hand1_radio.isChecked() or both,
             'H2': self.hand2_radio.isChecked() or both

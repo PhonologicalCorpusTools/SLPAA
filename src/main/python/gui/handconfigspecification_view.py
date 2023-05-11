@@ -102,22 +102,16 @@ class ConfigSlot(QLineEdit):
         if self.num not in {'8', '9', '16', '21', '26', '31'}:
             super().clear()
             self.addedinfo = AddedInfo()
-            # self.setProperty('AddedInfo', self.addedinfo.hascontent())
-            # self.repaint()
             self.updateStyle()
 
     def set_value_from_dict(self, d):
         self.setText(d['symbol'])
         self.addedinfo = d['addedinfo']
-        # self.setProperty('AddedInfo', self.addedinfo.hascontent())
-        # self.repaint()
         self.updateStyle()
 
     def set_value(self, slot):
         self.setText(slot.symbol)
         self.addedinfo = slot.addedinfo
-        # self.setProperty('AddedInfo', self.addedinfo.hascontent())
-        # self.repaint()
         self.updateStyle()
 
     def contextMenuEvent(self, event):
@@ -138,7 +132,6 @@ class ConfigSlot(QLineEdit):
 
     def on_text_changed(self, text):
         self.setText(text.split(sep=' ')[0])
-        #self.repaint()
 
     def enterEvent(self, event):
         self.slot_on_focus.emit(self.description)
@@ -189,7 +182,6 @@ class ConfigField(QWidget):
         left_bracket.setAlignment(Qt.AlignVCenter)
         self.main_layout.addWidget(left_bracket)
 
-        #right_bracket = QLabel(']{}'.format(self.field_number))
         right_bracket = QLabel(']')
         right_bracket.setFont(bracketfont)
         right_number = QLabel(str(self.field_number))
@@ -911,14 +903,6 @@ class ConfigHand(QWidget):
         self.field7.slot_changed.connect(self.update_predefined_image_text)
         self.field7.slot_finish_edit.connect(self.slot_finish_edit.emit)
         self.main_layout.addWidget(self.field7)
-
-    # def insert_radio_button(self):
-    #     button = QRadioButton(parent=self)
-    #     self.main_layout.insertWidget(0, button)
-    #     return button
-    #
-    # def remove_radio_button(self):
-    #     self.main_layout.takeAt(0).widget().deleteLater()
 
     def set_predefined(self, transcription_list):
         for symbol, slot in zip(transcription_list, self.__iter__()):

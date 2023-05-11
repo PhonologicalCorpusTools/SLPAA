@@ -13,7 +13,6 @@ from PyQt5.QtCore import (
 from gui.locationspecification_view import LocationSvgView
 
 
-
 class SvgDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
@@ -95,10 +94,6 @@ class LocationGraphicsTestDialog(QDialog):
 
         for img_name in app_ctx.temp_test_images.keys():
             self.tabs.addTab(SvgDisplayTab(app_ctx.temp_test_images[img_name]), img_name)
-
-        # # self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_A4p.png"), "shading_A4p.png")
-        # # # self.tabs.addTab(SvgDisplayTab("../resources/base/default_location_images/shading/shading_A4p_min-01.svg"), "shading_A4p_min-01.svg")
-        # # self.tabs.addTab(ImageDisplayTab(app_ctx, specificpath="../resources/base/default_location_images/shading/shading_A4p_min-01.svg"), "shading_A4p_min-01.svg")
 
         main_layout.addWidget(self.tabs)
         self.setLayout(main_layout)

@@ -1,4 +1,3 @@
-
 from PyQt5.QtWidgets import (
     QListView,
     QTableView,
@@ -316,10 +315,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         # create layout with buttons for location type (body, signing space, etc)
         # and for phonological locations (phonological, phonetic, etc)
-        # loctype_phonloc_layout = QHBoxLayout()
-        # self.create_loctype_phonloc_layout(loctype_phonloc_layout)
         loctype_phonloc_layout = self.create_loctype_phonloc_layout()
-        # self.addLayout(loctype_phonloc_layout)
         main_layout.addLayout(loctype_phonloc_layout)
 
         # set buttons and treemodel according to the existing module being loaded (if applicable)
@@ -338,17 +334,11 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.listproxymodel.setSourceModel(self.getcurrentlistmodel())
 
         # create layout with combobox for searching location items
-        # search_layout = QHBoxLayout()
-        # self.create_search_layout(search_layout)
         search_layout = self.create_search_layout()
-        # self.addLayout(search_layout)
         main_layout.addLayout(search_layout)
 
         # create layout with visual selection widget (whether image or tree) and list view for selected location options
-        # selection_layout = QHBoxLayout()
-        # self.build_selection_layout(selection_layout)
         selection_layout = self.create_selection_layout()
-        # self.addLayout(selection_layout)
         main_layout.addLayout(selection_layout)
 
         self.setLayout(main_layout)
@@ -459,7 +449,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         self.signingspace_radio = QRadioButton("Signing space  (")
         self.signingspace_radio.setProperty('loctype', 'signingspace')
-        # loctype_layout.addWidget(self.signingspace_radio)
         signingspace_layout.addWidget(self.signingspace_radio)
 
         self.signingspacebody_radio = QRadioButton("body-anchored  /")
@@ -662,8 +651,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
             # proxyindex = self.pathslistview.selectedIndexes()[0]
             listindex = proxyindex.model().mapToSource(proxyindex)
-            # treeitem = listindex.model().itemFromIndex(listindex).treeitem
-            # addedinfo = copy(treeitem.addedinfo)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
             menu = AddedInfoContextMenu(addedinfo)
@@ -782,7 +769,6 @@ class LocationSelectionWidget(QStackedWidget):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
-        # self.imageslayout = QHBoxLayout()
         self.imagetabs = QTabWidget()
         self.fronttab = ImageDisplayTab(self.mainwindow.app_ctx, 'front')
         self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
@@ -794,27 +780,19 @@ class LocationSelectionWidget(QStackedWidget):
         self.backtab.linkbutton_toggled.connect(lambda ischecked:
                                                 self.handle_linkbutton_toggled(ischecked, self.backtab))
         self.imagetabs.addTab(self.backtab, "Back")
-        # self.imageslayout.addWidget(self.imagetabs)
         self.addWidget(self.imagetabs)
 
-        # self.treelayout = QHBoxLayout()
         self.axistreewidget = AxisTreeWidget(treemodel)
-        # self.treelayout.addWidget(self.axistreewidget)
         self.addWidget(self.axistreewidget)
 
         self.setlocationtype(locationtype)
 
     def setlocationtype(self, locationtype, treemodel=None):
-        # print("setlocationtype")
         if treemodel is not None:
             self.axistreewidget.treemodel = treemodel
         if locationtype is not None and locationtype.axis:
-            # self.setLayout(self.treelayout)
-            # print("setting current widget to axistreewidget")
-            # tempprinttreemodel(self.axistreewidget.treemodel)
             self.setCurrentWidget(self.axistreewidget)
         else:
-            # self.setLayout(self.imageslayout)
             self.setCurrentWidget(self.imagetabs)
 
     def handle_zoomfactor_changed(self, scale):
