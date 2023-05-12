@@ -89,6 +89,8 @@ class SignLevelInfoPanel(QFrame):
 
         self.fingerspelled_cb = QCheckBox()
         fingerspelled_label = QLabel('Fingerspelled:')
+        self.compoundsign_cb = QCheckBox()
+        compoundsign_label = QLabel('Compound sign:')
 
         handdominance_label = QLabel("Hand dominance:")
         self.handdominance_buttongroup = QButtonGroup()  # parent=self)
@@ -117,6 +119,7 @@ class SignLevelInfoPanel(QFrame):
         main_layout.addRow(modified_label, self.modified_display)
         main_layout.addRow(note_label, self.note_edit)
         main_layout.addRow(fingerspelled_label, self.fingerspelled_cb)
+        main_layout.addRow(compoundsign_label, self.compoundsign_cb)
         main_layout.addRow(handdominance_label, self.handdominance_layout)
 
         self.set_value()
@@ -156,6 +159,8 @@ class SignLevelInfoPanel(QFrame):
             self.note_edit.setPlainText(signlevelinfo.note if signlevelinfo.note is not None else "")
             # backward compatibility for attribute added 20230412!
             self.fingerspelled_cb.setChecked(hasattr(signlevelinfo, '_fingerspelled') and signlevelinfo.fingerspelled)
+            # backward compatibility for attribute added 20230503!
+            self.compoundsign_cb.setChecked(hasattr(signlevelinfo, '_compoundsign') and signlevelinfo.compoundsign)
             self.set_handdominance(signlevelinfo.handdominance)
 
     def clear(self):
@@ -169,6 +174,7 @@ class SignLevelInfoPanel(QFrame):
         self.modified_display.reset()
         self.note_edit.setPlaceholderText('Enter note here...')
         self.fingerspelled_cb.setChecked(False)
+        self.compoundsign_cb.setChecked(False)
         self.set_handdominance(self.defaulthand)
 
     def set_handdominance(self, handdominance):
@@ -198,6 +204,7 @@ class SignLevelInfoPanel(QFrame):
                 'date last modified': self.modified_display.get_datetime(),
                 'note': self.note_edit.toPlainText(),
                 'fingerspelled': self.fingerspelled_cb.isChecked(),
+                'compoundsign': self.compoundsign_cb.isChecked(),
                 'handdominance': self.get_handdominance()
             }
 
