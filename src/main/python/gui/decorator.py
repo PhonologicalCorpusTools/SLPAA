@@ -1,10 +1,10 @@
 import os
 import functools
 from datetime import date
+
 from PyQt5.QtWidgets import (
     QMessageBox,
-    QFileDialog,
-    QWidget
+    QFileDialog
 )
 
 
@@ -12,7 +12,10 @@ def check_unsaved_change(func):
     @functools.wraps(func)
     def wrapper_check_unsaved_change(self, event, *args, **kwargs):
         if not self.undostack.isClean():
-            response = QMessageBox.question(self, 'Unsaved Changes', 'You have unsaved changes. Are you sure you want to close the app?')
+            response = QMessageBox.question(
+                self,
+                'Unsaved Changes',
+                'You have unsaved changes. Are you sure you want to close the app?')
             if response == QMessageBox.No:
                 return event.ignore()
         func(self, event, *args, **kwargs)
@@ -41,7 +44,7 @@ def check_empty_gloss(func):
     @functools.wraps(func)
     def wrapper_check_empty_gloss(self, *args, **kwargs):
         if not self.gloss_edit.text():
-            QMessageBox.critical(self if isinstance(self, QWidget) else self.parentwidget, 'Empty Gloss', 'Gloss cannot be empty.')
+            QMessageBox.critical(self, 'Empty Gloss', 'Gloss cannot be empty.')
             return
         else:
             return func(self, *args, **kwargs)
@@ -56,7 +59,9 @@ def check_duplicated_gloss(func):
             return
         else:
             if self.current_sign:
-                if signlevel_info['gloss'] == self.current_sign.signlevel_info.gloss or signlevel_info['gloss'] not in self.corpus.get_sign_glosses():
+                if signlevel_info['gloss'] == \
+                        self.current_sign.signlevel_info.gloss or \
+                        signlevel_info['gloss'] not in self.corpus.get_sign_glosses():
                     return func(self, *args, **kwargs)
 
             if signlevel_info['gloss'] in self.corpus.get_sign_glosses():

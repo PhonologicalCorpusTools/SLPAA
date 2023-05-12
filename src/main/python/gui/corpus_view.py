@@ -1,10 +1,6 @@
 from PyQt5.QtCore import (
     Qt,
-    # QAbstractListModel,
-    # QAbstractItemModel,
-    QSortFilterProxyModel,
     pyqtSignal,
-    # QModelIndex,
     QItemSelectionModel
 )
 
@@ -18,84 +14,9 @@ from PyQt5.QtWidgets import (
     QComboBox
 )
 
-from PyQt5.Qt import (
-    QStandardItem,
-    QStandardItemModel
-)
-
+from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
 
-#from PyQt5.QtGui import ()
-
-datecreatedrole = 1
-datemodifiedrole = 2
-entryidrole = 3
-
-
-class CorpusItem(QStandardItem):
-
-    def __init__(self, sign=None):
-        super().__init__()
-
-        self.sign = sign
-        self.setEditable(False)
-        # self.setText(sign.signlevel_information.gloss)
-        self.setCheckable(False)
-
-    def data(self, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            return self.sign.signlevel_information.gloss
-        elif role == Qt.UserRole+datecreatedrole:
-            return self.sign.signlevel_information.datecreated
-        elif role == Qt.UserRole+datemodifiedrole:
-            return self.sign.signlevel_information.datelastmodified
-        elif role == Qt.UserRole+entryidrole:
-            return self.sign.signlevel_information.entryid
-
-
-class CorpusModel(QStandardItemModel):
-    modelupdated = pyqtSignal()
-
-    def __init__(self, signs=None, **kwargs):
-        super().__init__(**kwargs)
-        self.setsigns(signs)
-
-    def setsigns(self, signs):
-        signs = signs or []
-        self.clear()
-        for sign in signs:
-            signitem = CorpusItem(sign)
-            self.appendRow(signitem)
-        self.modelupdated.emit()
-        # self.dataChanged.emit()
-
-
-# class CorpusModel(QAbstractItemModel):
-#     def __init__(self, signs=None, **kwargs):  # glosses=None, **kwargs):
-#         super().__init__(**kwargs)
-#         # self.glosses = glosses or []
-#         self.signs = signs or []
-#
-#     def data(self, index, role):
-#         print("the index you clicked has data...")
-#         print("row: ", index.row())
-#         # print("display (gloss): ", index.data(Qt.DisplayRole))
-#         # print("entry id: ", index.data(Qt.UserRole+entryidrole))
-#         # print("date created: ", index.data(Qt.UserRole+datecreatedrole))
-#         # print("date modified: ", index.data(Qt.UserRole+datemodifiedrole))
-#         if role == Qt.DisplayRole:
-#             # return self.glosses[index.row()]
-#             return self.signs[index.row()].signlevel_information.gloss
-#         elif role == Qt.UserRole+datecreatedrole:
-#             return self.signs[index.row()].signlevel_information.datecreated
-#         elif role == Qt.UserRole+datemodifiedrole:
-#             return self.signs[index.row()].signlevel_information.datelastmodified
-#         elif role == Qt.UserRole+entryidrole:
-#             return self.signs[index.row()].signlevel_information.entryid
-#
-#     def rowCount(self, index):
-#         # return len(self.glosses)
-#         return len(self.signs)
 
 class CorpusTitleEdit(QLineEdit):
     focus_out = pyqtSignal(str)
@@ -111,7 +32,6 @@ class CorpusTitleEdit(QLineEdit):
 
 
 class CorpusDisplay(QWidget):
-    # selected_gloss = pyqtSignal(str)
     selected_sign = pyqtSignal(Sign)
     title_changed = pyqtSignal(str)
 
@@ -169,18 +89,6 @@ class CorpusDisplay(QWidget):
         # self.selected_gloss.emit(gloss)
         self.selected_sign.emit(sign)
 
-    # def updated_glosses(self, glosses, current_gloss):
-    #     self.corpus_model.glosses.clear()
-    #     self.corpus_model.glosses.extend(glosses)
-    #     self.corpus_model.glosses.sort()
-    #     self.corpus_model.layoutChanged.emit()
-    #
-    #     index = self.corpus_model.glosses.index(current_gloss)
-    #
-    #     # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
-    #     self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
-    #                                                       QItemSelectionModel.SelectCurrent)
-
     def updated_signs(self, signs, current_sign=None):
         self.corpus_model.setsigns(signs)
         self.corpus_model.layoutChanged.emit()
@@ -202,28 +110,6 @@ class CorpusDisplay(QWidget):
     def clear(self):
         self.corpus_title.setText("")
 
-        # self.corpus_model.signs.clear()
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
-
-
-class CorpusSortProxyModel(QSortFilterProxyModel):
-
-    def __init__(self, parent=None):
-        super(CorpusSortProxyModel, self).__init__(parent)
-        self.setSortCaseSensitivity(Qt.CaseInsensitive)
-        self.setSortRole(Qt.DisplayRole)
-        self.sort(0)
-
-    def updatesorttype(self, sortbytext=""):
-        if "alpha" in sortbytext:
-            self.setSortRole(Qt.DisplayRole)
-            self.sort(0)
-        elif "created" in sortbytext:
-            self.setSortRole(Qt.UserRole+datecreatedrole)
-            self.sort(0)
-        elif "modified" in sortbytext:
-            self.setSortRole(Qt.UserRole+datemodifiedrole)
-            self.sort(0)
-

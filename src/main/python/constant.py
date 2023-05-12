@@ -38,8 +38,8 @@ X_IN_BOX = '\u2327'
 NULL = '\u2205'
 
 # styles for transcription
-ESTIMATE_BORDER = '2px dashed black'
-UNCERTAIN_BACKGROUND = 'pink'
+# ESTIMATE_BORDER = '2px dashed black'
+# UNCERTAIN_BACKGROUND = 'pink'
 
 DEFAULT_LOCATION_POINTS = [('start', 'red', ''), ('mid', 'blue', 'some notes'), ('end', 'green', '')]
 

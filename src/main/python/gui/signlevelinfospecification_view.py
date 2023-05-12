@@ -1,46 +1,28 @@
 from datetime import datetime
 
 from PyQt5.QtWidgets import (
-    QFrame,
-    QGroupBox,
     QLineEdit,
     QDialog,
+    QFrame,
     QHBoxLayout,
     QFormLayout,
     QRadioButton,
     QVBoxLayout,
-    # QFileDialog,
-    # QWidget,
-    # QTabWidget,
-    # QTabBar,
     QDialogButtonBox,
-    # QMessageBox,
     QPlainTextEdit,
     QButtonGroup,
     QCheckBox,
-    # QComboBox,
     QLabel,
-    # QCompleter,
-    # QAbstractItemView,
-    # QStyledItemDelegate,
-    # QStyle,
-    # QStyleOptionButton,
-    # QApplication,
-    # QHeaderView,
-    # QStyleOptionFrame,
-    # QErrorMessage
 )
 
 from PyQt5.QtCore import (
     Qt,
-    # QAbstractListModel,
     pyqtSignal,
     QSize,
-    # QEvent
 )
 
 from lexicon.lexicon_classes import SignLevelInformation
-from gui.decorator import check_date_format, check_empty_gloss
+from gui.decorator import check_empty_gloss
 
 
 class SignLevelDateDisplay(QLabel):
@@ -64,12 +46,12 @@ class SignLevelDateDisplay(QLabel):
 
 
 # TODO KV redo the order in which init creates itself
-class SignLevelInfoLayout(QVBoxLayout):
+class SignLevelInfoPanel(QFrame):
 
-    def __init__(self, signlevelinfo, mainwindow, parentwidget=None, **kwargs):
+    def __init__(self, signlevelinfo, **kwargs):
         super().__init__(**kwargs)
-        self.mainwindow = mainwindow
-        self.parentwidget = parentwidget
+
+        self.mainwindow = self.parent().mainwindow
 
         self.settings = self.mainwindow.app_settings
         self.coder = self.settings['metadata']['coder']
@@ -107,8 +89,6 @@ class SignLevelInfoLayout(QVBoxLayout):
 
         self.fingerspelled_cb = QCheckBox()
         fingerspelled_label = QLabel('Fingerspelled:')
-        self.compoundsign_cb = QCheckBox()
-        compoundsign_label = QLabel('Compound sign:')
 
         handdominance_label = QLabel("Hand dominance:")
         self.handdominance_buttongroup = QButtonGroup()  # parent=self)
@@ -137,12 +117,11 @@ class SignLevelInfoLayout(QVBoxLayout):
         main_layout.addRow(modified_label, self.modified_display)
         main_layout.addRow(note_label, self.note_edit)
         main_layout.addRow(fingerspelled_label, self.fingerspelled_cb)
-        main_layout.addRow(compoundsign_label, self.compoundsign_cb)
         main_layout.addRow(handdominance_label, self.handdominance_layout)
 
         self.set_value()
 
-        self.addLayout(main_layout)
+        self.setLayout(main_layout)
 
     def entryid(self):
         if self.signlevelinfo is not None:
@@ -177,8 +156,6 @@ class SignLevelInfoLayout(QVBoxLayout):
             self.note_edit.setPlainText(signlevelinfo.note if signlevelinfo.note is not None else "")
             # backward compatibility for attribute added 20230412!
             self.fingerspelled_cb.setChecked(hasattr(signlevelinfo, '_fingerspelled') and signlevelinfo.fingerspelled)
-            # backward compatibility for attribute added 20230503!
-            self.compoundsign_cb.setChecked(hasattr(signlevelinfo, '_compoundsign') and signlevelinfo.compoundsign)
             self.set_handdominance(signlevelinfo.handdominance)
 
     def clear(self):
@@ -192,7 +169,6 @@ class SignLevelInfoLayout(QVBoxLayout):
         self.modified_display.reset()
         self.note_edit.setPlaceholderText('Enter note here...')
         self.fingerspelled_cb.setChecked(False)
-        self.compoundsign_cb.setChecked(False)
         self.set_handdominance(self.defaulthand)
 
     def set_handdominance(self, handdominance):
@@ -222,7 +198,6 @@ class SignLevelInfoLayout(QVBoxLayout):
                 'date last modified': self.modified_display.get_datetime(),
                 'note': self.note_edit.toPlainText(),
                 'fingerspelled': self.fingerspelled_cb.isChecked(),
-                'compoundsign': self.compoundsign_cb.isChecked(),
                 'handdominance': self.get_handdominance()
             }
 
@@ -234,16 +209,16 @@ class SignLevelInfoLayout(QVBoxLayout):
 class SignlevelinfoSelectorDialog(QDialog):
     saved_signlevelinfo = pyqtSignal(SignLevelInformation)
 
-    def __init__(self, signlevelinfo, mainwindow, **kwargs):
+    def __init__(self, signlevelinfo, **kwargs):
         super().__init__(**kwargs)
         self.setWindowTitle("Sign-level information")
-        self.mainwindow = mainwindow
+        self.mainwindow = self.parent().mainwindow
         self.settings = self.mainwindow.app_settings
 
-        self.signlevelinfo_layout = SignLevelInfoLayout(signlevelinfo, mainwindow, parentwidget=self)  # TODO KV delete app_ctx)
+        self.signlevelinfo_widget = SignLevelInfoPanel(signlevelinfo, parent=self)
 
         main_layout = QVBoxLayout()
-        main_layout.addLayout(self.signlevelinfo_layout)
+        main_layout.addWidget(self.signlevelinfo_widget)
 
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
@@ -259,8 +234,7 @@ class SignlevelinfoSelectorDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
-        self.signlevelinfo_layout.set_starting_focus()
-        # self.setMinimumSize(QSize(500, 850))  # TODO KV from previous layout (all stacked vertically)
+        self.signlevelinfo_widget.set_starting_focus()
         self.setMinimumSize(QSize(700, 500))  # width, height
 
     def handle_button_click(self, button):
@@ -270,12 +244,14 @@ class SignlevelinfoSelectorDialog(QDialog):
             self.reject()
 
         elif standard == QDialogButtonBox.Save:
-            newsignlevelinfo = SignLevelInformation(signlevel_info=self.signlevelinfo_layout.get_value())
-            oldsignlevelinfo = self.signlevelinfo_layout.signlevelinfo
-            self.saved_signlevelinfo.emit(newsignlevelinfo)
-            if self.mainwindow.current_sign is not None and newsignlevelinfo != oldsignlevelinfo:
-                self.mainwindow.current_sign.lastmodifiednow()
-            self.accept()
+            sli = self.signlevelinfo_widget.get_value()
+            if sli is not None:
+                newsignlevelinfo = SignLevelInformation(signlevel_info=sli)
+                oldsignlevelinfo = self.signlevelinfo_widget.signlevelinfo
+                self.saved_signlevelinfo.emit(newsignlevelinfo)
+                if self.mainwindow.current_sign is not None and newsignlevelinfo != oldsignlevelinfo:
+                    self.mainwindow.current_sign.lastmodifiednow()
+                self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            self.signlevelinfo_layout.clear()
+            self.signlevelinfo_widget.clear()

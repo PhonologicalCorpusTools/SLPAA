@@ -166,16 +166,11 @@ class SignDefaultsTab(QWidget):
         previouspartials = self.settings['signdefaults']['partial_xslots']
         newpartials = {cb.property('partialxslot'): cb.isChecked() for cb in self.partialxslots_group.buttons()}
         self.settings['signdefaults']['partial_xslots'] = newpartials
-        # for cb in self.partialxslots_group.buttons():
-        #     self.settings['signdefaults']['partial_xslots'][cb.property('partialxslot')] = cb.isChecked()
         if previouspartials != newpartials:
             self.xslotdivisions_changed.emit(previouspartials, newpartials)
 
 
-
-
 class LocationTab(QWidget):
-    # xslotdivisions_changed = pyqtSignal(dict, dict)
 
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)

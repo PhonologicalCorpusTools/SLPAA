@@ -1,25 +1,19 @@
-# from datetime import date
 from fractions import Fraction
 from itertools import permutations
 from collections import defaultdict
 from PyQt5.QtCore import (
     Qt,
-    # QSize,
     QRectF,
     QPoint,
     pyqtSignal,
-    # QEvent
 )
 
 from PyQt5.QtWidgets import (
-    # QWidget,
     QScrollArea,
     QVBoxLayout,
     QFrame,
     QLabel,
     QLineEdit,
-    # QPlainTextEdit,
-    # QGridLayout,
     QHBoxLayout,
     QCheckBox,
     QGraphicsPolygonItem,
@@ -28,7 +22,6 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QGraphicsEllipseItem,
     QGraphicsTextItem,
-    # QButtonGroup,
     QGroupBox,
     QPushButton,
     QColorDialog,
@@ -37,10 +30,6 @@ from PyQt5.QtWidgets import (
     QAbstractItemView,
     QMenu,
     QAction,
-    # QRadioButton,
-    # QComboBox,
-    # QCompleter,
-    # QTreeView,
     QMessageBox
 )
 
@@ -50,25 +39,22 @@ from PyQt5.QtGui import (
     QPen,
     QBrush,
     QPolygonF,
-    # QTextOption,
-    # QFont
 )
 
 # from gui.hand_configuration import ConfigGlobal, Config
-from gui.signtype_selector import SigntypeSelectorDialog
-from gui.signlevelinfo_selector import SignlevelinfoSelectorDialog
+from gui.signtypespecification_view import SigntypeSelectorDialog
+from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
-from gui.movement_selector import MovementSpecificationLayout
-from gui.location_selector import LocationSpecificationLayout
-from gui.handshape_selector import HandConfigSpecificationLayout
-from gui.xslots_selector import XslotSelectorDialog
-from lexicon.lexicon_classes import Sign, TimingInterval, TimingPoint
-from gui.module_selector import ModuleSelectorDialog
+from gui.xslotspecification_view import XslotSelectorDialog
+from lexicon.module_classes import TimingPoint, TimingInterval
+from lexicon.lexicon_classes import Sign
+from gui.modulespecification_dialog import ModuleSelectorDialog
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
 
 
+# TODO KV there are two classes with this name-- are they exactly the same?
 class LocationPolygon(QGraphicsPolygonItem):
     def __init__(self, polygon, pen_width=5, pen_color='orange', fill_color='#FFD141', fill_alpha=0.5, **kwargs):
         super().__init__(**kwargs)
@@ -272,7 +258,7 @@ class SingleLocationViewer(QGraphicsView):
             self._scene.addItem(self.point_W)
 
 
-class XslotPanel(QScrollArea):
+class SignSummaryPanel(QScrollArea):
 
     def __init__(self, mainwindow, sign=None, **kwargs):
         super().__init__(**kwargs)
@@ -303,7 +289,7 @@ class XslotPanel(QScrollArea):
         self.moduleitems = []
         self.gridlinestart = 0
         self.refreshsign()  # self.sign)
-        self.xslotview = QGraphicsView(self.scene)  # , self)  # XslotGraphicsView(self.scene, self)
+        self.xslotview = QGraphicsView(self.scene)
         self.xslotview.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.xslotview.setGeometry(0, 0, 1000, 600)
         main_layout.addWidget(self.xslotview)
@@ -331,7 +317,6 @@ class XslotPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            # signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid_string())
             signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
         signleveltext.setPos(self.x_offset, self.current_y*(self.default_xslot_height+self.verticalspacing))
         self.current_y += 1
@@ -500,10 +485,8 @@ class XslotPanel(QScrollArea):
 
                 for midx, m_id in enumerate(parammodules.keys()):
                     parammod = parammodules[m_id]
-                    # parammodid = parammod.uniqueid
                     if parammod.hands[hand]:
                         condensed_timingintervals = self.condense_timingintervals(parammod.timingintervals)
-                        # for tidx, t in enumerate(parammod.timingintervals):
                         for tidx, t in enumerate(condensed_timingintervals):
                             if t.ispoint():
                                 points.append((midx, m_id, tidx, t))
@@ -615,7 +598,6 @@ class XslotPanel(QScrollArea):
                 for mult in range(d + 1):
                     fractionalpoints.append(Fraction(mult, d))
             fractionalpoints = list(set(fractionalpoints))
-            # self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
             for whole in range(0, whole_xslots+1):
                 for frac in fractionalpoints:
@@ -648,69 +630,57 @@ class XslotPanel(QScrollArea):
         pass
 
     def handle_signtype_clicked(self):
-        signtypedialog = SigntypeSelectorDialog(self.mainwindow.current_sign.signtype, mainwindow=self.mainwindow)
+        signtypedialog = SigntypeSelectorDialog(self.mainwindow.current_sign.signtype, parent=self)
         signtypedialog.saved_signtype.connect(self.handle_save_signtype)
         signtypedialog.exec_()
 
     def handle_save_signtype(self, signtype):
         self.sign.signtype = signtype
-        self.refreshsign()  # self.sign)
+        self.refreshsign()
 
     def handle_movement_clicked(self, modulekey):
         mvmtmodule = self.sign.movementmodules[modulekey]
-        movementtreemodel = mvmtmodule.movementtreemodel
-        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
-                                                 hands=mvmtmodule.hands,
+        movement_selector = ModuleSelectorDialog(moduletype='Mov',
                                                  xslotstructure=self.sign.xslotstructure,
-                                                 new_instance=False,
-                                                 modulelayout=MovementSpecificationLayout(movementtreemodel),
-                                                 moduleargs=None,
-                                                 timingintervals=mvmtmodule.timingintervals,
-                                                 addedinfo=mvmtmodule.addedinfo,
+                                                 moduletoload=mvmtmodule,
                                                  includephase=2,
-                                                 inphase=mvmtmodule.inphase)
-        movement_selector.get_savedmodule_signal().connect(
-            lambda movementtree, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_movement(movementtree, hands, timingintervals, addedinfo, inphase, existing_key=modulekey))
-        movement_selector.get_deletedmodule_signal().connect(
+                                                 parent=self)
+        movement_selector.module_saved.connect(
+            lambda movementmodule:
+            self.mainwindow.signlevel_panel.handle_save_movement(movementmodule, existing_key=modulekey)
+        )
+        movement_selector.module_deleted.connect(
             lambda: self.mainwindow.signlevel_panel.handle_delete_movement(modulekey)
         )
         movement_selector.exec_()
 
     def handle_location_clicked(self, modulekey):
         locnmodule = self.sign.locationmodules[modulekey]
-        # locationtreemodel = locnmodule.locationtreemodel
-        location_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
-                                                 hands=locnmodule.hands,
+        location_selector = ModuleSelectorDialog(moduletype='Loc',
                                                  xslotstructure=self.sign.xslotstructure,
-                                                 new_instance=False,
-                                                 modulelayout=LocationSpecificationLayout(self.mainwindow, locnmodule),
-                                                 moduleargs=None,
-                                                 timingintervals=locnmodule.timingintervals,
-                                                 addedinfo=locnmodule.addedinfo,
+                                                 moduletoload=locnmodule,
                                                  includephase=1,
-                                                 inphase=locnmodule.inphase)
-        location_selector.get_savedmodule_signal().connect(
-            lambda locationtree, phonlocs, loctype, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_location(locationtree, hands, timingintervals, addedinfo, phonlocs, loctype, inphase, existing_key=modulekey))
-        location_selector.get_deletedmodule_signal().connect(
+                                                 parent=self)
+        location_selector.module_saved.connect(
+            lambda locationmodule:
+            self.mainwindow.signlevel_panel.handle_save_location(locationmodule, existing_key=modulekey)
+        )
+        location_selector.module_deleted.connect(
             lambda: self.mainwindow.signlevel_panel.handle_delete_location(modulekey)
         )
         location_selector.exec_()
 
     def handle_handconfig_clicked(self, modulekey):
         hcfgmodule = self.sign.handconfigmodules[modulekey]
-        handconfiguration = hcfgmodule.handconfiguration
-        overalloptions = hcfgmodule.overalloptions
-        handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
-                                                hands=hcfgmodule.hands,
+        handcfg_selector = ModuleSelectorDialog(moduletype='Config',
                                                 xslotstructure=self.sign.xslotstructure,
-                                                new_instance=False,
-                                                modulelayout=HandConfigSpecificationLayout(self.mainwindow, hcfgmodule),  # (handconfiguration, overalloptions)),
-                                                moduleargs=None,
-                                                timingintervals=hcfgmodule.timingintervals,
-                                                addedinfo=hcfgmodule.addedinfo)
-        handcfg_selector.get_savedmodule_signal().connect(
-            lambda configdict, hands, timingintervals, addedinfo, inphase: self.mainwindow.signlevel_panel.handle_save_handconfig(configdict, hands, timingintervals, addedinfo, modulekey))
-        handcfg_selector.get_deletedmodule_signal().connect(
+                                                moduletoload=hcfgmodule,
+                                                parent=self)
+        handcfg_selector.module_saved.connect(
+            lambda hconfigmodule:
+            self.mainwindow.signlevel_panel.handle_save_handconfig(hconfigmodule, existing_key=modulekey)
+        )
+        handcfg_selector.module_deleted.connect(
             lambda: self.mainwindow.signlevel_panel.handle_delete_handconfig(modulekey)
         )
         handcfg_selector.exec_()
@@ -731,7 +701,7 @@ class SignLevelMenuPanel(QScrollArea):
         main_frame.setLayout(main_layout)
 
         self._sign = sign
-        self.system_default_signtype = mainwindow.system_default_signtype
+        self.system_default_signtype = self.mainwindow.system_default_signtype
         self.sign_buttons = []
         self.module_buttons = []
 
@@ -792,13 +762,6 @@ class SignLevelMenuPanel(QScrollArea):
         for btn in self.module_buttons:
             main_layout.addWidget(btn)
         self.enable_module_buttons(False)
-        # main_layout.addWidget(self.signlevel_button)
-        # main_layout.addWidget(self.signtype_button)
-        # main_layout.addWidget(self.movement_button)
-        # main_layout.addWidget(self.handshape_button)
-        # main_layout.addWidget(self.orientation_button)
-        # main_layout.addWidget(self.location_button)
-        # main_layout.addWidget(self.contact_button)
 
         self.setWidget(main_frame)
 
@@ -827,7 +790,7 @@ class SignLevelMenuPanel(QScrollArea):
         self.signgloss_label.setText("Sign: ")
 
     def handle_xslotsbutton_click(self):
-        timing_selector = XslotSelectorDialog(self.sign.xslotstructure if self.sign else None, self.mainwindow, parent=self)  #  self.mainwindow.app_settings,
+        timing_selector = XslotSelectorDialog(self.sign.xslotstructure if self.sign else None, parent=self)
         timing_selector.saved_xslots.connect(self.handle_save_xslots)
         timing_selector.exec_()
 
@@ -838,7 +801,7 @@ class SignLevelMenuPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_signlevelbutton_click(self):
-        signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, self.mainwindow, parent=self)
+        signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, parent=self)
         signlevelinfo_selector.saved_signlevelinfo.connect(self.handle_save_signlevelinfo)
         signlevelinfo_selector.exec_()
 
@@ -860,11 +823,10 @@ class SignLevelMenuPanel(QScrollArea):
             self.mainwindow.handle_sign_selected(self.sign)
 
         self.sign_updated.emit(self.sign)
-        # self.mainwindow.corpus_view.updated_glosses(self.mainwindow.corpus.get_sign_glosses(), self.sign.signlevel_information.gloss)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
 
     def handle_signtypebutton_click(self):
-        signtype_selector = SigntypeSelectorDialog(self.sign.signtype, self.mainwindow, parent=self)
+        signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
         signtype_selector.saved_signtype.connect(self.handle_save_signtype)
         signtype_selector.exec_()
 
@@ -873,15 +835,12 @@ class SignLevelMenuPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_movementbutton_click(self):
-        movement_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
-                                                 hands=None,
+        movement_selector = ModuleSelectorDialog(moduletype='Mov',
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                 new_instance=True,
-                                                 modulelayout=MovementSpecificationLayout(),
-                                                 moduleargs=None,
+                                                 moduletoload=None,
                                                  includephase=2,
-                                                 inphase=0)
-        movement_selector.get_savedmodule_signal().connect(lambda movementtree, hands, timingintervals, addedinfo, inphase: self.handle_save_movement(movementtree, hands, timingintervals, addedinfo, inphase))
+                                                 parent=self)
+        movement_selector.module_saved.connect(self.handle_save_movement)
         movement_selector.exec_()
 
     def handle_delete_movement(self, existing_key):
@@ -891,22 +850,19 @@ class SignLevelMenuPanel(QScrollArea):
             self.sign.removemovementmodule(existing_key)
         self.sign_updated.emit(self.sign)
 
-    def handle_save_movement(self, movementtree, hands_dict, timingintervals, addedinfo, inphase, existing_key=None):
+    def handle_save_movement(self, movementmod, existing_key=None):
         if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-            self.sign.addmovementmodule(movementtree, hands_dict, timingintervals, addedinfo, inphase)
+            self.sign.addmovementmodule(movementmod)
         else:
-            # self.sign.movementmodules[existing_key] = movementtree
-            self.sign.updatemovementmodule(existing_key, movementtree, hands_dict, timingintervals, addedinfo, inphase)
+            self.sign.updatemovementmodule(existing_key, movementmod)
         self.sign_updated.emit(self.sign)
 
     def handle_handshapebutton_click(self):
-        handcfg_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
-                                                hands=None,
+        handcfg_selector = ModuleSelectorDialog(moduletype='Config',
                                                 xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                new_instance=True,
-                                                modulelayout=HandConfigSpecificationLayout(self.mainwindow),
-                                                moduleargs=None)
-        handcfg_selector.get_savedmodule_signal().connect(lambda configdict, hands, timingintervals, addedinfo, inphase: self.handle_save_handconfig(configdict, hands, timingintervals, addedinfo))
+                                                moduletoload=None,
+                                                parent=self)
+        handcfg_selector.module_saved.connect(self.handle_save_handconfig)
         handcfg_selector.exec_()
 
     def handle_delete_handconfig(self, existing_key):
@@ -916,13 +872,11 @@ class SignLevelMenuPanel(QScrollArea):
             self.sign.removehandconfigmodule(existing_key)
         self.sign_updated.emit(self.sign)
 
-    def handle_save_handconfig(self, configdict, hands_dict, timingintervals, addedinfo, existing_key=None):
-        handconfiguration = configdict['hand']
-        overalloptions = {k: v for (k, v) in configdict.items() if k != 'hand'}
+    def handle_save_handconfig(self, hcfgmodule, existing_key=None):
         if existing_key is None or existing_key not in self.sign.handconfigmodules.keys():
-            self.sign.addhandconfigmodule(handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo)
+            self.sign.addhandconfigmodule(hcfgmodule)
         else:
-            self.sign.updatehandconfigmodule(existing_key, handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo)
+            self.sign.updatehandconfigmodule(existing_key, hcfgmodule)
         self.sign_updated.emit(self.sign)
 
     def handle_contactbutton_click(self):
@@ -934,15 +888,12 @@ class SignLevelMenuPanel(QScrollArea):
         QMessageBox.information(self, 'Not Available', 'Orientation module functionality not yet linked.')
 
     def handle_locationbutton_click(self):
-        location_selector = ModuleSelectorDialog(mainwindow=self.mainwindow,
-                                                 hands=None,
+        location_selector = ModuleSelectorDialog(moduletype='Loc',
                                                  xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                 new_instance=True,
-                                                 modulelayout=LocationSpecificationLayout(self.mainwindow),
-                                                 moduleargs=None,
+                                                 moduletoload=None,
                                                  includephase=1,
-                                                 inphase=0)
-        location_selector.get_savedmodule_signal().connect(lambda locationtree, phonlocs, loctype, hands, timingintervals, addedinfo, inphase: self.handle_save_location(locationtree, hands, timingintervals, addedinfo, phonlocs, loctype, inphase))
+                                                 parent=self)
+        location_selector.module_saved.connect(self.handle_save_location)
         location_selector.exec_()
 
     def handle_delete_location(self, existing_key):
@@ -952,12 +903,11 @@ class SignLevelMenuPanel(QScrollArea):
             self.sign.removelocationmodule(existing_key)
         self.sign_updated.emit(self.sign)
 
-    def handle_save_location(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase, existing_key=None):
+    def handle_save_location(self, locationmodule, existing_key=None):
         if existing_key is None or existing_key not in self.sign.locationmodules.keys():
-            self.sign.addlocationmodule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase)
+            self.sign.addlocationmodule(locationmodule)
         else:
-            # self.sign.locationmodules[existing_key] = locationtree
-            self.sign.updatelocationmodule(existing_key, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase)
+            self.sign.updatelocationmodule(existing_key, locationmodule)
         self.sign_updated.emit(self.sign)
 
     def handle_handpartbutton_click(self):
@@ -967,106 +917,6 @@ class SignLevelMenuPanel(QScrollArea):
     def handle_nonmanualbutton_click(self):
         # TODO KV
         QMessageBox.information(self, 'Not Available', 'Non-manual module functionality not yet linked.')
-
-# TODO KV no longer used
-# class HandTranscriptionPanel(QScrollArea):
-#     selected_hand = pyqtSignal(int)
-#
-#     def __init__(self, predefined_ctx, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         self.setFrameStyle(QFrame.StyledPanel)
-#         main_frame = QFrame(parent=self)
-#
-#         main_layout = QGridLayout()
-#         main_frame.setLayout(main_layout)
-#
-#         self.global_info = ConfigGlobal(title='Handshape global options', parent=self)
-#         main_layout.addWidget(self.global_info, 0, 0, 2, 1)
-#
-#         self.config1 = Config(1, 'Configuration 1', predefined_ctx, parent=self)
-#         main_layout.addWidget(self.config1, 0, 1, 1, 2)
-#
-#         self.config2 = Config(2, 'Configuration 2', predefined_ctx, parent=self)
-#         main_layout.addWidget(self.config2, 1, 1, 1, 2)
-#
-#         self.setWidget(main_frame)
-#
-#     def clear(self):
-#         self.global_info.clear()
-#         self.config1.clear()
-#         self.config2.clear()
-#
-#     def set_value(self, global_handshape_info, hand_transcription):
-#         self.global_info.set_value(global_handshape_info)
-#         self.config1.set_value(hand_transcription.config1)
-#         self.config2.set_value(hand_transcription.config2)
-#
-#     def change_hand_selection(self, hand):
-#         if hand == 1:
-#             self.button1.setChecked(True)
-#         elif hand == 2:
-#             self.button2.setChecked(True)
-#         elif hand == 3:
-#             self.button3.setChecked(True)
-#         elif hand == 4:
-#             self.button4.setChecked(True)
-#
-#     def insert_radio_button(self, focused_hand):
-#         self.selected_hand_group = QButtonGroup(parent=self)
-#         self.button1, self.button2 = self.config1.insert_radio_button()
-#         self.button3, self.button4 = self.config2.insert_radio_button()
-#
-#         self.button1.clicked.connect(lambda: self.selected_hand.emit(1))
-#         self.button2.clicked.connect(lambda: self.selected_hand.emit(2))
-#         self.button3.clicked.connect(lambda: self.selected_hand.emit(3))
-#         self.button4.clicked.connect(lambda: self.selected_hand.emit(4))
-#
-#         if focused_hand == 1:
-#             self.button1.setChecked(True)
-#         elif focused_hand == 2:
-#             self.button2.setChecked(True)
-#         elif focused_hand == 3:
-#             self.button3.setChecked(True)
-#         elif focused_hand == 4:
-#             self.button4.setChecked(True)
-#
-#         self.selected_hand_group.addButton(self.button1, 1)
-#         self.selected_hand_group.addButton(self.button2, 2)
-#         self.selected_hand_group.addButton(self.button3, 3)
-#         self.selected_hand_group.addButton(self.button4, 4)
-#
-#     def remove_radio_button(self):
-#         self.config1.remove_radio_button()
-#         self.config2.remove_radio_button()
-#         self.selected_hand_group.deleteLater()
-#
-#     def get_hand_transcription(self, hand=None):
-#         if hand is None:
-#             hand = self.selected_hand_group.checkedId()
-#
-#         if hand == 1:
-#             return self.config1.hand1.get_hand_transcription_list()
-#         elif hand == 2:
-#             return self.config1.hand2.get_hand_transcription_list()
-#         elif hand == 3:
-#             return self.config2.hand1.get_hand_transcription_list()
-#         elif hand == 4:
-#             return self.config2.hand2.get_hand_transcription_list()
-#
-#     def set_predefined(self, transcription_list, hand=None):
-#         if hand is None:
-#             hand = self.selected_hand_group.checkedId()
-#
-#         if hand == 1:
-#             self.config1.hand1.set_predefined(transcription_list)
-#         elif hand == 2:
-#             self.config1.hand2.set_predefined(transcription_list)
-#         elif hand == 3:
-#             self.config2.hand1.set_predefined(transcription_list)
-#         elif hand == 4:
-#             self.config2.hand2.set_predefined(transcription_list)
-
 
 
 class LocationGroupLayout(QHBoxLayout):
@@ -1323,43 +1173,3 @@ class LocationPointPanel(QGroupBox):
         self.point_table.add_location_point(self.new_point_name_edit.text(),
                                             self.new_point_name_edit.property('text_color'),
                                             self.new_point_note_edit.text())
-
-# TODO KV no longer used
-# class ParameterPanel(QScrollArea):
-#     def __init__(self, location_specifications, app_ctx, **kwargs):  # TODO KV movement_specifications,
-#         super().__init__(**kwargs)
-#
-#         self.setFrameStyle(QFrame.StyledPanel)
-#         main_frame = QFrame(parent=self)
-#
-#         #TODO: need to figure out how to do this...
-#         main_frame.setFixedSize(1000, 1000)
-#
-#         main_layout = QVBoxLayout()
-#         main_frame.setLayout(main_layout)
-#
-#         self.location_layout = LocationSpecificationLayout_Old(location_specifications, app_ctx)
-#         self.location_section = CollapsibleSection(title='Location', parent=self)
-#         self.location_section.setContentLayout(self.location_layout)
-#
-#         self.orientation_layout = QVBoxLayout()
-#         orientation_label = QLabel('Coming soon...')
-#         self.orientation_layout.addWidget(orientation_label)
-#         self.orientation_section = CollapsibleSection(title='Orientation', parent=self)
-#         self.orientation_section.setContentLayout(self.orientation_layout)
-#
-#         # main_layout.addWidget(QLabel('Location'))
-#         # main_layout.addLayout(self.location_layout)
-#         main_layout.addWidget(self.location_section)
-#         main_layout.addWidget(self.orientation_section)
-#
-#         self.setWidget(main_frame)
-#
-#     def clear(self, location_specifications, app_ctx):  # movement_specifications,
-#         self.location_layout.clear(location_specifications, app_ctx)
-#         # self.movement_layout.clear(movement_specifications, app_ctx)
-#
-#     def set_value(self, value):
-#         self.location_layout.set_value(value)
-#         # self.movement_layout.set_value(value)
-

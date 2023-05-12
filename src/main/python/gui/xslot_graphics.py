@@ -3,10 +3,7 @@ from num2words import num2words
 
 from PyQt5.QtWidgets import (
     QGraphicsRectItem,
-    QLabel,
-    QGraphicsView,
     QGraphicsScene,
-    QVBoxLayout,
     QMessageBox,
     QGraphicsEllipseItem
 )
@@ -23,7 +20,7 @@ from PyQt5.QtCore import (
     pyqtSignal,
 )
 
-from lexicon.module_classes2 import TimingPoint, TimingInterval
+from lexicon.module_classes import TimingPoint, TimingInterval
 from constant import FRACTION_CHAR
 
 
@@ -41,7 +38,6 @@ class XslotPointLabel(QGraphicsRectItem):
         self.align = align
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
 
         # turn pen off while filling rectangle
         painter.setBrush(Qt.NoBrush)
@@ -57,7 +53,8 @@ class XslotPointLabel(QGraphicsRectItem):
 
 class XslotRect(QGraphicsRectItem):
 
-    def __init__(self, parentwidget, xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="", moduletype=None, sign=None, proportionfill=1):
+    def __init__(self, parentwidget, xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="",
+                 moduletype=None, sign=None, proportionfill=1):
         super().__init__()
         self.inactivebrush = QBrush(Qt.gray)
         self.setAcceptHoverEvents(False)
@@ -66,20 +63,18 @@ class XslotRect(QGraphicsRectItem):
         self.moduletype = moduletype
         self.proportionfill = proportionfill
         self.sign = sign
-        # self.mainwindow = mainwindow
 
         self.xslot_whole = xslot_whole  # if 0 it's the whole sign
         self.xslot_part_start = Fraction(0) if xslot_part_start is None else xslot_part_start
         self.xslot_part_end = Fraction(1) if xslot_part_end is None else xslot_part_end
 
     def currentbrush(self):
-        return QBrush(Qt.white)  # self.unselectedbrush
+        return QBrush(Qt.white)
 
     def currentpen(self):
-        return QPen(Qt.black)  # self.unselectedpen
+        return QPen(Qt.black)
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
 
         # turn pen off while filling rectangle
         painter.setPen(Qt.NoPen)
@@ -134,27 +129,27 @@ class XslotRectButton(XslotRect):
 
     def currentbrush(self):
         if self.hover:
-            return QColor(0, 120, 215)  # self.hoverbrush
+            return QColor(0, 120, 215)
         else:
             return self.restingbrush()
 
     def currentpen(self):
         if self.hover:
-            return QPen(Qt.black)  # self.hoverpen
+            return QPen(Qt.black)
         else:
             return self.restingpen()
 
     def restingbrush(self):
         if self.selected:
-            return QBrush(Qt.black)  # self.selectedbrush
+            return QBrush(Qt.black)
         else:
-            return QBrush(Qt.white)  # self.unselectedbrush
+            return QBrush(Qt.white)
 
     def restingpen(self):
         if self.selected:
-            return QPen(Qt.white)  # self.selectedpen
+            return QPen(Qt.white)
         else:
-            return QPen(Qt.black)  # self.unselectedpen
+            return QPen(Qt.black)
 
     def toggle(self):
         self.selected = not self.selected
@@ -210,18 +205,17 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
 
     def currentbrush(self):
         if self.hover:
-            return QColor(0, 120, 215)  # self.hoverbrush
+            return QColor(0, 120, 215)
         else:
-            return QBrush(Qt.white)  # self.unselectedbrush
+            return QBrush(Qt.white)
 
     def currentpen(self):
         if self.hover:
-            return QPen(Qt.black)  # self.hoverpen
+            return QPen(Qt.black)
         else:
-            return QPen(Qt.black)  # self.unselectedpen
+            return QPen(Qt.black)
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
 
         # turn pen off while filling ellipse
         painter.setPen(Qt.NoPen)
@@ -265,7 +259,6 @@ class XslotRectModuleButton(XslotRectButton):
         pass
 
     def mouseReleaseEvent(self, event):
-        # print("mouse released on module rectangle")
         self.scene().modulerect_clicked.emit(self)
 
     def hoverEnterEvent(self, event):
@@ -287,42 +280,10 @@ class SignSummaryScene(QGraphicsScene):
     moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton)
 
 
-class XslotLinkingLayout(QVBoxLayout):
-
-    def __init__(self, xslotstructure, mainwindow, parentwidget, timingintervals=None, **kwargs):
-        super().__init__(**kwargs)
-        self.mainwindow = mainwindow
-        self.parentwidget = parentwidget
-        self.timingintervals = [] if timingintervals is None else timingintervals
-        xslotstruct = self.mainwindow.current_sign.xslotstructure
-        if xslotstruct is None:
-            print("no x-slot structure!")
-
-        self.link_intro_label = QLabel("Click on the relevant point(s) or interval(s) to link this module.")
-        self.addWidget(self.link_intro_label)
-
-        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=self.timingintervals)
-        self.xslotlinkview = QGraphicsView(self.xslotlinkscene)
-        self.xslotlinkview.setFixedHeight(self.xslotlinkscene.scene_height+50)
-        # self.xslotlinkview.setFixedSize(self.xslotlinkscene.scene_width+100, self.xslotlinkscene.scene_height+50)
-        # self.xslotlinkview.setSceneRect(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height)
-        # self.xslotlinkview.fitInView(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height, Qt.KeepAspectRatio)
-        # self.xslotvlinkview.setGeometry(0, 0, self.xslotlinkscene.scene_width, self.xslotlinkscene.scene_height)
-        self.addWidget(self.xslotlinkview)
-
-    def gettimingintervals(self):
-        return self.xslotlinkscene.xslotlinks
-
-    def clear(self):
-        self.xslotlinkscene = XslotLinkScene(parentwidget=self.parentwidget, mainwindow=self.mainwindow, timingintervals=[])
-        self.xslotlinkview.setScene(self.xslotlinkscene)
-
-
 class XSlotCheckbox(QGraphicsRectItem):
 
     def __init__(self, xslot_whole, xslot_part, parentwidget, textsize=30, penwidth=2, checked=False):  # sidelength=20
         super().__init__()
-        # self.mainwindow = mainwindow
         self.parentwidget = parentwidget
 
         # self.sidelength = sidelength
@@ -340,26 +301,18 @@ class XSlotCheckbox(QGraphicsRectItem):
         pen = QPen()
         pen.setStyle(Qt.SolidLine)
         pen.setWidth(self.penwidth)
-        pen.setColor(QColor(0,120,215) if self.hover else Qt.black)
+        pen.setColor(QColor(0, 120, 215) if self.hover else Qt.black)
         return pen
 
     def hoverEnterEvent(self, event):
-        # if self.moduletype in ["signtype", "movement", "handshape"]:
-        # self.setBrush(self.hoverbrush)
-        # self.setPen(self.hoverpen)
         self.hover = True
         self.update()
 
     def hoverLeaveEvent(self, event):
-        # if self.moduletype in ["signtype", "movement", "handshape"]:
-        # self.setBrush(self.restingbrush())
-        # self.setPen(self.restingpen())
         self.hover = False
         self.update()
 
     def paint(self, painter, option, widget):
-        # super().paint(painter, option, widget)
-
         # turn off brush - we're just drawing text
         brush = painter.brush()
         brush.setStyle(Qt.NoBrush)
@@ -392,12 +345,11 @@ class XslotLinkScene(QGraphicsScene):
     checkbox_toggled = pyqtSignal(XSlotCheckbox)
     linkingrect_clicked = pyqtSignal(XslotRectLinkingButton)
 
-    def __init__(self, parentwidget, mainwindow=None, timingintervals=None):
-        super().__init__()
-
-        self.mainwindow = mainwindow
+    def __init__(self, parentwidget, timingintervals=None, **kwargs):
+        super().__init__(**kwargs)
         self.parentwidget = parentwidget
-        # self.timingintervals = timingintervals
+        self.mainwindow = self.parentwidget.mainwindow
+
         self.scene_width = 1500
         self.rect_height = 25
         self.checkbox_size = 25
@@ -418,7 +370,6 @@ class XslotLinkScene(QGraphicsScene):
         self.fractionalpoints = list(set(self.fractionalpoints))
         self.xslot_width = self.scene_width / (self.numwholes + (1 if self.additionalfrac > 0 else 0))
 
-        # self.xslotlinks = []
         self.xslotlinks = [] if timingintervals is None else timingintervals
 
         # TODO KV do we need this modularity now that there's only one row of them?
@@ -457,7 +408,9 @@ class XslotLinkScene(QGraphicsScene):
                     newly_selected = "a point" if timinginterval.ispoint() else "an interval"
                     already_selected = "an existing " + ("interval" if timinginterval.ispoint() else "point")
                     response = QMessageBox.question(self.parentwidget, 'Adjacent point',
-                                                    "You have selected " + newly_selected + " adjacent to " + already_selected + ". Would you like to collapse the point into the interval?")
+                                                    "You have selected " + newly_selected + " adjacent to " +
+                                                    already_selected +
+                                                    ". Would you like to collapse the point into the interval?")
                     if response == QMessageBox.Yes:
                         if timinginterval.ispoint():
                             xslotgraphicsitem.toggle()
@@ -475,7 +428,8 @@ class XslotLinkScene(QGraphicsScene):
 
         if not success:
             QMessageBox.information(self.parentwidget, "X-slot clash",
-                                    "The attempted selection overlaps with an existing selection. Please first de-select the initial selection if you wish to continue.")
+                                    "The attempted selection overlaps with an existing selection. "
+                                    + "Please first de-select the initial selection if you wish to continue.")
             xslotgraphicsitem.toggle()
 
         return success
@@ -568,8 +522,15 @@ class XslotLinkScene(QGraphicsScene):
                     temptint = TimingInterval(TimingPoint(whole, part_start), TimingPoint(whole, part_end))
                     if temptint in self.xslotlinks:
                         selecttheinterval = True
-                    xslotrect = XslotRectLinkingButton(self, xslot_whole=whole, xslot_part_start=part_start, xslot_part_end=part_end, text=text, moduletype='xslot', selected=selecttheinterval)
-                    xloc = 0 + (whole_i + (frac_j/denom)) * self.xslot_width + self.x_offset
+
+                    xslotrect = XslotRectLinkingButton(self,
+                                                       xslot_whole=whole,
+                                                       xslot_part_start=part_start,
+                                                       xslot_part_end=part_end,
+                                                       text=text,
+                                                       moduletype='xslot',
+                                                       selected=selecttheinterval)
+                    xloc = 0 + (whole_i + (frac_j/denom)) * self.xslot_width + self.x_offset  # - (self.pen_width * num_rects)
                     xslotrect.setRect(xloc, yloc, float(self.xslot_width * frac_size), self.rect_height)
                     self.addItem(xslotrect)
                     met_total = whole_i + ((frac_j+2)/denom) > total

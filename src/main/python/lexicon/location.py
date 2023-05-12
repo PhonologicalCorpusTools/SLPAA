@@ -1,6 +1,4 @@
 
-
-
 class LocationParameter:
     """
     This is intended to be used with the Locations class

@@ -40,13 +40,13 @@ from PyQt5.QtCore import (
 )
 
 from .helper_widget import EditableTabBar
-from constant import LocationParameter, Locations  # KV TODO , Movements
+from constant import LocationParameter, Locations
 # from constant import SAMPLE_LOCATIONS
-from copy import deepcopy  #, copy
-# from pprint import pprint
+from copy import deepcopy
 
 
-#reference: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
+# TODO KV there are two classes with this name-- are they exactly the same?
+# Ref: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
 class LocationPolygon(QGraphicsPolygonItem):
     def __init__(self, polygon, pen_width=5, pen_color='orange', fill_color='#FFD141', fill_alpha=0.5):
         super().__init__()
@@ -92,7 +92,7 @@ class LocationViewer(QGraphicsView):
         self.pen_width = pen_width
         self.pen_color = pen_color
 
-        #self._zoom = 0
+        # self._zoom = 0
         self._empty = True
         self._scene = QGraphicsScene(parent=self)
         self._photo = QGraphicsPixmapItem()
@@ -107,7 +107,8 @@ class LocationViewer(QGraphicsView):
         self.setFrameShape(QFrame.NoFrame)
 
         # self.locations is default locations
-        self.locations = {name: {LocationPolygon(QPolygonF([QPoint(x, y) for x, y in points])) for points in polygons} for name, polygons in locations.items()}
+        self.locations = {name: {LocationPolygon(QPolygonF([QPoint(x, y) for x, y in points])) for points in polygons}
+                          for name, polygons in locations.items()}
 
         self.is_defining = False
         self.defining_locations = [[]]
@@ -153,10 +154,10 @@ class LocationViewer(QGraphicsView):
                 # viewrect = self.viewport().rect()
                 # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
-            #self._zoom = 0
+            # self._zoom = 0
 
     def set_photo(self, pixmap=None):
-        #self._zoom = 0
+        # self._zoom = 0
         if pixmap and not pixmap.isNull():
             self._empty = False
             self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -259,7 +260,8 @@ class LocationDefinitionPanel(QFrame):
 
 
 class LocationDefinerPage(QWidget):
-    def __init__(self, app_settings, app_ctx, image_basename=None, image_path=None, locations=None, default=True, viewer_size=500, **kwargs):
+    def __init__(self, app_settings, app_ctx, image_basename=None, image_path=None, locations=None,
+                 default=True, viewer_size=500, **kwargs):
         super().__init__(**kwargs)
 
         self.app_settings = app_settings
@@ -293,7 +295,8 @@ class LocationDefinerPage(QWidget):
         self.location_viewer = LocationViewer(self.locations, viewer_size, parent=self)
         self.location_viewer.setFixedSize(viewer_size, viewer_size)
         if image_path:
-            self.location_viewer.set_photo(QPixmap(app_ctx.default_location_images[image_path] if default else image_path))
+            self.location_viewer.set_photo(
+                QPixmap(app_ctx.default_location_images[image_path] if default else image_path))
 
         main_layout.addWidget(self.location_viewer)
 
@@ -447,7 +450,8 @@ class LocationDefinerTabWidget(QTabWidget):
         self.tabCloseRequested.connect(self.close_handler)
 
     def add_default_location_tabs(self, is_system_default=False):
-        locations = deepcopy(self.system_default_location_specifications) if is_system_default else self.corpus_location_specifications
+        locations = deepcopy(self.system_default_location_specifications) if is_system_default \
+            else self.corpus_location_specifications
 
         for loc_identifier, loc_param in locations.items():
             loc_page = LocationDefinerPage(
@@ -467,7 +471,7 @@ class LocationDefinerTabWidget(QTabWidget):
         # hide close button for the '' tab. The location of the close button is OS-dependent.
         if os.name == 'nt':  # For Windows, buttons appear on the right
             self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.RightSide).hide()
-        elif os.name == 'posix':  # For Linux and MacOS, they are on the left
+        elif os.name == 'posix':  # For Linux and macOS, they are on the left
             self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.LeftSide).hide()
 
     def add_location_tab(self, index):
@@ -532,7 +536,10 @@ class LocationDefinerTabWidget(QTabWidget):
 
     def get_locations(self):
         return Locations(
-            {'_'.join(loc_name.lower().split(sep=' ')): LocationParameter(name=loc_name, image_path=page.image_path, location_polygons=page.locations, default=page.default)\
+            {'_'.join(loc_name.lower().split(sep=' ')): LocationParameter(name=loc_name,
+                                                                          image_path=page.image_path,
+                                                                          location_polygons=page.locations,
+                                                                          default=page.default)
              for loc_name, page in zip(self.tabbar.get_tab_names(), self.location_definer_pages)}
         )
 
@@ -548,7 +555,11 @@ class LocationDefinerDialog(QDialog):
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        self.location_tab = LocationDefinerTabWidget(system_default_location_specifications, location_specifications, app_settings, app_ctx, parent=self)
+        self.location_tab = LocationDefinerTabWidget(system_default_location_specifications,
+                                                     location_specifications,
+                                                     app_settings,
+                                                     app_ctx,
+                                                     parent=self)
         main_layout.addWidget(self.location_tab)
 
         separate_line = QFrame()
@@ -581,7 +592,9 @@ class LocationDefinerDialog(QDialog):
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
         if standard == QDialogButtonBox.Close:
-            response = QMessageBox.question(self, 'Warning', 'If you close the window, any unsaved changes will be lost. Continue?')
+            response = QMessageBox.question(self,
+                                            'Warning',
+                                            'If you close the window, any unsaved changes will be lost. Continue?')
             if response == QMessageBox.Yes:
                 self.accept()
 

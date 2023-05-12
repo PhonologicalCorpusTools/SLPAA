@@ -1,14 +1,9 @@
-# from itertools import chain
-from fractions import Fraction
-# from copy import deepcopy
-from datetime import datetime
-
-from gui.movement_view import MovementModuleSerializable
-from gui.location_view import LocationModuleSerializable
-from gui.signtype_selector import Signtype
-from gui.xslots_selector import XslotStructure
-from lexicon.module_classes import MovementModule, HandConfigurationModule, ParameterModule, LocationModule
-from lexicon.module_classes2 import TimingInterval, TimingPoint, AddedInfo
+from serialization_classes import LocationModuleSerializable, MovementModuleSerializable
+from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule
+from gui.signtypespecification_view import Signtype
+from gui.xslotspecification_view import XslotStructure
+from models.movement_models import MovementTreeModel
+from models.location_models import LocationTreeModel
 
 NULL = '\u2205'
 
@@ -19,282 +14,6 @@ def empty_copy(obj):
     new_copy = Empty(  )
     new_copy.__class__ = obj.__class__
     return new_copy
-
-
-class SignLevelInformation:
-    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
-        # self.settings = app_settings
-        if serializedsignlevelinfo is not None:
-            self._entryid = serializedsignlevelinfo['entryid']
-            self._gloss = serializedsignlevelinfo['gloss']
-            self._lemma = serializedsignlevelinfo['lemma']
-            self._source = serializedsignlevelinfo['source']
-            self._signer = serializedsignlevelinfo['signer']
-            self._frequency = serializedsignlevelinfo['frequency']
-            self._coder = serializedsignlevelinfo['coder']
-            # self._update_date = signlevel_info['date']
-            self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
-            self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
-            self._note = serializedsignlevelinfo['note']
-            # backward compatibility for attribute added 20230412!
-            self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
-            # backward compatibility for attribute added 20230503!
-            self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
-            self._handdominance = serializedsignlevelinfo['handdominance']
-        elif signlevel_info is not None:
-            self._entryid = signlevel_info['entryid']
-            self._gloss = signlevel_info['gloss']
-            self._lemma = signlevel_info['lemma']
-            self._source = signlevel_info['source']
-            self._signer = signlevel_info['signer']
-            self._frequency = signlevel_info['frequency']
-            self._coder = signlevel_info['coder']
-            # self._update_date = signlevel_info['date']
-            self._datecreated = signlevel_info['date created']
-            self._datelastmodified = signlevel_info['date last modified']
-            self._note = signlevel_info['note']
-            # backward compatibility for attribute added 20230412!
-            self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
-            # backward compatibility for attribute added 20230503!
-            self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
-            self._handdominance = signlevel_info['handdominance']
-        else:
-            print("TODO KV no sign level info; what to do?")
-
-    def __eq__(self, other):
-        aresame = True
-        if isinstance(other, SignLevelInformation):
-            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
-                aresame = False
-            if self._source != other.source or self._signer != other.signer or self._frequency != other.frequency:
-                aresame = False
-            if self._coder != other.coder or self._datecreated != other.datecreated:
-                aresame = False
-            if self._datelastmodified != other.datelastmodified or self._note != other.note:
-                aresame = False
-            if self._fingerspelled != other.fingerspelled or self._compoundsign != other.compoundsign:
-                aresame = False
-            if self._handdominance != other.handdominance:
-                aresame = False
-        else:
-            aresame = False
-        return aresame
-
-    def serialize(self):
-        return {
-            'entryid': self._entryid,
-            'gloss': self._gloss,
-            'lemma': self._lemma,
-            'source': self._source,
-            'signer': self._signer,
-            'frequency': self._frequency,
-            'coder': self._coder,
-            'date created': self._datecreated.timestamp(),
-            'date last modified': self._datelastmodified.timestamp(),
-            'note': self._note,
-            'fingerspelled': self._fingerspelled,
-            'compoundsign': self._compoundsign,
-            'handdominance': self._handdominance
-        }
-
-    @property
-    def entryid(self):
-        return self._entryid
-
-    @entryid.setter
-    def entryid(self, new_entryid):
-        self._entryid = new_entryid
-    #
-    # def entryid_string(self):
-    #     numdigits = self.settings['display']['entryid_digits']
-    #     entryid_string = str(self._entryid)
-    #     entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
-    #     return entryid_string
-
-    @property
-    def gloss(self):
-        return self._gloss
-
-    @gloss.setter
-    def gloss(self, new_gloss):
-        self._gloss = new_gloss
-
-    @property
-    def lemma(self):
-        return self._lemma
-
-    @lemma.setter
-    def lemma(self, new_lemma):
-        self._lemma = new_lemma
-
-    @property
-    def fingerspelled(self):
-        return self._fingerspelled
-
-    @fingerspelled.setter
-    def fingerspelled(self, new_fingerspelled):
-        self._fingerspelled = new_fingerspelled
-
-    @property
-    def compoundsign(self):
-        return self._compoundsign
-
-    @compoundsign.setter
-    def compoundsign(self, new_compoundsign):
-        self._compoundsign = new_compoundsign
-
-    @property
-    def source(self):
-        return self._source
-
-    @source.setter
-    def source(self, new_source):
-        self._source = new_source
-
-    @property
-    def signer(self):
-        return self._signer
-
-    @signer.setter
-    def signer(self, new_signer):
-        self._signer = new_signer
-
-    @property
-    def frequency(self):
-        return self._frequency
-
-    @frequency.setter
-    def frequency(self, new_frequency):
-        self._frequency = new_frequency
-
-    @property
-    def coder(self):
-        return self._coder
-
-    @coder.setter
-    def coder(self, new_coder):
-        self._coder = new_coder
-    #
-    # @property
-    # def update_date(self):
-    #     return self._update_date
-    #
-    # @update_date.setter
-    # def update_date(self, new_update_date):
-    #     self._update_date = new_update_date
-
-    @property
-    def datecreated(self):
-        return self._datecreated
-
-    # input should be a datetime object
-    @datecreated.setter
-    def datecreated(self, new_datecreated):
-        self._datecreated = new_datecreated
-
-    @property
-    def datelastmodified(self):
-        return self._datelastmodified
-
-    # input should be a datetime object
-    @datelastmodified.setter
-    def datelastmodified(self, new_datelastmodified):
-        self._datelastmodified = new_datelastmodified
-
-    def lastmodifiednow(self):
-        self._datelastmodified = datetime.now()
-
-    @property
-    def note(self):
-        return self._note
-
-    @note.setter
-    def note(self, new_note):
-        self._note = new_note
-
-    @property
-    def signtype(self):
-        return self._signtype
-
-    @signtype.setter
-    def signtype(self, new_signtype):
-        self._signtype = new_signtype
-
-    @property
-    def handdominance(self):
-        return self._handdominance
-
-    @handdominance.setter
-    def handdominance(self, new_handdominance):
-        self._handdominance = new_handdominance
-
-
-# TODO KV this class doesn't seem to be used anymore
-# class GlobalHandshapeInformation:
-#     def __init__(self, global_handshape_info):
-#         self._forearm = global_handshape_info['forearm']
-#         self._estimated = global_handshape_info['estimated']
-#         self._uncertain = global_handshape_info['uncertain']
-#         self._incomplete = global_handshape_info['incomplete']
-#         self._fingerspelled = global_handshape_info['fingerspelled']
-#         self._initialized = global_handshape_info['initialized']
-#
-#     @property
-#     def estimated(self):
-#         return self._estimated
-#
-#     @estimated.setter
-#     def estimated(self, new_is_estimated):
-#         self._estimated = new_is_estimated
-#
-#     @property
-#     def uncertain(self):
-#         return self._uncertain
-#
-#     @uncertain.setter
-#     def uncertain(self, new_is_uncertain):
-#         self._uncertain = new_is_uncertain
-#
-#     @property
-#     def incomplete(self):
-#         return self._incomplete
-#
-#     @incomplete.setter
-#     def incomplete(self, new_is_incomplete):
-#         self._incomplete = new_is_incomplete
-#
-#     @property
-#     def fingerspelled(self):
-#         return self._fingerspelled
-#
-#     @fingerspelled.setter
-#     def fingerspelled(self, new_is_fingerspelled):
-#         self._fingerspelled = new_is_fingerspelled
-#
-#     @property
-#     def initialized(self):
-#         return self._initialized
-#
-#     @initialized.setter
-#     def initialized(self, new_is_initialized):
-#         self._initialized = new_is_initialized
-#
-#     @property
-#     def forearm(self):
-#         return self._forearm
-#
-#     @forearm.setter
-#     def forearm(self, new_is_forearm):
-#         self._forearm = new_is_forearm
-
-
-# TODO KV this class doesn't seem to be used anymore
-# class HandConfiguration:
-#     def __init__(self, config):
-#
-#         # from above
-#         # self.hand1 = HandConfigurationHand(hand['fields'])
-#         self.config = config
 
 
 class LocationPoint:
@@ -382,15 +101,11 @@ class Sign:
         unserialized = {}
         for k in serialized_mvmtmodules.keys():
             serialmodule = serialized_mvmtmodules[k]
-            # print('unserializing movement module', serialmodule.movementtree)
-            # print(serialmodule.movementtree.checkstates)
-            # if hasattr(serialmodule.movementtree, 'userspecifiedvalues'):
-            #     print(serialmodule.movementtree.userspecifiedvalues)
-            mvmttreemodel = serialmodule.movementtree.getMovementTreeModel()
+            mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
             hands = serialmodule.hands
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # TODO KV for backwards compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
             unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals, addedinfo, inphase)
         self.movementmodules = unserialized
 
@@ -404,22 +119,20 @@ class Sign:
         unserialized = {}
         for k in serialized_locnmodules.keys():
             serialmodule = serialized_locnmodules[k]
-            locntreemodel = serialmodule.locationtree.getLocationTreeModel()
+            locntreemodel = LocationTreeModel(serialmodule.locationtree)
             hands = serialmodule.hands
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # TODO KV for backwards compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
             phonlocs = serialmodule.phonlocs
-            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # TODO KV for backwards compatibility with pre-20230410 location modules
+            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
             unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
         self.locationmodules = unserialized
 
     def __hash__(self):
-        # return hash(self.signlevel_information.gloss)
         return hash(self.signlevel_information.entryid)
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
     def __eq__(self, other):
-        # return isinstance(other, Sign) and self.signlevel_information.gloss == other.signlevel_information.gloss
         return isinstance(other, Sign) and self.signlevel_information.entryid == other.signlevel_information.entryid
 
     def __repr__(self):
@@ -491,30 +204,28 @@ class Sign:
         # TODO KV - validate?
         self._xslotstructure = xslotstruct
 
-    def updatemovementmodule(self, uniqueid, movementtree, hands_dict, timingintervals, addedinfo, inphase):
-        mvmtmod = self.movementmodules[uniqueid]
+    def updatemovementmodule(self, uniqueid, updated_mvmtmod):
+        current_mvmtmod = self.movementmodules[uniqueid]
         ischanged = False
-        if mvmtmod.movementtreemodel != movementtree:
-            mvmtmod.movementtreemodel = movementtree
+        if current_mvmtmod.movementtreemodel != updated_mvmtmod.movementtreemodel:
+            current_mvmtmod.movementtreemodel = updated_mvmtmod.movementtreemodel
             ischanged = True
-        if mvmtmod.hands != hands_dict:
-            mvmtmod.hands = hands_dict
+        if current_mvmtmod.hands != updated_mvmtmod.hands:
+            current_mvmtmod.hands = updated_mvmtmod.hands
             ischanged = True
-        if mvmtmod.timingintervals != timingintervals:
-            mvmtmod.timingintervals = timingintervals
+        if current_mvmtmod.timingintervals != updated_mvmtmod.timingintervals:
+            current_mvmtmod.timingintervals = updated_mvmtmod.timingintervals
             ischanged = True
-        if mvmtmod.inphase != inphase:
-            mvmtmod.inphase = inphase
+        if current_mvmtmod.inphase != updated_mvmtmod.inphase:
+            current_mvmtmod.inphase = updated_mvmtmod.inphase
             ischanged = True
-        if mvmtmod.addedinfo != addedinfo:
-            mvmtmod.addedinfo = addedinfo
+        if current_mvmtmod.addedinfo != updated_mvmtmod.addedinfo:
+            current_mvmtmod.addedinfo = updated_mvmtmod.addedinfo
             ischanged = True
         if ischanged:
             self.lastmodifiednow()
 
-    def addmovementmodule(self, movementtree, hands_dict, timingintervals, addedinfo, inphase):
-        # create and add a brand new one
-        mvmtmod = MovementModule(movementtree, hands_dict, timingintervals, addedinfo, inphase)
+    def addmovementmodule(self, mvmtmod):
         self.movementmodules[mvmtmod.uniqueid] = mvmtmod
         self.lastmodifiednow()
 
@@ -522,30 +233,28 @@ class Sign:
         self.movementmodules.pop(uniqueid)
         self.lastmodifiednow()
 
-    def updatehandconfigmodule(self, uniqueid, handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo):
-        hcfgmod = self.handconfigmodules[uniqueid]
+    def updatehandconfigmodule(self, uniqueid, updated_hcfgmod):
+        current_hcfgmod = self.handconfigmodules[uniqueid]
         ischanged = False
-        if hcfgmod.handconfiguration != handconfiguration:
-            hcfgmod.handconfiguration = handconfiguration
+        if current_hcfgmod.handconfiguration != updated_hcfgmod.handconfiguration:
+            current_hcfgmod.handconfiguration = updated_hcfgmod.handconfiguration
             ischanged = True
-        if hcfgmod.hands != hands_dict:
-            hcfgmod.hands = hands_dict
+        if current_hcfgmod.hands != updated_hcfgmod.hands:
+            current_hcfgmod.hands = updated_hcfgmod.hands
             ischanged = True
-        if hcfgmod.overalloptions != overalloptions:
-            hcfgmod.overalloptions = overalloptions
+        if current_hcfgmod.overalloptions != updated_hcfgmod.overalloptions:
+            current_hcfgmod.overalloptions = updated_hcfgmod.overalloptions
             ischanged = True
-        if hcfgmod.timingintervals != timingintervals:
-            hcfgmod.timingintervals = timingintervals
+        if current_hcfgmod.timingintervals != updated_hcfgmod.timingintervals:
+            current_hcfgmod.timingintervals = updated_hcfgmod.timingintervals
             ischanged = True
-        if hcfgmod.addedinfo != addedinfo:
-            hcfgmod.addedinfo = addedinfo
+        if current_hcfgmod.addedinfo != updated_hcfgmod.addedinfo:
+            current_hcfgmod.addedinfo = updated_hcfgmod.addedinfo
             ischanged = True
         if ischanged:
             self.lastmodifiednow()
 
-    def addhandconfigmodule(self, handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo):
-        # create and add a brand new one
-        hcfgmod = HandConfigurationModule(handconfiguration, overalloptions, hands_dict, timingintervals, addedinfo)
+    def addhandconfigmodule(self, hcfgmod):
         self.handconfigmodules[hcfgmod.uniqueid] = hcfgmod
         self.lastmodifiednow()
 
@@ -557,9 +266,7 @@ class Sign:
         self.targetmodules.append(targetmod)
         self.lastmodifiednow()
 
-    def addlocationmodule(self, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase):
-        # create and add a brand new one
-        locnmod = LocationModule(locationtree, hands_dict, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
+    def addlocationmodule(self, locnmod):
         self.locationmodules[locnmod.uniqueid] = locnmod
         self.lastmodifiednow()
 
@@ -567,26 +274,26 @@ class Sign:
         self.locationmodules.pop(uniqueid)
         self.lastmodifiednow()
 
-    def updatelocationmodule(self, uniqueid, locationtree, hands_dict, timingintervals, addedinfo, phonlocs, loctype, inphase):
-        locnmod = self.locationmodules[uniqueid]
+    def updatelocationmodule(self, uniqueid, updated_locnmod):
+        current_locnmod = self.locationmodules[uniqueid]
         ischanged = False
-        if locnmod.locationtreemodel != locationtree:
-            locnmod.locationtreemodel = locationtree
+        if current_locnmod.locationtreemodel != updated_locnmod.locationtreemodel:
+            current_locnmod.locationtreemodel = updated_locnmod.locationtreemodel
             ischanged = True
-        if locnmod.hands != hands_dict:
-            locnmod.hands = hands_dict
+        if current_locnmod.hands != updated_locnmod.hands:
+            current_locnmod.hands = updated_locnmod.hands
             ischanged = True
-        if locnmod.timingintervals != timingintervals:
-            locnmod.timingintervals = timingintervals
+        if current_locnmod.timingintervals != updated_locnmod.timingintervals:
+            current_locnmod.timingintervals = updated_locnmod.timingintervals
             ischanged = True
-        if locnmod.inphase != inphase:
-            locnmod.inphase = inphase
+        if current_locnmod.inphase != updated_locnmod.inphase:
+            current_locnmod.inphase = updated_locnmod.inphase
             ischanged = True
-        if locnmod.phonlocs != phonlocs:
-            locnmod.phonlocs = phonlocs
+        if current_locnmod.phonlocs != updated_locnmod.phonlocs:
+            current_locnmod.phonlocs = updated_locnmod.phonlocs
             ischanged = True
-        if locnmod.addedinfo != addedinfo:
-            locnmod.addedinfo = addedinfo
+        if current_locnmod.addedinfo != updated_locnmod.addedinfo:
+            current_locnmod.addedinfo = updated_locnmod.addedinfo
             ischanged = True
         if ischanged:
             self.lastmodifiednow()
@@ -601,7 +308,7 @@ class Sign:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, highestID=0):  # movement_definition=None,
+    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, highestID=0):
         if serializedcorpus:
             self.name = serializedcorpus['name']
             self.signs = set([Sign(serializedsign=s) for s in serializedcorpus['signs']])
@@ -662,75 +369,3 @@ class Corpus:
 
     def __repr__(self):
         return '<CORPUS: ' + repr(self.name) + '>'
-
-
-# TODO KV temporary testing function - delete eventually!
-if __name__ == '__main__':
-
-    # test TimingPoint
-    print("testing TimingPoint comparison operators...")
-    tp1 = TimingPoint(1, Fraction(0))
-    tp2 = TimingPoint(1, Fraction(1,3))
-    tp3 = TimingPoint(1, Fraction(3,4))
-    tp4 = TimingPoint(1, Fraction(1))
-    tp5 = TimingPoint(2, Fraction(0))
-    tp6 = TimingPoint(2, Fraction(1,3))
-    tp7 = TimingPoint(2, Fraction(1,3))
-    orderedpoints1 = [tp1, tp2, tp3, tp4, tp6]
-    orderedpoints2 = [tp1, tp2, tp3, tp5, tp7]
-    lt_success = True
-    le_success = True
-    ge_success = True
-    gt_success = True
-    eq_success = True
-    ne_success = True
-    equiv_success = True
-    for tplist in [orderedpoints1, orderedpoints2]:
-        for idx, first in enumerate(tplist[:-1]):
-            for second in tplist[idx+1:]:
-                lt_success = lt_success and first < second
-                gt_success = gt_success and second > first
-                le_success = le_success and first <= second
-                ge_success = ge_success and second >= first
-                eq_success = eq_success and not first == second
-                ne_success = ne_success and first != second
-                equiv_success = equiv_success and not first.equivalent(second)
-    lt_success = lt_success and not tp6 < tp7 and not tp4 < tp5
-    gt_success = gt_success and not tp6 > tp7 and not tp5 > tp4
-    le_success = le_success and tp6 <= tp7 and tp4 <= tp5
-    ge_success = ge_success and tp6 >= tp7 and tp4 >= tp5
-    eq_success = eq_success and tp6 == tp7 and not tp4 == tp5
-    ne_success = ne_success and not tp6 != tp7 and tp4 != tp5
-    equiv_success = equiv_success and tp6.equivalent(tp7) and tp4.equivalent(tp5)
-
-    print("success: lt", lt_success, "/ gt", gt_success, "/ le", le_success, "/ ge", ge_success, "/ eq", eq_success, "/ ne", ne_success, "/ equiv", equiv_success)
-
-
-    # test TimingInterval
-    print("testing TimingInterval methods...")
-    int1 = TimingInterval(tp1, tp2)
-    int2 = TimingInterval(tp2, tp4)
-    int3 = TimingInterval(tp5, tp6)
-    int4 = TimingInterval(tp1, tp7)
-    int5 = TimingInterval(tp4, tp4)
-    int6 = TimingInterval(tp5, tp1)
-    int7 = TimingInterval(tp7, tp7)
-
-    containssuccess = True
-    containssuccess = containssuccess and not int1.containsinterval(int2) and not int2.containsinterval(
-        int4) and int4.containsinterval(int1) and int4.containsinterval(int3) and int4.containsinterval(int5)
-    ispointsuccess = int7.ispoint() and not int1.ispoint()
-    print("success: containsinterval", containssuccess, "/ ispoint", ispointsuccess)
-
-    # test ParameterModule
-    print("testing ParameterModule methods...")
-    pm1 = ParameterModule(hands={"H1": True, "H2": True}, timingintervals=[int1])
-    print(pm1.timingintervals)
-    pm2 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int2])
-    print(pm2.timingintervals)
-    pm3 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int2, int3])
-    print(pm3.timingintervals)
-    pm4 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int3])
-    print(pm4.timingintervals)
-    pm5 = ParameterModule(hands={"H1": True, "H2": False}, timingintervals=[int1, int2, int7])
-    print(pm5.timingintervals)

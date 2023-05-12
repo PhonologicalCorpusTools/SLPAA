@@ -1,12 +1,8 @@
-from copy import copy
 import re
+from copy import copy
 
 from PyQt5.QtCore import (
     Qt,
-    # QAbstractListModel,
-    # pyqtSignal,
-    # QModelIndex,
-    # QItemSelectionModel,
     QSortFilterProxyModel,
     QDateTime
 )
@@ -16,21 +12,13 @@ from PyQt5.Qt import (
     QStandardItemModel
 )
 
+# TODO KV should we have a GUI element in this class??
 from PyQt5.QtWidgets import (
-    # QWidget,
-    # QLabel,
-    # QLineEdit,
-    QListView,
-    # QVBoxLayout,
-    QComboBox,
-    QTreeView,
-    QStyle,
     QMessageBox
 )
 
-from lexicon.module_classes import delimiter, userdefinedroles as udr
-from lexicon.module_classes2 import AddedInfo
-from gui.location_view import ParameterModuleSerializable
+from lexicon.module_classes import userdefinedroles as udr, delimiter, AddedInfo
+
 
 # for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"
@@ -40,7 +28,7 @@ rb = "radio button"  # ie mutually exclusive in group / at this level
 cb = "checkbox"  # ie not mutually exlusive
 ed_1 = "editable level 1"  # ie value is editable but restricted to numbers that are >= 1 and multiples of 0.5
 ed_2 = "editable level 2"  # ie value is editable but restricted to numbers
-ed_3 = "editable level 3" # ie value is editable and unrestricted
+ed_3 = "editable level 3"  # ie value is editable and unrestricted
 fx = "fixed"  # ie value is not editable
 subgroup = "subgroup"
 
@@ -377,407 +365,183 @@ mvmtOptionsDict = {
     }
 }
 
-
-class TreeSearchComboBox(QComboBox):
-
-    def __init__(self, parentlayout=None):
-        super().__init__()
-        self.refreshed = True
-        self.lasttextentry = ""
-        self.lastcompletedentry = ""
-        self.parentlayout = parentlayout
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        modifiers = event.modifiers()
-
-        if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
-
-            if self.currentText():
-                self.parentlayout.treedisplay.collapseAll()
-                itemstoselect = gettreeitemsinpath(self.parentlayout.treemodel, self.currentText(), delim=delimiter)
-                for item in itemstoselect:
-                    if item.checkState() == Qt.Unchecked:
-                        item.setCheckState(Qt.PartiallyChecked)
-                    self.parentlayout.treedisplay.setExpanded(item.index(), True)
-                itemstoselect[-1].setCheckState(Qt.Checked)
-                self.setCurrentIndex(-1)
-
-        if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
-            if self.refreshed:
-                self.lasttextentry = self.currentText()
-                self.refreshed = False
-
-            if self.lastcompletedentry:
-                # cycle to first line of next entry that starts with the last-entered text
-                foundcurrententry = False
-                foundnextentry = False
-                i = 0
-                while self.completer().setCurrentRow(i) and not foundnextentry:
-                    completionoption = self.completer().currentCompletion()
-                    if completionoption.lower().startswith(self.lastcompletedentry.lower()):
-                        foundcurrententry = True
-                    elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
-                        foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
-                            self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
-                        else:
-                            self.setEditText(completionoption)
-                        self.lastcompletedentry = self.currentText()
-                    i += 1
-            else:
-            # if not self.lastcompletedentry:
-                # cycle to first line of first entry that starts with the last-entered text
-                foundnextentry = False
-                i = 0
-                while self.completer().setCurrentRow(i) and not foundnextentry:
-                    completionoption = self.completer().currentCompletion()
-                    if completionoption.lower().startswith(self.lasttextentry.lower()):
-                        foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
-                            self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
-                        else:
-                            self.setEditText(completionoption)
-                        self.lastcompletedentry = self.currentText()
-                    i += 1
-
-        else:
-            self.refreshed = True
-            self.lasttextentry = ""
-            self.lastcompletedentry = ""
-            super().keyPressEvent(event)
-
-
-# This class is a serializable form of the class MovementTreeModel, which is itself not pickleable.
-# Rather than being based on QStandardItemModel, this one uses dictionary structures to convert to
-# and from saveable form.
-class MovementTreeSerializable:
-
-    def __init__(self, mvmttreemodel):
-
-        # creates a full serializable copy of the movement tree, eg for saving to disk
-        treenode = mvmttreemodel.invisibleRootItem()
-
-        self.numvals = {}  # deprecated
-        self.stringvals = {}  # deprecated
-        self.checkstates = {}
-        self.addedinfos = {}
-        self.userspecifiedvalues = {}
-
-        self.collectdatafromMovementTreeModel(treenode)
-
-    def collectdatafromMovementTreeModel(self, treenode):
-        if treenode is not None:
-            for r in range(treenode.rowCount()):
-                treechild = treenode.child(r, 0)
-                if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                    checkstate = treechild.checkState()
-                    addedinfo = treechild.addedinfo
-                    self.addedinfos[pathtext] = copy(addedinfo)
-                    iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
-                    userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
-                    if iseditable:
-                        self.userspecifiedvalues[pathtext] = userspecifiedvalue
-
-                    self.checkstates[pathtext] = checkstate
-                self.collectdatafromMovementTreeModel(treechild)
-
-    def getMovementTreeModel(self):
-        mvmttreemodel = MovementTreeModel()
-        rootnode = mvmttreemodel.invisibleRootItem()
-        mvmttreemodel.populate(rootnode)
-        makelistmodel = mvmttreemodel.listmodel  # TODO KV   what is this? necessary?
-        self.backwardcompatibility()
-        self.setvaluesinMovementTreeModel(rootnode)
-        return mvmttreemodel
-
-    def backwardcompatibility(self):
-        hadtoaddusv = False
-        if not hasattr(self, 'userspecifiedvalues'):
-            self.userspecifiedvalues = {}
-            hadtoaddusv = True
-        for stored_dict in [self.checkstates, self.addedinfos]:  # self.numvals, self.stringvals,
-            pairstoadd = {}
-            keystoremove = []
-            for k in stored_dict.keys():
-
-                # 1. "H1 and H2 move in different directions" (under either axis driectin or plane, in perceptual shape)
-                #   --> "H1 and H2 move in opposite directions"
-                # 2. Then later... "H1 and H2 move in opposite directions" (under axis direction only)
-                #   --> "H1 and H2 move toward each other" (along with an independent addition of "... away ...")
-                if "H1 and H2 move in different directions" in k:
-                    if "Axis direction" in k:
-                        pairstoadd[k.replace("in different directions", "toward each other")] = stored_dict[k]
-                        keystoremove.append(k)
-                    elif "Plane" in k:
-                        pairstoadd[k.replace("move in different directions", "move in opposite directions")] = stored_dict[k]
-                        keystoremove.append(k)
-                elif "H1 and H2 move in opposite directions" in k and "Axis direction" in k:
-                    pairstoadd[k.replace("in opposite directions", "toward each other")] = stored_dict[k]
-                    keystoremove.append(k)
-
-                if hadtoaddusv:
-
-                    if k.endswith(specifytotalcycles_str) or k.endswith(numberofreps_str):
-                        pairstoadd[k.replace(numberofreps_str, specifytotalcycles_str)] = stored_dict[k]
-                        keystoremove.append(k)
-
-                    elif "This number is a minimum" in k:
-                        pairstoadd[k.replace(delimiter + "#" + delimiter, delimiter)] = stored_dict[k]
-                        keystoremove.append(k)
-
-                    elif (specifytotalcycles_str + delimiter in k or numberofreps_str + delimiter in k):
-                        # then we're looking at the item that stores info about the specified number of repetitions
-                        newkey = k.replace(numberofreps_str, specifytotalcycles_str)
-                        newkey = newkey[:newkey.index(specifytotalcycles_str+delimiter) + len(specifytotalcycles_str)]
-                        remainingtext = ""
-                        if specifytotalcycles_str in k:
-                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(specifytotalcycles_str + delimiter):]
-                        elif numberofreps_str in k:
-                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(numberofreps_str + delimiter):]
-
-                        if len(remainingtext) > 0 and delimiter not in remainingtext and remainingtext != "#":
-                            numcycles = remainingtext
-                            self.userspecifiedvalues[newkey] = numcycles
-
-            for oldkey in keystoremove:
-                stored_dict.pop(oldkey)
-
-            for newkey in pairstoadd.keys():
-                stored_dict[newkey] = pairstoadd[newkey]
-
-    def setvaluesinMovementTreeModel(self, treenode):
-        if treenode is not None:
-            for r in range(treenode.rowCount()):
-                treechild = treenode.child(r, 0)
-                if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                    if pathtext in self.checkstates.keys():
-                        treechild.setCheckState(self.checkstates[pathtext])
-
-                    if pathtext in self.addedinfos.keys():
-                        treechild.addedinfo = copy(self.addedinfos[pathtext])
-
-                    if pathtext in self.userspecifiedvalues.keys():
-                        # this also updates the associated list item as well as its display
-                        treechild.setData(self.userspecifiedvalues[pathtext], Qt.UserRole + udr.userspecifiedvaluerole)
-                        treechild.editablepart().setText(self.userspecifiedvalues[pathtext])
-
-                    self.setvaluesinMovementTreeModel(treechild)
-
-
-# This class is a serializable form of the class MovementModule, which is itself not pickleable
-# due to its component MovementTreeModel.
-class MovementModuleSerializable(ParameterModuleSerializable):
-
-    def __init__(self, mvmtmodule):
-        super().__init__(mvmtmodule)
-
-        # creates a full serializable copy of the movement module, eg for saving to disk
-        self.inphase = mvmtmodule.inphase
-        self.movementtree = MovementTreeSerializable(mvmtmodule.movementtreemodel)
-    #
-    # def getMovementTreeModel(self):
-    #     mvmttreemodel = MovementTreeModel()
-    #     rootnode = mvmttreemodel.invisibleRootItem()
-    #     mvmttreemodel.populate(rootnode)
-    #     makelistmodel = mvmttreemodel.listmodel
-    #     self.setvalues(rootnode)
-    #     return mvmttreemodel
-
-
-class MovementTreeModel(QStandardItemModel):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._listmodel = None  # MovementListModel(self)
-        self.setColumnCount(2)
-        self.itemChanged.connect(self.updateCheckState)
-        self.dataChanged.connect(self.updaterelateddata)
-
-    # def tempprinttreemodel(self):
-    #     print("treemodel contents...")
-    #     # print("location type: ", tm.locationtype)
-    #     self.tempprinttmhelper(self.invisibleRootItem())
-    #
-    # def tempprinttmhelper(self, node, indent=""):
-    #     for r in range(node.rowCount()):
-    #         ch = node.child(r, 0)
-    #         ch_edit = node.child(r, 1)
-    #         edit_text = ch_edit.text()
-    #         usvrole = node.data(Qt.UserRole+udr.userspecifiedvaluerole)  # this is None
-    #         print(indent + ch.text() + " / checked " + str(ch.checkState()) + " / edit_text " + edit_text)  #  + " / usvrole " + usvrole)
-    #         self.tempprinttmhelper(ch, indent=indent + " ")
-
-    def findItemsByRoleValues(self, role, possiblevalues, parentnode=None):
-        if not isinstance(possiblevalues, list):
-            possiblevalues = [possiblevalues]
-        if parentnode is None:
-            parentnode = self.invisibleRootItem()
-
-        items = []
-        numchildren = parentnode.rowCount()
-        for i in range(numchildren):
-            child = parentnode.child(i, 0)
-            roledata = child.data(role)
-            matches = [roledata == pv for pv in possiblevalues]
-            if True in matches:
-                items.append(child)
-
-            subresults = self.findItemsByRoleValues(role, possiblevalues, parentnode=child)
-            items.extend(subresults)
-        return items
-
-    def updaterelateddata(self, topLeft, bottomRight):
-        editableitem = self.itemFromIndex(topLeft)
-        if isinstance(editableitem, QStandardItem) and not isinstance(editableitem, MovementTreeItem) and not isinstance(editableitem, MovementListItem):
-
-            proposedtext = editableitem.text()
-
-            treeitem = editableitem.parent().child(editableitem.row(), 0)
-            userspecifiability = treeitem.data(Qt.UserRole+udr.isuserspecifiablerole)
-            previoustext = treeitem.data(Qt.UserRole+udr.userspecifiedvaluerole)
-            updatedtext = self.validateeditedtext(proposedtext, userspecifiability, previoustext)
-
-            editableitem.setText("specify" if updatedtext == "" else updatedtext)
-            treeitem.setData("" if updatedtext == "specify" else updatedtext, role=Qt.UserRole+udr.userspecifiedvaluerole) # this auto-updates the list item and its display as well
-            if treeitem.data(role=Qt.UserRole+udr.userspecifiedvaluerole) != "" and treeitem.checkState() != Qt.Checked:
-                treeitem.check(fully=True)
-
-    def validateeditedtext(self, proposedtext, userspecifiability, previoustext):
-        valid = False
-        if proposedtext == "specify" or proposedtext == "":
-            valid = True
-        if userspecifiability == ed_1:
-            if proposedtext.isnumeric():
-                num = int(proposedtext)
-                valid = num >= 1
-            elif proposedtext.replace(".", "").isnumeric():
-                num = float(proposedtext)
-                valid = (num >= 1) and (num % 0.5 == 0)
-        elif userspecifiability == ed_2:
-            valid = proposedtext.replace(".", "").isnumeric()
-        elif userspecifiability == ed_3:
-            valid = True
-
-        updatedtext = proposedtext if valid else previoustext
-
-        if updatedtext != proposedtext:
-            # revert to previous value
-            messagestring = "Invalid text: this field must be "
-            if userspecifiability == ed_1:
-                messagestring += ">= 1 and a multiple of 0.5"
-            elif userspecifiability == ed_2:
-                messagestring += "numeric"
-            elif userspecifiability == ed_3:
-                messagestring += "anything (unrestricted)"
-            QMessageBox.critical(None, "Warning", messagestring)
-
-        return updatedtext
-
-
-    def updateCheckState(self, item):
-        if not isinstance(item, MovementTreeItem):
-            # eg, if it's just a QStandardItem representing the editable part of a treeitem
-            return
-        thestate = item.checkState()
-        if thestate == Qt.Checked:
-            # TODO KV then the user must have checked it,
-            #  so make sure to partially-fill ancestors and also look at ME siblings
-            item.check(fully=True)
-        elif thestate == Qt.PartiallyChecked:
-            # TODO KV then the software must have updated it based on some other user action
-            # make sure any ME siblings are unchecked
-            item.check(fully=False)
-        elif thestate == Qt.Unchecked:
-            # TODO KV then either...
-            # (1) the user unchecked it and we have to uncheck ancestors and look into ME siblings, or
-            # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
-            # (3) it was force-unchecked as a result of ME/sibling interaction
-            item.uncheck(force=False)
-        # if thestate in [Qt.Checked, Qt.PartiallyChecked]:
-        #     item.check(thestate == Qt.Checked)
-        # else:
-        #     item.uncheck()
-
-    def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
-        if structure == {} and pathsofar != "":
-            # base case (leaf node); don't build any more nodes
-            pass
-        elif structure == {} and pathsofar == "":
-            # no parameters; build a tree from the default structure
-            # TODO KV define a default structure somewhere (see constant.py)
-            self.populate(parentnode, structure=mvmtOptionsDict, pathsofar="")
-        elif structure != {}:
-            # internal node with substructure
-            numentriesatthislevel = len(structure.keys())
-            for idx, labelclassifierchecked_5tuple in enumerate(structure.keys()):
-                label = labelclassifierchecked_5tuple[0]
-                userspecifiability = labelclassifierchecked_5tuple[1]
-                classifier = labelclassifierchecked_5tuple[2]
-                checked = labelclassifierchecked_5tuple[3]
-                node_id = labelclassifierchecked_5tuple[4]
-                ismutuallyexclusive = classifier == rb
-                iseditable = userspecifiability != fx
-                if label == subgroup:
-
-                    # make the tree items in the subgroup and whatever nested structure they have
-                    isfinal = False
-                    if idx + 1 >= numentriesatthislevel:
-                        # if there are no more items at this level
-                        isfinal = True
-                    self.populate(parentnode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
-
-                else:
-                    thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
-                    thistreenode.setData(userspecifiability, Qt.UserRole+udr.isuserspecifiablerole)
-                    editablepart = QStandardItem()
-                    editablepart.setEditable(iseditable)
-                    editablepart.setText("specify" if iseditable else "")
-                    thistreenode.setData(pathsofar + label, role=Qt.UserRole + udr.pathdisplayrole)
-                    thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
-                    if issubgroup:
-                        thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
-                        if idx + 1 == numentriesatthislevel:
-                            thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
-                            thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
-                    self.populate(thistreenode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar+label+delimiter)
-                    parentnode.appendRow([thistreenode, editablepart])
-
-    @property
-    def listmodel(self):
-        if self._listmodel is None:
-            self._listmodel = MovementListModel(self)
-        return self._listmodel
-
-    @listmodel.setter
-    def listmodel(self, listmod):
-        self._listmodel = listmod
-
-
-class MovementTreeView(QTreeView):
-
-    # adapted from https://stackoverflow.com/questions/68069548/checkbox-with-persistent-editor
-    def edit(self, index, trigger, event):
-        # if the edit involves an index change, there's no event
-        if (event and index.column() == 0 and index.flags() & Qt.ItemIsUserCheckable and event.type() in (event.MouseButtonPress, event.MouseButtonDblClick) and event.button() == Qt.LeftButton and self.isPersistentEditorOpen(index)):
-            opt = self.viewOptions()
-            opt.rect = self.visualRect(index)
-            opt.features |= opt.HasCheckIndicator
-            checkRect = self.style().subElementRect(
-                QStyle.SE_ItemViewItemCheckIndicator,
-                opt, self)
-            if event.pos() in checkRect:
-                if index.data(Qt.CheckStateRole):
-                    self.model().itemFromIndex(index).uncheck()
-                else:
-                    self.model().itemFromIndex(index).check()
-        return super().edit(index, trigger, event)
-
-
+#
+# <<<<<<< HEAD:src/main/python/gui/movement_view.py
+#
+#
+#
+#
+# class MovementTreeModel(QStandardItemModel):
+#
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self._listmodel = None  # MovementListModel(self)
+#         self.setColumnCount(2)
+#         self.itemChanged.connect(self.updateCheckState)
+#         self.dataChanged.connect(self.updaterelateddata)
+#
+#     # def tempprinttreemodel(self):
+#     #     print("treemodel contents...")
+#     #     # print("location type: ", tm.locationtype)
+#     #     self.tempprinttmhelper(self.invisibleRootItem())
+#     #
+#     # def tempprinttmhelper(self, node, indent=""):
+#     #     for r in range(node.rowCount()):
+#     #         ch = node.child(r, 0)
+#     #         ch_edit = node.child(r, 1)
+#     #         edit_text = ch_edit.text()
+#     #         usvrole = node.data(Qt.UserRole+udr.userspecifiedvaluerole)  # this is None
+#     #         print(indent + ch.text() + " / checked " + str(ch.checkState()) + " / edit_text " + edit_text)  #  + " / usvrole " + usvrole)
+#     #         self.tempprinttmhelper(ch, indent=indent + " ")
+#
+#     def findItemsByRoleValues(self, role, possiblevalues, parentnode=None):
+#         if not isinstance(possiblevalues, list):
+#             possiblevalues = [possiblevalues]
+#         if parentnode is None:
+#             parentnode = self.invisibleRootItem()
+#
+#         items = []
+#         numchildren = parentnode.rowCount()
+#         for i in range(numchildren):
+#             child = parentnode.child(i, 0)
+#             roledata = child.data(role)
+#             matches = [roledata == pv for pv in possiblevalues]
+#             if True in matches:
+#                 items.append(child)
+#
+#             subresults = self.findItemsByRoleValues(role, possiblevalues, parentnode=child)
+#             items.extend(subresults)
+#         return items
+#
+#     def updaterelateddata(self, topLeft, bottomRight):
+#         editableitem = self.itemFromIndex(topLeft)
+#         if isinstance(editableitem, QStandardItem) and not isinstance(editableitem, MovementTreeItem) and not isinstance(editableitem, MovementListItem):
+#
+#             proposedtext = editableitem.text()
+#
+#             treeitem = editableitem.parent().child(editableitem.row(), 0)
+#             userspecifiability = treeitem.data(Qt.UserRole+udr.isuserspecifiablerole)
+#             previoustext = treeitem.data(Qt.UserRole+udr.userspecifiedvaluerole)
+#             updatedtext = self.validateeditedtext(proposedtext, userspecifiability, previoustext)
+#
+#             editableitem.setText("specify" if updatedtext == "" else updatedtext)
+#             treeitem.setData("" if updatedtext == "specify" else updatedtext, role=Qt.UserRole+udr.userspecifiedvaluerole) # this auto-updates the list item and its display as well
+#             if treeitem.data(role=Qt.UserRole+udr.userspecifiedvaluerole) != "" and treeitem.checkState() != Qt.Checked:
+#                 treeitem.check(fully=True)
+#
+#     def validateeditedtext(self, proposedtext, userspecifiability, previoustext):
+#         valid = False
+#         if proposedtext == "specify" or proposedtext == "":
+#             valid = True
+#         if userspecifiability == ed_1:
+#             if proposedtext.isnumeric():
+#                 num = int(proposedtext)
+#                 valid = num >= 1
+#             elif proposedtext.replace(".", "").isnumeric():
+#                 num = float(proposedtext)
+#                 valid = (num >= 1) and (num % 0.5 == 0)
+#         elif userspecifiability == ed_2:
+#             valid = proposedtext.replace(".", "").isnumeric()
+#         elif userspecifiability == ed_3:
+#             valid = True
+#
+#         updatedtext = proposedtext if valid else previoustext
+#
+#         if updatedtext != proposedtext:
+#             # revert to previous value
+#             messagestring = "Invalid text: this field must be "
+#             if userspecifiability == ed_1:
+#                 messagestring += ">= 1 and a multiple of 0.5"
+#             elif userspecifiability == ed_2:
+#                 messagestring += "numeric"
+#             elif userspecifiability == ed_3:
+#                 messagestring += "anything (unrestricted)"
+#             QMessageBox.critical(None, "Warning", messagestring)
+#
+#         return updatedtext
+#
+#
+#     def updateCheckState(self, item):
+#         if not isinstance(item, MovementTreeItem):
+#             # eg, if it's just a QStandardItem representing the editable part of a treeitem
+#             return
+#         thestate = item.checkState()
+#         if thestate == Qt.Checked:
+#             # TODO KV then the user must have checked it,
+#             #  so make sure to partially-fill ancestors and also look at ME siblings
+#             item.check(fully=True)
+#         elif thestate == Qt.PartiallyChecked:
+#             # TODO KV then the software must have updated it based on some other user action
+#             # make sure any ME siblings are unchecked
+#             item.check(fully=False)
+#         elif thestate == Qt.Unchecked:
+#             # TODO KV then either...
+#             # (1) the user unchecked it and we have to uncheck ancestors and look into ME siblings, or
+#             # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
+#             # (3) it was force-unchecked as a result of ME/sibling interaction
+#             item.uncheck(force=False)
+#         # if thestate in [Qt.Checked, Qt.PartiallyChecked]:
+#         #     item.check(thestate == Qt.Checked)
+#         # else:
+#         #     item.uncheck()
+#
+#     def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+#         if structure == {} and pathsofar != "":
+#             # base case (leaf node); don't build any more nodes
+#             pass
+#         elif structure == {} and pathsofar == "":
+#             # no parameters; build a tree from the default structure
+#             # TODO KV define a default structure somewhere (see constant.py)
+#             self.populate(parentnode, structure=mvmtOptionsDict, pathsofar="")
+#         elif structure != {}:
+#             # internal node with substructure
+#             numentriesatthislevel = len(structure.keys())
+#             for idx, labelclassifierchecked_5tuple in enumerate(structure.keys()):
+#                 label = labelclassifierchecked_5tuple[0]
+#                 userspecifiability = labelclassifierchecked_5tuple[1]
+#                 classifier = labelclassifierchecked_5tuple[2]
+#                 checked = labelclassifierchecked_5tuple[3]
+#                 node_id = labelclassifierchecked_5tuple[4]
+#                 ismutuallyexclusive = classifier == rb
+#                 iseditable = userspecifiability != fx
+#                 if label == subgroup:
+#
+#                     # make the tree items in the subgroup and whatever nested structure they have
+#                     isfinal = False
+#                     if idx + 1 >= numentriesatthislevel:
+#                         # if there are no more items at this level
+#                         isfinal = True
+#                     self.populate(parentnode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
+#
+#                 else:
+#                     thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
+#                     thistreenode.setData(userspecifiability, Qt.UserRole+udr.isuserspecifiablerole)
+#                     editablepart = QStandardItem()
+#                     editablepart.setEditable(iseditable)
+#                     editablepart.setText("specify" if iseditable else "")
+#                     thistreenode.setData(pathsofar + label, role=Qt.UserRole + udr.pathdisplayrole)
+#                     thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
+#                     if issubgroup:
+#                         thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
+#                         if idx + 1 == numentriesatthislevel:
+#                             thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
+#                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
+#                     self.populate(thistreenode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar+label+delimiter)
+#                     parentnode.appendRow([thistreenode, editablepart])
+#
+#     @property
+#     def listmodel(self):
+#         if self._listmodel is None:
+#             self._listmodel = MovementListModel(self)
+#         return self._listmodel
+#
+#     @listmodel.setter
+#     def listmodel(self, listmod):
+#         self._listmodel = listmod
+#
+#
+# =======
+# >>>>>>> 69-replace-moduleselectionlayout-with-moduleselectionpanel-or-some-other-widget:src/main/python/models/movement_models.py
 class MovementTreeItem(QStandardItem):
 
     def __init__(self, txt="", listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
@@ -791,7 +555,6 @@ class MovementTreeItem(QStandardItem):
             self.setCheckState(serializedmvmtitem['checkstate'])
             self.setUserTristate(serializedmvmtitem['usertristate'])
             self.setData(serializedmvmtitem['selectedrole'], Qt.UserRole+udr.selectedrole)
-            # self.setData(serializedmvmtitem['texteditrole'], Qt.UserRole+udr.texteditrole)
             self.setData(serializedmvmtitem['timestamprole'], Qt.UserRole+udr.timestamprole)
             self.setData(serializedmvmtitem['isuserspecifiablerole'], Qt.UserRole+udr.isuserspecifiablerole)
             self.setData(serializedmvmtitem['userspecifiedvaluerole'], Qt.UserRole+udr.userspecifiedvaluerole)
@@ -806,7 +569,6 @@ class MovementTreeItem(QStandardItem):
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
             self.setData(False, Qt.UserRole+udr.selectedrole)
-            # self.setData(False, Qt.UserRole+udr.texteditrole)
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
             self.setData(fx, Qt.UserRole+udr.isuserspecifiablerole)
             self.setData("", Qt.UserRole+udr.userspecifiedvaluerole)
@@ -838,7 +600,6 @@ class MovementTreeItem(QStandardItem):
             'checkstate': self.checkState(),
             'usertristate': self.isUserTristate(),
             'selectedrole': self.data(Qt.UserRole+udr.selectedrole),
-            # 'texteditrole': self.data(Qt.UserRole+udr.texteditrole),
             'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
             'mutuallyexclusiverole': self.data(Qt.UserRole+udr.mutuallyexclusiverole),
             'displayrole': self.data(Qt.DisplayRole),
@@ -928,15 +689,12 @@ class MovementTreeItem(QStandardItem):
         self.listitem.setData(False, Qt.UserRole+udr.selectedrole)
         self.setData(False, Qt.UserRole+udr.selectedrole)
 
-        # TODO KV - can't just uncheck a radio button... or can we?
-
         if force:  # force-clear this item and all its descendants - have to start at the bottom?
-            # self.forceuncheck()
             # force-uncheck all descendants
             if self.hascheckedchild():
                 for r in range(self.rowCount()):
-                    for c in [0]:  # range(self.columnCount()):
-                        ch = self.child(r, c)
+                    for colnum in [0]:
+                        ch = self.child(r, colnum)
                         if ch is not None:
                             ch.uncheck(force=True)
             self.setCheckState(Qt.Unchecked)
@@ -966,12 +724,12 @@ class MovementTreeItem(QStandardItem):
         numcols = self.columnCount()
         r = 0
         while not foundone and r < numrows:
-            c = 0
-            while not foundone and c < numcols:
-                child = self.child(r, c)
+            colnum = 0
+            while not foundone and colnum < numcols:
+                child = self.child(r, colnum)
                 if child is not None:
                     foundone = child.checkState() in [Qt.Checked, Qt.PartiallyChecked]
-                c += 1
+                colnum += 1
             r += 1
         return foundone
 
@@ -1081,54 +839,254 @@ class MovementListModel(QStandardItemModel):
         self.treemodel = treemod
 
 
-class TreeListView(QListView):
+class MovementTreeModel(QStandardItemModel):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, serializedmvmttree=None, **kwargs):
+        super().__init__(**kwargs)
+        self._listmodel = None  # MovementListModel(self)
+        self.setColumnCount(2)
+        self.itemChanged.connect(self.updateCheckState)
+        self.dataChanged.connect(self.updaterelateddata)
 
-    def keyPressEvent(self, event):
-        key = event.key()
-        # modifiers = event.modifiers()
+        if serializedmvmttree is not None:
+            self.serializedmvmttree = serializedmvmttree
+            rootnode = self.invisibleRootItem()
+            self.populate(rootnode)
+            makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
+            userspecifiedvalues = self.backwardcompatibility()
+            self.setvaluesfromserializedtree(rootnode, userspecifiedvalues)
 
-        if key == Qt.Key_Delete:
-            indexesofselectedrows = self.selectionModel().selectedRows()
-            selectedlistitems = []
-            for itemindex in indexesofselectedrows:
-                listitemindex = self.model().mapToSource(itemindex)
-                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
-                selectedlistitems.append(listitem)
-            for listitem in selectedlistitems:
-                listitem.unselectpath()
-            # self.model().dataChanged.emit()
+    def backwardcompatibility(self):
+        hadtoaddusv = False
+        userspecifiedvalues = {}
+        if hasattr(self.serializedmvmttree, 'userspecifiedvalues'):
+            userspecifiedvalues = self.serializedmvmttree.userspecifiedvalues
+        else:
+            hadtoaddusv = True
+        for stored_dict in [self.serializedmvmttree.checkstates, self.serializedmvmttree.addedinfos]:  # self.numvals, self.stringvals,
+            pairstoadd = {}
+            keystoremove = []
+            for k in stored_dict.keys():
+
+                # 1. "H1 and H2 move in different directions" (under either axis driectin or plane, in perceptual shape)
+                #   --> "H1 and H2 move in opposite directions"
+                # 2. Then later... "H1 and H2 move in opposite directions" (under axis direction only)
+                #   --> "H1 and H2 move toward each other" (along with an independent addition of "... away ...")
+                if "H1 and H2 move in different directions" in k:
+                    if "Axis direction" in k:
+                        pairstoadd[k.replace("in different directions", "toward each other")] = stored_dict[k]
+                        keystoremove.append(k)
+                    elif "Place" in k:
+                        pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
+                        keystoremove.append(k)
+                elif "H1 and H2 move in opposite directions" in k and "Axis direction" in k:
+                    pairstoadd[k.replace("in opposite directions", "toward each other")] = stored_dict[k]
+                    keystoremove.append(k)
+
+                if hadtoaddusv:
+
+                    if k.endswith(specifytotalcycles_str) or k.endswith(numberofreps_str):
+                        pairstoadd[k.replace(numberofreps_str, specifytotalcycles_str)] = stored_dict[k]
+                        keystoremove.append(k)
+
+                    elif "This number is a minimum" in k:
+                        pairstoadd[k.replace(delimiter + "#" + delimiter, delimiter)] = stored_dict[k]
+                        keystoremove.append(k)
+
+                    elif (specifytotalcycles_str + delimiter in k or numberofreps_str + delimiter in k):
+                        # then we're looking at the item that stores info about the specified number of repetitions
+                        newkey = k.replace(numberofreps_str, specifytotalcycles_str)
+                        newkey = newkey[:newkey.index(specifytotalcycles_str+delimiter) + len(specifytotalcycles_str)]
+                        remainingtext = ""
+                        if specifytotalcycles_str in k:
+                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(specifytotalcycles_str + delimiter):]
+                        elif numberofreps_str in k:
+                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(numberofreps_str + delimiter):]
+
+                        if len(remainingtext) > 0 and delimiter not in remainingtext and remainingtext != "#":
+                            numcycles = remainingtext
+                            userspecifiedvalues[newkey] = numcycles
+
+            for oldkey in keystoremove:
+                stored_dict.pop(oldkey)
+
+            for newkey in pairstoadd.keys():
+                stored_dict[newkey] = pairstoadd[newkey]
+
+        return userspecifiedvalues
+
+    def setvaluesfromserializedtree(self, treenode, userspecifiedvalues):
+        if treenode is not None:
+            for r in range(treenode.rowCount()):
+                treechild = treenode.child(r, 0)
+                if treechild is not None:
+                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    if pathtext in self.serializedmvmttree.checkstates.keys():
+                        treechild.setCheckState(self.serializedmvmttree.checkstates[pathtext])
+
+                    if pathtext in self.serializedmvmttree.addedinfos.keys():
+                        treechild.addedinfo = copy(self.serializedmvmttree.addedinfos[pathtext])
+
+                    if pathtext in userspecifiedvalues.keys():
+                        # this also updates the associated list item as well as its display
+                        treechild.setData(userspecifiedvalues[pathtext], Qt.UserRole + udr.userspecifiedvaluerole)
+                        treechild.editablepart().setText(userspecifiedvalues[pathtext])
+
+                    self.setvaluesfromserializedtree(treechild, userspecifiedvalues)
+
+    # def tempprinttreemodel(self):
+    #     print("treemodel contents...")
+    #     # print("location type: ", tm.locationtype)
+    #     self.tempprinttmhelper(self.invisibleRootItem())
+    #
+    # def tempprinttmhelper(self, node, indent=""):
+    #     for r in range(node.rowCount()):
+    #         ch = node.child(r, 0)
+    #         ch_edit = node.child(r, 1)
+    #         edit_text = ch_edit.text()
+    #         usvrole = node.data(Qt.UserRole+udr.userspecifiedvaluerole)  # this is None
+    #         print(indent + ch.text() + " / checked " + str(ch.checkState()) + " / edit_text " + edit_text)  #  + " / usvrole " + usvrole)
+    #         self.tempprinttmhelper(ch, indent=indent + " ")
+
+    def findItemsByRoleValues(self, role, possiblevalues, parentnode=None):
+        if not isinstance(possiblevalues, list):
+            possiblevalues = [possiblevalues]
+        if parentnode is None:
+            parentnode = self.invisibleRootItem()
+
+        items = []
+        numchildren = parentnode.rowCount()
+        for i in range(numchildren):
+            child = parentnode.child(i, 0)
+            roledata = child.data(role)
+            matches = [roledata == pv for pv in possiblevalues]
+            if True in matches:
+                items.append(child)
+
+            subresults = self.findItemsByRoleValues(role, possiblevalues, parentnode=child)
+            items.extend(subresults)
+        return items
+
+    def updaterelateddata(self, topLeft, bottomRight):
+        editableitem = self.itemFromIndex(topLeft)
+        if isinstance(editableitem, QStandardItem) and not isinstance(editableitem, MovementTreeItem) and not isinstance(editableitem, MovementListItem):
+
+            proposedtext = editableitem.text()
+
+            treeitem = editableitem.parent().child(editableitem.row(), 0)
+            userspecifiability = treeitem.data(Qt.UserRole+udr.isuserspecifiablerole)
+            previoustext = treeitem.data(Qt.UserRole+udr.userspecifiedvaluerole)
+            updatedtext = self.validateeditedtext(proposedtext, userspecifiability, previoustext)
+
+            editableitem.setText("specify" if updatedtext == "" else updatedtext)
+            treeitem.setData("" if updatedtext == "specify" else updatedtext, role=Qt.UserRole+udr.userspecifiedvaluerole) # this auto-updates the list item and its display as well
+            if treeitem.data(role=Qt.UserRole+udr.userspecifiedvaluerole) != "" and treeitem.checkState() != Qt.Checked:
+                treeitem.check(fully=True)
+
+    def validateeditedtext(self, proposedtext, userspecifiability, previoustext):
+        valid = False
+        if proposedtext == "specify" or proposedtext == "":
+            valid = True
+        if userspecifiability == ed_1:
+            if proposedtext.isnumeric():
+                num = int(proposedtext)
+                valid = num >= 1
+            elif proposedtext.replace(".", "").isnumeric():
+                num = float(proposedtext)
+                valid = (num >= 1) and (num % 0.5 == 0)
+        elif userspecifiability == ed_2:
+            valid = proposedtext.replace(".", "").isnumeric()
+        elif userspecifiability == ed_3:
+            valid = True
+
+        updatedtext = proposedtext if valid else previoustext
+
+        if updatedtext != proposedtext:
+            # revert to previous value
+            messagestring = "Invalid text: this field must be "
+            if userspecifiability == ed_1:
+                messagestring += ">= 1 and a multiple of 0.5"
+            elif userspecifiability == ed_2:
+                messagestring += "numeric"
+            elif userspecifiability == ed_3:
+                messagestring += "anything (unrestricted)"
+            QMessageBox.critical(None, "Warning", messagestring)
+
+        return updatedtext
 
 
-def gettreeitemsinpath(treemodel, pathstring, delim="/"):
-    pathlist = pathstring.split(delim)
-    pathitemslists = []
-    for level in pathlist:
-        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
-    validpathsoftreeitems = findvaliditemspaths(pathitemslists)
-    return validpathsoftreeitems[0]
+    def updateCheckState(self, item):
+        if not isinstance(item, MovementTreeItem):
+            # eg, if it's just a QStandardItem representing the editable part of a treeitem
+            return
+        thestate = item.checkState()
+        if thestate == Qt.Checked:
+            # TODO KV then the user must have checked it,
+            #  so make sure to partially-fill ancestors and also look at ME siblings
+            item.check(fully=True)
+        elif thestate == Qt.PartiallyChecked:
+            # TODO KV then the software must have updated it based on some other user action
+            # make sure any ME siblings are unchecked
+            item.check(fully=False)
+        elif thestate == Qt.Unchecked:
+            # TODO KV then either...
+            # (1) the user unchecked it and we have to uncheck ancestors and look into ME siblings, or
+            # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
+            # (3) it was force-unchecked as a result of ME/sibling interaction
+            item.uncheck(force=False)
+
+    def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+        if structure == {} and pathsofar != "":
+            # base case (leaf node); don't build any more nodes
+            pass
+        elif structure == {} and pathsofar == "":
+            # no parameters; build a tree from the default structure
+            # TODO KV define a default structure somewhere (see constant.py)
+            self.populate(parentnode, structure=mvmtOptionsDict, pathsofar="")
+        elif structure != {}:
+            # internal node with substructure
+            numentriesatthislevel = len(structure.keys())
+            for idx, labelclassifierchecked_5tuple in enumerate(structure.keys()):
+                label = labelclassifierchecked_5tuple[0]
+                userspecifiability = labelclassifierchecked_5tuple[1]
+                classifier = labelclassifierchecked_5tuple[2]
+                checked = labelclassifierchecked_5tuple[3]
+                node_id = labelclassifierchecked_5tuple[4]
+                ismutuallyexclusive = classifier == rb
+                iseditable = userspecifiability != fx
+                if label == subgroup:
+
+                    # make the tree items in the subgroup and whatever nested structure they have
+                    isfinal = False
+                    if idx + 1 >= numentriesatthislevel:
+                        # if there are no more items at this level
+                        isfinal = True
+                    self.populate(parentnode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
+
+                else:
+                    thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
+                    thistreenode.setData(userspecifiability, Qt.UserRole+udr.isuserspecifiablerole)
+                    editablepart = QStandardItem()
+                    editablepart.setEditable(iseditable)
+                    editablepart.setText("specify" if iseditable else "")
+                    thistreenode.setData(pathsofar + label, role=Qt.UserRole + udr.pathdisplayrole)
+                    thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
+                    if issubgroup:
+                        thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
+                        if idx + 1 == numentriesatthislevel:
+                            thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
+                            thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
+                    self.populate(thistreenode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar+label+delimiter)
+                    parentnode.appendRow([thistreenode, editablepart])
+
+    @property
+    def listmodel(self):
+        if self._listmodel is None:
+            self._listmodel = MovementListModel(self)
+        return self._listmodel
+
+    @listmodel.setter
+    def listmodel(self, listmod):
+        self._listmodel = listmod
 
 
-def findvaliditemspaths(pathitemslists):
-    validpaths = []
-    if len(pathitemslists) > 1:  # the path is longer than 1 level
-        # pathitemslistslotohi = pathitemslists[::-1]
-        for lastitem in pathitemslists[-1]:
-            for secondlastitem in pathitemslists[-2]:
-                if lastitem.parent() == secondlastitem:
-                    higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
-                    for higherpath in higherpaths:
-                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
-                            validpaths.append(higherpath + [lastitem])
-    elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
-        for lastitem in pathitemslists[0]:
-            # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
-            validpaths.append([lastitem])
-    else:
-        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
-        # but just in case...
-        validpaths = []
-
-    return validpaths
