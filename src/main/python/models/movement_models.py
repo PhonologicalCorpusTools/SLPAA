@@ -360,12 +360,13 @@ mvmtOptionsDict = {
                 (subgroup, None, 1, None, 217): {
                     ("Relative to", ed_3, cb, u, 218): {},
                 }
-            }
+            },
+            ("Other", ed_3, cb, u, 219): {}
         }
     }
 }
 
-#
+
 # <<<<<<< HEAD:src/main/python/gui/movement_view.py
 #
 #
