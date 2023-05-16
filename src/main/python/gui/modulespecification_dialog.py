@@ -403,4 +403,5 @@ class HandSelectionPanel(QFrame):
         self.hands_group.setExclusive(False)
         for b in self.hands_group.buttons() + self.bothhands_group.buttons():
             b.setChecked(False)
+            b.setEnabled(True)
         self.hands_group.setExclusive(True)
