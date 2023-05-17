@@ -273,8 +273,8 @@ class SignSummaryPanel(QScrollArea):
 
         # self.scene = QGraphicsScene()
         self.scene = SignSummaryScene()
-        self.scene.modulerect_clicked.connect(self.handle_modulebutton_clicked)
-        self.scene.moduleellipse_clicked.connect(self.handle_modulebutton_clicked)
+        self.scene.modulerect_clicked.connect(self.handle_summarymodulebtn_clicked)
+        self.scene.moduleellipse_clicked.connect(self.handle_summarymodulebtn_clicked)
 
         self.scene_width = 1100
         self.xslots_width = 1000
@@ -394,7 +394,7 @@ class SignSummaryPanel(QScrollArea):
 
         self.addparameter(hand=hand, moduletype=ModuleTypes.MOVEMENT)
         self.addhandpart(hand=hand)
-        self.addparameter(hand=hand, moduletype=ModuleTypes.MOVEMENT)
+        self.addparameter(hand=hand, moduletype=ModuleTypes.LOCATION)
         self.addcontact(hand=hand)
         self.addorientation(hand=hand)
         self.addnonmanual(hand=hand)
@@ -447,20 +447,8 @@ class SignSummaryPanel(QScrollArea):
 
     def addparameter(self, hand, moduletype):
         # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
-        moduletypeabbrev = ''
-        parammodules = None
-        if moduletype == ModuleTypes.LOCATION:
-            parammodules = self.sign.locationmodules
-            moduletypeabbrev = 'Loc'
-        elif moduletype == ModuleTypes.MOVEMENT:
-            parammodules = self.sign.movementmodules
-            moduletypeabbrev = 'Mov'
-        elif moduletype == ModuleTypes.HANDCONFIG:
-            parammodules = self.sign.handconfigmodules
-            moduletypeabbrev = 'Config'
-        else:
-            return
-        # TODO KV add the rest of the parameter modules when ready
+        parammodules = self.sign.getmoduledict(moduletype)
+        moduletypeabbrev = ModuleTypes.abbreviations[moduletype]
 
         num_parammods = len(parammodules)
         if num_parammods > 0:
@@ -609,7 +597,7 @@ class SignSummaryPanel(QScrollArea):
             for item in self.moduleitems:
                 self.scene.addItem(item)
 
-    def handle_modulebutton_clicked(self, modulebutton):
+    def handle_summarymodulebtn_clicked(self, modulebutton):
         # TODO KV
         moduletype = modulebutton.moduletype
         if moduletype == 'signtype':
@@ -618,12 +606,7 @@ class SignSummaryPanel(QScrollArea):
         #     self.handle_xslot_clicked()
         else:
             modulekey = modulebutton.module_uniqueid
-            if moduletype == ModuleTypes.MOVEMENT:
-                self.handle_movement_clicked(modulekey)
-            elif moduletype == ModuleTypes.HANDCONFIG:
-                self.handle_handconfig_clicked(modulekey)
-            elif moduletype == ModuleTypes.LOCATION:
-                self.handle_location_clicked(modulekey)
+            self.open_module_dialog(modulekey, moduletype)
 
     def handle_xslot_clicked(self):
         # TODO KV - open xslot editing window
@@ -638,57 +621,29 @@ class SignSummaryPanel(QScrollArea):
         self.sign.signtype = signtype
         self.refreshsign()
 
-    # def open_module_dialog(self, modulekey, moduletype):
-    #     modules_list = None
-    #     if
-    #     module_to_edit = self.
-
-    def handle_movement_clicked(self, modulekey):
-        mvmtmodule = self.sign.movementmodules[modulekey]
-        movement_selector = ModuleSelectorDialog(moduletype='Mov',
-                                                 xslotstructure=self.sign.xslotstructure,
-                                                 moduletoload=mvmtmodule,
-                                                 includephase=2,
-                                                 parent=self)
-        movement_selector.module_saved.connect(
-            lambda movementmodule:
-            self.mainwindow.signlevel_panel.handle_save_movement(movementmodule, existing_key=modulekey)
+    def open_module_dialog(self, modulekey, moduletype):
+        modules_list = self.sign.getmoduledict(moduletype)
+        module_to_edit = modules_list[modulekey]
+        includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
+            1 if moduletype == ModuleTypes.LOCATION else
+            0  # default
         )
-        movement_selector.module_deleted.connect(
-            lambda: self.mainwindow.signlevel_panel.handle_delete_movement(modulekey)
+        module_selector = ModuleSelectorDialog(moduletype=moduletype,
+                                               xslotstructure=self.sign.xslotstructure,
+                                               moduletoload=module_to_edit,
+                                               includephase=includephase,
+                                               parent=self
+                                               )
+        module_selector.module_saved.connect(
+            lambda module_to_save:
+            self.mainwindow.signlevel_panel.handle_save_module(module_to_save=module_to_save,
+                                                               moduletype=moduletype,
+                                                               existing_key=modulekey)
         )
-        movement_selector.exec_()
-
-    def handle_location_clicked(self, modulekey):
-        locnmodule = self.sign.locationmodules[modulekey]
-        location_selector = ModuleSelectorDialog(moduletype='Loc',
-                                                 xslotstructure=self.sign.xslotstructure,
-                                                 moduletoload=locnmodule,
-                                                 includephase=1,
-                                                 parent=self)
-        location_selector.module_saved.connect(
-            lambda locationmodule:
-            self.mainwindow.signlevel_panel.handle_save_location(locationmodule, existing_key=modulekey)
+        module_selector.module_deleted.connect(
+            lambda: self.mainwindow.signlevel_panel.handle_delete_module(existingkey=modulekey, moduletype=moduletype)
         )
-        location_selector.module_deleted.connect(
-            lambda: self.mainwindow.signlevel_panel.handle_delete_location(modulekey)
-        )
-        location_selector.exec_()
-
-    def handle_handconfig_clicked(self, modulekey):
-        hcfgmodule = self.sign.handconfigmodules[modulekey]
-        handcfg_selector = ModuleSelectorDialog(moduletype='Config',
-                                                xslotstructure=self.sign.xslotstructure,
-                                                moduletoload=hcfgmodule,
-                                                parent=self)
-        handcfg_selector.module_saved.connect(
-            lambda hconfigmodule:
-            self.mainwindow.signlevel_panel.handle_save_handconfig(hconfigmodule, existing_key=modulekey)
-        )
-        handcfg_selector.module_deleted.connect(
-            lambda: self.mainwindow.signlevel_panel.handle_delete_handconfig(modulekey)
-        )
-        handcfg_selector.exec_()
+        module_selector.exec_()
 
 
 class SignLevelMenuPanel(QScrollArea):
@@ -726,34 +681,34 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.movement_button = QPushButton("Add movement module")
         self.movement_button.setProperty("existingmodule", False)
-        self.movement_button.clicked.connect(self.handle_movementbutton_click)
+        self.movement_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.MOVEMENT))
         self.module_buttons.append(self.movement_button)
 
         self.handpart_button = QPushButton("Add hand part module")
         self.handpart_button.setProperty("existingmodule", False)
-        self.handpart_button.clicked.connect(self.handle_handpartbutton_click)
+        self.handpart_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.HANDPART))
         self.module_buttons.append(self.handpart_button)
 
         self.location_button = QPushButton("Add location module")
-        self.location_button.clicked.connect(self.handle_locationbutton_click)
+        self.location_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.LOCATION))
         self.module_buttons.append(self.location_button)
 
         self.contact_button = QPushButton("Add contact module")
-        self.contact_button.clicked.connect(self.handle_contactbutton_click)
+        self.contact_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.CONTACT))
         self.module_buttons.append(self.contact_button)
 
         self.orientation_button = QPushButton("Add orientation module")
-        self.orientation_button.clicked.connect(self.handle_orientationbutton_click)
+        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.ORIENTATION))
         self.module_buttons.append(self.orientation_button)
 
         self.handshape_button = QPushButton("Add hand configuration module")
         self.handshape_button.setProperty("existingmodule", False)
-        self.handshape_button.clicked.connect(self.handle_handshapebutton_click)
+        self.handshape_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.HANDCONFIG))
         self.module_buttons.append(self.handshape_button)
 
         self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
-        self.nonmanual_button.clicked.connect(self.handle_nonmanualbutton_click)
+        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.NONMANUAL))
         self.module_buttons.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
@@ -839,89 +794,38 @@ class SignLevelMenuPanel(QScrollArea):
         self.sign.signtype = signtype
         self.sign_updated.emit(self.sign)
 
-    def handle_movementbutton_click(self):
-        movement_selector = ModuleSelectorDialog(moduletype='Mov',
-                                                 xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                 moduletoload=None,
-                                                 includephase=2,
-                                                 parent=self)
-        movement_selector.module_saved.connect(self.handle_save_movement)
-        movement_selector.exec_()
+    def handle_menumodulebtn_clicked(self, moduletype):
+        includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
+            1 if moduletype == ModuleTypes.LOCATION else
+            0  # default
+        )
+        module_selector = ModuleSelectorDialog(moduletype=moduletype,
+                                               xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                               moduletoload=None,
+                                               includephase=includephase,
+                                               parent=self)
+        module_selector.module_saved.connect(lambda moduletosave: self.handle_save_module(moduletosave, moduletype))
+        module_selector.exec_()
 
-    def handle_delete_movement(self, existing_key):
-        if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-            print("TODO KV key error: attempting to delete a movement module whose key is not in the list of existing modules")
+    def handle_delete_module(self, existingkey, moduletype):
+        if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype).keys():
+            print("TODO KV key error: attempting to delete a " +
+                  moduletype + " module whose key is not in the list of existing modules")
         else:
-            self.sign.removemovementmodule(existing_key)
+            self.sign.removemodule(existingkey, moduletype)
         self.sign_updated.emit(self.sign)
 
-    def handle_save_movement(self, movementmod, existing_key=None):
-        if existing_key is None or existing_key not in self.sign.movementmodules.keys():
-            self.sign.addmovementmodule(movementmod)
+    def handle_save_module(self, module_to_save, moduletype, existing_key=None):
+        if existing_key is None or existing_key not in self.sign.getmoduledict(moduletype):
+            self.sign.addmodule(module_to_save, moduletype)
         else:
-            self.sign.updatemovementmodule(existing_key, movementmod)
+            self.sign.updatemodule(existing_key, module_to_save, moduletype)
         self.sign_updated.emit(self.sign)
 
-    def handle_handshapebutton_click(self):
-        handcfg_selector = ModuleSelectorDialog(moduletype='Config',
-                                                xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                moduletoload=None,
-                                                parent=self)
-        handcfg_selector.module_saved.connect(self.handle_save_handconfig)
-        handcfg_selector.exec_()
-
-    def handle_delete_handconfig(self, existing_key):
-        if existing_key is None or existing_key not in self.sign.handconfigmodules.keys():
-            print("TODO KV key error: attempting to delete a hand config module whose key is not in the list of existing modules")
-        else:
-            self.sign.removehandconfigmodule(existing_key)
-        self.sign_updated.emit(self.sign)
-
-    def handle_save_handconfig(self, hcfgmodule, existing_key=None):
-        if existing_key is None or existing_key not in self.sign.handconfigmodules.keys():
-            self.sign.addhandconfigmodule(hcfgmodule)
-        else:
-            self.sign.updatehandconfigmodule(existing_key, hcfgmodule)
-        self.sign_updated.emit(self.sign)
-
-    def handle_contactbutton_click(self):
-        # TODO KV
-        QMessageBox.information(self, 'Not Available', 'Contact module functionality not yet linked.')
-
-    def handle_orientationbutton_click(self):
-        # TODO KV
-        QMessageBox.information(self, 'Not Available', 'Orientation module functionality not yet linked.')
-
-    def handle_locationbutton_click(self):
-        location_selector = ModuleSelectorDialog(moduletype='Loc',
-                                                 xslotstructure=self.mainwindow.current_sign.xslotstructure,
-                                                 moduletoload=None,
-                                                 includephase=1,
-                                                 parent=self)
-        location_selector.module_saved.connect(self.handle_save_location)
-        location_selector.exec_()
-
-    def handle_delete_location(self, existing_key):
-        if existing_key is None or existing_key not in self.sign.locationmodules.keys():
-            print("TODO KV key error: attempting to delete a location module whose key is not in the list of existing modules")
-        else:
-            self.sign.removelocationmodule(existing_key)
-        self.sign_updated.emit(self.sign)
-
-    def handle_save_location(self, locationmodule, existing_key=None):
-        if existing_key is None or existing_key not in self.sign.locationmodules.keys():
-            self.sign.addlocationmodule(locationmodule)
-        else:
-            self.sign.updatelocationmodule(existing_key, locationmodule)
-        self.sign_updated.emit(self.sign)
-
-    def handle_handpartbutton_click(self):
-        # TODO KV
-        QMessageBox.information(self, 'Not Available', 'Hand part module functionality not yet linked.')
-
-    def handle_nonmanualbutton_click(self):
-        # TODO KV
-        QMessageBox.information(self, 'Not Available', 'Non-manual module functionality not yet linked.')
+    def handle_menumodulebtn_clicked_na(self, moduletype):
+        QMessageBox.information(self,
+                                "Not available",
+                                moduletype[0].upper()+moduletype[1:] + " module functionality not yet linked.")
 
 
 class LocationGroupLayout(QHBoxLayout):

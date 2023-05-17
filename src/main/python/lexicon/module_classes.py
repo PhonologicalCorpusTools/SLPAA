@@ -19,6 +19,17 @@ class ModuleTypes:
     HANDCONFIG = 'handconfig'
     CONTACT = 'contact'
     ORIENTATION = 'orientation'
+    NONMANUAL = 'nonmanual'
+
+    abbreviations = {
+        MOVEMENT: 'Mov',
+        LOCATION: 'Loc',
+        HANDPART: 'HdPart',
+        HANDCONFIG: 'Config',
+        CONTACT: 'Cont',
+        ORIENTATION: 'Ori',
+        NONMANUAL: 'NM'  # TODO KV check comment in system overview
+    }
 
 
 class UserDefinedRoles(dict):
@@ -309,7 +320,6 @@ class MovementModule(ParameterModule):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase    # TODO KV is "inphase" actually the best name for this attribute?
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
-        self._moduletype = 'Mov'
 
     @property
     def movementtreemodel(self):
@@ -1010,7 +1020,6 @@ class LocationModule(ParameterModule):
         self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
         self._phonlocs = phonlocs
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
-        self._moduletype = 'Loc'
 
     @property
     def locationtreemodel(self):
@@ -1140,7 +1149,6 @@ class HandConfigurationModule(ParameterModule):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
-        self._moduletype = 'Config'
 
     @property
     def handconfiguration(self):
