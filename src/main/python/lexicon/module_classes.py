@@ -12,6 +12,15 @@ PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
 
+class ModuleTypes:
+    MOVEMENT = 'movement'
+    LOCATION = 'location'
+    HANDPART = 'handpart'
+    HANDCONFIG = 'handconfig'
+    CONTACT = 'contact'
+    ORIENTATION = 'orientation'
+
+
 class UserDefinedRoles(dict):
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__

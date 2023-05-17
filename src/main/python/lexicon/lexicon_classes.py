@@ -1,5 +1,5 @@
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule
+from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -72,6 +72,15 @@ class Sign:
             self.contactmodules = {}
             self.orientationmodules = {}
             self.handconfigmodules = {}
+
+        # self.module_lists_dict = {
+        #     ModuleTypes.LOCATION: self.locationmodules,
+        #     ModuleTypes.MOVEMENT: self.movementmodules,
+        #     ModuleTypes.HANDCONFIG: self.handconfigmodules,
+        #     ModuleTypes.HANDPART: self.handpartmodules,
+        #     ModuleTypes.CONTACT: self.contactmodules,
+        #     ModuleTypes.ORIENTATION: self.orientationmodules
+        # }
 
     def serialize(self):
         return {

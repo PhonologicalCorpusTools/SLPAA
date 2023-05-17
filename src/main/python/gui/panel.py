@@ -48,7 +48,7 @@ from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS
 from gui.xslotspecification_view import XslotSelectorDialog
-from lexicon.module_classes import TimingPoint, TimingInterval
+from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
 from lexicon.lexicon_classes import Sign
 from gui.modulespecification_dialog import ModuleSelectorDialog
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
@@ -392,13 +392,13 @@ class SignSummaryPanel(QScrollArea):
         handtext.setPos(self.x_offset, self.current_y * (self.default_xslot_height + self.verticalspacing))
         self.scene.addItem(handtext)
 
-        self.addparameter(hand=hand, moduletype='movement')
+        self.addparameter(hand=hand, moduletype=ModuleTypes.MOVEMENT)
         self.addhandpart(hand=hand)
-        self.addparameter(hand=hand, moduletype='location')
+        self.addparameter(hand=hand, moduletype=ModuleTypes.MOVEMENT)
         self.addcontact(hand=hand)
         self.addorientation(hand=hand)
         self.addnonmanual(hand=hand)
-        self.addparameter(hand=hand, moduletype='handconfig')
+        self.addparameter(hand=hand, moduletype=ModuleTypes.HANDCONFIG)
 
     def getxywh(self, timinginterval):
         if timinginterval is None:
@@ -449,13 +449,13 @@ class SignSummaryPanel(QScrollArea):
         # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
         moduletypeabbrev = ''
         parammodules = None
-        if moduletype == 'location':
+        if moduletype == ModuleTypes.LOCATION:
             parammodules = self.sign.locationmodules
             moduletypeabbrev = 'Loc'
-        elif moduletype == 'movement':
+        elif moduletype == ModuleTypes.MOVEMENT:
             parammodules = self.sign.movementmodules
             moduletypeabbrev = 'Mov'
-        elif moduletype == 'handconfig':
+        elif moduletype == ModuleTypes.HANDCONFIG:
             parammodules = self.sign.handconfigmodules
             moduletypeabbrev = 'Config'
         else:
@@ -618,11 +618,11 @@ class SignSummaryPanel(QScrollArea):
         #     self.handle_xslot_clicked()
         else:
             modulekey = modulebutton.module_uniqueid
-            if moduletype == 'movement':
+            if moduletype == ModuleTypes.MOVEMENT:
                 self.handle_movement_clicked(modulekey)
-            elif moduletype == 'handconfig':
+            elif moduletype == ModuleTypes.HANDCONFIG:
                 self.handle_handconfig_clicked(modulekey)
-            elif moduletype == 'location':
+            elif moduletype == ModuleTypes.LOCATION:
                 self.handle_location_clicked(modulekey)
 
     def handle_xslot_clicked(self):
@@ -637,6 +637,11 @@ class SignSummaryPanel(QScrollArea):
     def handle_save_signtype(self, signtype):
         self.sign.signtype = signtype
         self.refreshsign()
+
+    # def open_module_dialog(self, modulekey, moduletype):
+    #     modules_list = None
+    #     if
+    #     module_to_edit = self.
 
     def handle_movement_clicked(self, modulekey):
         mvmtmodule = self.sign.movementmodules[modulekey]
