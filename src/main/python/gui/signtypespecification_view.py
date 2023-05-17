@@ -346,10 +346,10 @@ class SigntypeSpecificationPanel(QFrame):
             if self.handstype_2hdiffshapes_radio.isChecked():
                 msg += "- Hand configuration relation\n"
                 conflict = True
-            if self.handstype_2hmvmtone_radio.isChecked():
+            if self.handstype_2hmvmtone_radio.isChecked() and self.handstype_2hmvmtone_radio.isEnabled():
                 msg += "- Movement relation (only 1 hand moves)\n"
                 conflict = True
-            if self.handstype_2hmvmtbothdiff_radio.isChecked():
+            if self.handstype_2hmvmtbothdiff_radio.isChecked() and self.handstype_2hmvmtbothdiff_radio.isEnabled():
                 msg += "- Movement relation (hands move differently)\n"
                 conflict = True
         if conflict == True:
