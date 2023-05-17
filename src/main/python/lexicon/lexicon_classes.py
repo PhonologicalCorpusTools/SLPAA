@@ -1,5 +1,5 @@
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule
+from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -72,6 +72,20 @@ class Sign:
             self.contactmodules = {}
             self.orientationmodules = {}
             self.handconfigmodules = {}
+
+    def getmoduledict(self, moduletype):
+        if moduletype == ModuleTypes.LOCATION:
+            return self.locationmodules
+        elif moduletype == ModuleTypes.MOVEMENT:
+            return self.movementmodules
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            return self.handconfigmodules
+        elif moduletype == ModuleTypes.HANDPART:
+            return self.handpartmodules
+        elif moduletype == ModuleTypes.CONTACT:
+            return self.contactmodules
+        elif moduletype == ModuleTypes.ORIENTATION:
+            return self.orientationmodules
 
     def serialize(self):
         return {
@@ -204,102 +218,60 @@ class Sign:
         # TODO KV - validate?
         self._xslotstructure = xslotstruct
 
-    def updatemovementmodule(self, uniqueid, updated_mvmtmod):
-        current_mvmtmod = self.movementmodules[uniqueid]
+    def updatemodule_sharedattributes(self, current_mod, updated_mod):
         ischanged = False
-        if current_mvmtmod.movementtreemodel != updated_mvmtmod.movementtreemodel:
-            current_mvmtmod.movementtreemodel = updated_mvmtmod.movementtreemodel
+        if current_mod.hands != updated_mod.hands:
+            current_mod.hands = updated_mod.hands
             ischanged = True
-        if current_mvmtmod.hands != updated_mvmtmod.hands:
-            current_mvmtmod.hands = updated_mvmtmod.hands
+        if current_mod.timingintervals != updated_mod.timingintervals:
+            current_mod.timingintervals = updated_mod.timingintervals
             ischanged = True
-        if current_mvmtmod.timingintervals != updated_mvmtmod.timingintervals:
-            current_mvmtmod.timingintervals = updated_mvmtmod.timingintervals
+        if current_mod.addedinfo != updated_mod.addedinfo:
+            current_mod.addedinfo = updated_mod.addedinfo
             ischanged = True
-        if current_mvmtmod.inphase != updated_mvmtmod.inphase:
-            current_mvmtmod.inphase = updated_mvmtmod.inphase
+        return ischanged
+
+    def updatemodule(self, existingkey, updated_module, moduletype):
+        current_module = self.getmoduledict(moduletype)[existingkey]
+        ischanged = False
+
+        if self.updatemodule_sharedattributes(current_module, updated_module):
             ischanged = True
-        if current_mvmtmod.addedinfo != updated_mvmtmod.addedinfo:
-            current_mvmtmod.addedinfo = updated_mvmtmod.addedinfo
-            ischanged = True
+
+        if moduletype == ModuleTypes.MOVEMENT:
+            if current_module.movementtreemodel != updated_module.movementtreemodel:
+                current_module.movementtreemodel = updated_module.movementtreemodel
+                ischanged = True
+            if current_module.inphase != updated_module.inphase:
+                current_module.inphase = updated_module.inphase
+                ischanged = True
+        elif moduletype == ModuleTypes.LOCATION:
+            if current_module.locationtreemodel != updated_module.locationtreemodel:
+                current_module.locationtreemodel = updated_module.locationtreemodel
+                ischanged = True
+            if current_module.inphase != updated_module.inphase:
+                current_module.inphase = updated_module.inphase
+                ischanged = True
+            if current_module.phonlocs != updated_module.phonlocs:
+                current_module.phonlocs = updated_module.phonlocs
+                ischanged = True
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            if current_module.handconfiguration != updated_module.handconfiguration:
+                current_module.handconfiguration = updated_module.handconfiguration
+                ischanged = True
+            if current_module.overalloptions != updated_module.overalloptions:
+                current_module.overalloptions = updated_module.overalloptions
+                ischanged = True
+
         if ischanged:
             self.lastmodifiednow()
 
-    def addmovementmodule(self, mvmtmod):
-        self.movementmodules[mvmtmod.uniqueid] = mvmtmod
+    def addmodule(self, module_to_add, moduletype):
+        self.getmoduledict(moduletype)[module_to_add.uniqueid] = module_to_add
         self.lastmodifiednow()
 
-    def removemovementmodule(self, uniqueid):
-        self.movementmodules.pop(uniqueid)
-        self.lastmodifiednow()
-
-    def updatehandconfigmodule(self, uniqueid, updated_hcfgmod):
-        current_hcfgmod = self.handconfigmodules[uniqueid]
-        ischanged = False
-        if current_hcfgmod.handconfiguration != updated_hcfgmod.handconfiguration:
-            current_hcfgmod.handconfiguration = updated_hcfgmod.handconfiguration
-            ischanged = True
-        if current_hcfgmod.hands != updated_hcfgmod.hands:
-            current_hcfgmod.hands = updated_hcfgmod.hands
-            ischanged = True
-        if current_hcfgmod.overalloptions != updated_hcfgmod.overalloptions:
-            current_hcfgmod.overalloptions = updated_hcfgmod.overalloptions
-            ischanged = True
-        if current_hcfgmod.timingintervals != updated_hcfgmod.timingintervals:
-            current_hcfgmod.timingintervals = updated_hcfgmod.timingintervals
-            ischanged = True
-        if current_hcfgmod.addedinfo != updated_hcfgmod.addedinfo:
-            current_hcfgmod.addedinfo = updated_hcfgmod.addedinfo
-            ischanged = True
-        if ischanged:
-            self.lastmodifiednow()
-
-    def addhandconfigmodule(self, hcfgmod):
-        self.handconfigmodules[hcfgmod.uniqueid] = hcfgmod
-        self.lastmodifiednow()
-
-    def removehandconfigmodule(self, uniqueid):
-        self.handconfigmodules.pop(uniqueid)
-        self.lastmodifiednow()
-
-    def addtargetmodule(self, targetmod):
-        self.targetmodules.append(targetmod)
-        self.lastmodifiednow()
-
-    def addlocationmodule(self, locnmod):
-        self.locationmodules[locnmod.uniqueid] = locnmod
-        self.lastmodifiednow()
-
-    def removelocationmodule(self, uniqueid):
-        self.locationmodules.pop(uniqueid)
-        self.lastmodifiednow()
-
-    def updatelocationmodule(self, uniqueid, updated_locnmod):
-        current_locnmod = self.locationmodules[uniqueid]
-        ischanged = False
-        if current_locnmod.locationtreemodel != updated_locnmod.locationtreemodel:
-            current_locnmod.locationtreemodel = updated_locnmod.locationtreemodel
-            ischanged = True
-        if current_locnmod.hands != updated_locnmod.hands:
-            current_locnmod.hands = updated_locnmod.hands
-            ischanged = True
-        if current_locnmod.timingintervals != updated_locnmod.timingintervals:
-            current_locnmod.timingintervals = updated_locnmod.timingintervals
-            ischanged = True
-        if current_locnmod.inphase != updated_locnmod.inphase:
-            current_locnmod.inphase = updated_locnmod.inphase
-            ischanged = True
-        if current_locnmod.phonlocs != updated_locnmod.phonlocs:
-            current_locnmod.phonlocs = updated_locnmod.phonlocs
-            ischanged = True
-        if current_locnmod.addedinfo != updated_locnmod.addedinfo:
-            current_locnmod.addedinfo = updated_locnmod.addedinfo
-            ischanged = True
-        if ischanged:
-            self.lastmodifiednow()
-
-    def addorientationmodule(self, orientationmod):
-        self.orientationmodules.append(orientationmod)
+    def removemodule(self, uniqueid, moduletype):
+        self.getmoduledict(moduletype).pop(uniqueid)
         self.lastmodifiednow()
 
     def gettimedmodules(self):

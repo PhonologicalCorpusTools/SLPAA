@@ -12,6 +12,26 @@ PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
 
+class ModuleTypes:
+    MOVEMENT = 'movement'
+    LOCATION = 'location'
+    HANDPART = 'handpart'
+    HANDCONFIG = 'handconfig'
+    CONTACT = 'contact'
+    ORIENTATION = 'orientation'
+    NONMANUAL = 'nonmanual'
+
+    abbreviations = {
+        MOVEMENT: 'Mov',
+        LOCATION: 'Loc',
+        HANDPART: 'HdPart',
+        HANDCONFIG: 'Config',
+        CONTACT: 'Cont',
+        ORIENTATION: 'Ori',
+        NONMANUAL: 'NM'  # TODO KV check comment in system overview
+    }
+
+
 class UserDefinedRoles(dict):
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
@@ -300,7 +320,6 @@ class MovementModule(ParameterModule):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase    # TODO KV is "inphase" actually the best name for this attribute?
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
-        self._moduletype = 'Mov'
 
     @property
     def movementtreemodel(self):
@@ -1001,7 +1020,6 @@ class LocationModule(ParameterModule):
         self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
         self._phonlocs = phonlocs
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
-        self._moduletype = 'Loc'
 
     @property
     def locationtreemodel(self):
@@ -1131,7 +1149,6 @@ class HandConfigurationModule(ParameterModule):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
         super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
-        self._moduletype = 'Config'
 
     @property
     def handconfiguration(self):

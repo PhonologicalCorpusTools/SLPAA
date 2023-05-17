@@ -23,7 +23,7 @@ from PyQt5.QtCore import (
 )
 
 from gui.xslot_graphics import XslotLinkScene
-from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule
+from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
@@ -74,11 +74,11 @@ class ModuleSelectorDialog(QDialog):
             main_layout.addWidget(self.xslot_widget)
 
         self.module_widget = QWidget()
-        if moduletype == 'Mov':
+        if moduletype == ModuleTypes.MOVEMENT:
             self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif moduletype == 'Loc':
+        elif moduletype == ModuleTypes.LOCATION:
             self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif moduletype == 'Config':
+        elif moduletype == ModuleTypes.HANDCONFIG:
             self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
         main_layout.addWidget(self.module_widget)
 
