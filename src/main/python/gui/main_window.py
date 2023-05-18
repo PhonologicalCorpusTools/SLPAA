@@ -884,6 +884,12 @@ class MainWindow(QMainWindow):
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
+        else: # if loading a blank corpus
+            self.signsummary_panel.mainwindow.current_sign = None # refreshsign() checks for this
+            self.signsummary_panel.refreshsign(None)
+            self.signlevel_panel.clear()
+            self.signlevel_panel.enable_module_buttons(False)
+            
 
         return self.corpus is not None  # bool(Corpus)
 
