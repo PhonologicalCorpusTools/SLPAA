@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QDialogButtonBox,
     QLabel,
     QButtonGroup,
+    QMessageBox,
     QRadioButton,
     QCheckBox,
     QGroupBox,
@@ -337,6 +338,23 @@ class SigntypeSpecificationPanel(QFrame):
     def getButtonGroup(self, thebutton):
         groups = [bg for bg in self.buttongroups if thebutton in bg.buttons()]
         return groups[0]
+    
+    def symmetry_dependencies_warning(self):
+        conflict = False
+        if self.handstype_2hsymmetryyes_radio.isChecked():
+            msg = "Bilateral symmetry relation conflicts with: \n"
+            if self.handstype_2hdiffshapes_radio.isChecked():
+                msg += "- Hand configuration relation\n"
+                conflict = True
+            if self.handstype_2hmvmtone_radio.isChecked() and self.handstype_2hmvmtone_radio.isEnabled():
+                msg += "- Movement relation (only 1 hand moves)\n"
+                conflict = True
+            if self.handstype_2hmvmtbothdiff_radio.isChecked() and self.handstype_2hmvmtbothdiff_radio.isEnabled():
+                msg += "- Movement relation (hands move differently)\n"
+                conflict = True
+        if conflict == True:
+            return msg 
+        return "pass"
 
 
 class SigntypeButtonGroup(QButtonGroup):
@@ -496,11 +514,17 @@ class SigntypeSelectorDialog(QDialog):
         #         self.movement_tab.remove_all_pages()
         #         self.movement_tab.add_default_movement_tabs(is_system_default=True)
         elif standard == QDialogButtonBox.Save:
-            newsigntype = self.signtype_widget.getsigntype()
-            self.saved_signtype.emit(newsigntype)
-            if self.mainwindow.current_sign is not None and self.signtype != newsigntype:
-                self.mainwindow.current_sign.lastmodifiednow()
-            self.accept()
+            dependency_warning = self.signtype_widget.symmetry_dependencies_warning()
+            if (dependency_warning == "pass"):
+                newsigntype = self.signtype_widget.getsigntype()
+                self.saved_signtype.emit(newsigntype)
+                if self.mainwindow.current_sign is not None and self.signtype != newsigntype:
+                    self.mainwindow.current_sign.lastmodifiednow()
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Warning", dependency_warning)
 
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.signtype_widget.setsigntype(self.mainwindow.system_default_signtype)
+
+
