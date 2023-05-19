@@ -54,7 +54,7 @@ mvmtOptionsDict = {
                     ("Circle", fx, rb, u, 13): {},
                     ("Zigzag", fx, rb, u, 14): {},
                     ("Loop (travelling circles)", fx, rb, u, 15): {},
-                    ("Other", ed_3, cb, u, 16): {}
+                    ("Other", ed_3, rb, u, 16): {}
                 }
             },
             ("Axis direction", fx, cb, u, 17): {  # Choose up to one from each axis to get the complete direction
@@ -171,7 +171,7 @@ mvmtOptionsDict = {
                 }
             },
             ("Wiggling/Fluttering", fx, rb, u, 84): {},  # TODO KV autofills to both flexion and extension of selected finger base joints
-            ("Other", ed_3, cb, u, 85): {}
+            ("Other", ed_3, rb, u, 85): {}
         },
         ("Handshape change", fx, rb, u, 86): {}
     },
