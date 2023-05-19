@@ -2,7 +2,8 @@ from PyQt5.QtCore import (
     Qt,
     QSortFilterProxyModel,
     pyqtSignal,
-    QItemSelectionModel
+    QItemSelectionModel,
+    QRegExp
 )
 
 from PyQt5.Qt import (
@@ -86,6 +87,7 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super(CorpusSortProxyModel, self).__init__(parent)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
+        self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortRole(Qt.DisplayRole)
         self.sort(0)
 
@@ -99,3 +101,4 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         elif "modified" in sortbytext:
             self.setSortRole(Qt.UserRole+datemodifiedrole)
             self.sort(0)
+

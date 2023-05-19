@@ -55,6 +55,12 @@ class CorpusDisplay(QWidget):
         # self.corpus_view.setModel(self.corpus_model)
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.clicked.connect(self.handle_selection)
+
+        # Corpus filter by gloss
+        self.corpus_filter_input = QLineEdit()
+        self.corpus_filter_input.setPlaceholderText('Filter by gloss')
+        self.corpus_filter_input.textChanged.connect(self.corpus_sortproxy.setFilterRegExp)
+        main_layout.addWidget(self.corpus_filter_input)
         main_layout.addWidget(self.corpus_view)
 
         sort_layout = QHBoxLayout()
