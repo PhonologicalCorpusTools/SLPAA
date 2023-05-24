@@ -16,9 +16,12 @@ from PyQt5.Qt import (
 from PyQt5.QtWidgets import (
     QMessageBox
 )
+from PyQt5.QtGui import (
+    QColor
+)
 
 from lexicon.module_classes import userdefinedroles as udr, delimiter, AddedInfo
-
+import logging
 
 # for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"
@@ -865,14 +868,11 @@ class MovementTreeModel(QStandardItemModel):
         '''
         Disable directionality if Wiggling/Fluttering is selected
         '''
-        warning = None
-
         if(item.text()=="Wiggling/Fluttering"):
             itemstate = item.checkState()
             uni = self.findItems("Unidirectional", flags = Qt.MatchRecursive)[0]
             bi = self.findItems("Bidirectional", flags = Qt.MatchRecursive)[0]
             dir = self.findItems("Directionality", flags = Qt.MatchRecursive)[0]
-
 
             if (itemstate == Qt.Checked): # disable directionality options as mvmt is inherently bidirectional
                 dir.setEnabled(False)
@@ -882,8 +882,6 @@ class MovementTreeModel(QStandardItemModel):
                 dir.setEnabled(True)
                 uni.setEnabled(True)
                 bi.setEnabled(True)
-
-
 
 
     def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
