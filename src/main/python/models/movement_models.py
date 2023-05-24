@@ -859,6 +859,32 @@ class MovementTreeModel(QStandardItemModel):
             # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
             # (3) it was force-unchecked as a result of ME/sibling interaction
             item.uncheck(force=False)
+        self.check_dependencies(item)
+
+    def check_dependencies(self, item):
+        '''
+        Disable directionality if Wiggling/Fluttering is selected
+        '''
+        warning = None
+
+        if(item.text()=="Wiggling/Fluttering"):
+            itemstate = item.checkState()
+            uni = self.findItems("Unidirectional", flags = Qt.MatchRecursive)[0]
+            bi = self.findItems("Bidirectional", flags = Qt.MatchRecursive)[0]
+            dir = self.findItems("Directionality", flags = Qt.MatchRecursive)[0]
+
+
+            if (itemstate == Qt.Checked): # disable directionality options as mvmt is inherently bidirectional
+                dir.setEnabled(False)
+                uni.setEnabled(False)
+                bi.setEnabled(False)
+            elif (itemstate == Qt.Unchecked):
+                dir.setEnabled(True)
+                uni.setEnabled(True)
+                bi.setEnabled(True)
+
+
+
 
     def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         if structure == {} and pathsofar != "":
@@ -903,6 +929,8 @@ class MovementTreeModel(QStandardItemModel):
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
                     self.populate(thistreenode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar+label+delimiter)
                     parentnode.appendRow([thistreenode, editablepart])
+
+
 
     @property
     def listmodel(self):
