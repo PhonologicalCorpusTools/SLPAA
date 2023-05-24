@@ -697,6 +697,8 @@ class MovementTreeModel(QStandardItemModel):
                 #   --> "H1 and H2 move in opposite directions"
                 # 2. Then later... "H1 and H2 move in opposite directions" (under axis direction only)
                 #   --> "H1 and H2 move toward each other" (along with an independent addition of "... away ...")
+                # 3. 20230523: Under "Movement type>Perceptual Shape>Shape" and "Movement type>Joint-specific movements"
+                #   ... "None of these" --> "Other" (user-specifiable)
                 if "H1 and H2 move in different directions" in k:
                     if "Axis direction" in k:
                         pairstoadd[k.replace("in different directions", "toward each other")] = stored_dict[k]
@@ -706,6 +708,9 @@ class MovementTreeModel(QStandardItemModel):
                         keystoremove.append(k)
                 elif "H1 and H2 move in opposite directions" in k and "Axis direction" in k:
                     pairstoadd[k.replace("in opposite directions", "toward each other")] = stored_dict[k]
+                    keystoremove.append(k)
+                elif "None of these" in k and ("Perceptual shape" in k or "Joint-specific movements" in k):
+                    pairstoadd[k.replace("None of these", "Other")] = stored_dict[k]
                     keystoremove.append(k)
 
                 if hadtoaddusv:
