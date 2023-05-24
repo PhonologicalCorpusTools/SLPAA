@@ -515,6 +515,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         if self.getcurrentlocationtype().axis:
             return self.treemodel_axis
         elif self.getcurrentlocationtype().usesbodylocations():
+            # distinguish between body and body_anchored
+            self.treemodel_body.locationtype = self.getcurrentlocationtype()
             return self.treemodel_body
         elif self.getcurrentlocationtype().purelyspatial:
             return self.treemodel_spatial
