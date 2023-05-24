@@ -514,7 +514,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def getcurrenttreemodel(self):
         if self.getcurrentlocationtype().axis:
             return self.treemodel_axis
-        elif self.getcurrentlocationtype().usesbodylocations():
+        elif (self.getcurrentlocationtype().usesbodylocations() and 
+              not self.getcurrentlocationtype().signingspace):
             return self.treemodel_body
         elif self.getcurrentlocationtype().purelyspatial:
             return self.treemodel_spatial
