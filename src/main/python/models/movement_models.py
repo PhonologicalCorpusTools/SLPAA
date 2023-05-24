@@ -16,12 +16,8 @@ from PyQt5.Qt import (
 from PyQt5.QtWidgets import (
     QMessageBox
 )
-from PyQt5.QtGui import (
-    QColor
-)
 
 from lexicon.module_classes import userdefinedroles as udr, delimiter, AddedInfo
-import logging
 
 # for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"
