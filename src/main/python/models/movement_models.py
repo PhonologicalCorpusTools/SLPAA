@@ -134,6 +134,12 @@ mvmtOptionsDict = {
                     ("Supination", fx, rb, u, 59): {}  # TODO KV autofills to Proximal radioulnar supination
                 }
             },
+            ("Fully rotating", fx, rb, u, 56): {
+                (subgroup, None, 0, None, 57): {
+                    ("Ulnar → nodding → supination → radial → un-nodding", fx, rb, u, 58): {}, 
+                    ("Radial → nodding → pronation → ulnar → un-nodding", fx, rb, u, 59): {}  
+                }
+            },
             ("Closing/Opening", fx, rb, u, 60): {
                 (subgroup, None, 0, None, 61): {
                     ("Closing", fx, rb, u, 62): {},  # TODO KV autofills to flexion of [selected finger, all joints]
