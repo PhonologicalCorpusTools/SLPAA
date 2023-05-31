@@ -37,6 +37,7 @@ u = False  # unchecked
 hb = "hand - bone/joint type"  # "hand"
 hs = "hand - subarea type"
 nh = "nonhand"
+tongue = "tongue"
 
 # allow surface, subarea, and/or bone/joint specification?
 allow = True
@@ -74,9 +75,12 @@ medial_bone = "Medial bone"
 distal_interphalangeal_joint = "Distal interphalangeal joint"
 distal_bone = "Distal bone"
 tip = "Tip"
+dorsum = "Dorsum"
+blade = "Blade"
 
 surfaces_nonhand_default = [anterior, posterior, lateral, medial, top, bottom]
 subareas_nonhand_default = [contra_half, upper_half, whole, centre, lower_half, ipsi_half]
+subareas_tongue_default = [contra_half, whole, centre, ipsi_half, dorsum, blade, tip]
 surfaces_hand_default = [back, friction, radial, ulnar]
 subareas_hand_default = [finger_side, wrist_side, radial_side, ulnar_side, centre]
 bonejoint_hand_default = [metacarpophalangeal_joint, proximal_bone, proximal_interphalangeal_joint,
@@ -165,7 +169,8 @@ locn_options_body = {
                     ("Upper teeth", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
                     ("Lower teeth", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Tongue", fx, rb, u, nh, allow, tuple([s for s in surfaces_nonhand_default if s not in [anterior, top, bottom]]), allow, (upper_half, lower_half)): {},  # TODO KV resolve question mark from locations spreadsheet
+                ("Tongue", fx, rb, u, tongue, allow, tuple([s for s in surfaces_nonhand_default if s not in [anterior, top, bottom]]), 
+                 allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
             },
             ("Ear", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
                 ("Ear - contra", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
@@ -542,7 +547,7 @@ class LocationTableModel(QAbstractTableModel):
             self.col_labels[1] = bonejoint_label if ishandloc == hb else subarea_label
             if subarea_exceptions is None:
                 subarea_exceptions = []
-            col_texts = subareas_nonhand_default if ishandloc == nh else (bonejoint_hand_default if ishandloc == hb else subareas_hand_default)
+            col_texts = subareas_nonhand_default if ishandloc == nh else (bonejoint_hand_default if ishandloc == hb else subareas_tongue_default if ishandloc == tongue else subareas_hand_default)
             col_texts = [t for t in col_texts if t not in subarea_exceptions]
             self.col_contents[1] = [[txt, False] for txt in col_texts]
 
