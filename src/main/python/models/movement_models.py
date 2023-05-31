@@ -874,6 +874,9 @@ class MovementTreeModel(QStandardItemModel):
                 dir.setEnabled(False)
                 uni.setEnabled(False)
                 bi.setEnabled(False)
+                uni.setCheckState(Qt.Unchecked)
+                bi.setCheckState(Qt.Unchecked)
+                dir.setCheckState(Qt.Unchecked)
             elif (itemstate == Qt.Unchecked):
                 dir.setEnabled(True)
                 uni.setEnabled(True)
