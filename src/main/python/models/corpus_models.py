@@ -2,8 +2,7 @@ from PyQt5.QtCore import (
     Qt,
     QSortFilterProxyModel,
     pyqtSignal,
-    QItemSelectionModel,
-    QRegExp
+    QItemSelectionModel
 )
 
 from PyQt5.Qt import (

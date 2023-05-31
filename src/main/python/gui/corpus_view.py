@@ -59,7 +59,7 @@ class CorpusDisplay(QWidget):
         # Corpus filter by gloss
         self.corpus_filter_input = QLineEdit()
         self.corpus_filter_input.setPlaceholderText('Filter by gloss')
-        self.corpus_filter_input.textChanged.connect(self.corpus_sortproxy.setFilterRegExp)
+        self.corpus_filter_input.textChanged.connect(self.filter_corpus_list)
         main_layout.addWidget(self.corpus_filter_input)
         main_layout.addWidget(self.corpus_view)
 
@@ -119,3 +119,7 @@ class CorpusDisplay(QWidget):
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
+
+    def filter_corpus_list(self):
+        self.corpus_view.clearSelection() # Deselects all signs in the corpus list 
+        self.corpus_sortproxy.setFilterRegExp(self.sender().text())
