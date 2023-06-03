@@ -145,7 +145,7 @@ class LocnTreeListView(QListView):
         key = event.key()
         # modifiers = event.modifiers()
 
-        if key == Qt.Key_Delete:
+        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
             indexesofselectedrows = self.selectionModel().selectedRows()
             selectedlistitems = []
             for itemindex in indexesofselectedrows:
