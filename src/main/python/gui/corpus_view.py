@@ -121,5 +121,5 @@ class CorpusDisplay(QWidget):
         self.corpus_view.clearSelection()
 
     def filter_corpus_list(self):
-        self.corpus_view.clearSelection() # Deselects all signs in the corpus list 
         self.corpus_sortproxy.setFilterRegExp(self.sender().text())
+        self.corpus_view.clearSelection() # Deselects all signs in the corpus list 
