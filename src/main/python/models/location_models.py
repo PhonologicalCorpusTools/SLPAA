@@ -38,6 +38,7 @@ hb = "hand - bone/joint type"  # "hand"
 hs = "hand - subarea type"
 nh = "nonhand"
 tongue = "tongue"
+heel = "heel of hand"
 
 # allow surface, subarea, and/or bone/joint specification?
 allow = True
@@ -63,6 +64,7 @@ back = "Back"
 friction = "Friction"
 radial = "Radial"
 ulnar = "Ulnar"
+wrist = "Wrist"
 finger_side = "Finger side"
 wrist_side = "Wrist side"
 radial_side = "Radial side"
@@ -82,6 +84,7 @@ surfaces_nonhand_default = [anterior, posterior, lateral, medial, top, bottom]
 subareas_nonhand_default = [contra_half, upper_half, whole, centre, lower_half, ipsi_half]
 subareas_tongue_default = [contra_half, whole, centre, ipsi_half, dorsum, blade, tip]
 surfaces_hand_default = [back, friction, radial, ulnar]
+surfaces_heelofhand = [back, friction, wrist, radial, ulnar]
 subareas_hand_default = [finger_side, wrist_side, radial_side, ulnar_side, centre]
 bonejoint_hand_default = [metacarpophalangeal_joint, proximal_bone, proximal_interphalangeal_joint,
                          medial_bone, distal_interphalangeal_joint, distal_bone, tip]
@@ -250,7 +253,7 @@ locn_options_body = {
     ("Other hand", fx, rb, u, hb, allow, no_exceptions, disallow, no_exceptions): {
         ("Whole hand", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
         ("Hand minus fingers", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
-        ("Heel of hand", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+        ("Heel of hand", fx, rb, u, heel, allow, no_exceptions, allow, no_exceptions): {},
         ("Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
         ("Fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
         ("Selected fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
@@ -539,7 +542,7 @@ class LocationTableModel(QAbstractTableModel):
             self.col_labels[0] = surface_label
             if surface_exceptions is None:
                 surface_exceptions = []
-            col_texts = surfaces_hand_default if ishandloc in [hs, hb] else surfaces_nonhand_default
+            col_texts = surfaces_hand_default if ishandloc in [hs, hb] else surfaces_heelofhand if ishandloc == heel else surfaces_nonhand_default
             col_texts = [t for t in col_texts if t not in surface_exceptions]
             self.col_contents[0] = [[txt, False] for txt in col_texts]
 
