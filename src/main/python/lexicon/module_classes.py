@@ -187,6 +187,8 @@ class SignLevelInformation:
                 aresame = False
             if self._note != other.note or self._fingerspelled != other.fingerspelled or self._handdominance != other.handdominance:
                 aresame = False
+            if self._compoundsign != other.compoundsign:
+                aresame = False
         else:
             aresame = False
         return aresame

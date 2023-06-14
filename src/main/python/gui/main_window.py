@@ -337,6 +337,7 @@ class MainWindow(QMainWindow):
             self.corpus.name = newtitle
 
     # TODO KV this needs an overhaul
+    # GZ - missing compound sign attribute
     def on_action_export_handshape_transcription_csv(self):
         export_csv_dialog = ExportCSVDialog(self.app_settings, parent=self)
         if export_csv_dialog.exec_():
