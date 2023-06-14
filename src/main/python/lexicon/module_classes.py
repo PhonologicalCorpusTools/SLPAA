@@ -156,6 +156,7 @@ class SignLevelInformation:
             self._note = serializedsignlevelinfo['note']
             # backward compatibility for attribute added 20230412!
             self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
+            self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
         elif signlevel_info is not None:
             self._entryid = signlevel_info['entryid']
@@ -170,6 +171,7 @@ class SignLevelInformation:
             self._note = signlevel_info['note']
             # backward compatibility for attribute added 20230412!
             self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
+            self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
             self._handdominance = signlevel_info['handdominance']
         else:
             print("TODO KV no sign level info; what to do?")
@@ -202,6 +204,7 @@ class SignLevelInformation:
             'date last modified': self._datelastmodified.timestamp(),
             'note': self._note,
             'fingerspelled': self._fingerspelled,
+            'compoundsign': self._compoundsign,
             'handdominance': self._handdominance
         }
 
@@ -236,6 +239,14 @@ class SignLevelInformation:
     @fingerspelled.setter
     def fingerspelled(self, new_fingerspelled):
         self._fingerspelled = new_fingerspelled
+
+    @property
+    def compoundsign(self):
+        return self._compoundsign
+    
+    @compoundsign.setter
+    def compoundsign(self, new_compoundsign):
+        self._compoundsign = new_compoundsign
 
     @property
     def source(self):
