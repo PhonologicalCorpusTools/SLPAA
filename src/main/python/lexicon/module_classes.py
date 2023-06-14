@@ -22,13 +22,13 @@ class ModuleTypes:
     NONMANUAL = 'nonmanual'
 
     abbreviations = {
-        MOVEMENT: 'Mov',
-        LOCATION: 'Loc',
-        HANDPART: 'HdPart',
-        HANDCONFIG: 'Config',
-        CONTACT: 'Cont',
-        ORIENTATION: 'Ori',
-        NONMANUAL: 'NM'  # TODO KV check comment in system overview
+        MOVEMENT: "Mov",
+        LOCATION: "Loc",
+        HANDPART: "HdPart",
+        HANDCONFIG: "Config",
+        CONTACT: "Cont",
+        ORIENTATION: "Ori",
+        NONMANUAL: "NonMan"
     }
 
 
