@@ -204,17 +204,19 @@ mvmtOptionsDict = {
                 ("Elevation", fx, rb, u, 104): {},
             },
             (subgroup, None, 5, None, 105): {
-                ("Circumduction", fx, cb, u, 106): {}
+                ("Circumduction", fx, cb, u, 106): {
+                    (subgroup, None, 0, None, 90): {
+                        ("Forward from top of circle", fx, rb, u, 91): {},
+                        ("Backward from top of circle", fx, rb, u, 92): {},
+                    }                    
+                }
             },
         },
         ("Elbow", fx, cb, u, 107): {
             (subgroup, None, 0, None, 108): {
                 ("Flexion", fx, rb, u, 109): {},
                 ("Extension", fx, rb, u, 110): {},
-            },
-            (subgroup, None, 1, None, 111): {
-                ("Circumduction", fx, cb, u, 112): {}
-            },
+            }
         },
         ("Radio-ulnar", fx, cb, u, 113): {
             (subgroup, None, 0, None, 114): {
@@ -232,7 +234,12 @@ mvmtOptionsDict = {
                 ("Ulnar deviation", fx, rb, u, 123): {},
             },
             (subgroup, None, 2, None, 124): {
-                ("Circumduction", fx, cb, u, 125): {}
+                ("Circumduction", fx, cb, u, 125): {
+                    (subgroup, None, 0, None, 90): {
+                        ("Ulnar → nodding → supination → radial → un-nodding", fx, rb, u, 91): {},
+                        ("Radial → nodding → pronation → ulnar → un-nodding", fx, rb, u, 92): {},
+                    }                
+                }
             },
         },
         ("Thumb base / metacarpophalangeal", fx, cb, u, 126): {
@@ -245,9 +252,14 @@ mvmtOptionsDict = {
                 ("Adduction", fx, rb, u, 132): {},
             },
             (subgroup, None, 2, None, 133): {
-                ("Circumduction", fx, cb, u, 134): {},
-                ("Opposition", fx, cb, u, 135): {}
-            }
+                ("Circumduction", fx, cb, u, 134): {
+                    (subgroup, None, 0, None, 90): {
+                        ("Opposition from neutral position", fx, rb, u, 91): {},
+                        ("Lateral from neutral position", fx, rb, u, 92): {},
+                    }                          
+                },
+                ("Opposition", fx, cb, u, 135): {} 
+            },                         
         },
         ("Thumb non-base / interphalangeal", fx, cb, u, 136): {
             (subgroup, None, 0, None, 137): {
@@ -255,7 +267,7 @@ mvmtOptionsDict = {
                 ("Extension", fx, rb, u, 139): {},
             }
         },
-        ("Finger base / metacarpophalangeal", fx, cb, u, 140): {
+        ("Finger 1 base / metacarpophalangeal", fx, cb, u, 140): {
             (subgroup, None, 0, None, 141): {
                 ("Flexion", fx, rb, u, 142): {},
                 ("Extension", fx, rb, u, 143): {},
@@ -265,10 +277,111 @@ mvmtOptionsDict = {
                 ("Adduction", fx, rb, u, 146): {},
             },
             (subgroup, None, 2, None, 147): {
-                ("Circumduction", fx, cb, u, 148): {}
+                ("Circumduction", fx, cb, u, 148): {
+                    (subgroup, None, 0, None, 90): {
+                        ("Ulnar from neutral position", fx, rb, u, 91): {},
+                        ("Radial from neutral position", fx, rb, u, 92): {},
+                    }                    
+                }
             },
         },
-        ("Finger non-base / interphalangeal", fx, cb, u, 149): {
+        ("Finger 2 base / metacarpophalangeal", fx, cb, u, 140): {
+            (subgroup, None, 0, None, 141): {
+                ("Flexion", fx, rb, u, 142): {},
+                ("Extension", fx, rb, u, 143): {},
+            },
+            (subgroup, None, 1, None, 144): {
+                ("Abduction", fx, rb, u, 145): {},
+                ("Adduction", fx, rb, u, 146): {},
+            },
+            (subgroup, None, 2, None, 147): {
+                ("Circumduction", fx, cb, u, 148): {
+                    (subgroup, None, 0, None, 90): {
+                        ("Ulnar from neutral position", fx, rb, u, 91): {},
+                        ("Radial from neutral position", fx, rb, u, 92): {},
+                    }                    
+                }
+            },
+        },
+        ("Finger 3 base / metacarpophalangeal", fx, cb, u, 140): {
+            (subgroup, None, 0, None, 141): {
+                ("Flexion", fx, rb, u, 142): {},
+                ("Extension", fx, rb, u, 143): {},
+            },
+            (subgroup, None, 1, None, 144): {
+                ("Abduction", fx, rb, u, 145): {},
+                ("Adduction", fx, rb, u, 146): {},
+            },
+            (subgroup, None, 2, None, 147): {
+                ("Circumduction", fx, cb, u, 148): {
+                    (subgroup, None, 0, None, 90): {
+                        ("Ulnar from neutral position", fx, rb, u, 91): {},
+                        ("Radial from neutral position", fx, rb, u, 92): {},
+                    }                    
+                }
+            },
+        },    
+        ("Finger 4 base / metacarpophalangeal", fx, cb, u, 140): {
+            (subgroup, None, 0, None, 141): {
+                ("Flexion", fx, rb, u, 142): {},
+                ("Extension", fx, rb, u, 143): {},
+            },
+            (subgroup, None, 1, None, 144): {
+                ("Abduction", fx, rb, u, 145): {},
+                ("Adduction", fx, rb, u, 146): {},
+            },
+            (subgroup, None, 2, None, 147): {
+                ("Circumduction", fx, cb, u, 148): {
+                    (subgroup, None, 0, None, 90): {
+                        ("Ulnar from neutral position", fx, rb, u, 91): {},
+                        ("Radial from neutral position", fx, rb, u, 92): {},
+                    }                    
+                }
+            },
+        },                    
+        ("Finger 1 proximal interphalangeal", fx, cb, u, 149): {
+            (subgroup, None, 0, None, 150): {
+                ("Flexion", fx, rb, u, 151): {},
+                ("Extension", fx, rb, u, 152): {},
+            }
+        },
+        ("Finger 2 proximal interphalangeal", fx, cb, u, 149): {
+            (subgroup, None, 0, None, 150): {
+                ("Flexion", fx, rb, u, 151): {},
+                ("Extension", fx, rb, u, 152): {},
+            }
+        },
+        ("Finger 3 proximal interphalangeal", fx, cb, u, 149): {
+            (subgroup, None, 0, None, 150): {
+                ("Flexion", fx, rb, u, 151): {},
+                ("Extension", fx, rb, u, 152): {},
+            }
+        },
+        ("Finger 4 proximal interphalangeal", fx, cb, u, 149): {
+            (subgroup, None, 0, None, 150): {
+                ("Flexion", fx, rb, u, 151): {},
+                ("Extension", fx, rb, u, 152): {},
+            }
+        },                                
+        ("Finger 1 distal interphalangeal", fx, cb, u, 149): {
+            (subgroup, None, 0, None, 150): {
+                ("Flexion", fx, rb, u, 151): {},
+                ("Extension", fx, rb, u, 152): {},
+            }
+        },
+        ("Finger 2 distal interphalangeal", fx, cb, u, 149): {
+            (subgroup, None, 0, None, 150): {
+                ("Flexion", fx, rb, u, 151): {},
+                ("Extension", fx, rb, u, 152): {},
+            }
+        },        
+        ("Finger 3 distal interphalangeal", fx, cb, u, 149): {
+            (subgroup, None, 0, None, 150): {
+                ("Flexion", fx, rb, u, 151): {},
+                ("Extension", fx, rb, u, 152): {},
+            }
+        },
+        ("Finger 4 distal interphalangeal", fx, cb, u, 149): {
             (subgroup, None, 0, None, 150): {
                 ("Flexion", fx, rb, u, 151): {},
                 ("Extension", fx, rb, u, 152): {},
