@@ -24,7 +24,6 @@ from PyQt5.QtCore import (
 from lexicon.lexicon_classes import SignLevelInformation
 from gui.decorator import check_empty_gloss
 
-
 class SignLevelDateDisplay(QLabel):
     def __init__(self, thedatetime=None, **kwargs):
         super().__init__(**kwargs)
@@ -164,18 +163,24 @@ class SignLevelInfoPanel(QFrame):
             self.set_handdominance(signlevelinfo.handdominance)
 
     def clear(self):
+        self.restore_defaults()
+        self.created_display.reset()
+        self.modified_display.reset()
+
+    def restore_defaults(self):
         self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
+        self.gloss_edit.clear()
         self.lemma_edit.setText("")
         self.source_edit.setText("")
         self.signer_edit.setText("")
         self.freq_edit.setText('1.0')
         self.coder_edit.setText(self.coder)
-        self.created_display.reset()
-        self.modified_display.reset()
         self.note_edit.setPlaceholderText('Enter note here...')
+        self.note_edit.clear()
         self.fingerspelled_cb.setChecked(False)
         self.compoundsign_cb.setChecked(False)
         self.set_handdominance(self.defaulthand)
+
 
     def set_handdominance(self, handdominance):
         if handdominance == 'R':
@@ -261,4 +266,5 @@ class SignlevelinfoSelectorDialog(QDialog):
                 self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            self.signlevelinfo_widget.clear()
+            self.signlevelinfo_widget.restore_defaults()
+            
