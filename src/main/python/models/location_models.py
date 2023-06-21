@@ -11,6 +11,7 @@ from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
 )
+import logging
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
 from serialization_classes import LocationTableSerializable
@@ -250,8 +251,7 @@ locn_options_body = {
             ("Foot - ipsi", fx, rb, u, nh, allow, no_exceptions, allow, (upper_half, lower_half)): {}
         }
     },
-    ("Other hand", fx, rb, u, hb, allow, no_exceptions, disallow, no_exceptions): {
-        ("Whole hand", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
+    ("Other hand", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {
         ("Hand minus fingers", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
         ("Heel of hand", fx, rb, u, heel, allow, no_exceptions, allow, no_exceptions): {},
         ("Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
@@ -348,7 +348,17 @@ class LocationTreeModel(QStandardItemModel):
     # ensure that any info stored in this LocationTreeSerializable under older keys (paths),
     # is updated to reflect the newer text for those outdated keys
     def backwardcompatibility(self):
-        for stored_dict in [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]:
+        dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
+
+        # As of 20230631, entries with "other hand>whole hand" will be moved to "other hand" with surfaces and subareas preserved
+        if ("Other hand>Whole hand" in self.serializedlocntree.checkstates):
+            if (self.serializedlocntree.checkstates["Other hand>Whole hand"] == Qt.Checked):
+                for stored_dict in dicts:
+                    stored_dict["Other hand"] = stored_dict["Other hand>Whole hand"] 
+            for stored_dict in dicts:
+                stored_dict.pop("Other hand>Whole hand")
+
+        for stored_dict in dicts:
             pairstoadd = {}
             keystoremove = []
             for k in stored_dict.keys():
