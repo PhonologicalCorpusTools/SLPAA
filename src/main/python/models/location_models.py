@@ -351,12 +351,12 @@ class LocationTreeModel(QStandardItemModel):
         dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
 
         # As of 20230631, entries with "other hand>whole hand" will be moved to "other hand" with surfaces and subareas preserved
-        if ("Other hand>Whole hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand>Whole hand"] == Qt.Checked):
+        if ("Other hand"+delimiter+"Whole hand" in self.serializedlocntree.checkstates):
+            if (self.serializedlocntree.checkstates["Other hand"+delimiter+"Whole hand"] == Qt.Checked):
                 for stored_dict in dicts:
-                    stored_dict["Other hand"] = stored_dict["Other hand>Whole hand"] 
+                    stored_dict["Other hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
             for stored_dict in dicts:
-                stored_dict.pop("Other hand>Whole hand")
+                stored_dict.pop("Other hand"+delimiter+"Whole hand")
 
         for stored_dict in dicts:
             pairstoadd = {}
