@@ -1109,15 +1109,7 @@ class HandConfigurationModule(ParameterModule):
 
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
-class TargetModule:
-    def __init__(self):
-        # TODO KV implement
-        pass
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-class OrientationModule:
+class OrientationModule(ParameterModule):
     def __init__(self):
         # TODO KV implement
         pass

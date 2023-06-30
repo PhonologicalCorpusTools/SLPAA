@@ -181,7 +181,7 @@ class RenameUnpickler(pickle.Unpickler):
         elif class_orig in ["LocationParameter", "Locations"] and module_orig == "lexicon.location":
             # no change as of 20230510
             pass
-        elif class_orig in ["ParameterModule", "TargetModule", "OrientationModule", "LocationModule", "MovementModule", "HandConfigurationModule", "PhonLocations", "LocationType"] and module_orig == "lexicon.module_classes":
+        elif class_orig in ["ParameterModule", "OrientationModule", "LocationModule", "MovementModule", "HandConfigurationModule", "PhonLocations", "LocationType"] and module_orig == "lexicon.module_classes":
             # no change as of 20230510
             pass
         elif class_orig in ["TimingPoint", "TimingInterval", "AddedInfo"] and module_orig == "lexicon.module_classes2":
