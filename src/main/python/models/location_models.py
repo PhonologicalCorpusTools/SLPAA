@@ -146,13 +146,13 @@ locn_options_body = {
                     ("Cheek - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
                     ("Cheek - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Maxillary process of zygomatic", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Maxillary process of zygomatic - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Maxillary process of zygomatic - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
+                ("Cheekbone under eye", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Cheekbone under eye - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Cheekbone under eye - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
                 },
-                ("Zygomatic process of temporal bone", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Zygomatic process of temporal bone - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Zygomatic process of temporal bone - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
+                ("Cheekbone in front of ear", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
+                    ("Cheekbone in front of ear - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
+                    ("Cheekbone in front of ear - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
                 },
                 ("Nose", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {
                     ("Nose root", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
