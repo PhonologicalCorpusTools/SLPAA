@@ -1,4 +1,5 @@
 import re
+import logging
 from copy import copy
 
 from PyQt5.QtCore import (
@@ -420,13 +421,8 @@ mvmtOptionsDict = {
                         },
                     }
                 }
-            }
-        },
-        ("Trill", fx, cb, u, 171): {
-            (subgroup, None, 0, None, 172): {
-                ("Not trilled", fx, rb, u, 173): {},
-                ("Trilled", fx, rb, u, 174): {}
-            }
+            },
+            ("Trilled", fx, rb, u, 171): {},
         },
         ("Directionality", fx, cb, u, 175): {
             (subgroup, None, 0, None, 176): {
@@ -806,7 +802,23 @@ class MovementTreeModel(QStandardItemModel):
             userspecifiedvalues = self.serializedmvmttree.userspecifiedvalues
         else:
             hadtoaddusv = True
-        for stored_dict in [self.serializedmvmttree.checkstates, self.serializedmvmttree.addedinfos]:  # self.numvals, self.stringvals,
+
+        dicts = self.serializedmvmttree.checkstates, self.serializedmvmttree.addedinfos  # self.numvals, self.stringvals,
+
+        # 20230707: "trill" is now suboption of "repetition"; previously they were at the same level
+        old_trill_path = "Movement characteristics"+delimiter+"Trill"
+        for stored_dict in dicts:
+            if (old_trill_path in stored_dict):
+                # If old Trill / Trilled was selected, the new Trilled is selected and anything for single/repeated is gone.
+                if (stored_dict[old_trill_path+delimiter+"Trilled"] == Qt.Checked):
+                    stored_dict["Movement characteristics"+delimiter+"Repetition"] = Qt.Unchecked
+                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Checked
+                # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
+                else:
+                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Unchecked
+                stored_dict.pop(old_trill_path)
+
+        for stored_dict in dicts:
             pairstoadd = {}
             keystoremove = []
             for k in stored_dict.keys():
@@ -823,7 +835,7 @@ class MovementTreeModel(QStandardItemModel):
                         keystoremove.append(k)
                     elif "Place" in k:
                         pairstoadd[k.replace("different", "opposite")] = stored_dict[k]
-                        keystoremove.append(k)
+                        keystoremove.append(k)                
                 elif "H1 and H2 move in opposite directions" in k and "Axis direction" in k:
                     pairstoadd[k.replace("in opposite directions", "toward each other")] = stored_dict[k]
                     keystoremove.append(k)
