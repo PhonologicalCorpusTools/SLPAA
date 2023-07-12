@@ -422,7 +422,7 @@ mvmtOptionsDict = {
                     }
                 }
             },
-            ("Trill", fx, rb, u, 171): {},
+            ("Trilled", fx, rb, u, 171): {},
         },
         ("Directionality", fx, cb, u, 175): {
             (subgroup, None, 0, None, 176): {
@@ -812,10 +812,10 @@ class MovementTreeModel(QStandardItemModel):
                 # If old Trill / Trilled was selected, the new Trilled is selected and anything for single/repeated is gone.
                 if (stored_dict[old_trill_path+delimiter+"Trilled"] == Qt.Checked):
                     stored_dict["Movement characteristics"+delimiter+"Repetition"] = Qt.Unchecked
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trill"] = Qt.Checked
+                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Checked
                 # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
                 else:
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trill"] = Qt.Unchecked
+                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Unchecked
                 stored_dict.pop(old_trill_path)
 
         for stored_dict in dicts:
