@@ -79,6 +79,12 @@ class AddedInfoContextMenu(QMenu):
 
         self.addedinfo = addedinfo
 
+        self.iconic_action = CheckNoteAction("Iconic")
+        self.iconic_action.setChecked(self.addedinfo.iconic_flag)
+        self.iconic_action.setText(self.addedinfo.iconic_note)
+        self.iconic_action.toggled.connect(lambda state: self.checknoteaction_toggled(state, self.iconic_action))
+        self.addAction(self.iconic_action)
+
         self.uncertain_action = CheckNoteAction("Uncertain")
         self.uncertain_action.setChecked(self.addedinfo.uncertain_flag)
         self.uncertain_action.setText(self.addedinfo.uncertain_note)
@@ -130,7 +136,9 @@ class AddedInfoContextMenu(QMenu):
 
     def checknoteaction_toggled(self, state, whichaction):
 
-        if whichaction == self.uncertain_action:
+        if whichaction == self.iconic_action:
+            self.addedinfo.iconic_flag = state
+        elif whichaction == self.uncertain_action:
             self.addedinfo.uncertain_flag = state
         elif whichaction == self.estimated_action:
             self.addedinfo.estimated_flag = state
@@ -149,6 +157,7 @@ class AddedInfoContextMenu(QMenu):
         self.savemenunotes()
 
     def savemenunotes(self):
+        self.addedinfo.iconic_note = self.iconic_action.text()
         self.addedinfo.uncertain_note = self.uncertain_action.text()
         self.addedinfo.estimated_note = self.estimated_action.text()
         self.addedinfo.notspecified_note = self.notspecified_action.text()
