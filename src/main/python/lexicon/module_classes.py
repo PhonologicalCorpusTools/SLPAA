@@ -787,6 +787,7 @@ class TimingInterval:
 class AddedInfo:
 
     def __init__(self,
+                 iconic_flag=False, iconic_note="",
                  uncertain_flag=False, uncertain_note="",
                  estimated_flag=False, estimated_note="",
                  notspecified_flag=False, notspecified_note="",
@@ -794,7 +795,10 @@ class AddedInfo:
                  exceptional_flag=False, exceptional_note="",
                  incomplete_flag=False, incomplete_note="",
                  other_flag=False, other_note=""):
+
+        self._iconic_flag = iconic_flag
         self._uncertain_flag = uncertain_flag
+        self._iconic_note = iconic_note
         self._uncertain_note = uncertain_note
         self._estimated_flag = estimated_flag
         self._estimated_note = estimated_note
@@ -808,6 +812,30 @@ class AddedInfo:
         self._incomplete_note = incomplete_note
         self._other_flag = other_flag
         self._other_note = other_note
+
+    @property
+    def iconic_flag(self):
+        if not hasattr(self, '_iconic_flag'):
+            # for backward compatibility pre-20230718 addition of 'Iconic' option
+            self._iconic_flag = False  # default value
+        return self._iconic_flag
+
+    @iconic_flag.setter
+    def iconic_flag(self, iconic_flag):
+        # TODO KV - validate?
+        self._iconic_flag = iconic_flag
+
+    @property
+    def iconic_note(self):
+        if not hasattr(self, '_iconic_note'):
+            # for backward compatibility pre-20230718 addition of 'Iconic' option
+            self._iconic_note = ""  # default value
+        return self._iconic_note
+
+    @iconic_note.setter
+    def iconic_note(self, iconic_note):
+        # TODO KV - validate?
+        self._iconic_note = iconic_note
 
     @property
     def uncertain_flag(self):
@@ -937,27 +965,29 @@ class AddedInfo:
 
     def __repr__(self):
         reprstr = '<AddedInfo: '
-        reprstr += 'Uncertain (' + repr(int(self._uncertain_flag)) + ' / ' + repr(self._uncertain_note) + ') '
-        reprstr += 'Estimated (' + repr(int(self._estimated_flag)) + ' / ' + repr(self._estimated_note) + ') '
-        reprstr += 'Not specified (' + repr(int(self._notspecified_flag)) + ' / ' + repr(self._notspecified_note) + ') '
-        reprstr += 'Variable (' + repr(int(self._variable_flag)) + ' / ' + repr(self._variable_note) + ') '
-        reprstr += 'Exceptional (' + repr(int(self._exceptional_flag)) + ' / ' + repr(self._exceptional_note) + ') '
-        reprstr += 'Incomplete (' + repr(int(self._incomplete_flag)) + ' / ' + repr(self._incomplete_note) + ') '
-        reprstr += 'Other (' + repr(int(self._other_flag)) + ' / ' + repr(self._other_note) + ')'
+        reprstr += 'Iconic (' + repr(int(self.iconic_flag)) + ' / ' + repr(self.iconic_note) + ') '
+        reprstr += 'Uncertain (' + repr(int(self.uncertain_flag)) + ' / ' + repr(self.uncertain_note) + ') '
+        reprstr += 'Estimated (' + repr(int(self.estimated_flag)) + ' / ' + repr(self.estimated_note) + ') '
+        reprstr += 'Not specified (' + repr(int(self.notspecified_flag)) + ' / ' + repr(self.notspecified_note) + ') '
+        reprstr += 'Variable (' + repr(int(self.variable_flag)) + ' / ' + repr(self.variable_note) + ') '
+        reprstr += 'Exceptional (' + repr(int(self.exceptional_flag)) + ' / ' + repr(self.exceptional_note) + ') '
+        reprstr += 'Incomplete (' + repr(int(self.incomplete_flag)) + ' / ' + repr(self.incomplete_note) + ') '
+        reprstr += 'Other (' + repr(int(self.other_flag)) + ' / ' + repr(self.other_note) + ')'
         reprstr += '>'
         return reprstr
 
     def hascontent(self):
-        hasflag = self._uncertain_flag or self._estimated_flag or self._notspecified_flag or self._variable_flag or self._exceptional_flag or self._incomplete_flag or self._other_flag
+        hasflag = self.iconic_flag or self.uncertain_flag or self.estimated_flag or self.notspecified_flag or self.variable_flag or self.exceptional_flag or self.incomplete_flag or self.other_flag
         noteslength = len(
             (
-                    self._uncertain_note +
-                    self._estimated_note +
-                    self._notspecified_note +
-                    self._variable_note +
-                    self._exceptional_note +
-                    self._incomplete_note +
-                    self._other_note
+                    self.iconic_note +
+                    self.uncertain_note +
+                    self.estimated_note +
+                    self.notspecified_note +
+                    self.variable_note +
+                    self.exceptional_note +
+                    self.incomplete_note +
+                    self.other_note
             ).replace(" ", ""))
         return hasflag or noteslength > 0
 
