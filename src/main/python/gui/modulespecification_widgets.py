@@ -24,6 +24,9 @@ class ModuleSpecificationPanel(QFrame):
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         pass
 
+    def handle_articulator_changed(self, articulator):
+        pass
+
 
 class AddedInfoPushButton(QPushButton):
 
