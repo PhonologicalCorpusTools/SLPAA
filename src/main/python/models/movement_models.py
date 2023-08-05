@@ -387,6 +387,46 @@ mvmtOptionsDict = {
                 ("Flexion", fx, rb, u, 151): {},
                 ("Extension", fx, rb, u, 152): {},
             }
+        },
+        ("Hip", fx, cb, u, 152.01): {
+            (subgroup, None, 0, None, 152.02): {
+                ("Flexion", fx, rb, u, 152.03): {},
+                ("Extension", fx, rb, u, 152.04): {},
+            },
+            (subgroup, None, 1, None, 152.05): {
+                ("Abduction", fx, rb, u, 152.06): {},
+                ("Adduction", fx, rb, u, 152.07): {},
+            },
+            (subgroup, None, 2, None, 152.08): {
+                ("Internal rotation", fx, rb, u, 152.09): {},
+                ("External rotation", fx, rb, u, 152.10): {},
+            },
+            (subgroup, None, 3, None, 152.11): {
+                ("Depression", fx, rb, u, 152.12): {},
+                ("Elevation", fx, rb, u, 152.13): {},
+            },
+            (subgroup, None, 4, None, 152.14): {
+                ("Circumduction", fx, rb, u, 152.15): {},
+            },
+        },
+        ("Knee", fx, cb, u, 152.16): {
+            (subgroup, None, 0, None, 152.17): {
+                ("Flexion", fx, rb, u, 152.18): {},
+                ("Extension", fx, rb, u, 152.19): {},
+            },
+        },
+        ("Ankle", fx, cb, u, 152.20): {
+            (subgroup, None, 0, None, 152.21): {
+                ("Dorsi-flexion", fx, rb, u, 152.22): {},
+                ("Plantar-flexion", fx, rb, u, 152.23): {},
+            },
+            (subgroup, None, 1, None, 152.24): {
+                ("Inversion", fx, rb, u, 152.25): {},
+                ("Eversion", fx, rb, u, 152.26): {},
+            },
+            (subgroup, None, 2, None, 152.27): {
+                ("Circumduction", fx, rb, u, 152.28): {},
+            },
         }
     },
     ("Movement characteristics", fx, cb, u, 153): {
