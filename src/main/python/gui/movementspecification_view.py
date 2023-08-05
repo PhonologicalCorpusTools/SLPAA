@@ -313,8 +313,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         self.setLayout(main_layout)
 
-    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
-        return MovementModule(self.treemodel, hands=handsdict, timingintervals=timingintervals, addedinfo=addedinfo, inphase=inphase)
+    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+        return MovementModule(self.treemodel, articulators=articulators, timingintervals=timingintervals, addedinfo=addedinfo, inphase=inphase)
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())

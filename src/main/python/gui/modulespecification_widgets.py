@@ -19,7 +19,7 @@ from lexicon.module_classes import AddedInfo
 
 class ModuleSpecificationPanel(QFrame):
 
-    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         pass
 
 

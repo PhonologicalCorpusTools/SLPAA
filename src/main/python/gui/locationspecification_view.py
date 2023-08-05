@@ -624,10 +624,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.update_detailstable(None, None)
         self.detailstableview.setEnabled(enabledetailstable)
 
-    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         phonlocs = self.getcurrentphonlocs()
         return LocationModule(self.getcurrenttreemodel(),
-                              hands=handsdict,
+                              articulators=articulators,
                               timingintervals=timingintervals,
                               addedinfo=addedinfo,
                               phonlocs=phonlocs,
