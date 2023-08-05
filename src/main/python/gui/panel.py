@@ -639,7 +639,8 @@ class SignSummaryPanel(QScrollArea):
     def open_module_dialog(self, modulekey, moduletype):
         modules_list = self.sign.getmoduledict(moduletype)
         module_to_edit = modules_list[modulekey]
-        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] else [HAND]
+        # includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] else [HAND]
+        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.LOCATION] else [HAND]
         includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
             1 if moduletype == ModuleTypes.LOCATION else
             0  # default
@@ -812,7 +813,8 @@ class SignLevelMenuPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_menumodulebtn_clicked(self, moduletype):
-        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] else [HAND]
+        # includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] else [HAND]
+        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.LOCATION] else [HAND]
         includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
             1 if moduletype == ModuleTypes.LOCATION else
             0  # default
