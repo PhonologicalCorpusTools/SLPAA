@@ -14,7 +14,6 @@ from PyQt5.QtWidgets import (
     QLabel,
     QButtonGroup,
     QCheckBox,
-    QComboBox,
     QGraphicsView
 )
 
@@ -28,7 +27,7 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
-from gui.modulespecification_widgets import AddedInfoPushButton
+from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 from constant import HAND, ARM, LEG
 
 
@@ -252,73 +251,6 @@ class XslotLinkingPanel(QFrame):
         self.xslotlinkview.setScene(self.xslotlinkscene)
 
 
-class ArticulatorSelector(QWidget):
-    articulatorchanged = pyqtSignal(str)
-
-    def __init__(self, articulatorlist, **kwargs):
-        super().__init__(**kwargs)
-
-        self.layout = QHBoxLayout()
-        self.setLayout(self.layout)
-        self.multiple = len(articulatorlist) > 1
-
-        self.label = QLabel()
-        self.combo = QComboBox()
-        self.combo.setEditable(False)
-        self.combo.currentTextChanged.connect(lambda text: self.articulatorchanged.emit(self.pluralbrackets(text, False)))
-        self.setarticulatoroptions(articulatorlist)
-
-    def pluralbrackets(self, text, onoroff):
-        if onoroff:
-            return text + "(s)"
-        else:
-            return text.replace("(s)", "")
-
-    def gettext(self):
-        if self.multiple:
-            return self.combo.currentText()
-        else:
-            return self.label.text()
-
-    def getarticulator(self):
-        return self.pluralbrackets(self.gettext(), False)
-
-    def setarticulatoroptions(self, articulatorlist):
-        self.multiple = len(articulatorlist) > 1
-        for idx in range(self.layout.count()):
-            w = self.layout.itemAt(idx).widget()
-            self.layout.removeWidget(w)
-
-        if self.multiple:
-            self.combo.clear()
-            self.combo.addItems([self.pluralbrackets(a, True) for a in articulatorlist])
-            self.layout.addWidget(self.combo)
-        else:
-            self.label.clear()
-            self.label.setText(self.pluralbrackets(articulatorlist[0], True) or "")
-            self.layout.addWidget(self.label)
-
-    # def articulatorat(self, idx):
-    #     return self.pluralbrackets(self.combo.itemText(0), False)
-
-    def setselectedarticulator(self, articulator):
-        if articulator is None or articulator == "":
-            text = self.combo.itemText(0)
-        else:
-            text = self.pluralbrackets(articulator, True)
-        if self.multiple:
-            if text in [self.combo.itemText(i) for i in range(self.combo.count())]:
-                self.combo.setCurrentText(text)
-                return True
-        else:
-            if text == self.label.text():
-                return True
-
-        return False
-
-
-
-# TODO KV - need to pull phase info from here as well as hands info
 class ArticulatorSelectionPanel(QFrame):
 
     def __init__(self, available_articulators=None, articulators=None, incl_articulator_subopts=0, inphase=0, **kwargs):
@@ -335,11 +267,6 @@ class ArticulatorSelectionPanel(QFrame):
         # 0 --> do not include any suboptions for "both" [previously includephase=False]
         # 1 --> include only "As a connected unit"
         # 2 --> include both "As a connected unit" and "in phase" / "out of phase" [previously includephase=True]
-        #
-        # if available_articulators is None or len(available_articulators) == 0:
-        #     available_articulators = [HAND, ARM, LEG]
-        # self.articulator_selector = ArticulatorSelector(available_articulators)
-        # self.articulator_selector.articulatorchanged.connect(self.handle_articulator_changed)
 
         articulator_layout = self.create_articulator_layout(available_articulators)
         self.setLayout(articulator_layout)
@@ -378,26 +305,18 @@ class ArticulatorSelectionPanel(QFrame):
 
         articulator_layout = QHBoxLayout()
 
+        # for all module types-- Select the articulator; Articulator1; Articulator2
         singlearts_layout = QHBoxLayout()
         singlearts_layout.addWidget(self.appliesto_label)
         singlearts_layout.addWidget(self.articulator_selector)
         singlearts_layout.addWidget(self.articulator1_radio)
         singlearts_layout.addWidget(self.articulator2_radio)
+        for idx in range(singlearts_layout.count()):
+            singlearts_layout.setAlignment(singlearts_layout.itemAt(idx).widget(), Qt.AlignTop)
         articulator_layout.addLayout(singlearts_layout)
         articulator_layout.setAlignment(singlearts_layout, Qt.AlignTop)
 
-        # # for most module types-- just Articulator1, Articulator2, Both
-        # if self.incl_articulator_subopts == 0:
-        #     articulator_layout.addWidget(self.articulator1_radio)
-        #     articulator_layout.addWidget(self.articulator2_radio)
-        #     articulator_layout.addWidget(self.botharts_radio)
-        #
-        # # for (eg) movement or location -- Articulator1, Articulator2, Both (plus one or more suboptions)
-        # # self.incl_articulator_subopts is 1 (only one suboption: Connected) or 2 (several suboptions: Connected, In Phase, Out of Phase)
-        # else:
-        # if self.incl_articulator_subopts > 0:
-            # articulator_layout.addWidget(self.articulator1_radio)
-            # articulator_layout.addWidget(self.articulator2_radio)
+        # for (eg) movement or location -- Both (plus one or more suboptions)
         botharts_layout = QVBoxLayout()
         botharts_layout.addWidget(self.botharts_radio)
         if self.incl_articulator_subopts > 0:
@@ -412,9 +331,7 @@ class ArticulatorSelectionPanel(QFrame):
             botharts_layout.addLayout(botharts_sub_spacedlayout)
 
         articulator_layout.addLayout(botharts_layout)
-
-        articulator_layout.setAlignment(self.articulator1_radio, Qt.AlignTop)
-        articulator_layout.setAlignment(self.articulator2_radio, Qt.AlignTop)
+        articulator_layout.setAlignment(botharts_layout, Qt.AlignTop)
 
         return articulator_layout
 
@@ -423,133 +340,6 @@ class ArticulatorSelectionPanel(QFrame):
         self.articulator1_radio.setText(articulator + " 1")
         self.articulator2_radio.setText(articulator + " 2")
         self.botharts_radio.setText("Both " + articulator.lower() + "s")
-
-    #     if hands is not None:
-    #         self.setarticulators("Hand", hands)
-    #     self.setarticulatorphase("Hand", handsinphase)
-    #
-    #     if arms is not None:
-    #         self.setarticulators("Arm", arms)
-    #     self.setarticulatorphase("Arm", armsinphase)
-    #
-    #     if legs is not None:
-    #         self.setarticulators("Leg", legs)
-    #     self.setarticulatorphase("Leg", legsinphase)
-    #
-    # def create_articulator_layout(self,
-    #                               articulator_name,
-    #                               articulator_group,
-    #                               articulator1_radio,
-    #                               articulator2_radio,
-    #                               both_radio,
-    #                               both_group,
-    #                               both_connected_cb,
-    #                               both_inphase_cb,
-    #                               both_outofphase_radio):
-    #
-    #     articulator_layout = QVBoxLayout()
-    #
-    #     articulator_group.addButton(articulator1_radio)
-    #     articulator_group.addButton(articulator2_radio)
-    #     articulator_group.addButton(both_radio)
-    #     articulator_group.buttonToggled.connect(lambda btn, ischecked: self.handle_articulatorgroup_toggled(articulator_name))
-    #
-    #     # won't get displayed/used for all module types, but they are instantiated nonetheless to avoid potential reference errors
-    #     both_group.setExclusive(False)
-    #     both_group.buttonToggled.connect(lambda btn, ischecked: self.handle_bothgroup_toggled(articulator_name, btn, ischecked))
-    #     both_group.addButton(both_connected_cb)
-    #     both_group.addButton(both_inphase_cb)
-    #     both_group.addButton(both_outofphase_radio)
-    #
-    #     # for most module types-- just Articulator1, Articulator2, Both
-    #     if self.incl_articulator_subopts == 0:
-    #         articulator_layout.addWidget(articulator1_radio)
-    #         articulator_layout.addWidget(articulator2_radio)
-    #         articulator_layout.addWidget(both_radio)
-    #
-    #     # for (eg) movement or location -- Articulator1, Articulator2, Both (plus one or more suboptions)
-    #     # self.incl_articulator_subopts is 1 (only one suboption: Connected) or 2 (several suboptions: Connected, In Phase, Out of Phase)
-    #     else:
-    #         articulator_layout.addWidget(articulator1_radio)
-    #         articulator_layout.addWidget(articulator2_radio)
-    #         botharts_layout = QVBoxLayout()
-    #         botharts_layout.addWidget(both_radio)
-    #         botharts_sub_spacedlayout = QHBoxLayout()
-    #         botharts_sub_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-    #         botharts_sub_layout = QVBoxLayout()
-    #         botharts_sub_layout.addWidget(both_connected_cb)
-    #         if self.incl_articulator_subopts == 2:
-    #             botharts_sub_layout.addWidget(both_inphase_cb)
-    #             botharts_sub_layout.addWidget(both_outofphase_radio)
-    #         botharts_sub_spacedlayout.addLayout(botharts_sub_layout)
-    #         botharts_layout.addLayout(botharts_sub_spacedlayout)
-    #
-    #         articulator_layout.addLayout(botharts_layout)
-    #
-    #     self.setLayout(articulator_layout)
-    #
-    #     articulator_group = QButtonGroup()
-    #     # self.hand1_radio = QRadioButton("Hand 1")
-    #     # self.hand2_radio = QRadioButton("Hand 2")
-    #     # self.bothhands_radio = QRadioButton("Both hands")
-    #     articulator_group.addButton(articulator1_radio)
-    #     articulator_group.addButton(articulator2_radio)
-    #     articulator_group.addButton(both_radio)
-    #     articulator_group.buttonToggled.connect(self.handle_articulatorsgroup_toggled)
-    #
-    #     # won't get displayed/used for all module types, but they are instantiated nonetheless to avoid potential reference errors
-    #     both_group.setExclusive(False)
-    #     both_group.buttonToggled.connect(self.handle_bothhandsgroup_toggled)
-    #     # self.bothhands_connected_cb = QCheckBox("As a connected unit")
-    #     # self.bothhands_inphase_cb = QCheckBox("In phase")
-    #     # self.bothhands_outofphase_radio = QRadioButton("Out of phase")
-    #     both_group.addButton(both_connected_cb)
-    #     both_group.addButton(both_inphase_cb)
-    #     both_group.addButton(both_outofphase_radio)
-    #
-    #     main_layout = QHBoxLayout()
-    #
-    #     # for most module types-- just H1, H2, Both
-    #     if self.incl_articulator_subopts == 0:
-    #         main_layout.addWidget(self.appliesto_label)  # TODO KV how to replace this?
-    #         main_layout.addWidget(articulator1_radio)
-    #         main_layout.addWidget(articulator2_radio)
-    #         main_layout.addWidget(both_radio)
-    #
-    #     # for (eg) movement or location -- H1, H2, Both (plus one or more suboptions)
-    #     # self.include_bothhands_suboptions is 1 (only one suboption: Connected) or 2 (several suboptions: Connected, In Phase, Out of Phase)
-    #     else:
-    #          # TODO KV continue from here!
-    #         hands_layout = QHBoxLayout()
-    #
-    #         hands_layout.addWidget(self.appliesto_label)
-    #         hands_layout.addWidget(self.hand1_radio)
-    #         hands_layout.addWidget(self.hand2_radio)
-    #
-    #         # hands_layout.addStretch()
-    #         main_layout.addLayout(hands_layout)
-    #         main_layout.setAlignment(hands_layout, Qt.AlignTop)
-    #
-    #         bothhands_layout = QVBoxLayout()
-    #         bothhands_layout.addWidget(self.bothhands_radio)
-    #         botharts_sub_spacedlayout = QHBoxLayout()
-    #         botharts_sub_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-    #         botharts_sub_layout = QVBoxLayout()
-    #         botharts_sub_layout.addWidget(self.bothhands_connected_cb)
-    #         if self.incl_articulator_subopts == 2:
-    #             botharts_sub_layout.addWidget(self.bothhands_inphase_cb)
-    #             botharts_sub_layout.addWidget(self.bothhands_outofphase_radio)
-    #         botharts_sub_spacedlayout.addLayout(botharts_sub_layout)
-    #         bothhands_layout.addLayout(botharts_sub_spacedlayout)
-    #
-    #         main_layout.addLayout(bothhands_layout)
-    #
-    #     self.setLayout(main_layout)
-    #     # self.addStretch()
-    #
-    #     if hands is not None:
-    #         self.sethands(hands)
-    #     self.setphase(handsinphase)
 
     def handle_articulatorgroup_toggled(self, btn, ischecked):
         selectedbutton = self.articulator_group.checkedButton()

@@ -12,6 +12,8 @@ from PyQt5.QtWidgets import (
     QMenu,
     QCheckBox,
     QPushButton,
+    QLabel,
+    QComboBox
 )
 
 from lexicon.module_classes import AddedInfo
@@ -206,3 +208,65 @@ class CheckNoteAction(AbstractLocationAction):
 
     def text(self):
         return self.note.text()
+
+
+class ArticulatorSelector(QWidget):
+    articulatorchanged = pyqtSignal(str)
+
+    def __init__(self, articulatorlist, **kwargs):
+        super().__init__(**kwargs)
+
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+        self.multiple = len(articulatorlist) > 1
+
+        self.label = QLabel()
+        self.combo = QComboBox()
+        self.combo.setEditable(False)
+        self.combo.currentTextChanged.connect(lambda text: self.articulatorchanged.emit(self.pluralbrackets(text, False)))
+        self.setarticulatoroptions(articulatorlist)
+
+    def pluralbrackets(self, text, onoroff):
+        if onoroff:
+            return text + "(s)"
+        else:
+            return text.replace("(s)", "")
+
+    def gettext(self):
+        if self.multiple:
+            return self.combo.currentText()
+        else:
+            return self.label.text()
+
+    def getarticulator(self):
+        return self.pluralbrackets(self.gettext(), False)
+
+    def setarticulatoroptions(self, articulatorlist):
+        self.multiple = len(articulatorlist) > 1
+        for idx in range(self.layout.count()):
+            w = self.layout.itemAt(idx).widget()
+            self.layout.removeWidget(w)
+
+        if self.multiple:
+            self.combo.clear()
+            self.combo.addItems([self.pluralbrackets(a, True) for a in articulatorlist])
+            self.layout.addWidget(self.combo)
+        else:
+            self.label.clear()
+            self.label.setText(self.pluralbrackets(articulatorlist[0], True) or "")
+            self.layout.addWidget(self.label)
+
+    def setselectedarticulator(self, articulator):
+        if articulator is None or articulator == "":
+            text = self.combo.itemText(0)
+        else:
+            text = self.pluralbrackets(articulator, True)
+        if self.multiple:
+            if text in [self.combo.itemText(i) for i in range(self.combo.count())]:
+                self.combo.setCurrentText(text)
+                return True
+        else:
+            if text == self.label.text():
+                return True
+
+        return False
