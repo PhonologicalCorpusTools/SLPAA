@@ -6,7 +6,7 @@ from PyQt5.QtCore import (
     Qt,
 )
 
-from constant import NULL, PREDEFINED_MAP
+from constant import NULL, PREDEFINED_MAP, HAND
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
@@ -93,8 +93,8 @@ userdefinedroles = UserDefinedRoles({
 # common ancestor for (eg) HandshapeModule, MovementModule, etc
 class ParameterModule:
 
-    def __init__(self, hands, timingintervals=None, addedinfo=None):
-        self._hands = hands
+    def __init__(self, articulators, timingintervals=None, addedinfo=None):
+        self._articulators = articulators
         self._timingintervals = []
         if timingintervals is not None:
             self.timingintervals = timingintervals
@@ -111,13 +111,20 @@ class ParameterModule:
         self._addedinfo = addedinfo
 
     @property
-    def hands(self):
-        return self._hands
+    def articulators(self):
+        if not hasattr(self, '_articulators'):
+            # backward compatibility pre-20230804 addition of arms and legs as articulators (issues #175 and #176)
+            articulator_dict = {1: False, 2: False}
+            if hasattr(self, '_hands'):
+                articulator_dict[1] = self._hands['H1']
+                articulator_dict[2] = self._hands['H2']
+            self._articulators = (HAND, articulator_dict)
+        return self._articulators
 
-    @hands.setter
-    def hands(self, hands):
+    @articulators.setter
+    def articulators(self, articulators):
         # TODO KV - validate?
-        self._hands = hands
+        self._articulators = articulators
 
     @property
     def uniqueid(self):
@@ -329,10 +336,10 @@ class SignLevelInformation:
 
 
 class MovementModule(ParameterModule):
-    def __init__(self, movementtreemodel, hands, timingintervals=None, addedinfo=None, inphase=0):
+    def __init__(self, movementtreemodel, articulators, timingintervals=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase    # TODO KV is "inphase" actually the best name for this attribute?
-        super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
 
     @property
     def movementtreemodel(self):
@@ -1056,13 +1063,13 @@ class Signtype:
 
 
 class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, hands, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
+    def __init__(self, locationtreemodel, articulators, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
         if phonlocs is None:
             phonlocs = PhonLocations()
         self._locationtreemodel = locationtreemodel
         self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
         self._phonlocs = phonlocs
-        super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
 
     @property
     def locationtreemodel(self):
@@ -1097,10 +1104,10 @@ class LocationModule(ParameterModule):
 
 # TODO KV comments
 class HandConfigurationModule(ParameterModule):
-    def __init__(self, handconfiguration, overalloptions, hands, timingintervals=None, addedinfo=None):
+    def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, addedinfo=None):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
-        super().__init__(hands, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
 
     @property
     def handconfiguration(self):

@@ -116,11 +116,11 @@ class Sign:
         for k in serialized_mvmtmodules.keys():
             serialmodule = serialized_mvmtmodules[k]
             mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
-            hands = serialmodule.hands
+            articulators = serialmodule.articulators
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
             addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-            unserialized[k] = MovementModule(mvmttreemodel, hands, timingintervals, addedinfo, inphase)
+            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
         self.movementmodules = unserialized
 
     def serializelocationmodules(self):
@@ -134,12 +134,12 @@ class Sign:
         for k in serialized_locnmodules.keys():
             serialmodule = serialized_locnmodules[k]
             locntreemodel = LocationTreeModel(serialmodule.locationtree)
-            hands = serialmodule.hands
+            articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
             addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 location modules
             phonlocs = serialmodule.phonlocs
             inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
-            unserialized[k] = LocationModule(locntreemodel, hands, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
+            unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
         self.locationmodules = unserialized
 
     def __hash__(self):
@@ -220,8 +220,8 @@ class Sign:
 
     def updatemodule_sharedattributes(self, current_mod, updated_mod):
         ischanged = False
-        if current_mod.hands != updated_mod.hands:
-            current_mod.hands = updated_mod.hands
+        if current_mod.articulators != updated_mod.articulators:
+            current_mod.articulators = updated_mod.articulators
             ischanged = True
         if current_mod.timingintervals != updated_mod.timingintervals:
             current_mod.timingintervals = updated_mod.timingintervals

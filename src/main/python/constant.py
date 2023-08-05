@@ -326,4 +326,12 @@ FRACTION_CHAR = {
     Fraction(3, 4): "¾",
 }
 
+HAND = "Hand"
+ARM = "Arm"
+LEG = "Leg"
 
+ARTICULATOR_ABBREVS = {
+    HAND: "H",
+    ARM: "A",
+    LEG: "L"
+}

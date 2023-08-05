@@ -1069,11 +1069,11 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
         self.mainwindow.undostack.push(undo_command)
 
-    def getsavedmodule(self, handsdict, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         configdict = self.panel.config.get_value()
         handconfiguration = configdict['hand']
         overalloptions = {k: v for (k, v) in configdict.items() if k != 'hand'}
-        return HandConfigurationModule(handconfiguration=handconfiguration, overalloptions=overalloptions, hands=handsdict, timingintervals=timingintervals, addedinfo=addedinfo)
+        return HandConfigurationModule(handconfiguration=handconfiguration, overalloptions=overalloptions, articulators=articulators, timingintervals=timingintervals, addedinfo=addedinfo)
 
     def refresh(self):
         self.clear()

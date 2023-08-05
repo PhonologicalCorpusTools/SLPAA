@@ -9,14 +9,31 @@ from PyQt5.QtCore import (
 
 from lexicon.module_classes import userdefinedroles as udr
 from models.movement_models import fx
+from constant import HAND
 
 
 class ParameterModuleSerializable:
 
     def __init__(self, parammod):
-        self.hands = parammod.hands
+        self._articulators = parammod.articulators
         self.timingintervals = parammod.timingintervals
         self.addedinfo = parammod.addedinfo
+
+    @property
+    def articulators(self):
+        if not hasattr(self, '_articulators'):
+            # backward compatibility pre-20230804 addition of arms and legs as articulators (issues #175 and #176)
+            articulator_dict = {1: False, 2: False}
+            if hasattr(self, 'hands'):
+                articulator_dict[1] = self.hands['H1']
+                articulator_dict[2] = self.hands['H2']
+            self._articulators = (HAND, articulator_dict)
+        return self._articulators
+
+    @articulators.setter
+    def articulators(self, articulators):
+        # TODO KV - validate?
+        self._articulators = articulators
 
 
 # This class is a serializable form of the class LocationTreeModel, which is itself not pickleable.
