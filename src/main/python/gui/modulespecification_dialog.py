@@ -314,7 +314,6 @@ class ArticulatorSelectionPanel(QFrame):
         for idx in range(singlearts_layout.count()):
             singlearts_layout.setAlignment(singlearts_layout.itemAt(idx).widget(), Qt.AlignTop)
         articulator_layout.addLayout(singlearts_layout)
-        articulator_layout.setAlignment(singlearts_layout, Qt.AlignTop)
 
         # for (eg) movement or location -- Both (plus one or more suboptions)
         botharts_layout = QVBoxLayout()
@@ -331,7 +330,6 @@ class ArticulatorSelectionPanel(QFrame):
             botharts_layout.addLayout(botharts_sub_spacedlayout)
 
         articulator_layout.addLayout(botharts_layout)
-        articulator_layout.setAlignment(botharts_layout, Qt.AlignTop)
 
         return articulator_layout
 

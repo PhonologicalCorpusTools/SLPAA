@@ -217,6 +217,7 @@ class ArticulatorSelector(QWidget):
         super().__init__(**kwargs)
 
         self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         self.multiple = len(articulatorlist) > 1
 
