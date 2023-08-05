@@ -88,6 +88,9 @@ class ModuleSelectorDialog(QDialog):
             self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
         main_layout.addWidget(self.module_widget)
 
+        self.handle_articulator_changed(articulators[0])
+        self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
+
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
         separate_line.setFrameShadow(QFrame.Sunken)
@@ -127,6 +130,10 @@ class ModuleSelectorDialog(QDialog):
         # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
         # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         # self.adjustSize()
+
+    def handle_articulator_changed(self, articulator):
+        if articulator is not None:
+            self.module_widget.handle_articulator_changed(articulator)
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -252,6 +259,7 @@ class XslotLinkingPanel(QFrame):
 
 
 class ArticulatorSelectionPanel(QFrame):
+    articulatorchanged = pyqtSignal(str)
 
     def __init__(self, available_articulators=None, articulators=None, incl_articulator_subopts=0, inphase=0, **kwargs):
         super().__init__(**kwargs)
@@ -334,6 +342,7 @@ class ArticulatorSelectionPanel(QFrame):
         return articulator_layout
 
     def handle_articulator_changed(self, articulator):
+        self.articulatorchanged.emit(articulator)
 
         self.articulator1_radio.setText(articulator + " 1")
         self.articulator2_radio.setText(articulator + " 2")

@@ -608,6 +608,15 @@ class MovementTreeItem(QStandardItem):
     def nodetypeID(self, nodetypeID):
         self._nodetypeID = nodetypeID if nodetypeID is not None else -1
 
+    def setEnabledRecursive(self, enable):
+        self.setEnabled(enable)
+        if self.data(Qt.UserRole+udr.isuserspecifiablerole) != fx:
+            self.editablepart().setEnabled(enable)
+        self.setCheckState(Qt.Unchecked)
+
+        for r in range(self.rowCount()):
+            self.child(r, 0).setEnabledRecursive(enable)
+
     def check(self, fully=True):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
         self.listitem.setData(fully, Qt.UserRole+udr.selectedrole)
@@ -1059,6 +1068,10 @@ class MovementTreeModel(QStandardItemModel):
                 uni.setEnabled(True)
                 bi.setEnabled(True)
 
+    # enable/disable the given item and its descendants
+    def setNodeEnabledRecursive(self, itemtext, enable):
+        item = self.findItems(itemtext, flags=Qt.MatchRecursive)[0]
+        item.setEnabledRecursive(enable)
 
     def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         if structure == {} and pathsofar != "":

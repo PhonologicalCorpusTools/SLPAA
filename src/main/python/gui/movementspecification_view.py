@@ -25,6 +25,7 @@ from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementM
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
 from serialization_classes import MovementTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
+from constant import HAND
 
 
 class MvmtTreeSearchComboBox(QComboBox):
@@ -341,6 +342,10 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
+
+    def handle_articulator_changed(self, articulator):
+        enable_jointspecmvmts = articulator == HAND
+        self.treemodel.setNodeEnabledRecursive("Joint-specific movements", enable_jointspecmvmts)
 
     def refresh(self):
         self.refresh_treemodel()
