@@ -610,9 +610,10 @@ class MovementTreeItem(QStandardItem):
 
     def setEnabledRecursive(self, enable):
         self.setEnabled(enable)
+        if not enable:
+            self.uncheck()
         if self.data(Qt.UserRole+udr.isuserspecifiablerole) != fx:
             self.editablepart().setEnabled(enable)
-        self.setCheckState(Qt.Unchecked)
 
         for r in range(self.rowCount()):
             self.child(r, 0).setEnabledRecursive(enable)
@@ -930,6 +931,8 @@ class MovementTreeModel(QStandardItemModel):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    if pathtext.endswith("Trilled") or pathtext.endswith("Twisting"):
+                        print("temp", pathtext, "checkstate", self.serializedmvmttree.checkstates[pathtext])
                     if pathtext in self.serializedmvmttree.checkstates.keys():
                         treechild.setCheckState(self.serializedmvmttree.checkstates[pathtext])
 
