@@ -931,8 +931,6 @@ class MovementTreeModel(QStandardItemModel):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                    if pathtext.endswith("Trilled") or pathtext.endswith("Twisting"):
-                        print("temp", pathtext, "checkstate", self.serializedmvmttree.checkstates[pathtext])
                     if pathtext in self.serializedmvmttree.checkstates.keys():
                         treechild.setCheckState(self.serializedmvmttree.checkstates[pathtext])
 
