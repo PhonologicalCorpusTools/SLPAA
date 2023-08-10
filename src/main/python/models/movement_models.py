@@ -610,9 +610,10 @@ class MovementTreeItem(QStandardItem):
 
     def setEnabledRecursive(self, enable):
         self.setEnabled(enable)
+        if not enable:
+            self.uncheck()
         if self.data(Qt.UserRole+udr.isuserspecifiablerole) != fx:
             self.editablepart().setEnabled(enable)
-        self.setCheckState(Qt.Unchecked)
 
         for r in range(self.rowCount()):
             self.child(r, 0).setEnabledRecursive(enable)
