@@ -17,7 +17,8 @@ from PyQt5.QtWidgets import (
     QTabBar,
     QLineEdit,
     QMessageBox,
-    QPushButton
+    QPushButton,
+    QHBoxLayout
 )
 from PyQt5.QtGui import (
     QPainter,
@@ -193,3 +194,51 @@ class ToggleSwitch(QPushButton):
             sw_rect.moveLeft(-width)
         painter.drawRoundedRect(sw_rect, radius, radius)
         painter.drawText(sw_rect, Qt.AlignCenter, label)
+
+
+class OptionSwitch(QWidget):
+    toggled = pyqtSignal(dict)
+
+    def __init__(self, label1, label2, **kwargs):
+        super().__init__(**kwargs)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.setSpacing(0)
+        buttons_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.left_btn = QPushButton(label1)
+        self.left_btn.setCheckable(True)
+        self.left_btn.clicked.connect(lambda checked: self.buttonclicked(self.left_btn, checked))
+        self.right_btn = QPushButton(label2)
+        self.right_btn.setCheckable(True)
+
+        self.right_btn.clicked.connect(lambda checked: self.buttonclicked(self.right_btn, checked))
+
+        buttons_layout.addWidget(self.left_btn)
+        buttons_layout.addWidget(self.right_btn)
+
+        self.setLayout(buttons_layout)
+
+    def setlabels(self, label1=None, label2=None):
+        if label1 is not None:
+            self.left_btn.setText(label1)
+        if label2 is not None:
+            self.right_btn.setText(label2)
+
+    def getvalue(self):
+        return {
+            1: self.left_btn.isChecked(),
+            2: self.right_btn.isChecked()
+        }
+
+    def setvalue(self, valuesdict):
+        self.left_btn.setChecked(valuesdict[1])
+        self.right_btn.setChecked(valuesdict[2])
+
+    def buttonclicked(self, btn, checked):
+        if btn == self.right_btn and checked:
+            self.left_btn.setChecked(False)
+        elif btn == self.left_btn and checked:
+            self.right_btn.setChecked(False)
+
+        self.toggled.emit(self.getvalue())

@@ -1059,6 +1059,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
 
         if moduletoload:
             self.panel.set_value(deepcopy(moduletoload))
+            self.existingkey = moduletoload.uniqueid
         # TODO KV also load forearm, uncertainty info
 
         main_layout.addWidget(self.panel)
@@ -1073,7 +1074,16 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         configdict = self.panel.config.get_value()
         handconfiguration = configdict['hand']
         overalloptions = {k: v for (k, v) in configdict.items() if k != 'hand'}
-        return HandConfigurationModule(handconfiguration=handconfiguration, overalloptions=overalloptions, articulators=articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        hcfg = HandConfigurationModule(handconfiguration=handconfiguration,
+                                       overalloptions=overalloptions,
+                                       articulators=articulators,
+                                       timingintervals=timingintervals,
+                                       addedinfo=addedinfo)
+        if self.existingkey is not None:
+            hcfg.uniqueid = self.existingkey
+        else:
+            self.existingkey = hcfg.uniqueid
+        return hcfg
 
     def refresh(self):
         self.clear()
