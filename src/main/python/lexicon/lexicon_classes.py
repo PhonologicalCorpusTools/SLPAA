@@ -462,7 +462,7 @@ class Sign:
         self.getmodulenumbersdict(moduletype)[uniqueid] = newmodnum
 
     def gettimedmodules(self):
-        return [self.movementmodules, self.handpartmodules, self.locationmodules, self.contactmodules, self.orientationmodules, self.handconfigmodules]
+        return [self.movementmodules, self.locationmodules, self.relationmodules, self.orientationmodules, self.handconfigmodules]
 
 
 class Corpus:
