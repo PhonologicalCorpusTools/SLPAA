@@ -50,6 +50,29 @@ class LocationModuleSerializable(ParameterModuleSerializable):
         self.locationtree = LocationTreeSerializable(locnmodule.locationtreemodel)
 
 
+# This class is a serializable form of the class RelationModule, which is itself not pickleable.
+# Rather than being based on ParameterModule, this one uses dictionary structures to convert to
+# and from saveable form.
+class RelationModuleSerializable(ParameterModuleSerializable):
+
+    def __init__(self, relmodule):
+        super().__init__(relmodule)
+
+        # creates a full serializable copy of the relation module, eg for saving to disk
+        self.relationx = relmodule.relationx
+        self.relationy = relmodule.relationy
+        self.bodyparts_dict = {}
+        for bodypart in relmodule.bodyparts_dict.keys():
+            if bodypart not in self.bodyparts_dict.keys():
+                self.bodyparts_dict[bodypart] = {}
+            for n in relmodule.bodyparts_dict[bodypart].keys():
+                self.bodyparts_dict[bodypart][n] = BodypartInfoSerializable(relmodule.bodyparts_dict[bodypart][n])
+        self.contactrel = relmodule.contactrel
+        self.xy_crossed = relmodule.xy_crossed
+        self.xy_linked = relmodule.xy_linked
+        self.directions = relmodule.directions
+
+
 # This class is a serializable form of the class MovementModule, which is itself not pickleable
 # due to its component MovementTreeModel.
 class MovementModuleSerializable(ParameterModuleSerializable):
@@ -163,6 +186,20 @@ class LocationTableSerializable:
         return '<LocationTableSerializable: ' + repr(self.col_labels) + ' / ' + repr(self.col_contents) + '>'
 
 
+# This class is a serializable form of the class BodypartInfo, which is itself not pickleable.
+# Rather than being based on a QStandardItemModel tree, this one uses dictionary structures to
+# convert to and from saveable form.
+class BodypartInfoSerializable:
+
+    def __init__(self, bodypartinfo):
+        # creates a full serializable copy of the bodypartinfo, eg for saving to disk
+        self.addedinfo = bodypartinfo.addedinfo
+        if bodypartinfo.bodyparttreemodel is not None:
+            self.bodyparttree = LocationTreeSerializable(bodypartinfo.bodyparttreemodel)
+        else:
+            self.bodyparttree = None
+
+
 # for backward compatibility with package structure from pre- issue #69 (20230510)
 class RenameUnpickler(pickle.Unpickler):
     def find_class(self, module_orig, class_orig):
@@ -203,6 +240,8 @@ class RenameUnpickler(pickle.Unpickler):
             pass
         elif class_orig in ["TimingPoint", "TimingInterval", "AddedInfo"] and module_orig == "lexicon.module_classes2":
             module_updated = "lexicon.module_classes"
+        # elif class_orig in ["BodypartSpecificationPanel", "BodypartSelectorDialog"] and module_orig == "gui.handpartspecification_dialog":
+        #     module_updated = "gui.bodypartspecification_dialog"
 
         return super(RenameUnpickler, self).find_class(module_updated, class_updated)
 

@@ -14,7 +14,10 @@ from PyQt5.QtWidgets import (
     QLabel,
     QButtonGroup,
     QCheckBox,
-    QGraphicsView
+    QGraphicsView,
+    QListView,
+    QAbstractItemView,
+    QPushButton
 )
 
 from PyQt5.QtCore import (
@@ -24,20 +27,30 @@ from PyQt5.QtCore import (
 
 from gui.xslot_graphics import XslotLinkScene
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes
+from models.relation_models import ModuleLinkingListModel
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
+from gui.relationspecification_view import RelationSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 from constant import HAND, ARM, LEG
 
 
 class ModuleSelectorDialog(QDialog):
-    module_saved = pyqtSignal(ParameterModule)
+    # the second param for module_saved is from ModuleTypes.xxxx TODO KV and will typically be None,
+    # UNLESS the module being saved is of a different type than the primary module selector dialog
+    # (ie, an associated relation module spawned from a movement or location module dialog)
+    module_saved = pyqtSignal(ParameterModule, str)
     module_deleted = pyqtSignal()
 
-    def __init__(self, moduletype, xslotstructure=None, moduletoload=None, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
+    def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
+        self.moduletype = moduletype
+        self.includearticulatorselection = len(incl_articulators) > 0
+        self.linkedfrommoduleid = linkedfrommoduleid
+        self.linkedfrommoduletype = linkedfrommoduletype
+        self.existingkey = None
 
         timingintervals = []
         addedinfo = AddedInfo()
@@ -48,9 +61,11 @@ class ModuleSelectorDialog(QDialog):
             incl_articulators = [incl_articulators]
 
         if moduletoload is not None:
+            self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
             addedinfo = deepcopy(moduletoload.addedinfo)
-            articulators = moduletoload.articulators
+            if moduletoload.articulators is not None:
+                articulators = moduletoload.articulators
             new_instance = False
             if hasattr(moduletoload, '_inphase'):
                 inphase = moduletoload.inphase
@@ -63,7 +78,8 @@ class ModuleSelectorDialog(QDialog):
                                                              incl_articulator_subopts=incl_articulator_subopts,
                                                              inphase=inphase,
                                                              parent=self)
-        self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
+        if self.includearticulatorselection:
+            self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
         self.arts_and_addedinfo_layout.addStretch()
         self.addedinfobutton = AddedInfoPushButton("Module notes")
@@ -86,10 +102,32 @@ class ModuleSelectorDialog(QDialog):
             self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.HANDCONFIG:
             self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif self.moduletype == ModuleTypes.RELATION:
+            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
+            self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
+            self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
+            self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
+            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         main_layout.addWidget(self.module_widget)
 
         self.handle_articulator_changed(articulators[0])
         self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
+
+        if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+            self.associatedrelations_widget = AssociatedRelationsPanel(parent=self)
+            if self.existingkey is not None:
+                self.associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
+            self.check_enable_saveaddrelation()
+
+            self.associatedrelations_widget.save_anchor.connect(self.handle_save_anchor)
+            self.associatedrelations_widget.module_saved.connect(self.handle_modulesaved)
+            self.xslot_widget.selection_changed.connect(self.check_enable_saveaddrelation)
+            self.articulators_widget.articulator_group.buttonClicked.connect(self.check_enable_saveaddrelation)
+            if self.moduletype == ModuleTypes.LOCATION:
+                self.module_widget.loctype_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
+                self.module_widget.signingspace_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
+
+            main_layout.addWidget(self.associatedrelations_widget)
 
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
@@ -131,9 +169,49 @@ class ModuleSelectorDialog(QDialog):
         # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         # self.adjustSize()
 
+    def handle_modulesaved(self, relationtosave, moduletype):
+        self.module_saved.emit(relationtosave, moduletype)
+        self.style_seeassociatedrelations()
+
+    def check_enable_saveaddrelation(self):
+        hastiming = self.validate_timingintervals()[0]
+        hashands = self.validate_articulators()[0]
+        bodyloc = (
+            self.module_widget.getcurrentlocationtype().usesbodylocations() if self.moduletype == ModuleTypes.LOCATION else None)
+        self.associatedrelations_widget.check_enable_saveaddrelation(hastiming, hashands, bodyloc)
+
+    def style_seeassociatedrelations(self):
+        self.associatedrelations_widget.style_seeassociatedrelations()
+
+    def handle_save_anchor(self):
+        savedmodule = self.validate_and_save(addanother=False, closedialog=False)
+        self.associatedrelations_widget.anchormodule = savedmodule
+
     def handle_articulator_changed(self, articulator):
         if articulator is not None:
             self.module_widget.handle_articulator_changed(articulator)
+
+    # validate timing interval(s) selection (all modules must be linked to at least one timing point or interval)
+    def validate_timingintervals(self):
+        timingintervals = self.xslot_widget.gettimingintervals()
+        timingvalid = True
+        if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
+            timingvalid = False
+        elif self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+            # no x-slots; make the timing interval be for the whole sign
+            timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
+
+        return timingvalid, timingintervals
+
+    # validate articulator selection (all modules except relation must have at least one articulator selected)
+    def validate_articulators(self):
+
+        articulator, articulator_dict = self.articulators_widget.getarticulators()
+        articulatorsvalid = True
+        if self.includearticulatorselection and (articulator is None or True not in articulator_dict.values()):
+            articulatorsvalid = False
+
+        return articulatorsvalid, (articulator, articulator_dict)
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -142,78 +220,33 @@ class ModuleSelectorDialog(QDialog):
             self.reject()
 
         elif standard == QDialogButtonBox.Discard:
-            self.module_deleted.emit()
-            self.accept()  # TODO KV ???
+            deletethemodule = True
 
-        # TODO KV this duplicates the code in the next conditional case
-        elif standard == QDialogButtonBox.Save:  # save and add another
+            if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                relationslist = list(self.mainwindow.current_sign.relationmodules.values())
+                relationslist = [rel for rel in relationslist if (
+                        rel.relationy.existingmodule and self.existingkey in rel.relationy.linkedmoduleids)]
+                if len(relationslist) > 0:
+                    responsebtn = QMessageBox.critical(self,
+                                                       "Warning",
+                                                        "This module has associated Relation modules; are you sure you want to delete?",
+                                                        QMessageBox.Yes | QMessageBox.No,
+                                                        QMessageBox.Yes)
+                    if responsebtn == QMessageBox.No:
+                        deletethemodule = False
 
-            # validate hand selection
-            articulator, articulator_dict = self.articulators_widget.getarticulators()
-            articulatorsvalid = True
-            if articulator is None or True not in articulator_dict.values():
-                articulatorsvalid = False
-
-            inphase = self.articulators_widget.getphase()
-            addedinfo = self.addedinfobutton.addedinfo
-
-            # validate timing interval(s) selection
-            timingintervals = self.xslot_widget.gettimingintervals()
-            timingvalid = True
-            if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
-                timingvalid = False
-            elif self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
-                # no x-slots; make the timing interval be for the whole sign
-                timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
-
-            if not (articulatorsvalid and timingvalid):
-                # refuse to save without hand & timing info
-                messagestring = "Missing"
-                messagestring += " hand selection" if not articulatorsvalid else ""
-                messagestring += " and" if not (articulatorsvalid or timingvalid) else ""
-                messagestring += " timing selection" if not timingvalid else ""
-                messagestring += "."
-                QMessageBox.critical(self, "Warning", messagestring)
+            if deletethemodule:
+                self.module_deleted.emit()
+                self.accept()
             else:
-                # save info and then refresh screen to start next module
-                self.module_saved.emit(self.module_widget.getsavedmodule((articulator, articulator_dict), timingintervals, addedinfo, inphase))
-                self.articulators_widget.clear()
-                self.addedinfobutton.clear()
-                self.xslot_widget.clear()
-                self.module_widget.clear()
+                # neither accept nor reject, so that anchor module dialog stays open if user decides not to delete after all
+                pass
+
+        elif standard == QDialogButtonBox.Save:  # save and add another
+            self.validate_and_save(addanother=True, closedialog=False)
 
         elif standard == QDialogButtonBox.Apply:  # save and close
-
-            # validate articulator selection
-            articulator, articulator_dict = self.articulators_widget.getarticulators()
-            articulatorsvalid = True
-            if articulator is None or True not in articulator_dict.values():
-                articulatorsvalid = False
-
-            inphase = self.articulators_widget.getphase()
-            addedinfo = self.addedinfobutton.addedinfo
-
-            # validate timing interval(s) selection
-            timingintervals = self.xslot_widget.gettimingintervals()
-            timingvalid = True
-            if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
-                timingvalid = False
-            elif self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
-                # no x-slots; make the timing interval be for the whole sign
-                timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
-
-            if not (articulatorsvalid and timingvalid):
-                # refuse to save without hand & timing info
-                messagestring = "Missing"
-                messagestring += " hand selection" if not articulatorsvalid else ""
-                messagestring += " and" if not (articulatorsvalid or timingvalid) else ""
-                messagestring += " timing selection" if not timingvalid else ""
-                messagestring += "."
-                QMessageBox.critical(self, "Warning", messagestring)
-            else:
-                # save info and then close dialog
-                self.module_saved.emit(self.module_widget.getsavedmodule((articulator, articulator_dict), timingintervals, addedinfo, inphase))
-                self.accept()
+            self.validate_and_save(addanother=False, closedialog=True)
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
             # TODO KV -- where should the "defaults" be defined?
@@ -222,8 +255,272 @@ class ModuleSelectorDialog(QDialog):
             self.xslot_widget.clear()
             self.module_widget.clear()
 
+    def validate_and_save(self, addanother=False, closedialog=False):
+        inphase = self.articulators_widget.getphase()
+        addedinfo = self.addedinfobutton.addedinfo
+
+        # validate hand selection
+        articulatorsvalid, articulators = self.validate_articulators()
+
+        # validate timing interval(s) selection
+        timingvalid, timingintervals = self.validate_timingintervals()
+
+        # validate module selections
+        modulevalid, modulemessage = self.module_widget.validity_check()
+
+        messagestring = ""
+        if not (articulatorsvalid and timingvalid):
+            # refuse to save without articulator & timing info
+            messagestring += "Missing"
+            messagestring += " articulator selection" if not articulatorsvalid else ""
+            messagestring += " and" if not (articulatorsvalid or timingvalid) else ""
+            messagestring += " timing selection" if not timingvalid else ""
+            messagestring += ". "
+        if not modulevalid:
+            # refuse to save without valid module selections
+            messagestring += modulemessage
+
+        savedmodule = None
+        if messagestring != "":
+            # warn user that there's missing and/or invalid info and don't let them save
+            QMessageBox.critical(self, "Warning", messagestring)
+        elif addanother:
+            # save info and then refresh screen to start next module
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            self.module_saved.emit(savedmodule, self.moduletype)
+            self.articulators_widget.clear()
+            self.addedinfobutton.clear()
+            self.xslot_widget.clear()
+            self.module_widget.clear()
+            self.module_widget.existingkey = None
+            if self.moduletype == ModuleTypes.RELATION:
+                self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+        elif not addanother:
+            # save info
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            self.module_saved.emit(savedmodule, self.moduletype)
+            if closedialog:
+                # close dialog if caller requests it (but if we're only saving so, eg,
+                # we can add an associated relation module, then closedialog will be False)
+                self.accept()
+
+        return savedmodule
+
+
+class AssociatedRelationsDialog(QDialog):
+    module_saved = pyqtSignal(ParameterModule, str)
+
+    def __init__(self, anchormodule=None, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
+        self.anchormodule = anchormodule
+        main_layout = QVBoxLayout()
+
+        label = QLabel("Associated Relation modules (click to view or edit):")
+
+        self.relations_listview = QListView()
+        self.relations_listmodel = ModuleLinkingListModel()
+        self.refresh_listmodel()
+        # self.relations_listmodel.setmoduleslist(self.relationslist, ModuleTypes.RELATION)
+        self.relations_listview.setModel(self.relations_listmodel)
+        self.relations_listview.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.relations_listview.clicked.connect(lambda index: self.handle_relationmod_clicked(self.relations_listmodel.itemFromIndex(index).module))
+
+        main_layout.addWidget(label)
+        main_layout.addWidget(self.relations_listview)
+
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separate_line)
+
+        buttons = QDialogButtonBox.Close
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        # self.button_box.button(QDialogButtonBox.Close).setAutoDefault(True)
+        self.button_box.clicked.connect(self.handle_button_click)
+
+        main_layout.addWidget(self.button_box)
+
+        self.setLayout(main_layout)
+
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+
+        if standard == QDialogButtonBox.Close:
+            self.accept()  # TODO KV ???
+
+    def handle_relationmod_clicked(self, relmod):
+        module_selector = ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
+                                               xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                               moduletoload=relmod,
+                                               includephase=0,
+                                               incl_articulators=[],
+                                               parent=self)
+        module_selector.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
+        # module_selector.module_deleted.connect(lambda: self.handle_moduledeleted(relmod.uniqueid))
+        module_selector.module_deleted.connect(lambda: self.mainwindow.signlevel_panel.handle_delete_module(
+            existingkey=relmod.uniqueid, moduletype=ModuleTypes.RELATION))
+        module_selector.exec_()
+        self.refresh_listmodel()
+
+    # def handle_moduledeleted(self, mod_id):
+    #     self.mainwindow.signlevel_panel.handle_delete_module(existingkey=mod_id, moduletype=ModuleTypes.RELATION)
+    #     self.refresh_listmodel()
+
+    def refresh_listmodel(self):
+        self.relationslist = list(self.mainwindow.current_sign.relationmodules.values())
+        self.relationmodulenumsdict = self.mainwindow.current_sign.relationmodulenumbers
+        if self.anchormodule is not None:
+            # TODO KV the numbering is not correct for the filtered list (just re-numbers in order from 1; doesn't match what's in summary)
+            self.relationslist = [rel for rel in self.relationslist if
+                                  (rel.relationy.existingmodule and
+                                   self.anchormodule.uniqueid in rel.relationy.linkedmoduleids)]
+        else:
+            self.relationslist = []
+
+        self.relations_listmodel.setmoduleslist(self.relationslist, self.relationmodulenumsdict, ModuleTypes.RELATION)
+
+
+class AssociatedRelationsPanel(QFrame):
+    module_saved = pyqtSignal(ParameterModule, str)
+    save_anchor = pyqtSignal()
+
+    def __init__(self, anchormodule=None, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
+        self._anchormodule = anchormodule
+        main_layout = QHBoxLayout()
+
+        self.addrelation_button = QPushButton("Save and add associated Relation module")
+        self.check_enable_saveaddrelation()
+        self.addrelation_button.clicked.connect(self.handle_save_add_relationmodule)
+        self.seerelations_button = SeeRelationsPushButton("See associated Relation modules")
+        # TODO KV this button should be bolded when the list of such modules is nonempty
+        # self.seerelations_button = QPushButton("See associated Relation modules")
+        self.seerelations_button.clicked.connect(self.handle_see_relationmodules)
+
+        main_layout.addStretch()
+        main_layout.addWidget(self.addrelation_button)
+        main_layout.addWidget(self.seerelations_button)
+
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.setLayout(main_layout)
+
+    @property
+    def anchormodule(self):
+        return self._anchormodule
+
+    @anchormodule.setter
+    def anchormodule(self, anchormodule):
+        if anchormodule is not None:
+            self._anchormodule = anchormodule
+            self.style_seeassociatedrelations()
+
+    def anchorhasassociatedrelations(self):
+        relationslist = list(self.mainwindow.current_sign.relationmodules.values())
+        if self.anchormodule is not None:
+            relationslist = [rel for rel in relationslist if
+                             (rel.relationy.existingmodule and
+                              self.anchormodule.uniqueid in rel.relationy.linkedmoduleids)]
+        else:
+            relationslist = []
+        return len(relationslist) > 0
+
+    def style_seeassociatedrelations(self):
+        hasrelation = self.anchorhasassociatedrelations()
+        self.seerelations_button.hasrelations = hasrelation
+
+    def check_enable_saveaddrelation(self, hastiming=None, hashands=None, bodyloc=None):
+        enable_addrelation = True
+
+        if hastiming is None and hashands is None and bodyloc is None:
+            enable_addrelation = False
+
+        # only use arguments if they have a boolean value (ie, are not None)
+        if hastiming is not None:
+            # make sure the anchor has a valid timing selection
+            enable_addrelation = enable_addrelation and hastiming
+            # timingvalid, timingintervals = self.parent().validate_timingintervals()
+        if bodyloc is not None:
+            # make sure the anchor is not a purely spatial location
+            enable_addrelation = enable_addrelation and bodyloc
+        if hashands is not None:
+            # make sure the anchor has a valid hand(s) selection
+            enable_addrelation = enable_addrelation and hashands
+
+        self.addrelation_button.setEnabled(enable_addrelation)
+
+    def handle_see_relationmodules(self):
+        associatedrelations_dialog = AssociatedRelationsDialog(anchormodule=self.anchormodule, parent=self)
+        associatedrelations_dialog.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
+        associatedrelations_dialog.exec_()
+        self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
+
+    def handle_save_add_relationmodule(self):
+        # save the current anchor module before trying to link a relation module to it
+        self.save_anchor.emit()
+
+        if self.anchormodule is not None:  # the save above was successful; continue
+            module_selector = ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
+                                                   xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                                   moduletoload=None,
+                                                   linkedfrommoduleid=self.anchormodule.uniqueid,
+                                                   linkedfrommoduletype=self.parent().moduletype,
+                                                   includephase=0,
+                                                   incl_articulators=[],
+                                                   parent=self)
+            module_selector.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
+            module_selector.exec_()
+
+
+class SeeRelationsPushButton(QPushButton):
+
+    def __init__(self, title, hasrelations=False, **kwargs):
+        super().__init__(title, **kwargs)
+        self._hasrelations = hasrelations
+
+        # styling
+        qss = """   
+            QPushButton[HasRelations=true] {
+                font: bold;
+                /*border: 2px dashed black;*/
+            }
+
+            QPushButton[HasRelations=false] {
+                font: normal;
+                /*border: 1px solid grey;*/
+            }
+        """
+        self.setStyleSheet(qss)
+
+        self.updateStyle()
+
+    @property
+    def hasrelations(self):
+        return self._hasrelations
+
+    @hasrelations.setter
+    def hasrelations(self, hasrelations):
+        if hasrelations is not None:
+            self._hasrelations = hasrelations
+        self.updateStyle()
+
+    def updateStyle(self, hasrelations=None):
+        if hasrelations is not None:
+            self._hasrelations = hasrelations
+        self.setProperty('HasRelations', self._hasrelations)
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
+
+    def clear(self):
+        self.hasrelations = False
+
 
 class XslotLinkingPanel(QFrame):
+    selection_changed = pyqtSignal(bool,  # has >= 1 point
+                                   bool)  # has >= 1 interval
 
     def __init__(self, xslotstructure, timingintervals=None, **kwargs):
         super().__init__(**kwargs)
@@ -240,6 +537,7 @@ class XslotLinkingPanel(QFrame):
         main_layout.addWidget(self.link_intro_label)
 
         self.xslotlinkscene = XslotLinkScene(timingintervals=self.timingintervals, parentwidget=self)
+        self.xslotlinkscene.selection_changed.connect(lambda haspoint, hasinterval: self.selection_changed.emit(haspoint, hasinterval))
         self.xslotlinkview = QGraphicsView(self.xslotlinkscene)
         self.xslotlinkview.setFixedHeight(self.xslotlinkscene.scene_height + 50)
         # self.xslotlinkview.setFixedSize(self.xslotlinkscene.scene_width+100, self.xslotlinkscene.scene_height+50)
@@ -252,6 +550,11 @@ class XslotLinkingPanel(QFrame):
 
     def gettimingintervals(self):
         return self.xslotlinkscene.xslotlinks
+
+    def settimingintervals(self, timingintervals):
+        if timingintervals is not None:
+            self.timingintervals = timingintervals
+            self.xslotlinkscene.setxslotlinks(self.timingintervals)
 
     def clear(self):
         self.xslotlinkscene = XslotLinkScene(parentwidget=self, timingintervals=[])
@@ -278,7 +581,8 @@ class ArticulatorSelectionPanel(QFrame):
 
         articulator_layout = self.create_articulator_layout(available_articulators)
         self.setLayout(articulator_layout)
-        self.handle_articulator_changed(available_articulators[0])
+        if len(available_articulators) > 0:
+            self.handle_articulator_changed(available_articulators[0])
 
         self.setarticulators(articulators)
         self.setphase(inphase)
@@ -389,24 +693,17 @@ class ArticulatorSelectionPanel(QFrame):
         return selectedarticulator, selections_dict
 
     def setarticulators(self, articulators):
-        selectedarticulator = articulators[0]
-        articulators_dict = articulators[1]
-        success = self.articulator_selector.setselectedarticulator(selectedarticulator)
-        if success and articulators_dict is not None:
-            if articulators_dict[1] and articulators_dict[2]:
-                self.botharts_radio.setChecked(True)
-            elif articulators_dict[1]:
-                self.articulator1_radio.setChecked(True)
-            elif articulators_dict[2]:
-                self.articulator2_radio.setChecked(True)
-
-    # def sethands(self, hands_dict):
-    #     if hands_dict['H1'] and hands_dict['H2']:
-    #         self.bothhands_radio.setChecked(True)
-    #     elif hands_dict['H1']:
-    #         self.hand1_radio.setChecked(True)
-    #     elif hands_dict['H2']:
-    #         self.hand2_radio.setChecked(True)
+        if articulators is not None:
+            selectedarticulator = articulators[0]
+            articulators_dict = articulators[1]
+            success = self.articulator_selector.setselectedarticulator(selectedarticulator)
+            if success and articulators_dict is not None:
+                if articulators_dict[1] and articulators_dict[2]:
+                    self.botharts_radio.setChecked(True)
+                elif articulators_dict[1]:
+                    self.articulator1_radio.setChecked(True)
+                elif articulators_dict[2]:
+                    self.articulator2_radio.setChecked(True)
 
     def getphase(self):
         if not self.botharts_connected_cb.isEnabled() or not self.botharts_connected_cb.isChecked():

@@ -6,7 +6,7 @@ from PyQt5.QtCore import (
     Qt,
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
@@ -15,20 +15,18 @@ delimiter = ">"  # TODO KV - should this be user-defined in global settings? or 
 class ModuleTypes:
     MOVEMENT = 'movement'
     LOCATION = 'location'
-    HANDPART = 'handpart'
     HANDCONFIG = 'handconfig'
-    CONTACT = 'contact'
+    RELATION = 'relation'
     ORIENTATION = 'orientation'
     NONMANUAL = 'nonmanual'
 
     abbreviations = {
-        MOVEMENT: "Mov",
-        LOCATION: "Loc",
-        HANDPART: "HdPart",
-        HANDCONFIG: "Config",
-        CONTACT: "Cont",
-        ORIENTATION: "Ori",
-        NONMANUAL: "NonMan"
+        MOVEMENT: 'Mov',
+        LOCATION: 'Loc',
+        HANDCONFIG: 'Config',
+        RELATION: 'Rel',
+        ORIENTATION: 'Ori',
+        NONMANUAL: 'NonMan'
     }
 
 
@@ -145,7 +143,7 @@ class ParameterModule:
         self._timingintervals = [t for t in timingintervals]
 
     def getabbreviation(self):
-        return "TODO no abbreviations implemented yet"
+        return "TODO no Module abbreviations implemented yet"
 
 
 class SignLevelInformation:
@@ -610,12 +608,12 @@ class LocationType:
         return self._body or self._bodyanchored
 
     def allfalse(self):
-        return not (self._body or self._signingspace or self._bodyanchored or self._purelyspatial or self._axis)
+        return not (self._body or self._signingspace or self._bodyanchored or self._purelyspatial)
 
     def locationoptions_changed(self, previous):
-        changed = self.usesbodylocations() and (previous.purelyspatial or previous.axis)
-        changed = changed or (self.purelyspatial and (previous.usesbodylocations() or previous.axis))
-        changed = changed or (self.axis and (previous.usesbodylocations() or previous.purelyspatial))
+        changed = self.usesbodylocations() and previous.purelyspatial
+        changed = changed or (self.purelyspatial and previous.usesbodylocations())
+        changed = changed or (previous.usesbodylocations() or previous.purelyspatial)
         changed = changed or (previous.allfalse() and not self.allfalse())
         return changed
 
@@ -1062,6 +1060,64 @@ class Signtype:
             self.ensurepathindict(pathelements[1:], abbrevsdict[pathelements[0]])
 
 
+class BodypartInfo:
+
+    def __init__(self, bodyparttype, bodyparttreemodel=None, addedinfo=None):
+        self._addedinfo = addedinfo or AddedInfo()
+        self._uniqueid = datetime.timestamp(datetime.now())
+        self._bodyparttreemodel = bodyparttreemodel
+        self._bodyparttype = bodyparttype
+
+    @property
+    def bodyparttreemodel(self):
+        return self._bodyparttreemodel
+
+    @bodyparttreemodel.setter
+    def bodyparttreemodel(self, bodyparttreemodel):
+        # TODO KV - validate?
+        self._bodyparttreemodel = bodyparttreemodel
+
+    @property
+    def bodyparttype(self):
+        return self._bodyparttype
+
+    @bodyparttype.setter
+    def bodyparttype(self, bodyparttype):
+        # TODO KV - validate?
+        self._bodyparttype = bodyparttype
+
+    @property
+    def addedinfo(self):
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        # TODO KV - validate?
+        self._addedinfo = addedinfo
+
+    @property
+    def uniqueid(self):
+        return self._uniqueid
+
+    @uniqueid.setter
+    def uniqueid(self, uniqueid):
+        # TODO KV - validate?
+        self._uniqueid = uniqueid
+
+    def __eq__(self, other):
+        if isinstance(other, BodypartInfo):
+            if self._addedinfo == other.addedinfo and self._bodyparttreemodel == other.bodyparttreemodel and self._bodyparttype == other.bodyparttype:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def getabbreviation(self):
+        # TODO KV implement
+        return "TODO no BodypartInfo abbreviations implemented yet"
+
+
 class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, articulators, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
         if phonlocs is None:
@@ -1099,7 +1155,852 @@ class LocationModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        return "TODO no abbreviations implemented yet"
+        return "TODO no Location abbreviations implemented yet"
+
+
+class RelationX:
+
+    def __init__(self, h1=False, h2=False, both=False, connected=False, arm1=False, arm2=False, leg1=False, leg2=False, other=False, othertext=""):
+        self._h1 = h1
+        self._h2 = h2
+        self._both = both
+        self._connected = connected
+        self._arm1 = arm1
+        self._arm2 = arm2
+        self._leg1 = leg1
+        self._leg2 = leg2
+        self._other = other
+        self._othertext = othertext
+
+    def __eq__(self, other):
+        if isinstance(other, RelationX):
+            if self._h1 == other.h1 and self._h2 == other.h2 and self._both == other.both \
+                    and self._connected == other.connected \
+                    and self._arm1 == other.arm1 and self._arm2 == other._arm2 \
+                    and self._leg1 == other.leg1 and self._leg2 == other.leg2 \
+                    and self._other == other.other and self._othertext == other.othertext:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    @property
+    def h1(self):
+        return self._h1
+
+    @h1.setter
+    def h1(self, h1):
+        self._h1 = h1
+
+        if h1:
+            self._h2 = False
+            self._both = False
+            self._arm1 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._other = False
+
+    @property
+    def h2(self):
+        return self._h2
+
+    @h2.setter
+    def h2(self, h2):
+        self._h2 = h2
+
+        if h2:
+            self._h1 = False
+            self._arm1 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._both = False
+            self._other = False
+
+    @property
+    def both(self):
+        return self._both
+
+    @both.setter
+    def both(self, both):
+        self._both = both
+
+        if both:
+            self._h1 = False
+            self._h2 = False
+            self._arm1 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._other = False
+
+    @property
+    def connected(self):
+        return self._connected
+
+    @connected.setter
+    def connected(self, connected):
+        self._connected = connected
+
+        if connected:
+            self.both = True
+
+    @property
+    def arm1(self):
+        return self._arm1
+
+    @arm1.setter
+    def arm1(self, arm1):
+        self._arm1 = arm1
+
+        if arm1:
+            self._h1 = False
+            self._h2 = False
+            self._both = False
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._other = False
+
+    @property
+    def arm2(self):
+        return self._arm2
+
+    @arm2.setter
+    def arm2(self, arm2):
+        self._arm2 = arm2
+
+        if arm2:
+            self._h1 = False
+            self._h2 = False
+            self._both = False
+            self._arm1 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._other = False
+
+    @property
+    def leg1(self):
+        return self._leg1
+
+    @leg1.setter
+    def leg1(self, leg1):
+        self._leg1 = leg1
+
+        if leg1:
+            self._h1 = False
+            self._h2 = False
+            self._both = False
+            self._arm1 = False
+            self._arm2 = False
+            self._leg2 = False
+            self._other = False
+
+    @property
+    def leg2(self):
+        return self._leg2
+
+    @leg2.setter
+    def leg2(self, leg2):
+        self._leg2 = leg2
+
+        if leg2:
+            self._h1 = False
+            self._h2 = False
+            self._both = False
+            self._arm1 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._other = False
+
+    @property
+    def other(self):
+        return self._other
+
+    @other.setter
+    def other(self, other):
+        self._other = other
+
+        if other:
+            self._h1 = False
+            self._h2 = False
+            self._both = False
+            self._arm1 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+
+    @property
+    def othertext(self):
+        return self._othertext
+
+    @othertext.setter
+    def othertext(self, othertext):
+        self._othertext = othertext
+
+
+class RelationY:
+
+    def __init__(self, h2=False, arm2=False, leg1=False, leg2=False, existingmodule=False, linkedmoduletype=None, linkedmoduleids=None, other=False, othertext=""):
+        self._h2 = h2
+        self._arm2 = arm2
+        self._leg1 = leg1
+        self._leg2 = leg2
+        self._existingmodule = existingmodule
+        self._linkedmoduletype = linkedmoduletype
+        self._linkedmoduleids = linkedmoduleids or [0.0]
+        self._other = other
+        self._othertext = othertext
+
+    def __eq__(self, other):
+        if isinstance(other, RelationY):
+            if self._h2 == other.h2 and self._arm2 == other.arm2 \
+                    and self._leg1 == other.leg1 and self._leg2 == other.leg2 \
+                    and self._existingmodule == other.existingmodule and \
+                    self._linkedmoduletype == other.linkedmoduletype and self._linkedmoduleids == other.linkedmoduleids \
+                    and self._other == other.other and self._othertext == other.othertext:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    @property
+    def h2(self):
+        return self._h2
+
+    @h2.setter
+    def h2(self, h2):
+        self._h2 = h2
+
+        if h2:
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._existingmodule = False
+            self._other = False
+
+    @property
+    def arm2(self):
+        return self._arm2
+
+    @arm2.setter
+    def arm2(self, arm2):
+        self._arm2 = arm2
+
+        if arm2:
+            self._h2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._existingmodule = False
+            self._other = False
+
+    @property
+    def leg1(self):
+        return self._leg1
+
+    @leg1.setter
+    def leg1(self, leg1):
+        self._leg1 = leg1
+
+        if leg1:
+            self._h2 = False
+            self._arm2 = False
+            self._leg2 = False
+            self._existingmodule = False
+            self._other = False
+
+    @property
+    def leg2(self):
+        return self._leg2
+
+    @leg2.setter
+    def leg2(self, leg2):
+        self._leg2 = leg2
+
+        if leg2:
+            self._h2 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._existingmodule = False
+            self._other = False
+
+    @property
+    def existingmodule(self):
+        return self._existingmodule
+
+    @existingmodule.setter
+    def existingmodule(self, existingmodule):
+        self._existingmodule = existingmodule
+
+        if existingmodule:
+            self._h2 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._other = False
+
+    @property
+    def linkedmoduletype(self):
+        return self._linkedmoduletype
+
+    @linkedmoduletype.setter
+    def linkedmoduletype(self, linkedmoduletype):
+        # TODO KV validate?
+        self._linkedmoduletype = linkedmoduletype
+
+    @property
+    def linkedmoduleids(self):
+        return self._linkedmoduleids
+
+    @linkedmoduleids.setter
+    def linkedmoduleids(self, linkedmoduleids):
+        # TODO KV validate?
+        self._linkedmoduleids = linkedmoduleids
+
+    @property
+    def other(self):
+        return self._other
+
+    @other.setter
+    def other(self, other):
+        self._other = other
+
+        if other:
+            self._h2 = False
+            self._arm2 = False
+            self._leg1 = False
+            self._leg2 = False
+            self._existingmodule = False
+
+    @property
+    def othertext(self):
+        return self._othertext
+
+    @othertext.setter
+    def othertext(self, othertext):
+        self._othertext = othertext
+
+
+class RelationModule(ParameterModule):
+
+    # def __init__(self, relationx, relationy, hand1part, hand2part, arm1part, arm2part, leg1part, leg2part, contactrel, xy_crossed, xy_linked, directionslist, hands, timingintervals=None, addedinfo=None):
+    def __init__(self, relationx, relationy, bodyparts_dict, contactrel, xy_crossed, xy_linked, directionslist, articulators, timingintervals=None, addedinfo=None):
+        self._relationx = relationx or RelationX()
+        self._relationy = relationy or RelationY()
+        self._bodyparts_dict = {}
+        for bodypart in bodyparts_dict.keys():
+            if bodypart not in self._bodyparts_dict.keys():
+                self._bodyparts_dict[bodypart] = {}
+            for n in bodyparts_dict[bodypart].keys():
+                self._bodyparts_dict[bodypart][n] = bodyparts_dict[bodypart][n] or BodypartInfo(bodyparttype=bodypart, bodyparttreemodel=None)
+        self._contactrel = contactrel or ContactRelation()
+        self._xy_crossed = xy_crossed
+        self._xy_linked = xy_linked
+        self._directions = directionslist or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL),
+        ]
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+
+    @property
+    def relationx(self):
+        return self._relationx
+
+    @relationx.setter
+    def relationx(self, relationx):
+        # TODO KV - validate?
+        self._relationx = relationx
+
+    @property
+    def relationy(self):
+        return self._relationy
+
+    @relationy.setter
+    def relationy(self, relationy):
+        # TODO KV - validate?
+        self._relationy = relationy
+
+    @property
+    def bodyparts_dict(self):
+        return self._bodyparts_dict
+
+    @bodyparts_dict.setter
+    def bodyparts_dict(self, bodyparts_dict):
+        # TODO KV - validate?
+        self._bodyparts_dict = bodyparts_dict
+
+    @property
+    def contactrel(self):
+        return self._contactrel
+
+    @contactrel.setter
+    def contactrel(self, contactrel):
+        # TODO KV - validate?
+        self._contactrel = contactrel
+
+    @property
+    def xy_crossed(self):
+        return self._xy_crossed
+
+    @xy_crossed.setter
+    def xy_crossed(self, xy_crossed):
+        # TODO KV - validate?
+        self._xy_crossed = xy_crossed
+
+    @property
+    def xy_linked(self):
+        return self._xy_linked
+
+    @xy_linked.setter
+    def xy_linked(self, xy_linked):
+        # TODO KV - validate?
+        self._xy_linked = xy_linked
+
+    @property
+    def directions(self):
+        return self._directions
+
+    @directions.setter
+    def directions(self, directions):
+        # TODO KV - validate?
+        self._directions = directions
+
+    def usesarticulator(self, articulator, artnum=None):
+        articulators_in_use = {1: False, 2: False}
+        if articulator == HAND:
+            articulators_in_use = self.hands_in_use()
+        elif articulator == ARM:
+            articulators_in_use = self.arms_in_use()
+        elif articulator == LEG:
+            articulators_in_use = self.legs_in_use()
+
+        if artnum is None:
+            return articulators_in_use[1] or articulators_in_use[2]
+        else:
+            return articulators_in_use[artnum]
+
+    def hands_in_use(self):
+        return {
+            1: self.relationx.both or self.relationx.h1,
+            2: self.relationx.both or self.relationx.h2 or self.relationy.h2
+        }
+
+    def arms_in_use(self):
+        return {
+            1: self.relationx.arm1,
+            2: self.relationx.arm2 or self.relationy.arm2
+        }
+
+    def legs_in_use(self):
+        return {
+            1: self.relationx.leg1 or self.relationy.leg1,
+            2: self.relationx.leg2 or self.relationy.leg2
+        }
+
+    def getabbreviation(self):
+        # TODO implement
+        return "TODO no Relation abbreviations implemented yet"
+
+
+class MannerRelation:
+    def __init__(self, holding=False, continuous=False, intermittent=False):
+        self._holding = holding
+        self._continuous = continuous
+        self._intermittent = intermittent
+
+    def __eq__(self, other):
+        if isinstance(other, MannerRelation):
+            if self._holding == other.holding and self._continuous == other.continuous and self._intermittent == other.intermittent:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        repr_str = "nil"
+        if self._holding:
+            repr_str = "holding"
+        elif self._continuous:
+            repr_str = "continuous"
+        elif self._intermittent:
+            repr_str = "intermittent"
+
+        return '<MannerRelation: ' + repr(repr_str) + '>'
+
+    @property
+    def holding(self):
+        return self._holding
+
+    @holding.setter
+    def holding(self, checked):
+        # TODO KV - validate?
+        self._holding = checked
+
+        if checked:
+            self._continuous = False
+            self._intermittent = False
+
+    @property
+    def continuous(self):
+        return self._continuous
+
+    @continuous.setter
+    def continuous(self, checked):
+        # TODO KV - validate?
+        self._continuous = checked
+
+        if checked:
+            self._holding = False
+            self._intermittent = False
+
+    @property
+    def intermittent(self):
+        return self._intermittent
+
+    @intermittent.setter
+    def intermittent(self, checked):
+        # TODO KV - validate?
+        self._intermittent = checked
+
+        if checked:
+            self._continuous = False
+            self._holding = False
+
+
+class ContactRelation:
+    def __init__(self, contact=None, contacttype=None, mannerrel=None, distance_list=None):
+        self._contact = contact
+        self._contacttype = contacttype
+        self._manner = mannerrel
+        self._distances = distance_list or [
+            Distance(Direction.HORIZONTAL),
+            Distance(Direction.VERTICAL),
+            Distance(Direction.SAGITTAL)
+        ]
+
+    def __eq__(self, other):
+        if isinstance(other, ContactRelation):
+            if self._contact == other.contact and self._contacttype == other.contacttype and self._manner == other.manner and self._distances == other.distances:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        repr_str = "nil"
+        if self._contact:
+            repr_str = "yes"
+            if self._contacttype:
+                repr_str += " " + repr(self._contacttype)
+            if self._manner:
+                repr_str += ", " + repr(self._manner)
+        elif not self._contact:
+            repr_str = "no"
+            if self._distances:
+                distance_str_list = [repr(axis_dist for axis_dist in self._distances)]
+                repr_str += ", ".join([""] + distance_str_list)
+
+        return '<ContactRelation: ' + repr(repr_str) + '>'
+
+    @property
+    def contact(self):
+        return self._contact
+
+    @contact.setter
+    def contact(self, hascontact):
+        # TODO KV - validate?
+        self._contact = hascontact
+
+        # if hascontact:
+        #     self._distance = None
+        # else:
+        #     self._manner = None
+
+    @property
+    def contacttype(self):
+        return self._contacttype
+
+    @contacttype.setter
+    def contacttype(self, contacttype):
+        # TODO KV - validate?
+        self._contacttype = contacttype
+
+    @property
+    def manner(self):
+        return self._manner
+
+    @manner.setter
+    def manner(self, mannerrel):
+        # TODO KV - validate?
+        self._manner = mannerrel
+
+    @property
+    def distances(self):
+        return self._distances
+
+    @distances.setter
+    def distances(self, distances):
+        # TODO KV - validate?
+        self._distances = distances
+
+
+class ContactType:
+    def __init__(self, light=False, firm=False, other=False, othertext=""):
+        self._light = light
+        self._firm = firm
+        self._other = other
+        self._othertext = othertext
+
+    def __eq__(self, other):
+        if isinstance(other, ContactType):
+            if self._light == other.light and self._firm == other.firm and self._other == other.other and self._othertext == other.othertext:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        repr_str = "nil"
+        if self._light:
+            repr_str = "light"
+        elif self._firm:
+            repr_str = "firm"
+        elif self._other:
+            repr_str = "other"
+            if len(self._othertext) > 0:
+                repr_str += " " + self._othertext
+
+        return '<ContactType: ' + repr(repr_str) + '>'
+
+    @property
+    def light(self):
+        return self._light
+
+    @light.setter
+    def light(self, checked):
+        # TODO KV - validate?
+        self._light = checked
+
+        if checked:
+            self._firm = False
+            self._other = False
+            self._othertext = ""
+
+    @property
+    def firm(self):
+        return self._firm
+
+    @firm.setter
+    def firm(self, checked):
+        # TODO KV - validate?
+        self._firm = checked
+
+        if checked:
+            self._light = False
+            self._other = False
+            self._othertext = ""
+
+    @property
+    def other(self):
+        return self._other
+
+    @other.setter
+    def other(self, checked):
+        # TODO KV - validate?
+        self._other = checked
+
+        if checked:
+            self._light = False
+            self._firm = False
+
+    @property
+    def othertext(self):
+        return self._othertext
+
+    @othertext.setter
+    def othertext(self, othertext):
+        # TODO KV - validate?
+        self._othertext = othertext
+
+
+class Direction:
+    HORIZONTAL = "horizontal"
+    VERTICAL = "vertical"
+    SAGITTAL = "sagittal"
+
+    def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False):
+        self._axis = axis
+        self._axisselected = axisselected
+        self._plus = plus  # ipsi for horizontal, above for vertical, distal for sagittal
+        self._minus = minus  # contra for horizontal, below for vertical, proximal for sagittal
+        self._inline = inline  # in line with (for all axes)
+
+    def __eq__(self, other):
+        if isinstance(other, Direction):
+            if self._axis == other.axis and self._axisselected == other.axisselected and self._plus == other.plus and self._minus == other.minus and self._inline == other.inline:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        plus_label = "plus"
+        minus_label = "minus"
+        inline_label = "in line"
+        if self._axis == Direction.HORIZONTAL:
+            plus_label = "ipsi"
+            minus_label = "contra"
+        elif self._axis == Direction.VERTICAL:
+            plus_label = "above"
+            minus_label = "below"
+        elif self._axis == Direction.SAGITTAL:
+            plus_label = "distal"
+            minus_label = "proximal"
+
+        repr_str = self._axis
+        if self._axisselected:
+            repr_str += " selected"
+            if self._plus:
+                repr_str += " / " + plus_label
+            elif self._minus:
+                repr_str += " / " + minus_label
+            elif self._inline:
+                repr_str += " / " + inline_label
+        else:
+            repr_str += " unselected"
+
+        return '<Direction: ' + repr(repr_str) + '>'
+
+    @property
+    def axis(self):
+        return self._axis
+
+    @axis.setter
+    def axis(self, axis):
+        # TODO KV - validate?
+        self._axis = axis
+
+    @property
+    def axisselected(self):
+        return self._axisselected
+
+    @axisselected.setter
+    def axisselected(self, isselected):
+        # TODO KV - validate?
+        self._axisselected = isselected
+
+    @property
+    def plus(self):
+        return self._plus
+
+    @plus.setter
+    def plus(self, isplus):
+        # TODO KV - validate?
+        self._plus = isplus
+
+        if isplus:
+            self._minus = False
+            self._inline = False
+
+    @property
+    def minus(self):
+        return self._minus
+
+    @minus.setter
+    def minus(self, isminus):
+        # TODO KV - validate?
+        self._minus = isminus
+
+        if isminus:
+            self._plus = False
+            self._inline = False
+
+    @property
+    def inline(self):
+        return self._inline
+
+    @inline.setter
+    def inline(self, isinline):
+        # TODO KV - validate?
+        self._inline = isinline
+
+        if isinline:
+            self._plus = False
+            self._minus = False
+
+
+class Distance:
+
+    def __init__(self, axis, close=False, medium=False, far=False):
+        self._axis = axis
+        self._close = close
+        self._medium = medium
+        self._far = far
+
+    def __eq__(self, other):
+        if isinstance(other, Distance):
+            if self._axis == other.axis and self._close == other.close and self._medium == other.medium and self._far == other.far:
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    @property
+    def axis(self):
+        return self._axis
+
+    @axis.setter
+    def axis(self, axis):
+        # TODO KV - validate?
+        self._axis = axis
+
+    @property
+    def close(self):
+        return self._close
+
+    @close.setter
+    def close(self, isclose):
+        # TODO KV - validate?
+        self._close = isclose
+
+        if isclose:
+            self._far = False
+            self._medium = False
+
+    @property
+    def medium(self):
+        return self._medium
+
+    @medium.setter
+    def medium(self, ismedium):
+        # TODO KV - validate?
+        self._medium = ismedium
+
+        if ismedium:
+            self._close = False
+            self._far = False
+
+    @property
+    def far(self):
+        return self._far
+
+    @far.setter
+    def far(self, isfar):
+        # TODO KV - validate?
+        self._far = isfar
+
+        if isfar:
+            self._close = False
+            self._medium = False
 
 
 # TODO KV comments

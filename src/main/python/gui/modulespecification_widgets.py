@@ -21,11 +21,21 @@ from lexicon.module_classes import AddedInfo
 
 class ModuleSpecificationPanel(QFrame):
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
+        self.existingkey = None
+
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         pass
 
     def handle_articulator_changed(self, articulator):
         pass
+
+    def validity_check(self):
+        selectionsvalid = True
+        warningmessage = ""
+        return selectionsvalid, warningmessage
 
 
 class AddedInfoPushButton(QPushButton):

@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     QHeaderView,
     QStyleOptionFrame,
+    QFrame
 )
 
 from PyQt5.QtCore import (
@@ -30,12 +31,13 @@ from constant import HAND
 
 class MvmtTreeSearchComboBox(QComboBox):
 
-    def __init__(self, parentlayout=None):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    # def __init__(self, parentlayout=None):
+    #     super().__init__()
         self.refreshed = True
         self.lasttextentry = ""
         self.lastcompletedentry = ""
-        self.parentlayout = parentlayout
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -44,12 +46,14 @@ class MvmtTreeSearchComboBox(QComboBox):
         if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
 
             if self.currentText():
-                self.parentlayout.treedisplay.collapseAll()
-                itemstoselect = gettreeitemsinpath(self.parentlayout.treemodel, self.currentText(), delim=delimiter)
+                self.parent().treedisplay.collapseAll()
+                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
+                                                   self.currentText(),
+                                                   delim=delimiter)
                 for item in itemstoselect:
                     if item.checkState() == Qt.Unchecked:
                         item.setCheckState(Qt.PartiallyChecked)
-                    self.parentlayout.treedisplay.setExpanded(item.index(), True)
+                    self.parent().treedisplay.setExpanded(item.index(), True)
                 itemstoselect[-1].setCheckState(Qt.Checked)
                 self.setCurrentIndex(-1)
 
@@ -97,7 +101,6 @@ class MvmtTreeSearchComboBox(QComboBox):
             self.lasttextentry = ""
             self.lastcompletedentry = ""
             super().keyPressEvent(event)
-
 
 
 class MovementTreeView(QTreeView):
@@ -220,6 +223,7 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
 
 
 class MovementSpecificationPanel(ModuleSpecificationPanel):
+    # see_relations = pyqtSignal()
 
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
@@ -229,6 +233,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.treemodel = MovementTreeModel()
         if moduletoload is not None:
             if isinstance(moduletoload, MovementModule):
+                self.existingkey = moduletoload.uniqueid
                 self.treemodel = MovementTreeModel(MovementTreeSerializable(moduletoload.movementtreemodel))
             else:
                 print("moduletoload must be of type MovementModule")
@@ -246,7 +251,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         search_layout = QHBoxLayout()
         search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
 
-        self.combobox = MvmtTreeSearchComboBox(self)
+        self.combobox = MvmtTreeSearchComboBox(parent=self)
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
@@ -312,10 +317,25 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         selection_layout.addLayout(list_layout)
         main_layout.addLayout(selection_layout)
 
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separate_line)
+
+        main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(main_layout)
 
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
-        return MovementModule(self.treemodel, articulators=articulators, timingintervals=timingintervals, addedinfo=addedinfo, inphase=inphase)
+        movmod = MovementModule(self.treemodel,
+                                articulators=articulators,
+                                timingintervals=timingintervals,
+                                addedinfo=addedinfo,
+                                inphase=inphase)
+        if self.existingkey is not None:
+            movmod.uniqueid = self.existingkey
+        else:
+            self.existingkey = movmod.uniqueid
+        return movmod
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())

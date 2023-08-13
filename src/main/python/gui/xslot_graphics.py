@@ -116,25 +116,27 @@ class XslotRectButton(XslotRect):
     def __init__(self, parentwidget, selected=False, **kwargs):
         super().__init__(parentwidget, **kwargs)
         self.setAcceptHoverEvents(True)
-        self.hover = False
+        self.hover = 0  # 0 = no; 1 = yes; 2 = associated/partial
         self.selected = selected
 
     def hoverEnterEvent(self, event):
-        self.hover = True
+        self.hover = 1
         self.update()
 
     def hoverLeaveEvent(self, event):
-        self.hover = False
+        self.hover = 0
         self.update()
 
     def currentbrush(self):
-        if self.hover:
+        if self.hover == 1:
             return QColor(0, 120, 215)
+        elif self.hover == 2:
+            return QColor(170, 215, 245)
         else:
             return self.restingbrush()
 
     def currentpen(self):
-        if self.hover:
+        if self.hover > 0:
             return QPen(Qt.black)
         else:
             return self.restingpen()
@@ -178,7 +180,7 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         self.samemodule_buttons = []
 
         self.setAcceptHoverEvents(True)
-        self.hover = False
+        self.hover = 0  # 0 = no; 1 = yes; 2 = associated/partial
         self.module_uniqueid = module_uniqueid
 
     def mousePressEvent(self, event):
@@ -189,28 +191,33 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         self.scene().moduleellipse_clicked.emit(self)
 
     def hoverEnterEvent(self, event):
-        self.hover = True
+        self.hover = 1
         self.update()
-        self.update_partners_hover(True)
+        self.update_partners_hover()
 
-    def update_partners_hover(self, hovering):
-        for moduleellipse in self.samemodule_buttons:
-            moduleellipse.hover = hovering
-            moduleellipse.update()
+    def update_partners_hover(self):
+        for btn in self.samemodule_buttons:
+            btn.hover = self.hover
+            btn.update()
+        for btn in self.associatedmodule_buttons:
+            btn.hover = self.hover * 2  # input 1 becomes 2 (partial); input 0 stays 0 (no)
+            btn.update()
 
     def hoverLeaveEvent(self, event):
-        self.hover = False
+        self.hover = 0
         self.update()
-        self.update_partners_hover(False)
+        self.update_partners_hover()
 
     def currentbrush(self):
-        if self.hover:
+        if self.hover == 1:
             return QColor(0, 120, 215)
+        elif self.hover == 2:
+            return QColor(170, 215, 245)
         else:
             return QBrush(Qt.white)
 
     def currentpen(self):
-        if self.hover:
+        if self.hover > 0:
             return QPen(Qt.black)
         else:
             return QPen(Qt.black)
@@ -254,6 +261,7 @@ class XslotRectModuleButton(XslotRectButton):
         super().__init__(parentwidget, **kwargs)
         self.module_uniqueid = module_uniqueid
         self.samemodule_buttons = []
+        self.associatedmodule_buttons = []
 
     def mousePressEvent(self, event):
         pass
@@ -263,16 +271,19 @@ class XslotRectModuleButton(XslotRectButton):
 
     def hoverEnterEvent(self, event):
         super().hoverEnterEvent(event)
-        self.update_partners_hover(True)
+        self.update_partners_hover()
 
     def hoverLeaveEvent(self, event):
         super().hoverLeaveEvent(event)
-        self.update_partners_hover(False)
+        self.update_partners_hover()
 
-    def update_partners_hover(self, hovering):
-        for modulerect in self.samemodule_buttons:
-            modulerect.hover = hovering
-            modulerect.update()
+    def update_partners_hover(self):
+        for btn in self.samemodule_buttons:
+            btn.hover = self.hover
+            btn.update()
+        for btn in self.associatedmodule_buttons:
+            btn.hover = self.hover * 2  # input 1 becomes 2 (partial); input 0 stays 0 (no)
+            btn.update()
 
 
 class SignSummaryScene(QGraphicsScene):
@@ -344,6 +355,8 @@ class XSlotCheckbox(QGraphicsRectItem):
 class XslotLinkScene(QGraphicsScene):
     checkbox_toggled = pyqtSignal(XSlotCheckbox)
     linkingrect_clicked = pyqtSignal(XslotRectLinkingButton)
+    selection_changed = pyqtSignal(bool,  # has >= 1 point
+                                   bool)  # has >= 1 interval
 
     def __init__(self, parentwidget, timingintervals=None, **kwargs):
         super().__init__(**kwargs)
@@ -382,6 +395,21 @@ class XslotLinkScene(QGraphicsScene):
         self.checkbox_toggled.connect(self.handle_point_toggled)
         self.linkingrect_clicked.connect(self.handle_interval_toggled)
 
+    def setxslotlinks(self, xslotlinks):
+        if xslotlinks is not None:
+            self.xslotlinks = xslotlinks
+            self.add_populate_checkboxes_rectangles()
+
+    def add_populate_checkboxes_rectangles(self):
+        # TODO KV do we need this modularity now that there's only one row of them?
+        self.point_checkboxes = {}
+        self.populate_checkboxes(self.point_checkboxes)
+        self.add_checkboxes(self.point_checkboxes, yloc=0)
+
+        self.add_rectangles(yloc=3*self.checkbox_size)
+
+        self.emit_selection_changed()
+
     def handle_point_toggled(self, xslotcheckbox):
 
         whole = xslotcheckbox.xslot_whole
@@ -392,6 +420,8 @@ class XslotLinkScene(QGraphicsScene):
             self.xslotlinks.append(pointinterval)
         elif (not xslotcheckbox.checked) and pointinterval in self.xslotlinks:
             self.xslotlinks.remove(pointinterval)
+
+        self.emit_selection_changed()
 
     def check_no_xslot_overlap(self, timinginterval, xslotgraphicsitem):
         success = True
@@ -445,6 +475,23 @@ class XslotLinkScene(QGraphicsScene):
             self.xslotlinks.append(interval)
         elif (not xslotintervalrect.selected) and interval in self.xslotlinks:
             self.xslotlinks.remove(interval)
+
+        self.emit_selection_changed()
+
+    def emit_selection_changed(self):
+        haspoint = False
+        hasinterval = False
+
+        idx = 0
+        while idx < len(self.xslotlinks) and (not haspoint or not hasinterval):
+            link = self.xslotlinks[idx]
+            if link.ispoint():
+                haspoint = True
+            else:
+                hasinterval = True
+            idx += 1
+
+        self.selection_changed.emit(haspoint, hasinterval)
 
     def populate_checkboxes(self, checkboxes):
 

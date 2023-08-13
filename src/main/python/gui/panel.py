@@ -303,8 +303,17 @@ class SignSummaryPanel(QScrollArea):
             self.sign = None
         elif sign is not None:
             self.sign = sign
-        elif self.mainwindow.current_sign is not None:
-            self.sign = self.mainwindow.current_sign
+            if self.mainwindow.current_sign is not None:
+                self.sign = self.mainwindow.current_sign
+
+            self.relmodnums = self.sign.getmodulenumbersdict(ModuleTypes.RELATION)
+            self.relmods_hands_arms = []
+            self.relmods_other = []
+            for rmod in self.sign.getmoduledict(ModuleTypes.RELATION).values():
+                if rmod.usesarticulator(HAND) or rmod.usesarticulator(ARM):
+                    self.relmods_hands_arms.append(rmod)
+                else:
+                    self.relmods_other.append(rmod)
 
         for sceneitem in self.scene.items():
             self.scene.removeItem(sceneitem)
@@ -313,13 +322,12 @@ class SignSummaryPanel(QScrollArea):
         self.current_y = 0
 
         # set the top text, either welcome or the sign gloss + ID
-
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
             signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
-        signleveltext.setPos(self.x_offset, self.current_y*(self.default_xslot_height+self.verticalspacing))
-        self.current_y += 1
+        signleveltext.setPos(self.x_offset, self.current_y)
+        self.current_y += 30
         self.scene.addItem(signleveltext)
 
         if self.sign is None:
@@ -329,6 +337,7 @@ class SignSummaryPanel(QScrollArea):
         self.addxslots()
         self.addhand(1)
         self.addhand(2)
+        self.addnonhand()
         self.addgridlines()
 
     def entryid_string(self, entryid_int=None):
@@ -354,9 +363,9 @@ class SignSummaryPanel(QScrollArea):
             #     if len(signtypeabbreviations) > 0:
             #         signtypetext += " (" + "; ".join(signtypeabbreviations) + ") "
             signtyperect = XslotRectModuleButton(self, text=signtypetext, moduletype='signtype', sign=self.sign)
-            signtyperect.setRect(self.x_offset + self.indent, self.current_y*(self.default_xslot_height+self.verticalspacing), self.xslots_width, self.default_xslot_height)  # 640-(2*self.blackpen.width()), 50)
+            signtyperect.setRect(self.x_offset + self.indent, self.current_y, self.xslots_width,
+                                 self.default_xslot_height)
             self.scene.addItem(signtyperect)
-        self.current_y += 1
 
     def addxslots(self):
         xslotrects = {}
@@ -366,38 +375,44 @@ class SignSummaryPanel(QScrollArea):
         self.onexslot_width = self.xslots_width / roundedup
 
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and self.sign.xslotstructure is not None and self.sign.specifiedxslots:
+            self.current_y += self.default_xslot_height + self.verticalspacing
             if numwholes + partial > 0:
                 for i in range(numwholes):
                     xslotrect = XslotRect(self, text="x" + str(i + 1), moduletype='xslot', sign=self.sign)
                     xloc = self.indent + i * self.onexslot_width  # - (2 * self.blackpen.width())
-                    xslotrect.setRect(xloc, self.current_y * (self.default_xslot_height+self.verticalspacing), self.onexslot_width, self.default_xslot_height)
+                    xslotrect.setRect(xloc, self.current_y, self.onexslot_width, self.default_xslot_height)
                     xslotrects["x"+str(i+1)] = xslotrect
                     self.scene.addItem(xslotrect)
                 if partial > 0:
                     xslotrect = XslotRect(self, text="x" + str(numwholes + 1), moduletype='xslot', sign=self.sign, proportionfill=partial)
                     xloc = self.indent + numwholes * self.onexslot_width #  - (2 * self.blackpen.width())
-                    xslotrect.setRect(xloc, self.current_y * (self.default_xslot_height + self.verticalspacing), self.onexslot_width,
-                                      self.default_xslot_height)
+                    xslotrect.setRect(xloc, self.current_y, self.onexslot_width, self.default_xslot_height)
                     xslotrects["x"+str(numwholes+1)] = xslotrect
                     self.scene.addItem(xslotrect)
-            self.current_y += 1
-            self.gridlinestart = self.current_y * (self.default_xslot_height + self.verticalspacing)
+            self.gridlinestart = self.current_y + self.default_xslot_height + self.verticalspacing
+
+    def addnonhand(self):
+        # add "other" label
+        othertext = QGraphicsTextItem()
+        othertext.setPlainText("Other")
+        self.current_y += self.default_xslot_height * 1.5
+        othertext.setPos(self.x_offset, self.current_y)
+        self.scene.addItem(othertext)
+
+        for mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION]:
+            self.addmodules_other(moduletype=mtype)
+        self.addnonmanual()
 
     def addhand(self, articulatornum):
         # add hand label
         handtext = QGraphicsTextItem()
         handtext.setPlainText(HAND + " " + str(articulatornum))
-        if articulatornum == 2:
-            self.current_y += 1.5
-        handtext.setPos(self.x_offset, self.current_y * (self.default_xslot_height + self.verticalspacing))
+        self.current_y += self.default_xslot_height * 1.5
+        handtext.setPos(self.x_offset, self.current_y)
         self.scene.addItem(handtext)
 
-        self.addparameter(artnum=articulatornum, moduletype=ModuleTypes.MOVEMENT)
-        self.addparameter(artnum=articulatornum, moduletype=ModuleTypes.LOCATION)
-        self.addcontact(artnum=articulatornum)
-        self.addorientation(artnum=articulatornum)
-        self.addnonmanual()
-        self.addparameter(artnum=articulatornum, moduletype=ModuleTypes.HANDCONFIG)
+        for mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION]:
+            self.addmodules_hands_arms(artnum=articulatornum, moduletype=mtype)
 
     def getxywh(self, timinginterval):
         if timinginterval is None:
@@ -408,7 +423,7 @@ class SignSummaryPanel(QScrollArea):
             widthfrac = endfrac - startfrac
 
             x = self.x_offset + self.indent + float(startfrac)*self.onexslot_width
-            y = self.current_y * (self.default_xslot_height + self.verticalspacing)
+            y = self.current_y
             w = float(widthfrac) * self.onexslot_width
             h = self.default_xslot_height
         elif timinginterval.ispoint():
@@ -416,7 +431,7 @@ class SignSummaryPanel(QScrollArea):
             yradius = 40
             pointfrac = timinginterval.startpoint.wholepart - 1 + timinginterval.startpoint.fractionalpart
             x = self.x_offset + self.indent + float(pointfrac)*self.onexslot_width - yradius
-            y = self.current_y * (self.default_xslot_height + self.verticalspacing)
+            y = self.current_y
             w = 2 * yradius
             h = self.default_xslot_height
         elif not timinginterval.ispoint():
@@ -432,7 +447,7 @@ class SignSummaryPanel(QScrollArea):
             widthfrac = endfrac - startfrac
 
             x = self.x_offset + self.indent + float(startfrac)*self.onexslot_width
-            y = self.current_y * (self.default_xslot_height + self.verticalspacing)
+            y = self.current_y
             w = float(widthfrac) * self.onexslot_width
             h = self.default_xslot_height
 
@@ -441,56 +456,130 @@ class SignSummaryPanel(QScrollArea):
     def addnonmanual(self):
         return  # TODO KV implement
 
-    def addparameter(self, artnum, moduletype):
+    def addmodules_other(self, moduletype):  # artnum,
         # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
-        parammodules = self.sign.getmoduledict(moduletype)
+        if moduletype == ModuleTypes.RELATION:
+            modules = self.relmods_other
+        else:
+            modules = [mod for mod in self.sign.getmoduledict(moduletype).values() if
+                       mod.articulators is not None and
+                       (mod.articulators[0] == LEG and True in mod.articulators[1].values())]
+        modulenumbers = self.sign.getmodulenumbersdict(moduletype)
         moduletypeabbrev = ModuleTypes.abbreviations[moduletype]
 
-        num_parammods = len(parammodules)
-        if num_parammods > 0:
+        mods_count = len(modules)
+        if mods_count > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
+                for mod in modules:
+                    m_id = mod.uniqueid
+                    self.current_y += self.default_xslot_height + self.verticalspacing
+                    paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,
+                                                      text=moduletypeabbrev + str(modulenumbers[m_id]),
+                                                      moduletype=moduletype,
+                                                      sign=self.sign)
+                    paramabbrev = mod.getabbreviation()
+                    paramrect.setToolTip(paramabbrev)
+                    paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
+                    self.moduleitems.append(paramrect)
+                    self.scene.addItem(paramrect)
+            else:  # 'manual' or 'auto'
+                # associate modules with x-slots
+                intervals = []
+                points = []
 
-                for idx, m_id in enumerate(parammodules.keys()):
-                    parammod = parammodules[m_id]
-                    articulator = parammod.articulators[0]
-                    articulator_dict = parammod.articulators[1]
+                for mod in modules:
+                    m_id = mod.uniqueid
+                    condensed_timingintervals = self.condense_timingintervals(mod.timingintervals)
+                    for t in condensed_timingintervals:
+                        if t.ispoint():
+                            points.append((modulenumbers[m_id], m_id, t))
+                        else:
+                            intervals.append((modulenumbers[m_id], m_id, t))
+
+                if len(intervals) > 0:
+                    self.addmoduleintervals(None, None, intervals, moduletype, moduletypeabbrev, modules)
+                if len(points) > 0:
+                    self.addmodulepoints(None, None, points, moduletype, moduletypeabbrev, modules)
+            self.assign_hover_partners()
+
+    def addmodules_hands_arms(self, artnum, moduletype):
+        isrel = moduletype == ModuleTypes.RELATION
+        # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
+        if isrel:
+            modules = [mod for mod in self.relmods_hands_arms if
+                       mod.usesarticulator(HAND, artnum) or mod.usesarticulator(ARM, artnum)]
+        else:
+            modules = [mod for mod in self.sign.getmoduledict(moduletype).values() if
+                       mod.articulators is not None and
+                       (mod.articulators[0] in [HAND, ARM] and mod.articulators[1][artnum])]
+        modulenumbers = self.sign.getmodulenumbersdict(moduletype)
+        moduletypeabbrev = ModuleTypes.abbreviations[moduletype]
+
+        mods_count = len(modules)
+        if mods_count > 0:
+            if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+                # everything just gets listed vertically
+                self.current_y += self.default_xslot_height + self.verticalspacing
+
+                for mod in modules:
+                    m_id = mod.uniqueid
+                    if isrel:
+                        if mod.usesarticulator(HAND, artnum):
+                            articulator = HAND
+                            articulator_dict = mod.hands_in_use()
+                        elif mod.usesarticulator(ARM, artnum):
+                            articulator = ARM
+                            articulator_dict = mod.arms_in_use()
+                    else:
+                        articulator = mod.articulators[0]
+                        articulator_dict = mod.articulators[1]
+
                     if articulator_dict[artnum]:
                         paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,  # parammodid,
-                                                          text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduletypeabbrev + str(idx + 1), moduletype=moduletype,
+                                                          text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduletypeabbrev + str(modulenumbers[m_id]), moduletype=moduletype,
                                                           sign=self.sign)
-                        paramabbrev = parammod.getabbreviation()
+                        paramabbrev = mod.getabbreviation()
                         paramrect.setToolTip(paramabbrev)
                         paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
                         self.moduleitems.append(paramrect)
-                        self.current_y += 1
+                        # self.current_y += 1
                         self.scene.addItem(paramrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
                 intervals = {}
                 points = {}
 
-                for midx, m_id in enumerate(parammodules.keys()):
-                    parammod = parammodules[m_id]
-                    articulator = parammod.articulators[0]
-                    articulator_dict = parammod.articulators[1]
+                for mod in modules:
+                    m_id = mod.uniqueid
+                    if isrel:
+                        if mod.usesarticulator(HAND, artnum):
+                            articulator = HAND
+                            articulator_dict = mod.hands_in_use()
+                        elif mod.usesarticulator(ARM, artnum):
+                            articulator = ARM
+                            articulator_dict = mod.arms_in_use()
+                    else:
+                        articulator = mod.articulators[0]
+                        articulator_dict = mod.articulators[1]
+
                     if articulator_dict[artnum]:
-                        condensed_timingintervals = self.condense_timingintervals(parammod.timingintervals)
-                        for tidx, t in enumerate(condensed_timingintervals):
+                        condensed_timingintervals = self.condense_timingintervals(mod.timingintervals)
+                        for t in condensed_timingintervals:
                             if t.ispoint():
                                 if articulator not in points.keys():
                                     points[articulator] = []
-                                points[articulator].append((midx, m_id, tidx, t))
+                                points[articulator].append((modulenumbers[m_id], m_id, t))
                             else:
                                 if articulator not in intervals.keys():
                                     intervals[articulator] = []
-                                intervals[articulator].append((midx, m_id, tidx, t))
+                                intervals[articulator].append((modulenumbers[m_id], m_id, t))
 
-                for articulator in [HAND, ARM, LEG]:
+                for articulator in [HAND, ARM]:  # , LEG]:
                     if articulator in intervals and len(intervals[articulator]) > 0:
-                        self.addparameterintervals(articulator, artnum, intervals[articulator], moduletype, moduletypeabbrev, parammodules)
+                        self.addmoduleintervals(articulator, artnum, intervals[articulator], moduletype, moduletypeabbrev, modules)
                     if articulator in points and len(points[articulator]) > 0:
-                        self.addparameterpoints(articulator, artnum, points[articulator], moduletype, moduletypeabbrev, parammodules)
+                        self.addmodulepoints(articulator, artnum, points[articulator], moduletype, moduletypeabbrev, modules)
             self.assign_hover_partners()
 
     def condense_timingintervals(self, intervals):
@@ -532,28 +621,42 @@ class SignSummaryPanel(QScrollArea):
 
         return condensed_intervals
 
-    def addparameterintervals(self, articulator, artnum, intervals, moduletype, moduletypeabbrev, parammodules):
-        for i_idx, (midx, m_id, tidx, t) in enumerate(intervals):
+    def addmoduleintervals(self, articulator, artnum, intervals, moduletype, moduletypeabbrev, modules):
+        if len(intervals) > 0:
+            self.current_y += self.default_xslot_height + self.verticalspacing
+        for i_idx, (modnum, m_id, t) in enumerate(intervals):
             paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,
-                                              text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduletypeabbrev + str(midx + 1),
+                                              text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduletypeabbrev + str(modnum),
                                               moduletype=moduletype,
                                               sign=self.sign)
-            paramabbrev = parammodules[m_id].getabbreviation()
+            paramabbrev = [mod for mod in modules if mod.uniqueid == m_id][0].getabbreviation()
             paramrect.setToolTip(paramabbrev)
-            intervalsalreadydone = [t for (mi, m, ti, t) in intervals[:i_idx]]
+            intervalsalreadydone = [t for (mn, m, t) in intervals[:i_idx]]
             anyoverlaps = [t.overlapsinterval(prev_t) for prev_t in intervalsalreadydone]
             if True in anyoverlaps:
-                self.current_y += 1
+                self.current_y += self.default_xslot_height + self.verticalspacing
             paramrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(paramrect)
-        self.current_y += 1
 
-    # TODO KV I don't know that I'm a big fan of having every single module button know about every other module button
+    # I don't know that I'm a big fan of having every single module button know about every other module button
     # from the same module instance, but at this point it seemed the most effective way to sync the hover behaviour
     def assign_hover_partners(self):
         for modbtn in self.moduleitems:
-            hover_partners = [b for b in self.moduleitems if b != modbtn and self.remove_dotandprefix(b.text) == self.remove_dotandprefix(modbtn.text)]
-            modbtn.samemodule_buttons = hover_partners
+            hoverpartners_same = [b for b in self.moduleitems if b != modbtn and b.module_uniqueid == modbtn.module_uniqueid]
+            hoverpartners_associated = []
+            for b in self.moduleitems:
+                if b != modbtn:
+                    if b.moduletype == ModuleTypes.RELATION and modbtn.moduletype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT]:
+                        relmod = self.sign.getmoduledict(ModuleTypes.RELATION)[b.module_uniqueid]
+                        if relmod.relationy.existingmodule and modbtn.module_uniqueid in relmod.relationy.linkedmoduleids:
+                            hoverpartners_associated.append(b)
+                    elif modbtn.moduletype == ModuleTypes.RELATION and b.moduletype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT]:
+                        relmod = self.sign.getmoduledict(ModuleTypes.RELATION)[modbtn.module_uniqueid]
+                        if relmod.relationy.existingmodule and b.module_uniqueid in relmod.relationy.linkedmoduleids:
+                            hoverpartners_associated.append(b)
+
+            modbtn.samemodule_buttons = hoverpartners_same
+            modbtn.associatedmodule_buttons = hoverpartners_associated
 
     def remove_dotandprefix(self, text):
         modifiedtext = text
@@ -562,27 +665,23 @@ class SignSummaryPanel(QScrollArea):
             modifiedtext = text[dotindex+1:]
         return modifiedtext
 
-    def addparameterpoints(self, articulator, artnum, points, moduletype, moduletypeabbrev, parammodules):
-        for i_idx, (midx, m_id, tidx, t) in enumerate(points):
+    def addmodulepoints(self, articulator, artnum, points, moduletype, moduletypeabbrev, modules):
+        if len(points) > 0:
+            self.current_y += self.default_xslot_height + self.verticalspacing
+
+        for i_idx, (modnum, m_id, t) in enumerate(points):
             paramellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
-                                                    text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduletypeabbrev + str(midx + 1),
+                                                    text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduletypeabbrev + str(modnum),
                                                     moduletype=moduletype,
                                                     sign=self.sign)
-            paramabbrev = parammodules[m_id].getabbreviation()
+            paramabbrev = [mod for mod in modules if mod.uniqueid == m_id][0].getabbreviation()
             paramellipse.setToolTip(paramabbrev)
-            pointsalreadydone = [t for (mi, m, ti, t) in points[:i_idx]]
+            pointsalreadydone = [t for (mn, m, t) in points[:i_idx]]
             anyequivalent = [t.startpoint.equivalent(prev_t.startpoint) for prev_t in pointsalreadydone]
             if True in anyequivalent:
-                self.current_y += 1
+                self.current_y += self.default_xslot_height + self.verticalspacing
             paramellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
             self.moduleitems.append(paramellipse)
-        self.current_y += 1
-
-    def addcontact(self, artnum):
-        return  # TODO KV implement
-
-    def addorientation(self, artnum):
-        return  # TODO KV implement
 
     def addgridlines(self):
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and len(self.moduleitems) > 0:
@@ -608,7 +707,7 @@ class SignSummaryPanel(QScrollArea):
                     totalvalue = whole_xslots + partial_xslot
                     if curvalue <= totalvalue:
                         xstart = self.x_offset + self.indent + float((whole+frac)*self.onexslot_width)
-                        self.scene.addLine(xstart, self.gridlinestart, xstart, self.current_y * (self.default_xslot_height + self.verticalspacing), pen)
+                        self.scene.addLine(xstart, self.gridlinestart, xstart, self.current_y + self.default_xslot_height + self.verticalspacing, pen)
             for item in self.moduleitems:
                 self.scene.addItem(item)
 
@@ -639,7 +738,8 @@ class SignSummaryPanel(QScrollArea):
     def open_module_dialog(self, modulekey, moduletype):
         modules_list = self.sign.getmoduledict(moduletype)
         module_to_edit = modules_list[modulekey]
-        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] else [HAND]
+        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
+            else ([] if moduletype == ModuleTypes.RELATION else [HAND])
         includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
             1 if moduletype == ModuleTypes.LOCATION else
             0  # default
@@ -647,14 +747,15 @@ class SignSummaryPanel(QScrollArea):
         module_selector = ModuleSelectorDialog(moduletype=moduletype,
                                                xslotstructure=self.sign.xslotstructure,
                                                moduletoload=module_to_edit,
+                                               includephase=includephase,
                                                incl_articulators=includearticulators,
                                                incl_articulator_subopts=includephase,
                                                parent=self
                                                )
         module_selector.module_saved.connect(
-            lambda module_to_save:
+            lambda module_to_save, savedtype:
             self.mainwindow.signlevel_panel.handle_save_module(module_to_save=module_to_save,
-                                                               moduletype=moduletype,
+                                                               moduletype=savedtype,
                                                                existing_key=modulekey)
         )
         module_selector.module_deleted.connect(
@@ -679,8 +780,8 @@ class SignLevelMenuPanel(QScrollArea):
 
         self._sign = sign
         self.system_default_signtype = self.mainwindow.system_default_signtype
-        self.sign_buttons = []
-        self.module_buttons = []
+        self.modulebuttons_untimed = []
+        self.modulebuttons_timed = []
 
         self.signgloss_label = QLabel("Sign: " + sign.signlevel_information.gloss if sign else "")
         self.signlevel_button = QPushButton("Sign-level information")
@@ -688,55 +789,53 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.signtype_button = QPushButton("Sign type information")
         self.signtype_button.clicked.connect(self.handle_signtypebutton_click)
-        self.sign_buttons.append(self.signtype_button)
+        self.modulebuttons_untimed.append(self.signtype_button)
 
         # TODO KV
         # if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual':  # could also be 'none' or 'auto'
         self.xslots_button = QPushButton("X-slot information")
         self.xslots_button.clicked.connect(self.handle_xslotsbutton_click)
-        self.sign_buttons.append(self.xslots_button)
+        self.modulebuttons_untimed.append(self.xslots_button)
 
         self.movement_button = QPushButton("Add movement module")
         self.movement_button.setProperty("existingmodule", False)
         self.movement_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.MOVEMENT))
-        self.module_buttons.append(self.movement_button)
-
-        self.handpart_button = QPushButton("Add hand part module")
-        self.handpart_button.setProperty("existingmodule", False)
-        self.handpart_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.HANDPART))
-        self.module_buttons.append(self.handpart_button)
+        self.modulebuttons_timed.append(self.movement_button)
 
         self.location_button = QPushButton("Add location module")
+        self.location_button.setProperty("existingmodule", False)
         self.location_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.LOCATION))
-        self.module_buttons.append(self.location_button)
+        self.modulebuttons_timed.append(self.location_button)
 
-        self.contact_button = QPushButton("Add contact module")
-        self.contact_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.CONTACT))
-        self.module_buttons.append(self.contact_button)
+        self.relation_button = QPushButton("Add relation module")
+        self.relation_button.setProperty("existingmodule", False)
+        self.relation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.RELATION))
+        self.modulebuttons_timed.append(self.relation_button)
 
         self.orientation_button = QPushButton("Add orientation module")
-        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.ORIENTATION))
-        self.module_buttons.append(self.orientation_button)
+        self.orientation_button.setProperty("existingmodule", False)
+        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.ORIENTATION))
+        self.modulebuttons_timed.append(self.orientation_button)
 
         self.handshape_button = QPushButton("Add hand configuration module")
         self.handshape_button.setProperty("existingmodule", False)
         self.handshape_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.HANDCONFIG))
-        self.module_buttons.append(self.handshape_button)
+        self.modulebuttons_timed.append(self.handshape_button)
 
         self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
-        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.NONMANUAL))
-        self.module_buttons.append(self.nonmanual_button)
+        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.NONMANUAL))
+        self.modulebuttons_timed.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
         main_layout.addWidget(self.signlevel_button)
-        for btn in self.sign_buttons:
+        for btn in self.modulebuttons_untimed:
             main_layout.addWidget(btn)
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(line)
-        for btn in self.module_buttons:
+        for btn in self.modulebuttons_timed:
             main_layout.addWidget(btn)
         self.enable_module_buttons(False)
 
@@ -748,7 +847,7 @@ class SignLevelMenuPanel(QScrollArea):
         enablexslotbutton = yesorno and self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual'
         enablesigntypebutton = yesorno and self.sign is not None
 
-        for btn in self.sign_buttons + self.module_buttons:
+        for btn in self.modulebuttons_untimed + self.modulebuttons_timed:
             btn.setEnabled(enableparametermodulebuttons)
         self.signtype_button.setEnabled(enablesigntypebutton)
         self.xslots_button.setEnabled(enablexslotbutton)
@@ -812,7 +911,8 @@ class SignLevelMenuPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
 
     def handle_menumodulebtn_clicked(self, moduletype):
-        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] else [HAND]
+        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
+            else ([] if moduletype == ModuleTypes.RELATION else [HAND])
         includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
             1 if moduletype == ModuleTypes.LOCATION else
             0  # default
@@ -820,10 +920,11 @@ class SignLevelMenuPanel(QScrollArea):
         module_selector = ModuleSelectorDialog(moduletype=moduletype,
                                                xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                moduletoload=None,
+                                               includephase=includephase,
                                                incl_articulators=includearticulators,
                                                incl_articulator_subopts=includephase,
                                                parent=self)
-        module_selector.module_saved.connect(lambda moduletosave: self.handle_save_module(moduletosave, moduletype))
+        module_selector.module_saved.connect(lambda moduletosave, savedtype: self.handle_save_module(moduletosave, moduletype=savedtype))
         module_selector.exec_()
 
     def handle_delete_module(self, existingkey, moduletype):

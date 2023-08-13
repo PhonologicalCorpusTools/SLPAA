@@ -15,6 +15,7 @@ import logging
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
 from serialization_classes import LocationTableSerializable
+from constant import HAND, ARM, LEG
 
 
 # radio button vs checkbox
@@ -105,6 +106,57 @@ bonejoint_label = "Bone/joint"
 #   name, editability, mutual exclusivity, checked/unchecked, hand/nonhand location,
 #   allow surfaces?, relevant exceptions to list of surfaces,
 #   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
+locn_options_hand = {
+    ("Hand minus fingers", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
+    ("Heel of hand", fx, rb, u, heel, allow, no_exceptions, allow, no_exceptions): {},
+    ("Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
+    ("Fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+    ("Selected fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+    ("Selected fingers and Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
+    ("Finger 1", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+    ("Finger 2", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+    ("Finger 3", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+    ("Finger 4", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+    ("Between Thumb and Finger 1", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+    ("Between Fingers 1 and 2", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+    ("Between Fingers 2 and 3", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+    ("Between Fingers 3 and 4", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+}
+locn_options_arm = {
+    ("Arm (contralateral)", fx, rb, u, nh, allow, (top, bottom), disallow, no_exceptions): {
+        ("Upper arm", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Upper arm above biceps", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
+            ("Biceps", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
+        },
+        ("Elbow", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
+        ("Forearm", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
+        ("Wrist", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
+    }
+}
+locn_options_leg = {
+    ("Legs and feet", fx, rb, u, nh, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
+        ("Upper leg", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Upper leg - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
+            ("Upper leg - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
+        },
+        ("Knee", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Knee - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
+            ("Knee - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
+        },
+        ("Lower leg", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Lower leg - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
+            ("Lower leg - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
+        },
+        ("Ankle", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
+            ("Ankle - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
+            ("Ankle - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
+        },
+        ("Foot", fx, rb, u, nh, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
+            ("Foot - contra", fx, rb, u, nh, allow, no_exceptions, allow, (upper_half, lower_half)): {},
+            ("Foot - ipsi", fx, rb, u, nh, allow, no_exceptions, allow, (upper_half, lower_half)): {}
+        }
+    }
+}
 locn_options_body = {
     ("Head", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {
         ("Back of head", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
@@ -220,54 +272,10 @@ locn_options_body = {
             ("Buttocks - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
         }
     },
-    ("Arm (contralateral)", fx, rb, u, nh, allow, (top, bottom), disallow, no_exceptions): {
-        ("Upper arm", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Upper arm above biceps", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
-            ("Biceps", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
-        },
-        ("Elbow", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
-        ("Forearm", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
-        ("Wrist", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
-    },
-    ("Legs and feet", fx, rb, u, nh, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
-        ("Upper leg", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Upper leg - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Upper leg - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Knee", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Knee - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Knee - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Lower leg", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Lower leg - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Lower leg - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Ankle", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Ankle - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Ankle - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Foot", fx, rb, u, nh, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
-            ("Foot - contra", fx, rb, u, nh, allow, no_exceptions, allow, (upper_half, lower_half)): {},
-            ("Foot - ipsi", fx, rb, u, nh, allow, no_exceptions, allow, (upper_half, lower_half)): {}
-        }
-    },
-    ("Other hand", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {
-        ("Hand minus fingers", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
-        ("Heel of hand", fx, rb, u, heel, allow, no_exceptions, allow, no_exceptions): {},
-        ("Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
-        ("Fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-        ("Selected fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-        ("Selected fingers and Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
-        ("Finger 1", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-        ("Finger 2", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-        ("Finger 3", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-        ("Finger 4", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-        ("Between Thumb and Finger 1", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-        ("Between Fingers 1 and 2", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-        ("Between Fingers 2 and 3", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-        ("Between Fingers 3 and 4", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-    }
 }
+locn_options_body.update(locn_options_arm)
+locn_options_body.update(locn_options_leg)
+locn_options_body.update({("Other hand", fx, rb, u, hb, allow, no_exceptions, disallow, no_exceptions): locn_options_hand})
 
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
 # unless we're going to reference the same code (as for movement) for building the tree & list models
@@ -305,25 +313,6 @@ locn_options_purelyspatial = {
             ("Med.", fx, rb, u, None, None, None, None, None): {},
             ("Close", fx, rb, u, None, None, None, None, None): {},
         },
-    },
-}
-
-# tuple elements are:
-#   name, editability, mutual exclusivity, checked/unchecked, hand/nonhand location,
-#   allow surfaces?, relevant exceptions to list of surfaces,
-#   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
-locn_options_axisofreln = {
-    ("Horizontal", fx, cb, u, None, None, None, None, None): {
-        ("H1 is to H1 side of H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is to H2 side of H2", fx, rb, u, None, None, None, None, None): {},
-    },
-    ("Vertical", fx, cb, u, None, None, None, None, None): {
-        ("H1 is above H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is below H2", fx, rb, u, None, None, None, None, None): {},
-    },
-    ("Sagittal", fx, cb, u, None, None, None, None, None): {
-        ("H1 is more distal than H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is more proximal than H2", fx, rb, u, None, None, None, None, None): {},
     },
 }
 
@@ -443,8 +432,6 @@ class LocationTreeModel(QStandardItemModel):
                 self.populate(parentnode, structure=locn_options_body, pathsofar="")
             elif self._locationtype.purelyspatial:
                 self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
-            elif self._locationtype.axis:
-                self.populate(parentnode, structure=locn_options_axisofreln, pathsofar="")
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())
@@ -499,6 +486,37 @@ class LocationTreeModel(QStandardItemModel):
     @locationtype.setter
     def locationtype(self, locationtype):  # LocationType class
         self._locationtype = locationtype
+
+
+class BodypartTreeModel(LocationTreeModel):
+
+    def __init__(self, bodyparttype, serializedlocntree=None, **kwargs):
+        self.bodyparttype = bodyparttype
+        super().__init__(serializedlocntree=serializedlocntree, **kwargs)
+
+    def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+
+        if structure == {} and pathsofar != "":
+            # base case (leaf node); don't build any more nodes
+            pass
+        elif structure == {} and pathsofar == "":
+            # no parameters; build a tree from the default structure
+            # TODO KV define a default structure somewhere (see constant.py)
+            if self.bodyparttype == HAND:
+                locn_options = locn_options_hand
+            elif self.bodyparttype == ARM:
+                locn_options = locn_options_arm
+            elif self.bodyparttype == LEG:
+                locn_options = locn_options_leg
+            else:
+                locn_options = {}
+            super().populate(parentnode, structure=locn_options, pathsofar="")
+        elif structure != {}:
+            # internal node with substructure
+            super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
+
+    def backwardcompatibility(self):
+        pass
 
 
 class LocationListModel(QStandardItemModel):
