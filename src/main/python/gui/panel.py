@@ -327,6 +327,7 @@ class SignSummaryPanel(QScrollArea):
         if self.sign is not None:
             signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
         signleveltext.setPos(self.x_offset, self.current_y)
+        self.current_y += 30
         self.scene.addItem(signleveltext)
 
         if self.sign is None:
@@ -523,8 +524,6 @@ class SignSummaryPanel(QScrollArea):
 
                 for mod in modules:
                     m_id = mod.uniqueid
-                    articulator = mod.articulators[0]
-                    articulator_dict = mod.articulators[1]
                     if isrel:
                         if mod.usesarticulator(HAND, artnum):
                             articulator = HAND
@@ -532,6 +531,10 @@ class SignSummaryPanel(QScrollArea):
                         elif mod.usesarticulator(ARM, artnum):
                             articulator = ARM
                             articulator_dict = mod.arms_in_use()
+                    else:
+                        articulator = mod.articulators[0]
+                        articulator_dict = mod.articulators[1]
+
                     if articulator_dict[artnum]:
                         paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,  # parammodid,
                                                           text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduletypeabbrev + str(modulenumbers[m_id]), moduletype=moduletype,
@@ -549,8 +552,6 @@ class SignSummaryPanel(QScrollArea):
 
                 for mod in modules:
                     m_id = mod.uniqueid
-                    articulator = mod.articulators[0]
-                    articulator_dict = mod.articulators[1]
                     if isrel:
                         if mod.usesarticulator(HAND, artnum):
                             articulator = HAND
@@ -558,6 +559,9 @@ class SignSummaryPanel(QScrollArea):
                         elif mod.usesarticulator(ARM, artnum):
                             articulator = ARM
                             articulator_dict = mod.arms_in_use()
+                    else:
+                        articulator = mod.articulators[0]
+                        articulator_dict = mod.articulators[1]
 
                     if articulator_dict[artnum]:
                         condensed_timingintervals = self.condense_timingintervals(mod.timingintervals)

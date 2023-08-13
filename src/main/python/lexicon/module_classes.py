@@ -608,12 +608,12 @@ class LocationType:
         return self._body or self._bodyanchored
 
     def allfalse(self):
-        return not (self._body or self._signingspace or self._bodyanchored or self._purelyspatial or self._axis)
+        return not (self._body or self._signingspace or self._bodyanchored or self._purelyspatial)
 
     def locationoptions_changed(self, previous):
-        changed = self.usesbodylocations() and (previous.purelyspatial or previous.axis)
-        changed = changed or (self.purelyspatial and (previous.usesbodylocations() or previous.axis))
-        changed = changed or (self.axis and (previous.usesbodylocations() or previous.purelyspatial))
+        changed = self.usesbodylocations() and previous.purelyspatial
+        changed = changed or (self.purelyspatial and previous.usesbodylocations())
+        changed = changed or (previous.usesbodylocations() or previous.purelyspatial)
         changed = changed or (previous.allfalse() and not self.allfalse())
         return changed
 
@@ -1488,7 +1488,6 @@ class RelationModule(ParameterModule):
 
     # def __init__(self, relationx, relationy, hand1part, hand2part, arm1part, arm2part, leg1part, leg2part, contactrel, xy_crossed, xy_linked, directionslist, hands, timingintervals=None, addedinfo=None):
     def __init__(self, relationx, relationy, bodyparts_dict, contactrel, xy_crossed, xy_linked, directionslist, articulators, timingintervals=None, addedinfo=None):
-
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
         self._bodyparts_dict = {}

@@ -64,7 +64,8 @@ class ModuleSelectorDialog(QDialog):
             self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
             addedinfo = deepcopy(moduletoload.addedinfo)
-            articulators = moduletoload.articulators
+            if moduletoload.articulators is not None:
+                articulators = moduletoload.articulators
             new_instance = False
             if hasattr(moduletoload, '_inphase'):
                 inphase = moduletoload.inphase
@@ -692,24 +693,17 @@ class ArticulatorSelectionPanel(QFrame):
         return selectedarticulator, selections_dict
 
     def setarticulators(self, articulators):
-        selectedarticulator = articulators[0]
-        articulators_dict = articulators[1]
-        success = self.articulator_selector.setselectedarticulator(selectedarticulator)
-        if success and articulators_dict is not None:
-            if articulators_dict[1] and articulators_dict[2]:
-                self.botharts_radio.setChecked(True)
-            elif articulators_dict[1]:
-                self.articulator1_radio.setChecked(True)
-            elif articulators_dict[2]:
-                self.articulator2_radio.setChecked(True)
-
-    # def sethands(self, hands_dict):
-    #     if hands_dict['H1'] and hands_dict['H2']:
-    #         self.bothhands_radio.setChecked(True)
-    #     elif hands_dict['H1']:
-    #         self.hand1_radio.setChecked(True)
-    #     elif hands_dict['H2']:
-    #         self.hand2_radio.setChecked(True)
+        if articulators is not None:
+            selectedarticulator = articulators[0]
+            articulators_dict = articulators[1]
+            success = self.articulator_selector.setselectedarticulator(selectedarticulator)
+            if success and articulators_dict is not None:
+                if articulators_dict[1] and articulators_dict[2]:
+                    self.botharts_radio.setChecked(True)
+                elif articulators_dict[1]:
+                    self.articulator1_radio.setChecked(True)
+                elif articulators_dict[2]:
+                    self.articulator2_radio.setChecked(True)
 
     def getphase(self):
         if not self.botharts_connected_cb.isEnabled() or not self.botharts_connected_cb.isChecked():

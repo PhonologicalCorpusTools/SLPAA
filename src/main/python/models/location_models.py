@@ -316,25 +316,6 @@ locn_options_purelyspatial = {
     },
 }
 
-# tuple elements are:
-#   name, editability, mutual exclusivity, checked/unchecked, hand/nonhand location,
-#   allow surfaces?, relevant exceptions to list of surfaces,
-#   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
-locn_options_axisofreln = {
-    ("Horizontal", fx, cb, u, None, None, None, None, None): {
-        ("H1 is to H1 side of H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is to H2 side of H2", fx, rb, u, None, None, None, None, None): {},
-    },
-    ("Vertical", fx, cb, u, None, None, None, None, None): {
-        ("H1 is above H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is below H2", fx, rb, u, None, None, None, None, None): {},
-    },
-    ("Sagittal", fx, cb, u, None, None, None, None, None): {
-        ("H1 is more distal than H2", fx, rb, u, None, None, None, None, None): {},
-        ("H1 is more proximal than H2", fx, rb, u, None, None, None, None, None): {},
-    },
-}
-
 
 class LocationTreeModel(QStandardItemModel):
 
@@ -451,8 +432,6 @@ class LocationTreeModel(QStandardItemModel):
                 self.populate(parentnode, structure=locn_options_body, pathsofar="")
             elif self._locationtype.purelyspatial:
                 self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
-            elif self._locationtype.axis:
-                self.populate(parentnode, structure=locn_options_axisofreln, pathsofar="")
         elif structure != {}:
             # internal node with substructure
             numentriesatthislevel = len(structure.keys())

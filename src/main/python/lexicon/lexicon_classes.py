@@ -213,8 +213,22 @@ class Sign:
                         elif "H1 is behind H2" in pathtext or "H1 is more proximal than H2" in pathtext:
                             dir_sag.minus = True
                 directions = [dir_hor, dir_ver, dir_sag]
+                bodyparts_dict = {
+                    HAND: {
+                        1: BodypartInfo(bodyparttype=HAND, bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND)),
+                        2: BodypartInfo(bodyparttype=HAND, bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND))
+                    },
+                    ARM: {
+                        1: BodypartInfo(bodyparttype=ARM, bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM)),
+                        2: BodypartInfo(bodyparttype=ARM, bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM))
+                    },
+                    LEG: {
+                        1: BodypartInfo(bodyparttype=LEG, bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG)),
+                        2: BodypartInfo(bodyparttype=LEG, bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG))
+                    }
+                }
                 # relation module should not have contact or manner or distance specified
-                convertedrelationmodule = RelationModule(relation_x, relation_y, hand1part=None, hand2part=None, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, addedinfo=addedinfo)
+                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, addedinfo=addedinfo)
                 self.addmodule(convertedrelationmodule, ModuleTypes.RELATION)
 
             else:

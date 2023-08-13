@@ -488,8 +488,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         # clicked only the tree for the current location type is saved with the module.
         self.treemodel_body = None
         self.treemodel_spatial = None
-        # self.treemodel_axis = None
-        # self.listmodel_axis = None
         self.listmodel_body = None
         self.listmodel_spatial = None
         self.recreate_treeandlistmodels()
@@ -538,8 +536,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             body=self.body_radio.isChecked(),
             signingspace=self.signingspace_radio.isChecked(),
             bodyanchored=self.signingspacebody_radio.isEnabled() and self.signingspacebody_radio.isChecked(),
-            purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked(),
-            axis=self.axis_radio.isChecked()
+            purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked()
         )
         return locationtype
 
@@ -581,23 +578,11 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
         loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
-
-        axis_layout = QHBoxLayout()
-
-        self.axis_radio = QRadioButton("Axis of relation")
-        self.axis_radio.setProperty('loctype', 'axis')
-        axis_layout.addWidget(self.axis_radio)
-        axis_layout.addSpacerItem(QSpacerItem(40, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
-        axis_box = QGroupBox()
-        axis_box.setLayout(axis_layout)
-        loctype_phonloc_layout.addWidget(axis_box, alignment=Qt.AlignVCenter)
-
         loctype_phonloc_layout.addStretch()
 
         self.loctype_subgroup = QButtonGroup()
         self.loctype_subgroup.addButton(self.body_radio)
         self.loctype_subgroup.addButton(self.signingspace_radio)
-        self.loctype_subgroup.addButton(self.axis_radio)
         self.signingspace_subgroup = QButtonGroup()
         self.signingspace_subgroup.addButton(self.signingspacebody_radio)
         self.signingspace_subgroup.addButton(self.signingspacespatial_radio)
@@ -633,9 +618,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         return loctype_phonloc_layout
 
     def getcurrenttreemodel(self):
-        if self.getcurrentlocationtype().axis:
-            return self.treemodel_axis
-        elif self.getcurrentlocationtype().usesbodylocations():
+        if self.getcurrentlocationtype().usesbodylocations():
             # distinguish between body and body_anchored
             self.treemodel_body.locationtype = self.getcurrentlocationtype()
             return self.treemodel_body
@@ -649,9 +632,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             return LocationTreeModel()
 
     def getcurrentlistmodel(self):
-        if self.getcurrentlocationtype().axis:
-            return self.listmodel_axis
-        elif self.getcurrentlocationtype().usesbodylocations():
+        if self.getcurrentlocationtype().usesbodylocations():
             return self.listmodel_body
         elif self.getcurrentlocationtype().purelyspatial:
             return self.listmodel_spatial
@@ -663,9 +644,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             return LocationTreeModel().listmodel
 
     def setcurrenttreemodel(self, tm):
-        if self.getcurrentlocationtype().axis:
-            self.treemodel_axis = tm
-        elif self.getcurrentlocationtype().usesbodylocations():
+        if self.getcurrentlocationtype().usesbodylocations():
             self.treemodel_body = tm
         elif self.getcurrentlocationtype().purelyspatial:
             self.treemodel_spatial = tm
@@ -673,9 +652,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.setcurrentlistmodel(self.getcurrenttreemodel().listmodel)
 
     def setcurrentlistmodel(self, lm):
-        if self.getcurrentlocationtype().axis:
-            self.listmodel_axis = lm
-        elif self.getcurrentlocationtype().usesbodylocations():
+        if self.getcurrentlocationtype().usesbodylocations():
             self.listmodel_body = lm
         elif self.getcurrentlocationtype().purelyspatial:
             self.listmodel_spatial = lm
@@ -814,20 +791,14 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.treemodel_spatial = LocationTreeModel()
         self.treemodel_spatial.locationtype = LocationType(signingspace=True, purelyspatial=True)
         self.treemodel_spatial.populate(self.treemodel_spatial.invisibleRootItem())
-        self.treemodel_axis = LocationTreeModel()
-        self.treemodel_axis.locationtype = LocationType(axis=True)
-        self.treemodel_axis.populate(self.treemodel_axis.invisibleRootItem())
 
         self.listmodel_body = self.treemodel_body.listmodel
         self.listmodel_spatial = self.treemodel_spatial.listmodel
-        self.listmodel_axis = self.treemodel_axis.listmodel
 
     def clear_loctype_buttons_to_default(self):
         defaultloctype = LocationType()
         loctype_setting = self.mainwindow.app_settings['location']['loctype']
-        if loctype_setting == 'axis':
-            defaultloctype.axis = True
-        elif loctype_setting == 'body':
+        if loctype_setting == 'body':
             defaultloctype.body = True
         elif loctype_setting.startswith('signingspace'):
             defaultloctype.signingspace = True
@@ -847,9 +818,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
             btn.setChecked(False)
 
-        if loctype.axis:
-            self.axis_radio.setChecked(True)
-        elif loctype.body:
+        if loctype.body:
             self.body_radio.setChecked(True)
         elif loctype.signingspace:
             self.signingspace_radio.setChecked(True)
@@ -859,7 +828,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
                 self.signingspacebody_radio.setChecked(True)
 
         for btn in self.signingspace_subgroup.buttons():
-            btn.setEnabled(not loctype.axis and not loctype.body)
+            btn.setEnabled(not loctype.body)
 
         self.loctype_subgroup.setExclusive(True)
         self.signingspace_subgroup.setExclusive(True)
@@ -960,42 +929,6 @@ class ImageDisplayTab(QWidget):
         self.blockSignals(True)
         self.link_button.setChecked(ischecked)
         self.blockSignals(False)
-
-
-class AxisTreeWidget(QWidget):
-    # zoomfactor_changed = pyqtSignal(int)
-    # linkbutton_toggled = pyqtSignal(bool)
-
-    def __init__(self, treemodel, **kwargs):
-        super().__init__(**kwargs)
-
-        main_layout = QHBoxLayout()
-
-        self._treemodel = treemodel
-
-        self.treedisplay = LocationTreeView()
-        self.treedisplay.setItemDelegate(LocationTreeItemDelegate())
-        self.treedisplay.setHeaderHidden(True)
-        self.treedisplay.setModel(self.treemodel)
-
-        # self.treedisplay.installEventFilter(self)
-        # self.treedisplay.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # TODO KV this causes a crash
-        self.treedisplay.setMinimumWidth(400)
-
-        main_layout.addWidget(self.treedisplay)
-
-        self.setLayout(main_layout)
-
-    @property
-    def treemodel(self):
-        # if self._treemodel is None:
-        #     self._treemodel = LocationTreeModel(self)
-        return self._treemodel
-
-    @treemodel.setter
-    def treemodel(self, treemod):
-        self._treemodel = treemod
-        self.treedisplay.setModel(self._treemodel)
 
 
 # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
