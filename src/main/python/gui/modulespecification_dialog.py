@@ -46,7 +46,6 @@ class ModuleSelectorDialog(QDialog):
     def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
-
         self.moduletype = moduletype
         self.includearticulatorselection = len(incl_articulators) > 0
         self.linkedfrommoduleid = linkedfrommoduleid
@@ -62,6 +61,7 @@ class ModuleSelectorDialog(QDialog):
             incl_articulators = [incl_articulators]
 
         if moduletoload is not None:
+            self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
             addedinfo = deepcopy(moduletoload.addedinfo)
             articulators = moduletoload.articulators
