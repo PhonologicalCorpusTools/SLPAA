@@ -35,6 +35,48 @@ subgroup = "subgroup"
 c = True  # checked
 u = False  # unchecked
 
+
+
+# defaultMvmtDict = {
+#     ("No mvmt", fx, rb, u, 0): {},
+#     ("Mvmt type", fx, cb, u, 1): {
+#         (subgroup, None, 0, None, 2): {
+#             ("Mvmt type 1", fx, rb, u, 3): {},
+#             ("Mvmt type 2", fx, rb, u, 4): {},
+#         }
+#     },
+#     ("Joint activity type", fx, cb, u, 5): {
+#         (subgroup, None, 0, None, 6): {
+#             ("Joint act. type 1", fx, rb, u, 7): {},
+#             ("Joint act. type 2", fx, rb, u, 8): {},
+#         }
+#     }
+# }
+
+# mvmtOptionsDict = {
+#     ("No mvmt", fx, rb, u, 0): {},
+#     ("Mvmt type", fx, cb, u, 1): {
+#         (subgroup, None, 0, None, 2): {
+#             ("Mvmt type 1", fx, rb, u, 3): {},
+#             ("Mvmt type 3", fx, rb, u, 9): {},
+#         }
+#     },
+#     ("Joint activity type", fx, cb, u, 5): {
+#         (subgroup, None, 0, None, 6): {
+#             ("Joint act. type 1", fx, rb, u, 7): {},
+#             ("Joint act. type 2", fx, rb, u, 8): {},
+#         }
+#     },
+#     ("Mvmt chars", fx, cb, u, 10): {
+#         (subgroup, None, 0, None, 11): {
+#             ("Char 1", fx, rb, u, 12): {},
+#             ("Char 2", fx, rb, u, 13): {},
+#             ("Other", ed_3, rb, u, 14): {}
+#         }
+#     }
+# }
+
+
 mvmtOptionsDict = {
     ("No movement", fx, rb, u, 0): {},
     ("Movement type", fx, cb, u, 1): {
@@ -521,6 +563,73 @@ mvmtOptionsDict = {
 }
 
 
+class MvmtOptionsNode:
+    # id MUST NOT change
+    __slots__ = ['id', 'display_name','user_specifiability','button_type', 'tooltip', 'children']
+    # or is it better to save the options in a separate class in case we need to add more
+    # i.e. MvmtOptionsNode(id, options, children)
+    # and options are stored in a dict
+    # options[id] = [displayname, userspecifiability, buttontype, tooltip] etc
+    # (problem with this is defaultMvmtTree becomes very hard to read)
+
+    def __init__(self, id=-1, display_name="treeroot", user_specifiability=None, button_type=None, tooltip=None, children=None):
+        self.id = id
+        self.display_name = display_name # specify if subgroup
+        self.user_specifiability = user_specifiability # ed_1, ed_2, ed_3, fx
+        self.button_type = button_type # rb, cb, or subgroup count
+        self.tooltip = tooltip
+        self.children = []
+        if children is not None:
+            for child in children:
+                self.insert_child(child)
+
+    def get_node_by_id(self, node_id): return
+
+
+    # for "edit" methods -- should we save the default value?? 
+    # could just create a 2D array matching IDs to default values 
+    def edit_display_name(self, new_name): return
+
+    # user sets text restrictions??
+    def edit_user_specifiability(self): return
+
+    # may need to change subgroup number if subtrees are moved around
+    # maybe declare a new slot for subgroup instead of including it in the button type?
+    def edit_button_type(self): return
+
+    # behaviour if node to be removed is not a leaf?
+    def remove_node(self): return
+
+    # most likely use cases??
+    def move_node(self): return
+        
+    # "node" should already have been assigned new ID
+    def insert_sibling_left(self, node): return
+    def insert_sibling_right(self, node): return
+
+    # add node as the rightmost child of self
+    # "node" should already have been assigned new ID
+    def insert_child(self, node):
+        self.children.append(node)
+        
+
+defaultMvmtTree = MvmtOptionsNode(-1, "treeroot", None, None, None, [
+    MvmtOptionsNode(0, "No movement", fx, rb, "tooltip"),
+    MvmtOptionsNode(1, "Movement type", fx, cb, "tooltip", [
+        MvmtOptionsNode(2, "Type 1", fx, rb, "tooltip"),
+        MvmtOptionsNode(3, "Type 2", fx, rb, "tooltip")
+    ]),
+    MvmtOptionsNode(4, "Joint-specific movements", fx, cb, "tooltip", [
+        MvmtOptionsNode(5, "Movement type 1", fx, rb, "tooltip"),
+        MvmtOptionsNode(6, "Movement type 2", fx, rb, "tooltip")
+    ])
+])
+
+
+mvmtTree = defaultMvmtTree 
+# a mvmt options tree should be declared elsewhere
+
+    
 class MovementTreeItem(QStandardItem):
 
     def __init__(self, txt="", listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
@@ -844,6 +953,21 @@ class MovementTreeModel(QStandardItemModel):
             makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
             userspecifiedvalues = self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode, userspecifiedvalues)
+            # self.printTree(rootnode, level=0)
+
+
+    # def printTree(self, treenode, level):
+        
+    #     if treenode is not None:
+    #         spaces = " " * level
+    #         for r in range(treenode.rowCount()):
+                
+    #             treechild = treenode.child(r, 0)
+    #             if treechild is not None:
+    #                 pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+    #                 logging.warn(spaces + pathtext)
+    #                 self.printTree(treechild, level+1)
+
 
     def backwardcompatibility(self):
         hadtoaddusv = False
@@ -929,6 +1053,7 @@ class MovementTreeModel(QStandardItemModel):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
+                
                 if treechild is not None:
                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
                     if pathtext in self.serializedmvmttree.checkstates.keys():
@@ -1074,48 +1199,51 @@ class MovementTreeModel(QStandardItemModel):
         item = self.findItems(itemtext, flags=Qt.MatchRecursive)[0]
         item.setEnabledRecursive(enable)
 
-    def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
-        if structure == {} and pathsofar != "":
+    # may need to pass in mvmtOptionsTree differently (will not always be a constant)
+    def populate(self, parentnode, optionsnode=MvmtOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+        if optionsnode.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
-        elif structure == {} and pathsofar == "":
+        elif optionsnode.children == [] and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            self.populate(parentnode, structure=mvmtOptionsDict, pathsofar="")
-        elif structure != {}:
+            self.populate(parentnode, optionsnode=mvmtTree, pathsofar="")
+        elif optionsnode.children != []:
             # internal node with substructure
-            numentriesatthislevel = len(structure.keys())
-            for idx, labelclassifierchecked_5tuple in enumerate(structure.keys()):
-                label = labelclassifierchecked_5tuple[0]
-                userspecifiability = labelclassifierchecked_5tuple[1]
-                classifier = labelclassifierchecked_5tuple[2]
-                checked = labelclassifierchecked_5tuple[3]
-                node_id = labelclassifierchecked_5tuple[4]
-                ismutuallyexclusive = classifier == rb
-                iseditable = userspecifiability != fx
-                if label == subgroup:
+            numentriesatthislevel = len(optionsnode.children)
+
+            for idx, child in enumerate(optionsnode.children):
+                label = child.display_name
+                # userspecifiability = child.user_specifiability
+                # classifier = child.button_type
+                # node_id = optionsnode.id
+                ismutuallyexclusive = child.button_type == rb
+                iseditable = child.user_specifiability != fx
+
+                if child.display_name == subgroup:
 
                     # make the tree items in the subgroup and whatever nested structure they have
                     isfinal = False
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup+"_"+pathsofar+"_"+(str(classifier)))
+                    self.populate(parentnode, optionsnode=child, pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, 
+                                  subgroupname=subgroup+"_"+pathsofar+"_"+(str(child.button_type)))
 
                 else:
                     thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
-                    thistreenode.setData(userspecifiability, Qt.UserRole+udr.isuserspecifiablerole)
+                    thistreenode.setData(child.user_specifiability, Qt.UserRole+udr.isuserspecifiablerole)
                     editablepart = QStandardItem()
                     editablepart.setEditable(iseditable)
                     editablepart.setText("specify" if iseditable else "")
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole + udr.pathdisplayrole)
-                    thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
+                    thistreenode.setCheckState(Qt.Unchecked) # does this ever need to be checked?
                     if issubgroup:
                         thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
-                    self.populate(thistreenode, structure=structure[labelclassifierchecked_5tuple], pathsofar=pathsofar+label+delimiter)
+                    self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar+label+delimiter)
                     parentnode.appendRow([thistreenode, editablepart])
 
 
