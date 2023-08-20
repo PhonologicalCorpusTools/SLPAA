@@ -363,10 +363,6 @@ class AssociatedRelationsDialog(QDialog):
         module_selector.exec_()
         self.refresh_listmodel()
 
-    # def handle_moduledeleted(self, mod_id):
-    #     self.mainwindow.signlevel_panel.handle_delete_module(existingkey=mod_id, moduletype=ModuleTypes.RELATION)
-    #     self.refresh_listmodel()
-
     def refresh_listmodel(self):
         self.relationslist = list(self.mainwindow.current_sign.relationmodules.values())
         self.relationmodulenumsdict = self.mainwindow.current_sign.relationmodulenumbers

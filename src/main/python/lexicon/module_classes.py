@@ -316,14 +316,6 @@ class SignLevelInformation:
     def note(self, new_note):
         self._note = new_note
 
-    # @property
-    # def signtype(self):
-    #     return self._signtype
-    #
-    # @signtype.setter
-    # def signtype(self, new_signtype):
-    #     self._signtype = new_signtype
-
     @property
     def handdominance(self):
         return self._handdominance

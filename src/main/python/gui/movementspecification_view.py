@@ -33,8 +33,6 @@ class MvmtTreeSearchComboBox(QComboBox):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-    # def __init__(self, parentlayout=None):
-    #     super().__init__()
         self.refreshed = True
         self.lasttextentry = ""
         self.lastcompletedentry = ""
