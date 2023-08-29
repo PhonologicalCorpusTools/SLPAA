@@ -37,49 +37,6 @@ not_abbrev = "not abbreviated"
 c = True  # checked
 u = False  # unchecked
 
-
-
-# defaultMvmtDict = {
-#     ("No mvmt", fx, rb, u, 0): {},
-#     ("Mvmt type", fx, cb, u, 1): {
-#         (subgroup, None, 0, None, 2): {
-#             ("Mvmt type 1", fx, rb, u, 3): {},
-#             ("Mvmt type 2", fx, rb, u, 4): {},
-#         }
-#     },
-#     ("Joint activity type", fx, cb, u, 5): {
-#         (subgroup, None, 0, None, 6): {
-#             ("Joint act. type 1", fx, rb, u, 7): {},
-#             ("Joint act. type 2", fx, rb, u, 8): {},
-#         }
-#     }
-# }
-
-# mvmtOptionsDict = {
-#     ("No mvmt", fx, rb, u, 0): {},
-#     ("Mvmt type", fx, cb, u, 1): {
-#         (subgroup, None, 0, None, 2): {
-#             ("Mvmt type 1", fx, rb, u, 3): {},
-#             ("Mvmt type 3", fx, rb, u, 9): {},
-#         }
-#     },
-#     ("Joint activity type", fx, cb, u, 5): {
-#         (subgroup, None, 0, None, 6): {
-#             ("Joint act. type 1", fx, rb, u, 7): {},
-#             ("Joint act. type 2", fx, rb, u, 8): {},
-#         }
-#     },
-#     ("Mvmt chars", fx, cb, u, 10): {
-#         (subgroup, None, 0, None, 11): {
-#             ("Char 1", fx, rb, u, 12): {},
-#             ("Char 2", fx, rb, u, 13): {},
-#             ("Other", ed_3, rb, u, 14): {}
-#         }
-#     }
-# }
-
-
-
 class MvmtOptionsNode:
     # id MUST NOT change
     __slots__ = ['display_name','user_specifiability','button_type', 'tooltip', 'options', 'children', 'id']

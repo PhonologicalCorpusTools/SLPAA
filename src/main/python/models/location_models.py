@@ -42,14 +42,6 @@ nh = "nonhand"
 tongue = "tongue"
 heel = "heel of hand"
 
-# allow surface, subarea, and/or bone/joint specification?
-allow = True
-disallow = False
-
-# if surface, subarea, and/or bone/joint specification is allowed, are there any exceptions to which ones?
-no_exceptions = ()
-
-
 anterior = "Anterior"
 posterior = "Posterior"
 lateral = "Lateral"
@@ -82,239 +74,421 @@ tip = "Tip"
 dorsum = "Dorsum"
 blade = "Blade"
 
-surfaces_nonhand_default = [anterior, posterior, lateral, medial, top, bottom]
-subareas_nonhand_default = [contra_half, upper_half, whole, centre, lower_half, ipsi_half]
-subareas_tongue_default = [contra_half, whole, centre, ipsi_half, dorsum, blade, tip]
-surfaces_hand_default = [back, friction, radial, ulnar]
-surfaces_heelofhand = [back, friction, wrist, radial, ulnar]
-subareas_hand_default = [finger_side, wrist_side, radial_side, ulnar_side, centre]
-bonejoint_hand_default = [metacarpophalangeal_joint, proximal_bone, proximal_interphalangeal_joint,
-                         medial_bone, distal_interphalangeal_joint, distal_bone, tip]
+hand_surfaces = "default hand surfaces" # [back, friction, radial, ulnar]
+nonhand_surfaces = "default nonhand surfaces" # [anterior, posterior, lateral, medial, top, bottom]
+nonhand_surfaces_2 = "default except top, bottom" # [anterior, posterior, lateral, medial]
+heelofhand_surfaces = "default plus wrist" # [back, friction, wrist, radial, ulnar]
+
+tongue_subareas = "default plus dorsum, blade, tip" # [contra_half, whole, centre, ipsi_half, dorsum, blade, tip]
+nonhand_subareas =  "default nonhand subareas" # [contra_half, upper_half, whole, centre, lower_half, ipsi_half]
+nonhand_subareas_2 = "default minus contrahalf, ipsihalf" # [upper_half, whole, centre, lower_half]
+hand_subareas = "default hand subareas" # [finger_side, wrist_side, radial_side, ulnar_side, centre]
+hand_bonejoints = "default hand bones / joints" 
+# [metacarpophalangeal_joint, proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone, tip]
 
 surface_label = "Surface"
 subarea_label = "Sub-area"
 bonejoint_label = "Bone/joint"
 
+surface_lists = {
+    hand_surfaces: [back, friction, radial, ulnar],
+    nonhand_surfaces: [anterior, posterior, lateral, medial, top, bottom],
+    nonhand_surfaces_2: [anterior, posterior, lateral, medial],
+    heelofhand_surfaces: [back, friction, wrist, radial, ulnar]
+}
 
+subarea_lists = {
+    tongue_subareas: [contra_half, whole, centre, ipsi_half, dorsum, blade, tip],
+    nonhand_subareas: [contra_half, upper_half, whole, centre, lower_half, ipsi_half],
+    nonhand_subareas_2: [upper_half, whole, centre, lower_half],
+    hand_subareas: [finger_side, wrist_side, radial_side, ulnar_side, centre],
+    hand_bonejoints: [metacarpophalangeal_joint, proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone, tip]
+}
+
+
+class LocnOptionsNode:
+        # id MUST NOT change
+    # __slots__ = ['display_name','user_specifiability','button_type', 'location', 'surfaces','subareas', 'tooltip', 'options', 'children', 'id']
+    # if more params are needed, use self.options
+
+    def __init__(self, display_name="treeroot", user_specifiability=None, button_type=None, 
+                 location=None, surfaces=None, subareas=None, options=None, tooltip=None, children=None, id=-1):
+        self.display_name = display_name # specify if subgroup
+        self.user_specifiability = user_specifiability # ed_1, ed_2, ed_3, fx
+        self.button_type = button_type # rb, cb, or subgroup count
+        self.location = location # nh, hs, or hb
+        self._surfaces = surfaces
+        self._subareas = subareas
+        self.tooltip = tooltip
+        self.options = options
+        self.children = []
+        if children is not None:
+            for child in children:
+                self.insert_child(child)
+        self.id = id
+
+    @property
+    def surfaces(self):
+        if isinstance(self._surfaces, str):
+            return surface_lists[self._surfaces]
+        else:
+            return self._surfaces
+
+    @property
+    def subareas(self):
+        if isinstance(self._subareas, str):
+            return subarea_lists[self._subareas]
+        else:
+            return self._subareas
+
+    def __repr__(self):
+        repr = str(self.id) + ": " + self.display_name + '\n'
+        # repr = repr + "\n                    surfaces: " + str(self.surfaces) 
+        # repr = repr + "\n                   subareas: " + str(self.subareas)
+        return repr
+
+    def assign_ids(self, current_id):
+        logging.warn(self)
+        for child in self.children:
+            current_id = current_id + 1
+            child.id = current_id
+            current_id = child.assign_ids(current_id)
+        return current_id
+
+    def get_node_by_id(root, node_id): 
+        # searches from root
+        if root.id == node_id:
+            return root
+        else:
+            # logging.warn("searching children")
+            for child in root.children:
+                # logging.warn(str(child.id))
+                found = child.get_node_by_id(node_id)
+                if found is not None: return found
+
+    # search root's descendants for self's parent
+    def get_parent_node(root, node):
+        for child in root.children:
+            if child.id == node.id:
+                return root
+            else:
+                found = child.get_parent_node(node)
+                if found is not None: return found
+
+    def set_options(self): return
+
+    def edit_display_name(self, new_name): 
+        self.display_name = new_name
+
+    # user sets text restrictions??
+    def edit_user_specifiability(self, new_user_spec): 
+        self.user_specifiability = new_user_spec
+
+    def edit_button_type(self, new_button_type): 
+        self.button_type = new_button_type
+
+    def remove_node(root, node): 
+        parent = root.get_parent_node(node)
+        parent.children.remove(node)
+
+    def move_node(root, node, destination_node, position): 
+        # position can be left, right, child, or parent
+        # need an insert_parent method
+        return
+    
+    def insert_parent(root, node, new_parent):
+        current_parent = root.get_parent_node(node)
+        for i, child in enumerate(current_parent.children):
+            if child.id == node.id:
+                current_parent.children[i] = new_parent
+                new_parent.children.append(node)
+                return
+
+    # "node" should already have been assigned new ID
+    def insert_sibling_left(root, node, new_sibling): 
+        parent = root.get_parent_node(node)
+        for i, child in enumerate(parent.children):
+            if node.id ==  child.id:
+                parent.children.insert(i, new_sibling)
+                return
+
+    def insert_sibling_right(root, node, new_sibling): 
+        parent = root.get_parent_node(node)
+        for i, child in enumerate(parent.children):
+            if node.id ==  child.id:
+                parent.children.insert(i+1, new_sibling)
+                return
+
+    def insert_child(self, node):
+        self.children.append(node)
 
 # TODO KV these should go into constant.py... or something similar
+locn_options_hand = LocnOptionsNode("hand_options_root", children=[
+    LocnOptionsNode("Other hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
+        LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas),
+        LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+        LocnOptionsNode("Fingers and thumb", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+            LocnOptionsNode("Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+            LocnOptionsNode("Fingers", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 1", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 2", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            ]),
+            LocnOptionsNode("Between fingers", fx, rb, hb, [back, friction], None, children=[
+                LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, [back, friction], None),
+                LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, [back, friction], None),
+                LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, [back, friction], None),
+                LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, [back, friction], None),
+            ]),
+            LocnOptionsNode("Selected fingers and Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
+                LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            ])
+        ])
+    ])
+])
+
+locn_options_arm = LocnOptionsNode("arm_options_root", children=[
+    LocnOptionsNode("Arm", fx, rb, nh, nonhand_surfaces_2, None, children=[
+        LocnOptionsNode("Arm - contra", fx, rb, nh, nonhand_surfaces_2, None),
+        LocnOptionsNode("Arm - ipsi", fx, rb, nh, nonhand_surfaces_2, None),
+        LocnOptionsNode("Upper arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Upper arm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Upper arm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Upper arm above biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+                LocnOptionsNode("Upper arm above biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+                LocnOptionsNode("Upper arm above biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            ]),
+            LocnOptionsNode("Biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+                LocnOptionsNode("Biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+                LocnOptionsNode("Biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+            ]),
+        ]),
+        LocnOptionsNode("Elbow", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Elbow - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Elbow - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        ]),
+        LocnOptionsNode("Forearm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Forearm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Forearm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        ]),
+        LocnOptionsNode("Wrist", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Wrist - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Wrist - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+        ]),
+    ])
+])
+
+locn_options_leg = LocnOptionsNode("leg_options_root", children=[
+    LocnOptionsNode("Leg and foot", fx, rb, nh, nonhand_surfaces, nonhand_subareas_2, children=[
+        LocnOptionsNode("Leg and foot - contra", fx, rb, nh, nonhand_surfaces, nonhand_subareas),
+        LocnOptionsNode("Leg and foot - ipsi", fx, rb, nh, nonhand_surfaces, nonhand_subareas),
+        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+        ]),
+        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+        ]),
+        LocnOptionsNode("Knee", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Knee - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Knee - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+        ]),
+        LocnOptionsNode("Lower leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Lower leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Lower leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+        ]),
+        LocnOptionsNode("Ankle", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Ankle - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Ankle - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+        ]),
+        LocnOptionsNode("Foot", fx, rb, nh, nonhand_surfaces, nonhand_subareas_2, children=[
+            LocnOptionsNode("Foot - contra", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half]),
+            LocnOptionsNode("Foot - ipsi", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half])
+        ])
+    ])
+])
+
+locn_options_body = LocnOptionsNode("body_options_root", children=[
+    LocnOptionsNode("Head", fx, rb, nh, None, nonhand_subareas, children=[
+        LocnOptionsNode("Back of head", fx, rb, nh, None, nonhand_subareas),
+        LocnOptionsNode("Top of head", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half]),
+        LocnOptionsNode("Side of face", fx, rb, nh, None, nonhand_subareas_2, children=[
+            LocnOptionsNode("Side of face - contra", fx, rb, nh, None, nonhand_subareas_2),
+            LocnOptionsNode("Side of face - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+        ]),
+        LocnOptionsNode("Face", fx, rb, nh, None, nonhand_subareas, children=[
+            LocnOptionsNode("Forehead region", fx, rb, nh, None, nonhand_subareas, children=[
+                LocnOptionsNode("Temple", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Temple - contra", fx, rb, nh, None, nonhand_subareas_2),
+                    LocnOptionsNode("Temple - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+                ]),
+                LocnOptionsNode("Above forehead (hairline)", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half]),
+                LocnOptionsNode("Forehead", fx, rb, nh, None, nonhand_subareas)
+            ]),
+            LocnOptionsNode("Eye region", fx, rb, nh, None, nonhand_subareas, children=[
+                LocnOptionsNode("Eyebrow", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Eyebrow - contra", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Eyebrow - ipsi", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Between eyebrows", fx, rb, nh, None, nonhand_subareas)
+                ]),
+                LocnOptionsNode("Eye", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Eye - contra", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Eye - ipsi", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Outer corner of eye", fx, rb, nh, None, nonhand_subareas_2, children=[
+                        LocnOptionsNode("Outer corner of eye - contra", fx, rb, nh, None, None),
+                        LocnOptionsNode("Outer corner of eye - ipsi", fx, rb, nh, None, None)
+                    ]),
+                    LocnOptionsNode("Eyelid", fx, rb, nh, None, nonhand_subareas, children=[
+                        LocnOptionsNode("Upper eyelid", fx, rb, nh, None, nonhand_subareas_2, children=[
+                            LocnOptionsNode("Upper eyelid - contra", fx, rb, nh, None, nonhand_subareas),
+                            LocnOptionsNode("Upper eyelid - ipsi", fx, rb, nh, None, nonhand_subareas)
+                        ]),
+                        LocnOptionsNode("Lower eyelid", fx, rb, nh, None, nonhand_subareas_2, children=[
+                            LocnOptionsNode("Lower eyelid - contra", fx, rb, nh, None, nonhand_subareas),
+                            LocnOptionsNode("Lower eyelid - ipsi", fx, rb, nh, None, nonhand_subareas)
+                        ])
+                    ])
+                ])
+            ]),
+            LocnOptionsNode("Cheek/nose", fx, rb, nh, None, nonhand_subareas, children=[
+                LocnOptionsNode("Cheek", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Cheek - contra", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Cheek - ipsi", fx, rb, nh, None, nonhand_subareas)
+                ]),
+                LocnOptionsNode("Cheekbone under eye", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Cheekbone under eye - contra", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Cheekbone under eye - ipsi", fx, rb, nh, None, nonhand_subareas)
+                ]),
+                LocnOptionsNode("Cheekbone in front of ear", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Cheekbone in front of ear - contra", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Cheekbone in front of ear - ipsi", fx, rb, nh, None, nonhand_subareas)
+                ]),
+                LocnOptionsNode("Nose", fx, rb, nh, None, nonhand_subareas, children=[
+                    LocnOptionsNode("Nose root", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Nose ridge", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Nose tip", fx, rb, nh, None, nonhand_subareas),  # TODO KV resolve question mark from locations spreadsheet
+                    LocnOptionsNode("Septum / nostril area", fx, rb, nh, None, nonhand_subareas, children=[
+                        LocnOptionsNode("Septum", fx, rb, nh, None, nonhand_subareas_2),
+                        LocnOptionsNode("Nostrils", fx, rb, nh, None, nonhand_subareas_2, children=[
+                            LocnOptionsNode("Nostril - contra", fx, rb, nh, None, nonhand_subareas),
+                            LocnOptionsNode("Nostril - ipsi", fx, rb, nh, None, nonhand_subareas)
+                        ])
+                    ])
+                ])
+            ]),
+            LocnOptionsNode("Below nose / philtrum", fx, rb, nh, None, nonhand_subareas),
+            LocnOptionsNode("Mouth", fx, rb, nh, None, nonhand_subareas, children=[
+                LocnOptionsNode("Lips", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half], children=[
+                    LocnOptionsNode("Upper lip", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Lower lip", fx, rb, nh, None, nonhand_subareas)
+                ]),
+                LocnOptionsNode("Corner of mouth - contra", fx, rb, nh, None, None),
+                LocnOptionsNode("Corner of mouth - ipsi", fx, rb, nh, None, None),
+                LocnOptionsNode("Teeth", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half], children=[
+                    LocnOptionsNode("Upper teeth", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Lower teeth", fx, rb, nh, None, nonhand_subareas)
+                ]),
+                LocnOptionsNode("Tongue", fx, rb, nh, [anterior, top, bottom], tongue_subareas),  # TODO KV resolve question mark from locations spreadsheet
+            ]),
+            LocnOptionsNode("Ear", fx, rb, nh, None, nonhand_subareas_2, children=[
+                LocnOptionsNode("Ear - contra", fx, rb, nh, None, nonhand_subareas_2),
+                LocnOptionsNode("Ear - ipsi", fx, rb, nh, None, nonhand_subareas_2),
+                LocnOptionsNode("Behind ear", fx, rb, nh, None, nonhand_subareas_2, children=[ # was mastoid process
+                    LocnOptionsNode("Behind ear - contra", fx, rb, nh, None, nonhand_subareas_2),
+                    LocnOptionsNode("Behind ear - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+                ]),
+                LocnOptionsNode("Earlobe", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Earlobe - contra", fx, rb, nh, None, nonhand_subareas_2),
+                    LocnOptionsNode("Earlobe - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+                ])
+            ]),
+            LocnOptionsNode("Jaw", fx, rb, nh, None, nonhand_subareas_2, children=[
+                LocnOptionsNode("Jaw - contra", fx, rb, nh, None, nonhand_subareas_2),
+                LocnOptionsNode("Jaw - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+            ]),
+            LocnOptionsNode("Chin", fx, rb, nh, None, nonhand_subareas),
+            LocnOptionsNode("Under chin", fx, rb, nh, None, None)
+        ]),
+    ]),
+    LocnOptionsNode("Neck", fx, rb, nh, [anterior, posterior], nonhand_subareas),  # TODO KV resolve question mark from locations spreadsheet
+    LocnOptionsNode("Torso", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas, children=[
+        LocnOptionsNode("Upper torso", fx, rb, nh, None, None, children=[
+            LocnOptionsNode("Shoulder", fx, rb, nh, [anterior, posterior, lateral, top], nonhand_subareas_2, children=[
+                LocnOptionsNode("Shoulder - contra", fx, rb, nh, [anterior, posterior, lateral, top], nonhand_subareas),
+                LocnOptionsNode("Shoulder - ipsi", fx, rb, nh, [anterior, posterior, lateral, top], nonhand_subareas)
+            ]),
+            LocnOptionsNode("Armpit", fx, rb, nh, None, None, children=[
+                LocnOptionsNode("Armpit - contra", fx, rb, nh, None, None),
+                LocnOptionsNode("Armpit - ipsi", fx, rb, nh, None, None)
+            ]),
+            LocnOptionsNode("Sternum/clavicle area", fx, rb, nh, None, nonhand_subareas),
+            LocnOptionsNode("Chest/breast area", fx, rb, nh, None, nonhand_subareas),
+        ]),
+        LocnOptionsNode("Lower torso", fx, rb, nh, None, None, children=[
+            LocnOptionsNode("Pelvis area", fx, rb, nh, None, nonhand_subareas),
+            LocnOptionsNode("Hip", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas_2, children=[
+                LocnOptionsNode("Hip - contra", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas),
+                LocnOptionsNode("Hip - ipsi", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas)
+            ]),
+            LocnOptionsNode("Groin", fx, rb, nh, None, nonhand_subareas),  # TODO KV resolve question mark from locations spreadsheet
+            LocnOptionsNode("Buttocks", fx, rb, nh, None, nonhand_subareas_2, children=[
+                LocnOptionsNode("Buttocks - contra", fx, rb, nh, None, nonhand_subareas),
+                LocnOptionsNode("Buttocks - ipsi", fx, rb, nh, None, nonhand_subareas)
+            ])
+        ]),
+        LocnOptionsNode("Abdominal/waist area", fx, rb, nh, None, nonhand_subareas),
+
+    ]),
+])
+
+locn_options_body.insert_child(locn_options_arm)
+locn_options_body.insert_child(locn_options_leg)
+locn_options_body.insert_child(locn_options_hand)
+
+locn_options_body.assign_ids(-1)
+
+
 
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
-# TODO KV - check specific exceptions etc for each subarea & surface
 # unless we're going to reference the same code (as for movement) for building the tree & list models
-# tuple elements are:
-#   name, editability, mutual exclusivity, checked/unchecked, hand/nonhand location,
-#   allow surfaces?, relevant exceptions to list of surfaces,
-#   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
-locn_options_hand = {
-    ("Hand minus fingers", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
-    ("Heel of hand", fx, rb, u, heel, allow, no_exceptions, allow, no_exceptions): {},
-    ("Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
-    ("Fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Selected fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Selected fingers and Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
-    ("Finger 1", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Finger 2", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Finger 3", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Finger 4", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Between Thumb and Finger 1", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-    ("Between Fingers 1 and 2", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-    ("Between Fingers 2 and 3", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-    ("Between Fingers 3 and 4", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-}
-locn_options_arm = {
-    ("Arm (contralateral)", fx, rb, u, nh, allow, (top, bottom), disallow, no_exceptions): {
-        ("Upper arm", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Upper arm above biceps", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
-            ("Biceps", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
-        },
-        ("Elbow", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
-        ("Forearm", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {},
-        ("Wrist", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {}
-    }
-}
-locn_options_leg = {
-    ("Legs and feet", fx, rb, u, nh, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
-        ("Upper leg", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Upper leg - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Upper leg - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Knee", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Knee - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Knee - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Lower leg", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Lower leg - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Lower leg - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Ankle", fx, rb, u, nh, allow, (top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Ankle - contra", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {},
-            ("Ankle - ipsi", fx, rb, u, nh, allow, (top, bottom), allow, no_exceptions): {}
-        },
-        ("Foot", fx, rb, u, nh, allow, no_exceptions, allow, (contra_half, ipsi_half)): {
-            ("Foot - contra", fx, rb, u, nh, allow, no_exceptions, allow, (upper_half, lower_half)): {},
-            ("Foot - ipsi", fx, rb, u, nh, allow, no_exceptions, allow, (upper_half, lower_half)): {}
-        }
-    }
-}
-locn_options_body = {
-    ("Head", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {
-        ("Back of head", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-        ("Top of head", fx, rb, u, nh, disallow, no_exceptions, allow, (upper_half, lower_half)): {},
-        ("Side of face", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-            ("Side of face - contra", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
-            ("Side of face - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
-        },
-        ("Face", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {
-            ("Temple", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                ("Temple - contra", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
-                ("Temple - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
-            },
-            ("Above forehead (hairline)", fx, rb, u, nh, disallow, no_exceptions, allow, (upper_half, lower_half)): {},
-            ("Forehead", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-            ("Eyebrow", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                ("Eyebrow - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                ("Eyebrow - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                ("Between eyebrows", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-            },
-            ("Eye", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                ("Eye - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                ("Eye - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                ("Outer corner of eye", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Outer corner of eye - contra", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {},
-                    ("Outer corner of eye - ipsi", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {}
-                },
-                ("Upper eyelid", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Upper eyelid - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Upper eyelid - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-                },
-                ("Lower eyelid", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Lower eyelid - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Lower eyelid - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-                }
-            },
-            ("Cheek/nose", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {
-                ("Cheek", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Cheek - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Cheek - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-                },
-                ("Cheekbone under eye", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Cheekbone under eye - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Cheekbone under eye - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-                },
-                ("Cheekbone in front of ear", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Cheekbone in front of ear - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Cheekbone in front of ear - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-                },
-                ("Nose", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {
-                    ("Nose root", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Nose ridge", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Nose tip", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
-                    ("Septum", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
-                }
-            },
-            ("Below nose / philtrum", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-            ("Mouth", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {
-                ("Lips", fx, rb, u, nh, disallow, no_exceptions, allow, (upper_half, lower_half)): {
-                    ("Upper lip", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Lower lip", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-                },
-                ("Corner of mouth - contra", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {},
-                ("Corner of mouth - ipsi", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {},
-                ("Teeth", fx, rb, u, nh, disallow, no_exceptions, allow, (upper_half, lower_half)): {
-                    ("Upper teeth", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-                    ("Lower teeth", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-                },
-                ("Tongue", fx, rb, u, tongue, allow, tuple([s for s in surfaces_nonhand_default if s not in [anterior, top, bottom]]), 
-                 allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
-            },
-            ("Ear", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                ("Ear - contra", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
-                ("Ear - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
-                ("Mastoid process", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Mastoid process - contra", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
-                    ("Mastoid process - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
-                },
-                ("Earlobe", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                    ("Earlobe - contra", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
-                    ("Earlobe - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
-                }
-            },
-            ("Jaw", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-                ("Jaw - contra", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {},
-                ("Jaw - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {}
-            },
-            ("Chin", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-            ("Under chin", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {}
-        },
-    },
-    ("Neck", fx, rb, u, nh, allow, tuple([s for s in surfaces_nonhand_default if s not in [anterior, posterior]]), allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
-    ("Torso", fx, rb, u, nh, allow, (medial, top, bottom), allow, no_exceptions): {
-        ("Shoulder", fx, rb, u, nh, allow, (medial, bottom), allow, (contra_half, ipsi_half)): {
-            ("Shoulder - contra", fx, rb, u, nh, allow, (medial, bottom), allow, no_exceptions): {},
-            ("Shoulder - ipsi", fx, rb, u, nh, allow, (medial, bottom), allow, no_exceptions): {}
-        },
-        ("Armpit", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {
-            ("Armpit - contra", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {},
-            ("Armpit - ipsi", fx, rb, u, nh, disallow, no_exceptions, disallow, no_exceptions): {}
-        },
-        ("Sternum/clavicle area", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-        ("Chest/breast area", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-        ("Abdominal/waist area", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-        ("Pelvis area", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-        ("Hip", fx, rb, u, nh, allow, (medial, top, bottom), allow, (contra_half, ipsi_half)): {
-            ("Hip - contra", fx, rb, u, nh, allow, (medial, top, bottom), allow, no_exceptions): {},
-            ("Hip - ipsi", fx, rb, u, nh, allow, (medial, top, bottom), allow, no_exceptions): {}
-        },
-        ("Groin", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},  # TODO KV resolve question mark from locations spreadsheet
-        ("Buttocks", fx, rb, u, nh, disallow, no_exceptions, allow, (contra_half, ipsi_half)): {
-            ("Buttocks - contra", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {},
-            ("Buttocks - ipsi", fx, rb, u, nh, disallow, no_exceptions, allow, no_exceptions): {}
-        }
-    },
-}
-locn_options_body.update(locn_options_arm)
-locn_options_body.update(locn_options_leg)
-locn_options_body.update({("Other hand", fx, rb, u, hb, allow, no_exceptions, disallow, no_exceptions): locn_options_hand})
-
-# TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
-# unless we're going to reference the same code (as for movement) for building the tree & list models
-# tuple elements are:
-#   name, editability, mutual exclusivity, checked/unchecked, hand/nonhand location,
-#   allow surfaces?, relevant exceptions to list of surfaces,
-#   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
-locn_options_purelyspatial = {
-    ("Horizontal axis", fx, cb, u, None, None, None, None, None): {
-        ("Ipsi", fx, rb, u, None, None, None, None, None): {
-            ("Far", fx, rb, u, None, None, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None, None, None): {},
-        },
-        ("Central", fx, rb, u, None, None, None, None, None): {},
-        ("Contra", fx, rb, u, None, None, None, None, None): {
-            ("Far", fx, rb, u, None, None, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None, None, None): {},
-        },
-    },
-    ("Vertical axis", fx, cb, u, None, None, None, None, None): {
-        ("High", fx, rb, u, None, None, None, None, None): {},
-        ("Mid", fx, rb, u, None, None, None, None, None): {},
-        ("Low", fx, rb, u, None, None, None, None, None): {},
-    },
-    ("Sagittal axis", fx, cb, u, None, None, None, None, None): {
-        ("In front", fx, rb, u, None, None, None, None, None): {
-            ("Far", fx, rb, u, None, None, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None, None, None): {},
-        },
-        ("Behind", fx, rb, u, None, None, None, None, None): {
-            ("Far", fx, rb, u, None, None, None, None, None): {},
-            ("Med.", fx, rb, u, None, None, None, None, None): {},
-            ("Close", fx, rb, u, None, None, None, None, None): {},
-        },
-    },
-}
+# attributes are:
+#   name, editability, mutual exclusivity, hand/nonhand location,
+#   surfaces, subareas/bone-joints, tooltip, children
+locn_options_purelyspatial = LocnOptionsNode("purelyspatial_options_root", children=[
+    LocnOptionsNode("Default neutral space", fx, cb, tooltip="neutral"),
+    LocnOptionsNode("Horizontal axis", fx, cb, tooltip="hor", children=[
+        LocnOptionsNode("Ipsi", fx, rb, tooltip="[ipsi]", children=[
+            LocnOptionsNode("Far", fx, rb, tooltip="[far]"),
+            LocnOptionsNode("Med.", fx, rb, tooltip="[med]"),
+            LocnOptionsNode("Close", fx, rb, tooltip="[close]"),
+        ]),
+        LocnOptionsNode("Central", fx, rb, tooltip="[central]"),
+        LocnOptionsNode("Contra", fx, rb, tooltip="[contra]", children=[
+            LocnOptionsNode("Far", fx, rb, tooltip="[far]"),
+            LocnOptionsNode("Med.", fx, rb, tooltip="[med]"),
+            LocnOptionsNode("Close", fx, rb, tooltip="[close]"),
+        ]),
+    ]),
+    LocnOptionsNode("Vertical axis", fx, cb, tooltip="ver", children=[
+        LocnOptionsNode("High", fx, rb, tooltip="[high]"),
+        LocnOptionsNode("Mid", fx, rb, tooltip="[mid]"),
+        LocnOptionsNode("Low", fx, rb, tooltip="[low]"),
+    ]),
+    LocnOptionsNode("Sagittal axis", fx, cb, "sag", children=[
+        LocnOptionsNode("In front", fx, rb, "[front]", children=[
+            LocnOptionsNode("Far", fx, rb, tooltip="[far]"),
+            LocnOptionsNode("Med.", fx, rb, tooltip="[med]"),
+            LocnOptionsNode("Close", fx, rb, tooltip="[close]"),
+        ]),
+        LocnOptionsNode("Behind", fx, rb, children=[
+            LocnOptionsNode("Far", fx, rb, tooltip="[far]"),
+            LocnOptionsNode("Med.", fx, rb, tooltip="[med]"),
+            LocnOptionsNode("Close", fx, rb, tooltip="[close]"),
+        ]),
+    ]),
+])
 
 
 class LocationTreeModel(QStandardItemModel):
@@ -421,52 +595,49 @@ class LocationTreeModel(QStandardItemModel):
             # (3) it was force-unchecked as a result of ME/sibling interaction
             item.uncheck(force=False)
 
-    def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
-        if structure == {} and pathsofar != "":
+    # TODO pass in optionsnode (options structure) 
+    def populate(self, parentnode, optionsnode=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+        if optionsnode.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
-        elif structure == {} and pathsofar == "":
-            # no parameters; build a tree from the default structure
-            # TODO KV define a default structure somewhere (see constant.py)
+        elif optionsnode.children == [] and pathsofar == "":
+            # no parameters; build a tree from the default options structure
             if self._locationtype.usesbodylocations():
-                self.populate(parentnode, structure=locn_options_body, pathsofar="")
+                self.populate(parentnode, optionsnode=locn_options_body, pathsofar="")
             elif self._locationtype.purelyspatial:
-                self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
-        elif structure != {}:
+                self.populate(parentnode, optionsnode=locn_options_purelyspatial, pathsofar="")
+        elif optionsnode.children != []:
             # internal node with substructure
-            numentriesatthislevel = len(structure.keys())
-            for idx, labelclassifierchecked_tuple in enumerate(structure.keys()):
-                label = labelclassifierchecked_tuple[0]
-                editable = labelclassifierchecked_tuple[1]
-                classifier = labelclassifierchecked_tuple[2]
-                checked = labelclassifierchecked_tuple[3]
-                ishandloc = labelclassifierchecked_tuple[4]
-                allowsurfacespec = labelclassifierchecked_tuple[5]
-                surface_exceptions = labelclassifierchecked_tuple[6]
-                allowsubareaspec = labelclassifierchecked_tuple[7]  # sub area or bone/joint
-                subarea_exceptions = labelclassifierchecked_tuple[8]
-                ismutuallyexclusive = classifier == rb
-                iseditable = editable == ed
-                if label == subgroup:
+            numentriesatthislevel = len(optionsnode.children)
+            for idx, child in enumerate(optionsnode.children):
 
+                label = child.display_name
+                ismutuallyexclusive = child.button_type == rb
+                iseditable = child.user_specifiability == ed
+                ishandloc = child.location
+                surfaces = child.surfaces
+                subareas = child.subareas
+
+                if label == subgroup:
                     # make the tree items in the subgroup and whatever nested structure they have
                     isfinal = False
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, structure=structure[labelclassifierchecked_tuple], pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, subgroupname=subgroup + "_" + pathsofar + "_" + (str(classifier)))
+                    self.populate(parentnode, optionsnode=child, pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, 
+                                  subgroupname=subgroup + "_" + pathsofar + "_" + (str(child.button_type)))
 
                 else:
-                    thistreenode = LocationTreeItem(label, ishandloc=ishandloc, allowsurfacespec=allowsurfacespec, allowsubareaspec=allowsubareaspec, mutuallyexclusive=ismutuallyexclusive, surface_exceptions=surface_exceptions, subarea_exceptions=subarea_exceptions)
+                    thistreenode = LocationTreeItem(label, mutuallyexclusive=ismutuallyexclusive, ishandloc=ishandloc, surfaces=surfaces, subareas=subareas)
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole+udr.pathdisplayrole)
                     thistreenode.setEditable(iseditable)
-                    thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
+                    thistreenode.setCheckState(Qt.Unchecked)
                     if issubgroup:
                         thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole+udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole+udr.finalsubgrouprole)
-                    self.populate(thistreenode, structure=structure[labelclassifierchecked_tuple], pathsofar=pathsofar + label + delimiter)
+                    self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar + label + delimiter)
                     parentnode.appendRow([thistreenode])
 
     @property
@@ -549,8 +720,8 @@ class LocationListModel(QStandardItemModel):
 # This class stores specific details about body locations; e.g. surfaces and/or subareas involved
 class LocationTableModel(QAbstractTableModel):
 
-    def __init__(self, loctext="", ishandloc=nh, allowsurfacespec=True, allowsubareaspec=True,  # ishandloc used to be only False (==0) / True (==1)
-                 serializedtablemodel=None, surface_exceptions=None, subarea_exceptions=None, **kwargs):
+    def __init__(self, loctext="", ishandloc=nh, surfaces=None, subareas=None,  # ishandloc used to be only False (==0) / True (==1)
+                 serializedtablemodel=None, **kwargs):
         super().__init__(**kwargs)
 
         # create a brand new (empty) details table
@@ -565,21 +736,15 @@ class LocationTableModel(QAbstractTableModel):
             # either no name (can't be a new location) or no serial input (can't be an existing location)
             # so... no location info yet!
             return
-
-        if allowsurfacespec is not None and allowsurfacespec:
+        
+        if surfaces is not None:
             self.col_labels[0] = surface_label
-            if surface_exceptions is None:
-                surface_exceptions = []
-            col_texts = surfaces_hand_default if ishandloc in [hs, hb] else surfaces_heelofhand if ishandloc == heel else surfaces_nonhand_default
-            col_texts = [t for t in col_texts if t not in surface_exceptions]
+            col_texts = surfaces
             self.col_contents[0] = [[txt, False] for txt in col_texts]
 
-        if allowsubareaspec is not None and allowsubareaspec:
+        if subareas is not None:
             self.col_labels[1] = bonejoint_label if ishandloc == hb else subarea_label
-            if subarea_exceptions is None:
-                subarea_exceptions = []
-            col_texts = subareas_nonhand_default if ishandloc == nh else (bonejoint_hand_default if ishandloc == hb else subareas_tongue_default if ishandloc == tongue else subareas_hand_default)
-            col_texts = [t for t in col_texts if t not in subarea_exceptions]
+            col_texts = subareas
             self.col_contents[1] = [[txt, False] for txt in col_texts]
 
         if serializedtablemodel is not None:  # populate with specific info from saved table
@@ -742,8 +907,7 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
 class LocationTreeItem(QStandardItem):
 
     def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=nh,
-                 allowsurfacespec=True, allowsubareaspec=True, addedinfo=None,
-                 surface_exceptions=None, subarea_exceptions=None, serializedlocntreeitem=None):
+                 surfaces=None, subareas=None, addedinfo=None, serializedlocntreeitem=None):
         super().__init__()
 
         if serializedlocntreeitem:
@@ -778,10 +942,8 @@ class LocationTreeItem(QStandardItem):
             self.detailstable = LocationTableModel(
                 loctext=txt,
                 ishandloc=ishandloc,
-                allowsurfacespec=allowsurfacespec,
-                allowsubareaspec=allowsubareaspec,
-                surface_exceptions=surface_exceptions,
-                subarea_exceptions=subarea_exceptions
+                surfaces=surfaces,
+                subareas=subareas
             )
 
             if mutuallyexclusive:
