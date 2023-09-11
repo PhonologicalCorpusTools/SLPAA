@@ -37,9 +37,11 @@ not_abbrev = "not abbreviated"
 c = True  # checked
 u = False  # unchecked
 
+MvmtOptionsByID = [] 
+
 class MvmtOptionsNode:
     # id MUST NOT change
-    __slots__ = ['display_name','user_specifiability','button_type', 'tooltip', 'options', 'children', 'id']
+    # __slots__ = ['display_name','user_specifiability','button_type', 'tooltip', 'options', 'children', 'id']
     # if more params are needed, use self.options
 
     def __init__(self, display_name="treeroot", user_specifiability=None, 
@@ -54,15 +56,17 @@ class MvmtOptionsNode:
             for child in children:
                 self.insert_child(child)
         self.id = id
+        self.assign_ids(-1)
 
     def __repr__(self):
         return str(self.id) + ": " + self.display_name
     
     def assign_ids(self, current_id):
-        logging.warn(self)
+        # logging.warn(self)
         for child in self.children:
             current_id = current_id + 1
             child.id = current_id
+            MvmtOptionsByID.append(child)
             current_id = child.assign_ids(current_id)
         return current_id
 
@@ -137,7 +141,6 @@ class MvmtOptionsNode:
     def insert_child(self, node):
         self.children.append(node)
         
-
 # defaultMvmtTree = MvmtOptionsNode(children=[
 #     MvmtOptionsNode("No movement", fx, rb, "tooltip"),
 #     MvmtOptionsNode("Movement type", fx, cb, "tooltip", children=[
@@ -251,10 +254,10 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                     MvmtOptionsNode("Supination", fx, rb, "supination"),  # TODO KV autofills to Proximal radioulnar supination
                 ])
             ]),
-            MvmtOptionsNode("Fully rotating", fx, rb, "", children=[
+            MvmtOptionsNode("Fully rotating", fx, rb, "Full rotation", children=[
                 MvmtOptionsNode(subgroup, button_type=0, children=[
-                    MvmtOptionsNode("Ulnar → nodding → supination → radial → un-nodding", fx, rb, ""),
-                    MvmtOptionsNode("Radial → nodding → pronation → ulnar → un-nodding", fx, rb, ""),
+                    MvmtOptionsNode("Ulnar → nodding → supination → radial → un-nodding", fx, rb, "ulnar → nodding"),
+                    MvmtOptionsNode("Radial → nodding → pronation → ulnar → un-nodding", fx, rb, "radial → nodding"),
                 ])
             ]),
             MvmtOptionsNode("Closing/Opening", fx, rb, "Close/Open", children=[
@@ -288,9 +291,24 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                 ])
             ]),
             MvmtOptionsNode("Rubbing", fx, rb, "Rub", children=[
-                MvmtOptionsNode(subgroup, button_type=0, children=[
-                    MvmtOptionsNode("Thumb crossing over palm", fx, rb, ""),  # TODO KV autofills to TBD
-                    MvmtOptionsNode("Thumb moving away from palm", fx, rb, ""),  # TODO KV autofills to TBD
+                MvmtOptionsNode("Rubbing articulator(s):", fx, rb, "", children=[
+                    MvmtOptionsNode("Thumb", fx, cb, ""),
+                    MvmtOptionsNode("Finger(s)", fx, cb, ""),
+                    MvmtOptionsNode("Other", ed_3, cb, custom_abbrev)
+                ]),
+                MvmtOptionsNode("Location:", fx, rb, "", children=[
+                    MvmtOptionsNode("Thumb", fx, rb, ""),
+                    MvmtOptionsNode("Finger(s)", fx, rb, ""),
+                    MvmtOptionsNode("Palm", fx, rb, ""),
+                    MvmtOptionsNode("Other", ed_3, cb, custom_abbrev)
+                ]),
+                MvmtOptionsNode("Across", fx, cb, "", children=[
+                    MvmtOptionsNode("to radial side", fx, rb, ""),
+                    MvmtOptionsNode("to ulnar side", fx, rb, ""),
+                ]),
+                MvmtOptionsNode("Along", fx, cb, "", children=[
+                    MvmtOptionsNode("to fingertip end", fx, rb, ""),
+                    MvmtOptionsNode("to base end", fx, rb, ""),
                 ])
             ]),
             MvmtOptionsNode("Wiggling/Fluttering", fx, rb, "Wiggle"),  # TODO KV autofills to both flexion and extension of selected finger base joints
@@ -653,8 +671,9 @@ defaultMvmtTree = MvmtOptionsNode(children=[
 
 ])
 
+# defaultMvmtTree.assign_ids(-1)
 
-
+'''
 # testing
 mvmtTree = defaultMvmtTree 
 max_id = mvmtTree.assign_ids(-1)
@@ -682,13 +701,13 @@ mvmtTree.insert_sibling_right(node51, siblingright)
 mvmtTree.remove_node(node51)
 
 mvmtTree.insert_parent(siblingleft, newparent)
-
+'''
 
 
 
 class MovementTreeItem(QStandardItem):
 
-    def __init__(self, txt="", listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
+    def __init__(self, txt="", nodeID=-1, listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
         super().__init__()
 
         self.setEditable(False)
@@ -705,6 +724,7 @@ class MovementTreeItem(QStandardItem):
             self.setData(serializedmvmtitem['mutuallyexclusiverole'], Qt.UserRole+udr.mutuallyexclusiverole)
             self.setData(serializedmvmtitem['displayrole'], Qt.DisplayRole)
             self._addedinfo = serializedmvmtitem['addedinfo']
+            self._nodeID = serializedmvmtitem['nodeID']
             self.listitem = MovementListItem(serializedlistitem=serializedmvmtitem['listitem'])
             self.listitem.treeitem = self
         else:
@@ -717,6 +737,7 @@ class MovementTreeItem(QStandardItem):
             self.setData(fx, Qt.UserRole+udr.isuserspecifiablerole)
             self.setData("", Qt.UserRole+udr.userspecifiedvaluerole)
             self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+            self._nodeID = nodeID
 
             if mutuallyexclusive:
                 self.setData(True, Qt.UserRole+udr.mutuallyexclusiverole)
@@ -750,7 +771,7 @@ class MovementTreeItem(QStandardItem):
             'isuserspecifiablerole': self.data(Qt.UserRole+udr.isuserspecifiablerole),
             'userspecifiedvaluerole': self.data(Qt.UserRole+udr.userspecifiedvaluerole),
             'addedinfo': self._addedinfo,
-            'nodetypeID': self._nodetypeID
+            'nodeID': self._nodeID
             # 'listitem': self.listitem.serialize()  # TODO KV why not? the constructor uses it...
         }
 
@@ -765,13 +786,14 @@ class MovementTreeItem(QStandardItem):
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
+    # GZ was nodetypeID, don't think it was used anywhere
     @property
-    def nodetypeID(self):
-        return self._nodetypeID
+    def nodeID(self):
+        return self._nodeID
 
-    @nodetypeID.setter
-    def nodetypeID(self, nodetypeID):
-        self._nodetypeID = nodetypeID if nodetypeID is not None else -1
+    @nodeID.setter
+    def nodeID(self, nodeID):
+        self._nodeID = nodeID if nodeID is not None else -1
 
     def setEnabledRecursive(self, enable):
         self.setEnabled(enable)
@@ -890,9 +912,9 @@ class MovementTreeItem(QStandardItem):
 
 class MovementListItem(QStandardItem):
 
-    def __init__(self, pathtxt="", nodetxt="", treeit=None, serializedlistitem=None):
+    def __init__(self, pathtxt="", nodetxt="", nodeID=-1, treeit=None, serializedlistitem=None):
         super().__init__()
-
+        self.nodeID = nodeID
         if serializedlistitem:
             self.setEditable(serializedlistitem['editable'])
             self.setText(serializedlistitem['text'])
@@ -985,7 +1007,8 @@ class MovementListModel(QStandardItemModel):
             if treechild is not None:
                 pathtext = treechild.data(role=Qt.UserRole+udr.pathdisplayrole)
                 nodetext = treechild.data(Qt.DisplayRole)
-                listitem = MovementListItem(pathtxt=pathtext, nodetxt=nodetext, treeit=treechild)  # also sets treeitem's listitem
+                nodeID = treechild.nodeID
+                listitem = MovementListItem(pathtxt=pathtext, nodetxt=nodetext, nodeID=nodeID, treeit=treechild)  # also sets treeitem's listitem
                 self.appendRow(listitem)
                 self.populate(treechild)
 
@@ -995,12 +1018,14 @@ class MovementListModel(QStandardItemModel):
 
 class MovementTreeModel(QStandardItemModel):
 
-    def __init__(self, serializedmvmttree=None, **kwargs):
+    def __init__(self, serializedmvmttree=None, optionstree=defaultMvmtTree, **kwargs):
         super().__init__(**kwargs)
         self._listmodel = None  # MovementListModel(self)
+        self.optionstree = optionstree
         self.setColumnCount(2)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updaterelateddata)
+        
 
         if serializedmvmttree is not None:
             self.serializedmvmttree = serializedmvmttree
@@ -1010,7 +1035,6 @@ class MovementTreeModel(QStandardItemModel):
             userspecifiedvalues = self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode, userspecifiedvalues)
             # self.printTree(rootnode, level=0)
-
 
     # def printTree(self, treenode, level):
         
@@ -1255,15 +1279,14 @@ class MovementTreeModel(QStandardItemModel):
         item = self.findItems(itemtext, flags=Qt.MatchRecursive)[0]
         item.setEnabledRecursive(enable)
 
-    # may need to pass in mvmtOptionsTree differently (will not always be a constant)
-    def populate(self, parentnode, optionsnode=MvmtOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+    def populate(self, parentnode, optionsnode=MvmtOptionsNode(), pathsofar="", idsequence=[], issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         if optionsnode.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
         elif optionsnode.children == [] and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            self.populate(parentnode, optionsnode=mvmtTree, pathsofar="")
+            self.populate(parentnode, optionsnode=self.optionstree, pathsofar="")
         elif optionsnode.children != []:
             # internal node with substructure
             numentriesatthislevel = len(optionsnode.children)
@@ -1272,7 +1295,7 @@ class MovementTreeModel(QStandardItemModel):
                 label = child.display_name
                 # userspecifiability = child.user_specifiability
                 # classifier = child.button_type
-                # node_id = optionsnode.id
+                node_id = optionsnode.id
                 ismutuallyexclusive = child.button_type == rb
                 iseditable = child.user_specifiability != fx
 
@@ -1283,11 +1306,11 @@ class MovementTreeModel(QStandardItemModel):
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, optionsnode=child, pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, 
+                    self.populate(parentnode, optionsnode=child, pathsofar=pathsofar, idsequence=idsequence, issubgroup=True, isfinalsubgroup=isfinal, 
                                   subgroupname=subgroup+"_"+pathsofar+"_"+(str(child.button_type)))
 
                 else:
-                    thistreenode = MovementTreeItem(label, mutuallyexclusive=ismutuallyexclusive)
+                    thistreenode = MovementTreeItem(label, child.id, mutuallyexclusive=ismutuallyexclusive)
                     thistreenode.setData(child.user_specifiability, Qt.UserRole+udr.isuserspecifiablerole)
                     editablepart = QStandardItem()
                     editablepart.setEditable(iseditable)
@@ -1299,7 +1322,8 @@ class MovementTreeModel(QStandardItemModel):
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
-                    self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar+label+delimiter)
+                    self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence)
+                    # self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence.append(node_id))
                     parentnode.appendRow([thistreenode, editablepart])
 
 
