@@ -102,8 +102,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                 relationy=self.getcurrenty(),
                                 bodyparts_dict=self.bodyparts_dict,
                                 contactrel=self.getcurrentcontact(),
-                                xy_crossed=self.crossed_cb.isChecked(),
-                                xy_linked=self.linked_cb.isChecked(),
+                                xy_crossed=self.crossed_cb.isEnabled() and self.crossed_cb.isChecked(),
+                                xy_linked=self.linked_cb.isEnabled() and self.linked_cb.isChecked(),
                                 directionslist=self.getcurrentdirections(),
                                 articulators=articulators,
                                 timingintervals=timingintervals,
@@ -226,12 +226,14 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             box.setEnabled(enable_distance)
 
     # if 'movement' is selected for Y,
-    #  then Contact, Manner, Direction, and Distance menus are all inactive below
+    #  then Contact, Manner, Direction (including crossed/linked), and Distance menus are all inactive below
     def check_enable_direction(self):
         enable_direction = not (self.y_existingmod_radio.isChecked() and
                                 self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT)
         for box in [self.dirhor_box, self.dirver_box, self.dirsag_box]:
             box.setEnabled(enable_direction)
+        self.crossed_cb.setEnabled(enable_direction)
+        self.linked_cb.setEnabled(enable_direction)
 
     def handle_distancebutton_toggled(self, btn, ischecked):
         if btn.group().checkedButton() is not None:
