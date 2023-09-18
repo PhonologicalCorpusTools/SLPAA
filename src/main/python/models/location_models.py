@@ -487,6 +487,19 @@ class LocationTreeModel(QStandardItemModel):
     def locationtype(self, locationtype):  # LocationType class
         self._locationtype = locationtype
 
+    def hasselections(self, parentnode=None):
+        if parentnode is None:
+            rootnode = self.invisibleRootItem()
+            return self.hasselections(parentnode=rootnode)
+        else:
+            for r in range(parentnode.rowCount()):
+                treechild = parentnode.child(r, 0)
+                if treechild is not None and treechild.checkState() == Qt.Checked:
+                    return True
+                elif self.hasselections(treechild):
+                    return True
+            return False
+
 
 class BodypartTreeModel(LocationTreeModel):
 

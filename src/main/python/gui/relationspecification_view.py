@@ -37,7 +37,7 @@ from lexicon.module_classes import (
 )
 from models.relation_models import ModuleLinkingListModel
 from models.location_models import BodypartTreeModel
-from gui.modulespecification_widgets import ModuleSpecificationPanel
+from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
 from constant import HAND, ARM, LEG
@@ -490,7 +490,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         handpart_layout = QHBoxLayout()
         handpart_label = QLabel("For H1 and/or H2:")
-        self.handpart_button = QPushButton("Specify hand parts")
+        self.handpart_button = SpecifyBodypartPushButton("Specify hand parts")
         self.handpart_button.clicked.connect(self.handle_handpartbutton_clicked)
         self.check_enable_handpartbutton()
         handpart_layout.addWidget(handpart_label)
@@ -498,7 +498,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         armpart_layout = QHBoxLayout()
         armpart_label = QLabel("For Arm1 and/or Arm2:")
-        self.armpart_button = QPushButton("Specify arm parts")
+        self.armpart_button = SpecifyBodypartPushButton("Specify arm parts")
         self.armpart_button.clicked.connect(self.handle_armpartbutton_clicked)
         self.check_enable_armpartbutton()
         armpart_layout.addWidget(armpart_label)
@@ -506,7 +506,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         legpart_layout = QHBoxLayout()
         legpart_label = QLabel("For Leg1 and/or Leg2:")
-        self.legpart_button = QPushButton("Specify leg parts")
+        self.legpart_button = SpecifyBodypartPushButton("Specify leg parts")
         self.legpart_button.clicked.connect(self.handle_legpartbutton_clicked)
         self.check_enable_legpartbutton()
         legpart_layout.addWidget(legpart_label)
@@ -547,7 +547,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         if self.y_h2_radio.isChecked():
             h2label = "Y"
         handpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=h1label, bodypart2label=h2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
-        handpart_selector.bodyparts_saved.connect(self.handle_bodyparts_saved)
+        handpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.handpart_button))
         handpart_selector.exec_()
 
     def handle_armpartbutton_clicked(self):
@@ -561,7 +561,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         if self.y_a2_radio.isChecked():
             a2label = "Y"
         armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label, bodypart2label=a2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
-        armpart_selector.bodyparts_saved.connect(self.handle_bodyparts_saved)
+        armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
         armpart_selector.exec_()
 
     def handle_legpartbutton_clicked(self):
@@ -577,12 +577,13 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         elif self.y_l2_radio.isChecked():
             l2label = "Y"
         legpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=l1label, bodypart2label=l2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
-        legpart_selector.bodyparts_saved.connect(self.handle_bodyparts_saved)
+        legpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.legpart_button))
         legpart_selector.exec_()
 
-    def handle_bodyparts_saved(self, bodypart1info, bodypart2info):
+    def handle_bodyparts_saved(self, bodypart1info, bodypart2info, bodypart_button):
         self.bodyparts_dict[bodypart1info.bodyparttype][1] = bodypart1info
         self.bodyparts_dict[bodypart2info.bodyparttype][2] = bodypart2info
+        bodypart_button.hascontent = bodypart1info.hascontent() or bodypart2info.hascontent()
 
     # create layout for selecting the "X" item of the relation
     def create_x_box_orig(self):
@@ -929,9 +930,16 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.crossed_cb.setChecked(moduletoload.xy_crossed)
         self.linked_cb.setChecked(moduletoload.xy_linked)
         self.setcurrentdirection(moduletoload.directions)
-        self.bodyparts_dict = moduletoload.bodyparts_dict
+        self.setbodyparts(moduletoload.bodyparts_dict)
 
         # TODO KV set the linked-from module if there is one in moduletoload
+
+    def setbodyparts(self, bodyparts_dict):
+        self.bodyparts_dict = bodyparts_dict
+        self.handpart_button.hascontent = self.bodyparts_dict[HAND][1].hascontent() or self.bodyparts_dict[HAND][2].hascontent()
+        self.armpart_button.hascontent = self.bodyparts_dict[ARM][1].hascontent() or self.bodyparts_dict[ARM][2].hascontent()
+        self.legpart_button.hascontent = self.bodyparts_dict[LEG][1].hascontent() or self.bodyparts_dict[LEG][2].hascontent()
+
 
     def setcurrentx(self, relationx):
         if relationx is not None:
