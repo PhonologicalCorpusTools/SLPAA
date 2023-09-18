@@ -1279,23 +1279,23 @@ class MovementTreeModel(QStandardItemModel):
         item = self.findItems(itemtext, flags=Qt.MatchRecursive)[0]
         item.setEnabledRecursive(enable)
 
-    def populate(self, parentnode, optionsnode=MvmtOptionsNode(), pathsofar="", idsequence=[], issubgroup=False, isfinalsubgroup=True, subgroupname=""):
-        if optionsnode.children == [] and pathsofar != "":
+    def populate(self, parentnode, structure=MvmtOptionsNode(), pathsofar="", idsequence=[], issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+        if structure.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
-        elif optionsnode.children == [] and pathsofar == "":
+        elif structure.children == [] and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
-            self.populate(parentnode, optionsnode=self.optionstree, pathsofar="")
-        elif optionsnode.children != []:
+            self.populate(parentnode, structure=self.optionstree, pathsofar="")
+        elif structure.children != []:
             # internal node with substructure
-            numentriesatthislevel = len(optionsnode.children)
+            numentriesatthislevel = len(structure.children)
 
-            for idx, child in enumerate(optionsnode.children):
+            for idx, child in enumerate(structure.children):
                 label = child.display_name
                 # userspecifiability = child.user_specifiability
                 # classifier = child.button_type
-                node_id = optionsnode.id
+                node_id = structure.id
                 ismutuallyexclusive = child.button_type == rb
                 iseditable = child.user_specifiability != fx
 
@@ -1306,7 +1306,7 @@ class MovementTreeModel(QStandardItemModel):
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, optionsnode=child, pathsofar=pathsofar, idsequence=idsequence, issubgroup=True, isfinalsubgroup=isfinal, 
+                    self.populate(parentnode, structure=child, pathsofar=pathsofar, idsequence=idsequence, issubgroup=True, isfinalsubgroup=isfinal, 
                                   subgroupname=subgroup+"_"+pathsofar+"_"+(str(child.button_type)))
 
                 else:
@@ -1322,8 +1322,8 @@ class MovementTreeModel(QStandardItemModel):
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
-                    self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence)
-                    # self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence.append(node_id))
+                    self.populate(thistreenode, structure=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence)
+                    # self.populate(thistreenode, structure=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence.append(node_id))
                     parentnode.appendRow([thistreenode, editablepart])
 
 

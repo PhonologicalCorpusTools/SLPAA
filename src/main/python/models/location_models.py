@@ -227,92 +227,89 @@ class LocnOptionsNode:
         self.children.append(node)
 
 # TODO KV these should go into constant.py... or something similar
-locn_options_hand = LocnOptionsNode("hand_options_root", children=[
-    LocnOptionsNode("Other hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
-        LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas),
-        LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas),
-        LocnOptionsNode("Fingers and thumb", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
-            LocnOptionsNode("Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
-            LocnOptionsNode("Fingers", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
-                LocnOptionsNode("Finger 1", fx, rb, hb, hand_surfaces, hand_bonejoints),
-                LocnOptionsNode("Finger 2", fx, rb, hb, hand_surfaces, hand_bonejoints),
-                LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints),
-                LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            ]),
-            LocnOptionsNode("Between fingers", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], children=[
-                LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-                LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-                LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-                LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            ]),
-            LocnOptionsNode("Selected fingers and thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
-                LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            ])
+locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
+    LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas),
+    LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+    LocnOptionsNode("Fingers and thumb", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+        LocnOptionsNode("Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+        LocnOptionsNode("Fingers", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+            LocnOptionsNode("Finger 1", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Finger 2", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints),
+        ]),
+        LocnOptionsNode("Between fingers", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], children=[
+            LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+        ]),
+        LocnOptionsNode("Selected fingers and thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
+            LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
         ])
     ])
 ])
 
-locn_options_arm = LocnOptionsNode("arm_options_root", children=[
-    LocnOptionsNode("Arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-        LocnOptionsNode("Arm - contra", fx, rb, nh, nonhand_surfaces, None),
-        LocnOptionsNode("Arm - ipsi", fx, rb, nh, nonhand_surfaces, None),
-        LocnOptionsNode("Upper arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Upper arm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Upper arm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Upper arm above biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-                LocnOptionsNode("Upper arm above biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-                LocnOptionsNode("Upper arm above biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            ]),
-            LocnOptionsNode("Biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-                LocnOptionsNode("Biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-                LocnOptionsNode("Biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-            ]),
+
+locn_options_arm = LocnOptionsNode("Arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+    LocnOptionsNode("Arm - contra", fx, rb, nh, nonhand_surfaces, None),
+    LocnOptionsNode("Arm - ipsi", fx, rb, nh, nonhand_surfaces, None),
+    LocnOptionsNode("Upper arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Upper arm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Upper arm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Upper arm above biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+            LocnOptionsNode("Upper arm above biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Upper arm above biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
         ]),
-        LocnOptionsNode("Elbow", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Elbow - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Elbow - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+            LocnOptionsNode("Biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+            LocnOptionsNode("Biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
         ]),
-        LocnOptionsNode("Forearm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Forearm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Forearm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-        ]),
-        LocnOptionsNode("Wrist", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Wrist - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Wrist - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-        ]),
+    ]),
+    LocnOptionsNode("Elbow", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Elbow - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Elbow - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+    ]),
+    LocnOptionsNode("Forearm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Forearm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Forearm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+    ]),
+    LocnOptionsNode("Wrist", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Wrist - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Wrist - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+    ]),
+])
+
+
+locn_options_leg = LocnOptionsNode("Leg and foot", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+    LocnOptionsNode("Leg and foot - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+    LocnOptionsNode("Leg and foot - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+    LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+    ]),
+    LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+    ]),
+    LocnOptionsNode("Knee", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Knee - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Knee - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+    ]),
+    LocnOptionsNode("Lower leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Lower leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Lower leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+    ]),
+    LocnOptionsNode("Ankle", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Ankle - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Ankle - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
+    ]),
+    LocnOptionsNode("Foot", fx, rb, nh, nonhand_surfaces, nonhand_subareas, children=[
+        LocnOptionsNode("Foot - contra", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half]),
+        LocnOptionsNode("Foot - ipsi", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half])
     ])
 ])
 
-locn_options_leg = LocnOptionsNode("leg_options_root", children=[
-    LocnOptionsNode("Leg and foot", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-        LocnOptionsNode("Leg and foot - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-        LocnOptionsNode("Leg and foot - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-        ]),
-        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-        ]),
-        LocnOptionsNode("Knee", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Knee - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Knee - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-        ]),
-        LocnOptionsNode("Lower leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Lower leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Lower leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-        ]),
-        LocnOptionsNode("Ankle", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-            LocnOptionsNode("Ankle - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Ankle - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-        ]),
-        LocnOptionsNode("Foot", fx, rb, nh, nonhand_surfaces, nonhand_subareas, children=[
-            LocnOptionsNode("Foot - contra", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half]),
-            LocnOptionsNode("Foot - ipsi", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half])
-        ])
-    ])
-])
 
 locn_options_body = LocnOptionsNode("body_options_root", children=[
     LocnOptionsNode("Head", fx, rb, nh, None, nonhand_subareas, children=[
@@ -443,8 +440,7 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
             ])
         ]),
         LocnOptionsNode("Abdominal/waist area", fx, rb, nh, None, nonhand_subareas),
-
-    ]),
+    ])
 ])
 
 locn_options_body.insert_child(locn_options_arm)
@@ -599,21 +595,21 @@ class LocationTreeModel(QStandardItemModel):
             # (3) it was force-unchecked as a result of ME/sibling interaction
             item.uncheck(force=False)
 
-    # TODO pass in optionsnode (options structure) 
-    def populate(self, parentnode, optionsnode=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
-        if optionsnode.children == [] and pathsofar != "":
+    # TODO pass in structure (options structure) 
+    def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+        if structure.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
-        elif optionsnode.children == [] and pathsofar == "":
+        elif structure.children == [] and pathsofar == "":
             # no parameters; build a tree from the default options structure
             if self._locationtype.usesbodylocations():
-                self.populate(parentnode, optionsnode=locn_options_body, pathsofar="")
+                self.populate(parentnode, structure=locn_options_body, pathsofar="")
             elif self._locationtype.purelyspatial:
-                self.populate(parentnode, optionsnode=locn_options_purelyspatial, pathsofar="")
-        elif optionsnode.children != []:
+                self.populate(parentnode, structure=locn_options_purelyspatial, pathsofar="")
+        elif structure.children != []:
             # internal node with substructure
-            numentriesatthislevel = len(optionsnode.children)
-            for idx, child in enumerate(optionsnode.children):
+            numentriesatthislevel = len(structure.children)
+            for idx, child in enumerate(structure.children):
 
                 label = child.display_name
                 ismutuallyexclusive = child.button_type == rb
@@ -628,7 +624,7 @@ class LocationTreeModel(QStandardItemModel):
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, optionsnode=child, pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, 
+                    self.populate(parentnode, structure=child, pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, 
                                   subgroupname=subgroup + "_" + pathsofar + "_" + (str(child.button_type)))
 
                 else:
@@ -641,7 +637,7 @@ class LocationTreeModel(QStandardItemModel):
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole+udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole+udr.finalsubgrouprole)
-                    self.populate(thistreenode, optionsnode=child, pathsofar=pathsofar + label + delimiter)
+                    self.populate(thistreenode, structure=child, pathsofar=pathsofar + label + delimiter)
                     parentnode.appendRow([thistreenode])
 
     @property
@@ -669,12 +665,12 @@ class BodypartTreeModel(LocationTreeModel):
         self.bodyparttype = bodyparttype
         super().__init__(serializedlocntree=serializedlocntree, **kwargs)
 
-    def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+    def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
 
-        if structure == {} and pathsofar != "":
+        if structure.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
-        elif structure == {} and pathsofar == "":
+        elif structure.children == [] and pathsofar == "":
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
             if self.bodyparttype == HAND:
@@ -684,9 +680,9 @@ class BodypartTreeModel(LocationTreeModel):
             elif self.bodyparttype == LEG:
                 locn_options = locn_options_leg
             else:
-                locn_options = {}
-            super().populate(parentnode, structure=locn_options, pathsofar="")
-        elif structure != {}:
+                locn_options = LocnOptionsNode()
+            super().populate(parentnode, structure=LocnOptionsNode(children=[locn_options]), pathsofar="")
+        elif structure.children != []:
             # internal node with substructure
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
