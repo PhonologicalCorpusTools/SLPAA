@@ -106,21 +106,24 @@ bonejoint_label = "Bone/joint"
 #   name, editability, mutual exclusivity, checked/unchecked, hand/nonhand location,
 #   allow surfaces?, relevant exceptions to list of surfaces,
 #   allow subareas/bone-joints?, relevant exceptions to list of subareas/bone-joints
+
 locn_options_hand = {
-    ("Hand minus fingers", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
-    ("Heel of hand", fx, rb, u, heel, allow, no_exceptions, allow, no_exceptions): {},
-    ("Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
-    ("Fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Selected fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Selected fingers and Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
-    ("Finger 1", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Finger 2", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Finger 3", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Finger 4", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
-    ("Between Thumb and Finger 1", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-    ("Between Fingers 1 and 2", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-    ("Between Fingers 2 and 3", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
-    ("Between Fingers 3 and 4", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+    ("Whole hand", fx, rb, u, hb, allow, no_exceptions, disallow, no_exceptions): {
+        ("Hand minus fingers", fx, rb, u, hs, allow, no_exceptions, allow, no_exceptions): {},
+        ("Heel of hand", fx, rb, u, heel, allow, no_exceptions, allow, no_exceptions): {},
+        ("Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
+        ("Fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+        ("Selected fingers", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+        ("Selected fingers and Thumb", fx, rb, u, hb, allow, no_exceptions, allow, (proximal_interphalangeal_joint, medial_bone)): {},
+        ("Finger 1", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+        ("Finger 2", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+        ("Finger 3", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+        ("Finger 4", fx, rb, u, hb, allow, no_exceptions, allow, no_exceptions): {},
+        ("Between Thumb and Finger 1", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+        ("Between Fingers 1 and 2", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+        ("Between Fingers 2 and 3", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+        ("Between Fingers 3 and 4", fx, rb, u, hb, allow, tuple([s for s in surfaces_hand_default if s not in [back, friction]]), disallow, no_exceptions): {},
+    }
 }
 locn_options_arm = {
     ("Arm (contralateral)", fx, rb, u, nh, allow, (top, bottom), disallow, no_exceptions): {
@@ -275,7 +278,7 @@ locn_options_body = {
 }
 locn_options_body.update(locn_options_arm)
 locn_options_body.update(locn_options_leg)
-locn_options_body.update({("Other hand", fx, rb, u, hb, allow, no_exceptions, disallow, no_exceptions): locn_options_hand})
+locn_options_body.update(locn_options_hand)
 
 # TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
 # unless we're going to reference the same code (as for movement) for building the tree & list models
@@ -343,9 +346,16 @@ class LocationTreeModel(QStandardItemModel):
         if ("Other hand"+delimiter+"Whole hand" in self.serializedlocntree.checkstates):
             if (self.serializedlocntree.checkstates["Other hand"+delimiter+"Whole hand"] == Qt.Checked):
                 for stored_dict in dicts:
-                    stored_dict["Other hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
+                    stored_dict["Whole hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
             for stored_dict in dicts:
                 stored_dict.pop("Other hand"+delimiter+"Whole hand")
+        # As of 20230918, rename "Other hand" back to "Whole hand"
+        if ("Other hand" in self.serializedlocntree.checkstates):
+            if (self.serializedlocntree.checkstates["Other hand"] == Qt.Checked):
+                for stored_dict in dicts:
+                    stored_dict["Whole hand"] = stored_dict["Other hand"] 
+            for stored_dict in dicts:
+                stored_dict.pop("Other hand")
 
         for stored_dict in dicts:
             pairstoadd = {}
