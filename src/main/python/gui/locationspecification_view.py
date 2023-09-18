@@ -783,6 +783,9 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.locationoptionsselectionpanel.treemodel = self.getcurrenttreemodel()
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.clear_details()
+        self.locationoptionsselectionpanel.imagetabwidget.reset_zoomfactor()
+        self.enablelocationtools()
+
 
     def recreate_treeandlistmodels(self):
         self.treemodel_body = LocationTreeModel()
@@ -874,7 +877,14 @@ class ImageTabWidget(QTabWidget):
         othertab.force_link(ischecked)
         othertab.force_zoom(thistab.zoom_slider.value())
         # self.backtab.force_link(ischecked)
-
+        
+    def reset_zoomfactor(self):
+        """Reset the zoom factor for this image display to zero zoom."""
+        self.fronttab.zoom_slider.setValue(0)
+        self.backtab.zoom_slider.setValue(0)
+        self.fronttab.force_zoom(self.fronttab.zoom_slider.value())
+        self.backtab.force_zoom(self.backtab.zoom_slider.value())
+        
 
 class ImageDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
