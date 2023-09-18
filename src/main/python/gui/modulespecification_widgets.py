@@ -38,6 +38,48 @@ class ModuleSpecificationPanel(QFrame):
         return selectionsvalid, warningmessage
 
 
+class SpecifyBodypartPushButton(QPushButton):
+
+    def __init__(self, title, **kwargs):
+        super().__init__(title, **kwargs)
+        self._hascontent = False
+
+        # styling
+        qss = """   
+            QPushButton[HasContent=true] {
+                font: bold;
+                /*border: 2px dashed black;*/
+            }
+
+            QPushButton[HasContent=false] {
+                font: normal;
+                /*border: 1px solid grey;*/
+            }
+        """
+        self.setStyleSheet(qss)
+
+        self.updateStyle()
+
+    @property
+    def hascontent(self):
+        return self._hascontent
+
+    @hascontent.setter
+    def hascontent(self, hascontent):
+        self._hascontent = hascontent
+        self.updateStyle()
+
+    def updateStyle(self):
+        self.setProperty('HasContent', self._hascontent)
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
+
+    def clear(self):
+        self._hascontent = False
+        self.updateStyle()
+
+
 class AddedInfoPushButton(QPushButton):
 
     def __init__(self, title, **kwargs):
