@@ -54,6 +54,10 @@ whole = "Whole"
 centre = "Centre"
 lower_half = "Lower half"
 ipsi_half = "Ipsi half"
+ipsi_side = "Ipsi side"
+contra_side = "Contra side"
+front_half = "Front half"
+back_half = "Back half"
 back = "Back"
 friction = "Friction"
 radial = "Radial"
@@ -235,11 +239,11 @@ locn_options_hand = LocnOptionsNode("hand_options_root", children=[
                 LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints),
                 LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints),
             ]),
-            LocnOptionsNode("Between fingers", fx, rb, hb, [back, friction], None, children=[
-                LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, [back, friction], None),
-                LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, [back, friction], None),
-                LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, [back, friction], None),
-                LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, [back, friction], None),
+            LocnOptionsNode("Between fingers", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], children=[
+                LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+                LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+                LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+                LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
             ]),
             LocnOptionsNode("Selected fingers and Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
                 LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
@@ -249,30 +253,30 @@ locn_options_hand = LocnOptionsNode("hand_options_root", children=[
 ])
 
 locn_options_arm = LocnOptionsNode("arm_options_root", children=[
-    LocnOptionsNode("Arm", fx, rb, nh, nonhand_surfaces_2, None, children=[
-        LocnOptionsNode("Arm - contra", fx, rb, nh, nonhand_surfaces_2, None),
-        LocnOptionsNode("Arm - ipsi", fx, rb, nh, nonhand_surfaces_2, None),
-        LocnOptionsNode("Upper arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+    LocnOptionsNode("Arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Arm - contra", fx, rb, nh, nonhand_surfaces, None),
+        LocnOptionsNode("Arm - ipsi", fx, rb, nh, nonhand_surfaces, None),
+        LocnOptionsNode("Upper arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Upper arm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Upper arm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-            LocnOptionsNode("Upper arm above biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Upper arm above biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
                 LocnOptionsNode("Upper arm above biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
                 LocnOptionsNode("Upper arm above biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             ]),
-            LocnOptionsNode("Biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+            LocnOptionsNode("Biceps", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
                 LocnOptionsNode("Biceps - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
                 LocnOptionsNode("Biceps - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
             ]),
         ]),
-        LocnOptionsNode("Elbow", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+        LocnOptionsNode("Elbow", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Elbow - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Elbow - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
         ]),
-        LocnOptionsNode("Forearm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+        LocnOptionsNode("Forearm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Forearm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Forearm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
         ]),
-        LocnOptionsNode("Wrist", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+        LocnOptionsNode("Wrist", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Wrist - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Wrist - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
         ]),
@@ -280,30 +284,30 @@ locn_options_arm = LocnOptionsNode("arm_options_root", children=[
 ])
 
 locn_options_leg = LocnOptionsNode("leg_options_root", children=[
-    LocnOptionsNode("Leg and foot", fx, rb, nh, nonhand_surfaces, nonhand_subareas_2, children=[
-        LocnOptionsNode("Leg and foot - contra", fx, rb, nh, nonhand_surfaces, nonhand_subareas),
-        LocnOptionsNode("Leg and foot - ipsi", fx, rb, nh, nonhand_surfaces, nonhand_subareas),
-        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+    LocnOptionsNode("Leg and foot", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
+        LocnOptionsNode("Leg and foot - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Leg and foot - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
         ]),
-        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+        LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
         ]),
-        LocnOptionsNode("Knee", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+        LocnOptionsNode("Knee", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Knee - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Knee - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
         ]),
-        LocnOptionsNode("Lower leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+        LocnOptionsNode("Lower leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Lower leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Lower leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
         ]),
-        LocnOptionsNode("Ankle", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas_2, children=[
+        LocnOptionsNode("Ankle", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
             LocnOptionsNode("Ankle - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
             LocnOptionsNode("Ankle - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
         ]),
-        LocnOptionsNode("Foot", fx, rb, nh, nonhand_surfaces, nonhand_subareas_2, children=[
+        LocnOptionsNode("Foot", fx, rb, nh, nonhand_surfaces, nonhand_subareas, children=[
             LocnOptionsNode("Foot - contra", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half]),
             LocnOptionsNode("Foot - ipsi", fx, rb, nh, nonhand_surfaces, [contra_half, whole, centre, ipsi_half])
         ])
@@ -313,39 +317,39 @@ locn_options_leg = LocnOptionsNode("leg_options_root", children=[
 locn_options_body = LocnOptionsNode("body_options_root", children=[
     LocnOptionsNode("Head", fx, rb, nh, None, nonhand_subareas, children=[
         LocnOptionsNode("Back of head", fx, rb, nh, None, nonhand_subareas),
-        LocnOptionsNode("Top of head", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half]),
-        LocnOptionsNode("Side of face", fx, rb, nh, None, nonhand_subareas_2, children=[
-            LocnOptionsNode("Side of face - contra", fx, rb, nh, None, nonhand_subareas_2),
-            LocnOptionsNode("Side of face - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+        LocnOptionsNode("Top of head", fx, rb, nh, None, [contra_half, ipsi_half, whole, centre, front_half, back_half]),
+        LocnOptionsNode("Side of face", fx, rb, nh, None, nonhand_subareas, children=[
+            LocnOptionsNode("Side of face - contra", fx, rb, nh, None, nonhand_subareas),
+            LocnOptionsNode("Side of face - ipsi", fx, rb, nh, None, nonhand_subareas)
         ]),
         LocnOptionsNode("Face", fx, rb, nh, None, nonhand_subareas, children=[
             LocnOptionsNode("Forehead region", fx, rb, nh, None, nonhand_subareas, children=[
-                LocnOptionsNode("Temple", fx, rb, nh, None, nonhand_subareas_2, children=[
-                    LocnOptionsNode("Temple - contra", fx, rb, nh, None, nonhand_subareas_2),
-                    LocnOptionsNode("Temple - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+                LocnOptionsNode("Temple", fx, rb, nh, None, nonhand_subareas, children=[
+                    LocnOptionsNode("Temple - contra", fx, rb, nh, None, nonhand_subareas),
+                    LocnOptionsNode("Temple - ipsi", fx, rb, nh, None, nonhand_subareas)
                 ]),
                 LocnOptionsNode("Above forehead (hairline)", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half]),
                 LocnOptionsNode("Forehead", fx, rb, nh, None, nonhand_subareas)
             ]),
             LocnOptionsNode("Eye region", fx, rb, nh, None, nonhand_subareas, children=[
-                LocnOptionsNode("Eyebrow", fx, rb, nh, None, nonhand_subareas_2, children=[
+                LocnOptionsNode("Eyebrow", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Eyebrow - contra", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Eyebrow - ipsi", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Between eyebrows", fx, rb, nh, None, nonhand_subareas)
                 ]),
-                LocnOptionsNode("Eye", fx, rb, nh, None, nonhand_subareas_2, children=[
+                LocnOptionsNode("Eye", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Eye - contra", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Eye - ipsi", fx, rb, nh, None, nonhand_subareas),
-                    LocnOptionsNode("Outer corner of eye", fx, rb, nh, None, nonhand_subareas_2, children=[
+                    LocnOptionsNode("Outer corner of eye", fx, rb, nh, None, nonhand_subareas, children=[
                         LocnOptionsNode("Outer corner of eye - contra", fx, rb, nh, None, None),
                         LocnOptionsNode("Outer corner of eye - ipsi", fx, rb, nh, None, None)
                     ]),
                     LocnOptionsNode("Eyelid", fx, rb, nh, None, nonhand_subareas, children=[
-                        LocnOptionsNode("Upper eyelid", fx, rb, nh, None, nonhand_subareas_2, children=[
+                        LocnOptionsNode("Upper eyelid", fx, rb, nh, None, nonhand_subareas, children=[
                             LocnOptionsNode("Upper eyelid - contra", fx, rb, nh, None, nonhand_subareas),
                             LocnOptionsNode("Upper eyelid - ipsi", fx, rb, nh, None, nonhand_subareas)
                         ]),
-                        LocnOptionsNode("Lower eyelid", fx, rb, nh, None, nonhand_subareas_2, children=[
+                        LocnOptionsNode("Lower eyelid", fx, rb, nh, None, nonhand_subareas, children=[
                             LocnOptionsNode("Lower eyelid - contra", fx, rb, nh, None, nonhand_subareas),
                             LocnOptionsNode("Lower eyelid - ipsi", fx, rb, nh, None, nonhand_subareas)
                         ])
@@ -353,87 +357,87 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
                 ])
             ]),
             LocnOptionsNode("Cheek/nose", fx, rb, nh, None, nonhand_subareas, children=[
-                LocnOptionsNode("Cheek", fx, rb, nh, None, nonhand_subareas_2, children=[
+                LocnOptionsNode("Cheek", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Cheek - contra", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Cheek - ipsi", fx, rb, nh, None, nonhand_subareas)
                 ]),
-                LocnOptionsNode("Cheekbone under eye", fx, rb, nh, None, nonhand_subareas_2, children=[
+                LocnOptionsNode("Cheekbone under eye", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Cheekbone under eye - contra", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Cheekbone under eye - ipsi", fx, rb, nh, None, nonhand_subareas)
                 ]),
-                LocnOptionsNode("Cheekbone in front of ear", fx, rb, nh, None, nonhand_subareas_2, children=[
-                    LocnOptionsNode("Cheekbone in front of ear - contra", fx, rb, nh, None, nonhand_subareas),
-                    LocnOptionsNode("Cheekbone in front of ear - ipsi", fx, rb, nh, None, nonhand_subareas)
+                LocnOptionsNode("Cheekbone in front of ear", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half], children=[
+                    LocnOptionsNode("Cheekbone in front of ear - contra", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half]),
+                    LocnOptionsNode("Cheekbone in front of ear - ipsi", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half])
                 ]),
                 LocnOptionsNode("Nose", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Nose root", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Nose ridge", fx, rb, nh, None, nonhand_subareas),
-                    LocnOptionsNode("Nose tip", fx, rb, nh, None, nonhand_subareas),  # TODO KV resolve question mark from locations spreadsheet
-                    LocnOptionsNode("Septum / nostril area", fx, rb, nh, None, nonhand_subareas, children=[
-                        LocnOptionsNode("Septum", fx, rb, nh, None, nonhand_subareas_2),
-                        LocnOptionsNode("Nostrils", fx, rb, nh, None, nonhand_subareas_2, children=[
-                            LocnOptionsNode("Nostril - contra", fx, rb, nh, None, nonhand_subareas),
-                            LocnOptionsNode("Nostril - ipsi", fx, rb, nh, None, nonhand_subareas)
+                    LocnOptionsNode("Nose tip", fx, rb, nh, None, nonhand_subareas),  
+                    LocnOptionsNode("Septum / nostril area", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half], children=[
+                        LocnOptionsNode("Septum", fx, rb, nh, None, None),
+                        LocnOptionsNode("Nostrils", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half], children=[
+                            LocnOptionsNode("Nostril - contra", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half]),
+                            LocnOptionsNode("Nostril - ipsi", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half])
                         ])
                     ])
                 ])
             ]),
             LocnOptionsNode("Below nose / philtrum", fx, rb, nh, None, nonhand_subareas),
             LocnOptionsNode("Mouth", fx, rb, nh, None, nonhand_subareas, children=[
-                LocnOptionsNode("Lips", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half], children=[
+                LocnOptionsNode("Lips", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Upper lip", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Lower lip", fx, rb, nh, None, nonhand_subareas)
                 ]),
                 LocnOptionsNode("Corner of mouth - contra", fx, rb, nh, None, None),
                 LocnOptionsNode("Corner of mouth - ipsi", fx, rb, nh, None, None),
-                LocnOptionsNode("Teeth", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half], children=[
+                LocnOptionsNode("Teeth", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Upper teeth", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Lower teeth", fx, rb, nh, None, nonhand_subareas)
                 ]),
-                LocnOptionsNode("Tongue", fx, rb, nh, [anterior, top, bottom], tongue_subareas),  # TODO KV resolve question mark from locations spreadsheet
+                LocnOptionsNode("Tongue", fx, rb, nh, [anterior, top, bottom, ipsi_side, contra_side], tongue_subareas), 
             ]),
-            LocnOptionsNode("Ear", fx, rb, nh, None, nonhand_subareas_2, children=[
-                LocnOptionsNode("Ear - contra", fx, rb, nh, None, nonhand_subareas_2),
-                LocnOptionsNode("Ear - ipsi", fx, rb, nh, None, nonhand_subareas_2),
-                LocnOptionsNode("Behind ear", fx, rb, nh, None, nonhand_subareas_2, children=[ # was mastoid process
-                    LocnOptionsNode("Behind ear - contra", fx, rb, nh, None, nonhand_subareas_2),
-                    LocnOptionsNode("Behind ear - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+            LocnOptionsNode("Ear", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half], children=[
+                LocnOptionsNode("Ear - contra", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half]),
+                LocnOptionsNode("Ear - ipsi", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half]),
+                LocnOptionsNode("Behind ear", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half], children=[ # was mastoid process
+                    LocnOptionsNode("Behind ear - contra", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half]),
+                    LocnOptionsNode("Behind ear - ipsi", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half])
                 ]),
-                LocnOptionsNode("Earlobe", fx, rb, nh, None, nonhand_subareas_2, children=[
-                    LocnOptionsNode("Earlobe - contra", fx, rb, nh, None, nonhand_subareas_2),
-                    LocnOptionsNode("Earlobe - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+                LocnOptionsNode("Earlobe", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half], children=[
+                    LocnOptionsNode("Earlobe - contra", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half]),
+                    LocnOptionsNode("Earlobe - ipsi", fx, rb, nh, None, [front_half, back_half, whole, centre, upper_half, lower_half])
                 ])
             ]),
-            LocnOptionsNode("Jaw", fx, rb, nh, None, nonhand_subareas_2, children=[
-                LocnOptionsNode("Jaw - contra", fx, rb, nh, None, nonhand_subareas_2),
-                LocnOptionsNode("Jaw - ipsi", fx, rb, nh, None, nonhand_subareas_2)
+            LocnOptionsNode("Jaw", fx, rb, nh, None, nonhand_subareas, children=[
+                LocnOptionsNode("Jaw - contra", fx, rb, nh, None, nonhand_subareas),
+                LocnOptionsNode("Jaw - ipsi", fx, rb, nh, None, nonhand_subareas)
             ]),
             LocnOptionsNode("Chin", fx, rb, nh, None, nonhand_subareas),
-            LocnOptionsNode("Under chin", fx, rb, nh, None, None)
+            LocnOptionsNode("Under chin", fx, rb, nh, None, [contra_half, whole, centre, ipsi_half])
         ]),
     ]),
-    LocnOptionsNode("Neck", fx, rb, nh, [anterior, posterior], nonhand_subareas),  # TODO KV resolve question mark from locations spreadsheet
-    LocnOptionsNode("Torso", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas, children=[
-        LocnOptionsNode("Upper torso", fx, rb, nh, None, None, children=[
-            LocnOptionsNode("Shoulder", fx, rb, nh, [anterior, posterior, lateral, top], nonhand_subareas_2, children=[
+    LocnOptionsNode("Neck", fx, rb, nh, [anterior, posterior, ipsi_side, contra_side], nonhand_subareas),  
+    LocnOptionsNode("Torso", fx, rb, nh, [anterior, posterior, ipsi_side, contra_side], nonhand_subareas, children=[
+        LocnOptionsNode("Upper torso", fx, rb, nh, [anterior, posterior, ipsi_side, contra_side], nonhand_subareas, children=[
+            LocnOptionsNode("Shoulder", fx, rb, nh, [anterior, posterior, lateral, top], nonhand_subareas, children=[
                 LocnOptionsNode("Shoulder - contra", fx, rb, nh, [anterior, posterior, lateral, top], nonhand_subareas),
                 LocnOptionsNode("Shoulder - ipsi", fx, rb, nh, [anterior, posterior, lateral, top], nonhand_subareas)
             ]),
-            LocnOptionsNode("Armpit", fx, rb, nh, None, None, children=[
-                LocnOptionsNode("Armpit - contra", fx, rb, nh, None, None),
-                LocnOptionsNode("Armpit - ipsi", fx, rb, nh, None, None)
+            LocnOptionsNode("Armpit", fx, rb, nh, None, nonhand_subareas, children=[
+                LocnOptionsNode("Armpit - contra", fx, rb, nh, None, nonhand_subareas),
+                LocnOptionsNode("Armpit - ipsi", fx, rb, nh, None, nonhand_subareas)
             ]),
             LocnOptionsNode("Sternum/clavicle area", fx, rb, nh, None, nonhand_subareas),
             LocnOptionsNode("Chest/breast area", fx, rb, nh, None, nonhand_subareas),
         ]),
-        LocnOptionsNode("Lower torso", fx, rb, nh, None, None, children=[
+        LocnOptionsNode("Lower torso", fx, rb, nh, [anterior, posterior, ipsi_side, contra_side], nonhand_subareas, children=[
             LocnOptionsNode("Pelvis area", fx, rb, nh, None, nonhand_subareas),
-            LocnOptionsNode("Hip", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas_2, children=[
+            LocnOptionsNode("Hip", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas, children=[
                 LocnOptionsNode("Hip - contra", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas),
                 LocnOptionsNode("Hip - ipsi", fx, rb, nh, [anterior, posterior, lateral], nonhand_subareas)
             ]),
-            LocnOptionsNode("Groin", fx, rb, nh, None, nonhand_subareas),  # TODO KV resolve question mark from locations spreadsheet
-            LocnOptionsNode("Buttocks", fx, rb, nh, None, nonhand_subareas_2, children=[
+            LocnOptionsNode("Groin", fx, rb, nh, None, nonhand_subareas),  
+            LocnOptionsNode("Buttocks", fx, rb, nh, None, nonhand_subareas, children=[
                 LocnOptionsNode("Buttocks - contra", fx, rb, nh, None, nonhand_subareas),
                 LocnOptionsNode("Buttocks - ipsi", fx, rb, nh, None, nonhand_subareas)
             ])
