@@ -179,14 +179,15 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     # 1. Contact manner can only be coded if
     #   (a) 'contact' is selected AND
-    #   (b) the module is linked to an interval
+    #   (b) the module is linked to an interval OR x-slots are off
     # 2. OR Can also be available if
     #   (a) neither 'contact' nor 'no contact' is selected AND
     #   (b) there are no selections in manner or distance
     # 3. BUT if 'movement' is selected for Y,
     #   then Contact, Manner, Direction, and Distance menus are all inactive below
     def check_enable_manner(self):
-        meetscondition1 = self.contact_rb.isChecked() and self.islinkedtointerval
+        xslots_off = self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none'
+        meetscondition1 = self.contact_rb.isChecked() and (self.islinkedtointerval or xslots_off)
 
         meetscondition2 = self.contactmannerdistance_empty()
 
