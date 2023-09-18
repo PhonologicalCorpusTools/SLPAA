@@ -291,16 +291,16 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                 ])
             ]),
             MvmtOptionsNode("Rubbing", fx, rb, "Rub", children=[
-                MvmtOptionsNode("Rubbing articulator(s):", fx, rb, "", children=[
+                MvmtOptionsNode("Articulator(s):", fx, cb, "", children=[
                     MvmtOptionsNode("Thumb", fx, cb, ""),
                     MvmtOptionsNode("Finger(s)", fx, cb, ""),
                     MvmtOptionsNode("Other", ed_3, cb, custom_abbrev)
                 ]),
-                MvmtOptionsNode("Location:", fx, rb, "", children=[
+                MvmtOptionsNode("Location:", fx, cb, "", children=[
                     MvmtOptionsNode("Thumb", fx, rb, ""),
                     MvmtOptionsNode("Finger(s)", fx, rb, ""),
                     MvmtOptionsNode("Palm", fx, rb, ""),
-                    MvmtOptionsNode("Other", ed_3, cb, custom_abbrev)
+                    MvmtOptionsNode("Other", ed_3, rb, custom_abbrev)
                 ]),
                 MvmtOptionsNode("Across", fx, cb, "", children=[
                     MvmtOptionsNode("to radial side", fx, rb, ""),

@@ -152,7 +152,7 @@ class LocnOptionsNode:
         return repr
 
     def assign_ids(self, current_id):
-        logging.warn(self)
+        # logging.warn(self)
         for child in self.children:
             current_id = current_id + 1
             child.id = current_id
@@ -245,7 +245,7 @@ locn_options_hand = LocnOptionsNode("hand_options_root", children=[
                 LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
                 LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
             ]),
-            LocnOptionsNode("Selected fingers and Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
+            LocnOptionsNode("Selected fingers and thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
                 LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
             ])
         ])
