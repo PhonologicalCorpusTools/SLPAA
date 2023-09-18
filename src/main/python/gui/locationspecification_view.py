@@ -471,6 +471,13 @@ class LocationOptionsSelectionPanel(QFrame):
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
+        
+    
+    def reset_sort(self):
+        """Reset sort option to default."""
+        self.sortcombo.setCurrentIndex(0)
+        self.sortcombo.setCurrentText("order in tree (default)")
+        self.sort()
 
 
 class LocationSpecificationPanel(ModuleSpecificationPanel):
@@ -777,13 +784,23 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.minorphonloc_cb.setEnabled(True)
 
     def clear(self):
+        """Restore GUI to the defaults."""
         self.clear_loctype_buttons_to_default()
         self.clear_phonlocs_buttons()
         self.recreate_treeandlistmodels()
+        
+        # Reset selections
         self.locationoptionsselectionpanel.treemodel = self.getcurrenttreemodel()
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.clear_details()
+        
+        # Reset sort
+        self.locationoptionsselectionpanel.reset_sort()
+        
+        # Reset zoom
         self.locationoptionsselectionpanel.imagetabwidget.reset_zoomfactor()
+        
+        # Update panels given default selections/disables panels
         self.enablelocationtools()
 
 
