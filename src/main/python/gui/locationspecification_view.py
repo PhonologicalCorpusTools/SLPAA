@@ -801,7 +801,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.locationoptionsselectionpanel.imagetabwidget.reset_zoomfactor()
         self.locationoptionsselectionpanel.imagetabwidget.reset_link()
         
-        # Rest view to front panel
+        # Reset view to front panel
         self.locationoptionsselectionpanel.imagetabwidget.setCurrentIndex(0)
         
         # self.locationoptionsselectionpanel.imagetabwidget
