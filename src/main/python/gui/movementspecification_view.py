@@ -372,6 +372,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.refresh_treemodel()
 
     def refresh_treemodel(self):
+        # refresh tree model, including changing sort_by option to the default
         self.treemodel = MovementTreeModel()
         self.treemodel.populate(self.treemodel.invisibleRootItem())
 
@@ -383,6 +384,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.combobox.setCurrentIndex(-1)
         self.treedisplay.setModel(self.treemodel)
         self.pathslistview.setModel(self.listproxymodel)
+
+        self.sortcombo.setCurrentIndex(0)  # change 'sort by' option to the first item of the list.
 
         # self.combobox.clear()
 
