@@ -797,9 +797,14 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         # Reset sort
         self.locationoptionsselectionpanel.reset_sort()
         
-        # Reset zoom
+        # Reset zoom and link
         self.locationoptionsselectionpanel.imagetabwidget.reset_zoomfactor()
+        self.locationoptionsselectionpanel.imagetabwidget.reset_link()
         
+        # Rest view to front panel
+        self.locationoptionsselectionpanel.imagetabwidget.setCurrentIndex(0)
+        
+        # self.locationoptionsselectionpanel.imagetabwidget
         # Update panels given default selections/disables panels
         self.enablelocationtools()
 
@@ -896,11 +901,16 @@ class ImageTabWidget(QTabWidget):
         # self.backtab.force_link(ischecked)
         
     def reset_zoomfactor(self):
-        """Reset the zoom factor for this image display to zero zoom."""
+        """Reset the zoom factor for this image display to zero zoom and back to the front tab."""
         self.fronttab.zoom_slider.setValue(0)
         self.backtab.zoom_slider.setValue(0)
         self.fronttab.force_zoom(self.fronttab.zoom_slider.value())
         self.backtab.force_zoom(self.backtab.zoom_slider.value())
+        
+    def reset_link(self):
+        """Unlink zoom buttons between front/back."""
+        self.handle_linkbutton_toggled(False, self.fronttab)
+        self.handle_linkbutton_toggled(False, self.backtab)
         
 
 class ImageDisplayTab(QWidget):
