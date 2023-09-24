@@ -171,10 +171,33 @@ mvmtOptionsDict = {
                 }
             },
             ("Rubbing", fx, rb, u, 80): {
-                (subgroup, None, 0, None, 81): {
-                    ("Thumb crossing over palm", fx, rb, u, 82): {},  # TODO KV autofills to TBD
-                    ("Thumb moving away from palm", fx, rb, u, 83): {}  # TODO KV autofills to TBD
-                }
+                ("Articulators", fx, cb, u, 80): {
+                    (subgroup, None, 0, None, 77): {
+                        ("Thumb", fx, cb, u, 80): {},
+                        ("Finger(s)", fx, cb, u, 80): {},
+                        ("Other", ed_3, cb, u, 85): {}
+                    }
+                },
+                ("Location", fx, cb, u, 80): {
+                    (subgroup, None, 1, None, 77): {
+                        ("Thumb", fx, rb, u, 80): {},
+                        ("Finger(s)", fx, rb, u, 80): {},
+                        ("Palm", fx, rb, u, 80): {},
+                        ("Other", ed_3, rb, u, 85): {}
+                    }
+                },
+                ("Across", fx, cb, u, 80): {
+                     (subgroup, None, 2, None, 77): {
+                        ("To radial side", fx, rb, u, 80): {},
+                        ("To ulnar side", fx, rb, u, 80): {},
+                    }                   
+                },
+                ("Along", fx, cb, u, 80): {
+                    (subgroup, None, 3, None, 77): {
+                        ("To fingertip end", fx, rb, u, 80): {},
+                        ("To base end", fx, rb, u, 80): {},
+                    }                    
+                },
             },
             ("Wiggling/Fluttering", fx, rb, u, 84): {},  # TODO KV autofills to both flexion and extension of selected finger base joints
             ("Other", ed_3, rb, u, 85): {}
