@@ -476,7 +476,6 @@ class LocationOptionsSelectionPanel(QFrame):
     def reset_sort(self):
         """Reset sort option to default."""
         self.sortcombo.setCurrentIndex(0)
-        self.sortcombo.setCurrentText("order in tree (default)")
         self.sort()
 
 
