@@ -2,9 +2,8 @@ from datetime import datetime
 from fractions import Fraction
 from itertools import chain
 
-from PyQt5.QtCore import (
-    Qt,
-)
+# from qt.QtCore import Qt
+from qt import Qt
 
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
@@ -421,7 +420,7 @@ class MovementModule(ParameterModule):
         for rownum in range(numrows):
             item = listmodel.item(rownum)
             text = item.text()
-            selected = item.data(Qt.UserRole+udr.selectedrole)
+            selected = item.data(Qt.ItemDataRole.UserRole+udr.selectedrole)
             if selected:
                 pathelements = text.split(delimiter)
                 # thisentrytext = ""

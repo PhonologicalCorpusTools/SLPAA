@@ -1,17 +1,26 @@
 from copy import copy
 
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     QSortFilterProxyModel,
+#     QDateTime,
+#     QAbstractTableModel
+# )
+#
+# from qt.Qt import (
+#     QStandardItem,
+#     QStandardItemModel
+# )
+import logging
+
+from qt import (
     Qt,
     QSortFilterProxyModel,
     QDateTime,
-    QAbstractTableModel
-)
-
-from PyQt5.Qt import (
+    QAbstractTableModel,
     QStandardItem,
     QStandardItemModel
 )
-import logging
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
 from serialization_classes import LocationTableSerializable
@@ -341,7 +350,7 @@ class LocationTreeModel(QStandardItemModel):
 
         # As of 20230631, entries with "other hand>whole hand" will be moved to "other hand" with surfaces and subareas preserved
         if ("Other hand"+delimiter+"Whole hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand"+delimiter+"Whole hand"] == Qt.Checked):
+            if (self.serializedlocntree.checkstates["Other hand"+delimiter+"Whole hand"] == Qt.CheckState.Checked):
                 for stored_dict in dicts:
                     stored_dict["Other hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
             for stored_dict in dicts:
@@ -370,7 +379,7 @@ class LocationTreeModel(QStandardItemModel):
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
+                    pathtext = treechild.data(Qt.ItemDataRole.UserRole+udr.pathdisplayrole)
                     if pathtext in self.serializedlocntree.checkstates.keys():
                         treechild.setCheckState(self.serializedlocntree.checkstates[pathtext])
                     if pathtext in self.serializedlocntree.addedinfos.keys():
@@ -388,12 +397,12 @@ class LocationTreeModel(QStandardItemModel):
     #     for r in range(treenode.rowCount()):
     #         treechild = treenode.child(r, 0)
     #         if treechild is not None:
-    #             pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+    #             pathtext = treechild.data(Qt.ItemDataRole.UserRole + udr.pathdisplayrole)
     #             checkstate = treechild.checkState()
     #             locntable = treechild.detailstable
     #             addedinfo = treechild.addedinfo
     #
-    #             if checkstate == Qt.Checked:
+    #             if checkstate == Qt.CheckState.Checked:
     #                 print(pathtext)
     #                 checkedlocations = []
     #                 for col in locntable.col_contents:
@@ -406,15 +415,15 @@ class LocationTreeModel(QStandardItemModel):
 
     def updateCheckState(self, item):
         thestate = item.checkState()
-        if thestate == Qt.Checked:
+        if thestate == Qt.CheckState.Checked:
             # TODO KV then the user must have checked it,
             #  so make sure to partially-fill ancestors and also look at ME siblings
             item.check(fully=True)
-        elif thestate == Qt.PartiallyChecked:
+        elif thestate == Qt.CheckState.PartiallyChecked:
             # TODO KV then the software must have updated it based on some other user action
             # make sure any ME siblings are unchecked
             item.check(fully=False)
-        elif thestate == Qt.Unchecked:
+        elif thestate == Qt.CheckState.Unchecked:
             # TODO KV then either...
             # (1) the user unchecked it and we have to uncheck ancestors and look into ME siblings, or
             # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
@@ -458,14 +467,14 @@ class LocationTreeModel(QStandardItemModel):
 
                 else:
                     thistreenode = LocationTreeItem(label, ishandloc=ishandloc, allowsurfacespec=allowsurfacespec, allowsubareaspec=allowsubareaspec, mutuallyexclusive=ismutuallyexclusive, surface_exceptions=surface_exceptions, subarea_exceptions=subarea_exceptions)
-                    thistreenode.setData(pathsofar + label, role=Qt.UserRole+udr.pathdisplayrole)
+                    thistreenode.setData(pathsofar + label, role=Qt.ItemDataRole.UserRole+udr.pathdisplayrole)
                     thistreenode.setEditable(iseditable)
-                    thistreenode.setCheckState(Qt.Checked if checked else Qt.Unchecked)
+                    thistreenode.setCheckState(Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked)
                     if issubgroup:
-                        thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
+                        thistreenode.setData(subgroupname, role=Qt.ItemDataRole.UserRole+udr.subgroupnamerole)
                         if idx + 1 == numentriesatthislevel:
-                            thistreenode.setData(True, role=Qt.UserRole+udr.lastingrouprole)
-                            thistreenode.setData(isfinalsubgroup, role=Qt.UserRole+udr.finalsubgrouprole)
+                            thistreenode.setData(True, role=Qt.ItemDataRole.UserRole+udr.lastingrouprole)
+                            thistreenode.setData(isfinalsubgroup, role=Qt.ItemDataRole.UserRole+udr.finalsubgrouprole)
                     self.populate(thistreenode, structure=structure[labelclassifierchecked_tuple], pathsofar=pathsofar + label + delimiter)
                     parentnode.appendRow([thistreenode])
 
@@ -494,7 +503,7 @@ class LocationTreeModel(QStandardItemModel):
         else:
             for r in range(parentnode.rowCount()):
                 treechild = parentnode.child(r, 0)
-                if treechild is not None and treechild.checkState() == Qt.Checked:
+                if treechild is not None and treechild.checkState() == Qt.CheckState.Checked:
                     return True
                 elif self.hasselections(treechild):
                     return True
@@ -549,8 +558,8 @@ class LocationListModel(QStandardItemModel):
             # for colnum in range(colcount):
             treechild = treenode.child(r, 0)
             if treechild is not None:
-                pathtext = treechild.data(role=Qt.UserRole+udr.pathdisplayrole)
-                nodetext = treechild.data(Qt.DisplayRole)
+                pathtext = treechild.data(role=Qt.ItemDataRole.UserRole+udr.pathdisplayrole)
+                nodetext = treechild.data(Qt.ItemDataRole.DisplayRole)
                 listitem = LocationListItem(pathtxt=pathtext, nodetxt=nodetext, treeit=treechild)  # also sets treeitem's listitem
                 self.appendRow(listitem)
                 self.populate(treechild)
@@ -641,39 +650,39 @@ class LocationTableModel(QAbstractTableModel):
         return len(self.col_contents)
 
     # must implement! abstract parent doesn't define this behaviour
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         # TODO KV make sure to deal with other potential roles as well
         if not index.isValid():
             return None
         try:
-            if role == Qt.DisplayRole:
+            if role == Qt.ItemDataRole.DisplayRole:
                 return self.col_contents[index.column()][index.row()][0]
-            elif role == Qt.CheckStateRole:
+            elif role == Qt.ItemDataRole.CheckStateRole:
                 checked = self.col_contents[index.column()][index.row()][1]
-                return Qt.Checked if checked else Qt.Unchecked
+                return Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked
         except IndexError:
             return None
 
-    def setData(self, index, value, role=Qt.DisplayRole):
+    def setData(self, index, value, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
             return False
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             self.col_contents[index.column()][index.row()][0] = value
-        elif role == Qt.CheckStateRole:
-            checked = value == Qt.Checked
+        elif role == Qt.ItemDataRole.CheckStateRole:
+            checked = value == Qt.CheckState.Checked
             self.col_contents[index.column()][index.row()][1] = checked
         return True
 
     # TODO KV are all of these true?
     def flags(self, index):
-        return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
+        return Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable
 
     # must implement! abstract parent doesn't define this behaviour
     def headerData(self, section, orientation, role=None):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             header = self.col_labels[section]
             return header
-        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
             return str(section + 1)
 
         return None
@@ -690,20 +699,20 @@ class LocationListItem(QStandardItem):
         if serializedlistitem:
             self.setEditable(serializedlistitem['editable'])
             self.setText(serializedlistitem['text'])
-            self.setData(serializedlistitem['nodedisplayrole'], Qt.UserRole+udr.nodedisplayrole)
-            self.setData(serializedlistitem['timestamprole'], Qt.UserRole+udr.timestamprole)
+            self.setData(serializedlistitem['nodedisplayrole'], Qt.ItemDataRole.UserRole+udr.nodedisplayrole)
+            self.setData(serializedlistitem['timestamprole'], Qt.ItemDataRole.UserRole+udr.timestamprole)
             self.setCheckable(serializedlistitem['checkable'])
-            self.setData(serializedlistitem['selectedrole'], Qt.UserRole+udr.selectedrole)
+            self.setData(serializedlistitem['selectedrole'], Qt.ItemDataRole.UserRole+udr.selectedrole)
         else:
             self.setEditable(False)
             self.setText(pathtxt)
-            self.setData(nodetxt, Qt.UserRole+udr.nodedisplayrole)
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole+udr.timestamprole)
+            self.setData(nodetxt, Qt.ItemDataRole.UserRole+udr.nodedisplayrole)
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.ItemDataRole.UserRole+udr.timestamprole)
             self.setCheckable(False)
             self.treeitem = treeit
             if treeit is not None:
                 self.treeitem.listitem = self
-            self.setData(False, Qt.UserRole+udr.selectedrole)
+            self.setData(False, Qt.ItemDataRole.UserRole+udr.selectedrole)
 
     def __repr__(self):
         return '<LocationListItem: ' + repr(self.text()) + '>'
@@ -724,7 +733,7 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None, wantselected=None):
         super(LocationPathsProxyModel, self).__init__(parent)
         self.wantselected = wantselected
-        self.setSortCaseSensitivity(Qt.CaseInsensitive)
+        self.setSortCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
 
     def filterAcceptsRow(self, source_row, source_parent):
         if self.wantselected is None:
@@ -733,22 +742,22 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
             return True
         else:
             source_index = self.sourceModel().index(source_row, 0, source_parent)
-            isselected = source_index.data(role=Qt.UserRole+udr.selectedrole)
-            path = source_index.data(role=Qt.UserRole+udr.pathdisplayrole)
+            isselected = source_index.data(role=Qt.ItemDataRole.UserRole+udr.selectedrole)
+            path = source_index.data(role=Qt.ItemDataRole.UserRole+udr.pathdisplayrole)
             text = self.sourceModel().index(source_row, 0, source_parent).data()
             return self.wantselected == isselected
 
     def updatesorttype(self, sortbytext=""):
         if "alpha" in sortbytext and "path" in sortbytext:
-            self.setSortRole(Qt.DisplayRole)
+            self.setSortRole(Qt.ItemDataRole.DisplayRole)
             self.sort(0)
         elif "alpha" in sortbytext and "node" in sortbytext:
-            self.setSortRole(Qt.UserRole+udr.nodedisplayrole)
+            self.setSortRole(Qt.ItemDataRole.UserRole+udr.nodedisplayrole)
             self.sort(0)
         elif "tree" in sortbytext:
             self.sort(-1)  # returns to sort order of underlying model
         elif "select" in sortbytext:
-            self.setSortRole(Qt.UserRole+udr.timestamprole)
+            self.setSortRole(Qt.ItemDataRole.UserRole+udr.timestamprole)
             self.sort(0)
 
 
@@ -765,10 +774,10 @@ class LocationTreeItem(QStandardItem):
             self.setCheckable(serializedlocntreeitem['checkable'])
             self.setCheckState(serializedlocntreeitem['checkstate'])
             self.setUserTristate(serializedlocntreeitem['usertristate'])
-            self.setData(serializedlocntreeitem['selectedrole'], Qt.UserRole + udr.selectedrole)
-            self.setData(serializedlocntreeitem['timestamprole'], Qt.UserRole + udr.timestamprole)
-            self.setData(serializedlocntreeitem['mutuallyexclusiverole'], Qt.UserRole + udr.mutuallyexclusiverole)
-            self.setData(serializedlocntreeitem['displayrole'], Qt.DisplayRole)
+            self.setData(serializedlocntreeitem['selectedrole'], Qt.ItemDataRole.UserRole + udr.selectedrole)
+            self.setData(serializedlocntreeitem['timestamprole'], Qt.ItemDataRole.UserRole + udr.timestamprole)
+            self.setData(serializedlocntreeitem['mutuallyexclusiverole'], Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole)
+            self.setData(serializedlocntreeitem['displayrole'], Qt.ItemDataRole.DisplayRole)
             self._addedinfo = serializedlocntreeitem['addedinfo']
             self._ishandloc = serializedlocntreeitem['ishandloc']
             if isinstance(self._ishandloc, bool):
@@ -782,10 +791,10 @@ class LocationTreeItem(QStandardItem):
             self.setEditable(False)
             self.setText(txt)
             self.setCheckable(True)
-            self.setCheckState(Qt.Unchecked)
+            self.setCheckState(Qt.CheckState.Unchecked)
             self.setUserTristate(False)
-            self.setData(False, Qt.UserRole + udr.selectedrole)
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
+            self.setData(False, Qt.ItemDataRole.UserRole + udr.selectedrole)
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.ItemDataRole.UserRole + udr.timestamprole)
             self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
             self._ishandloc = ishandloc
             self.detailstable = LocationTableModel(
@@ -798,9 +807,9 @@ class LocationTreeItem(QStandardItem):
             )
 
             if mutuallyexclusive:
-                self.setData(True, Qt.UserRole + udr.mutuallyexclusiverole)
+                self.setData(True, Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole)
             else:
-                self.setData(False, Qt.UserRole + udr.mutuallyexclusiverole)
+                self.setData(False, Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole)
 
             self.listitem = listit
             if listit is not None:
@@ -816,11 +825,11 @@ class LocationTreeItem(QStandardItem):
             'checkable': self.isCheckable(),
             'checkstate': self.checkState(),
             'usertristate': self.isUserTristate(),
-            'timestamprole': self.data(Qt.UserRole + udr.timestamprole),
-            'selectedrole': self.data(Qt.UserRole + udr.selectedrole),
-            'mutuallyexclusiverole': self.data(Qt.UserRole + udr.mutuallyexclusiverole),
+            'timestamprole': self.data(Qt.ItemDataRole.UserRole + udr.timestamprole),
+            'selectedrole': self.data(Qt.ItemDataRole.UserRole + udr.selectedrole),
+            'mutuallyexclusiverole': self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole),
             'ishandloc': self._ishandloc,
-            'displayrole': self.data(Qt.DisplayRole),
+            'displayrole': self.data(Qt.ItemDataRole.DisplayRole),
             'addedinfo': self._addedinfo,
             'detailstable': LocationTableSerializable(self.detailstable)
             # 'listitem': self.listitem.serialize()  TODO KV why not? the constructor uses it...
@@ -843,22 +852,22 @@ class LocationTreeItem(QStandardItem):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     def check(self, fully=True):
-        self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
-        self.listitem.setData(fully, Qt.UserRole + udr.selectedrole)
+        self.setCheckState(Qt.CheckState.Checked if fully else Qt.CheckState.PartiallyChecked)
+        self.listitem.setData(fully, Qt.ItemDataRole.UserRole + udr.selectedrole)
         if fully:
-            self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
-            self.listitem.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
+            self.setData(QDateTime.currentDateTimeUtc(), Qt.ItemDataRole.UserRole + udr.timestamprole)
+            self.listitem.setData(QDateTime.currentDateTimeUtc(), Qt.ItemDataRole.UserRole + udr.timestamprole)
         self.checkancestors()
 
         # gather siblings in order to deal with mutual exclusivity (radio buttons)
         siblings = self.collectsiblings()
 
         # if this is a radio button item, make sure none of its siblings are checked
-        if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+        if self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole):
             for sib in siblings:
                 sib.uncheck(force=True)
         else:  # or if it has radio button siblings, make sure they are unchecked
-            for me_sibling in [s for s in siblings if s.data(Qt.UserRole + udr.mutuallyexclusiverole)]:
+            for me_sibling in [s for s in siblings if s.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole)]:
                 me_sibling.uncheck(force=True)
 
     def collectsiblings(self):
@@ -873,39 +882,39 @@ class LocationTreeItem(QStandardItem):
             if sibling.index() != self.index():  # ie, it's actually a sibling
                 siblings.append(sibling)
 
-        mysubgroup = self.data(Qt.UserRole + udr.subgroupnamerole)
+        mysubgroup = self.data(Qt.ItemDataRole.UserRole + udr.subgroupnamerole)
         subgrouporgeneralsiblings = [sib for sib in siblings if
-                                     sib.data(Qt.UserRole + udr.subgroupnamerole) == mysubgroup or not sib.data(
-                                         Qt.UserRole + udr.subgroupnamerole)]
-        subgroupsiblings = [sib for sib in siblings if sib.data(Qt.UserRole + udr.subgroupnamerole) == mysubgroup]
+                                     sib.data(Qt.ItemDataRole.UserRole + udr.subgroupnamerole) == mysubgroup or not sib.data(
+                                         Qt.ItemDataRole.UserRole + udr.subgroupnamerole)]
+        subgroupsiblings = [sib for sib in siblings if sib.data(Qt.ItemDataRole.UserRole + udr.subgroupnamerole) == mysubgroup]
 
         # if I'm ME and in a subgroup, collect siblings from my subgroup and also those at my level but not in any subgroup
-        if self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
+        if self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
             return subgrouporgeneralsiblings
         # if I'm ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
-        elif self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+        elif self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole):
             return siblings
         # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup and also those at my level but not in any subgroup
-        elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
+        elif not self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
             return subgrouporgeneralsiblings
         # # if I'm *not* ME but I'm in a subgroup, collect all siblings from my subgroup
-        # elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
+        # elif not self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole) and mysubgroup:
         #     return subgroupsiblings
         # if I'm *not* ME and not in a subgroup, collect all siblings from my level (in subgroups or no)
-        elif not self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+        elif not self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole):
             return siblings
 
     def checkancestors(self):
-        if self.checkState() == Qt.Unchecked:
-            self.setCheckState(Qt.PartiallyChecked)
+        if self.checkState() == Qt.CheckState.Unchecked:
+            self.setCheckState(Qt.CheckState.PartiallyChecked)
         if self.parent() is not None:
             self.parent().checkancestors()
 
     def uncheck(self, force=False):
         name = self.data()
 
-        self.listitem.setData(False, Qt.UserRole + udr.selectedrole)
-        self.setData(False, Qt.UserRole + udr.selectedrole)
+        self.listitem.setData(False, Qt.ItemDataRole.UserRole + udr.selectedrole)
+        self.setData(False, Qt.ItemDataRole.UserRole + udr.selectedrole)
 
         if force:  # force-clear this item and all its descendants - have to start at the bottom?
             # force-uncheck all descendants
@@ -915,15 +924,15 @@ class LocationTreeItem(QStandardItem):
                         ch = self.child(r, colnum)
                         if ch is not None:
                             ch.uncheck(force=True)
-            self.setCheckState(Qt.Unchecked)
+            self.setCheckState(Qt.CheckState.Unchecked)
         elif self.hascheckedchild():
-            self.setCheckState(Qt.PartiallyChecked)
+            self.setCheckState(Qt.CheckState.PartiallyChecked)
         else:
-            self.setCheckState(Qt.Unchecked)
+            self.setCheckState(Qt.CheckState.Unchecked)
             if self.parent() is not None:
                 self.parent().uncheckancestors()
 
-        if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+        if self.data(Qt.ItemDataRole.UserRole + udr.mutuallyexclusiverole):
             pass
             # TODO KV is this relevant? shouldn't be able to uncheck anyway
         elif True:  # has a mutually exclusive sibling
@@ -931,8 +940,8 @@ class LocationTreeItem(QStandardItem):
             # might one of those sibling need to be checked, if none of the boxes are?
 
     def uncheckancestors(self):
-        if self.checkState() == Qt.PartiallyChecked and not self.hascheckedchild():
-            self.setCheckState(Qt.Unchecked)
+        if self.checkState() == Qt.CheckState.PartiallyChecked and not self.hascheckedchild():
+            self.setCheckState(Qt.CheckState.Unchecked)
             if self.parent() is not None:
                 self.parent().uncheckancestors()
 
@@ -946,7 +955,7 @@ class LocationTreeItem(QStandardItem):
             while not foundone and colnum < numcols:
                 child = self.child(r, colnum)
                 if child is not None:
-                    foundone = child.checkState() in [Qt.Checked, Qt.PartiallyChecked]
+                    foundone = child.checkState() in [Qt.CheckState.Checked, Qt.CheckState.PartiallyChecked]
                 colnum += 1
             r += 1
         return foundone

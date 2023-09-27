@@ -1,6 +1,31 @@
 from copy import deepcopy
 
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QFrame,
+#     QRadioButton,
+#     QDialog,
+#     QWidget,
+#     QSpacerItem,
+#     QSizePolicy,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QMessageBox,
+#     QDialogButtonBox,
+#     QLabel,
+#     QButtonGroup,
+#     QCheckBox,
+#     QGraphicsView,
+#     QListView,
+#     QAbstractItemView,
+#     QPushButton
+# )
+#
+# from qt.QtCore import (
+#     Qt,
+#     pyqtSignal
+# )
+
+from qt import (
     QFrame,
     QRadioButton,
     QDialog,
@@ -17,10 +42,7 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QListView,
     QAbstractItemView,
-    QPushButton
-)
-
-from PyQt5.QtCore import (
+    QPushButton,
     Qt,
     pyqtSignal
 )
@@ -85,7 +107,7 @@ class ModuleSelectorDialog(QDialog):
         self.addedinfobutton = AddedInfoPushButton("Module notes")
         self.addedinfobutton.addedinfo = addedinfo
         self.arts_and_addedinfo_layout.addWidget(self.addedinfobutton)
-        self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
+        self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignmentFlag.AlignTop)
 
         main_layout.addLayout(self.arts_and_addedinfo_layout)
 
@@ -360,7 +382,7 @@ class AssociatedRelationsDialog(QDialog):
         # module_selector.module_deleted.connect(lambda: self.handle_moduledeleted(relmod.uniqueid))
         module_selector.module_deleted.connect(lambda: self.mainwindow.signlevel_panel.handle_delete_module(
             existingkey=relmod.uniqueid, moduletype=ModuleTypes.RELATION))
-        module_selector.exec_()
+        module_selector.exec()
         self.refresh_listmodel()
 
     def refresh_listmodel(self):
@@ -450,7 +472,7 @@ class AssociatedRelationsPanel(QFrame):
     def handle_see_relationmodules(self):
         associatedrelations_dialog = AssociatedRelationsDialog(anchormodule=self.anchormodule, parent=self)
         associatedrelations_dialog.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
-        associatedrelations_dialog.exec_()
+        associatedrelations_dialog.exec()
         self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
 
     def handle_save_add_relationmodule(self):
@@ -467,7 +489,7 @@ class AssociatedRelationsPanel(QFrame):
                                                    incl_articulators=[],
                                                    parent=self)
             module_selector.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
-            module_selector.exec_()
+            module_selector.exec()
 
 
 class SeeRelationsPushButton(QPushButton):
@@ -620,7 +642,7 @@ class ArticulatorSelectionPanel(QFrame):
         singlearts_layout.addWidget(self.articulator1_radio)
         singlearts_layout.addWidget(self.articulator2_radio)
         for idx in range(singlearts_layout.count()):
-            singlearts_layout.setAlignment(singlearts_layout.itemAt(idx).widget(), Qt.AlignTop)
+            singlearts_layout.setAlignment(singlearts_layout.itemAt(idx).widget(), Qt.AlignmentFlag.AlignTop)
         articulator_layout.addLayout(singlearts_layout)
 
         # for (eg) movement or location -- Both (plus one or more suboptions)

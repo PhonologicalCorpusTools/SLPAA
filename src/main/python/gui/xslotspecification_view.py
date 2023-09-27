@@ -1,5 +1,23 @@
 from fractions import Fraction
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QFrame,
+#     QDialog,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QDialogButtonBox,
+#     QLabel,
+#     QButtonGroup,
+#     QRadioButton,
+#     QSpacerItem,
+#     QSizePolicy,
+#     QSpinBox
+# )
+#
+# from qt.QtCore import (
+#     pyqtSignal,
+# )
+
+from qt import (
     QFrame,
     QDialog,
     QHBoxLayout,
@@ -10,10 +28,7 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QSpacerItem,
     QSizePolicy,
-    QSpinBox
-)
-
-from PyQt5.QtCore import (
+    QSpinBox,
     pyqtSignal,
 )
 

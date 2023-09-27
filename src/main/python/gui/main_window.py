@@ -7,31 +7,54 @@ from copy import deepcopy
 from datetime import date
 from fractions import Fraction
 
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     QSize,
+#     QSettings,
+#     QPoint,
+#     pyqtSignal
+# )
+#
+# from qt.QtWidgets import (
+#     QFileDialog,
+#     QMainWindow,
+#     QToolBar,
+#     # QAction,
+#     QStatusBar,
+#     QScrollArea,
+#     QMessageBox,
+#     QUndoStack,
+#     QMdiArea,
+#     QMdiSubWindow,
+#     QWidget
+# )
+#
+# from qt.QtGui import (
+#     QIcon,
+#     QKeySequence
+# )
+#
+# from qt import QAction
+
+from qt import (
     Qt,
     QSize,
     QSettings,
     QPoint,
-    pyqtSignal
-)
-
-from PyQt5.QtWidgets import (
+    pyqtSignal,
     QFileDialog,
     QMainWindow,
     QToolBar,
-    QAction,
     QStatusBar,
     QScrollArea,
     QMessageBox,
     QUndoStack,
     QMdiArea,
     QMdiSubWindow,
-    QWidget
-)
-
-from PyQt5.QtGui import (
+    QWidget,
     QIcon,
-    QKeySequence
+    QKeySequence,
+    QAction
 )
 
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
@@ -105,14 +128,14 @@ class MainWindow(QMainWindow):
         # save
         action_save = QAction(QIcon(self.app_ctx.icons['save']), 'Save', parent=self)
         action_save.setStatusTip('Save')
-        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
+        action_save.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_S))
         action_save.triggered.connect(self.on_action_save)
         action_save.setCheckable(False)
 
         # save as
         action_saveas = QAction(QIcon(self.app_ctx.icons['saveas']), 'Save As...', parent=self)
         action_saveas.setStatusTip('Save As...')
-        action_saveas.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_A))
+        action_saveas.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_A))
         action_saveas.triggered.connect(self.on_action_saveas)
         action_saveas.setCheckable(False)
 
@@ -121,7 +144,7 @@ class MainWindow(QMainWindow):
         action_undo.setEnabled(False)
         self.undostack.canUndoChanged.connect(lambda b: action_undo.setEnabled(b))
         action_undo.setStatusTip('Undo')
-        action_undo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Z))
+        action_undo.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_Z))
         action_undo.triggered.connect(lambda: self.undostack.undo())
         action_undo.setCheckable(False)
 
@@ -130,21 +153,21 @@ class MainWindow(QMainWindow):
         action_redo.setEnabled(False)
         self.undostack.canRedoChanged.connect(lambda b: action_redo.setEnabled(b))
         action_redo.setStatusTip('Undo')
-        action_redo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Y))
+        action_redo.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_Y))
         action_redo.triggered.connect(lambda: self.undostack.redo())
         action_redo.setCheckable(False)
 
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
         action_copy.setStatusTip('Copy the current sign')
-        action_copy.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
+        action_copy.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_C))
         action_copy.triggered.connect(self.on_action_copy)
         action_copy.setCheckable(False)
 
         # paste
         action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
         action_paste.setStatusTip('Paste the copied sign')
-        action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
+        action_paste.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_P))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
 
@@ -168,14 +191,14 @@ class MainWindow(QMainWindow):
         # load corpus
         action_load_corpus = QAction(QIcon(self.app_ctx.icons['load16']), "Load corpus...", parent=self)
         action_load_corpus.setStatusTip("Load a .corpus file")
-        action_load_corpus.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
+        action_load_corpus.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_L))
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
         # close
         action_close = QAction('Close', parent=self)
         action_close.setStatusTip('Close the application')
-        action_close.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_W))
+        action_close.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_W))
         action_close.triggered.connect(self.on_action_close)
         action_close.setCheckable(False)
 
@@ -186,7 +209,7 @@ class MainWindow(QMainWindow):
         # new sign
         action_new_sign = QAction(QIcon(self.app_ctx.icons['plus']), 'New sign', parent=self)
         action_new_sign.setStatusTip('Create a new sign')
-        action_new_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_N))
+        action_new_sign.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_N))
         action_new_sign.triggered.connect(self.on_action_new_sign)
         action_new_sign.setCheckable(False)
 
@@ -194,7 +217,7 @@ class MainWindow(QMainWindow):
         self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign', parent=self)
         self.action_delete_sign.setEnabled(False)
         self.action_delete_sign.setStatusTip('Delete the selected sign')
-        self.action_delete_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Delete))
+        self.action_delete_sign.setShortcut(QKeySequence(Qt.Modifier.CTRL + Qt.Key.Key_Delete))
         self.action_delete_sign.triggered.connect(self.on_action_delete_sign)
         self.action_delete_sign.setCheckable(False)
 
@@ -340,7 +363,7 @@ class MainWindow(QMainWindow):
     # GZ - missing compound sign attribute
     def on_action_export_handshape_transcription_csv(self):
         export_csv_dialog = ExportCSVDialog(self.app_settings, parent=self)
-        if export_csv_dialog.exec_():
+        if export_csv_dialog.exec():
             file_name = export_csv_dialog.location_group.get_file_path()
             option = export_csv_dialog.transcription_option_group.get_selected_option()
             if file_name:
@@ -554,7 +577,7 @@ class MainWindow(QMainWindow):
                                               self.on_action_load_corpus,
                                               self.app_settings['metadata']['coder'],
                                               parent=self)
-        response = initialization.exec_()
+        response = initialization.exec()
         if not response:  # close the window or press cancel
             self.on_action_new_corpus(False)
 
@@ -707,11 +730,11 @@ class MainWindow(QMainWindow):
                                                  self.app_ctx,
                                                  parent=self)
         location_definer.saved_locations.connect(self.save_new_locations)
-        location_definer.exec_()
+        location_definer.exec()
 
     def on_action_test_location_graphics(self):
         location_test_window = LocationGraphicsTestDialog(self.app_settings, self.app_ctx, parent=self)
-        location_test_window.exec_()
+        location_test_window.exec()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
@@ -726,7 +749,7 @@ class MainWindow(QMainWindow):
                                        parent=self)
         pref_dialog.xslotgeneration_changed.connect(self.handle_xslotgeneration_changed)
         pref_dialog.prefs_saved.connect(self.signsummary_panel.refreshsign)
-        pref_dialog.exec_()
+        pref_dialog.exec()
 
     def handle_xslotgeneration_changed(self, prev_xslotgen, new_xslotgen):
         self.signlevel_panel.enable_module_buttons(len(self.corpus.signs) > 0)

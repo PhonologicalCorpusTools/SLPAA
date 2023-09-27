@@ -1,6 +1,45 @@
 import os
 import json
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QGraphicsPolygonItem,
+#     QGraphicsView,
+#     QGraphicsScene,
+#     QGraphicsPixmapItem,
+#     QFrame,
+#     QGridLayout,
+#     QLineEdit,
+#     QPushButton,
+#     QDialog,
+#     QHBoxLayout,
+#     QListView,
+#     QVBoxLayout,
+#     QFileDialog,
+#     QWidget,
+#     QTabWidget,
+#     QTabBar,
+#     QDialogButtonBox,
+#     QMessageBox,
+#     QSlider
+# )
+#
+# from qt.QtGui import (
+#     QBrush,
+#     QColor,
+#     QPen,
+#     QPolygonF,
+#     QPixmap,
+#     QIcon
+# )
+#
+# from qt.QtCore import (
+#     Qt,
+#     QPoint,
+#     QRectF,
+#     QAbstractListModel,
+#     pyqtSignal
+# )
+
+from qt import (
     QGraphicsPolygonItem,
     QGraphicsView,
     QGraphicsScene,
@@ -19,19 +58,13 @@ from PyQt5.QtWidgets import (
     QTabBar,
     QDialogButtonBox,
     QMessageBox,
-    QSlider
-)
-
-from PyQt5.QtGui import (
+    QSlider,
     QBrush,
     QColor,
     QPen,
     QPolygonF,
     QPixmap,
-    QIcon
-)
-
-from PyQt5.QtCore import (
+    QIcon,
     Qt,
     QPoint,
     QRectF,
@@ -226,7 +259,7 @@ class LocationListModel(QAbstractListModel):
         self.locations = locations or []
 
     def data(self, index, role):
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return self.locations[index.row()]
 
     def rowCount(self, index):
@@ -300,7 +333,7 @@ class LocationDefinerPage(QWidget):
 
         main_layout.addWidget(self.location_viewer)
 
-        zoom_slider = QSlider(Qt.Vertical, parent=self)
+        zoom_slider = QSlider(Qt.Orientation.Vertical, parent=self)
         zoom_slider.setMinimum(1)
         zoom_slider.setMaximum(10)
         zoom_slider.setValue(0)

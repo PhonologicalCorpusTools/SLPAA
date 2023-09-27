@@ -2,10 +2,8 @@ from copy import copy
 import io
 import pickle
 
-
-from PyQt5.QtCore import (
-    Qt
-)
+# from qt.QtCore import Qt
+from qt import Qt
 
 from lexicon.module_classes import userdefinedroles as udr
 from models.movement_models import fx
@@ -108,12 +106,12 @@ class MovementTreeSerializable:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    pathtext = treechild.data(Qt.ItemDataRole.UserRole + udr.pathdisplayrole)
                     checkstate = treechild.checkState()
                     addedinfo = treechild.addedinfo
                     self.addedinfos[pathtext] = copy(addedinfo)
-                    iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
-                    userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
+                    iseditable = treechild.data(Qt.ItemDataRole.UserRole + udr.isuserspecifiablerole) != fx
+                    userspecifiedvalue = treechild.data(Qt.ItemDataRole.UserRole + udr.userspecifiedvaluerole)
                     if iseditable:
                         self.userspecifiedvalues[pathtext] = userspecifiedvalue
 
@@ -146,7 +144,7 @@ class LocationTreeSerializable:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    pathtext = treechild.data(Qt.ItemDataRole.UserRole + udr.pathdisplayrole)
                     checkstate = treechild.checkState()
                     locntable = treechild.detailstable
                     addedinfo = treechild.addedinfo
@@ -159,8 +157,8 @@ class LocationTreeSerializable:
                     #     parentpathtext = delimiter.join(pathsteps[:-1])
                     #     numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
                     #     self.numvals[parentpathtext] = numericstring
-                    iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
-                    userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
+                    iseditable = treechild.data(Qt.ItemDataRole.UserRole + udr.isuserspecifiablerole) != fx
+                    userspecifiedvalue = treechild.data(Qt.ItemDataRole.UserRole + udr.userspecifiedvaluerole)
                     # if iseditable:
                     #     self.userspecifiedvalues[pathtext] = userspecifiedvalue
 

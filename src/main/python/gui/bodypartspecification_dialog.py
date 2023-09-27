@@ -1,16 +1,27 @@
 from copy import deepcopy
 
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QFrame,
+#     QDialog,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QDialogButtonBox,
+#     QLabel,
+#     QPushButton
+# )
+#
+# from qt.QtCore import (
+#     pyqtSignal
+# )
+
+from qt import (
     QFrame,
     QDialog,
     QHBoxLayout,
     QVBoxLayout,
     QDialogButtonBox,
     QLabel,
-    QPushButton
-)
-
-from PyQt5.QtCore import (
+    QPushButton,
     pyqtSignal
 )
 
@@ -77,7 +88,7 @@ class BodypartSpecificationPanel(QFrame):
         self.addedinfobutton = AddedInfoPushButton("Notes")
         self.addedinfobutton.addedinfo = addedinfo
         title_and_addedinfo_layout.addWidget(self.addedinfobutton)
-        # title_and_addedinfo_layout.setAlignment(addedinfobutton, Qt.AlignTop)
+        # title_and_addedinfo_layout.setAlignment(addedinfobutton, Qt.AlignmentFlag.AlignTop)
 
         return title_and_addedinfo_layout
 

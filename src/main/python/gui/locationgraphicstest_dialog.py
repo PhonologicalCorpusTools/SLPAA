@@ -1,12 +1,21 @@
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QTabWidget,
+#     QWidget,
+#     QDialog,
+# )
+#
+# from qt.QtCore import (
+#     pyqtSignal,
+# )
+
+from qt import (
     QHBoxLayout,
     QVBoxLayout,
     QTabWidget,
     QWidget,
     QDialog,
-)
-
-from PyQt5.QtCore import (
     pyqtSignal,
 )
 
@@ -30,19 +39,19 @@ class SvgDisplayTab(QWidget):
         img_layout.addWidget(self.imagedisplay)
 
         zoom_layout = QVBoxLayout()
-        # self.zoom_slider = QSlider(Qt.Vertical)
+        # self.zoom_slider = QSlider(Qt.Orientation.Vertical)
         # self.zoom_slider.setMinimum(1)
         # self.zoom_slider.setMaximum(8)
         # self.zoom_slider.setValue(0)
         # self.zoom_slider.valueChanged.connect(self.zoom)
         # zoom_layout.addWidget(self.zoom_slider)
-        # zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
+        # zoom_layout.setAlignment(self.zoom_slider, Qt.AlignmentFlag.AlignHCenter)
 
         # self.link_button = QPushButton("Link")
         # self.link_button.setCheckable(True)
         # self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
         # zoom_layout.addWidget(self.link_button)
-        # zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
+        # zoom_layout.setAlignment(self.link_button, Qt.AlignmentFlag.AlignHCenter)
 
         main_layout.addLayout(img_layout)
         main_layout.addLayout(zoom_layout)

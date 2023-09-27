@@ -1,4 +1,24 @@
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QDialog,
+#     QWidget,
+#     QVBoxLayout,
+#     QHBoxLayout,
+#     QFormLayout,
+#     QTabWidget,
+#     QSpinBox,
+#     QCheckBox,
+#     QDialogButtonBox,
+#     QLineEdit,
+#     QLabel,
+#     QRadioButton,
+#     QButtonGroup,
+#     QMessageBox,
+#     QPushButton
+# )
+#
+# from qt.QtCore import pyqtSignal
+
+from qt import (
     QDialog,
     QWidget,
     QVBoxLayout,
@@ -13,10 +33,9 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QButtonGroup,
     QMessageBox,
-    QPushButton
+    QPushButton,
+    pyqtSignal
 )
-
-from PyQt5.QtCore import pyqtSignal
 
 from constant import FRACTION_CHAR
 from fractions import Fraction

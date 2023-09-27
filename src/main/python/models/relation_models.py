@@ -1,11 +1,18 @@
 from copy import copy
 
-from PyQt5.Qt import (
-    QStandardItem,
-    QStandardItemModel
-)
+# from qt.QtGui import (
+#     QStandardItem,
+#     QStandardItemModel
+# )
+#
+# from qt.QtCore import (
+#     Qt,
+#     QDateTime
+# )
 
-from PyQt5.QtCore import (
+from qt import (
+    QStandardItem,
+    QStandardItemModel,
     Qt,
     QDateTime
 )
@@ -57,8 +64,8 @@ class ModuleLinkingListItem(QStandardItem):
         self.setEditable(False)
         self.setCheckable(False)
 
-    def data(self, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
+    def data(self, role=Qt.ItemDataRole.DisplayRole):
+        if role == Qt.ItemDataRole.DisplayRole:
             # TODO KV can this abbreviated module name come from elsewhere?
             #  sign summary panel uses the same kind of abbreviation, eg
             articulator, articulators_dict = self.module.articulators

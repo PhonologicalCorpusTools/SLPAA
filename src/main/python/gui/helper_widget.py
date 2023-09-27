@@ -1,13 +1,40 @@
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     QParallelAnimationGroup,
+#     QPropertyAnimation,
+#     QAbstractAnimation,
+#     QEvent,
+#     pyqtSignal,
+#     QRect
+# )
+# from qt.QtWidgets import (
+#     QWidget,
+#     QScrollArea,
+#     QFrame,
+#     QToolButton,
+#     QGridLayout,
+#     QSizePolicy,
+#     QTabBar,
+#     QLineEdit,
+#     QMessageBox,
+#     QPushButton,
+#     QHBoxLayout
+# )
+# from qt.QtGui import (
+#     QPainter,
+#     QColor,
+#     QPen,
+#     QBrush
+# )
+
+from qt import (
     Qt,
     QParallelAnimationGroup,
     QPropertyAnimation,
     QAbstractAnimation,
     QEvent,
     pyqtSignal,
-    QRect
-)
-from PyQt5.QtWidgets import (
+    QRect,
     QWidget,
     QScrollArea,
     QFrame,
@@ -18,15 +45,12 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
-    QHBoxLayout
-)
-from PyQt5.QtGui import (
+    QHBoxLayout,
     QPainter,
     QColor,
     QPen,
     QBrush
 )
-
 
 class CollapsibleSection(QWidget):
     def __init__(self, title='', animationDuration=300, **kwargs):
@@ -44,8 +68,8 @@ class CollapsibleSection(QWidget):
         self.mainLayout = QGridLayout()
 
         self.toggleButton.setStyleSheet('QToolButton { border: none; }')
-        self.toggleButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        self.toggleButton.setArrowType(Qt.RightArrow)
+        self.toggleButton.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.toggleButton.setArrowType(Qt.ArrowType.RightArrow)
         self.toggleButton.setText(str(title))
         self.toggleButton.setCheckable(True)
         self.toggleButton.setChecked(False)
@@ -71,7 +95,7 @@ class CollapsibleSection(QWidget):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
 
         row = 0
-        self.mainLayout.addWidget(self.toggleButton, row, 0, 1, 1, Qt.AlignLeft)
+        self.mainLayout.addWidget(self.toggleButton, row, 0, 1, 1, Qt.AlignmentFlag.AlignLeft)
         self.mainLayout.addWidget(self.headerLine, row, 2, 1, 1)
 
         row += 1
@@ -79,7 +103,7 @@ class CollapsibleSection(QWidget):
         self.setLayout(self.mainLayout)
 
         def start_animation(checked):
-            arrow_type = Qt.DownArrow if checked else Qt.RightArrow
+            arrow_type = Qt.ArrowType.DownArrow if checked else Qt.ArrowType.RightArrow
             direction = QAbstractAnimation.Forward if checked else QAbstractAnimation.Backward
             self.toggleButton.setArrowType(arrow_type)
             self.toggleAnimation.setDirection(direction)
@@ -117,14 +141,14 @@ class EditableTabBar(QTabBar):
         self.setTabsClosable(True)
 
         self.editor = QLineEdit(self)
-        self.editor.setWindowFlags(Qt.Popup)
+        self.editor.setWindowFlags(Qt.WindowType.Popup)
         self.editor.setFocusProxy(self)
         self.editor.editingFinished.connect(self.handle_editing_finished)
         self.editor.installEventFilter(self)
 
     def eventFilter(self, widget, event):
         if (event.type() == QEvent.MouseButtonPress and not self.editor.geometry().contains(event.globalPos())) or \
-                (event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape):
+                (event.type() == QEvent.KeyPress and event.key() == Qt.Key.Key_Escape):
             self.editor.hide()
             return True
         return QTabBar.eventFilter(self, widget, event)
@@ -172,7 +196,7 @@ class ToggleSwitch(QPushButton):
         super().paintEvent(event)
 
         label = 'Dominant' if self.isChecked() else 'Weak'
-        bg_color = Qt.green if self.isChecked() else Qt.red
+        bg_color = Qt.GlobalColor.green if self.isChecked() else Qt.GlobalColor.red
 
         radius = 17
         width = 130
@@ -183,7 +207,7 @@ class ToggleSwitch(QPushButton):
         painter.translate(center)
         painter.setBrush(QColor(0, 0, 0))
 
-        pen = QPen(Qt.black)
+        pen = QPen(Qt.GlobalColor.black)
         pen.setWidth(2)
         painter.setPen(pen)
 
@@ -193,7 +217,7 @@ class ToggleSwitch(QPushButton):
         if not self.isChecked():
             sw_rect.moveLeft(-width)
         painter.drawRoundedRect(sw_rect, radius, radius)
-        painter.drawText(sw_rect, Qt.AlignCenter, label)
+        painter.drawText(sw_rect, Qt.AlignmentFlag.AlignCenter, label)
 
 
 class OptionSwitch(QWidget):

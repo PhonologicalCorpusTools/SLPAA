@@ -1,21 +1,34 @@
 from fractions import Fraction
 from num2words import num2words
 
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QGraphicsRectItem,
+#     QGraphicsScene,
+#     QMessageBox,
+#     QGraphicsEllipseItem
+# )
+#
+# from qt.QtGui import (
+#     QBrush,
+#     QColor,
+#     QPen,
+#     QTextOption,
+# )
+#
+# from qt.QtCore import (
+#     Qt,
+#     pyqtSignal,
+# )
+
+from qt import (
     QGraphicsRectItem,
     QGraphicsScene,
     QMessageBox,
-    QGraphicsEllipseItem
-)
-
-from PyQt5.QtGui import (
+    QGraphicsEllipseItem,
     QBrush,
     QColor,
     QPen,
     QTextOption,
-)
-
-from PyQt5.QtCore import (
     Qt,
     pyqtSignal,
 )
@@ -26,7 +39,7 @@ from constant import FRACTION_CHAR
 
 class XslotPointLabel(QGraphicsRectItem):
 
-    def __init__(self, text="", align=Qt.AlignCenter):
+    def __init__(self, text="", align=Qt.AlignmentFlag.AlignCenter):
         super().__init__()
         self.text = text
         self.align = align
@@ -40,11 +53,11 @@ class XslotPointLabel(QGraphicsRectItem):
     def paint(self, painter, option, widget):
 
         # turn pen off while filling rectangle
-        painter.setBrush(Qt.NoBrush)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
         # draw rectangle text
         textoption = QTextOption(self.align)
-        # textoption.setAlignment(Qt.AlignCenter)
+        # textoption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = painter.font()
         font.setPixelSize(18)
         painter.setFont(font)
@@ -56,7 +69,7 @@ class XslotRect(QGraphicsRectItem):
     def __init__(self, parentwidget, xslot_whole=0, xslot_part_start=None, xslot_part_end=None, text="",
                  moduletype=None, sign=None, proportionfill=1):
         super().__init__()
-        self.inactivebrush = QBrush(Qt.gray)
+        self.inactivebrush = QBrush(Qt.GlobalColor.gray)
         self.setAcceptHoverEvents(False)
         self.parentwidget = parentwidget
         self.text = text
@@ -69,15 +82,15 @@ class XslotRect(QGraphicsRectItem):
         self.xslot_part_end = Fraction(1) if xslot_part_end is None else xslot_part_end
 
     def currentbrush(self):
-        return QBrush(Qt.white)
+        return QBrush(Qt.GlobalColor.white)
 
     def currentpen(self):
-        return QPen(Qt.black)
+        return QPen(Qt.GlobalColor.black)
 
     def paint(self, painter, option, widget):
 
         # turn pen off while filling rectangle
-        painter.setPen(Qt.NoPen)
+        painter.setPen(Qt.PenStyle.NoPen)
 
         # fill active percentage of rectangle
         painter.setBrush(self.currentbrush())
@@ -94,7 +107,7 @@ class XslotRect(QGraphicsRectItem):
 
         # turn off brush while outlining rectangle & drawing text
         brush = painter.brush()
-        brush.setStyle(Qt.NoBrush)
+        brush.setStyle(Qt.BrushStyle.NoBrush)
         painter.setBrush(brush)
 
         # outline rectangle
@@ -103,8 +116,8 @@ class XslotRect(QGraphicsRectItem):
         painter.drawRect(entirerect)
 
         # draw rectangle text
-        textoption = QTextOption(Qt.AlignCenter)
-        # textoption.setAlignment(Qt.AlignCenter)
+        textoption = QTextOption(Qt.AlignmentFlag.AlignCenter)
+        # textoption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = painter.font()
         font.setPixelSize(15)
         painter.setFont(font)
@@ -137,21 +150,21 @@ class XslotRectButton(XslotRect):
 
     def currentpen(self):
         if self.hover > 0:
-            return QPen(Qt.black)
+            return QPen(Qt.GlobalColor.black)
         else:
             return self.restingpen()
 
     def restingbrush(self):
         if self.selected:
-            return QBrush(Qt.black)
+            return QBrush(Qt.GlobalColor.black)
         else:
-            return QBrush(Qt.white)
+            return QBrush(Qt.GlobalColor.white)
 
     def restingpen(self):
         if self.selected:
-            return QPen(Qt.white)
+            return QPen(Qt.GlobalColor.white)
         else:
-            return QPen(Qt.black)
+            return QPen(Qt.GlobalColor.black)
 
     def toggle(self):
         self.selected = not self.selected
@@ -214,18 +227,18 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         elif self.hover == 2:
             return QColor(170, 215, 245)
         else:
-            return QBrush(Qt.white)
+            return QBrush(Qt.GlobalColor.white)
 
     def currentpen(self):
         if self.hover > 0:
-            return QPen(Qt.black)
+            return QPen(Qt.GlobalColor.black)
         else:
-            return QPen(Qt.black)
+            return QPen(Qt.GlobalColor.black)
 
     def paint(self, painter, option, widget):
 
         # turn pen off while filling ellipse
-        painter.setPen(Qt.NoPen)
+        painter.setPen(Qt.PenStyle.NoPen)
 
         # fill ellipse
         painter.setBrush(self.currentbrush())
@@ -233,7 +246,7 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
 
         # turn off brush while outlining ellipse & drawing text
         brush = painter.brush()
-        brush.setStyle(Qt.NoBrush)
+        brush.setStyle(Qt.BrushStyle.NoBrush)
         painter.setBrush(brush)
 
         # outline ellipse
@@ -242,8 +255,8 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         painter.drawEllipse(entirerect)
 
         # draw ellipse text
-        textoption = QTextOption(Qt.AlignCenter)
-        # textoption.setAlignment(Qt.AlignCenter)
+        textoption = QTextOption(Qt.AlignmentFlag.AlignCenter)
+        # textoption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = painter.font()
         font.setPixelSize(15)
         painter.setFont(font)
@@ -312,7 +325,7 @@ class XSlotCheckbox(QGraphicsRectItem):
         pen = QPen()
         pen.setStyle(Qt.SolidLine)
         pen.setWidth(self.penwidth)
-        pen.setColor(QColor(0, 120, 215) if self.hover else Qt.black)
+        pen.setColor(QColor(0, 120, 215) if self.hover else Qt.GlobalColor.black)
         return pen
 
     def hoverEnterEvent(self, event):
@@ -326,14 +339,14 @@ class XSlotCheckbox(QGraphicsRectItem):
     def paint(self, painter, option, widget):
         # turn off brush - we're just drawing text
         brush = painter.brush()
-        brush.setStyle(Qt.NoBrush)
+        brush.setStyle(Qt.BrushStyle.NoBrush)
         painter.setBrush(brush)
 
         painter.setPen(self.currentpen())
         rect = self.rect()
         rect.setHeight(rect.height()+5)
 
-        textoption = QTextOption(Qt.AlignCenter)
+        textoption = QTextOption(Qt.AlignmentFlag.AlignCenter)
         font = painter.font()
         font.setPixelSize(self.textsize)
         painter.setFont(font)
@@ -520,17 +533,17 @@ class XslotLinkScene(QGraphicsScene):
             xloc_text = xloc_box
             if cb.xslot_part == 0:
                 textbox.setText("[ x" + str(k[0]))
-                textbox.setAlign(Qt.AlignLeft)
+                textbox.setAlign(Qt.AlignmentFlag.AlignLeft)
                 xloc_box += 0.1 * self.checkbox_size
                 xloc_text = xloc_box
             elif cb.xslot_part == 1:
                 textbox.setText("x"+str(k[0])+" ]")
-                textbox.setAlign(Qt.AlignRight)
+                textbox.setAlign(Qt.AlignmentFlag.AlignRight)
                 xloc_text = xloc_box - (0.1*self.checkbox_size) - self.textbox_width
                 xloc_box -= 1.1 * self.checkbox_size
             else:
                 textbox.setText(str(k[1]))
-                textbox.setAlign(Qt.AlignCenter)
+                textbox.setAlign(Qt.AlignmentFlag.AlignCenter)
                 xloc_text = xloc_box - self.textbox_width/2
                 xloc_box -= 0.5 * self.checkbox_size
             textbox.setRect(xloc_text, yloc_text, self.textbox_width, self.checkbox_size)

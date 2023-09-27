@@ -1,6 +1,27 @@
 from datetime import datetime
 
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QLineEdit,
+#     QDialog,
+#     QFrame,
+#     QHBoxLayout,
+#     QFormLayout,
+#     QRadioButton,
+#     QVBoxLayout,
+#     QDialogButtonBox,
+#     QPlainTextEdit,
+#     QButtonGroup,
+#     QCheckBox,
+#     QLabel,
+# )
+#
+# from qt.QtCore import (
+#     Qt,
+#     pyqtSignal,
+#     QSize,
+# )
+
+from qt import (
     QLineEdit,
     QDialog,
     QFrame,
@@ -13,9 +34,6 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QLabel,
-)
-
-from PyQt5.QtCore import (
     Qt,
     pyqtSignal,
     QSize,
@@ -76,7 +94,7 @@ class SignLevelInfoPanel(QFrame):
         self.entryid_value.setText(self.entryid_string())
         self.entryid_value.setEnabled(False)
         self.gloss_edit = QLineEdit()
-        self.gloss_edit.setFocusPolicy(Qt.StrongFocus)
+        self.gloss_edit.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.lemma_edit = QLineEdit()
         self.source_edit = QLineEdit()
         self.signer_edit = QLineEdit()

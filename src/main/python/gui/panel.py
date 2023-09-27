@@ -1,14 +1,53 @@
 from fractions import Fraction
 from itertools import permutations
 from collections import defaultdict
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     QRectF,
+#     QPoint,
+#     pyqtSignal,
+# )
+#
+# from qt.QtWidgets import (
+#     QScrollArea,
+#     QVBoxLayout,
+#     QFrame,
+#     QLabel,
+#     QLineEdit,
+#     QHBoxLayout,
+#     QCheckBox,
+#     QGraphicsPolygonItem,
+#     QGraphicsView,
+#     QGraphicsScene,
+#     QGraphicsPixmapItem,
+#     QGraphicsEllipseItem,
+#     QGraphicsTextItem,
+#     QGroupBox,
+#     QPushButton,
+#     QColorDialog,
+#     QTableWidget,
+#     QTableWidgetItem,
+#     QAbstractItemView,
+#     QMenu,
+#     # QAction,
+#     QMessageBox
+# )
+#
+# from qt.QtGui import (
+#     QPixmap,
+#     QColor,
+#     QPen,
+#     QBrush,
+#     QPolygonF
+# )
+#
+# from qt import QAction
+
+from qt import (
     Qt,
     QRectF,
     QPoint,
     pyqtSignal,
-)
-
-from PyQt5.QtWidgets import (
     QScrollArea,
     QVBoxLayout,
     QFrame,
@@ -29,16 +68,13 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
     QAbstractItemView,
     QMenu,
-    QAction,
-    QMessageBox
-)
-
-from PyQt5.QtGui import (
+    QMessageBox,
     QPixmap,
     QColor,
     QPen,
     QBrush,
     QPolygonF,
+    QAction
 )
 
 # from gui.hand_configuration import ConfigGlobal, Config
@@ -290,7 +326,7 @@ class SignSummaryPanel(QScrollArea):
         self.gridlinestart = 0
         self.refreshsign()  # self.sign)
         self.xslotview = QGraphicsView(self.scene)
-        self.xslotview.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        self.xslotview.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.xslotview.setGeometry(0, 0, 1000, 600)
         main_layout.addWidget(self.xslotview)
         self.setLayout(main_layout)
@@ -729,7 +765,7 @@ class SignSummaryPanel(QScrollArea):
     def handle_signtype_clicked(self):
         signtypedialog = SigntypeSelectorDialog(self.mainwindow.current_sign.signtype, parent=self)
         signtypedialog.saved_signtype.connect(self.handle_save_signtype)
-        signtypedialog.exec_()
+        signtypedialog.exec()
 
     def handle_save_signtype(self, signtype):
         self.sign.signtype = signtype
@@ -761,7 +797,7 @@ class SignSummaryPanel(QScrollArea):
         module_selector.module_deleted.connect(
             lambda: self.mainwindow.signlevel_panel.handle_delete_module(existingkey=modulekey, moduletype=moduletype)
         )
-        module_selector.exec_()
+        module_selector.exec()
 
 
 class SignLevelMenuPanel(QScrollArea):
@@ -868,7 +904,7 @@ class SignLevelMenuPanel(QScrollArea):
     def handle_xslotsbutton_click(self):
         timing_selector = XslotSelectorDialog(self.sign.xslotstructure if self.sign else None, parent=self)
         timing_selector.saved_xslots.connect(self.handle_save_xslots)
-        timing_selector.exec_()
+        timing_selector.exec()
 
     def handle_save_xslots(self, xslots):
         self.sign.xslotstructure = xslots
@@ -879,7 +915,7 @@ class SignLevelMenuPanel(QScrollArea):
     def handle_signlevelbutton_click(self):
         signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, parent=self)
         signlevelinfo_selector.saved_signlevelinfo.connect(self.handle_save_signlevelinfo)
-        signlevelinfo_selector.exec_()
+        signlevelinfo_selector.exec()
 
     def handle_save_signlevelinfo(self, signlevelinfo):
         if self.sign:
@@ -904,7 +940,7 @@ class SignLevelMenuPanel(QScrollArea):
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
         signtype_selector.saved_signtype.connect(self.handle_save_signtype)
-        signtype_selector.exec_()
+        signtype_selector.exec()
 
     def handle_save_signtype(self, signtype):
         self.sign.signtype = signtype
@@ -925,7 +961,7 @@ class SignLevelMenuPanel(QScrollArea):
                                                incl_articulator_subopts=includephase,
                                                parent=self)
         module_selector.module_saved.connect(lambda moduletosave, savedtype: self.handle_save_module(moduletosave, moduletype=savedtype))
-        module_selector.exec_()
+        module_selector.exec()
 
     def handle_delete_module(self, existingkey, moduletype):
         if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype).keys():
@@ -992,7 +1028,7 @@ class LocationGroupLayout(QHBoxLayout):
         return location_value_dict
 
     def clear(self, location_specifications, app_ctx):
-        self.contact_button.setCheckState(Qt.Unchecked)
+        self.contact_button.setCheckState(Qt.CheckState.Unchecked)
         self.location_viewers.clear()
 
         while self.count() >= 2:
@@ -1083,9 +1119,9 @@ class LocationPointTable(QTableWidget):
 
         for i, (name, color, note) in enumerate(default_points):
             name_item = QTableWidgetItem(name)
-            name_item.setCheckState(Qt.Checked)
+            name_item.setCheckState(Qt.CheckState.Checked)
             name_item.setForeground(QBrush(QColor(color)))
-            name_item.setData(Qt.UserRole, 'name')
+            name_item.setData(Qt.ItemDataRole.UserRole, 'name')
 
             self.setItem(i, 0, name_item)
             self.setItem(i, 1, QTableWidgetItem(note))
@@ -1099,13 +1135,13 @@ class LocationPointTable(QTableWidget):
         self.context_menu.addAction(remove_action)
 
     def contextMenuEvent(self, event):
-        self.context_menu.exec_(event.globalPos())
+        self.context_menu.exec(event.globalPos())
 
     def add_location_point(self, name, color, note):
         name_item = QTableWidgetItem(name)
-        name_item.setCheckState(Qt.Checked)
+        name_item.setCheckState(Qt.CheckState.Checked)
         name_item.setForeground(QBrush(QColor(color)))
-        name_item.setData(Qt.UserRole, 'name')
+        name_item.setData(Qt.ItemDataRole.UserRole, 'name')
 
         row_insertion_position = self.rowCount()
         self.insertRow(row_insertion_position)
@@ -1114,7 +1150,7 @@ class LocationPointTable(QTableWidget):
         self.setItem(row_insertion_position, 1, QTableWidgetItem(note))
 
     def on_item_changed(self, item):
-        if item.data(Qt.UserRole) == 'name':
+        if item.data(Qt.ItemDataRole.UserRole) == 'name':
             print(item.checkState())
 
     def dropEvent(self, event):
@@ -1157,7 +1193,7 @@ class LocationPointTable(QTableWidget):
         elif rect.bottom() - pos.y() < margin:
             return True
         # noinspection PyTypeChecker
-        return rect.contains(pos, True) and not (int(self.model().flags(index)) & Qt.ItemIsDropEnabled) and pos.y() >= rect.center().y()
+        return rect.contains(pos, True) and not (int(self.model().flags(index)) & Qt.ItemFlag.ItemIsDropEnabled) and pos.y() >= rect.center().y()
 
 
 class LocationPointPanel(QGroupBox):

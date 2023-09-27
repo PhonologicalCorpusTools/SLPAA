@@ -8,7 +8,7 @@ class AppContext(ApplicationContext):
         
     def run(self):
         self.main_window.show()
-        return self.app.exec_()
+        return self.app.exec()
 
     @cached_property
     def main_window(self):

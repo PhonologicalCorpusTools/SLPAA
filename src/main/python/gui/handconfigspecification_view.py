@@ -1,13 +1,36 @@
 from copy import deepcopy
 from itertools import chain
 
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     QSize,
+#     pyqtSignal,
+#     QEvent
+# )
+# from qt.QtWidgets import (
+#     QWidget,
+#     QFrame,
+#     QScrollArea,
+#     QLineEdit,
+#     QLabel,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QGroupBox,
+#     QSizePolicy,
+#     QCompleter,
+#     QPushButton,
+#     QCheckBox
+# )
+#
+# from qt.QtGui import (
+#     QPixmap
+# )
+
+from qt import (
     Qt,
     QSize,
     pyqtSignal,
-    QEvent
-)
-from PyQt5.QtWidgets import (
+    QEvent,
     QWidget,
     QFrame,
     QScrollArea,
@@ -19,10 +42,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QCompleter,
     QPushButton,
-    QCheckBox
-)
-
-from PyQt5.QtGui import (
+    QCheckBox,
     QPixmap
 )
 
@@ -74,7 +94,7 @@ class ConfigSlot(QLineEdit):
         # set completer
         completer = QCompleter(completer_options, parent=self)
         completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         popup = completer.popup()
         popup.setFixedWidth(200)
         completer.setPopup(popup)
@@ -114,11 +134,11 @@ class ConfigSlot(QLineEdit):
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self.addedinfo)
         addedinfo_menu.info_added.connect(self.updateStyle)
-        addedinfo_menu.exec_(event.globalPos())
+        addedinfo_menu.exec(event.globalPos())
 
     def mousePressEvent(self, event):
         if event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
+            if event.button() == Qt.MouseButton.LeftButton:
                 self.completer().complete()
         super().mousePressEvent(event)
 
@@ -175,8 +195,8 @@ class ConfigField(QWidget):
         bracketfont.setPixelSize(20)
         left_bracket.setFont(bracketfont)
         left_bracket.setFixedSize(QSize(10, 30))
-        left_bracket.setAlignment(Qt.AlignHCenter)
-        left_bracket.setAlignment(Qt.AlignVCenter)
+        left_bracket.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        left_bracket.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.main_layout.addWidget(left_bracket)
 
         right_bracket = QLabel(']')
@@ -186,8 +206,8 @@ class ConfigField(QWidget):
         right_number.setStyleSheet('QLabel{border:1px solid rgb(0, 255, 0);}')
         right_bracket.setFixedSize(QSize(10, 30))
         right_number.setFixedSize(QSize(20, 30))
-        right_bracket.setAlignment(Qt.AlignCenter)
-        right_number.setAlignment(Qt.AlignCenter)
+        right_bracket.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right_number.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.main_layout.addWidget(right_bracket)
         self.main_layout.addWidget(right_number)
 
@@ -949,7 +969,7 @@ class Config(QGroupBox):
         bracketfont.setPixelSize(20)
         left_bracket.setFont(bracketfont)
         left_bracket.setFixedSize(QSize(10, 30))
-        left_bracket.setAlignment(Qt.AlignCenter)
+        left_bracket.setAlignment(Qt.AlignmentFlag.AlignCenter)
         slot1_layout.addWidget(left_bracket)
 
         self.slot1 = ForearmCheckBox('Forearm', parent=self)
@@ -958,7 +978,7 @@ class Config(QGroupBox):
         right_bracket = QLabel(']1')
         right_bracket.setFont(bracketfont)
         right_bracket.setFixedSize(QSize(22, 30))
-        right_bracket.setAlignment(Qt.AlignCenter)
+        right_bracket.setAlignment(Qt.AlignmentFlag.AlignCenter)
         slot1_layout.addWidget(right_bracket)
 
         slot1_layout.addStretch()
@@ -991,7 +1011,7 @@ class Config(QGroupBox):
     def load_predefined(self):
         predefined_handshape_dialog = PredefinedHandshapeDialog(self.predefined_ctx, parent=self)
         predefined_handshape_dialog.transcription.connect(self.handle_set_predefined)
-        predefined_handshape_dialog.exec_()
+        predefined_handshape_dialog.exec()
 
     def handle_set_predefined(self, transcription_list):
         self.hand.set_predefined(transcription_list)
@@ -1033,7 +1053,7 @@ class ForearmCheckBox(QCheckBox):
 
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
-        addedinfo_menu.exec_(event.globalPos())
+        addedinfo_menu.exec(event.globalPos())
 
 
 class HandConfigSpecificationPanel(ModuleSpecificationPanel):

@@ -1,6 +1,29 @@
 from copy import deepcopy
 
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QFrame,
+#     QDialog,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QBoxLayout,
+#     QDialogButtonBox,
+#     QLabel,
+#     QButtonGroup,
+#     QMessageBox,
+#     QRadioButton,
+#     QCheckBox,
+#     QGroupBox,
+#     QSpacerItem,
+#     QSizePolicy,
+#     QAbstractButton
+# )
+#
+# from qt.QtCore import (
+#     pyqtSignal,
+#     QEvent
+# )
+
+from qt import (
     QFrame,
     QDialog,
     QHBoxLayout,
@@ -15,10 +38,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QSpacerItem,
     QSizePolicy,
-    QAbstractButton
-)
-
-from PyQt5.QtCore import (
+    QAbstractButton,
     pyqtSignal,
     QEvent
 )

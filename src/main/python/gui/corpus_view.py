@@ -1,10 +1,23 @@
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     pyqtSignal,
+#     QItemSelectionModel
+# )
+#
+# from qt.QtWidgets import (
+#     QWidget,
+#     QLabel,
+#     QLineEdit,
+#     QListView,
+#     QVBoxLayout,
+#     QHBoxLayout,
+#     QComboBox
+# )
+
+from qt import (
     Qt,
     pyqtSignal,
-    QItemSelectionModel
-)
-
-from PyQt5.QtWidgets import (
+    QItemSelectionModel,
     QWidget,
     QLabel,
     QLineEdit,
@@ -23,7 +36,7 @@ class CorpusTitleEdit(QLineEdit):
 
     def __init__(self, corpus_title, **kwargs):
         super().__init__(**kwargs)
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
     def focusOutEvent(self, event):
         # use focusOutEvent as the proxy for finishing editing

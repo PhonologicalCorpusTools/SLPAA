@@ -1,4 +1,52 @@
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QListView,
+#     QTableView,
+#     QTreeView,
+#     QGraphicsView,
+#     QGraphicsScene,
+#     QGraphicsPixmapItem,
+#     QPushButton,
+#     QRadioButton,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QComboBox,
+#     QLabel,
+#     QCompleter,
+#     QButtonGroup,
+#     QGroupBox,
+#     QStackedWidget,
+#     QAbstractItemView,
+#     QHeaderView,
+#     QCheckBox,
+#     QSlider,
+#     QTabWidget,
+#     QWidget,
+#     QSpacerItem,
+#     QSizePolicy,
+#     QStyledItemDelegate,
+#     QStyleOptionButton,
+#     QStyle,
+#     QStyleOptionFrame,
+#     QApplication,
+#     QFrame
+# )
+#
+# from qt.QtWebEngineWidgets import QWebEngineView
+#
+# from qt.QtCore import (
+#     QRectF,
+#     QUrl,
+#     Qt,
+#     QEvent,
+#     pyqtSignal,
+#     QItemSelectionModel
+# )
+#
+# from qt.QtGui import (
+#     QPixmap
+# )
+
+from qt import (
     QListView,
     QTableView,
     QTreeView,
@@ -28,21 +76,14 @@ from PyQt5.QtWidgets import (
     QStyle,
     QStyleOptionFrame,
     QApplication,
-    QFrame
-)
-
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-
-from PyQt5.QtCore import (
+    QFrame,
+    QWebEngineView,
     QRectF,
     QUrl,
     Qt,
     QEvent,
     pyqtSignal,
-    QItemSelectionModel
-)
-
-from PyQt5.QtGui import (
+    QItemSelectionModel,
     QPixmap
 )
 
@@ -74,20 +115,20 @@ class LocnTreeSearchComboBox(QComboBox):
         key = event.key()
         modifiers = event.modifiers()
 
-        if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
+        if key == Qt.Key.Key_Right:  # TODO KV and modifiers == Qt.KeyboardModifier.NoModifier:
 
             if self.currentText():
                 itemstoselect = gettreeitemsinpath(self.parent().treemodel,
                                                    self.currentText(),
                                                    delim=delimiter)
                 for item in itemstoselect:
-                    if item.checkState() == Qt.Unchecked:
-                        item.setCheckState(Qt.PartiallyChecked)
-                itemstoselect[-1].setCheckState(Qt.Checked)
+                    if item.checkState() == Qt.CheckState.Unchecked:
+                        item.setCheckState(Qt.CheckState.PartiallyChecked)
+                itemstoselect[-1].setCheckState(Qt.CheckState.Checked)
                 self.item_selected.emit(itemstoselect[-1])
                 self.setCurrentIndex(-1)
 
-        if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
+        if key == Qt.Key.Key_Period and modifiers == Qt.KeyboardModifier.ControlModifier:
             if self.refreshed:
                 self.lasttextentry = self.currentText()
                 self.refreshed = False
@@ -143,7 +184,7 @@ class LocnTreeListView(QListView):
         key = event.key()
         # modifiers = event.modifiers()
 
-        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
+        if key == Qt.Key.Key_Delete or key == Qt.Key.Key_Backspace:
             indexesofselectedrows = self.selectionModel().selectedRows()
             selectedlistitems = []
             for itemindex in indexesofselectedrows:
@@ -257,7 +298,7 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     pathlist = pathstring.split(delim)
     pathitemslists = []
     for level in pathlist:
-        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
+        pathitemslists.append(treemodel.findItems(level, Qt.MatchFlag.MatchRecursive))
     validpathsoftreeitems = findvaliditemspaths(pathitemslists)
     return validpathsoftreeitems[0]
 
@@ -333,7 +374,7 @@ class LocationOptionsSelectionPanel(QFrame):
 
         if event.type() == QEvent.KeyPress:
             key = event.key()
-            if key == Qt.Key_Enter:
+            if key == Qt.Key.Key_Enter:
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
@@ -343,7 +384,7 @@ class LocationOptionsSelectionPanel(QFrame):
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
             menu = AddedInfoContextMenu(addedinfo)
-            menu.exec_(event.globalPos())
+            menu.exec(event.globalPos())
 
         return super().eventFilter(source, event)
 
@@ -385,9 +426,9 @@ class LocationOptionsSelectionPanel(QFrame):
         self.combobox.adjustSize()
         self.combobox.setEditable(True)
         self.combobox.setInsertPolicy(QComboBox.NoInsert)
-        self.combobox.setFocusPolicy(Qt.StrongFocus)
-        self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
-        self.combobox.completer().setFilterMode(Qt.MatchContains)
+        self.combobox.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.combobox.completer().setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.combobox.completer().setFilterMode(Qt.MatchFlag.MatchContains)
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
         self.combobox.item_selected.connect(self.selectlistitem)
         search_layout.addWidget(self.combobox)
@@ -558,7 +599,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def create_loctype_phonloc_layout(self):
         loctype_phonloc_layout = QHBoxLayout()
 
-        loctype_phonloc_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
+        loctype_phonloc_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignmentFlag.AlignVCenter)
 
         body_layout = QHBoxLayout()
         self.body_radio = QRadioButton("Body")
@@ -567,7 +608,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         body_layout.addSpacerItem(QSpacerItem(60, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
         body_box = QGroupBox()
         body_box.setLayout(body_layout)
-        loctype_phonloc_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
+        loctype_phonloc_layout.addWidget(body_box, alignment=Qt.AlignmentFlag.AlignVCenter)
 
         signingspace_layout = QHBoxLayout()
 
@@ -583,7 +624,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         signingspace_layout.addWidget(self.signingspacespatial_radio)
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
-        loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
+        loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignmentFlag.AlignVCenter)
         loctype_phonloc_layout.addStretch()
 
         self.loctype_subgroup = QButtonGroup()
@@ -753,7 +794,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         if event.type() == QEvent.KeyPress:
             key = event.key()
-            if key == Qt.Key_Enter:
+            if key == Qt.Key.Key_Enter:
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
@@ -763,7 +804,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
             menu = AddedInfoContextMenu(addedinfo)
-            menu.exec_(event.globalPos())
+            menu.exec(event.globalPos())
 
         return super().eventFilter(source, event)
 
@@ -926,19 +967,19 @@ class ImageDisplayTab(QWidget):
 
         zoom_layout = QVBoxLayout()
 
-        self.zoom_slider = QSlider(Qt.Vertical)
+        self.zoom_slider = QSlider(Qt.Orientation.Vertical)
         self.zoom_slider.setMinimum(1)
         self.zoom_slider.setMaximum(10)
         self.zoom_slider.setValue(0)
         self.zoom_slider.valueChanged.connect(self.zoom)
         zoom_layout.addWidget(self.zoom_slider)
-        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
+        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignmentFlag.AlignHCenter)
 
         self.link_button = QPushButton("Link")
         self.link_button.setCheckable(True)
         self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
         zoom_layout.addWidget(self.link_button)
-        zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
+        zoom_layout.setAlignment(self.link_button, Qt.AlignmentFlag.AlignHCenter)
 
         main_layout.addWidget(self.imagedisplay)
         main_layout.addLayout(zoom_layout)
@@ -972,19 +1013,19 @@ class ImageDisplayTab(QWidget):
 class LocationTreeItemDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
+        if index.data(Qt.ItemDataRole.UserRole+udr.mutuallyexclusiverole):
             widget = option.widget
             style = widget.style() if widget else QApplication.style()
             opt = QStyleOptionButton()
             opt.rect = option.rect
             opt.text = index.data()
-            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
+            opt.state |= QStyle.State_On if index.data(Qt.ItemDataRole.CheckStateRole) else QStyle.State_Off
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+            if index.data(Qt.ItemDataRole.UserRole+udr.lastingrouprole) and not index.data(Qt.ItemDataRole.UserRole+udr.finalsubgrouprole):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+            if index.data(Qt.ItemDataRole.UserRole+udr.lastingrouprole) and not index.data(Qt.ItemDataRole.UserRole+udr.finalsubgrouprole):
                 opt = QStyleOptionFrame()
                 opt.rect = option.rect
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())

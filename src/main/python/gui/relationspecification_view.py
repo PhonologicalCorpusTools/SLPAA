@@ -1,4 +1,27 @@
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QListView,
+#     QLineEdit,
+#     QRadioButton,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QLabel,
+#     QButtonGroup,
+#     QGroupBox,
+#     QAbstractItemView,
+#     QCheckBox,
+#     QSpacerItem,
+#     QSizePolicy,
+#     QPushButton
+# )
+#
+# from qt.QtCore import (
+#     Qt,
+#     QEvent,
+#     pyqtSignal,
+#     QItemSelectionModel
+# )
+
+from qt import (
     QListView,
     QLineEdit,
     QRadioButton,
@@ -11,10 +34,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton
-)
-
-from PyQt5.QtCore import (
+    QPushButton,
     Qt,
     QEvent,
     pyqtSignal,
@@ -551,7 +571,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             h2label = "Y"
         handpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=h1label, bodypart2label=h2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
         handpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.handpart_button))
-        handpart_selector.exec_()
+        handpart_selector.exec()
 
     def handle_armpartbutton_clicked(self):
         bodyparttype = ARM
@@ -565,7 +585,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             a2label = "Y"
         armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label, bodypart2label=a2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
         armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
-        armpart_selector.exec_()
+        armpart_selector.exec()
 
     def handle_legpartbutton_clicked(self):
         bodyparttype = LEG
@@ -581,7 +601,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             l2label = "Y"
         legpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=l1label, bodypart2label=l2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
         legpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.legpart_button))
-        legpart_selector.exec_()
+        legpart_selector.exec()
 
     def handle_bodyparts_saved(self, bodypart1info, bodypart2info, bodypart_button):
         self.bodyparts_dict[bodypart1info.bodyparttype][1] = bodypart1info

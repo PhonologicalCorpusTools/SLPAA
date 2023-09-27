@@ -1,4 +1,27 @@
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QListView,
+#     QTreeView,
+#     QPushButton,
+#     QHBoxLayout,
+#     QVBoxLayout,
+#     QComboBox,
+#     QLabel,
+#     QCompleter,
+#     QAbstractItemView,
+#     QStyledItemDelegate,
+#     QStyle,
+#     QStyleOptionButton,
+#     QApplication,
+#     QHeaderView,
+#     QStyleOptionFrame,
+#     QFrame
+# )
+#
+# from qt.QtCore import (
+#     Qt,
+#     QEvent,
+# )
+from qt import (
     QListView,
     QTreeView,
     QPushButton,
@@ -14,10 +37,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     QHeaderView,
     QStyleOptionFrame,
-    QFrame
-)
-
-from PyQt5.QtCore import (
+    QFrame,
     Qt,
     QEvent,
 )
@@ -41,7 +61,7 @@ class MvmtTreeSearchComboBox(QComboBox):
         key = event.key()
         modifiers = event.modifiers()
 
-        if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
+        if key == Qt.Key.Key_Right:  # TODO KV and modifiers == Qt.KeyboardModifier.NoModifier:
 
             if self.currentText():
                 self.parent().treedisplay.collapseAll()
@@ -49,13 +69,13 @@ class MvmtTreeSearchComboBox(QComboBox):
                                                    self.currentText(),
                                                    delim=delimiter)
                 for item in itemstoselect:
-                    if item.checkState() == Qt.Unchecked:
-                        item.setCheckState(Qt.PartiallyChecked)
+                    if item.checkState() == Qt.CheckState.Unchecked:
+                        item.setCheckState(Qt.CheckState.PartiallyChecked)
                     self.parent().treedisplay.setExpanded(item.index(), True)
-                itemstoselect[-1].setCheckState(Qt.Checked)
+                itemstoselect[-1].setCheckState(Qt.CheckState.Checked)
                 self.setCurrentIndex(-1)
 
-        if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
+        if key == Qt.Key.Key_Period and modifiers == Qt.KeyboardModifier.ControlModifier:
             if self.refreshed:
                 self.lasttextentry = self.currentText()
                 self.refreshed = False
@@ -106,7 +126,7 @@ class MovementTreeView(QTreeView):
     # Ref: adapted from https://stackoverflow.com/questions/68069548/checkbox-with-persistent-editor
     def edit(self, index, trigger, event):
         # if the edit involves an index change, there's no event
-        if (event and index.column() == 0 and index.flags() & Qt.ItemIsUserCheckable and event.type() in (event.MouseButtonPress, event.MouseButtonDblClick) and event.button() == Qt.LeftButton and self.isPersistentEditorOpen(index)):
+        if (event and index.column() == 0 and index.flags() & Qt.ItemFlag.ItemIsUserCheckable and event.type() in (event.MouseButtonPress, event.MouseButtonDblClick) and event.button() == Qt.MouseButton.LeftButton and self.isPersistentEditorOpen(index)):
             opt = self.viewOptions()
             opt.rect = self.visualRect(index)
             opt.features |= opt.HasCheckIndicator
@@ -114,7 +134,7 @@ class MovementTreeView(QTreeView):
                 QStyle.SE_ItemViewItemCheckIndicator,
                 opt, self)
             if event.pos() in checkRect:
-                if index.data(Qt.CheckStateRole):
+                if index.data(Qt.ItemDataRole.CheckStateRole):
                     self.model().itemFromIndex(index).uncheck()
                 else:
                     self.model().itemFromIndex(index).check()
@@ -130,7 +150,7 @@ class MvmtTreeListView(QListView):
         key = event.key()
         # modifiers = event.modifiers()
 
-        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
+        if key == Qt.Key.Key_Delete or key == Qt.Key.Key_Backspace:
             indexesofselectedrows = self.selectionModel().selectedRows()
             selectedlistitems = []
             for itemindex in indexesofselectedrows:
@@ -146,7 +166,7 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     pathlist = pathstring.split(delim)
     pathitemslists = []
     for level in pathlist:
-        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
+        pathitemslists.append(treemodel.findItems(level, Qt.MatchFlag.MatchRecursive))
     validpathsoftreeitems = findvaliditemspaths(pathitemslists)
     return validpathsoftreeitems[0]
 
@@ -183,14 +203,14 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
     #     return theeditor
     #
     # def setEditorData(self, editor, index):
-    #     editor.setText(index.data(role=Qt.DisplayRole))
+    #     editor.setText(index.data(role=Qt.ItemDataRole.DisplayRole))
     #
     # def setModelData(self, editor, model, index):
     #     editableitem = model.itemFromIndex(index)
     #     if isinstance(editableitem, QStandardItem) and not isinstance(editableitem, MovementTreeItem) and not isinstance(editableitem, MovementListItem):
     #         # then this is the editable part of a movement tree item
     #         treeitem = editableitem.parent().child(editableitem.row(), 0)
-    #         editableitem.setData(editor.text(), role=Qt.DisplayRole)
+    #         editableitem.setData(editor.text(), role=Qt.ItemDataRole.DisplayRole)
     #
     # def __init__(self):
     #     super().__init__()
@@ -201,19 +221,19 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
         return True
 
     def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
+        if index.data(Qt.ItemDataRole.UserRole+udr.mutuallyexclusiverole):
             widget = option.widget
             style = widget.style() if widget else QApplication.style()
             opt = QStyleOptionButton()
             opt.rect = option.rect
             opt.text = index.data()
-            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
+            opt.state |= QStyle.State_On if index.data(Qt.ItemDataRole.CheckStateRole) else QStyle.State_Off
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+            if index.data(Qt.ItemDataRole.UserRole+udr.lastingrouprole) and not index.data(Qt.ItemDataRole.UserRole+udr.finalsubgrouprole):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+            if index.data(Qt.ItemDataRole.UserRole+udr.lastingrouprole) and not index.data(Qt.ItemDataRole.UserRole+udr.finalsubgrouprole):
                 opt = QStyleOptionFrame()
                 opt.rect = option.rect
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
@@ -255,10 +275,10 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.combobox.adjustSize()
         self.combobox.setEditable(True)
         self.combobox.setInsertPolicy(QComboBox.NoInsert)
-        self.combobox.setFocusPolicy(Qt.StrongFocus)
+        self.combobox.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.combobox.setEnabled(True)
-        self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
-        self.combobox.completer().setFilterMode(Qt.MatchContains)
+        self.combobox.completer().setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.combobox.completer().setFilterMode(Qt.MatchFlag.MatchContains)
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
         # tct = TreeClickTracker(self)  todo kv
         # self.combobox.installEventFilter(tct)
@@ -274,7 +294,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
 
-        userspecifiableitems = self.treemodel.findItemsByRoleValues(Qt.UserRole+udr.isuserspecifiablerole, [1, 2, 3])
+        userspecifiableitems = self.treemodel.findItemsByRoleValues(Qt.ItemDataRole.UserRole+udr.isuserspecifiablerole, [1, 2, 3])
         editableitems = [it.editablepart() for it in userspecifiableitems]
         for it in editableitems:
             self.treedisplay.openPersistentEditor(self.treemodel.indexFromItem(it))
@@ -347,7 +367,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         if event.type() == QEvent.KeyPress:
             key = event.key()
-            if key == Qt.Key_Enter:
+            if key == Qt.Key.Key_Enter:
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
@@ -357,7 +377,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
             menu = AddedInfoContextMenu(addedinfo)
-            menu.exec_(event.globalPos())
+            menu.exec(event.globalPos())
 
         return super().eventFilter(source, event)
 

@@ -1,29 +1,54 @@
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     QSize,
+#     pyqtSlot,
+#     QPoint,
+#     QAbstractTableModel,
+#     pyqtSignal,
+#     QMimeData
+# )
+# from qt.QtWidgets import (
+#     QVBoxLayout,
+#     QHBoxLayout,
+#     QDialog,
+#     QTableView,
+#     # QAction,
+#     QAbstractItemView,
+#     QMenu,
+#     QFrame,
+# )
+# from qt.QtGui import (
+#     QIcon,
+#     QPixmap,
+#     QColor,
+#     QDrag,
+#     QImage
+# )
+# from qt import QAction
+
+from qt import (
     Qt,
     QSize,
     pyqtSlot,
     QPoint,
     QAbstractTableModel,
     pyqtSignal,
-    QMimeData
-)
-from PyQt5.QtWidgets import (
+    QMimeData,
     QVBoxLayout,
     QHBoxLayout,
     QDialog,
     QTableView,
-    QAction,
     QAbstractItemView,
     QMenu,
     QFrame,
-)
-from PyQt5.QtGui import (
     QIcon,
     QPixmap,
     QColor,
     QDrag,
-    QImage
+    QImage,
+    QAction
 )
+
 from constant import PREDEFINED_MAP
 
 
@@ -437,12 +462,12 @@ class PredefinedTableModel(QAbstractTableModel):
             return None
 
         value = self.get_value(index)
-        if role == Qt.DisplayRole:  # or role == Qt.EditRole:
+        if role == Qt.ItemDataRole.DisplayRole:  # or role == Qt.ItemDataRole.EditRole:
             return PREDEFINED_MAP[value].name if value in PREDEFINED_MAP.keys() else None
         elif role == Qt.AccessibleTextRole:
             return value if value else None
         # elif role == Qt.TextAlignmentRole:
-        #    return Qt.AlignCenter
+        #    return Qt.AlignmentFlag.AlignCenter
         elif role == Qt.DecorationRole:
             return QIcon(self.predefined_images[value]) if value in PREDEFINED_MAP else None
         elif role == Qt.BackgroundRole:
@@ -451,7 +476,7 @@ class PredefinedTableModel(QAbstractTableModel):
         return None
 
     def setData(self, index, value, role=None):
-        if index.isValid() and role == Qt.EditRole:
+        if index.isValid() and role == Qt.ItemDataRole.EditRole:
             self.data_cached[index.row()][index.column()] = value
             self.dataChanged.emit(index, index)
             return True
@@ -459,10 +484,10 @@ class PredefinedTableModel(QAbstractTableModel):
             return False
 
     def headerData(self, section, orientation, role=None):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             header = self.col_labels[section]
             return header
-        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
             return str(section + 1)
 
         return None
@@ -512,7 +537,7 @@ class FrozenTableView(QTableView):
             drag.setMimeData(mime)
             drag.setPixmap(icon)
             drag.setHotSpot(QPoint(icon.width() / 2, icon.height() / 2))
-            drag.exec_(Qt.CopyAction)
+            drag.exec(Qt.CopyAction)
         else:
             super().startDrag(event)
 
@@ -561,12 +586,12 @@ class PredefinedHandshapeView(QTableView):
         self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
 
         horizontal_header = self.horizontalHeader()
-        horizontal_header.setDefaultAlignment(Qt.AlignCenter)
+        horizontal_header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         horizontal_header.setStretchLastSection(True)
 
         vertical_header = self.verticalHeader()
         vertical_header.setDefaultSectionSize(25)
-        vertical_header.setDefaultAlignment(Qt.AlignCenter)
+        vertical_header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         vertical_header.setVisible(True)
 
         num_col = predefined_model.columnCount(self)  # TODO KV does there need to be an argument here?
@@ -603,7 +628,7 @@ class PredefinedHandshapeView(QTableView):
     def showContextMenu(self, point):
         # TODO: maybe need to initiate this...
         self.indexToBeEdited = self.indexAt(point)
-        self.popMenu.exec_(self.mapToGlobal(point))
+        self.popMenu.exec(self.mapToGlobal(point))
 
     def update_section_width(self, logical_index, old_size, new_size):
         if logical_index == 0:  # we're only concerned about the first column
@@ -670,7 +695,7 @@ class PredefinedHandshapeView(QTableView):
             drag.setMimeData(mime)
             drag.setPixmap(icon)
             drag.setHotSpot(QPoint(icon.width() / 2, icon.height() / 2))
-            drag.exec_(Qt.CopyAction)
+            drag.exec(Qt.CopyAction)
         else:
             super().startDrag(event)
 

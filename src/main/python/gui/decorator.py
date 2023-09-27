@@ -2,7 +2,12 @@ import os
 import functools
 from datetime import date
 
-from PyQt5.QtWidgets import (
+# from qt.QtWidgets import (
+#     QMessageBox,
+#     QFileDialog
+# )
+
+from qt import (
     QMessageBox,
     QFileDialog
 )

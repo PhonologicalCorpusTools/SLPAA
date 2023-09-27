@@ -1,7 +1,5 @@
-from PyQt5.QtWidgets import (
-    QUndoCommand
-)
-
+# from qt.QtWidgets import QUndoCommand
+from qt import QUndoCommand
 
 class TranscriptionUndoCommand(QUndoCommand):
     def __init__(self, slot, old_prop, new_prop, **kwargs):

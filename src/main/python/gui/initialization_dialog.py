@@ -1,17 +1,27 @@
-from PyQt5.QtCore import (
+# from qt.QtCore import (
+#     Qt,
+#     QSize
+# )
+#
+# from qt.QtWidgets import (
+#     QDialog,
+#     QGridLayout,
+#     QToolButton,
+#     QFrame,
+#     QDialogButtonBox,
+# )
+#
+# from qt.QtGui import (
+#     QIcon
+# )
+from qt import (
     Qt,
-    QSize
-)
-
-from PyQt5.QtWidgets import (
+    QSize,
     QDialog,
     QGridLayout,
     QToolButton,
     QFrame,
     QDialogButtonBox,
-)
-
-from PyQt5.QtGui import (
     QIcon
 )
 
@@ -26,14 +36,14 @@ class InitializationDialog(QDialog):
         self.setLayout(main_layout)
 
         blank_corpus_button = QToolButton(parent=self)
-        blank_corpus_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        blank_corpus_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         blank_corpus_button.setIcon(QIcon(app_ctx.icons['blank']))
         blank_corpus_button.setIconSize(QSize(32, 32))
         blank_corpus_button.setText('Blank corpus')
         blank_corpus_button.clicked.connect(lambda clicked: self.create_blank_corpus(blank_func, clicked))
 
         load_corpus_button = QToolButton(parent=self)
-        load_corpus_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        load_corpus_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         load_corpus_button.setIcon(QIcon(app_ctx.icons['load']))
         load_corpus_button.setIconSize(QSize(32, 32))
         load_corpus_button.setText('Load corpus')

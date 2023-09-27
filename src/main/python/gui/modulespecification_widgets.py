@@ -1,10 +1,26 @@
-from PyQt5.QtCore import (
-    pyqtSignal
-)
+# from qt.QtCore import (
+#     pyqtSignal
+# )
+#
+# from qt.QtWidgets import (
+#     QWidget,
+#     # QAction,
+#     QWidgetAction,
+#     QLineEdit,
+#     QFrame,
+#     QHBoxLayout,
+#     QMenu,
+#     QCheckBox,
+#     QPushButton,
+#     QLabel,
+#     QComboBox
+# )
+#
+# from qt import QAction
 
-from PyQt5.QtWidgets import (
+from qt import (
+    pyqtSignal,
     QWidget,
-    QAction,
     QWidgetAction,
     QLineEdit,
     QFrame,
@@ -13,7 +29,8 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QPushButton,
     QLabel,
-    QComboBox
+    QComboBox,
+    QAction
 )
 
 from lexicon.module_classes import AddedInfo
@@ -114,7 +131,7 @@ class AddedInfoPushButton(QPushButton):
     def mouseReleaseEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
         addedinfo_menu.info_added.connect(self.updateStyle)
-        addedinfo_menu.exec_(event.globalPos())
+        addedinfo_menu.exec(event.globalPos())
 
     def updateStyle(self, addedinfo=None):
         if addedinfo is not None:
