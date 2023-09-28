@@ -16,7 +16,7 @@ src_path = os.path.join(slpaa_path, 'src', 'main', 'python')
 
 added_files = [(os.path.join(slpaa_path, 'src', 'build','settings'), 'runtime'), # base.json to be referred to at runtime
                (os.path.join(slpaa_path, 'src', 'main', 'resources', 'base'), 'resources'), # resources
-               (os.path.join(slpaa_path, 'src', 'main', 'icons', 'Icon.ico'), '.') # Icon.ico fbs_runtime needs this.
+               (os.path.join(slpaa_path, 'src', 'main', 'icons', 'Icon.ico'), 'resources') # Icon.ico fbs_runtime needs this.
                ]
 
 a = Analysis([os.path.join(src_path, 'main.py')],
