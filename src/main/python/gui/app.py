@@ -1,3 +1,7 @@
+import errno
+import sys
+from os import getcwd
+from os.path import join, exists, realpath, dirname
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
 from .main_window import MainWindow
 
@@ -13,6 +17,25 @@ class AppContext(ApplicationContext):
     @cached_property
     def main_window(self):
         return MainWindow(self)
+
+    def get_resource(self, relative_path):
+        """
+        Translate relative path to absolute path.
+
+        If frozen, refer to the MEIPASS directory;
+        If running from source, src/main/resources/base, followed by the rel path.
+        Raise FileNotFoundError if abs path cannot be decided
+        """
+        if hasattr(sys, 'frozen'):  # running as executable
+            resource_dir = join(sys._MEIPASS, 'resources')  # cf. 'datas' parameter in .spec
+        else:                       # running from source
+            parent_dir = dirname(getcwd())
+            resource_dir = join(parent_dir, 'resources', 'base')
+
+        resource_path = join(resource_dir, relative_path)
+        if exists(resource_path):
+            return realpath(resource_path)
+        raise FileNotFoundError(errno.ENOENT, 'Could not locate resource', relative_path)
 
     @cached_property
     def icons(self):
