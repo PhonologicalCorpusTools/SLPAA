@@ -6,10 +6,11 @@ sys.setrecursionlimit(5000)
 
 block_cipher = None
 slpaa_path = os.getcwd()
+
+# setting the path to an icon. ignored on Linux
 icon_path = os.path.join(slpaa_path, 'src', 'main', 'icons', 'Icon.ico')
 if sys.platform == 'darwin':
-    icon_path = os.path.join(slpaa_path, 'src', 'main', 'icons', 'mac', '1024.png') ## can't guarantee this works on Mac
-    # NB: when freezing on Mac, install Pillow first to convert png to icns.
+    icon_path = os.path.join(slpaa_path, 'src', 'main', 'icons', 'mac', 'icon.icns')
 
 fbs_path = os.path.dirname(fbs.__file__)
 src_path = os.path.join(slpaa_path, 'src', 'main', 'python')
