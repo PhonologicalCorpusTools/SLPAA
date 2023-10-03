@@ -81,8 +81,6 @@ class MainWindow(QMainWindow):
         self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
         self.system_default_movement = None
         self.system_default_handshape = None
-        # TODO KV not necessarily default... make a global setting?
-        self.system_default_signtype = Signtype([('Unspecified', False)])
 
         # handle setting-related stuff
         self.handle_app_settings()
@@ -630,6 +628,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('signdefaults')
         self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance',
                                                                                       defaultValue='R')
+        self.app_settings['signdefaults']['signtype'] = self.app_qsettings.value('signtype', defaultValue='none')
         self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation',
                                                                                          defaultValue='none')
         self.app_qsettings.beginGroup('partial_xslots')
@@ -686,6 +685,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('signdefaults')
         self.app_qsettings.setValue('handdominance', self.app_settings['signdefaults']['handdominance'])
+        self.app_qsettings.setValue('signtype', self.app_settings['signdefaults']['signtype'])
         self.app_qsettings.setValue('xslot_generation', self.app_settings['signdefaults']['xslot_generation'])
 
         self.app_qsettings.beginGroup('partial_xslots')
