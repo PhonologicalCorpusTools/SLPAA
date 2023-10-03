@@ -779,7 +779,6 @@ class SignLevelMenuPanel(QScrollArea):
         main_frame.setLayout(main_layout)
 
         self._sign = sign
-        self.system_default_signtype = self.mainwindow.system_default_signtype
         self.modulebuttons_untimed = []
         self.modulebuttons_timed = []
 

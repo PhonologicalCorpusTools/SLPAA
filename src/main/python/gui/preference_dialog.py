@@ -99,6 +99,30 @@ class SignDefaultsTab(QWidget):
                 break
         main_layout.addRow(QLabel('Default hand dominance:'), self.handdominance_layout)
 
+        self.signtype_layout = QHBoxLayout()
+        self.signtype_group = QButtonGroup(parent=self)
+        self.signtype_none_radio = QRadioButton('None')
+        self.signtype_none_radio.setProperty('signtype', 'none')
+        self.signtype_group.addButton(self.signtype_none_radio)
+        self.signtype_layout.addWidget(self.signtype_none_radio)
+        self.signtype_unspec_radio = QRadioButton('Unspecified')
+        self.signtype_unspec_radio.setProperty('signtype', 'unspec')
+        self.signtype_group.addButton(self.signtype_unspec_radio)
+        self.signtype_layout.addWidget(self.signtype_unspec_radio)
+        self.signtype_one_radio = QRadioButton('1 hand')
+        self.signtype_one_radio.setProperty('signtype', '1hand')
+        self.signtype_group.addButton(self.signtype_one_radio)
+        self.signtype_layout.addWidget(self.signtype_one_radio)
+        self.signtype_two_radio = QRadioButton('2 hands')
+        self.signtype_two_radio.setProperty('signtype', '2hand')
+        self.signtype_group.addButton(self.signtype_two_radio)
+        self.signtype_layout.addWidget(self.signtype_two_radio)
+        for button in self.signtype_group.buttons():
+            if self.settings['signdefaults']['signtype'] == button.property('signtype'):
+                button.setChecked(True)
+                break
+        main_layout.addRow(QLabel('Default sign type:'), self.signtype_layout)
+
         self.xslots_layout = QHBoxLayout()
         self.xslots_group = QButtonGroup(parent=self)
         self.xslots_none_radio = QRadioButton("None")
@@ -156,6 +180,7 @@ class SignDefaultsTab(QWidget):
 
     def save_settings(self):
         self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
+        self.settings['signdefaults']['signtype'] = self.signtype_group.checkedButton().property('signtype')
         previous_xslotgeneration = self.settings['signdefaults']['xslot_generation']
         new_xslotgeneration = self.xslots_group.checkedButton().property('xslots')
         self.settings['signdefaults']['xslot_generation'] = new_xslotgeneration
