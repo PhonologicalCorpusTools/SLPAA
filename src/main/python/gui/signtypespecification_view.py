@@ -302,6 +302,7 @@ class SigntypeSpecificationPanel(QFrame):
                 allbuttons[btnidx].setChecked(True)
             else:
                 nolongeravailable.append(spec)
+
         if len(nolongeravailable) > 1:
             print(
                 "This sign had sign type options specified that are no longer available and will be removed" +
@@ -317,6 +318,7 @@ class SigntypeSpecificationPanel(QFrame):
         for g in self.buttongroups:
             g.setExclusive(False)
             for b in g.buttons():
+                b.setEnabled(True)
                 b.setChecked(False)
             g.setExclusive(True)
 
