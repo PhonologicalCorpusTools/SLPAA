@@ -50,7 +50,7 @@ from lexicon.module_classes import delimiter, LocationModule, PhonLocations, use
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView
 
 
 class LocationTreeView(QTreeView):
@@ -132,27 +132,6 @@ class LocnTreeSearchComboBox(QComboBox):
             self.lasttextentry = ""
             self.lastcompletedentry = ""
             super().keyPressEvent(event)
-
-
-class LocnTreeListView(QListView):
-
-    def __init__(self):
-        super().__init__()
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        # modifiers = event.modifiers()
-
-        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
-            indexesofselectedrows = self.selectionModel().selectedRows()
-            selectedlistitems = []
-            for itemindex in indexesofselectedrows:
-                listitemindex = self.model().mapToSource(itemindex)
-                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
-                selectedlistitems.append(listitem)
-            for listitem in selectedlistitems:
-                listitem.unselectpath()
-            # self.model().dataChanged.emit()
 
 
 class LocationGraphicsView(QGraphicsView):
@@ -427,7 +406,7 @@ class LocationOptionsSelectionPanel(QFrame):
 
         list_layout = QVBoxLayout()
 
-        self.pathslistview = LocnTreeListView()
+        self.pathslistview = TreeListView()
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(300)

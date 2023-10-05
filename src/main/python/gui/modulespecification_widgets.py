@@ -1,5 +1,6 @@
 from PyQt5.QtCore import (
-    pyqtSignal
+    pyqtSignal,
+    Qt
 )
 
 from PyQt5.QtWidgets import (
@@ -13,7 +14,8 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QPushButton,
     QLabel,
-    QComboBox
+    QComboBox,
+    QListView
 )
 
 from lexicon.module_classes import AddedInfo
@@ -326,3 +328,25 @@ class ArticulatorSelector(QWidget):
                 return True
 
         return False
+
+
+# used in both Location and Movement modules to display flattened paths list of selected nodes in tree
+class TreeListView(QListView):
+
+    def __init__(self):
+        super().__init__()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        # modifiers = event.modifiers()
+
+        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
+            indexesofselectedrows = self.selectionModel().selectedRows()
+            selectedlistitems = []
+            for itemindex in indexesofselectedrows:
+                listitemindex = self.model().mapToSource(itemindex)
+                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
+                selectedlistitems.append(listitem)
+            for listitem in selectedlistitems:
+                listitem.unselectpath()
+            # self.model().dataChanged.emit()
