@@ -1023,6 +1023,21 @@ class ForearmCheckBox(QCheckBox):
         super().__init__(title, **kwargs)
         self._addedinfo = AddedInfo()
 
+        # styling
+        qss = """   
+            QCheckBox[AddedInfo=true] {
+                font: bold;
+                /*border: 2px dashed black;*/
+            }
+
+            QCheckBox[AddedInfo=false] {
+                font: normal;
+                /*border: 1px solid grey;*/
+            }
+        """
+        self.setStyleSheet(qss)
+        self.updateStyle()
+
     @property
     def addedinfo(self):
         return self._addedinfo
@@ -1033,7 +1048,16 @@ class ForearmCheckBox(QCheckBox):
 
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
+        addedinfo_menu.info_added.connect(self.updateStyle)
         addedinfo_menu.exec_(event.globalPos())
+
+    def updateStyle(self, addedinfo=None):
+        if addedinfo is not None:
+            self._addedinfo = addedinfo
+        self.setProperty('AddedInfo', self._addedinfo.hascontent())
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
 
 
 class HandConfigSpecificationPanel(ModuleSpecificationPanel):
