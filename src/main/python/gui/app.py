@@ -31,6 +31,9 @@ class AppContext(ApplicationContext):
         else:                       # running from source
             parent_dir = dirname(getcwd())
             resource_dir = join(parent_dir, 'resources', 'base')
+            # workaround
+            if relative_path == 'Icon.ico':
+                resource_dir = join(parent_dir, 'icons')
 
         resource_path = join(resource_dir, relative_path)
         if exists(resource_path):
