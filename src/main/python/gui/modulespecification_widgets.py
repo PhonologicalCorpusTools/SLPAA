@@ -38,6 +38,7 @@ class ModuleSpecificationPanel(QFrame):
         return selectionsvalid, warningmessage
 
 
+# Styled QPushButton whose text is bolded iff the _hascontent attribute is true
 class SpecifyBodypartPushButton(QPushButton):
 
     def __init__(self, title, **kwargs):

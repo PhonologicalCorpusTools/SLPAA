@@ -470,6 +470,7 @@ class AssociatedRelationsPanel(QFrame):
             module_selector.exec_()
 
 
+# Styled QPushButton whose text is bolded iff the _hasrelations attribute is true
 class SeeRelationsPushButton(QPushButton):
 
     def __init__(self, title, hasrelations=False, **kwargs):
