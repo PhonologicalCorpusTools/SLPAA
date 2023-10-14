@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 
 from PyQt5.QtCore import (
     Qt,
@@ -661,12 +661,13 @@ class LocationTreeModel(QStandardItemModel):
 
 class BodypartTreeModel(LocationTreeModel):
 
-    def __init__(self, bodyparttype, serializedlocntree=None, **kwargs):
+    def __init__(self, bodyparttype, serializedlocntree=None, forrelationmodule=False, **kwargs):
         self.bodyparttype = bodyparttype
+        self.forrelationmodule=forrelationmodule
         super().__init__(serializedlocntree=serializedlocntree, **kwargs)
 
     def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
-
+        
         if structure.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
@@ -674,16 +675,20 @@ class BodypartTreeModel(LocationTreeModel):
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
             if self.bodyparttype == HAND:
-                locn_options = locn_options_hand
+                locn_options = deepcopy(locn_options_hand)
             elif self.bodyparttype == ARM:
-                locn_options = locn_options_arm
+                locn_options = deepcopy(locn_options_arm)
             elif self.bodyparttype == LEG:
-                locn_options = locn_options_leg
+                locn_options = deepcopy(locn_options_leg)
             else:
                 locn_options = LocnOptionsNode()
             super().populate(parentnode, structure=LocnOptionsNode(children=[locn_options]), pathsofar="")
         elif structure.children != []:
             # internal node with substructure
+
+            if self.forrelationmodule:
+                structure.children = [child for child in structure.children 
+                                      if "ipsi" not in child.display_name and "contra" not in child.display_name]
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
     def backwardcompatibility(self):
