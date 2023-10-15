@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 import json
 import csv
@@ -554,7 +555,9 @@ class MainWindow(QMainWindow):
                                               parent=self)
         response = initialization.exec_()
         if not response:  # close the window or press cancel
-            self.on_action_new_corpus(False)
+            # Note: I don't think this is ideal but using self.close()
+            # or self.on_action_close() fails to close the program
+            sys.exit()
 
     def handle_sign_selected(self, sign):
         selected_sign = sign
