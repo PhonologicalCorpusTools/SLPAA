@@ -926,7 +926,7 @@ class MainWindow(QMainWindow):
         indices = []
         for sign in signstoselect:
             indices.append(list(self.corpus.signs).index(sign))
-        print(indices)
+        # print(indices)
 
     @check_unsaved_change
     def closeEvent(self, event):
