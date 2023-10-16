@@ -824,7 +824,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
-        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.NONMANUAL))
+        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.NONMANUAL))
         self.modulebuttons_timed.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
@@ -912,7 +912,7 @@ class SignLevelMenuPanel(QScrollArea):
 
     def handle_menumodulebtn_clicked(self, moduletype):
         includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
-            else ([] if moduletype == ModuleTypes.RELATION else [HAND])
+            else ([] if moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL] else [HAND])
         includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
             1 if moduletype == ModuleTypes.LOCATION else
             0  # default
