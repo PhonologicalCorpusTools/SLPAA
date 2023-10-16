@@ -50,16 +50,13 @@ class SpecifyBodypartPushButton(QPushButton):
         qss = """   
             QPushButton[HasContent=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[HasContent=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property
@@ -92,16 +89,13 @@ class AddedInfoPushButton(QPushButton):
         qss = """   
             QPushButton[AddedInfo=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[AddedInfo=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property

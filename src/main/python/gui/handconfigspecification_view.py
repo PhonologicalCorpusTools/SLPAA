@@ -45,9 +45,7 @@ class ConfigSlot(QLineEdit):
 
     def __init__(self, completer_options, descriptions, **kwargs):
         super().__init__(**kwargs)
-
         self.addedinfo = AddedInfo()
-        self.updateStyle()
 
         # styling
         self.setFixedSize(QSize(20, 20))  # TODO KV
@@ -70,6 +68,7 @@ class ConfigSlot(QLineEdit):
             }
         """
         self.setStyleSheet(qss)
+        self.updateStyle()
 
         # set completer
         completer = QCompleter(completer_options, parent=self)
@@ -1045,6 +1044,7 @@ class ForearmCheckBox(QCheckBox):
     @addedinfo.setter
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self.updateStyle()
 
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
