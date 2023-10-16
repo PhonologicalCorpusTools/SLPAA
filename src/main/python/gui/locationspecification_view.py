@@ -51,7 +51,7 @@ from models.location_models import LocationTreeItem, LocationTableModel, Locatio
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
-
+import logging
 
 class LocationTreeView(QTreeView):
 
@@ -262,7 +262,7 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     return validpathsoftreeitems[0]
 
 
-def findvaliditemspaths(pathitemslists):
+def findvaliditemspaths(pathitemslists): 
     validpaths = []
     if len(pathitemslists) > 1:  # the path is longer than 1 level
         # pathitemslistslotohi = pathitemslists[::-1]
@@ -313,6 +313,9 @@ class LocationOptionsSelectionPanel(QFrame):
         # create layout with image-based selection widget (if applicable) and list view for selected location options
         selection_layout = self.create_selection_layout()
         main_layout.addLayout(selection_layout)
+
+        if treemodeltoload is not None and isinstance(treemodeltoload, LocationTreeModel):
+            self.set_multiple_selection_from_content(self.treemodel.multiple_selection_allowed)
 
         self.setLayout(main_layout)
 
@@ -451,6 +454,10 @@ class LocationOptionsSelectionPanel(QFrame):
         buttons_layout.addWidget(self.sortcombo)
         buttons_layout.addStretch()
 
+        self.multiple_selection_rb = QRadioButton("Allow multiple selection")
+        self.multiple_selection_rb.clicked.connect(self.handle_toggle_multiple_selection)
+        buttons_layout.addWidget(self.multiple_selection_rb)
+
         self.clearbutton = QPushButton("Clear")
         self.clearbutton.clicked.connect(self.clearlist)
         buttons_layout.addWidget(self.clearbutton)
@@ -463,6 +470,12 @@ class LocationOptionsSelectionPanel(QFrame):
         list_layout.addWidget(self.detailstableview)
 
         return list_layout
+    
+    def set_multiple_selection_from_content(self, multsel):
+        self.multiple_selection_rb.setChecked(multsel)
+    
+    def handle_toggle_multiple_selection(self):
+        self.treemodel.multiple_selection_allowed = self.multiple_selection_rb.isChecked()
 
     def clearlist(self, button):
         numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()
@@ -780,6 +793,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.clear_loctype_buttons_to_default()
         self.clear_phonlocs_buttons()
         self.recreate_treeandlistmodels()
+        self.locationoptionsselectionpanel.multiple_selection_rb.setChecked(False)
         self.locationoptionsselectionpanel.treemodel = self.getcurrenttreemodel()
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.clear_details()

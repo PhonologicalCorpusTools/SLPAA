@@ -14,7 +14,7 @@ from PyQt5.Qt import (
 import logging
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
-from serialization_classes import LocationTableSerializable
+from serialization_classes import LocationTreeSerializable, LocationTableSerializable
 from constant import HAND, ARM, LEG
 
 
@@ -111,9 +111,8 @@ subarea_lists = {
 
 
 class LocnOptionsNode:
-        # id MUST NOT change
-    # __slots__ = ['display_name','user_specifiability','button_type', 'location', 'surfaces','subareas', 'tooltip', 'options', 'children', 'id']
     # if more params are needed, use self.options
+    # TODO - gz i imagine that if the user needs to modify the display_name, self.options can be used
 
     def __init__(self, display_name="treeroot", user_specifiability=None, button_type=None, 
                  location=None, surfaces=None, subareas=None, options=None, tooltip=None, children=None, id=-1):
@@ -496,12 +495,19 @@ class LocationTreeModel(QStandardItemModel):
     def __init__(self, serializedlocntree=None, **kwargs):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
-        self.itemChanged.connect(self.updateCheckState)
+        self._multiple_selection_allowed = False
+        self.itemChanged.connect(lambda item: self.updateCheckState(item))
         self._locationtype = LocationType()
 
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
             self.locationtype = self.serializedlocntree.locationtype
+            try:
+                self._multiple_selection_allowed = serializedlocntree.multiple_selection_allowed
+            except:
+                logging.warn("multiple selection attribute not present in serialized location tree")
+                self._multiple_selection_allowed = False
+            # 
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
             makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
@@ -544,7 +550,9 @@ class LocationTreeModel(QStandardItemModel):
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
+                    
                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
+                    
                     if pathtext in self.serializedlocntree.checkstates.keys():
                         treechild.setCheckState(self.serializedlocntree.checkstates[pathtext])
                     if pathtext in self.serializedlocntree.addedinfos.keys():
@@ -578,16 +586,25 @@ class LocationTreeModel(QStandardItemModel):
     #                 print(addedinfo)
     #         self.tempprinthelper(treechild)
 
+    @property
+    def multiple_selection_allowed(self):
+        return self._multiple_selection_allowed
+
+    @multiple_selection_allowed.setter
+    def multiple_selection_allowed(self, is_allowed):
+        self._multiple_selection_allowed = is_allowed
+    
+    
     def updateCheckState(self, item):
         thestate = item.checkState()
         if thestate == Qt.Checked:
             # TODO KV then the user must have checked it,
             #  so make sure to partially-fill ancestors and also look at ME siblings
-            item.check(fully=True)
+            item.check(fully=True, multiple_selection_allowed = self.multiple_selection_allowed)
         elif thestate == Qt.PartiallyChecked:
             # TODO KV then the software must have updated it based on some other user action
             # make sure any ME siblings are unchecked
-            item.check(fully=False)
+            item.check(fully=False, multiple_selection_allowed = self.multiple_selection_allowed)
         elif thestate == Qt.Unchecked:
             # TODO KV then either...
             # (1) the user unchecked it and we have to uncheck ancestors and look into ME siblings, or
@@ -996,7 +1013,7 @@ class LocationTreeItem(QStandardItem):
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
-    def check(self, fully=True):
+    def check(self, fully=True, multiple_selection_allowed=False):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
         self.listitem.setData(fully, Qt.UserRole + udr.selectedrole)
         if fully:
@@ -1007,13 +1024,14 @@ class LocationTreeItem(QStandardItem):
         # gather siblings in order to deal with mutual exclusivity (radio buttons)
         siblings = self.collectsiblings()
 
-        # if this is a radio button item, make sure none of its siblings are checked
-        if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
-            for sib in siblings:
-                sib.uncheck(force=True)
-        else:  # or if it has radio button siblings, make sure they are unchecked
-            for me_sibling in [s for s in siblings if s.data(Qt.UserRole + udr.mutuallyexclusiverole)]:
-                me_sibling.uncheck(force=True)
+        if not multiple_selection_allowed:
+            # if this is a radio button item, make sure none of its siblings are checked
+            if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+                for sib in siblings:
+                    sib.uncheck(force=True)
+            else:  # or if it has radio button siblings, make sure they are unchecked
+                for me_sibling in [s for s in siblings if s.data(Qt.UserRole + udr.mutuallyexclusiverole)]:
+                    me_sibling.uncheck(force=True)
 
     def collectsiblings(self):
 
