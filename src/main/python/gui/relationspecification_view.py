@@ -893,7 +893,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             if articulator == HAND:
                 if articulator_dict[1] and articulator_dict[2]:
                     self.x_both_radio.setChecked(True)
-                    if linkedfrommodule.inphase >- 3:
+                    if linkedfrommodule.inphase >= 3:
                         self.x_bothconnected_cb.setChecked(True)
                 elif articulator_dict[1]:
                     self.x_h1_radio.setChecked(True)
