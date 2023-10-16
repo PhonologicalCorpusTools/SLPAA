@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
+    QGridLayout,
     QComboBox,
     QLabel,
     QCompleter,
@@ -51,7 +52,7 @@ from models.location_models import LocationTreeItem, LocationTableModel, Locatio
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
-
+import logging
 
 class LocationTreeView(QTreeView):
 
@@ -563,18 +564,25 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         body_box.setLayout(body_layout)
         loctype_phonloc_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
 
-        signingspace_layout = QHBoxLayout()
+        signingspace_layout = QGridLayout()
 
         self.signingspace_radio = QRadioButton("Signing space  (")
         self.signingspace_radio.setProperty('loctype', 'signingspace')
-        signingspace_layout.addWidget(self.signingspace_radio)
+        signingspace_layout.addWidget(self.signingspace_radio, 0, 0)
 
         self.signingspacebody_radio = QRadioButton("body-anchored  /")
         self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
-        signingspace_layout.addWidget(self.signingspacebody_radio)
+        signingspace_layout.addWidget(self.signingspacebody_radio, 0, 1)
+
         self.signingspacespatial_radio = QRadioButton("purely spatial  )")
         self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
-        signingspace_layout.addWidget(self.signingspacespatial_radio)
+        signingspace_layout.addWidget(self.signingspacespatial_radio, 0, 2)
+
+        self.defaultneutral_cb = QCheckBox("default neutral")
+        self.defaultneutral_cb.setProperty('loctype', 'default neutral')
+        self.defaultneutral_cb.toggled.connect(self.handle_toggle_defaultneutral)
+        signingspace_layout.addWidget(self.defaultneutral_cb, 1, 2)
+        
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
         loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
@@ -695,7 +703,21 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
+        self.defaultneutral_cb.setEnabled(btn == self.signingspacespatial_radio)
         self.enablelocationtools()  # TODO KV should this be inside the if?
+
+    def handle_toggle_defaultneutral(self, btn):
+        itemstoselect = gettreeitemsinpath(self.parent().treemodel,
+                                            self.currentText(),
+                                            delim=delimiter)
+        for item in itemstoselect:
+            if item.checkState() == Qt.Unchecked:
+                item.setCheckState(Qt.PartiallyChecked)
+        itemstoselect[-1].setCheckState(Qt.Checked)
+        self.item_selected.emit(itemstoselect[-1])
+        self.setCurrentIndex(-1)
+        logging.warn(btn)
+
 
     def handle_toggle_locationtype(self, btn):
         if btn is not None and btn.isChecked():
@@ -815,8 +837,11 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.loctype_subgroup.setExclusive(False)
         self.signingspace_subgroup.setExclusive(False)
 
+
         for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
             btn.setChecked(False)
+        
+        self.defaultneutral_cb.setEnabled(False)
 
         if loctype.body:
             self.body_radio.setChecked(True)
@@ -824,6 +849,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             self.signingspace_radio.setChecked(True)
             if loctype.purelyspatial:
                 self.signingspacespatial_radio.setChecked(True)
+                self.defaultneutral_cb.setEnabled(True)
+                self.defaultneutral_cb.setChecked(loctype.defaultneutral)
             elif loctype.bodyanchored:
                 self.signingspacebody_radio.setChecked(True)
 

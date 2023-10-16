@@ -514,12 +514,13 @@ class PhonLocations:
 # is used by a particular instance of the Location Module
 class LocationType:
 
-    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False, axis=False):
+    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False, axis=False, defaultneutral=False):
         self._body = body
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
         self._axis = axis
+        self._defaultneutral = defaultneutral
 
     def __repr__(self):
         repr_str = "nil"
@@ -530,7 +531,10 @@ class LocationType:
             if self._bodyanchored:
                 repr_str += " (body anchored)"
             elif self._purelyspatial:
-                repr_str += " (purely spatial)"
+                if self._defaultneutral:
+                    repr_str += " (purely spatial - default neutral)"
+                else:
+                    repr_str += " (purely spatial)"
         elif self._axis:
             repr_str = "axis of relation"
 
@@ -552,6 +556,7 @@ class LocationType:
             self._bodyanchored = False
             self._purelyspatial = False
             self._body = False
+            self._defaultneutral = False
 
     @property
     def body(self):
@@ -567,6 +572,7 @@ class LocationType:
             self._bodyanchored = False
             self._purelyspatial = False
             self._axis = False
+            self._defaultneutral = False
 
     @property
     def signingspace(self):
@@ -596,6 +602,7 @@ class LocationType:
             self._purelyspatial = False
             self._body = False
             self._axis = False
+            self._defaultneutral = False
 
     @property
     def purelyspatial(self):
@@ -612,6 +619,15 @@ class LocationType:
             self._bodyanchored = False
             self._body = False
             self._axis = False
+    
+    @property
+    def defaultneutral(self):
+        return self._purelyspatial
+    
+    @defaultneutral.setter
+    def defaultneutral(self, checked):
+        # TODO KV - validate?
+        self._defaultneutral = checked
 
     def usesbodylocations(self):
         return self._body or self._bodyanchored
