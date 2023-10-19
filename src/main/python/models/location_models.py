@@ -515,7 +515,11 @@ class BodypartTreeModel(LocationTreeModel):
 
     def __init__(self, bodyparttype, serializedlocntree=None, **kwargs):
         self.bodyparttype = bodyparttype
+        
         super().__init__(serializedlocntree=serializedlocntree, **kwargs)
+        if serializedlocntree is not None:
+            self.serializedlocntree = serializedlocntree
+            self.backwardcompatibility()
 
     def populate(self, parentnode, structure={}, pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
 
@@ -539,7 +543,18 @@ class BodypartTreeModel(LocationTreeModel):
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
     def backwardcompatibility(self):
-        pass
+        dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
+
+        hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
+                         "Finger 1", "Finger 2","Finger 3","Finger 4", 
+                         "Between Thumb and Finger 1","Between Fingers 1 and 2", "Between Fingers 2 and 3","Between Fingers 3 and 4"]
+        if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
+            for val in hand_children:
+                for stored_dict in dicts:
+                    stored_dict["Whole hand"+delimiter+val] = stored_dict[val] 
+            # for stored_dict in dicts:
+            #     stored_dict.pop("Other hand")
+
 
 
 class LocationListModel(QStandardItemModel):
