@@ -552,8 +552,7 @@ class BodypartTreeModel(LocationTreeModel):
             for val in hand_children:
                 for stored_dict in dicts:
                     stored_dict["Whole hand"+delimiter+val] = stored_dict[val] 
-            # for stored_dict in dicts:
-            #     stored_dict.pop("Other hand")
+                    stored_dict.pop(val)
 
 
 
