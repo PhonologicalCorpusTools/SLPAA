@@ -360,7 +360,6 @@ class MovementModule(ParameterModule):
 
     def getabbreviation(self):
         
-        optionstree = self._movementtreemodel.optionstree
         wordlist = []
 
         udr = userdefinedroles

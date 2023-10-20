@@ -32,7 +32,6 @@ ed_3 = "editable level 3"  # ie value is editable and unrestricted
 fx = "fixed"  # ie value is not editable
 subgroup = "subgroup"
 custom_abbrev = "custom abbreviation" # for tooltip abbreviations which depend on user entry
-not_abbrev = "not abbreviated"
 
 c = True  # checked
 u = False  # unchecked
@@ -140,20 +139,6 @@ class MvmtOptionsNode:
     # "node" should already have been assigned new ID
     def insert_child(self, node):
         self.children.append(node)
-        
-# defaultMvmtTree = MvmtOptionsNode(children=[
-#     MvmtOptionsNode("No movement", fx, rb, "tooltip"),
-#     MvmtOptionsNode("Movement type", fx, cb, "tooltip", children=[
-#         MvmtOptionsNode(1.5, subgroup, button_type=0, children=[
-#             MvmtOptionsNode("Type 1", fx, rb, "tooltip"),
-#             MvmtOptionsNode("Type 2", fx, rb, "tooltip")
-#         ])
-#     ]),
-#     MvmtOptionsNode("Joint-specific movements", fx, cb, "tooltip", children=[
-#         MvmtOptionsNode("Movement type 1", fx, rb, "tooltip"),
-#         MvmtOptionsNode("Movement type 2", fx, rb, "tooltip")
-#     ])
-# ])
 
 defaultMvmtTree = MvmtOptionsNode(children=[
     MvmtOptionsNode("No movement", fx, rb),
@@ -852,36 +837,6 @@ defaultMvmtTree = MvmtOptionsNode(children=[
 ])
 
 # defaultMvmtTree.assign_ids(-1)
-
-'''
-# testing
-mvmtTree = defaultMvmtTree 
-max_id = mvmtTree.assign_ids(-1)
-
-# a mvmt options tree should be declared elsewhere
-logging.warn("Get node 0 by id:")
-logging.warn(str(mvmtTree.get_node_by_id(0)) + '\n')
-logging.warn("Get node 94 by id:")
-logging.warn(str(mvmtTree.get_node_by_id(94)) + '\n')
-logging.warn("Get node 51 by id:")
-logging.warn(str(mvmtTree.get_node_by_id(51)) + '\n')
-logging.warn("Get node 51's parent:")
-node51 = mvmtTree.get_node_by_id(51)
-node51parent = mvmtTree.get_parent_node(node51)
-logging.warn(str(node51parent) + '\n')
-
-siblingleft = MvmtOptionsNode("left sibling", fx, rb, id=max_id+1)
-max_id = max_id + 1
-siblingright = MvmtOptionsNode("right sibling", fx, rb, id=max_id+1)
-max_id = max_id + 1
-newparent = MvmtOptionsNode("new parent", fx, rb)
-
-mvmtTree.insert_sibling_left(node51, siblingleft)
-mvmtTree.insert_sibling_right(node51, siblingright)
-mvmtTree.remove_node(node51)
-
-mvmtTree.insert_parent(siblingleft, newparent)
-'''
 
 
 
