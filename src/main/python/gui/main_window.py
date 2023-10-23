@@ -820,6 +820,7 @@ class MainWindow(QMainWindow):
             self.corpus.name = self.corpus_display.corpus_title.text()
             self.save_corpus_binary()
 
+        self.unsaved_changes = False
         self.undostack.clear()
 
     @check_unsaved_corpus
@@ -838,6 +839,9 @@ class MainWindow(QMainWindow):
                 self.app_settings['storage']['recent_folder'] = folder
 
         self.save_corpus_binary()
+
+        self.unsaved_changes = False
+        self.undostack.clear()
 
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
