@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
         self.current_sign = None
 
         self.undostack = QUndoStack(parent=self)
+        self.unsaved_changes = False  # a flag that tracks any unsaved changes.
 
         self.predefined_handshape_dialog = None
 
@@ -306,7 +307,7 @@ class MainWindow(QMainWindow):
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
-        self.signlevel_panel.sign_updated.connect(self.signsummary_panel.refreshsign)
+        self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -927,6 +928,12 @@ class MainWindow(QMainWindow):
         for sign in signstoselect:
             indices.append(list(self.corpus.signs).index(sign))
         # print(indices)
+
+    def flag_and_refresh(self, sign=None):
+        # this function is called when sign_updated Signal is emitted, i.e., any sign changes
+        # it flags unsaved_changes=True and passes on to refreshsign(), which updates the summary panel
+        self.unsaved_changes = True
+        self.signsummary_panel.refreshsign(sign)
 
     @check_unsaved_change
     def closeEvent(self, event):
