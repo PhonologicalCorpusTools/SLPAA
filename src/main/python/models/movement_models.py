@@ -115,9 +115,7 @@ mvmtOptionsDict = {
                         },
                     },
                 },
-                (subgroup, None, 1, None, 22): {
-                    ("Not relevant", fx, rb, u, 46): {} # TODO KV Auto-select this if movement is straight or the axis is not relevant
-                }
+                ("Not relevant", fx, rb, u, 46): {} # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
         },
         # mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
