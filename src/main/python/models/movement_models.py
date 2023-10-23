@@ -86,32 +86,38 @@ mvmtOptionsDict = {
                 ("Not relevant", fx, rb, u, 31): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             },
             ("Plane", fx, cb, u, 32): {  # choose as many as needed, but only one direction per plane
-                ("H1 and H2 move in opposite directions", fx, cb, u, 33): {},
-                ("Horizontal", fx, cb, u, 34): {
-                    (subgroup, None, 0, None, 35): {
-                        ("Ipsilateral from top of circle", fx, rb, u, 36): {},
-                        ("Contralateral from top of circle", fx, rb, u, 37): {}
-                        # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
-                        # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                (subgroup, None, 0, None, 220): {
+                    ("H1 and H2 move in opposite directions", fx, cb, u, 33): {}
+                },
+                (subgroup, None, 1, None, 221): {
+                    ("Horizontal", fx, cb, u, 34): {
+                        (subgroup, None, 0, None, 35): {
+                            ("Ipsilateral from top of circle", fx, rb, u, 36): {},
+                            ("Contralateral from top of circle", fx, rb, u, 37): {}
+                            # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                            # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                        },
+                    },
+                    ("Vertical", fx, cb, u, 38): {
+                        (subgroup, None, 0, None, 39): {
+                            ("Ipsilateral from top of circle", fx, rb, u, 40): {},
+                            ("Contralateral from top of circle", fx, rb, u, 41): {}
+                            # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
+                            # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
+                        },
+                    },
+                    ("Sagittal", fx, cb, u, 42): {
+                        (subgroup, None, 0, None, 43): {
+                            ("Distal from top of circle", fx, rb, u, 44): {},
+                            ("Proximal from top of circle", fx, rb, u, 45): {}
+                            # ("Clockwise", fx, rb, u): {},
+                            # ("Counterclockwise", fx, rb, u): {}
+                        },
                     },
                 },
-                ("Vertical", fx, cb, u, 38): {
-                    (subgroup, None, 0, None, 39): {
-                        ("Ipsilateral from top of circle", fx, rb, u, 40): {},
-                        ("Contralateral from top of circle", fx, rb, u, 41): {}
-                        # ("Clockwise", fx, rb, u): {},  # TODO KV or Ipsilateral from the top of the circle
-                        # ("Counterclockwise", fx, rb, u): {}  # TODO KV or Contralateral from the top of the circle
-                    },
-                },
-                ("Sagittal", fx, cb, u, 42): {
-                    (subgroup, None, 0, None, 43): {
-                        ("Distal from top of circle", fx, rb, u, 44): {},
-                        ("Proximal from top of circle", fx, rb, u, 45): {}
-                        # ("Clockwise", fx, rb, u): {},
-                        # ("Counterclockwise", fx, rb, u): {}
-                    },
-                },
-                ("Not relevant", fx, rb, u, 46): {}  # TODO KV Auto-select this if movement is straight or the axis is not relevant
+                (subgroup, None, 1, None, 22): {
+                    ("Not relevant", fx, rb, u, 46): {} # TODO KV Auto-select this if movement is straight or the axis is not relevant
+                }
             },
         },
         # mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
