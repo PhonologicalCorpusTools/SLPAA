@@ -317,6 +317,14 @@ class SignLevelInformation:
     def note(self, new_note):
         self._note = new_note
 
+    # @property
+    # def signtype(self):
+    #     return self._signtype
+    #
+    # @signtype.setter
+    # def signtype(self, new_signtype):
+    #     self._signtype = new_signtype
+
     @property
     def handdominance(self):
         return self._handdominance
@@ -1103,13 +1111,6 @@ class BodypartInfo:
     def uniqueid(self, uniqueid):
         # TODO KV - validate?
         self._uniqueid = uniqueid
-
-    # returns true iff the instance has some specified content beyond its "blank" initial state
-    # this could mean some addedinfo and/or treemodel content
-    def hascontent(self):
-        hasaddedinfo = self._addedinfo.hascontent()
-        hastreecontent = self._bodyparttreemodel.hasselections()
-        return hasaddedinfo or hastreecontent
 
     def __eq__(self, other):
         if isinstance(other, BodypartInfo):

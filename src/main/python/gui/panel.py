@@ -779,6 +779,7 @@ class SignLevelMenuPanel(QScrollArea):
         main_frame.setLayout(main_layout)
 
         self._sign = sign
+        self.system_default_signtype = self.mainwindow.system_default_signtype
         self.modulebuttons_untimed = []
         self.modulebuttons_timed = []
 
@@ -813,7 +814,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.orientation_button = QPushButton("Add orientation module")
         self.orientation_button.setProperty("existingmodule", False)
-        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.ORIENTATION))
+        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.ORIENTATION))
         self.modulebuttons_timed.append(self.orientation_button)
 
         self.handshape_button = QPushButton("Add hand configuration module")
@@ -823,7 +824,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
-        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.NONMANUAL))
+        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.NONMANUAL))
         self.modulebuttons_timed.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)

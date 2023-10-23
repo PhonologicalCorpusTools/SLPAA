@@ -363,6 +363,10 @@ class AssociatedRelationsDialog(QDialog):
         module_selector.exec_()
         self.refresh_listmodel()
 
+    # def handle_moduledeleted(self, mod_id):
+    #     self.mainwindow.signlevel_panel.handle_delete_module(existingkey=mod_id, moduletype=ModuleTypes.RELATION)
+    #     self.refresh_listmodel()
+
     def refresh_listmodel(self):
         self.relationslist = list(self.mainwindow.current_sign.relationmodules.values())
         self.relationmodulenumsdict = self.mainwindow.current_sign.relationmodulenumbers
@@ -470,7 +474,6 @@ class AssociatedRelationsPanel(QFrame):
             module_selector.exec_()
 
 
-# Styled QPushButton whose text is bolded iff the _hasrelations attribute is true
 class SeeRelationsPushButton(QPushButton):
 
     def __init__(self, title, hasrelations=False, **kwargs):

@@ -45,6 +45,8 @@ class Sign:
     """
     def __init__(self, signlevel_info=None, serializedsign=None):
         self._signlevel_information = signlevel_info
+        # self._datecreated = int(datetime.timestamp(datetime.now()))
+        # self.lastmodifiednow()
         self._signtype = None
         self._xslotstructure = XslotStructure()
         self._specifiedxslots = False
@@ -121,6 +123,8 @@ class Sign:
     def serialize(self):
         return {
             'signlevel': self._signlevel_information.serialize(),
+            # 'date created': self._datecreated,
+            # 'date last modified': self._datelastmodified,
             'type': self._signtype,
             'xslot structure': self.xslotstructure,
             'specified xslots': self.specifiedxslots,
@@ -325,8 +329,29 @@ class Sign:
     @specifiedxslots.setter
     def specifiedxslots(self, specifiedxslots):
         self._specifiedxslots = specifiedxslots
+    #
+    # @property
+    # def datecreated(self):
+    #     return self._datecreated
+    #
+    # # input should be an integer timestamp
+    # @datecreated.setter
+    # def datecreated(self, created):
+    #     # TODO KV - validate?
+    #     self._datecreated = created
+    #
+    # @property
+    # def datelastmodified(self):
+    #     return self._datelastmodified
+    #
+    # # input should be an integer timestamp
+    # @datelastmodified.setter
+    # def signtype(self, lastmodified):
+    #     # TODO KV - validate?
+    #     self._datelastmodified = lastmodified
 
     def lastmodifiednow(self):
+        # self._datelastmodified = int(datetime.timestamp(datetime.now()))
         self.signlevel_information.lastmodifiednow()
 
     @property

@@ -471,12 +471,6 @@ class LocationOptionsSelectionPanel(QFrame):
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
-        
-    
-    def reset_sort(self):
-        """Reset sort option to default."""
-        self.sortcombo.setCurrentIndex(0)
-        self.sort()
 
 
 class LocationSpecificationPanel(ModuleSpecificationPanel):
@@ -783,30 +777,12 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.minorphonloc_cb.setEnabled(True)
 
     def clear(self):
-        """Restore GUI to the defaults."""
         self.clear_loctype_buttons_to_default()
         self.clear_phonlocs_buttons()
         self.recreate_treeandlistmodels()
-        
-        # Reset selections
         self.locationoptionsselectionpanel.treemodel = self.getcurrenttreemodel()
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.clear_details()
-        
-        # Reset sort
-        self.locationoptionsselectionpanel.reset_sort()
-        
-        # Reset zoom and link
-        self.locationoptionsselectionpanel.imagetabwidget.reset_zoomfactor()
-        self.locationoptionsselectionpanel.imagetabwidget.reset_link()
-        
-        # Reset view to front panel
-        self.locationoptionsselectionpanel.imagetabwidget.setCurrentIndex(0)
-        
-        # self.locationoptionsselectionpanel.imagetabwidget
-        # Update panels given default selections/disables panels
-        self.enablelocationtools()
-
 
     def recreate_treeandlistmodels(self):
         self.treemodel_body = LocationTreeModel()
@@ -898,19 +874,7 @@ class ImageTabWidget(QTabWidget):
         othertab.force_link(ischecked)
         othertab.force_zoom(thistab.zoom_slider.value())
         # self.backtab.force_link(ischecked)
-        
-    def reset_zoomfactor(self):
-        """Reset the zoom factor for this image display to zero zoom and back to the front tab."""
-        self.fronttab.zoom_slider.setValue(0)
-        self.backtab.zoom_slider.setValue(0)
-        self.fronttab.force_zoom(self.fronttab.zoom_slider.value())
-        self.backtab.force_zoom(self.backtab.zoom_slider.value())
-        
-    def reset_link(self):
-        """Unlink zoom buttons between front/back."""
-        self.handle_linkbutton_toggled(False, self.fronttab)
-        self.handle_linkbutton_toggled(False, self.backtab)
-        
+
 
 class ImageDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)

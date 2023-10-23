@@ -517,16 +517,9 @@ class LocationTreeModel(QStandardItemModel):
         if ("Other hand"+delimiter+"Whole hand" in self.serializedlocntree.checkstates):
             if (self.serializedlocntree.checkstates["Other hand"+delimiter+"Whole hand"] == Qt.Checked):
                 for stored_dict in dicts:
-                    stored_dict["Whole hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
+                    stored_dict["Other hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
             for stored_dict in dicts:
                 stored_dict.pop("Other hand"+delimiter+"Whole hand")
-        # As of 20230918, rename "Other hand" back to "Whole hand"
-        if ("Other hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand"] == Qt.Checked):
-                for stored_dict in dicts:
-                    stored_dict["Whole hand"] = stored_dict["Other hand"] 
-            for stored_dict in dicts:
-                stored_dict.pop("Other hand")
 
         for stored_dict in dicts:
             pairstoadd = {}
@@ -665,19 +658,6 @@ class LocationTreeModel(QStandardItemModel):
     def locationtype(self, locationtype):  # LocationType class
         self._locationtype = locationtype
 
-    def hasselections(self, parentnode=None):
-        if parentnode is None:
-            rootnode = self.invisibleRootItem()
-            return self.hasselections(parentnode=rootnode)
-        else:
-            for r in range(parentnode.rowCount()):
-                treechild = parentnode.child(r, 0)
-                if treechild is not None and treechild.checkState() == Qt.Checked:
-                    return True
-                elif self.hasselections(treechild):
-                    return True
-            return False
-
 
 class BodypartTreeModel(LocationTreeModel):
 
@@ -685,9 +665,6 @@ class BodypartTreeModel(LocationTreeModel):
         self.bodyparttype = bodyparttype
         self.forrelationmodule=forrelationmodule
         super().__init__(serializedlocntree=serializedlocntree, **kwargs)
-        if serializedlocntree is not None:
-            self.serializedlocntree = serializedlocntree
-            self.backwardcompatibility()
 
     def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         
@@ -715,17 +692,7 @@ class BodypartTreeModel(LocationTreeModel):
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
     def backwardcompatibility(self):
-        dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
-
-        hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
-                         "Finger 1", "Finger 2","Finger 3","Finger 4", 
-                         "Between Thumb and Finger 1","Between Fingers 1 and 2", "Between Fingers 2 and 3","Between Fingers 3 and 4"]
-        if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
-            for val in hand_children:
-                for stored_dict in dicts:
-                    stored_dict["Whole hand"+delimiter+val] = stored_dict[val] 
-                    stored_dict.pop(val)
-
+        pass
 
 
 class LocationListModel(QStandardItemModel):
