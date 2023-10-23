@@ -95,9 +95,6 @@ class ConfigSlot(QLineEdit):
         self.slot_finish_edit.emit(self, self.current_prop, self.get_value())
         self.current_prop = self.get_value()
 
-    # def handle_info_added(self, addedinfo):
-    #     self.addedinfo = addedinfo
-
     def clear(self):
         if self.num not in {'8', '9', '16', '21', '26', '31'}:
             super().clear()
