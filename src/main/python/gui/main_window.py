@@ -859,7 +859,7 @@ class MainWindow(QMainWindow):
         pass
         # TODO: implement
 
-    # TODO KV check whether current corpus has been saved
+    @check_unsaved_change
     def on_action_new_corpus(self, clicked):
         self.current_sign = None
         self.action_delete_sign.setEnabled(False)
@@ -871,7 +871,7 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.enable_module_buttons(False)
         self.signsummary_panel.refreshsign()
 
-    # TODO KV check whether current corpus has been saved
+    @check_unsaved_change
     def on_action_load_corpus(self, clicked):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            self.tr('Open Corpus'),

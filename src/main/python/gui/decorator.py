@@ -11,11 +11,16 @@ from PyQt5.QtWidgets import (
 def check_unsaved_change(func):
     @functools.wraps(func)
     def wrapper_check_unsaved_change(self, event, *args, **kwargs):
-        if not self.undostack.isClean():
+        if self.unsaved_changes:  # if there is any unsaved changes, prompt a warning.
+        # if not self.undostack.isClean():   # commented out since we don't seem to be using undostack for now.
+            if event:  # called while closing the program
+                contextual_msg = 'and close the app?'
+            else:  # all the other cases
+                contextual_msg = 'and proceed?'
             response = QMessageBox.question(
                 self,
                 'Unsaved Changes',
-                'You have unsaved changes. Are you sure you want to close the app?')
+                f'Are you sure you want to discard unsaved changes {contextual_msg}')
             if response == QMessageBox.No:
                 return event.ignore()
         func(self, event, *args, **kwargs)
