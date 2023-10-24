@@ -15,7 +15,8 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QLabel,
     QComboBox,
-    QListView
+    QListView,
+    QStyledItemDelegate
 )
 
 from lexicon.module_classes import AddedInfo
@@ -344,3 +345,21 @@ class TreeListView(QListView):
             for listitem in selectedlistitems:
                 listitem.unselectpath()
             # self.model().dataChanged.emit()
+
+
+# this class ensures that the items in the selected-paths list (for Location and Movement module dialogs, eg)
+# are bolded iff they have some content in the right-click menu ("Estimated", "Variable", etc)
+class TreePathsListItemDelegate(QStyledItemDelegate):
+
+    def initStyleOption(self, option, index):
+        # determine the actual tree item from the proxymodel index argument
+        proxymodel = index.model()
+        sourceindex = proxymodel.mapToSource(index)
+        sourcemodel = proxymodel.sourceModel()
+        treeitem = sourcemodel.itemFromIndex(sourceindex).treeitem
+
+        # check whether the treeitem has addedinfo content and bold/unbold as appropriate
+        hasaddedinfo = treeitem.addedinfo.hascontent()
+        option.font.setBold(hasaddedinfo)
+
+        super().initStyleOption(option, index)

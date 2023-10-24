@@ -25,7 +25,7 @@ from PyQt5.QtCore import (
 from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
 from serialization_classes import MovementTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 from constant import HAND
 
 
@@ -198,7 +198,6 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
 
-
 class MovementSpecificationPanel(ModuleSpecificationPanel):
     # see_relations = pyqtSignal()
 
@@ -267,6 +266,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         list_layout = QVBoxLayout()
 
         self.pathslistview = TreeListView()
+        self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)

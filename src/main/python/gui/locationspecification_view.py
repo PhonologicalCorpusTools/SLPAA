@@ -50,7 +50,7 @@ from lexicon.module_classes import delimiter, LocationModule, PhonLocations, use
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 
 
 class LocationTreeView(QTreeView):
@@ -407,6 +407,7 @@ class LocationOptionsSelectionPanel(QFrame):
         list_layout = QVBoxLayout()
 
         self.pathslistview = TreeListView()
+        self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(300)
