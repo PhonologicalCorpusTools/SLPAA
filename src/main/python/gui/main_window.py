@@ -823,7 +823,6 @@ class MainWindow(QMainWindow):
         self.unsaved_changes = False
         self.undostack.clear()
 
-    @check_unsaved_corpus
     def on_action_saveas(self, clicked):
         self.corpus.name = self.corpus_display.corpus_title.text()
         name = self.corpus.name

@@ -84,6 +84,9 @@ def check_duplicated_gloss(func):
 
 
 def check_unsaved_corpus(func):
+    # This decorator is a fail-safe that is activated when saving a (new) corpus for the first time.
+    # I.e., check_(if we are dealing with an)_unsaved_corpus.
+    # For example, it is active if the user creates a corpus from scratch and then saves it with the 'save' button.
     @functools.wraps(func)
     def wrapper_check_unsaved_corpus(self, *args, **kwargs):
         # if self.corpus is None:
