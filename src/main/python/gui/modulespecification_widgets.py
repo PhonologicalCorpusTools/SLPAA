@@ -1,5 +1,6 @@
 from PyQt5.QtCore import (
-    pyqtSignal
+    pyqtSignal,
+    Qt
 )
 
 from PyQt5.QtWidgets import (
@@ -13,7 +14,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QPushButton,
     QLabel,
-    QComboBox
+    QComboBox,
+    QListView,
+    QStyledItemDelegate
 )
 
 from lexicon.module_classes import AddedInfo
@@ -49,16 +52,13 @@ class SpecifyBodypartPushButton(QPushButton):
         qss = """   
             QPushButton[HasContent=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[HasContent=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property
@@ -91,16 +91,13 @@ class AddedInfoPushButton(QPushButton):
         qss = """   
             QPushButton[AddedInfo=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[AddedInfo=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property
@@ -327,3 +324,43 @@ class ArticulatorSelector(QWidget):
                 return True
 
         return False
+
+
+# used in both Location and Movement modules to display flattened paths list of selected nodes in tree
+class TreeListView(QListView):
+
+    def __init__(self):
+        super().__init__()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        # modifiers = event.modifiers()
+
+        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
+            indexesofselectedrows = self.selectionModel().selectedRows()
+            selectedlistitems = []
+            for itemindex in indexesofselectedrows:
+                listitemindex = self.model().mapToSource(itemindex)
+                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
+                selectedlistitems.append(listitem)
+            for listitem in selectedlistitems:
+                listitem.unselectpath()
+            # self.model().dataChanged.emit()
+
+
+# this class ensures that the items in the selected-paths list (for Location and Movement module dialogs, eg)
+# are bolded iff they have some content in the right-click menu ("Estimated", "Variable", etc)
+class TreePathsListItemDelegate(QStyledItemDelegate):
+
+    def initStyleOption(self, option, index):
+        # determine the actual tree item from the proxymodel index argument
+        proxymodel = index.model()
+        sourceindex = proxymodel.mapToSource(index)
+        sourcemodel = proxymodel.sourceModel()
+        treeitem = sourcemodel.itemFromIndex(sourceindex).treeitem
+
+        # check whether the treeitem has addedinfo content and bold/unbold as appropriate
+        hasaddedinfo = treeitem.addedinfo.hascontent()
+        option.font.setBold(hasaddedinfo)
+
+        super().initStyleOption(option, index)

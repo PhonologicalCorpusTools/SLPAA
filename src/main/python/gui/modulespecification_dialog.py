@@ -481,16 +481,13 @@ class SeeRelationsPushButton(QPushButton):
         qss = """   
             QPushButton[HasRelations=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[HasRelations=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property
