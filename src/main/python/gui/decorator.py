@@ -15,18 +15,28 @@ def check_unsaved_change(func):
             return func(self, event, *args, **kwargs)
 
         if self.unsaved_changes:  # if there is any unsaved changes, prompt a warning.
-        # if not self.undostack.isClean():   # commented out since we don't seem to be using undostack for now.
-            if event:  # called while closing the program
-                contextual_msg = 'and close the app?'
-            else:  # all the other cases
-                contextual_msg = 'and proceed?'
-            response = QMessageBox.question(
-                self,
-                'Unsaved Changes',
-                f'Are you sure you want to discard unsaved changes {contextual_msg}')
+            # Note: if SLPAA decides to use a centralized stack in the future (cf. #114), do the following:
+            # (1) remove the Bool 'unsaved_changes' and use the stack, (2) uncomment the conditional below.
+            # if not self.undostack.isClean():
 
-            if response == QMessageBox.No:
+            if event:   # called while closing the program
+                contextual_msg = 'and close the app'
+            else:       # all the other cases
+                contextual_msg = 'and proceed'
+
+            warning_box = QMessageBox(QMessageBox.Question,
+                                      'Unsaved Changes',
+                                      f'Are you sure you want to discard unsaved changes {contextual_msg}?')
+
+            btn_discard = warning_box.addButton(f'Discard {contextual_msg}', QMessageBox.ResetRole)  # 7
+            btn_cancel = warning_box.addButton('Cancel', QMessageBox.RejectRole)  # 1
+            btn_save = warning_box.addButton(f'Save {contextual_msg}', QMessageBox.AcceptRole)  # 0
+            warning_box.exec_()
+
+            if warning_box.clickedButton() == btn_cancel:
                 return event.ignore() if event else None
+            elif warning_box.clickedButton() == btn_save:
+                self.on_action_save(clicked=False)
 
         func(self, event, *args, **kwargs)
     return wrapper_check_unsaved_change
