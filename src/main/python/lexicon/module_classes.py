@@ -514,8 +514,6 @@ class LocationType:
                 repr_str += " (body anchored)"
             elif self._purelyspatial:
                 repr_str += " (purely spatial)"
-        elif self._axis:
-            repr_str = "axis of relation"
 
         return '<LocationType: ' + repr(repr_str) + '>'
 
