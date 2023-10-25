@@ -497,12 +497,11 @@ class PhonLocations:
 # is used by a particular instance of the Location Module
 class LocationType:
 
-    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False, axis=False):
+    def __init__(self, body=False, signingspace=False, bodyanchored=False, purelyspatial=False):
         self._body = body
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
-        self._axis = axis
 
     def __repr__(self):
         repr_str = "nil"
@@ -514,27 +513,8 @@ class LocationType:
                 repr_str += " (body anchored)"
             elif self._purelyspatial:
                 repr_str += " (purely spatial)"
-        elif self._axis:
-            repr_str = "axis of relation"
 
         return '<LocationType: ' + repr(repr_str) + '>'
-
-    @property
-    def axis(self):
-        if not hasattr(self, '_axis'):
-            self._axis = False
-        return self._axis
-
-    @axis.setter
-    def axis(self, checked):
-        # TODO KV - validate?
-        self._axis = checked
-
-        if checked:
-            self._signingspace = False
-            self._bodyanchored = False
-            self._purelyspatial = False
-            self._body = False
 
     @property
     def body(self):
@@ -549,7 +529,6 @@ class LocationType:
             self._signingspace = False
             self._bodyanchored = False
             self._purelyspatial = False
-            self._axis = False
 
     @property
     def signingspace(self):
@@ -562,7 +541,6 @@ class LocationType:
 
         if checked:
             self._body = False
-            self._axis = False
 
     @property
     def bodyanchored(self):
@@ -578,7 +556,6 @@ class LocationType:
 
             self._purelyspatial = False
             self._body = False
-            self._axis = False
 
     @property
     def purelyspatial(self):
@@ -594,7 +571,6 @@ class LocationType:
 
             self._bodyanchored = False
             self._body = False
-            self._axis = False
 
     def usesbodylocations(self):
         return self._body or self._bodyanchored
