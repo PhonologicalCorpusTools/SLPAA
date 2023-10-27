@@ -837,10 +837,10 @@ class MainWindow(QMainWindow):
             if folder:
                 self.app_settings['storage']['recent_folder'] = folder
 
-        self.save_corpus_binary()
+            self.save_corpus_binary()
 
-        self.unsaved_changes = False
-        self.undostack.clear()
+            self.unsaved_changes = False
+            self.undostack.clear()
 
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
