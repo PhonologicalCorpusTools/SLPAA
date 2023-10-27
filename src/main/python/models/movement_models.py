@@ -36,7 +36,7 @@ custom_abbrev = "custom abbreviation" # for tooltip abbreviations which depend o
 c = True  # checked
 u = False  # unchecked
 
-MvmtOptionsByID = [] 
+
 
 class MvmtOptionsNode:
     # id MUST NOT change
