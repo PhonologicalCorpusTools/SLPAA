@@ -871,6 +871,7 @@ class MainWindow(QMainWindow):
 
         self.corpus_display.clear()
         self.signlevel_panel.clear()
+        self.unsaved_changes = False
         self.signlevel_panel.enable_module_buttons(False)
         self.signsummary_panel.refreshsign()
 
@@ -894,7 +895,8 @@ class MainWindow(QMainWindow):
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
-            
+
+        self.unsaved_changes = False
 
         return self.corpus is not None  # bool(Corpus)
 
@@ -916,9 +918,13 @@ class MainWindow(QMainWindow):
         if response == QMessageBox.Yes:
             previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
 
+            # delete self.current_sign.
+            # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
+            self.signlevel_panel.handle_delete_signlevelinfo(previous)
+            """
             self.corpus.remove_sign(self.current_sign)
             self.corpus_display.updated_signs(self.corpus.signs, previous)
-
+            """
             self.select_sign([previous])
             self.handle_sign_selected(previous)
             # TODO KV need to also have that sign selected in the corpus view,

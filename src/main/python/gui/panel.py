@@ -900,6 +900,14 @@ class SignLevelMenuPanel(QScrollArea):
         self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
 
+    def handle_delete_signlevelinfo(self, previous_selection):
+        if self.sign:  # does the sign to delete exist?
+            self.mainwindow.corpus.remove_sign(self.sign)
+            self.sign_updated.emit(previous_selection)
+
+            # update corpus display with the previous selection highlighted
+            self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
         signtype_selector.saved_signtype.connect(self.handle_save_signtype)
