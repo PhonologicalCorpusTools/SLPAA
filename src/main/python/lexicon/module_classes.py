@@ -1,6 +1,7 @@
 from datetime import datetime
 from fractions import Fraction
 from itertools import chain
+import logging
 
 from PyQt5.QtCore import (
     Qt,
@@ -350,7 +351,11 @@ class MovementModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        # TODO KV these can't be hardcoded like this... fix it!
+        
+        wordlist = []
+
+        udr = userdefinedroles
+        listmodel = self._movementtreemodel.listmodel
         abbrevs = {
             "Perceptual shape": "Perceptual",
             "Straight": "Straight",
@@ -413,16 +418,19 @@ class MovementModule(ParameterModule):
             "Trilled": "Trilled",
             "Bidirectional": "Bidirec"
         }
-        wordlist = []
-
-        udr = userdefinedroles
-        listmodel = self._movementtreemodel.listmodel
+        # 
         numrows = listmodel.rowCount()
         for rownum in range(numrows):
             item = listmodel.item(rownum)
             text = item.text()
+            id = item.nodeID
+            # logging.warn(rownum)
+            # logging.warn(item)
+            # logging.warn(id)
             selected = item.data(Qt.UserRole+udr.selectedrole)
             if selected:
+                # logging.warn(text)
+                # logging.warn(id)
                 pathelements = text.split(delimiter)
                 # thisentrytext = ""
                 # firstonedone = False
