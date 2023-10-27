@@ -140,6 +140,7 @@ class MvmtOptionsNode:
     def insert_child(self, node):
         self.children.append(node)
 
+MvmtOptionsByID = []
 defaultMvmtTree = MvmtOptionsNode(children=[
     MvmtOptionsNode("No movement", fx, rb),
     MvmtOptionsNode("Movement type", fx, cb, children=[
