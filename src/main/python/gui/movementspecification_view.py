@@ -25,7 +25,7 @@ from PyQt5.QtCore import (
 from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
 from serialization_classes import MovementTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 from constant import HAND
 
 
@@ -121,27 +121,6 @@ class MovementTreeView(QTreeView):
         return super().edit(index, trigger, event)
 
 
-class MvmtTreeListView(QListView):
-
-    def __init__(self):
-        super().__init__()
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        # modifiers = event.modifiers()
-
-        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
-            indexesofselectedrows = self.selectionModel().selectedRows()
-            selectedlistitems = []
-            for itemindex in indexesofselectedrows:
-                listitemindex = self.model().mapToSource(itemindex)
-                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
-                selectedlistitems.append(listitem)
-            for listitem in selectedlistitems:
-                listitem.unselectpath()
-            # self.model().dataChanged.emit()
-
-
 def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     pathlist = pathstring.split(delim)
     pathitemslists = []
@@ -219,7 +198,6 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
 
-
 class MovementSpecificationPanel(ModuleSpecificationPanel):
     # see_relations = pyqtSignal()
 
@@ -287,7 +265,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         list_layout = QVBoxLayout()
 
-        self.pathslistview = MvmtTreeListView()
+        self.pathslistview = TreeListView()
+        self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)
@@ -372,6 +351,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.refresh_treemodel()
 
     def refresh_treemodel(self):
+        # refresh tree model, including changing sort_by option to the default
         self.treemodel = MovementTreeModel()
         self.treemodel.populate(self.treemodel.invisibleRootItem())
 
@@ -383,6 +363,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.combobox.setCurrentIndex(-1)
         self.treedisplay.setModel(self.treemodel)
         self.pathslistview.setModel(self.listproxymodel)
+
+        self.sortcombo.setCurrentIndex(0)  # change 'sort by' option to the first item of the list.
 
         # self.combobox.clear()
 

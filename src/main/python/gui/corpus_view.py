@@ -11,7 +11,8 @@ from PyQt5.QtWidgets import (
     QListView,
     QVBoxLayout,
     QHBoxLayout,
-    QComboBox
+    QComboBox,
+    QAbstractItemView
 )
 
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
@@ -55,6 +56,7 @@ class CorpusDisplay(QWidget):
         # self.corpus_view.setModel(self.corpus_model)
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.clicked.connect(self.handle_selection)
+        self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
 
         # Corpus filter by gloss
         self.corpus_filter_input = QLineEdit()

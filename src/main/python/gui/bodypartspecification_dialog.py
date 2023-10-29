@@ -20,6 +20,7 @@ from models.location_models import BodypartTreeModel
 from lexicon.module_classes import AddedInfo, delimiter, BodypartInfo
 from constant import HAND, ARM, LEG
 from serialization_classes import LocationTreeSerializable
+import logging
 
 bodypartpairs = {}
 for part in [HAND, ARM, LEG]:
@@ -30,13 +31,14 @@ for part in [HAND, ARM, LEG]:
 class BodypartSpecificationPanel(QFrame):
     copybutton_clicked = pyqtSignal()
 
-    def __init__(self, bodypart, label, bodyparttype, bodypartinfotoload=None, **kwargs):
+    def __init__(self, bodypart, label, bodyparttype, bodypartinfotoload=None, forrelationmodule=False, **kwargs):
         super().__init__(**kwargs)
+        
         self.mainwindow = self.parent().mainwindow
         self.bodyparttype = bodyparttype
+        self.forrelationmodule=forrelationmodule
 
         main_layout = QVBoxLayout()
-
         treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
         treemodel.populate(treemodel.invisibleRootItem())
         addedinfo = AddedInfo()
@@ -44,7 +46,7 @@ class BodypartSpecificationPanel(QFrame):
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
             if bodypartinfotoload.bodyparttreemodel is not None:
-                treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel))
+                treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel), forrelationmodule=self.forrelationmodule)
             addedinfo = deepcopy(bodypartinfotoload.addedinfo)
 
         # create layout with bodypart title and added info button
@@ -92,7 +94,7 @@ class BodypartSpecificationPanel(QFrame):
         if bodypartinfotoload is not None and isinstance(bodypartinfotoload, BodypartInfo):
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
-            treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel))
+            treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel),forrelationmodule=self.forrelationmodule)
             addedinfo = deepcopy(bodypartinfotoload.addedinfo)
         else:
             treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
@@ -115,16 +117,17 @@ class BodypartSpecificationPanel(QFrame):
 class BodypartSelectorDialog(QDialog):
     bodyparts_saved = pyqtSignal(BodypartInfo, BodypartInfo)
 
-    def __init__(self, bodyparttype, bodypart1label=None, bodypart2label=None, bodypart1infotoload=None, bodypart2infotoload=None, **kwargs):
+    def __init__(self, bodyparttype, bodypart1label=None, bodypart2label=None, bodypart1infotoload=None, bodypart2infotoload=None, forrelationmodule=False,**kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
         self.bodyparttype = bodyparttype
+        self.forrelationmodule = forrelationmodule
 
         main_layout = QVBoxLayout()
         hands_layout = QHBoxLayout()
 
-        self.bodypart1_panel = BodypartSpecificationPanel(self.bodyparttype+'1', bodypart1label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart1infotoload, parent=self)
-        self.bodypart2_panel = BodypartSpecificationPanel(self.bodyparttype+'2', bodypart2label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart2infotoload, parent=self)
+        self.bodypart1_panel = BodypartSpecificationPanel(self.bodyparttype+'1', bodypart1label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart1infotoload, forrelationmodule=self.forrelationmodule, parent=self)
+        self.bodypart2_panel = BodypartSpecificationPanel(self.bodyparttype+'2', bodypart2label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart2infotoload, forrelationmodule=self.forrelationmodule, parent=self)
         self.bodypart1_panel.copybutton_clicked.connect(lambda: self.bodypart1_panel.setbodypartinfo(self.bodypart2_panel.getbodypartinfo()))
         self.bodypart2_panel.copybutton_clicked.connect(lambda: self.bodypart2_panel.setbodypartinfo(self.bodypart1_panel.getbodypartinfo()))
 

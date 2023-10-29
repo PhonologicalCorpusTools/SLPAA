@@ -43,7 +43,7 @@ class PredefinedTableModel(QAbstractTableModel):
 
         self.data_cached = [
             ['A',
-             '',  # bent
+             'closed-A-index',  # bent
              '', 'closed-A-index', '', '', '', '', '',  # clawed, closed, combined, contracted, covered, crooked, curved
              'extended-A',  # extended
              '',  # flat
@@ -197,7 +197,16 @@ class PredefinedTableModel(QAbstractTableModel):
              '', ''],  # slanted, spread
             ['L',
              'bent-L',  # bent
-             'clawed-extended-L', '', '', 'contracted-L', '', 'crooked-L', '',  # 7 slots
+             'clawed-L', '', '', 'contracted-L', '', 'crooked-L', '',  # 7 slots
+             '',  # extended
+             '',  # flat
+             '',  # index
+             '',  # modified
+             '', '',  # offset, open
+             '', ''],  # slanted, spread
+            ['',
+             '',  # bent
+             'clawed-extended-L', '', '', '', '', '', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
@@ -377,13 +386,22 @@ class PredefinedTableModel(QAbstractTableModel):
              'slanted-4', ''],  # slanted, spread
             ['5',
              'bent-5',  # bent
-             'clawed-extended-5', '', '', 'contracted-5', '', 'crooked-5', '',  # 7 slots
+             'clawed-5', '', '', 'contracted-5', '', 'crooked-5', '',  # 7 slots
              '',  # extended
              '',  # flat
              '',  # index
              'modified-5',  # modified
              '', '',  # offset, open
              'slanted-5', ''],  # slanted, spread
+            ['',
+             '',
+             'clawed-extended-5', '', '', '', '', '', '',  # 7 slots
+             '',  # extended
+             '',  # flat
+             '',  # index
+             '',  # modified
+             '', '',  # offset, open
+             '', ''],  # slanted, spread
             ['',
              'bent-midfinger-5',  # bent
              '', '', '', 'relaxed-contracted-5', '', 'crooked-slanted-5', '',  # 7 slots

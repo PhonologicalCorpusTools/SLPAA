@@ -476,6 +476,7 @@ class AssociatedRelationsPanel(QFrame):
             module_selector.exec_()
 
 
+# Styled QPushButton whose text is bolded iff the _hasrelations attribute is true
 class SeeRelationsPushButton(QPushButton):
 
     def __init__(self, title, hasrelations=False, **kwargs):
@@ -486,16 +487,13 @@ class SeeRelationsPushButton(QPushButton):
         qss = """   
             QPushButton[HasRelations=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[HasRelations=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property
