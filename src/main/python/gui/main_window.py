@@ -881,6 +881,9 @@ class MainWindow(QMainWindow):
                                                            self.tr('Open Corpus'),
                                                            self.app_settings['storage']['recent_folder'],
                                                            self.tr('SLP-AA Corpus (*.slpaa)'))
+        if not file_name:
+            # the user cancelled out of the dialog
+            return False
         folder, _ = os.path.split(file_name)
         if folder:
             self.app_settings['storage']['recent_folder'] = folder

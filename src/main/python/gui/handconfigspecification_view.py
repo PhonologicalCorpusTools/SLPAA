@@ -45,9 +45,7 @@ class ConfigSlot(QLineEdit):
 
     def __init__(self, completer_options, descriptions, **kwargs):
         super().__init__(**kwargs)
-
         self.addedinfo = AddedInfo()
-        self.updateStyle()
 
         # styling
         self.setFixedSize(QSize(20, 20))  # TODO KV
@@ -70,6 +68,7 @@ class ConfigSlot(QLineEdit):
             }
         """
         self.setStyleSheet(qss)
+        self.updateStyle()
 
         # set completer
         completer = QCompleter(completer_options, parent=self)
@@ -1023,6 +1022,21 @@ class ForearmCheckBox(QCheckBox):
         super().__init__(title, **kwargs)
         self._addedinfo = AddedInfo()
 
+        # styling
+        qss = """   
+            QCheckBox[AddedInfo=true] {
+                font: bold;
+                /*border: 2px dashed black;*/
+            }
+
+            QCheckBox[AddedInfo=false] {
+                font: normal;
+                /*border: 1px solid grey;*/
+            }
+        """
+        self.setStyleSheet(qss)
+        self.updateStyle()
+
     @property
     def addedinfo(self):
         return self._addedinfo
@@ -1030,10 +1044,20 @@ class ForearmCheckBox(QCheckBox):
     @addedinfo.setter
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self.updateStyle()
 
     def contextMenuEvent(self, event):
         addedinfo_menu = AddedInfoContextMenu(self._addedinfo)
+        addedinfo_menu.info_added.connect(self.updateStyle)
         addedinfo_menu.exec_(event.globalPos())
+
+    def updateStyle(self, addedinfo=None):
+        if addedinfo is not None:
+            self._addedinfo = addedinfo
+        self.setProperty('AddedInfo', self._addedinfo.hascontent())
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
 
 
 class HandConfigSpecificationPanel(ModuleSpecificationPanel):

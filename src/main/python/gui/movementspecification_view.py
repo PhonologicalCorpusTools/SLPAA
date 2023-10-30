@@ -25,7 +25,7 @@ from PyQt5.QtCore import (
 from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
 from serialization_classes import MovementTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 from constant import HAND
 
 
@@ -121,27 +121,6 @@ class MovementTreeView(QTreeView):
         return super().edit(index, trigger, event)
 
 
-class MvmtTreeListView(QListView):
-
-    def __init__(self):
-        super().__init__()
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        # modifiers = event.modifiers()
-
-        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
-            indexesofselectedrows = self.selectionModel().selectedRows()
-            selectedlistitems = []
-            for itemindex in indexesofselectedrows:
-                listitemindex = self.model().mapToSource(itemindex)
-                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
-                selectedlistitems.append(listitem)
-            for listitem in selectedlistitems:
-                listitem.unselectpath()
-            # self.model().dataChanged.emit()
-
-
 def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     pathlist = pathstring.split(delim)
     pathitemslists = []
@@ -219,7 +198,6 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
 
-
 class MovementSpecificationPanel(ModuleSpecificationPanel):
     # see_relations = pyqtSignal()
 
@@ -287,7 +265,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         list_layout = QVBoxLayout()
 
-        self.pathslistview = MvmtTreeListView()
+        self.pathslistview = TreeListView()
+        self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)
