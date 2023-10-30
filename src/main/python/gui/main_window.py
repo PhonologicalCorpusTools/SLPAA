@@ -557,7 +557,7 @@ class MainWindow(QMainWindow):
         if not response:  # close the window or press cancel
             # Note: I don't think this is ideal but using self.close()
             # or self.on_action_close() fails to close the program
-            sys.exit()
+            self.closeEvent(None)
 
     def handle_sign_selected(self, sign):
         selected_sign = sign
