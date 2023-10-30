@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton
+    QPushButton, QTabWidget, QWidget
 )
 
 from PyQt5.QtCore import (
@@ -48,14 +48,56 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
-        # mainwindow & existingkey initialization now done in parent class's init()
-        # self.mainwindow = self.parent().mainwindow
-        # self.existingkey = None
         self.islinkedtopoint = False
         self.islinkedtointerval = False
 
         main_layout = QVBoxLayout()
 
+        # 'All neutral' checkbox
+        allneutral_layout = self.create_all_neutral()
+        main_layout.addLayout(allneutral_layout)
+
+        # different major non manual tabs
+        major_nm_list = ["Shoulder", "Body", "Head", "Eye gaze", "Facial expression", "Mouth", "Air"]
+        nested_tab = [False,         False,  False,  False,      True,                True,    False]
+
+        self.create_major_tabs(major_nm_list, nested_tab)
+        main_layout.addWidget(self.major_tab_widget)
+
+        """
+        # tabs
+        major_tabs = QTabWidget()
+        self.shoulder = QWidget()
+        self.body = QWidget()
+        self.head = QWidget()
+        self.eye = QWidget()
+        self.facial = QWidget()
+        self.mouth = QWidget()
+        self.air = QWidget()
+
+        major_tabs.resize(300,200)
+
+        # Add tabs
+        major_tabs.addTab(self.shoulder, "Shoulder")
+        major_tabs.addTab(self.body, "Body")
+        major_tabs.addTab(self.head, "Head")
+        major_tabs.addTab(self.eye, "Eye gaze")
+        major_tabs.addTab(self.facial, "Facial expression")
+        major_tabs.addTab(self.mouth, "Mouth")
+        major_tabs.addTab(self.air, "Air")
+        main_layout.addWidget(major_tabs)
+
+        # Tab contents
+        self.shoulder.layout = QVBoxLayout()
+
+        self.shoulder.layout.addWidget(QCheckBox("This section is neutral"))
+
+        self.detailed_specs()
+        self.shoulder.setLayout(self.shoulder.layout)
+        """
+
+
+        """
         # create side-by-side layout for selecting the two elements that are being related
         xandy_layout = self.create_xandy_layout()
         main_layout.addLayout(xandy_layout)
@@ -83,8 +125,56 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.setvalues(moduletoload)
             self.existingkey = moduletoload.uniqueid
 
-        self.setLayout(main_layout)
         self.check_enable_allsubmenus()
+        """
+        self.setLayout(main_layout)
+
+    def create_all_neutral(self):
+        # create a checkbox that greys out all subcomponents in non-manual
+        neutral_layout = QVBoxLayout()
+        checkbox = QCheckBox("All sections are neutral")
+        neutral_layout.addWidget(checkbox)
+        return neutral_layout
+
+    def create_major_tabs(self, major_list, nest_list):
+        """
+        Populate major non-manual articulators like shoulder, body and head
+        Args:
+            major_list: list of str. list of all tab labels
+            nest_list: list of bool. whether nested tab is needed. for example 'mouth' needs subcategory so nest=Ture
+        """
+        self.major_tab_widget = QTabWidget()
+        for category, nested in zip(major_list, nest_list):
+            self.add_tab(f"{category}", f"This is the content of {category}")
+
+    def add_tab(self, label, content):
+        """
+        Deal with the mundane hassle of adding tab gui
+        Args:
+            label: str. label of a tab
+            content: QVBoxLayout
+        """
+        tab = QWidget()
+        layout = QVBoxLayout()
+        tab.setLayout(layout)
+
+        self.major_tab_widget.addTab(tab, label)
+
+    def detailed_specs(self):
+        row1 = QHBoxLayout()
+        row2 = QHBoxLayout()
+        row3 = QHBoxLayout()
+        dynamic_group = QGroupBox("Static / Dynamic")
+        subpart_group = QGroupBox("Sub-part(s)")
+        actions_group = QGroupBox("Action / state")
+        mvmtchar_group = QGroupBox("Movement characteristics")
+        row1.addWidget(dynamic_group)
+        row1.addWidget(subpart_group)
+        row2.addWidget(actions_group)
+        row3.addWidget(mvmtchar_group)
+        self.shoulder.layout.addLayout(row1)
+        self.shoulder.layout.addLayout(row2)
+        self.shoulder.layout.addLayout(row3)
 
     def validity_check(self):
         selectionsvalid = self.x_group.checkedButton() and self.y_group.checkedButton()
