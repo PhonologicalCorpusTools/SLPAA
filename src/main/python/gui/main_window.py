@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
         self.current_sign = None
 
         self.undostack = QUndoStack(parent=self)
+        self.unsaved_changes = False  # a flag that tracks any unsaved changes.
 
         self.predefined_handshape_dialog = None
 
@@ -306,7 +307,7 @@ class MainWindow(QMainWindow):
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
-        self.signlevel_panel.sign_updated.connect(self.signsummary_panel.refreshsign)
+        self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -819,9 +820,9 @@ class MainWindow(QMainWindow):
             self.corpus.name = self.corpus_display.corpus_title.text()
             self.save_corpus_binary()
 
+        self.unsaved_changes = False
         self.undostack.clear()
 
-    @check_unsaved_corpus
     def on_action_saveas(self, clicked):
         self.corpus.name = self.corpus_display.corpus_title.text()
         name = self.corpus.name
@@ -836,7 +837,10 @@ class MainWindow(QMainWindow):
             if folder:
                 self.app_settings['storage']['recent_folder'] = folder
 
-        self.save_corpus_binary()
+            self.save_corpus_binary()
+
+            self.unsaved_changes = False
+            self.undostack.clear()
 
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
@@ -858,7 +862,7 @@ class MainWindow(QMainWindow):
         pass
         # TODO: implement
 
-    # TODO KV check whether current corpus has been saved
+    @check_unsaved_change
     def on_action_new_corpus(self, clicked):
         self.current_sign = None
         self.action_delete_sign.setEnabled(False)
@@ -867,10 +871,11 @@ class MainWindow(QMainWindow):
 
         self.corpus_display.clear()
         self.signlevel_panel.clear()
+        self.unsaved_changes = False
         self.signlevel_panel.enable_module_buttons(False)
         self.signsummary_panel.refreshsign()
 
-    # TODO KV check whether current corpus has been saved
+    @check_unsaved_change
     def on_action_load_corpus(self, clicked):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            self.tr('Open Corpus'),
@@ -894,6 +899,7 @@ class MainWindow(QMainWindow):
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
 
+        self.unsaved_changes = False
 
         return self.corpus is not None  # bool(Corpus)
 
@@ -915,9 +921,13 @@ class MainWindow(QMainWindow):
         if response == QMessageBox.Yes:
             previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
 
+            # delete self.current_sign.
+            # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
+            self.signlevel_panel.handle_delete_signlevelinfo(previous)
+            """
             self.corpus.remove_sign(self.current_sign)
             self.corpus_display.updated_signs(self.corpus.signs, previous)
-
+            """
             self.select_sign([previous])
             self.handle_sign_selected(previous)
             # TODO KV need to also have that sign selected in the corpus view,
@@ -930,6 +940,12 @@ class MainWindow(QMainWindow):
         for sign in signstoselect:
             indices.append(list(self.corpus.signs).index(sign))
         # print(indices)
+
+    def flag_and_refresh(self, sign=None):
+        # this function is called when sign_updated Signal is emitted, i.e., any sign changes
+        # it flags unsaved_changes=True and passes on to refreshsign(), which updates the summary panel
+        self.unsaved_changes = True
+        self.signsummary_panel.refreshsign(sign)
 
     @check_unsaved_change
     def closeEvent(self, event):
