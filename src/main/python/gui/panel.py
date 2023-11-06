@@ -905,8 +905,13 @@ class SignLevelMenuPanel(QScrollArea):
             self.mainwindow.corpus.remove_sign(self.sign)
             self.sign_updated.emit(previous_selection)
 
-            # update corpus display with the previous selection highlighted
-            self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+            if self.sign == previous_selection:
+                # If there is no other sign, update display and highlight nothing anymore
+                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, None)
+            else:
+                # update corpus display with the previous selection highlighted
+                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
