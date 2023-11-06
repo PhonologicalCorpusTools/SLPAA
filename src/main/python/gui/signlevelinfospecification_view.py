@@ -132,11 +132,11 @@ class SignLevelInfoPanel(QFrame):
             return self.mainwindow.corpus.highestID+1
 
     def entryid_string(self, entryid_int=None):
-        numdigits = self.settings['display']['entryid_digits']
+        numdigits = int(self.settings['display']['entryid_digits'])
         if entryid_int is None:
             entryid_int = self.entryid()
         entryid_string = str(entryid_int)
-        entryid_string = "0"*(numdigits-len(entryid_string)) + entryid_string
+        entryid_string = "0"*(numdigits - len(entryid_string)) + entryid_string
         return entryid_string
 
     def set_starting_focus(self):

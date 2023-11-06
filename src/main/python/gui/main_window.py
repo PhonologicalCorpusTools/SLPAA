@@ -923,14 +923,13 @@ class MainWindow(QMainWindow):
                                         'Do you want to delete the selected sign?')
         if response == QMessageBox.Yes:
             previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
-
+            
             # delete self.current_sign.
             # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
             self.signlevel_panel.handle_delete_signlevelinfo(previous)
-            """
-            self.corpus.remove_sign(self.current_sign)
-            self.corpus_display.updated_signs(self.corpus.signs, previous)
-            """
+            # self.corpus.remove_sign(self.current_sign)
+            # self.corpus_display.updated_signs(self.corpus.signs, previous)
+
             self.select_sign([previous])
             self.handle_sign_selected(previous)
             # TODO KV need to also have that sign selected in the corpus view,

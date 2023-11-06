@@ -341,7 +341,7 @@ class SignSummaryPanel(QScrollArea):
         self.addgridlines()
 
     def entryid_string(self, entryid_int=None):
-        numdigits = self.settings['display']['entryid_digits']
+        numdigits = int(self.settings['display']['entryid_digits'])
         if entryid_int is None:
             entryid_int = self.sign.signlevel_information.entryid
         entryid_string = str(entryid_int)
@@ -904,13 +904,13 @@ class SignLevelMenuPanel(QScrollArea):
         if self.sign:  # does the sign to delete exist?
             self.mainwindow.corpus.remove_sign(self.sign)
             self.sign_updated.emit(previous_selection)
-
-            if self.sign == previous_selection:
-                # If there is no other sign, update display and highlight nothing anymore
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, None)
-            else:
-                # update corpus display with the previous selection highlighted
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+            
+            # if self.sign == previous_selection:
+            #     # If there is no other sign, update display and highlight nothing anymore
+            #     self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, [])
+            # :
+            # update corpus display with the previous selection highlighted
+            self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
 
 
     def handle_signtypebutton_click(self):
