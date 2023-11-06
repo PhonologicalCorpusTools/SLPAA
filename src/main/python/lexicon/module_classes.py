@@ -2036,6 +2036,12 @@ class OrientationModule(ParameterModule):
         pass
 
 
+class NonManualModule(ParameterModule):
+    def __init__(self, articulators, timingintervals=None, addedinfo=None):
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        pass
+
+
 class HandConfigurationHand:
     def __init__(self, fields):
         self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]

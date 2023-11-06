@@ -155,9 +155,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             content: QVBoxLayout
         """
         tab = QWidget()
+        tab.layout = QVBoxLayout()
+        tab.layout.addWidget(QCheckBox("This section is neutral"))
+        tab.setLayout(tab.layout)
+
         layout = QVBoxLayout()
         tab.setLayout(layout)
-
         self.major_tab_widget.addTab(tab, label)
 
     def detailed_specs(self):
