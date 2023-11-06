@@ -1111,6 +1111,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
 
     def clear(self):
         self.panel.clear()
+        self.illustration.set_neutral_img()
 
     def desiredwidth(self):
         return 2000
