@@ -341,7 +341,7 @@ class SignSummaryPanel(QScrollArea):
         self.addgridlines()
 
     def entryid_string(self, entryid_int=None):
-        numdigits = self.settings['display']['entryid_digits']
+        numdigits = int(self.settings['display']['entryid_digits'])
         if entryid_int is None:
             entryid_int = self.sign.signlevel_information.entryid
         entryid_string = str(entryid_int)
