@@ -12,6 +12,7 @@ from PyQt5.Qt import (
     QStandardItemModel
 )
 import logging
+from copy import deepcopy
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
 from serialization_classes import LocationTableSerializable
@@ -533,11 +534,11 @@ class BodypartTreeModel(LocationTreeModel):
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
             if self.bodyparttype == HAND:
-                locn_options = locn_options_hand
+                locn_options = deepcopy(locn_options_hand)
             elif self.bodyparttype == ARM:
-                locn_options = locn_options_arm
+                locn_options = deepcopy(locn_options_arm)
             elif self.bodyparttype == LEG:
-                locn_options = locn_options_leg
+                locn_options = deepcopy(locn_options_leg)
             else:
                 locn_options = {}
             super().populate(parentnode, structure=locn_options, pathsofar="")
@@ -547,7 +548,6 @@ class BodypartTreeModel(LocationTreeModel):
 
     def backwardcompatibility(self):
         dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
-
         if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
             for val in hand_children:
                 for stored_dict in dicts:
