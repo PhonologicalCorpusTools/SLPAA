@@ -153,9 +153,12 @@ class MainWindow(QMainWindow):
         action_define_location.setCheckable(False)
 
         # TODO KV test vector graphics for locations
-        action_test_location_graphics = QAction('Test location graphics...', parent=self)
-        action_test_location_graphics.triggered.connect(self.on_action_test_location_graphics)
-        action_test_location_graphics.setCheckable(False)
+        action_test_location_graphics_webengine = QAction('Test location graphics (webengineview)...', parent=self)
+        action_test_location_graphics_webengine.triggered.connect(lambda: self.on_action_test_location_graphics('webengine'))
+        action_test_location_graphics_webengine.setCheckable(False)
+        action_test_location_graphics_qsvg = QAction('Test location graphics (qsvg)...', parent=self)
+        action_test_location_graphics_qsvg.triggered.connect(lambda: self.on_action_test_location_graphics('qsvg'))
+        action_test_location_graphics_qsvg.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -290,7 +293,8 @@ class MainWindow(QMainWindow):
 
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
-        menu_location.addAction(action_test_location_graphics)
+        menu_location.addAction(action_test_location_graphics_webengine)
+        menu_location.addAction(action_test_location_graphics_qsvg)
 
         corpusname = ""
         if self.corpus and self.corpus.name:
@@ -709,8 +713,8 @@ class MainWindow(QMainWindow):
         location_definer.saved_locations.connect(self.save_new_locations)
         location_definer.exec_()
 
-    def on_action_test_location_graphics(self):
-        location_test_window = LocationGraphicsTestDialog(self.app_settings, self.app_ctx, parent=self)
+    def on_action_test_location_graphics(self, whichtype):
+        location_test_window = LocationGraphicsTestDialog(self.app_settings, self.app_ctx, whichtype, parent=self)
         location_test_window.exec_()
 
     def save_new_locations(self, new_locations):
