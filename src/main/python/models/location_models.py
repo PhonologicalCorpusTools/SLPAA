@@ -12,6 +12,7 @@ from PyQt5.Qt import (
     QStandardItemModel
 )
 import logging
+from copy import deepcopy
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
 from serialization_classes import LocationTableSerializable
@@ -95,7 +96,10 @@ surface_label = "Surface"
 subarea_label = "Sub-area"
 bonejoint_label = "Bone/joint"
 
-
+# for backwards compatibility
+hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
+                         "Finger 1", "Finger 2","Finger 3","Finger 4", 
+                         "Between Thumb and Finger 1","Between Fingers 1 and 2", "Between Fingers 2 and 3","Between Fingers 3 and 4"]
 
 # TODO KV these should go into constant.py... or something similar
 
@@ -340,23 +344,23 @@ class LocationTreeModel(QStandardItemModel):
     # ensure that any info stored in this LocationTreeSerializable under older keys (paths),
     # is updated to reflect the newer text for those outdated keys
     def backwardcompatibility(self):
+        
         dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
-
+        
         # As of 20230631, entries with "other hand>whole hand" will be moved to "other hand" with surfaces and subareas preserved
         if ("Other hand"+delimiter+"Whole hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand"+delimiter+"Whole hand"] == Qt.Checked):
-                for stored_dict in dicts:
-                    stored_dict["Whole hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
             for stored_dict in dicts:
+                stored_dict["Other hand"] = stored_dict["Other hand"+delimiter+"Whole hand"]                 
                 stored_dict.pop("Other hand"+delimiter+"Whole hand")
         # As of 20230918, rename "Other hand" back to "Whole hand"
         if ("Other hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand"] == Qt.Checked):
-                for stored_dict in dicts:
-                    stored_dict["Whole hand"] = stored_dict["Other hand"] 
             for stored_dict in dicts:
-                stored_dict.pop("Other hand")
-
+                stored_dict["Whole hand"] = stored_dict["Other hand"]
+                for val in hand_children:
+                    stored_dict["Whole hand"+delimiter+val]=stored_dict["Other hand"+delimiter+val]
+                    stored_dict.pop("Other hand"+delimiter+val)
+            stored_dict.pop("Other hand")
+                     
         for stored_dict in dicts:
             pairstoadd = {}
             keystoremove = []
@@ -530,11 +534,11 @@ class BodypartTreeModel(LocationTreeModel):
             # no parameters; build a tree from the default structure
             # TODO KV define a default structure somewhere (see constant.py)
             if self.bodyparttype == HAND:
-                locn_options = locn_options_hand
+                locn_options = deepcopy(locn_options_hand)
             elif self.bodyparttype == ARM:
-                locn_options = locn_options_arm
+                locn_options = deepcopy(locn_options_arm)
             elif self.bodyparttype == LEG:
-                locn_options = locn_options_leg
+                locn_options = deepcopy(locn_options_leg)
             else:
                 locn_options = {}
             super().populate(parentnode, structure=locn_options, pathsofar="")
@@ -544,10 +548,6 @@ class BodypartTreeModel(LocationTreeModel):
 
     def backwardcompatibility(self):
         dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
-
-        hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
-                         "Finger 1", "Finger 2","Finger 3","Finger 4", 
-                         "Between Thumb and Finger 1","Between Fingers 1 and 2", "Between Fingers 2 and 3","Between Fingers 3 and 4"]
         if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
             for val in hand_children:
                 for stored_dict in dicts:
