@@ -38,6 +38,7 @@ from PyQt5.QtGui import (
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
+from gui.countxslots_dialog import CountXslotsDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
 from gui.signtypespecification_view import Signtype
@@ -158,6 +159,11 @@ class MainWindow(QMainWindow):
         action_test_location_graphics = QAction('Test location graphics...', parent=self)
         action_test_location_graphics.triggered.connect(self.on_action_test_location_graphics)
         action_test_location_graphics.setCheckable(False)
+
+        # count x-slots
+        action_count_xslots = QAction("Count x-slots...", parent=self)
+        action_count_xslots.triggered.connect(self.on_action_count_xslots)
+        action_count_xslots.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -293,6 +299,9 @@ class MainWindow(QMainWindow):
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
         menu_location.addAction(action_test_location_graphics)
+
+        menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
+        menu_analysis_beta.addAction(action_count_xslots)
 
         corpusname = ""
         if self.corpus and self.corpus.name:
@@ -716,6 +725,10 @@ class MainWindow(QMainWindow):
     def on_action_test_location_graphics(self):
         location_test_window = LocationGraphicsTestDialog(self.app_settings, self.app_ctx, parent=self)
         location_test_window.exec_()
+
+    def on_action_count_xslots(self):
+        count_xslots_window = CountXslotsDialog(self.app_settings, self.app_ctx, parent=self)
+        count_xslots_window.exec_()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
