@@ -1,3 +1,5 @@
+import logging
+
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule
 from gui.signtypespecification_view import Signtype
@@ -464,6 +466,9 @@ class Corpus:
             # self.movement_definition = serializedcorpus['mvmt defn']
             self.path = serializedcorpus['path']
             self.highestID = serializedcorpus['highest id']
+            # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+            # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+            self.confirmhighestID()
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -471,6 +476,17 @@ class Corpus:
             # self.movement_definition = movement_definition
             self.path = path
             self.highestID = highestID
+
+    # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+    # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+    # this function should hopefully not be necessary forever, but for now I want to make sure that
+    # functionality isn't affected by an incorrectly-saved value
+    def confirmhighestID(self):
+        entryIDs = [s.signlevel_information.entryid for s in self.signs]
+        max_entryID = max(entryIDs)
+        if max_entryID > self.highestID:
+            logging.warn("highest entryID was not correct; recorded as " + str(self.highestID) + " but should have been " + str(max_entryID))
+            self.highestID = max_entryID
 
     def serialize(self):
         return {
