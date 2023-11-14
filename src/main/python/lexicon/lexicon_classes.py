@@ -489,6 +489,9 @@ class Corpus:
             self.highestID = max_entryID
 
     def serialize(self):
+        # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+        # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+        self.confirmhighestID()
         return {
             'name': self.name,
             'signs': [s.serialize() for s in list(self.signs)],
