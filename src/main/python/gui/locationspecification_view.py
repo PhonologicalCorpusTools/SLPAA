@@ -39,7 +39,8 @@ from PyQt5.QtCore import (
     Qt,
     QEvent,
     pyqtSignal,
-    QItemSelectionModel
+    QItemSelectionModel,
+    QPointF
 )
 
 from PyQt5.QtGui import (
@@ -52,6 +53,9 @@ from models.location_models import LocationTreeItem, LocationTableModel, Locatio
 from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 
+
+scrollX = "scrollX"
+scrollY = "scrollY"
 
 class LocationTreeView(QTreeView):
 
@@ -160,6 +164,11 @@ class LocationGraphicsViewSVG(QWebEngineView):
     def __init__(self, app_ctx, frontorback='front', specificpath="", **kwargs):
         super().__init__(**kwargs)
 
+        self.pagevars = {
+            scrollX: 0,
+            scrollY: 0
+        }
+
         imagepath = app_ctx.temp_test_images['sample_' + frontorback]
         if specificpath != "":
             imagepath = specificpath
@@ -170,16 +179,51 @@ class LocationGraphicsViewSVG(QWebEngineView):
 
     def eventFilter(self, obj, event):
         if obj is self.focusProxy() and event.type() == QEvent.Type.Wheel:
-            # print(event.angleDelta())
-            print("zoomfactor:", self.zoomFactor())
-            print("view pos:", self.pos())
-            # print("graphicsProxyWidget():", self.graphicsProxyWidget())
-            print("wheelevent pos:", event.position())
-            print("wheelevent global pos:", event.globalPosition())
-            print("wheelevent global pos, mapped to view:", self.mapFromGlobal(event.globalPosition().toPoint()))
+            # # print(event.angleDelta())
+            # print("zoomfactor:", self.zoomFactor())
+            # print("view pos:", self.pos())
+            # # print("graphicsProxyWidget():", self.graphicsProxyWidget())
+            # print("wheelevent pos:", event.position())
+            # print("wheelevent global pos:", event.globalPosition())
+            # print("wheelevent global pos, mapped to view:", self.mapFromGlobal(event.globalPosition().toPoint()))
+            #
+            # oldpos = event.position()
+
+            self.page().runJavaScript("window.scrollX", 0, lambda scrx: self.assignvalue(scrollX, scrx))
+            self.page().runJavaScript("window.scrollY", 0, lambda scry: self.assignvalue(scrollY, scry))
+            # print(scrollX, self.pagevars[scrollX])
+            # print(scrollY, self.pagevars[scrollY])
+
+            coordinatesonimage = event.position() + QPointF(self.pagevars[scrollX], self.pagevars[scrollY])
+            coordinatesonview = event.position()
+            scalefactor = self.zoomFactor()
+            tosubtract = event.position() / self.zoomFactor()
+            newcoordinatesonview = coordinatesonimage - tosubtract
+            if newcoordinatesonview.x() < 0:
+                newcoordinatesonview.setX(0)
+            if newcoordinatesonview.y() < 0:
+                newcoordinatesonview.setY(0)
+            print("coordinates on image:", coordinatesonimage)
+            print("coordinates on view:", coordinatesonview)
+            print("scale factor:", scalefactor)
+            print("to subtract:", tosubtract)
+            print("result (new coordinates on view):", newcoordinatesonview)
+            self.page().runJavaScript("window.scrollTo({x}, {y});".format(
+                x=str(newcoordinatesonview.x()),
+                y=str(newcoordinatesonview.y())
+            ))
+            print(scrollX, self.pagevars[scrollX])
+            print(scrollY, self.pagevars[scrollY])
+
+            # self.page().runJavaScript("window.scrollX", 0, print)
+            # self.page().runJavaScript("window.scrollY", 0, print)  # self.callback)
+            #
+            # # self.page().runJavaScript("window.scrollTo({x}, {y});".format(x='400', y='400'))
+            # print("new scrollx and scrolly:")
+            # self.page().runJavaScript("window.scrollX", 0, print)
+            # self.page().runJavaScript("window.scrollY", 0, print)  # self.callback)
+            # print("new view pos:", self.pos())
             print("-----------------------------------------")
-            oldpos = event.position()
-            self.page().runJavaScript("window.scrollTo({x}, {y});".format(x='400', y='400'))
             # min 0.29999998956918206 / max 4.900000058114528
             result = super().eventFilter(obj, event)
         else:
@@ -188,6 +232,11 @@ class LocationGraphicsViewSVG(QWebEngineView):
         return result
         # return super().eventFilter(obj, event)
 
+    def assignvalue(self, key, value):
+        self.pagevars[key] = value
+
+    def callback(self, rv):
+        self.resulttext = "1+1=" + str(rv)
 
     # def wheelEvent(self, e):
     #     print("zoomfactor:", self.zoomFactor())
