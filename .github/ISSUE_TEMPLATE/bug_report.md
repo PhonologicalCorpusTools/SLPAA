@@ -29,9 +29,9 @@ Any error messages displayed in the software or in the terminal window.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Operating system and PCT version**
+**Operating system and SLP-AA version**
  - OS: [e.g. macOS 10.15.7]
- - PCT version: [e.g. v1.4.1]
+ - SLP-AA version, if applicable: [e.g. v1.4.1]
 
 **Additional context**
 Add any other context about the problem here.
