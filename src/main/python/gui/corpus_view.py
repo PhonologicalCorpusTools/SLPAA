@@ -104,11 +104,11 @@ class CorpusDisplay(QWidget):
         index = 0 if current_sign is None else list(signs).index(current_sign)
 
         # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
-        sourcemodelindex = self.corpus_view.model().index(index, 0)
-        proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
-        self.corpus_view.selectionModel().setCurrentIndex(proxymodelindex, QItemSelectionModel.SelectCurrent)
-        # self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
-        #                                                   QItemSelectionModel.SelectCurrent)
+        # sourcemodelindex = self.corpus_view.model().index(index, 0)
+        # proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
+        # self.corpus_view.selectionModel().setCurrentIndex(proxymodelindex, QItemSelectionModel.SelectCurrent)
+        self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0), 
+                                                          QItemSelectionModel.SelectCurrent)
 
     def remove_sign(self, sign):
         self.corpus_model.signs.remove(sign)
