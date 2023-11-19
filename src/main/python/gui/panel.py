@@ -907,6 +907,7 @@ class SignLevelMenuPanel(QScrollArea):
             
             # Update corpus display with the previous selection highlighted
             self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+            self.mainwindow.handle_sign_selected(previous_selection)
 
 
     def handle_signtypebutton_click(self):
