@@ -1,7 +1,5 @@
 from PyQt5.QtWidgets import (
-    QListView,
     QTableView,
-    QTreeView,
     QGraphicsView,
     QGraphicsScene,
     QGraphicsPixmapItem,
@@ -14,7 +12,6 @@ from PyQt5.QtWidgets import (
     QCompleter,
     QButtonGroup,
     QGroupBox,
-    QStackedWidget,
     QAbstractItemView,
     QHeaderView,
     QCheckBox,
@@ -23,11 +20,6 @@ from PyQt5.QtWidgets import (
     QWidget,
     QSpacerItem,
     QSizePolicy,
-    QStyledItemDelegate,
-    QStyleOptionButton,
-    QStyle,
-    QStyleOptionFrame,
-    QApplication,
     QFrame
 )
 
@@ -53,18 +45,10 @@ from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 
 
-class LocationTreeView(QTreeView):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.setEditTriggers(QAbstractItemView.DoubleClicked | QAbstractItemView.SelectedClicked)
-
-
 class LocnTreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(LocationTreeItem)
 
-    def __init__(self, **kwargs):  # parentlayout=None,
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.refreshed = True
         self.lasttextentry = ""
@@ -244,7 +228,6 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
 def findvaliditemspaths(pathitemslists):
     validpaths = []
     if len(pathitemslists) > 1:  # the path is longer than 1 level
-        # pathitemslistslotohi = pathitemslists[::-1]
         for lastitem in pathitemslists[-1]:
             for secondlastitem in pathitemslists[-2]:
                 if lastitem.parent() == secondlastitem:
@@ -254,7 +237,6 @@ def findvaliditemspaths(pathitemslists):
                             validpaths.append(higherpath + [lastitem])
     elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
         for lastitem in pathitemslists[0]:
-            # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
             validpaths.append([lastitem])
     else:
         # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
