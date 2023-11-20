@@ -60,6 +60,8 @@ class Sign:
         self.orientationmodulenumbers = {}
         self.handconfigmodules = {}
         self.handconfigmodulenumbers = {}
+        self.nonmanualmodules = {}
+        self.nonmanualmodulenumbers = {}
 
         if serializedsign is not None:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'])
@@ -101,6 +103,8 @@ class Sign:
             return self.relationmodules
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodules
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodules
         else:
             return {}
 

@@ -22,7 +22,7 @@ from PyQt5.QtCore import (
 )
 
 from lexicon.module_classes import (
-    RelationModule,
+    NonManualModule,
     LocationModule,
     MovementModule,
     MannerRelation,
@@ -37,6 +37,9 @@ from lexicon.module_classes import (
 )
 from models.relation_models import ModuleLinkingListModel
 from models.location_models import BodypartTreeModel
+from models.nonmanual_models import NonManualModel, nonmanual_root
+from gui.relationspecification_view import RelationRadioButton as SLPAARadioButton
+from gui.relationspecification_view import RelationButtonGroup as SLPAAButtonGroup
 from gui.modulespecification_widgets import ModuleSpecificationPanel
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
@@ -58,82 +61,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         main_layout.addLayout(allneutral_layout)
 
         # different major non manual tabs
-        major_nm_list = ["Shoulder", "Body", "Head", "Eye gaze", "Facial expression", "Mouth", "Air"]
-        nested_tab = [False,         False,  False,  False,      True,                True,    False]
-
-        self.create_major_tabs(major_nm_list, nested_tab)
-        main_layout.addWidget(self.major_tab_widget)
-
-        """
-        # tabs
-        major_tabs = QTabWidget()
-        self.shoulder = QWidget()
-        self.body = QWidget()
-        self.head = QWidget()
-        self.eye = QWidget()
-        self.facial = QWidget()
-        self.mouth = QWidget()
-        self.air = QWidget()
-
-        major_tabs.resize(300,200)
-
-        # Add tabs
-        major_tabs.addTab(self.shoulder, "Shoulder")
-        major_tabs.addTab(self.body, "Body")
-        major_tabs.addTab(self.head, "Head")
-        major_tabs.addTab(self.eye, "Eye gaze")
-        major_tabs.addTab(self.facial, "Facial expression")
-        major_tabs.addTab(self.mouth, "Mouth")
-        major_tabs.addTab(self.air, "Air")
-        main_layout.addWidget(major_tabs)
-
-        # Tab contents
-        self.shoulder.layout = QVBoxLayout()
-
-        self.shoulder.layout.addWidget(QCheckBox("This section is neutral"))
-
-        self.detailed_specs()
-        self.shoulder.setLayout(self.shoulder.layout)
-        """
-
-
-        """
-        # create side-by-side layout for selecting the two elements that are being related
-        xandy_layout = self.create_xandy_layout()
-        main_layout.addLayout(xandy_layout)
-
-        # create side-by-side layout for specifying relation
-        relations_layout = QHBoxLayout()
-
-        # create stacked layout for specifying contact and contact manner
-        contactandmanner_layout = self.create_contactandmanner_layout()
-
-        relations_layout.addLayout(contactandmanner_layout)
-
-        # create side-by-side layout for specifying direction of relation
-        direction_box = self.create_direction_box()
-        relations_layout.addWidget(direction_box)
-
-        # create side-by-side layout for specifying distance
-        self.distance_box = self.create_distance_box()
-        relations_layout.addWidget(self.distance_box)
-
-        main_layout.addLayout(relations_layout)
-
-        # set according to the existing module being loaded
-        if moduletoload is not None and isinstance(moduletoload, RelationModule):
-            self.setvalues(moduletoload)
-            self.existingkey = moduletoload.uniqueid
-
-        self.check_enable_allsubmenus()
-        """
-        self.setLayout(main_layout)
 
     def create_all_neutral(self):
         # create a checkbox that greys out all subcomponents in non-manual
         neutral_layout = QVBoxLayout()
-        checkbox = QCheckBox("All sections are neutral")
-        neutral_layout.addWidget(checkbox)
+        self.widget_cb_neutral = QCheckBox("All sections are neutral")
+        neutral_layout.addWidget(self.widget_cb_neutral)
         return neutral_layout
 
     def create_major_tabs(self, major_list, nest_list):
@@ -145,7 +78,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         """
         self.major_tab_widget = QTabWidget()
         for category, nested in zip(major_list, nest_list):
-            self.add_tab(f"{category}", f"This is the content of {category}")
+            self.add_tab(f"{category}", f"Content of {category}")
 
     def add_tab(self, label, content):
         """
@@ -1317,36 +1250,3 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def desiredheight(self):
         return 700
-
-
-class RelationRadioButton(QRadioButton):
-
-    def __init__(self, text, **kwargs):
-        super().__init__(text, **kwargs)
-
-    def setChecked(self, checked):
-        if checked and self.group() is not None:
-            self.group().previously_checked = self
-        super().setChecked(checked)
-
-
-class RelationButtonGroup(QButtonGroup):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        # in order to compare new checked button with previously-checked button
-        self.previously_checked = None
-
-        self.buttonClicked.connect(self.handle_button_clicked)
-
-    def handle_button_clicked(self, btn):
-        if self.previously_checked == btn:
-            # user clicked an already-selected button; we'll uncheck it
-            self.setExclusive(False)
-            btn.setChecked(False)
-            self.setExclusive(True)
-            self.previously_checked = None
-        else:
-            # user clicked a previously-unselected button
-            self.previously_checked = btn
