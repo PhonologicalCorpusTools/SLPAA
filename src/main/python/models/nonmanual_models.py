@@ -1,5 +1,5 @@
 class NonManualModel:
-    def __init__(self, label='root', children=None, subparts=None, visibility=None, distance=None):
+    def __init__(self, label='root', children=None, subparts=None, visibility=None, distance=None, action_state=None):
         self.label = label        # label to be shown in tab gui
         self.children = children  # relevant for nested tabs. e.g., facial expression and mouth
         self.subparts = subparts
@@ -7,7 +7,7 @@ class NonManualModel:
         self.static = 'static'    # static or dynamic
         self.neutral = True
         self.visibility = visibility  # Bool. visibility is only relevant for 'teeth' and 'lips'
-        self.action_state = None
+        self.action_state = action_state
         self.mvmt_char = None       # movement characteristics
         self.distance = distance    # distance is only relevant for 'eye gaze' and 'teeth'
 
@@ -56,6 +56,13 @@ shoulder = NonManualModel(
     label='Shoulder',
     subparts={'specifier': 'side',
               'opposite action': False},
+    action_state={
+        'Straight': [{'Vertical': ['Up', 'Down'],
+                     'Sagittal': ['Distal', 'Proximal']}],
+        'Circumduction': ['forward from top of circle',
+                          'backward from top of circle']
+
+    }
 )
 body = NonManualModel(
     label='Body',

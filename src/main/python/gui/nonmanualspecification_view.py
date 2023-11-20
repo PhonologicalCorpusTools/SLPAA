@@ -117,7 +117,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
     def build_row1(self, nonman):
         """
         Build the first row of the NonMan specification window
-        Currently for "Static/dynamic" (required) and "Sub-part(s)" (optional)
+        Currently for "Static/dynamic" (required) and either "Sub-part(s)" or "Visibility"(optional)
         Args:
             nonman: NonManualModel
 
@@ -188,7 +188,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
     def build_row2(self, nonman):
         """
         Build the second row of the NonMan specification window
-        Currently for "Static/dynamic" (required) and "Sub-part(s)" (optional)
+        Currently for "Action / state" only.
+        Details on action state gui are provided as NonManualModel.action_state, a Dict
         Args:
             nonman: NonManualModel
 
@@ -199,6 +200,28 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         # Action / state group
         action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
+        action_state_groupbox_layout = QVBoxLayout()
+        if nonman.action_state is not None:
+            options = nonman.action_state
+            for option, child in options.items():
+                nonman.widget_rb_option = SLPAARadioButton(option)
+                action_state_groupbox_layout.addWidget(nonman.widget_rb_option)
+                if type(child) == dict:
+                    suboption_layout = QHBoxLayout()
+                    for o, c in child.items():
+                        subsub_layout = QVBoxLayout()
+                        nonman.widget_rb_suboption = SLPAARadioButton(o)
+                        for sub_c in c:
+                            nonman.widget_rb_subsub = SLPAARadioButton(sub_c)
+                            subsub_layout.addWidget(nonman.widget_rb_subsub)
+
+                        suboption_layout.addWidget(nonman.widget_rb_suboption)
+                        suboption_layout.addLayout(subsub_layout)
+                    action_state_groupbox_layout.addLayout(suboption_layout)
+
+        action_state_groupbox.setLayout(action_state_groupbox_layout)
+        # fixed as action/state for shoulder. for demonstration purposes
+
 
         row.addWidget(action_state_groupbox)
 
