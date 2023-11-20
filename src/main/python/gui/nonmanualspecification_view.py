@@ -57,60 +57,223 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         main_layout = QVBoxLayout()
 
         # 'All neutral' checkbox
-        allneutral_layout = self.create_all_neutral()
-        main_layout.addLayout(allneutral_layout)
+        self.widget_cb_neutral = QCheckBox("All sections are neutral")
+        main_layout.addWidget(self.widget_cb_neutral)
 
         # different major non manual tabs
+        self.tab_widget = QTabWidget()             # Create a tab widget
+        self.tab_widget.setMinimumHeight(400)
+        self.create_major_tabs(nonmanual_root.children)  # Create and add tabs to the tab widget
+        main_layout.addWidget(self.tab_widget)
 
-    def create_all_neutral(self):
-        # create a checkbox that greys out all subcomponents in non-manual
-        neutral_layout = QVBoxLayout()
-        self.widget_cb_neutral = QCheckBox("All sections are neutral")
-        neutral_layout.addWidget(self.widget_cb_neutral)
-        return neutral_layout
+        self.setLayout(main_layout)
 
-    def create_major_tabs(self, major_list, nest_list):
+    def create_major_tabs(self, nonman_units):
         """
-        Populate major non-manual articulators like shoulder, body and head
+        Populate major non-manual articulators like shoulder, body, and head
         Args:
-            major_list: list of str. list of all tab labels
-            nest_list: list of bool. whether nested tab is needed. for example 'mouth' needs subcategory so nest=Ture
+            nonman_units: list of NonManualModel
         """
-        self.major_tab_widget = QTabWidget()
-        for category, nested in zip(major_list, nest_list):
-            self.add_tab(f"{category}", f"Content of {category}")
+        for nonman_unit in nonman_units:
+            major_tab = self.add_tab(nonman_unit)
+            self.tab_widget.addTab(major_tab, nonman_unit.label)
 
-    def add_tab(self, label, content):
+    def add_tab(self, nonman):
         """
-        Deal with the mundane hassle of adding tab gui
-        Args:
-            label: str. label of a tab
-            content: QVBoxLayout
+            Deal with the mundane hassle of adding tab gui, recursively
+            Args:
+                nonman: NonManualModel
         """
-        tab = QWidget()
-        tab.layout = QVBoxLayout()
-        tab.layout.addWidget(QCheckBox("This section is neutral"))
-        tab.setLayout(tab.layout)
+        tab_widget = QTabWidget()
+
+        if nonman.children:
+            for sub_category in nonman.children:
+                sub_tab = self.add_tab(sub_category)
+                tab_widget.addTab(sub_tab, sub_category.label)
+            return tab_widget
+
+        tab_widget.layout = QVBoxLayout()
+
+        # This section is neutral
+        nonman.widget_cb_neutral = QCheckBox("This section is neutral")
+        if nonman.neutral:
+            nonman.widget_cb_neutral.setChecked(True)
+        tab_widget.layout.addWidget(nonman.widget_cb_neutral)
+
+        row_1 = self.build_row1(nonman)  # [ static / dynamic ] [ Sub-parts ]
+        row_2 = self.build_row2(nonman)  # action / state
+        row_3 = self.build_row3(nonman)  # mvmt characteristics
+
+        tab_widget.layout.addLayout(row_1)
+        tab_widget.layout.addLayout(row_2)
+        tab_widget.layout.addLayout(row_3)
+
+        tab_widget.setLayout(tab_widget.layout)
 
         layout = QVBoxLayout()
-        tab.setLayout(layout)
-        self.major_tab_widget.addTab(tab, label)
+        tab_widget.setLayout(layout)
+        return tab_widget
 
-    def detailed_specs(self):
-        row1 = QHBoxLayout()
-        row2 = QHBoxLayout()
-        row3 = QHBoxLayout()
-        dynamic_group = QGroupBox("Static / Dynamic")
-        subpart_group = QGroupBox("Sub-part(s)")
-        actions_group = QGroupBox("Action / state")
-        mvmtchar_group = QGroupBox("Movement characteristics")
-        row1.addWidget(dynamic_group)
-        row1.addWidget(subpart_group)
-        row2.addWidget(actions_group)
-        row3.addWidget(mvmtchar_group)
-        self.shoulder.layout.addLayout(row1)
-        self.shoulder.layout.addLayout(row2)
-        self.shoulder.layout.addLayout(row3)
+    def build_row1(self, nonman):
+        """
+        Build the first row of the NonMan specification window
+        Currently for "Static/dynamic" (required) and "Sub-part(s)" (optional)
+        Args:
+            nonman: NonManualModel
+
+        Returns:
+            QHBoxLayout
+        """
+        row = QHBoxLayout()
+
+        # static / dynamic group
+        nonman.widget_rb_static = QRadioButton("Static")
+        nonman.widget_rb_dynamic = QRadioButton("Dynamic")
+
+        vbox = QVBoxLayout()
+        vbox.addWidget(nonman.widget_rb_static)
+        vbox.addWidget(nonman.widget_rb_dynamic)
+        sd_rb_groupbox = QGroupBox("Static / Dynamic")  # static/dynamic radio buttons group
+        sd_rb_groupbox.setLayout(vbox)
+
+        row.addWidget(sd_rb_groupbox)
+
+        # subparts group
+        if nonman.subparts is not None:
+            subpart_specs = nonman.subparts
+            subpart_box = QGroupBox("Sub-part(s)")
+            subpart_box_layout = QVBoxLayout()
+            onepart_spacedlayout = QHBoxLayout()
+            onepart_layout = QHBoxLayout()
+
+            nonman.widget_rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
+            nonman.widget_rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
+            nonman.subpart_group = SLPAAButtonGroup()
+            nonman.subpart_group.addButton(nonman.widget_rb_subpart_both)
+            nonman.subpart_group.addButton(nonman.widget_rb_subpart_one)
+            # self.subpart_group.buttonToggled.connect(self.handle_subpart_rb_toggled)  #TODO Stanley
+
+            nonman.widget_rb_onepart_one = SLPAARadioButton("H1")
+            nonman.widget_rb_onepart_two =SLPAARadioButton("H2")
+            nonman.onepart_group = SLPAAButtonGroup()
+            nonman.onepart_group.addButton(nonman.widget_rb_onepart_one)
+            nonman.onepart_group.addButton(nonman.widget_rb_onepart_two)
+            # self.onepart_group.buttonToggled.connect(self.handle_onepart_rb_toggled)  #TODO Stanley
+
+            onepart_layout.addWidget(nonman.widget_rb_onepart_one)
+            onepart_layout.addWidget(nonman.widget_rb_onepart_two)
+            onepart_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+            onepart_spacedlayout.addLayout(onepart_layout)
+
+            subpart_box_layout.addWidget(nonman.widget_rb_subpart_both)
+            subpart_box_layout.addWidget(nonman.widget_rb_subpart_one)
+            subpart_box_layout.addLayout(onepart_spacedlayout)
+
+            subpart_box.setLayout(subpart_box_layout)
+
+            row.addWidget(subpart_box)
+
+        # visibility group
+        if nonman.visibility is not None:
+            visibility_box = QGroupBox("Visibility")
+            visibility_box_layout = QVBoxLayout()
+            nonman.widget_rb_visible = SLPAARadioButton("Visible")
+            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible")
+            visibility_box_layout.addWidget(nonman.widget_rb_visible)
+            visibility_box_layout.addWidget(nonman.widget_rb_visible_not)
+            visibility_box.setLayout(visibility_box_layout)
+            row.addWidget(visibility_box)
+        return row
+
+    def build_row2(self, nonman):
+        """
+        Build the second row of the NonMan specification window
+        Currently for "Static/dynamic" (required) and "Sub-part(s)" (optional)
+        Args:
+            nonman: NonManualModel
+
+        Returns:
+            QHBoxLayout
+        """
+        row = QHBoxLayout()
+
+        # Action / state group
+        action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
+
+        row.addWidget(action_state_groupbox)
+
+        return row
+
+    def build_row3(self, nonman):
+        """
+        Build the third row of the NonMan specification window
+        Currently for "Mvmt characteristics"
+        Args:
+            nonman: NonManualModel
+
+        Returns:
+            QHBoxLayout
+        """
+        row = QHBoxLayout()
+
+        # Repetition group
+        repetition_group = QGroupBox("Repetition")
+        repetition_group_layout = QVBoxLayout()
+        nonman.widget_rb_rep_single = SLPAARadioButton("Single")
+        nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated")
+        nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled")
+
+        repetition_group_layout.addWidget(nonman.widget_rb_rep_single)
+        repetition_group_layout.addWidget(nonman.widget_rb_rep_rep)
+        repetition_group_layout.addWidget(nonman.widget_rb_rep_trill)
+        repetition_group.setLayout(repetition_group_layout)
+
+
+        # Directionality group
+        directionality_group = QGroupBox("Directionality")
+        directionality_group_layout = QVBoxLayout()
+        nonman.widget_rb_direction_uni = SLPAARadioButton("Unidirectional")
+        nonman.widget_rb_direction_bi = SLPAARadioButton("Bidirectional")
+
+        directionality_group_layout.addWidget(nonman.widget_rb_direction_uni)
+        directionality_group_layout.addWidget(nonman.widget_rb_direction_bi)
+        directionality_group.setLayout(directionality_group_layout)
+
+        # Additional movement characteristics group -- contains Size Speed Force Tension
+        additional_char_group = QGroupBox("Additional mvmt characteristics")
+        additional_char_group_layout = QHBoxLayout()
+        additional_char_specs = {'Size': ['Big', 'Small'],
+                                 'Speed': ['Fast', 'Slow'],
+                                 'Force': ['Strong', 'Weak'],
+                                 'Tension': ['Tense', 'Lax']}
+        additional_subgroups = self.gen_add_move_char(additional_char_specs)
+        for subgroup in additional_subgroups:
+            additional_char_group_layout.addWidget(subgroup)
+        additional_char_group.setLayout(additional_char_group_layout)
+
+        # Adding all the groupboxes to form the row
+        row.addWidget(repetition_group)
+        row.addWidget(directionality_group)
+        row.addWidget(additional_char_group)
+
+        return row
+
+    def gen_add_move_char(self, specs):
+        groups = []
+        for group, levels in specs.items():
+            groupbox = QGroupBox(group)
+            groupbox_layout = QVBoxLayout()
+
+            levels.insert(1, 'Normal')
+
+            for level in levels:
+                groupbox_layout.addWidget(SLPAARadioButton(level))
+
+            groupbox.setLayout(groupbox_layout)
+
+            groups.append(groupbox)
+
+        return groups
 
     def validity_check(self):
         selectionsvalid = self.x_group.checkedButton() and self.y_group.checkedButton()
@@ -124,22 +287,15 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
 
-        relmod = RelationModule(relationx=self.getcurrentx(),
-                                relationy=self.getcurrenty(),
-                                bodyparts_dict=self.bodyparts_dict,
-                                contactrel=self.getcurrentcontact(),
-                                xy_crossed=self.crossed_cb.isChecked(),
-                                xy_linked=self.linked_cb.isChecked(),
-                                directionslist=self.getcurrentdirections(),
-                                articulators=articulators,
-                                timingintervals=timingintervals,
-                                addedinfo=addedinfo,
-                                )
+        nonman_mod = NonManualModule(nonman_specs=self.specifications,
+                                     articulators=articulators,
+                                     timingintervals=timingintervals,
+                                     addedinfo=addedinfo,)
         if self.existingkey is not None:
-            relmod.uniqueid = self.existingkey
+            nonman_mod.uniqueid = self.existingkey
         else:
-            self.existingkey = relmod.uniqueid
-        return relmod
+            self.existingkey = nonman_mod.uniqueid
+        return nonman_mod
 
     # create side-by-side layout for specifying distance
     def create_distance_box(self):
