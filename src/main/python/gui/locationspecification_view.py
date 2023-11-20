@@ -314,7 +314,6 @@ class LocationOptionsSelectionPanel(QFrame):
 
     @treemodel.setter
     def treemodel(self, treemodel):
-        # TODO KV - validate?
         self._treemodel = treemodel
         self._listmodel = treemodel.listmodel
 
@@ -324,7 +323,6 @@ class LocationOptionsSelectionPanel(QFrame):
 
     @listmodel.setter
     def listmodel(self, listmodel):
-        # TODO KV - validate?
         self._listmodel = listmodel
 
     def refresh_listproxies(self):

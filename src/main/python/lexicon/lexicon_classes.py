@@ -335,7 +335,6 @@ class Sign:
 
     @signtype.setter
     def signtype(self, stype):
-        # TODO KV - validate?
         self._signtype = stype
 
     @property
@@ -344,7 +343,6 @@ class Sign:
 
     @xslotstructure.setter
     def xslotstructure(self, xslotstruct):
-        # TODO KV - validate?
         self._xslotstructure = xslotstruct
 
     def updatemodule_sharedattributes(self, current_mod, updated_mod):
