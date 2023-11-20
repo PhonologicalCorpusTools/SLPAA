@@ -35,7 +35,7 @@ class SigntypeSpecificationPanel(QFrame):
 
         self.buttongroups = []
 
-        # TODO KV should button properties be integers instead of strings,
+        # TODO should button properties be integers instead of strings,
         #   so it's easier to add more user-specified options?
 
         # buttons and groups for highest level

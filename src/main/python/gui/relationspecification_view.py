@@ -935,8 +935,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.setcurrentdirection(moduletoload.directions)
         self.setbodyparts(moduletoload.bodyparts_dict)
 
-        # TODO KV set the linked-from module if there is one in moduletoload
-
     def setbodyparts(self, bodyparts_dict):
         self.bodyparts_dict = bodyparts_dict
         self.handpart_button.hascontent = self.bodyparts_dict[HAND][1].hascontent() or self.bodyparts_dict[HAND][2].hascontent()

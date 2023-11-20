@@ -405,7 +405,7 @@ class MovementModule(ParameterModule):
             "Single": "1x",
             "2": "2x",
             "3": "3x",
-            "4": "4x",  # TODO KV automate the abbreviations for integers
+            "4": "4x",  # TODO automate the abbreviations for integers
             ""
             "Same location": "same loc",
             "Different location": "diff. loc",
@@ -946,13 +946,10 @@ class AddedInfo:
 class Signtype:
 
     def __init__(self, specslist, addedinfo=None):
-        # specslist is a list of triples:
-        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
-        #   the second element is the corresponding abbreviation
-        #   the third element is a flag indicating whether or not to include this abbreviation in the concise form
-
-        # TODO KV actually pairs! first element is full signtype property composed of abbreviations
-        # second element is flag
+        # specslist is a list of pairs:
+        #   the first element is the full signtype property (correlated with radio buttons in selector dialog),
+        #   which is composed of the corresponding abbreviation
+        #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         # TODO KV need backward compatibility for this
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()

@@ -298,8 +298,7 @@ class LocationOptionsSelectionPanel(QFrame):
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
-            proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
-            # proxyindex = self.pathslistview.selectedIndexes()[0]
+            proxyindex = self.pathslistview.currentIndex()  # TODO what if multiple are selected?
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
@@ -418,7 +417,6 @@ class LocationOptionsSelectionPanel(QFrame):
         list_layout.addLayout(buttons_layout)
 
         self.detailstableview = LocationTableView()
-        # TODO KV set model, checkboxes, etc
 
         list_layout.addWidget(self.detailstableview)
 
@@ -661,13 +659,13 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
-        self.enablelocationtools()  # TODO KV should this be inside the if?
+        self.enablelocationtools()  # TODO should this be inside the if?
 
     def handle_toggle_locationtype(self, btn):
         if btn is not None and btn.isChecked():
             for b in self.signingspace_subgroup.buttons():
                 b.setEnabled(btn == self.signingspace_radio)
-        self.enablelocationtools()  # TODO KV should this be inside the if?
+        self.enablelocationtools()  # TODO should this be inside the if?
 
     def enablelocationtools(self):
         # self.refresh_listproxies()
