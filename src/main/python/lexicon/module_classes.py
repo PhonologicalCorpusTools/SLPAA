@@ -1750,6 +1750,8 @@ class ContactType:
         self._othertext = othertext
 
 
+# This class is used by the Relation Module to track the axis on which to measure the relation between
+# two elements (X and Y), as well as the direction of X relative to Y.
 class Direction:
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
@@ -1852,6 +1854,8 @@ class Direction:
             self._minus = False
 
 
+# This class is used by the Relation Module to track the axis on which to measure the relation between
+# two elements (X and Y), as well as the relative distance between those two elements.
 class Distance:
 
     def __init__(self, axis, close=False, medium=False, far=False):
@@ -1914,7 +1918,10 @@ class Distance:
             self._medium = False
 
 
-# TODO KV comments
+# This module stores the transcription of one hand's configuration.
+# It includes specifications for each slot in each field, as well as whether the forearm is involved.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each slot,
+# forearm, and the hand config overall.
 class HandConfigurationModule(ParameterModule):
     def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, addedinfo=None):
         self._handconfiguration = handconfiguration
@@ -1956,14 +1963,15 @@ class HandConfigurationModule(ParameterModule):
         return predefinedname + fieldstext
 
 
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
+# TODO comments
 class OrientationModule(ParameterModule):
     def __init__(self):
-        # TODO KV implement
+        # TODO implement
         pass
 
 
+# This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
+# the transcription info for one hand configuration.
 class HandConfigurationHand:
     def __init__(self, fields):
         self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
@@ -1988,6 +1996,8 @@ class HandConfigurationHand:
         ]
 
 
+# This class consists of 34 slots; each instance of a HandConfigurationField corresponds to a certain subset
+# of slots. The slots store the transcription info for one field in a hand configuration.
 class HandConfigurationField:
     def __init__(self, field_number, slots):
         self._field_number = field_number
@@ -2032,6 +2042,8 @@ class HandConfigurationField:
             return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
 
 
+# This class represents the transcription for one single field of a hand configuration.
+# It also contains the "Added Info" (uncertain, estimated, etc) for the slot.
 class HandConfigurationSlot:
     def __init__(self, slot_number, symbol, addedinfo):
         self._slot_number = slot_number
@@ -2063,6 +2075,12 @@ class HandConfigurationSlot:
         self._symbol = new_symbol
 
 
+# This class is used to define the underlying structure for a particular sign's timing info.
+# It consists of three values:
+#   (1) the number of whole x-slots for the sign,
+#   (2) a list of fractional divisions (eg 1/2, 1/3, 1/4) that should be made available to the user to select when
+#       specifying timing information for the sign's modules
+#   (3) the (optional) additional fraction of an x-slot to include for the sign, on top of the specified whole number
 class XslotStructure:
 
     def __init__(self, number=1, fractionalpoints=None, additionalfraction=Fraction()):
