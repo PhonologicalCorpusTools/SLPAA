@@ -905,7 +905,7 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
-        self.corpus_display.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
+        self.corpus_display.corpus_title.setText(self.corpus.name)
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
