@@ -1,3 +1,5 @@
+import logging
+
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule
 from gui.signtypespecification_view import Signtype
@@ -462,6 +464,9 @@ class Corpus:
             # self.movement_definition = serializedcorpus['mvmt defn']
             self.path = serializedcorpus['path']
             self.highestID = serializedcorpus['highest id']
+            # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+            # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+            self.confirmhighestID("load")
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -470,7 +475,21 @@ class Corpus:
             self.path = path
             self.highestID = highestID
 
+    # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+    # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+    # this function should hopefully not be necessary forever, but for now I want to make sure that
+    # functionality isn't affected by an incorrectly-saved value
+    def confirmhighestID(self, saveorload):
+        entryIDs = [s.signlevel_information.entryid for s in self.signs]
+        max_entryID = max(entryIDs)
+        if max_entryID > self.highestID:
+            logging.warn(" upon " + saveorload + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
+            self.highestID = max_entryID
+
     def serialize(self):
+        # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+        # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+        self.confirmhighestID("save")
         return {
             'name': self.name,
             'signs': [s.serialize() for s in list(self.signs)],
