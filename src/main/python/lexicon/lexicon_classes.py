@@ -485,7 +485,7 @@ class Corpus:
         entryIDs = [s.signlevel_information.entryid for s in self.signs]
         max_entryID = max(entryIDs)
         if max_entryID > self.highestID:
-            logging.warn("upon " + saveorload + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ")")
+            logging.warn(" upon " + saveorload + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
 
     def serialize(self):
