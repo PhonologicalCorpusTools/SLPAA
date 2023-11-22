@@ -1,8 +1,7 @@
 from PyQt5.QtCore import (
     Qt,
     QSortFilterProxyModel,
-    pyqtSignal,
-    QItemSelectionModel
+    pyqtSignal
 )
 
 from PyQt5.Qt import (
@@ -51,34 +50,6 @@ class CorpusModel(QStandardItemModel):
             signitem = CorpusItem(sign)
             self.appendRow(signitem)
         self.modelupdated.emit()
-
-
-# class CorpusModel(QAbstractItemModel):
-#     def __init__(self, signs=None, **kwargs):  # glosses=None, **kwargs):
-#         super().__init__(**kwargs)
-#         # self.glosses = glosses or []
-#         self.signs = signs or []
-#
-#     def data(self, index, role):
-#         print("the index you clicked has data...")
-#         print("row: ", index.row())
-#         # print("display (gloss): ", index.data(Qt.DisplayRole))
-#         # print("entry id: ", index.data(Qt.UserRole+entryidrole))
-#         # print("date created: ", index.data(Qt.UserRole+datecreatedrole))
-#         # print("date modified: ", index.data(Qt.UserRole+datemodifiedrole))
-#         if role == Qt.DisplayRole:
-#             # return self.glosses[index.row()]
-#             return self.signs[index.row()].signlevel_information.gloss
-#         elif role == Qt.UserRole+datecreatedrole:
-#             return self.signs[index.row()].signlevel_information.datecreated
-#         elif role == Qt.UserRole+datemodifiedrole:
-#             return self.signs[index.row()].signlevel_information.datelastmodified
-#         elif role == Qt.UserRole+entryidrole:
-#             return self.signs[index.row()].signlevel_information.entryid
-#
-#     def rowCount(self, index):
-#         # return len(self.glosses)
-#         return len(self.signs)
 
 
 class CorpusSortProxyModel(QSortFilterProxyModel):
