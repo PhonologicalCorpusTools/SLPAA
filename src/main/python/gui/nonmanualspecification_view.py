@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton, QTabWidget, QWidget
+    QPushButton, QTabWidget, QWidget, QScrollArea
 )
 
 from PyQt5.QtCore import (
@@ -62,11 +62,15 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         # different major non manual tabs
         self.tab_widget = QTabWidget()             # Create a tab widget
-        self.tab_widget.setMinimumHeight(400)
         self.create_major_tabs(nonmanual_root.children)  # Create and add tabs to the tab widget
-        main_layout.addWidget(self.tab_widget)
-
+        self.tab_widget.setMinimumHeight(500)
         self.setLayout(main_layout)
+
+        scroll_area = QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(self.tab_widget)
+        scroll_area.setMinimumHeight(300)
+        main_layout.addWidget(scroll_area)
 
     def create_major_tabs(self, nonman_units):
         """
@@ -110,8 +114,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         tab_widget.setLayout(tab_widget.layout)
 
-        layout = QVBoxLayout()
-        tab_widget.setLayout(layout)
         return tab_widget
 
     def build_row1(self, nonman):
