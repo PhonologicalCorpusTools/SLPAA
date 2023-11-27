@@ -953,7 +953,10 @@ class MainWindow(QMainWindow):
         selectionmodel = self.corpus_display.corpus_view.selectionModel()
         indices = []
         for sign in signstoselect:
-            indices.append(list(self.corpus.signs).index(sign))
+            try:
+                indices.append(list(self.corpus.signs).index(sign))
+            except ValueError:
+                pass
         # print(indices)
 
     def flag_and_refresh(self, sign=None):
