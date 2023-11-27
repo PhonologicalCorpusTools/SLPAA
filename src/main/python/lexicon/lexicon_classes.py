@@ -516,7 +516,8 @@ class Corpus:
 
         if len(sign_glosses) == 1:
             # If there is only 1 sign, return the same sign
-            previous_gloss = sign_glosses[0]
+            return None
+        
         elif current_index == 0:
             # Otherwise if this is the 1st sign, return the next sign in the list
             previous_gloss = sign_glosses[1]

@@ -100,16 +100,20 @@ class CorpusDisplay(QWidget):
     def updated_signs(self, signs, current_sign=None):
         self.corpus_model.setsigns(signs)
         self.corpus_model.layoutChanged.emit()
+        
+        # Reset the selection mode
+        try:
+            index = 0 if current_sign is None else list(signs).index(current_sign)
+            # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
+            # # sourcemodelindex = self.corpus_view.model().index(index, 0)
+            # # proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
+            # # self.corpus_view.selectionModel().setCurrentIndex(proxymodelindex, QItemSelectionModel.SelectCurrent)
+            self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0), 
+                                                              QItemSelectionModel.SelectCurrent)
 
-        index = 0 if current_sign is None else list(signs).index(current_sign)
-
-        # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
-        # sourcemodelindex = self.corpus_view.model().index(index, 0)
-        # proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
-        # self.corpus_view.selectionModel().setCurrentIndex(proxymodelindex, QItemSelectionModel.SelectCurrent)
-        self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0), 
-                                                          QItemSelectionModel.SelectCurrent)
-
+        except ValueError:
+            self.clear()
+             
     def remove_sign(self, sign):
         self.corpus_model.signs.remove(sign)
         self.corpus_model.layoutChanged.emit()
