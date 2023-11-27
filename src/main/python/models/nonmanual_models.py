@@ -115,14 +115,31 @@ facial_eyebrows = NonManualModel(
     label='Eyebrows',
     subparts={'specifier': 'side',
               'opposite action': True},
+    action_state=ActionStateModel(options=['Furrow', #  [gray out if ‘one side’ is checked]
+                                           'Up',
+                                           'Down',
+                                           ])
 )
 facial_eyelids = NonManualModel(
     label='Eyelids',
     subparts={'specifier': 'side',
               'opposite action': False},
+    action_state=ActionStateModel(options=['Wide open', #  [gray out if ‘one side’ is checked]
+                                           'Open',
+                                           'Narrow',
+                                           'Close',
+                                           'Tightly shut',
+                                           ])
 )
 facial_nose = NonManualModel(
     label='Nose',
+    action_state=ActionStateModel(options=['Wrinkle',
+                                           ActionStateModel(label='Move to side',
+                                                            options=['H1 side',
+                                                                     'H2 side']),
+                                           ActionStateModel(label='Move nostril(s)',
+                                                            options=['Widen / flare',
+                                                                     'Pinch'])])
 )
 
 

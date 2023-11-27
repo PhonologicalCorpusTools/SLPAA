@@ -236,7 +236,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def parse_actionstate(self, options):
         # initial
-        if options.label:
+
+        if isinstance(options, str):
+            # shallow module
+            self.widget_grouplayout_actionstate.addWidget(SLPAARadioButton(options))
+            return
+        elif options.label:
             # parse this node
             main_layout = QVBoxLayout()
             main_btn = SLPAARadioButton(options.label)
@@ -248,7 +253,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
             for child in options.options:
                 if not isinstance(child, str):
-
                     sub_cb = QCheckBox(child.label)  # vertical
                     subsub_layout = QVBoxLayout()  # up down
 
