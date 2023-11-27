@@ -201,10 +201,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         row = QHBoxLayout()
 
         # Action / state group
+
         action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
-        action_state_groupbox_layout = QVBoxLayout()
+
         if nonman.action_state is not None:
-            options = nonman.action_state
+            root_options = nonman.action_state
+            self.parse_actionstate(root_options)
+            """
+            
             for option, child in options.items():
                 nonman.widget_rb_option = SLPAARadioButton(option)
                 action_state_groupbox_layout.addWidget(nonman.widget_rb_option)
@@ -220,14 +224,56 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                         suboption_layout.addWidget(nonman.widget_rb_suboption)
                         suboption_layout.addLayout(subsub_layout)
                     action_state_groupbox_layout.addLayout(suboption_layout)
+        """
+        action_state_groupbox.setLayout(self.widget_grouplayout_actionstate)
 
-        action_state_groupbox.setLayout(action_state_groupbox_layout)
+
         # fixed as action/state for shoulder. for demonstration purposes
 
 
         row.addWidget(action_state_groupbox)
 
         return row
+
+    def parse_actionstate(self, options):
+        # initial
+        if options.label:
+            # parse this node
+            main_layout = QVBoxLayout()
+            main_btn = SLPAARadioButton(options.label)
+            main_layout.addWidget(main_btn)
+            sub_layout = QVBoxLayout()
+
+            sub_spacedlayout = QHBoxLayout()
+            sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+
+            for child in options.options:
+                if not isinstance(child, str):
+
+                    sub_cb = QCheckBox(child.label)  # vertical
+                    subsub_layout = QVBoxLayout()  # up down
+
+                    for o in child.options:
+                        subsub_layout.addWidget(SLPAARadioButton(o))
+                    subsub_spacedlayout = QHBoxLayout()
+                    subsub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+                    subsub_spacedlayout.addLayout(subsub_layout)
+                    sub_layout.addWidget(sub_cb)
+                    sub_layout.addLayout(subsub_spacedlayout)
+                else:
+                    sub_layout.addWidget(SLPAARadioButton(child))
+            sub_spacedlayout.addLayout(sub_layout)
+            main_layout.addLayout(sub_layout)
+
+
+
+            self.widget_grouplayout_actionstate.addLayout(main_layout)
+        else:
+            # in the root. initialize and need to go deep
+            self.widget_grouplayout_actionstate = QHBoxLayout()
+            for child in options.options:
+                self.parse_actionstate(child)
+
 
     def build_row3(self, nonman):
         """

@@ -4,16 +4,90 @@ class NonManualModel:
         self.children = children  # relevant for nested tabs. e.g., facial expression and mouth
         self.subparts = subparts
 
-        self.static = 'static'    # static or dynamic
-        self.neutral = True
-        self.visibility = visibility  # Bool. visibility is only relevant for 'teeth' and 'lips'
-        self.action_state = action_state
-        self.mvmt_char = None       # movement characteristics
-        self.distance = distance    # distance is only relevant for 'eye gaze' and 'teeth'
+        # properties
+        self._static = True    # Bool. True = static / False = dynamic.
+        self._neutral = False
+        self._visibility = visibility  # Bool. visibility is only relevant for 'teeth' and 'lips'
+        self._action_state = action_state
+        self._mvmt_char = None       # movement characteristics
+        self._distance = distance    # distance is only relevant for 'eye gaze' and 'teeth'
+
+    @property
+    def static(self):
+        return self._static
+
+    @static.setter
+    def static(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("'static' value must be a boolean")
+        self._static = value
+
+    @property
+    def neutral(self):
+        return self._neutral
+
+    @neutral.setter
+    def neutral(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("'neutral' value must be a boolean")
+        self._neutral = value
+
+    @property
+    def visibility(self):
+        return self._visibility
+
+    @visibility.setter
+    def visibility(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("'visibility' value must be a boolean")
+        self._visibility = value
+
+    @property
+    def action_state(self):
+        return self._action_state
+
+    @action_state.setter
+    def action_state(self, value):
+        self._action_state = value
+
+    @property
+    def mvmt_char(self):
+        return self._mvmt_char
+
+    @mvmt_char.setter
+    def mvmt_char(self, value):
+        self._mvmt_char = value
+
+    @property
+    def distance(self):
+        return self._distance
+
+    @distance.setter
+    def distance(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("'static' value must be a boolean")
+        self._distance = value
+
+
+class ActionStateModel:
+    def __init__(self, options, label=None, exclusive=False):
+        self.label = label
+        self.exclusive = exclusive
+        self.options = options
+
+        self._value = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
 
 
 
-# daughters of major non-manual module 'Mouth'
+# children of major non-manual module 'Mouth'
 mouth_teeth = NonManualModel(
     label='Teeth',
     visibility=False,
@@ -36,7 +110,7 @@ mouth_cheek = NonManualModel(
     label='cheek'
 )
 
-# daughters of major non-manual module 'Facial Expression'
+# children of major non-manual module 'Facial Expression'
 facial_eyebrows = NonManualModel(
     label='Eyebrows',
     subparts={'specifier': 'side',
@@ -56,13 +130,19 @@ shoulder = NonManualModel(
     label='Shoulder',
     subparts={'specifier': 'side',
               'opposite action': False},
-    action_state={
-        'Straight': [{'Vertical': ['Up', 'Down'],
-                     'Sagittal': ['Distal', 'Proximal']}],
-        'Circumduction': ['forward from top of circle',
-                          'backward from top of circle']
-
-    }
+    action_state=ActionStateModel(options=[ActionStateModel(label='Straight',
+                                                             options=[ActionStateModel(label='Vertical',
+                                                                                       options=['Up', 'Down'],
+                                                                                       exclusive=True),
+                                                                      ActionStateModel(label='Sagittal',
+                                                                                       options=['Distal','Proximal'],
+                                                                                       exclusive=True)],
+                                                             exclusive=True),
+                                            ActionStateModel(label='Circumduction',
+                                                             options=['forward from top of circle',
+                                                                      'backward from top of circle'],
+                                                             exclusive=True)],
+                                   )
 )
 body = NonManualModel(
     label='Body',
