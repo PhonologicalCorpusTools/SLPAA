@@ -203,12 +203,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # Action / state group
 
         action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
-
+        action_state_layout = QVBoxLayout()
         if nonman.action_state is not None:
             root_options = nonman.action_state
             self.parse_actionstate(root_options)
             """
-            
+
             for option, child in options.items():
                 nonman.widget_rb_option = SLPAARadioButton(option)
                 action_state_groupbox_layout.addWidget(nonman.widget_rb_option)
@@ -225,11 +225,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                         suboption_layout.addLayout(subsub_layout)
                     action_state_groupbox_layout.addLayout(suboption_layout)
         """
-        action_state_groupbox.setLayout(self.widget_grouplayout_actionstate)
-
+            action_state_layout.addLayout(self.widget_grouplayout_actionstate)
+        action_state_groupbox.setLayout(action_state_layout)
 
         # fixed as action/state for shoulder. for demonstration purposes
-
 
         row.addWidget(action_state_groupbox)
 
@@ -263,17 +262,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 else:
                     sub_layout.addWidget(SLPAARadioButton(child))
             sub_spacedlayout.addLayout(sub_layout)
-            main_layout.addLayout(sub_layout)
-
-
-
+            main_layout.addLayout(sub_spacedlayout)
             self.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
             # in the root. initialize and need to go deep
             self.widget_grouplayout_actionstate = QHBoxLayout()
             for child in options.options:
                 self.parse_actionstate(child)
-
 
     def build_row3(self, nonman):
         """
