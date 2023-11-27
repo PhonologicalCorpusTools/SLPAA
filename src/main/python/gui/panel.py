@@ -419,7 +419,7 @@ class SignSummaryPanel(QScrollArea):
             # x-slots aren't a thing; plan a rectangle whose width doesn't mean anything, timing-wise
             # the rectangle will be for the whole sign (treat it like a whole-sign x-slot)
             startfrac = 0
-            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction  # TODO KV check
+            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction
             widthfrac = endfrac - startfrac
 
             x = self.x_offset + self.indent + float(startfrac)*self.onexslot_width

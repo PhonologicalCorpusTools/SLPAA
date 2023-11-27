@@ -70,7 +70,7 @@ class CorpusDisplay(QWidget):
         sort_layout.addWidget(sortlabel)
         self.sortcombo = QComboBox()
         self.sortcombo.addItems(
-            ["alpha by gloss (default)", "date created", "date last modified"])
+            ["alpha by gloss (default)", "alpha by lemma", "date created", "date last modified"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
         self.sortcombo.currentTextChanged.connect(self.sort)
         sort_layout.addWidget(self.sortcombo)

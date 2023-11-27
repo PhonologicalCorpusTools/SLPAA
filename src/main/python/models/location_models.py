@@ -854,7 +854,7 @@ class LocationTableModel(QAbstractTableModel):
             self.col_contents[index.column()][index.row()][1] = checked
         return True
 
-    # TODO KV are all of these true?
+    # TODO are all of these correct?
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
 
