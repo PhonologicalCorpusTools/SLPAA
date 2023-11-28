@@ -12,11 +12,14 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QComboBox,
-    QAbstractItemView
+    QAbstractItemView,
+    QRadioButton,
+    QButtonGroup
 )
 
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
+from gui.helper_widget import OptionSwitch
 
 
 class CorpusTitleEdit(QLineEdit):
@@ -52,7 +55,7 @@ class CorpusDisplay(QWidget):
         self.corpus_view = QListView(parent=self)
         self.corpus_sortproxy = CorpusSortProxyModel(parent=self)
         self.corpus_sortproxy.setSourceModel(self.corpus_model)
-        self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sort(0))
+        self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sortnow())
         # self.corpus_view.setModel(self.corpus_model)
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.clicked.connect(self.handle_selection)
@@ -72,13 +75,30 @@ class CorpusDisplay(QWidget):
         self.sortcombo.addItems(
             ["alpha by gloss (default)", "alpha by lemma", "date created", "date last modified"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
-        self.sortcombo.currentTextChanged.connect(self.sort)
+        self.sortcombo.currentTextChanged.connect(lambda txt: self.sort(sorttext=txt))
         sort_layout.addWidget(self.sortcombo)
-        # sort_layout.addStretch()
+        self.ascend_radio = QRadioButton("↑")
+        self.descend_radio = QRadioButton("↓")
+        # self.ascend_radio = QRadioButton("∧")
+        # self.descend_radio = QRadioButton("∨")
+        self.ascenddescend_group = QButtonGroup()
+        self.ascenddescend_group.addButton(self.ascend_radio)
+        self.ascenddescend_group.addButton(self.descend_radio)
+        self.ascend_radio.setChecked(True)
+        self.ascenddescend_group.buttonToggled.connect(lambda: self.sort(sortorder=('ascending' if self.ascend_radio.isChecked() else 'descending')))
+        sort_layout.addWidget(self.ascend_radio)
+        sort_layout.addWidget(self.descend_radio)
+        # self.ascenddescend_switch = OptionSwitch("↑", "↓")
+        # # self.ascenddescend_switch = OptionSwitch("∧", "∨")
+        # self.ascenddescend_switch.left_btn.setChecked(True)
+        # self.ascenddescend_switch.shrinksizetotext()
+        # self.ascenddescend_switch.toggled.connect(lambda LRdict: self.sort(sortorder=('ascending' if LRdict[1] else 'descending')))
+        # sort_layout.addWidget(self.ascenddescend_switch)
+        sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
-    def sort(self, sorttext):
-        self.corpus_sortproxy.updatesorttype(sorttext)
+    def sort(self, sorttext=None, sortorder=None):
+        self.corpus_sortproxy.updatesorttype(sorttext, sortorder)
 
     def handle_selection(self, index):
         # gloss = self.corpus_model.glosses[index.row()]
