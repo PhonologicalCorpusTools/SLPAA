@@ -19,7 +19,6 @@ from PyQt5.QtWidgets import (
 
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
-from gui.helper_widget import OptionSwitch
 
 
 class CorpusTitleEdit(QLineEdit):
