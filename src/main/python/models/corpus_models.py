@@ -63,22 +63,25 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortRole(Qt.DisplayRole)
-        self.sort(0)
+        self.sortorder = Qt.AscendingOrder
+        self.sortnow()
 
-    def updatesorttype(self, sortbytext=""):
-        if "alpha" in sortbytext:
-            if "gloss" in sortbytext:
-                self.setSortRole(Qt.DisplayRole)
-                self.sort(0)
-            elif "lemma" in sortbytext:
-                self.setSortRole(Qt.UserRole+lemmarole)
-                self.sort(0)
-        elif "created" in sortbytext:
-            self.setSortRole(Qt.UserRole+datecreatedrole)
-            self.sort(0)
-        elif "modified" in sortbytext:
-            self.setSortRole(Qt.UserRole+datemodifiedrole)
-            self.sort(0)
+    def updatesort(self, sortbytext=None, ascending=None):
+        if ascending is not None:
+            self.sortorder = Qt.AscendingOrder if ascending else Qt.DescendingOrder
+            # otherwise leave sortorder as is
+        if sortbytext is not None:
+            if "alpha" in sortbytext:
+                if "gloss" in sortbytext:
+                    self.setSortRole(Qt.DisplayRole)
+                elif "lemma" in sortbytext:
+                    self.setSortRole(Qt.UserRole+lemmarole)
+            elif "created" in sortbytext:
+                self.setSortRole(Qt.UserRole+datecreatedrole)
+            elif "modified" in sortbytext:
+                self.setSortRole(Qt.UserRole+datemodifiedrole)
+            # otherwise leave sortRole as is
+        self.sortnow()
 
     def lessThan(self, leftindex, rightindex):
         leftdata = self.sourceModel().data(leftindex, self.sortRole())
@@ -90,4 +93,9 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
             return leftdata < rightdata
         else:
             return super().lessThan(leftindex, rightindex)
+
+    def sortnow(self, column=0, sortorder=None):
+        if sortorder is None:
+            sortorder = self.sortorder
+        self.sort(column, sortorder)
 

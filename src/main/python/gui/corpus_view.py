@@ -12,7 +12,9 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QComboBox,
-    QAbstractItemView
+    QAbstractItemView,
+    QRadioButton,
+    QButtonGroup
 )
 
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
@@ -52,7 +54,7 @@ class CorpusDisplay(QWidget):
         self.corpus_view = QListView(parent=self)
         self.corpus_sortproxy = CorpusSortProxyModel(parent=self)
         self.corpus_sortproxy.setSourceModel(self.corpus_model)
-        self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sort(0))
+        self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sortnow())
         # self.corpus_view.setModel(self.corpus_model)
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.clicked.connect(self.handle_selection)
@@ -72,13 +74,19 @@ class CorpusDisplay(QWidget):
         self.sortcombo.addItems(
             ["alpha by gloss (default)", "alpha by lemma", "date created", "date last modified"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
-        self.sortcombo.currentTextChanged.connect(self.sort)
+        self.sortcombo.currentTextChanged.connect(lambda txt: self.corpus_sortproxy.updatesort(sortbytext=txt))
         sort_layout.addWidget(self.sortcombo)
-        # sort_layout.addStretch()
+        self.ascend_radio = QRadioButton("↑")
+        self.descend_radio = QRadioButton("↓")
+        self.ascdesc_grp = QButtonGroup()
+        self.ascdesc_grp.addButton(self.ascend_radio)
+        self.ascdesc_grp.addButton(self.descend_radio)
+        self.ascend_radio.setChecked(True)
+        self.ascdesc_grp.buttonToggled.connect(lambda: self.corpus_sortproxy.updatesort(ascending=self.ascend_radio.isChecked()))
+        sort_layout.addWidget(self.ascend_radio)
+        sort_layout.addWidget(self.descend_radio)
+        sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
-
-    def sort(self, sorttext):
-        self.corpus_sortproxy.updatesorttype(sorttext)
 
     def handle_selection(self, index):
         # gloss = self.corpus_model.glosses[index.row()]
