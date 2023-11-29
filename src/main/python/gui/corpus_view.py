@@ -74,22 +74,19 @@ class CorpusDisplay(QWidget):
         self.sortcombo.addItems(
             ["alpha by gloss (default)", "alpha by lemma", "date created", "date last modified"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
-        self.sortcombo.currentTextChanged.connect(lambda txt: self.sort(sorttext=txt))
+        self.sortcombo.currentTextChanged.connect(lambda txt: self.corpus_sortproxy.updatesort(sortbytext=txt))
         sort_layout.addWidget(self.sortcombo)
         self.ascend_radio = QRadioButton("↑")
         self.descend_radio = QRadioButton("↓")
-        self.ascenddescend_group = QButtonGroup()
-        self.ascenddescend_group.addButton(self.ascend_radio)
-        self.ascenddescend_group.addButton(self.descend_radio)
+        self.ascdesc_grp = QButtonGroup()
+        self.ascdesc_grp.addButton(self.ascend_radio)
+        self.ascdesc_grp.addButton(self.descend_radio)
         self.ascend_radio.setChecked(True)
-        self.ascenddescend_group.buttonToggled.connect(lambda: self.sort(sortorder=('ascending' if self.ascend_radio.isChecked() else 'descending')))
+        self.ascdesc_grp.buttonToggled.connect(lambda: self.corpus_sortproxy.updatesort(ascending=self.ascend_radio.isChecked()))
         sort_layout.addWidget(self.ascend_radio)
         sort_layout.addWidget(self.descend_radio)
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
-
-    def sort(self, sorttext=None, sortorder=None):
-        self.corpus_sortproxy.updatesorttype(sorttext, sortorder)
 
     def handle_selection(self, index):
         # gloss = self.corpus_model.glosses[index.row()]

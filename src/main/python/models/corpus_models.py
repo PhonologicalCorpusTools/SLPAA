@@ -66,9 +66,9 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         self.sortorder = Qt.AscendingOrder
         self.sortnow()
 
-    def updatesorttype(self, sortbytext=None, sortorder=None):
-        if sortorder is not None:
-            self.sortorder = Qt.DescendingOrder if sortorder == 'descending' else Qt.AscendingOrder
+    def updatesort(self, sortbytext=None, ascending=None):
+        if ascending is not None:
+            self.sortorder = Qt.AscendingOrder if ascending else Qt.DescendingOrder
             # otherwise leave sortorder as is
         if sortbytext is not None:
             if "alpha" in sortbytext:
