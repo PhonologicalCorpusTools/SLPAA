@@ -491,6 +491,8 @@ class SigntypeSelectorDialog(QDialog):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.button(QDialogButtonBox.RestoreDefaults).setAutoDefault(False)
+        self.button_box.button(QDialogButtonBox.Save).setDefault(True)
 
         self.button_box.clicked.connect(self.handle_button_click)
 
