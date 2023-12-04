@@ -498,6 +498,7 @@ class LocationTreeModel(QStandardItemModel):
         self._listmodel = None  # LocationListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self._locationtype = LocationType()
+        self.checked=[]
 
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
@@ -554,12 +555,42 @@ class LocationTreeModel(QStandardItemModel):
                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
                     if pathtext in self.serializedlocntree.checkstates.keys():
                         treechild.setCheckState(self.serializedlocntree.checkstates[pathtext])
+                        if self.serializedlocntree.checkstates[pathtext] == Qt.Checked:
+                            self.checked.append(pathtext)
                     if pathtext in self.serializedlocntree.addedinfos.keys():
                         treechild.addedinfo = copy(self.serializedlocntree.addedinfos[pathtext])
                     if pathtext in self.serializedlocntree.detailstables.keys():
                         treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[pathtext])
 
                     self.setvaluesfromserializedtree(treechild)
+
+    def get_checked_from_serialized_tree(self):
+        checked = []
+        for k in list(self.serializedlocntree.checkstates):
+            if self.serializedlocntree.checkstates[k] == Qt.Checked:
+                checked.append(k)
+        return checked
+
+        # Compare what was serialized with what the current tree actually shows
+    def compare_checked_lists(self):
+        differences = []
+        serialized = self.get_checked_from_serialized_tree()
+        current = self.checked
+        for item in serialized:
+            if item not in current:
+                differences.append(item)
+        # print("Serialized:" + str(len(serialized)) + "\nListed:" + str(len(current)))
+        return differences
+                
+    
+    def getcheckedleafnodes(self):
+        checked = []
+        for k in self.serializedlocntree.checkstates.keys():
+            if self.serializedlocntree.checkstates[k] == Qt.Checked:
+                checked.append(k)
+        return checked
+
+
 
     # def tempprintcheckeditems(self):
     #     treenode = self.invisibleRootItem()

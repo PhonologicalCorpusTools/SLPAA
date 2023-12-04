@@ -13,76 +13,47 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import date
 from fractions import Fraction
+from lexicon.module_classes import ModuleTypes, delimiter
+from models import location_models, movement_models
 
 from PyQt5.QtCore import (
     Qt,
     QSize,
-    QSettings,
-    QPoint,
-    pyqtSignal
+    QSettings
 )
 
 from PyQt5.QtWidgets import (
     QFileDialog,
     QMainWindow,
-    QToolBar,
-    QAction,
-    QStatusBar,
-    QScrollArea,
     QMessageBox,
-    QUndoStack,
-    QMdiArea,
-    QMdiSubWindow,
-    QWidget
+    QDialog,
+    QGridLayout,
+    QToolButton,
+    QFrame,
+    QDialogButtonBox,
+    QLabel,
+    QVBoxLayout
 )
 
-from PyQt5.QtGui import (
-    QIcon,
-    QKeySequence
-)
 
 from gui.main_window import MainWindow
-from lexicon.lexicon_classes import Corpus
+from gui import modulespecification_dialog
+from lexicon.lexicon_classes import Corpus, Sign
 from serialization_classes import renamed_load
+from gui.app import AppContext
 
 
-
-class AppContext(ApplicationContext):
-    def __init__(self):
-        super().__init__()
-        
-    def run(self):
-        self.main_window.show()
-        return self.app.exec_()
-
-    @cached_property
-    def main_window(self):
-        return MainWindow(self)
-
-class MainWindow(QMainWindow):
+class Converter(MainWindow):
     def __init__(self, app_ctx):
-        super().__init__()
+        super().__init__(app_ctx)
         self.app_ctx = app_ctx
-        self.handle_app_settings()
-        self.load_corpus()
+
+        return
     
-    def handle_app_settings(self):
-        self.app_settings = defaultdict(dict)
-
-        self.app_qsettings = QSettings('UBC Phonology Tools',
-                                       application='Corpus conversion tool')
-
-        self.app_qsettings.beginGroup('storage')
-        self.app_settings['storage']['recent_folder'] = self.app_qsettings.value(
-            'recent_folder',
-            defaultValue=os.path.expanduser('~/Documents'))
-
-
     def load_corpus(self):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            self.tr('Open Corpus'),
-                                                           self.app_settings['storage']['recent_folder'],
-                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
+                                                           self.app_settings['storage']['recent_folder'])
         if not file_name:
             # the user cancelled out of the dialog
             return False
@@ -91,24 +62,187 @@ class MainWindow(QMainWindow):
             self.app_settings['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
-        # print(self.corpus.get_sign_glosses())
-        for gloss in self.corpus.get_sign_glosses():
-            sign = self.corpus.get_sign_by_gloss(gloss)
-            logging.warning(sign)
-            logging.warning(sign.getmoduledict("MOVEMENT"))
 
         self.unsaved_changes = False
 
         return self.corpus is not None  # bool(Corpus)
+    
+    def save(self):
+        name = "test save"
+        file_name, _ = QFileDialog.getSaveFileName(self,
+                                                   self.tr('Save Corpus'),
+                                                   os.path.join(self.app_settings['storage']['recent_folder'],
+                                                                name + '.slpaa'),  # 'corpus.slpaa'),
+                                                   self.tr('SLP-AA Corpus (*.slpaa)'))
+        if file_name:
+            self.corpus.path = file_name
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.app_settings['storage']['recent_folder'] = folder
 
-    def load_corpus_binary(self, path):
-        with open(path, 'rb') as f:
-            # corpus = Corpus(serializedcorpus=pickle.load(f))
-            corpus = Corpus(serializedcorpus=renamed_load(f))
-            # in case we're loading a corpus that was originally created on a different machine / in a different folder
-            corpus.path = path
-            return corpus
+            super().save_corpus_binary()
 
-appctxt = AppContext()
-exit_code = appctxt.run()
-sys.exit(exit_code)
+
+        
+
+    
+    def review_changes(self, correctionsdict):
+        reviewdialog = ReviewChangesDialog(parent=self, correctionsdict=correctionsdict) 
+        response = reviewdialog.exec_()
+
+        # You can use 'result' to determine which button was clicked
+        if response == QDialog.Accepted:
+            print("Okay button clicked")
+            self.save()
+            
+        else:
+            print("Cancel button clicked")
+
+class ReviewChangesDialog(QDialog):
+    def __init__(self, correctionsdict, **kwargs):
+        super().__init__(**kwargs)
+        self.correctionsdict = correctionsdict
+
+        self.setWindowTitle('Update corpus')
+
+        caption_label = QLabel("List of corrections")
+
+        # Create a QLabel to display the contents of correctionsdict
+        content_label = QLabel(self.format_dict())
+
+        # Create QDialogButtonBox with Okay and Cancel buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        # Connect the button signals to slots (actions)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        # Create a layout to hold the labels and the button box
+        layout = QVBoxLayout()
+        layout.addWidget(caption_label)
+        layout.addWidget(content_label)
+        layout.addWidget(button_box)
+
+        # Set the layout for the QDialog
+        self.setLayout(layout)
+
+        # Set the size of the dialog
+        self.setGeometry(100, 100, 400, 200)  # Adjust the width and height as needed
+
+
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Cancel:
+            self.reject()
+
+    def format_dict(self):
+        text = "<table>  <tr><th>Corrected path</th><th>Old path</th></tr>"
+        for key, value in self.correctionsdict.items():
+            
+            text = text + "<tr><td>"
+            keynodes = get_node_sequence(key)
+            valnodes = get_node_sequence(value)
+            for k in keynodes:
+                if k not in valnodes:
+                    text = text + "<font color='blue'>" + k + "</font>"
+                else:
+                    text = text + k
+                if k != keynodes[-1]:
+                    text = text + delimiter
+                else:
+                    text = text + "</td><td>"
+            for v in valnodes:
+                
+                if v not in keynodes:
+                    text = text + "<font color='red'>" + v + "</font>"
+                else:
+                    text = text + v
+                if v != valnodes[-1]:
+                    text = text + delimiter
+                else:
+                    text = text + "</td>"
+            text = text+"</tr>"
+        text = text + "</table>"
+        return text
+
+
+ ######## put elsewhere??           
+
+def get_mvmt_locn_modules(sign):
+    print("\n")
+    print(sign)
+    mvmtdiff = []
+    locndiff = []
+    for k in sign.getmoduledict(ModuleTypes.MOVEMENT):
+        module = sign.getmoduledict(ModuleTypes.MOVEMENT)[k]
+        diff = module.movementtreemodel.compare_checked_lists()
+        mvmtdiff.append(diff)
+        print ("missing mvmt: " + str(diff) if len(diff) != 0 else "no mvmt diff")
+    for k in sign.getmoduledict(ModuleTypes.LOCATION):
+        module = sign.getmoduledict(ModuleTypes.LOCATION)[k]
+        diff = module.locationtreemodel.compare_checked_lists()
+        locndiff.append(diff)
+        print ("missing locn: " + str(diff) if len(diff) != 0 else "no locn diff")
+    return mvmtdiff, locndiff
+
+def get_node_sequence(item):
+    nodes = []
+    curr = ""
+    for c in item:
+        if (c is not delimiter):
+            curr = curr + c
+        else:
+            nodes.append(curr)
+            curr = ""
+    nodes.append(curr)
+    return nodes
+
+
+
+def update_nodes(nodes):
+    # Issue 194: Add abs/rel movement options 
+    if nodes[2] == 'Axis direction' or nodes[2] == 'Plane':
+        nodes.insert(3, 'Absolute')
+
+    return nodes
+
+
+appcontext = AppContext()
+converter = Converter(appcontext)
+
+# mvmtdiff, locndiff = get_mvmt_locn_modules(list(oldcorpus.signs)[0])
+
+correctionsdict = {}
+for sign in converter.corpus.signs:
+    print(sign)
+
+    for k in sign.getmoduledict(ModuleTypes.MOVEMENT):
+        
+        module = sign.getmoduledict(ModuleTypes.MOVEMENT)[k]
+        mvmttreemodel = module.movementtreemodel
+        missing_values = mvmttreemodel.compare_checked_lists()
+        print(missing_values)
+
+        
+        newpaths = []
+
+        for oldpath in missing_values:
+            new_node_list = update_nodes(get_node_sequence(oldpath))
+            newpath = delimiter.join(new_node_list)
+            correctionsdict[newpath] = oldpath 
+            newpaths.append(newpath)
+
+        mvmttreemodel.addcheckedvalues(mvmttreemodel.invisibleRootItem(), newpaths, correctionsdict)
+        mvmttreemodel.uncheck_in_checkstates(missing_values)
+
+
+
+converter.review_changes(correctionsdict)
+
+
+
+    
+
+converter.show()
+# exit_code = appcontext.app.exec()      
+# sys.exit(exit_code)
