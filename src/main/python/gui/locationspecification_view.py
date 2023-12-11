@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QTreeView,
     QGraphicsView,
     QGraphicsScene,
-    QGraphicsPixmapItem,
     QPushButton,
     QRadioButton,
     QHBoxLayout,
@@ -28,23 +27,19 @@ from PyQt5.QtWidgets import (
     QStyle,
     QStyleOptionFrame,
     QApplication,
-    QFrame
+    QFrame,
+    QScrollArea,
+    QPlainTextEdit
 )
 
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
 
 from PyQt5.QtCore import (
-    QRectF,
-    QUrl,
     Qt,
     QEvent,
     pyqtSignal,
     QItemSelectionModel,
     QPointF
-)
-
-from PyQt5.QtGui import (
-    QPixmap
 )
 
 from lexicon.module_classes import delimiter, LocationModule, PhonLocations, userdefinedroles as udr
@@ -53,9 +48,6 @@ from models.location_models import LocationTreeItem, LocationTableModel, Locatio
 from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 
-
-scrollX = "scrollX"
-scrollY = "scrollY"
 
 class LocationTreeView(QTreeView):
 
@@ -68,7 +60,7 @@ class LocationTreeView(QTreeView):
 class LocnTreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(LocationTreeItem)
 
-    def __init__(self, **kwargs):  # parentlayout=None,
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.refreshed = True
         self.lasttextentry = ""
@@ -157,278 +149,6 @@ class LocnTreeListView(QListView):
             for listitem in selectedlistitems:
                 listitem.unselectpath()
             # self.model().dataChanged.emit()
-
-
-class LocationGraphicsViewSVG(QWebEngineView):
-
-    def __init__(self, app_ctx, frontorback='front', specificpath="", **kwargs):
-        super().__init__(**kwargs)
-
-        self.pagevars = {
-            scrollX: 0,
-            scrollY: 0
-        }
-
-        imagepath = app_ctx.temp_test_images['sample_' + frontorback]
-        if specificpath != "":
-            imagepath = specificpath
-        imageurl = QUrl.fromLocalFile(imagepath)
-        self.load(imageurl)
-
-        self.focusProxy().installEventFilter(self)
-
-    def eventFilter(self, obj, event):
-        if obj is self.focusProxy() and event.type() == QEvent.Type.Wheel:
-            # # print(event.angleDelta())
-            # print("zoomfactor:", self.zoomFactor())
-            # print("view pos:", self.pos())
-            # # print("graphicsProxyWidget():", self.graphicsProxyWidget())
-            # print("wheelevent pos:", event.position())
-            # print("wheelevent global pos:", event.globalPosition())
-            # print("wheelevent global pos, mapped to view:", self.mapFromGlobal(event.globalPosition().toPoint()))
-            #
-            # oldpos = event.position()
-
-            self.page().runJavaScript("window.scrollX", 0, lambda scrx: self.assignvalue(scrollX, scrx))
-            self.page().runJavaScript("window.scrollY", 0, lambda scry: self.assignvalue(scrollY, scry))
-            # print(scrollX, self.pagevars[scrollX])
-            # print(scrollY, self.pagevars[scrollY])
-
-            coordinatesonimage = event.position() + QPointF(self.pagevars[scrollX], self.pagevars[scrollY])
-            coordinatesonview = event.position()
-            scalefactor = self.zoomFactor()
-            tosubtract = event.position() / self.zoomFactor()
-            newcoordinatesonview = coordinatesonimage - tosubtract
-            if newcoordinatesonview.x() < 0:
-                newcoordinatesonview.setX(0)
-            if newcoordinatesonview.y() < 0:
-                newcoordinatesonview.setY(0)
-            print("coordinates on image:", coordinatesonimage)
-            print("coordinates on view:", coordinatesonview)
-            print("scale factor:", scalefactor)
-            print("to subtract:", tosubtract)
-            print("result (new coordinates on view):", newcoordinatesonview)
-            self.page().runJavaScript("window.scrollTo({x}, {y});".format(
-                x=str(newcoordinatesonview.x()),
-                y=str(newcoordinatesonview.y())
-            ))
-            print(scrollX, self.pagevars[scrollX])
-            print(scrollY, self.pagevars[scrollY])
-
-            # self.page().runJavaScript("window.scrollX", 0, print)
-            # self.page().runJavaScript("window.scrollY", 0, print)  # self.callback)
-            #
-            # # self.page().runJavaScript("window.scrollTo({x}, {y});".format(x='400', y='400'))
-            # print("new scrollx and scrolly:")
-            # self.page().runJavaScript("window.scrollX", 0, print)
-            # self.page().runJavaScript("window.scrollY", 0, print)  # self.callback)
-            # print("new view pos:", self.pos())
-            print("-----------------------------------------")
-            # min 0.29999998956918206 / max 4.900000058114528
-            result = super().eventFilter(obj, event)
-        else:
-            result = super().eventFilter(obj, event)
-
-        return result
-        # return super().eventFilter(obj, event)
-
-    def assignvalue(self, key, value):
-        self.pagevars[key] = value
-
-    def callback(self, rv):
-        self.resulttext = "1+1=" + str(rv)
-
-    # def wheelEvent(self, e):
-    #     print("zoomfactor:", self.zoomFactor())
-    #     e.ignore()
-
-
-class LocationGraphicsView(QGraphicsView):
-
-    # def __init__(self, imagepath, **kwargs):
-    #     super().__init__(**kwargs)
-    #     main_layout = QHBoxLayout()
-    #
-    #     self.svg = QWebEngineView()
-    #     imageurl = QUrl.fromLocalFile(imagepath)
-    #     self.svg.load(imageurl)
-    #     main_layout.addWidget(self.svg)
-    #     # self.svg.show()
-    #     self.setLayout(main_layout)
-
-
-    def __init__(self, app_ctx, frontorback='front', parent=None, viewer_size=400, specificpath=""):
-        super().__init__(parent=parent)
-
-        self.viewer_size = viewer_size
-
-        self._scene = QGraphicsScene(parent=self)
-        imagepath = app_ctx.default_location_images['body_hands_' + frontorback]
-        if specificpath != "":
-            imagepath = specificpath
-
-        # if specificpath.endswith('.svg'):
-        #     self._photo = LocationSvgView()
-        #     self._photo.load(QUrl(imagepath))
-        #     self._scene.addWidget(self._photo)
-        #     self.show()
-        # else:
-        self._pixmap = QPixmap(imagepath)
-        self._photo = QGraphicsPixmapItem(self._pixmap)
-        self._scene.addItem(self._photo)
-        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
-
-        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
-        self.setScene(self._scene)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-        self.fitInView()
-
-    def fitInView(self, scale=True):
-        rect = QRectF(self._photo.pixmap().rect())
-        if not rect.isNull():
-            self.setSceneRect(rect)
-            unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-            self.scale(1 / unity.width(), 1 / unity.height())
-            scenerect = self.transform().mapRect(rect)
-            factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
-            self.factor = factor
-            # viewrect = self.viewport().rect()
-            # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
-            self.scale(factor, factor)
-
-
-class LocationGraphicsView_old(QGraphicsView):
-
-    def __init__(self, app_ctx, frontorback='front', parent=None, viewer_size=400, specificpath=""):
-        super().__init__(parent=parent)
-
-        self.viewer_size = viewer_size
-
-        self._scene = QGraphicsScene(parent=self)
-        imagepath = app_ctx.default_location_images['body_hands_' + frontorback]
-        if specificpath != "":
-            imagepath = specificpath
-
-        # if specificpath.endswith('.svg'):
-        #     self._photo = LocationSvgView()
-        #     self._photo.load(QUrl(imagepath))
-        #     self._scene.addWidget(self._photo)
-        #     self.show()
-        # else:
-        self._pixmap = QPixmap(imagepath)
-        self._photo = QGraphicsPixmapItem(self._pixmap)
-        self._scene.addItem(self._photo)
-        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
-
-        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
-        self.setScene(self._scene)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-        self.fitInView()
-
-    def fitInView(self, scale=True):
-        rect = QRectF(self._photo.pixmap().rect())
-        if not rect.isNull():
-            self.setSceneRect(rect)
-            unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-            self.scale(1 / unity.width(), 1 / unity.height())
-            scenerect = self.transform().mapRect(rect)
-            factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
-            self.factor = factor
-            # viewrect = self.viewport().rect()
-            # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
-            self.scale(factor, factor)
-
-
-class LocationSvgView_webengine(QGraphicsView):
-
-    def __init__(self, parent=None, viewer_size=600, specificpath=""):
-        super().__init__(parent=parent)
-
-        self.viewer_size = viewer_size
-
-        self._scene = QGraphicsScene(parent=self)
-
-        self.svg = QWebEngineView()
-        # self.svg.urlChanged.connect(self.shownewurl)
-
-        # dir_path = os.path.dirname(os.path.realpath(__file__))
-        # print("dir_path", dir_path)
-        # cwd = os.getcwd()
-        # print("cwd", cwd)
-
-        imageurl = QUrl.fromLocalFile(specificpath)
-        self.svg.load(imageurl)
-        self.svg.show()
-        self._scene.addWidget(self.svg)
-        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
-
-        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
-        self.setScene(self._scene)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-    #     self.fitInView()
-    #
-    # def fitInView(self, scale=True):
-    #     rect = QRectF(self._photo.pixmap().rect())
-    #     if not rect.isNull():
-    #         self.setSceneRect(rect)
-    #         unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-    #         self.scale(1 / unity.width(), 1 / unity.height())
-    #         scenerect = self.transform().mapRect(rect)
-    #         factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
-    #         self.factor = factor
-    #         # viewrect = self.viewport().rect()
-    #         # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
-    #         self.scale(factor, factor)
-
-    # TODO KV probably don't need this after all
-    def shownewurl(self, newurl):
-        self.svg.show()
-
-
-class LocationSvgView_qsvg(QGraphicsView):
-
-    def __init__(self, parent=None, viewer_size=600, specificpath=""):
-        super().__init__(parent=parent)
-
-        self.viewer_size = viewer_size
-
-        self._scene = QGraphicsScene(parent=self)
-
-        self.svg = QWebEngineView()
-        # self.svg.urlChanged.connect(self.shownewurl)
-
-        # dir_path = os.path.dirname(os.path.realpath(__file__))
-        # print("dir_path", dir_path)
-        # cwd = os.getcwd()
-        # print("cwd", cwd)
-
-        imageurl = QUrl.fromLocalFile(specificpath)
-        self.svg.load(imageurl)
-        self.svg.show()
-        self._scene.addWidget(self.svg)
-        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
-
-        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
-        self.setScene(self._scene)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-    #     self.fitInView()
-    #
-    # def fitInView(self, scale=True):
-    #     rect = QRectF(self._photo.pixmap().rect())
-    #     if not rect.isNull():
-    #         self.setSceneRect(rect)
-    #         unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-    #         self.scale(1 / unity.width(), 1 / unity.height())
-    #         scenerect = self.transform().mapRect(rect)
-    #         factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
-    #         self.factor = factor
-    #         # viewrect = self.viewport().rect()
-    #         # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
-    #         self.scale(factor, factor)
-
-    # TODO KV probably don't need this after all
-    def shownewurl(self, newurl):
-        self.svg.show()
 
 
 class LocationTableView(QTableView):
@@ -672,7 +392,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
     def __init__(self, moduletoload=None, showimagetabs=True, **kwargs):
         super().__init__(**kwargs)
-        # self.mainwindow = self.parent().mainwindow
         self.showimagetabs = showimagetabs
 
         main_layout = QVBoxLayout()
@@ -874,17 +593,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             self.detailstableview.setModel(LocationTreeItem().detailstable)
 
         self.detailstableview.horizontalHeader().resizeSections(QHeaderView.Stretch)
-    #
-    # def handle_zoomfactor_changed(self, scale):
-    #     if self.fronttab.link_button.isChecked() or self.backtab.link_button.isChecked():
-    #         self.fronttab.force_zoom(scale)
-    #         self.backtab.force_zoom(scale)
-    #
-    # def handle_linkbutton_toggled(self, ischecked, thistab):
-    #     othertab = self.fronttab if thistab == self.backtab else self.backtab
-    #     othertab.force_link(ischecked)
-    #     othertab.force_zoom(thistab.zoom_slider.value())
-    #     # self.backtab.force_link(ischecked)
 
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
@@ -990,8 +698,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         
         # Reset view to front panel
         self.locationoptionsselectionpanel.imagetabwidget.setCurrentIndex(0)
-        
-        # self.locationoptionsselectionpanel.imagetabwidget
+
         # Update panels given default selections/disables panels
         self.enablelocationtools()
 
@@ -1065,172 +772,204 @@ class ImageTabWidget(QTabWidget):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
-        # self.fronttab = ImageDisplayTab(self.mainwindow.app_ctx, 'front')
-        self.fronttab = ImageDisplayTabSVG(self.mainwindow.app_ctx, 'front')
+        self.fronttab = SVGDisplayTab(self.mainwindow.app_ctx, 'front')
         self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.fronttab.linkbutton_toggled.connect(lambda ischecked:
                                                  self.handle_linkbutton_toggled(ischecked, self.fronttab))
         self.addTab(self.fronttab, "Front")
-        # self.backtab = ImageDisplayTab(self.mainwindow.app_ctx, 'back')
-        self.backtab = ImageDisplayTabSVG(self.mainwindow.app_ctx, 'back')
+        self.backtab = SVGDisplayTab(self.mainwindow.app_ctx, 'back')
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.backtab.linkbutton_toggled.connect(lambda ischecked:
                                                 self.handle_linkbutton_toggled(ischecked, self.backtab))
         self.addTab(self.backtab, "Back")
+        self.sidetab = SVGDisplayTab(self.mainwindow.app_ctx, 'side')
+        self.sidetab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
+        self.sidetab.linkbutton_toggled.connect(lambda ischecked:
+                                                self.handle_linkbutton_toggled(ischecked, self.sidetab))
+        self.addTab(self.sidetab, "Side")
+
+        self.alltabs = [self.fronttab, self.backtab, self.sidetab]
 
     def handle_zoomfactor_changed(self, scale):
-        if self.fronttab.link_button.isChecked() or self.backtab.link_button.isChecked():
-            self.fronttab.force_zoom(scale)
-            self.backtab.force_zoom(scale)
+        if True in [tab.link_button.isChecked() for tab in self.alltabs]:
+            for tab in self.alltabs:
+                tab.force_zoom(scale)
 
     def handle_linkbutton_toggled(self, ischecked, thistab):
-        othertab = self.fronttab if thistab == self.backtab else self.backtab
-        othertab.force_link(ischecked)
-        othertab.force_zoom(thistab.zoom_slider.value())
-        # self.backtab.force_link(ischecked)
-        
+        othertabs = [tab for tab in self.alltabs if tab != thistab]
+        for othertab in othertabs:
+            othertab.force_link(ischecked)
+            othertab.force_zoom(thistab.zoom_slider.value())
+
     def reset_zoomfactor(self):
-        """Reset the zoom factor for this image display to zero zoom and back to the front tab."""
-        self.fronttab.zoom_slider.setValue(0)
-        self.backtab.zoom_slider.setValue(0)
-        self.fronttab.force_zoom(self.fronttab.zoom_slider.value())
-        self.backtab.force_zoom(self.backtab.zoom_slider.value())
-        
+        """Reset the zoom factor for this image display to zero zoom, and back to the front tab."""
+        for tab in self.alltabs:
+            tab.zoom_slider.setValue(0)
+            tab.force_zoom(tab.zoom_slider.value())
+
     def reset_link(self):
-        """Unlink zoom buttons between front/back."""
-        self.handle_linkbutton_toggled(False, self.fronttab)
-        self.handle_linkbutton_toggled(False, self.backtab)
-        
+        """Unlink zoom buttons between front/back/side."""
+        for tab in self.alltabs:
+            self.handle_linkbutton_toggled(False, tab)
 
-class ImageDisplayTab(QWidget):
+
+class SVGDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
 
-    def __init__(self, app_ctx, frontorback='front', specificpath="", **kwargs):
+    def __init__(self, app_ctx, frontbackside='front', specificpath="", **kwargs):
         super().__init__(**kwargs)
-
-        main_layout = QHBoxLayout()
-
-        self.imagedisplay = LocationGraphicsView(app_ctx, frontorback=frontorback, specificpath=specificpath)
-        # self.imagedisplay.setMinimumWidth(400)
-
-        zoom_layout = QVBoxLayout()
-
-        self.zoom_slider = QSlider(Qt.Vertical)
-        self.zoom_slider.setMinimum(1)
-        self.zoom_slider.setMaximum(10)
-        self.zoom_slider.setValue(0)
-        self.zoom_slider.valueChanged.connect(self.zoom)
-        zoom_layout.addWidget(self.zoom_slider)
-        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
-
-        self.link_button = QPushButton("Link")
-        self.link_button.setCheckable(True)
-        self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
-        zoom_layout.addWidget(self.link_button)
-        zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
-
-        main_layout.addWidget(self.imagedisplay)
-        main_layout.addLayout(zoom_layout)
-
-        self.setLayout(main_layout)
-
-    def zoom(self, scale):
-        trans_matrix = self.imagedisplay.transform()
-        trans_matrix.reset()
-        trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
-        self.imagedisplay.setTransform(trans_matrix)
-
-        self.zoomfactor_changed.emit(scale)
-
-    def force_zoom(self, scale):
-        self.blockSignals(True)
-        self.zoom_slider.blockSignals(True)
-        self.zoom(scale)
-        self.zoom_slider.setValue(scale)
-        self.blockSignals(False)
-        self.zoom_slider.blockSignals(False)
-
-    def force_link(self, ischecked):
-        self.blockSignals(True)
-        self.link_button.setChecked(ischecked)
-        self.blockSignals(False)
-
-
-class ImageDisplayTabSVG(QWidget):
-    zoomfactor_changed = pyqtSignal(int)
-    linkbutton_toggled = pyqtSignal(bool)
-
-    def __init__(self, app_ctx, frontorback='front', specificpath="", **kwargs):
-        super().__init__(**kwargs)
-
-        main_layout = QHBoxLayout()
-
-        self.svgdisplay = LocationGraphicsViewSVG(app_ctx, frontorback=frontorback, specificpath=specificpath, parent=self)
-
-        zoom_layout = QVBoxLayout()
-
-        self.zoom_slider = QSlider(Qt.Vertical)
-        self.zoom_slider.setMinimum(1)
-        self.zoom_slider.setMaximum(20)
-        self.zoom_slider.setValue(4)
-        self.zoom_slider.valueChanged.connect(self.zoom)
-        zoom_layout.addWidget(self.zoom_slider)
-        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
-
-        self.link_button = QPushButton("Link")
-        self.link_button.setCheckable(True)
-        self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
-        zoom_layout.addWidget(self.link_button)
-        zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
-
-        main_layout.addWidget(self.svgdisplay)
-        main_layout.addLayout(zoom_layout)
-
-        self.setLayout(main_layout)
-
-    def zoom(self, scale):
-        self.svgdisplay.setZoomFactor(scale/4)
-        # trans_matrix = self.imagedisplay.transform()
-        # trans_matrix.reset()
-        # trans_matrix = trans_matrix.scale(scale * self.imagedisplay.factor, scale * self.imagedisplay.factor)
-        # self.imagedisplay.setTransform(trans_matrix)
-
-        self.zoomfactor_changed.emit(scale)
-
-    def force_zoom(self, scale):
-        self.blockSignals(True)
-        self.zoom_slider.blockSignals(True)
-        self.zoom(scale)
-        self.zoom_slider.setValue(scale)
-        self.blockSignals(False)
-        self.zoom_slider.blockSignals(False)
-
-    def force_link(self, ischecked):
-        self.blockSignals(True)
-        self.link_button.setChecked(ischecked)
-        self.blockSignals(False)
-
-
-# Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-# TODO KV can this be combined with the one for movement?
-class LocationTreeItemDelegate(QStyledItemDelegate):
-
-    def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
-            widget = option.widget
-            style = widget.style() if widget else QApplication.style()
-            opt = QStyleOptionButton()
-            opt.rect = option.rect
-            opt.text = index.data()
-            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
-            style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+        if specificpath != "":
+            imagepath = specificpath
         else:
-            QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                opt = QStyleOptionFrame()
-                opt.rect = option.rect
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+            imagepath = app_ctx.temp_test_images['sample_' + frontbackside]
+
+        main_layout = QHBoxLayout()
+        img_layout = QVBoxLayout()
+
+        self.imgscroll = SVGDisplayScroll(imagepath)
+        self.imgscroll.zoomfactor_changed.connect(lambda scale: self.zoomfactor_changed.emit(scale))
+        # main_layout.addWidget(self.imgscroll)
+        img_layout.addWidget(self.imgscroll)
+        self.bodypart_note = QPlainTextEdit("last clicked: n/a")
+        self.bodypart_note.setMaximumHeight(65)
+        img_layout.addWidget(self.bodypart_note)
+        self.imgscroll.img_clicked.connect(lambda txt: self.bodypart_note.setPlainText("last clicked: " + txt))
+        main_layout.addLayout(img_layout)
+
+        zoom_layout = QVBoxLayout()
+        self.zoom_slider = QSlider(Qt.Vertical, parent=self)
+        self.zoom_slider.setMinimum(1)
+        self.zoom_slider.setMaximum(9)
+        self.zoom_slider.setValue(0)
+        self.zoom_slider.valueChanged.connect(self.imgscroll.zoom)
+        self.imgscroll.zoom(1)
+        zoom_layout.addWidget(self.zoom_slider)
+        zoom_layout.setAlignment(self.zoom_slider, Qt.AlignHCenter)
+
+        self.link_button = QPushButton("Link")
+        self.link_button.setCheckable(True)
+        self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
+        zoom_layout.addWidget(self.link_button)
+        zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
+
+        main_layout.addLayout(zoom_layout)
+        self.setLayout(main_layout)
+
+        self.setMinimumHeight(400)
+
+    def force_zoom(self, scale):
+        self.blockSignals(True)
+        self.zoom_slider.blockSignals(True)
+        self.imgscroll.zoom(scale)
+        self.zoom_slider.setValue(scale)
+        self.blockSignals(False)
+        self.zoom_slider.blockSignals(False)
+
+    def force_link(self, ischecked):
+        self.blockSignals(True)
+        self.link_button.setChecked(ischecked)
+        self.blockSignals(False)
+
+
+class SVGDisplayScroll(QScrollArea):
+    img_clicked = pyqtSignal(str)
+    zoomfactor_changed = pyqtSignal(int)
+    factor_from_scale = {
+        1: 0.20,
+        2: 0.25,
+        3: 0.33,
+        4: 0.50,
+        5: 1.0,
+        6: 2.0,
+        7: 3.0,
+        8: 4.0,
+        9: 5.0
+    }
+
+    def __init__(self, imagepath, **kwargs):
+        super().__init__(**kwargs)
+
+        main_layout = QHBoxLayout()
+
+        self.img_layout = QHBoxLayout()
+
+        self.renderer = QSvgRenderer(imagepath, parent=self)
+        self.scn = SVGGraphicsScene([], parent=self)
+        self.scn.img_clicked.connect(lambda txt: self.img_clicked.emit(txt))
+
+        self.initializeSVGitems()
+
+        self.vw = QGraphicsView(self.scn)
+        self.img_layout.addWidget(self.vw)
+        main_layout.addLayout(self.img_layout)
+        self.setLayout(main_layout)
+
+    def initializeSVGitems(self):
+        for elementid in ["WHOLE_ARM", "WHOLE_ARM-2", "WHOLE_ARM-3", "WHOLE_ARM-4", "LOWER_TORSO-2", "UPPER_TORSO", "UPPER_TORSO-2", "UPPER_TORSO-3", "UPPER_TORSO-4", "UPPER_TORSO-5", "UPPER_TORSO-6", "UPPER_TORSO-7", "UPPER_TORSO-8", "SHOULDER", "SHOULDER-2"]:
+            if self.renderer.elementExists(elementid):
+                elementx = self.renderer.boundsOnElement(elementid).x()
+                elementy = self.renderer.boundsOnElement(elementid).y()
+                currentsvgitem = QGraphicsSvgItem()
+                currentsvgitem.setSharedRenderer(self.renderer)
+                currentsvgitem.setElementId(elementid)
+                currentsvgitem.setPos(elementx, elementy)
+                self.scn.addItem(currentsvgitem)
+        allsvgitem = QGraphicsSvgItem()
+        allsvgitem.setSharedRenderer(self.renderer)
+        allsvgitem.setElementId("")
+        self.scn.addItem(allsvgitem)
+
+    def zoom(self, scale):
+        factor = self.factor_from_scale[scale]
+
+        trans_matrix = self.vw.transform()
+        trans_matrix.reset()
+        trans_matrix = trans_matrix.scale(factor, factor)
+        self.vw.setTransform(trans_matrix)
+
+        self.zoomfactor_changed.emit(scale)
+
+
+class SVGGraphicsScene(QGraphicsScene):
+    img_clicked = pyqtSignal(str)
+
+    def __init__(self, svgitems, **kwargs):
+        super().__init__(**kwargs)
+        for it in svgitems:
+            self.addItem(it)
+
+    def mouseReleaseEvent(self, event):
+        # print("mouse release in svg graphics scene")
+        # print("     pos():", event.pos().x(), event.pos().y())
+        # print("     scenePos():", event.scenePos().x(), event.scenePos().y())
+        # print("     itemsBoundingRect():", self.itemsBoundingRect().x(), self.itemsBoundingRect().y(), self.itemsBoundingRect().width(), self.itemsBoundingRect().height())
+
+        items = self.items(QPointF(event.scenePos().x(), event.scenePos().y()))
+        # print("     items at click:", [it.elementId() for it in items])
+        ids = ["all" if it.elementId() == "" else it.elementId() for it in items]
+        self.img_clicked.emit(", ".join(ids))
+
+
+# # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
+# # TODO KV can this be combined with the one for movement?
+# class LocationTreeItemDelegate(QStyledItemDelegate):
+#
+#     def paint(self, painter, option, index):
+#         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
+#             widget = option.widget
+#             style = widget.style() if widget else QApplication.style()
+#             opt = QStyleOptionButton()
+#             opt.rect = option.rect
+#             opt.text = index.data()
+#             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
+#             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
+#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+#         else:
+#             QStyledItemDelegate.paint(self, painter, option, index)
+#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+#                 opt = QStyleOptionFrame()
+#                 opt.rect = option.rect
+#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
