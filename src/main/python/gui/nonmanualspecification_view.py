@@ -253,14 +253,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
             for child in options.options:
                 if not isinstance(child, str):
-                    sub_cb = QCheckBox(child.label)  # vertical
-                    subsub_layout = QVBoxLayout()  # up down
-
-                    for o in child.options:
-                        subsub_layout.addWidget(SLPAARadioButton(o))
-                    subsub_spacedlayout = QHBoxLayout()
-                    subsub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-                    subsub_spacedlayout.addLayout(subsub_layout)
+                    sub_cb, subsub_spacedlayout = self.fillin_vbox(child)
                     sub_layout.addWidget(sub_cb)
                     sub_layout.addLayout(subsub_spacedlayout)
                 else:
@@ -273,6 +266,22 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.widget_grouplayout_actionstate = QHBoxLayout()
             for child in options.options:
                 self.parse_actionstate(child)
+    def fillin_vbox(self, asm):
+        # asm: ActionStateModel
+        sub_cb = QCheckBox(asm.label)  # vertical
+        subsub_layout = QVBoxLayout()  # up down
+        for o in asm.options:
+            if not isinstance(o, str):
+                cb, sub_spacedlayout = self.fillin_vbox(o)
+                subsub_layout.addWidget(cb)
+                subsub_layout.addLayout(sub_spacedlayout)
+            else:
+                subsub_layout.addWidget(SLPAARadioButton(o))
+        spacedlayout = QHBoxLayout()
+        spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        spacedlayout.addLayout(subsub_layout)
+
+        return sub_cb, spacedlayout
 
     def build_row3(self, nonman):
         """
