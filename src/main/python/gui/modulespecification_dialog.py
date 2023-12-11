@@ -78,6 +78,8 @@ class ModuleSelectorDialog(QDialog):
                                                              incl_articulator_subopts=incl_articulator_subopts,
                                                              inphase=inphase,
                                                              parent=self)
+        self.articulators_widget.setFixedHeight(100)
+
         if self.includearticulatorselection:
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
@@ -92,6 +94,8 @@ class ModuleSelectorDialog(QDialog):
         self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
                                               timingintervals=timingintervals,
                                               parent=self)
+        self.xslot_widget.setFixedHeight(300)
+
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addWidget(self.xslot_widget)
 
@@ -528,6 +532,7 @@ class XslotLinkingPanel(QFrame):
         main_layout = QVBoxLayout()
 
         self.link_intro_label = QLabel("Click on the relevant point(s) or interval(s) to link this module.")
+        self.link_intro_label.setFixedHeight(30)
         main_layout.addWidget(self.link_intro_label)
 
         self.xslotlinkscene = XslotLinkScene(timingintervals=self.timingintervals, parentwidget=self)
