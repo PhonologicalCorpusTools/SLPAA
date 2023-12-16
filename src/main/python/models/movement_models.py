@@ -13,7 +13,7 @@ from PyQt5.Qt import (
     QStandardItemModel
 )
 
-# TODO KV should we have a GUI element in this class??
+# TODO seems weird to be referencing a GUI element in this class...??
 from PyQt5.QtWidgets import (
     QMessageBox
 )

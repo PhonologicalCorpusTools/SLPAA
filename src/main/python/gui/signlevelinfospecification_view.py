@@ -59,7 +59,7 @@ class SignLevelInfoPanel(QFrame):
         self.signlevelinfo = signlevelinfo
 
         main_layout = QFormLayout()
-        main_layout.setSpacing(5)  # TODO KV what is this?
+        main_layout.setSpacing(5)
 
         entryid_label = QLabel("Entry ID:")
         gloss_label = QLabel('Gloss:')
@@ -260,9 +260,10 @@ class SignlevelinfoSelectorDialog(QDialog):
             if sli is not None:
                 newsignlevelinfo = SignLevelInformation(signlevel_info=sli)
                 oldsignlevelinfo = self.signlevelinfo_widget.signlevelinfo
+                if newsignlevelinfo != oldsignlevelinfo:
+                    # if anything other than the last modified date has changed, then lastmodified should be set to now
+                    newsignlevelinfo.lastmodifiednow()
                 self.saved_signlevelinfo.emit(newsignlevelinfo)
-                if self.mainwindow.current_sign is not None and newsignlevelinfo != oldsignlevelinfo:
-                    self.mainwindow.current_sign.lastmodifiednow()
                 self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:

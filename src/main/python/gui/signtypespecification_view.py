@@ -35,7 +35,7 @@ class SigntypeSpecificationPanel(QFrame):
 
         self.buttongroups = []
 
-        # TODO KV should button properties be integers instead of strings,
+        # TODO should button properties be integers instead of strings,
         #   so it's easier to add more user-specified options?
 
         # buttons and groups for highest level
@@ -491,6 +491,8 @@ class SigntypeSelectorDialog(QDialog):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.button(QDialogButtonBox.RestoreDefaults).setAutoDefault(False)
+        self.button_box.button(QDialogButtonBox.Save).setDefault(True)
 
         self.button_box.clicked.connect(self.handle_button_click)
 

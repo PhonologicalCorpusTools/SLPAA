@@ -1,7 +1,5 @@
 from PyQt5.QtWidgets import (
-    QListView,
     QTableView,
-    QTreeView,
     QGraphicsView,
     QGraphicsScene,
     QGraphicsPixmapItem,
@@ -14,7 +12,6 @@ from PyQt5.QtWidgets import (
     QCompleter,
     QButtonGroup,
     QGroupBox,
-    QStackedWidget,
     QAbstractItemView,
     QHeaderView,
     QCheckBox,
@@ -23,11 +20,6 @@ from PyQt5.QtWidgets import (
     QWidget,
     QSpacerItem,
     QSizePolicy,
-    QStyledItemDelegate,
-    QStyleOptionButton,
-    QStyle,
-    QStyleOptionFrame,
-    QApplication,
     QFrame
 )
 
@@ -53,18 +45,10 @@ from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 
 
-class LocationTreeView(QTreeView):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.setEditTriggers(QAbstractItemView.DoubleClicked | QAbstractItemView.SelectedClicked)
-
-
 class LocnTreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(LocationTreeItem)
 
-    def __init__(self, **kwargs):  # parentlayout=None,
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.refreshed = True
         self.lasttextentry = ""
@@ -244,7 +228,6 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
 def findvaliditemspaths(pathitemslists):
     validpaths = []
     if len(pathitemslists) > 1:  # the path is longer than 1 level
-        # pathitemslistslotohi = pathitemslists[::-1]
         for lastitem in pathitemslists[-1]:
             for secondlastitem in pathitemslists[-2]:
                 if lastitem.parent() == secondlastitem:
@@ -254,7 +237,6 @@ def findvaliditemspaths(pathitemslists):
                             validpaths.append(higherpath + [lastitem])
     elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
         for lastitem in pathitemslists[0]:
-            # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
             validpaths.append([lastitem])
     else:
         # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
@@ -316,8 +298,7 @@ class LocationOptionsSelectionPanel(QFrame):
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
-            proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
-            # proxyindex = self.pathslistview.selectedIndexes()[0]
+            proxyindex = self.pathslistview.currentIndex()  # TODO what if multiple are selected?
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
@@ -332,7 +313,6 @@ class LocationOptionsSelectionPanel(QFrame):
 
     @treemodel.setter
     def treemodel(self, treemodel):
-        # TODO KV - validate?
         self._treemodel = treemodel
         self._listmodel = treemodel.listmodel
 
@@ -342,7 +322,6 @@ class LocationOptionsSelectionPanel(QFrame):
 
     @listmodel.setter
     def listmodel(self, listmodel):
-        # TODO KV - validate?
         self._listmodel = listmodel
 
     def refresh_listproxies(self):
@@ -438,7 +417,6 @@ class LocationOptionsSelectionPanel(QFrame):
         list_layout.addLayout(buttons_layout)
 
         self.detailstableview = LocationTableView()
-        # TODO KV set model, checkboxes, etc
 
         list_layout.addWidget(self.detailstableview)
 
@@ -681,13 +659,13 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
-        self.enablelocationtools()  # TODO KV should this be inside the if?
+        self.enablelocationtools()  # TODO should this be inside the if?
 
     def handle_toggle_locationtype(self, btn):
         if btn is not None and btn.isChecked():
             for b in self.signingspace_subgroup.buttons():
                 b.setEnabled(btn == self.signingspace_radio)
-        self.enablelocationtools()  # TODO KV should this be inside the if?
+        self.enablelocationtools()  # TODO should this be inside the if?
 
     def enablelocationtools(self):
         # self.refresh_listproxies()
