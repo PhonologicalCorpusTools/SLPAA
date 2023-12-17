@@ -201,7 +201,7 @@ def get_node_sequence(item):
 
 def update_nodes(nodes):
     # Issue 194: Add abs/rel movement options 
-    if nodes[2] == 'Axis direction' or nodes[2] == 'Plane':
+    if ((nodes[2] == 'Axis direction' or nodes[2] == 'Plane') and nodes[3] != 'Absolute'):
         nodes.insert(3, 'Absolute')
 
     return nodes
@@ -221,7 +221,9 @@ for sign in converter.corpus.signs:
         module = sign.getmoduledict(ModuleTypes.MOVEMENT)[k]
         mvmttreemodel = module.movementtreemodel
         missing_values = mvmttreemodel.compare_checked_lists()
-        print(missing_values)
+        for val in missing_values:
+            print(val)
+        print("\n")
 
         
         newpaths = []

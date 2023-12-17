@@ -1200,6 +1200,7 @@ class MovementTreeModel(QStandardItemModel):
                     self.update_currently_checked(treechild)
 
     # Compare what was serialized with what the current tree actually shows
+    # Also updates the list
     def compare_checked_lists(self):
         differences = []
         serialized = self.get_checked_from_serialized_tree()
@@ -1208,7 +1209,13 @@ class MovementTreeModel(QStandardItemModel):
         for item in serialized:
             if item not in self.checked:
                 differences.append(item)
-        # print("Serialized:" + str(len(serialized)) + "\nListed:" + str(len(self.checked)))
+        print("Serialized:" + str(len(serialized)) + "; Listed:" + str(len(self.checked)))
+        if (len(serialized) != len(self.checked)):
+            for i in serialized:
+                print (i)
+            print("\n")
+            for i in self.checked:
+                print(i)
         return differences
     
     def get_usv(self):
@@ -1320,7 +1327,6 @@ class MovementTreeModel(QStandardItemModel):
                     # except: continue
 
                     if pathtext in paths_to_add:
-                        print("done with " + pathtext)
                         treechild.setCheckState(Qt.Checked)
                         oldtext = paths_dict[pathtext]
 
