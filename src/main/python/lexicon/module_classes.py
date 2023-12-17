@@ -1965,11 +1965,63 @@ class HandConfigurationModule(ParameterModule):
 
 # TODO comments
 class OrientationModule(ParameterModule):
-    def __init__(self):
-        # TODO implement
-        pass
+    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None, inphase=None):
+        self._palm = palmdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+        self._root = rootdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+        
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
 
+    @property
+    def palm(self):
+        return self._palm
+    
+    @palm.setter
+    def palm(self, palm):
+        self._palm = palm
+        
+    @property
+    def root(self):
+        return self._root
+    
+    @root.setter
+    def root(self, root):
+        self._root = root
+        
 
+class OrientationPalm:
+    def __init__(self, hor, hor_ipsi, hor_contra, ver, ver_up, ver_down, sag, sag_dist, sag_prox):
+        self.hor = hor
+        self.hor_ipsi = hor_ipsi
+        self.hor_contra = hor_contra
+        self.ver = ver
+        self.ver_up = ver_up
+        self.ver_down = ver_down
+        self.sag = sag
+        self.sag_dist = sag_dist,
+        self.sag_prox = sag_prox
+        
+
+class OrientationFingerRoot:
+    def __init__(self, hor, hor_ipsi, hor_contra, ver, ver_up, ver_down, sag, sag_dist, sag_prox):
+        self.hor = hor
+        self.hor_ipsi = hor_ipsi
+        self.hor_contra = hor_contra
+        self.ver = ver
+        self.ver_up = ver_up
+        self.ver_down = ver_down
+        self.sag = sag
+        self.sag_dist = sag_dist,
+        self.sag_prox = sag_prox
+        
+        
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.
 class HandConfigurationHand:

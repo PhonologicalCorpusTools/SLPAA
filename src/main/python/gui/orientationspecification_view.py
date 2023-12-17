@@ -29,8 +29,8 @@ from lexicon.module_classes import (
     MannerRelation,
     Distance,
     Direction,
-    RelationX,
-    RelationY,
+    OrientationPalm,
+    OrientationFingerRoot,
     ModuleTypes,
     ContactRelation,
     ContactType,
@@ -85,7 +85,7 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
         self.islinkedtointerval = hasinterval
         self.check_enable_allsubmenus()
         
-    def getsavedmodule_new(self, articulators, timingintervals, addedinfo):
+    def getsavedmodule_new(self, articulators, timingintervals, addedinfo, inphase):
         
         orimod = OrientationModule(articulators=articulators,
                                    timingintervals=timingintervals,
@@ -100,22 +100,19 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
     
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
 
-        relmod = RelationModule(relationx=self.getcurrentx(),
-                                relationy=self.getcurrenty(),
-                                bodyparts_dict=self.bodyparts_dict,
-                                contactrel=self.getcurrentcontact(),
-                                xy_crossed=self.crossed_cb.isEnabled() and self.crossed_cb.isChecked(),
-                                xy_linked=self.linked_cb.isEnabled() and self.linked_cb.isChecked(),
-                                directionslist=self.getcurrentdirections(),
-                                articulators=articulators,
-                                timingintervals=timingintervals,
-                                addedinfo=addedinfo,
-                                )
+        orimod = OrientationModule(palmdirs_list=self.getcurrentpalmdirections(),
+                                   rootdirs_list=self.getcurrentrootdirections(),
+                                   articulators=articulators,
+                                   timingintervals=timingintervals,
+                                   addedinfo=addedinfo,
+                                   inphase=inphase
+                                   )
+        
         if self.existingkey is not None:
-            relmod.uniqueid = self.existingkey
+            orimod.uniqueid = self.existingkey
         else:
-            self.existingkey = relmod.uniqueid
-        return relmod
+            self.existingkey = orimod.uniqueid
+        return orimod
 
 
     # if 'movement' is selected for Y,
@@ -381,65 +378,65 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
         return root_box
     
 
-    def handle_handpartbutton_clicked(self):
-        bodyparttype = HAND
-        h1label = ""
-        h2label = ""
-        if self.x_h1_radio.isChecked():
-            h1label = "X"
-        elif self.x_h2_radio.isChecked():
-            h2label = "X"
-        elif self.x_both_radio.isChecked():
-            h1label = "part of X"
-            h2label = "part of X"
-        if self.y_h2_radio.isChecked():
-            h2label = "Y"
-        handpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=h1label, bodypart2label=h2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
-        handpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.handpart_button))
-        handpart_selector.exec_()
+    # def handle_handpartbutton_clicked(self):
+    #     bodyparttype = HAND
+    #     h1label = ""
+    #     h2label = ""
+    #     if self.x_h1_radio.isChecked():
+    #         h1label = "X"
+    #     elif self.x_h2_radio.isChecked():
+    #         h2label = "X"
+    #     elif self.x_both_radio.isChecked():
+    #         h1label = "part of X"
+    #         h2label = "part of X"
+    #     if self.y_h2_radio.isChecked():
+    #         h2label = "Y"
+    #     handpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=h1label, bodypart2label=h2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
+    #     handpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.handpart_button))
+    #     handpart_selector.exec_()
 
-    def handle_armpartbutton_clicked(self):
-        bodyparttype = ARM
-        a1label = ""
-        a2label = ""
-        if self.x_a1_radio.isChecked():
-            a1label = "X"
-        elif self.x_a2_radio.isChecked():
-            a2label = "X"
-        if self.y_a2_radio.isChecked():
-            a2label = "Y"
-        armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label, bodypart2label=a2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
-        armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
-        armpart_selector.exec_()
+    # def handle_armpartbutton_clicked(self):
+    #     bodyparttype = ARM
+    #     a1label = ""
+    #     a2label = ""
+    #     if self.x_a1_radio.isChecked():
+    #         a1label = "X"
+    #     elif self.x_a2_radio.isChecked():
+    #         a2label = "X"
+    #     if self.y_a2_radio.isChecked():
+    #         a2label = "Y"
+    #     armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label, bodypart2label=a2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
+    #     armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
+    #     armpart_selector.exec_()
 
-    def handle_legpartbutton_clicked(self):
-        bodyparttype = LEG
-        l1label = ""
-        l2label = ""
-        if self.x_l1_radio.isChecked():
-            l1label = "X"
-        elif self.x_l2_radio.isChecked():
-            l2label = "X"
-        if self.y_l1_radio.isChecked():
-            l1label = "Y"
-        elif self.y_l2_radio.isChecked():
-            l2label = "Y"
-        legpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=l1label, bodypart2label=l2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
-        legpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.legpart_button))
-        legpart_selector.exec_()
+    # def handle_legpartbutton_clicked(self):
+    #     bodyparttype = LEG
+    #     l1label = ""
+    #     l2label = ""
+    #     if self.x_l1_radio.isChecked():
+    #         l1label = "X"
+    #     elif self.x_l2_radio.isChecked():
+    #         l2label = "X"
+    #     if self.y_l1_radio.isChecked():
+    #         l1label = "Y"
+    #     elif self.y_l2_radio.isChecked():
+    #         l2label = "Y"
+    #     legpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=l1label, bodypart2label=l2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
+    #     legpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.legpart_button))
+    #     legpart_selector.exec_()
 
-    def handle_bodyparts_saved(self, bodypart1info, bodypart2info, bodypart_button):
-        self.bodyparts_dict[bodypart1info.bodyparttype][1] = bodypart1info
-        self.bodyparts_dict[bodypart2info.bodyparttype][2] = bodypart2info
-        bodypart_button.hascontent = bodypart1info.hascontent() or bodypart2info.hascontent()
+    # def handle_bodyparts_saved(self, bodypart1info, bodypart2info, bodypart_button):
+    #     self.bodyparts_dict[bodypart1info.bodyparttype][1] = bodypart1info
+    #     self.bodyparts_dict[bodypart2info.bodyparttype][2] = bodypart2info
+    #     bodypart_button.hascontent = bodypart1info.hascontent() or bodypart2info.hascontent()
 
 
-    def handle_existingmodswitch_toggled(self, selection_dict):
-        if True in selection_dict.values():
-            self.y_existingmod_radio.setChecked(True)
-        self.update_existingmodule_list(selection_dict)
+    # def handle_existingmodswitch_toggled(self, selection_dict):
+    #     if True in selection_dict.values():
+    #         self.y_existingmod_radio.setChecked(True)
+    #     self.update_existingmodule_list(selection_dict)
 
-        self.check_enable_allsubmenus()
+    #     self.check_enable_allsubmenus()
 
     def update_existingmodule_list(self, selection_dict):
         if selection_dict[1]:
@@ -449,12 +446,12 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
         else:
             self.existingmodule_listmodel.setmoduleslist(None)
 
-    def handle_existingmod_clicked(self, modelindex):
-        if modelindex not in self.existingmod_listview.selectedIndexes():
-            # don't need to do anything special
-            return
-        # ensure the parent is checked
-        self.y_existingmod_radio.setChecked(True)
+    # def handle_existingmod_clicked(self, modelindex):
+    #     if modelindex not in self.existingmod_listview.selectedIndexes():
+    #         # don't need to do anything special
+    #         return
+    #     # ensure the parent is checked
+    #     self.y_existingmod_radio.setChecked(True)
 
     # used when the relation module is spawned from an existing other module (eg location)
     def setvaluesfromanchor(self, linkedfrommoduleid, linkedfrommoduletype):
@@ -476,23 +473,13 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
             articulator, articulator_dict = linkedfrommodule.articulators
             if articulator == HAND:
                 if articulator_dict[1] and articulator_dict[2]:
-                    self.x_both_radio.setChecked(True)
+                    self.both_radio.setChecked(True)
                     if linkedfrommodule.inphase >- 3:
-                        self.x_bothconnected_cb.setChecked(True)
+                        self.both_radio.setChecked(True)
                 elif articulator_dict[1]:
-                    self.x_h1_radio.setChecked(True)
+                    self.h1_radio.setChecked(True)
                 elif articulator_dict[2]:
-                    self.x_h2_radio.setChecked(True)
-            elif articulator == ARM:
-                if articulator_dict[1]:
-                    self.x_a1_radio.setChecked(True)
-                elif articulator_dict[2]:
-                    self.x_a2_radio.setChecked(True)
-            elif articulator == LEG:
-                if articulator_dict[1]:
-                    self.x_l1_radio.setChecked(True)
-                elif articulator_dict[2]:
-                    self.x_l2_radio.setChecked(True)
+                    self.h2_radio.setChecked(True)
 
             # ...and the "Y" selection in the relation module should auto-fill to
             #  match the location selected in the location module.
@@ -511,171 +498,134 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
                 self.nocontact_rb.setChecked(True)
 
     def setvalues(self, moduletoload):
-        self.setcurrentx(moduletoload.relationx)
-        self.setcurrenty(moduletoload.relationy)
-        self.setcurrentcontact(moduletoload.contactrel)
-        self.crossed_cb.setChecked(moduletoload.xy_crossed)
-        self.linked_cb.setChecked(moduletoload.xy_linked)
-        self.setcurrentdirection(moduletoload.directions)
-        self.setbodyparts(moduletoload.bodyparts_dict)
+        self.setcurrentpalmdirection(moduletoload.palm)
+        self.setcurrentrootdirection(moduletoload.root)
 
         # TODO KV set the linked-from module if there is one in moduletoload
 
-    def setbodyparts(self, bodyparts_dict):
-        self.bodyparts_dict = bodyparts_dict
-        self.handpart_button.hascontent = self.bodyparts_dict[HAND][1].hascontent() or self.bodyparts_dict[HAND][2].hascontent()
-        self.armpart_button.hascontent = self.bodyparts_dict[ARM][1].hascontent() or self.bodyparts_dict[ARM][2].hascontent()
-        self.legpart_button.hascontent = self.bodyparts_dict[LEG][1].hascontent() or self.bodyparts_dict[LEG][2].hascontent()
+    # def setbodyparts(self, bodyparts_dict):
+    #     self.bodyparts_dict = bodyparts_dict
+    #     self.handpart_button.hascontent = self.bodyparts_dict[HAND][1].hascontent() or self.bodyparts_dict[HAND][2].hascontent()
+    #     self.armpart_button.hascontent = self.bodyparts_dict[ARM][1].hascontent() or self.bodyparts_dict[ARM][2].hascontent()
+    #     self.legpart_button.hascontent = self.bodyparts_dict[LEG][1].hascontent() or self.bodyparts_dict[LEG][2].hascontent()
 
 
-    def setcurrentx(self, relationx):
-        if relationx is not None:
-            self.x_other_text.setText(relationx.othertext)
-            self.x_h1_radio.setChecked(relationx.h1)
-            self.x_h2_radio.setChecked(relationx.h2)
-            self.x_both_radio.setChecked(relationx.both)
-            if relationx.both:
-                self.x_bothconnected_cb.setChecked(relationx.connected)
-            self.x_a1_radio.setChecked(relationx.arm1)
-            self.x_a2_radio.setChecked(relationx.arm2)
-            self.x_l1_radio.setChecked(relationx.leg1)
-            self.x_l2_radio.setChecked(relationx.leg2)
-            self.x_other_radio.setChecked(relationx.other)
 
-    def getcurrentx(self):
-        return RelationX(h1=self.x_h1_radio.isChecked(),
-                         h2=self.x_h2_radio.isChecked(),
-                         both=self.x_both_radio.isChecked(),
-                         connected=self.x_bothconnected_cb.isChecked(),
-                         arm1=self.x_a1_radio.isChecked(),
-                         arm2=self.x_a2_radio.isChecked(),
-                         leg1=self.x_l1_radio.isChecked(),
-                         leg2=self.x_l2_radio.isChecked(),
-                         other=self.x_other_radio.isChecked(),
-                         othertext=self.x_other_text.text())
+    # def getcurrentcontact(self):
+    #     hascontact = self.contact_rb.isChecked()
+    #     hasnocontact = self.nocontact_rb.isChecked()
+    #     contactreln = None
+    #     if hascontact:
+    #         mannerrel = self.getcurrentmanner()
+    #         contacttype = self.getcurrentcontacttype()
+    #         contactreln = ContactRelation(contact=True, contacttype=contacttype, mannerrel=mannerrel)
+    #     elif hasnocontact:
+    #         distances = self.getcurrentdistances()
+    #         contactreln = ContactRelation(contact=False, distance_list=distances)
+    #     else:  # contact isn't specified (neither "contact" nor "no contact" radio button is selected)
+    #         distances = self.getcurrentdistances()
+    #         contactreln = ContactRelation(contact=None, distance_list=distances)
+    #     return contactreln
 
-    def setcurrenty(self, relationy):
-        if relationy is not None:
-            self.y_other_text.setText(relationy.othertext)
-            self.y_h2_radio.setChecked(relationy.h2)
-            self.y_a2_radio.setChecked(relationy.arm2)
-            self.y_l1_radio.setChecked(relationy.leg1)
-            self.y_l2_radio.setChecked(relationy.leg2)
-            self.y_existingmod_radio.setChecked(relationy.existingmodule)
-            if relationy.existingmodule:
-                self.setcurrentlinkedmoduleinfo(relationy.linkedmoduleids, relationy.linkedmoduletype)
-            self.y_other_radio.setChecked(relationy.other)
+    # def getcurrentcontacttype(self):
+    #     contacttype = ContactType(
+    #         light=self.contactlight_rb.isChecked(),
+    #         firm=self.contactfirm_rb.isChecked(),
+    #         other=self.contactother_rb.isChecked(),
+    #         othertext=self.contact_other_text.text()
+    #     )
+    #     return contacttype
 
-    def getcurrenty(self):
-        return RelationY(h2=self.y_h2_radio.isChecked(),
-                         arm2=self.y_a2_radio.isChecked(),
-                         leg1=self.y_l1_radio.isChecked(),
-                         leg2=self.y_l2_radio.isChecked(),
-                         existingmodule=self.y_existingmod_radio.isChecked(),
-                         linkedmoduletype=self.getcurrentlinkedmoduletype(),
-                         linkedmoduleids=self.getcurrentlinkedmoduleids(),
-                         other=self.y_other_radio.isChecked(),
-                         othertext=self.y_other_text.text())
+    # def getcurrentmanner(self):
+    #     contactmannerreln = MannerRelation(
+    #         holding=self.holding_rb.isChecked(),
+    #         continuous=self.continuous_rb.isChecked(),
+    #         intermittent=self.intermittent_rb.isChecked()
+    #     )
+    #     return contactmannerreln
 
-    def getcurrentcontact(self):
-        hascontact = self.contact_rb.isChecked()
-        hasnocontact = self.nocontact_rb.isChecked()
-        contactreln = None
-        if hascontact:
-            mannerrel = self.getcurrentmanner()
-            contacttype = self.getcurrentcontacttype()
-            contactreln = ContactRelation(contact=True, contacttype=contacttype, mannerrel=mannerrel)
-        elif hasnocontact:
-            distances = self.getcurrentdistances()
-            contactreln = ContactRelation(contact=False, distance_list=distances)
-        else:  # contact isn't specified (neither "contact" nor "no contact" radio button is selected)
-            distances = self.getcurrentdistances()
-            contactreln = ContactRelation(contact=None, distance_list=distances)
-        return contactreln
-
-    def getcurrentcontacttype(self):
-        contacttype = ContactType(
-            light=self.contactlight_rb.isChecked(),
-            firm=self.contactfirm_rb.isChecked(),
-            other=self.contactother_rb.isChecked(),
-            othertext=self.contact_other_text.text()
-        )
-        return contacttype
-
-    def getcurrentmanner(self):
-        contactmannerreln = MannerRelation(
-            holding=self.holding_rb.isChecked(),
-            continuous=self.continuous_rb.isChecked(),
-            intermittent=self.intermittent_rb.isChecked()
-        )
-        return contactmannerreln
-
-    def getcurrentdirections(self):
+    def getcurrentpalmdirections(self):
         direction_hor = Direction(axis=Direction.HORIZONTAL,
                                   axisselected=self.palm_dirhor_cb.isChecked(),
                                   plus=self.palm_dirhoripsi_rb.isChecked(),
-                                  minus=self.palm_dirhorcontra_rb.isChecked(),
-                                  inline=self.dirhorinline_rb.isChecked()
+                                  minus=self.palm_dirhorcontra_rb.isChecked()
                                   )
         direction_ver = Direction(axis=Direction.VERTICAL,
                                   axisselected=self.palm_dirver_cb.isChecked(),
                                   plus=self.palm_dirverup_rb.isChecked(),
-                                  minus=self.palm_dirverdown_rb.isChecked(),
-                                  inline=self.dirverinline_rb.isChecked()
+                                  minus=self.palm_dirverdown_rb.isChecked()
                                   )
         direction_sag = Direction(axis=Direction.SAGITTAL,
                                   axisselected=self.palm_dirsag_cb.isChecked(),
                                   plus=self.palm_dirsagprox_rb.isChecked(),
-                                  minus=self.palm_dirsagdist_rb.isChecked(),
-                                  inline=self.dirsaginline_rb.isChecked()
+                                  minus=self.palm_dirsagdist_rb.isChecked()
                                   )
         directions = [direction_hor, direction_ver, direction_sag]
         return directions
 
-    def getcurrentdistances(self):
-        distance_hor = Distance(axis=Direction.HORIZONTAL,
-                                close=self.dishorclose_rb.isChecked(),
-                                medium=self.dishormed_rb.isChecked(),
-                                far=self.dishorfar_rb.isChecked())
-        distance_ver = Distance(axis=Direction.VERTICAL,
-                                close=self.disverclose_rb.isChecked(),
-                                medium=self.disvermed_rb.isChecked(),
-                                far=self.disverfar_rb.isChecked())
-        distance_sag = Distance(axis=Direction.SAGITTAL,
-                                close=self.dissagclose_rb.isChecked(),
-                                medium=self.dissagmed_rb.isChecked(),
-                                far=self.dissagfar_rb.isChecked())
-        distances = [distance_hor, distance_ver, distance_sag]
-        return distances
+    def getcurrentrootdirections(self):
+        direction_hor = Direction(axis=Direction.HORIZONTAL,
+                                  axisselected=self.root_dirhor_cb.isChecked(),
+                                  plus=self.root_dirhoripsi_rb.isChecked(),
+                                  minus=self.root_dirhorcontra_rb.isChecked()
+                                  )
+        direction_ver = Direction(axis=Direction.VERTICAL,
+                                  axisselected=self.root_dirver_cb.isChecked(),
+                                  plus=self.root_dirverup_rb.isChecked(),
+                                  minus=self.root_dirverdown_rb.isChecked()
+                                  )
+        direction_sag = Direction(axis=Direction.SAGITTAL,
+                                  axisselected=self.root_dirsag_cb.isChecked(),
+                                  plus=self.root_dirsagprox_rb.isChecked(),
+                                  minus=self.root_dirsagdist_rb.isChecked()
+                                  )
+        directions = [direction_hor, direction_ver, direction_sag]
+        return directions
+    
+    # def getcurrentdistances(self):
+    #     distance_hor = Distance(axis=Direction.HORIZONTAL,
+    #                             close=self.dishorclose_rb.isChecked(),
+    #                             medium=self.dishormed_rb.isChecked(),
+    #                             far=self.dishorfar_rb.isChecked())
+    #     distance_ver = Distance(axis=Direction.VERTICAL,
+    #                             close=self.disverclose_rb.isChecked(),
+    #                             medium=self.disvermed_rb.isChecked(),
+    #                             far=self.disverfar_rb.isChecked())
+    #     distance_sag = Distance(axis=Direction.SAGITTAL,
+    #                             close=self.dissagclose_rb.isChecked(),
+    #                             medium=self.dissagmed_rb.isChecked(),
+    #                             far=self.dissagfar_rb.isChecked())
+    #     distances = [distance_hor, distance_ver, distance_sag]
+    #     return distances
 
-    def setcurrentcontact(self, contactrel):
-        if contactrel is None or contactrel.contact is None:
-            return
-        elif contactrel.contact:
-            self.contact_rb.setChecked(True)
-            if contactrel.contacttype:
-                self.setcurrentcontacttype(contactrel.contacttype)
-            if contactrel.manner:
-                self.setcurrentmanner(contactrel.manner)
-        else:  # no contact
-            self.nocontact_rb.setChecked(True)
-            if contactrel.distances:
-                self.setcurrentdistances(contactrel.distances)
+    # def setcurrentcontact(self, contactrel):
+    #     if contactrel is None or contactrel.contact is None:
+    #         return
+    #     elif contactrel.contact:
+    #         self.contact_rb.setChecked(True)
+    #         if contactrel.contacttype:
+    #             self.setcurrentcontacttype(contactrel.contacttype)
+    #         if contactrel.manner:
+    #             self.setcurrentmanner(contactrel.manner)
+    #     else:  # no contact
+    #         self.nocontact_rb.setChecked(True)
+    #         if contactrel.distances:
+    #             self.setcurrentdistances(contactrel.distances)
 
-    def setcurrentmanner(self, mannerrel):
-        if mannerrel is not None:
-            self.holding_rb.setChecked(mannerrel.holding)
-            self.continuous_rb.setChecked(mannerrel.continuous)
-            self.intermittent_rb.setChecked(mannerrel.intermittent)
+    # def setcurrentmanner(self, mannerrel):
+    #     if mannerrel is not None:
+    #         self.holding_rb.setChecked(mannerrel.holding)
+    #         self.continuous_rb.setChecked(mannerrel.continuous)
+    #         self.intermittent_rb.setChecked(mannerrel.intermittent)
 
-    def setcurrentcontacttype(self, contacttype):
-        if contacttype is not None:
-            self.contactlight_rb.setChecked(contacttype.light)
-            self.contactfirm_rb.setChecked(contacttype.firm)
-            self.contactother_rb.setChecked(contacttype.other)
-            self.contact_other_text.setText(contacttype.othertext)
+    # def setcurrentcontacttype(self, contacttype):
+    #     if contacttype is not None:
+    #         self.contactlight_rb.setChecked(contacttype.light)
+    #         self.contactfirm_rb.setChecked(contacttype.firm)
+    #         self.contactother_rb.setChecked(contacttype.other)
+    #         self.contact_other_text.setText(contacttype.othertext)
 
-    def setcurrentdirection(self, directions_list):
+    def setcurrentpalmdirection(self, directions_list):
         if directions_list is not None:
             hor_direction = [axis_dir for axis_dir in directions_list if axis_dir.axis == Direction.HORIZONTAL][0]
             ver_direction = [axis_dir for axis_dir in directions_list if axis_dir.axis == Direction.VERTICAL][0]
@@ -685,37 +635,55 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
             if hor_direction.axisselected:
                 self.palm_dirhoripsi_rb.setChecked(hor_direction.plus)
                 self.palm_dirhorcontra_rb.setChecked(hor_direction.minus)
-                self.dirhorinline_rb.setChecked(hor_direction.inline)
 
             self.palm_dirver_cb.setChecked(ver_direction.axisselected)
             if ver_direction.axisselected:
                 self.palm_dirverup_rb.setChecked(ver_direction.plus)
                 self.palm_dirverdown_rb.setChecked(ver_direction.minus)
-                self.dirverinline_rb.setChecked(ver_direction.inline)
 
             self.palm_dirsag_cb.setChecked(sag_direction.axisselected)
             if sag_direction.axisselected:
                 self.palm_dirsagprox_rb.setChecked(sag_direction.plus)
                 self.palm_dirsagdist_rb.setChecked(sag_direction.minus)
-                self.dirsaginline_rb.setChecked(sag_direction.inline)
+            
+    def setcurrentrootdirection(self, directions_list):
+        if directions_list is not None:
+            hor_direction = [axis_dir for axis_dir in directions_list if axis_dir.axis == Direction.HORIZONTAL][0]
+            ver_direction = [axis_dir for axis_dir in directions_list if axis_dir.axis == Direction.VERTICAL][0]
+            sag_direction = [axis_dir for axis_dir in directions_list if axis_dir.axis == Direction.SAGITTAL][0]
 
-    def setcurrentdistances(self, distances_list):
-        if distances_list is not None:
-            hor_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.HORIZONTAL][0]
-            ver_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.VERTICAL][0]
-            sag_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.SAGITTAL][0]
+            self.root_dirhor_cb.setChecked(hor_direction.axisselected)
+            if hor_direction.axisselected:
+                self.root_dirhoripsi_rb.setChecked(hor_direction.plus)
+                self.root_dirhorcontra_rb.setChecked(hor_direction.minus)
 
-            self.dishorclose_rb.setChecked(hor_distance.close)
-            self.dishormed_rb.setChecked(hor_distance.medium)
-            self.dishorfar_rb.setChecked(hor_distance.far)
+            self.root_dirver_cb.setChecked(ver_direction.axisselected)
+            if ver_direction.axisselected:
+                self.root_dirverup_rb.setChecked(ver_direction.plus)
+                self.root_dirverdown_rb.setChecked(ver_direction.minus)
+                
+            self.root_dirsag_cb.setChecked(sag_direction.axisselected)
+            if sag_direction.axisselected:
+                self.root_dirsagprox_rb.setChecked(sag_direction.plus)
+                self.root_dirsagdist_rb.setChecked(sag_direction.minus)
+                
+    # def setcurrentdistances(self, distances_list):
+    #     if distances_list is not None:
+    #         hor_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.HORIZONTAL][0]
+    #         ver_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.VERTICAL][0]
+    #         sag_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.SAGITTAL][0]
 
-            self.disverclose_rb.setChecked(ver_distance.close)
-            self.disvermed_rb.setChecked(ver_distance.medium)
-            self.disverfar_rb.setChecked(ver_distance.far)
+    #         self.dishorclose_rb.setChecked(hor_distance.close)
+    #         self.dishormed_rb.setChecked(hor_distance.medium)
+    #         self.dishorfar_rb.setChecked(hor_distance.far)
 
-            self.dissagclose_rb.setChecked(sag_distance.close)
-            self.dissagmed_rb.setChecked(sag_distance.medium)
-            self.dissagfar_rb.setChecked(sag_distance.far)
+    #         self.disverclose_rb.setChecked(ver_distance.close)
+    #         self.disvermed_rb.setChecked(ver_distance.medium)
+    #         self.disverfar_rb.setChecked(ver_distance.far)
+
+    #         self.dissagclose_rb.setChecked(sag_distance.close)
+    #         self.dissagmed_rb.setChecked(sag_distance.medium)
+    #         self.dissagfar_rb.setChecked(sag_distance.far)
 
     def getcurrentlinkedmoduletype(self):
         switch_dict = self.y_existingmod_switch.getvalue()
@@ -768,51 +736,50 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
 
         buttongroup.setExclusive(True)
 
-    def clear_x_options(self):
-        self.clear_group_buttons(self.x_group)
-        self.x_other_text.clear()
-        self.x_bothconnected_cb.setChecked(False)
+    # def clear_x_options(self):
+    #     self.clear_group_buttons(self.x_group)
+    #     self.x_other_text.clear()
+    #     self.x_bothconnected_cb.setChecked(False)
 
-        self.enable_x_options(True)
+    #     self.enable_x_options(True)
 
-    def enable_x_options(self, doenable):
-        self.x_other_text.setEnabled(doenable)
-        self.x_bothconnected_cb.setEnabled(doenable)
+    # def enable_x_options(self, doenable):
+    #     self.x_other_text.setEnabled(doenable)
+    #     self.x_bothconnected_cb.setEnabled(doenable)
 
-    def clear_y_options(self):
-        self.clear_group_buttons(self.y_group)
-        self.setcurrentlinkedmoduleinfo(None, None)
-        self.y_other_text.clear()
+    # def clear_y_options(self):
+    #     self.clear_group_buttons(self.y_group)
+    #     self.setcurrentlinkedmoduleinfo(None, None)
+    #     self.y_other_text.clear()
 
-        self.enable_y_options(True)
+    #     self.enable_y_options(True)
 
-    def enable_y_options(self, doenable):
-        self.y_other_text.setEnabled(doenable)
-        self.existingmod_listview.setEnabled(doenable)
+    # def enable_y_options(self, doenable):
+    #     self.y_other_text.setEnabled(doenable)
+    #     self.existingmod_listview.setEnabled(doenable)
 
-    def clear_distance_buttons(self):
-        for grp in [self.dishor_group, self.disver_group, self.dissag_group]:
-            self.clear_group_buttons(grp)
+    # def clear_distance_buttons(self):
+    #     for grp in [self.dishor_group, self.disver_group, self.dissag_group]:
+    #         self.clear_group_buttons(grp)
 
-        for grpbox in [self.dishor_box, self.disver_box, self.dissag_box]:
-            grpbox.setEnabled(True)
+    #     for grpbox in [self.dishor_box, self.disver_box, self.dissag_box]:
+    #         grpbox.setEnabled(True)
 
     def clear_direction_buttons(self):
-        for cb in [self.palm_dirhor_cb, self.palm_dirver_cb, self.palm_dirsag_cb]:
+        for cb in [self.palm_dirhor_cb, self.palm_dirver_cb, self.palm_dirsag_cb,
+                   self.root_dirhor_cb, self.root_dirver_cb, self.root_dirsag_cb]:
             cb.setChecked(False)
-        for grp in [self.palm_dirhor_group, self.palm_dirver_group, self.palm_dirsag_group]:
+        for grp in [self.palm_dirhor_group, self.palm_dirver_group, self.palm_dirsag_group,
+                    self.root_dirhor_group, self.root_dirver_group, self.root_dirsag_group]:
             self.clear_group_buttons(grp)
 
-        for grpbox in [self.palm_dirhor_box, self.palm_dirver_box, self.palm_dirsag_box]:
+        for grpbox in [self.palm_dirhor_box, self.palm_dirver_box, self.palm_dirsag_box,
+                       self.root_dirhor_box, self.root_dirver_box, self.root_dirsag_box]:
             grpbox.setEnabled(True)
 
     def clear(self):
-        self.clear_x_options()
-        self.clear_y_options()
         self.clear_direction_buttons()
-        self.clear_distance_buttons()
-        self.clear_group_buttons(self.manner_group)
-        self.clear_group_buttons(self.contact_group)
+        # self.clear_distance_buttons()
 
     def desiredwidth(self):
         return 500
