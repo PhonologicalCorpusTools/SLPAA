@@ -90,11 +90,11 @@ class ModuleSelectorDialog(QDialog):
         self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
         main_layout.addLayout(self.arts_and_addedinfo_layout)
-
+        self.arts_and_addedinfo_layout.minimumSize()
         self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
                                               timingintervals=timingintervals,
                                               parent=self)
-        self.xslot_widget.setFixedHeight(300)
+        self.xslot_widget.setFixedHeight(250)
 
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addWidget(self.xslot_widget)
@@ -532,7 +532,7 @@ class XslotLinkingPanel(QFrame):
         main_layout = QVBoxLayout()
 
         self.link_intro_label = QLabel("Click on the relevant point(s) or interval(s) to link this module.")
-        self.link_intro_label.setFixedHeight(30)
+        self.link_intro_label.setFixedHeight(16)
         main_layout.addWidget(self.link_intro_label)
 
         self.xslotlinkscene = XslotLinkScene(timingintervals=self.timingintervals, parentwidget=self)
