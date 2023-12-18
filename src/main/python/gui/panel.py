@@ -325,7 +325,7 @@ class SignSummaryPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
+            signleveltext.setPlainText("/".join(self.sign.signlevel_information.gloss) + " - " + self.entryid_string())
         signleveltext.setPos(self.x_offset, self.current_y)
         self.current_y += 30
         self.scene.addItem(signleveltext)
@@ -858,7 +858,7 @@ class SignLevelMenuPanel(QScrollArea):
     @sign.setter
     def sign(self, sign):
         self._sign = sign
-        self.signgloss_label.setText("Sign: " + sign.signlevel_information.gloss if sign else "")
+        self.signgloss_label.setText("Sign: " + "/".join(sign.signlevel_information.gloss) if sign else "")
 
     def clear(self):
         self._sign = None

@@ -63,7 +63,7 @@ def check_date_format(func):
 def check_empty_gloss(func):
     @functools.wraps(func)
     def wrapper_check_empty_gloss(self, *args, **kwargs):
-        if not self.gloss_edit.text():
+        if not len(self.glosses_model.glosses()) > 0:
             QMessageBox.critical(self, 'Empty Gloss', 'Gloss cannot be empty.')
             return
         else:

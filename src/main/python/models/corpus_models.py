@@ -20,16 +20,20 @@ lemmarole = 4
 
 class CorpusItem(QStandardItem):
 
-    def __init__(self, sign=None):
+    def __init__(self, sign=None, gloss=None):
         super().__init__()
 
         self.sign = sign
+        self.glosstodisplay = gloss
         self.setEditable(False)
         self.setCheckable(False)
 
     def data(self, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            return self.sign.signlevel_information.gloss
+            if self.glosstodisplay is not None:
+                return self.glosstodisplay
+            else:
+                return self.sign.signlevel_information.gloss[0]
         elif role == Qt.UserRole+lemmarole:
             return self.sign.signlevel_information.lemma
         elif role == Qt.UserRole+datecreatedrole:
@@ -51,8 +55,10 @@ class CorpusModel(QStandardItemModel):
         signs = signs or []
         self.clear()
         for sign in signs:
-            signitem = CorpusItem(sign)
-            self.appendRow(signitem)
+            for gloss in sign.signlevel_information.gloss:
+                if len(gloss.strip()) > 0:
+                    signitem = CorpusItem(sign, gloss)
+                    self.appendRow(signitem)
         self.modelupdated.emit()
 
 

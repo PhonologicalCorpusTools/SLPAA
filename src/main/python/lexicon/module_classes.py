@@ -147,8 +147,11 @@ class SignLevelInformation:
     def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
         if serializedsignlevelinfo is not None:
             self._entryid = serializedsignlevelinfo['entryid']
-            self._gloss = serializedsignlevelinfo['gloss']
+            # as of 20231208, gloss is now a list rather than a string
+            self._gloss = [serializedsignlevelinfo['gloss']] if isinstance(serializedsignlevelinfo['gloss'], str) else serializedsignlevelinfo['gloss']
             self._lemma = serializedsignlevelinfo['lemma']
+            # backward compatibility for attribute added 20231211
+            self._idgloss = serializedsignlevelinfo['idgloss'] if 'idgloss' in serializedsignlevelinfo.keys() else ''
             self._source = serializedsignlevelinfo['source']
             self._signer = serializedsignlevelinfo['signer']
             self._frequency = serializedsignlevelinfo['frequency']
@@ -156,7 +159,7 @@ class SignLevelInformation:
             self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
-            # backward compatibility for attribute added 20230412!
+            # backward compatibility for attribute added 20230412
             self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
@@ -164,6 +167,7 @@ class SignLevelInformation:
             self._entryid = signlevel_info['entryid']
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
+            self._idgloss = signlevel_info['idgloss']
             self._source = signlevel_info['source']
             self._signer = signlevel_info['signer']
             self._frequency = signlevel_info['frequency']
@@ -181,15 +185,17 @@ class SignLevelInformation:
     def __eq__(self, other):
         aresame = True
         if isinstance(other, SignLevelInformation):
-            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
+            if self._entryid != other.entryid or self.gloss != other.gloss or self._lemma != other.lemma:
                 aresame = False
-            if self._source != other.source or self._signer != other.signer or self._frequency != other.frequency:
+            if self._idgloss != other.idgloss or self._source != other.source or self._signer != other.signer:
                 aresame = False
-            if self._coder != other.coder or self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
+            if self._frequency != other.frequency or self._coder != other.coder:
                 aresame = False
-            if self._note != other.note or self._fingerspelled != other.fingerspelled or self._handdominance != other.handdominance:
+            if self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
                 aresame = False
-            if self._compoundsign != other.compoundsign:
+            if self._note != other.note or self._fingerspelled != other.fingerspelled:
+                aresame = False
+            if self._handdominance != other.handdominance or self._compoundsign != other.compoundsign:
                 aresame = False
         else:
             aresame = False
@@ -198,8 +204,9 @@ class SignLevelInformation:
     def serialize(self):
         return {
             'entryid': self._entryid,
-            'gloss': self._gloss,
+            'gloss': self.gloss,
             'lemma': self._lemma,
+            'idgloss': self._idgloss,
             'source': self._source,
             'signer': self._signer,
             'frequency': self._frequency,
@@ -235,6 +242,16 @@ class SignLevelInformation:
     @lemma.setter
     def lemma(self, new_lemma):
         self._lemma = new_lemma
+
+    @property
+    def idgloss(self):
+        if not hasattr(self, '_idgloss'):
+            self._idgloss = ''
+        return self._idgloss
+
+    @idgloss.setter
+    def idgloss(self, new_idgloss):
+        self._idgloss = new_idgloss
 
     @property
     def fingerspelled(self):

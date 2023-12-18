@@ -310,7 +310,7 @@ class Sign:
 
     @signlevel_information.setter
     def signlevel_information(self, signlevelinfo):
-        self._signlevel_information = signlevelinfo  # SignLevelInformation(signlevelinfo)
+        self._signlevel_information = signlevelinfo
 
     @property
     def location(self):
