@@ -200,11 +200,32 @@ def get_node_sequence(item):
 
 
 def update_nodes(nodes):
-    # Issue 194: Add abs/rel movement options 
-    if ((nodes[2] == 'Axis direction' or nodes[2] == 'Plane') and nodes[3] != 'Absolute'):
-        nodes.insert(3, 'Absolute')
+    paths_to_add = []
+    length = len(nodes)
+    # print(length)
+   
+    # Issue 193: Update thumb movements in joint activity section
+    if nodes[0] == 'Joint activity':
+        if (nodes[1] == 'Thumb base / metacarpophalangeal'):
+            nodes[1] = 'Thumb base / metacarpophalangeal (MCP)'
+            paths_to_add.append(nodes)
+ 
+        elif (length > 1 and nodes[1] == 'Thumb non-base / interphalangeal'):
+            nodes[1] = 'Thumb non-base / interphalangeal (IP)'
+            paths_to_add.append(nodes)
 
-    return nodes
+        if (length > 2 and (nodes[2] == 'Abduction' or nodes[2] == 'Adduction')):
+            nodes[1] = 'Thumb root / carpometacarpal (CMC)'
+            paths_to_add.append(nodes[0:2] + (['Radial abduction'] if nodes[2] == 'Abduction' else ['Radial adduction']))
+            paths_to_add.append(nodes[0:2] + (['Palmar abduction'] if nodes[2] == 'Abduction' else ['Palmar adduction']))
+                
+
+    # Issue 194: Add abs/rel movement options 
+    if (length > 2 and (nodes[2] == 'Axis direction' or nodes[2] == 'Plane') and nodes[3] != 'Absolute'):
+        nodes.insert(3, 'Absolute')
+        paths_to_add.append(nodes)
+
+    return paths_to_add
 
 
 appcontext = AppContext()
@@ -221,6 +242,7 @@ for sign in converter.corpus.signs:
         module = sign.getmoduledict(ModuleTypes.MOVEMENT)[k]
         mvmttreemodel = module.movementtreemodel
         missing_values = mvmttreemodel.compare_checked_lists()
+        print("missing:")
         for val in missing_values:
             print(val)
         print("\n")
@@ -229,10 +251,13 @@ for sign in converter.corpus.signs:
         newpaths = []
 
         for oldpath in missing_values:
-            new_node_list = update_nodes(get_node_sequence(oldpath))
-            newpath = delimiter.join(new_node_list)
-            correctionsdict[newpath] = oldpath 
-            newpaths.append(newpath)
+            paths_to_add = update_nodes(get_node_sequence(oldpath))
+            for path in paths_to_add:
+
+                newpath = delimiter.join(path)
+                correctionsdict[newpath] = oldpath 
+                newpaths.append(newpath)
+
 
         mvmttreemodel.addcheckedvalues(mvmttreemodel.invisibleRootItem(), newpaths, correctionsdict)
         mvmttreemodel.uncheck_in_checkstates(missing_values)
