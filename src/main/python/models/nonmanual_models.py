@@ -70,7 +70,7 @@ class NonManualModel:
 
 
 class ActionStateModel:
-    def __init__(self, options, label=None, exclusive=False):
+    def __init__(self, options=None, label=None, exclusive=False):
         self.label = label
         self.exclusive = exclusive
         self.options = options
@@ -136,31 +136,45 @@ mouth_lips = NonManualModel(
                                                                      'Large stretch']),
                                            ActionStateModel(label='Raise',
                                                             options=[ActionStateModel(label='upper lip',
-                                                                                      options=[ActionStateModel(label='One side',
-                                                                                                                options=['H1 side',
-                                                                                                                         'H2 side']),
-                                                                                               'Whole',]),
+                                                                                      options=[
+                                                                                          ActionStateModel(label='One side',
+                                                                                                           options=['H1 side',
+                                                                                                                    'H2 side'],
+                                                                                                           exclusive=True),
+                                                                                          'Whole',
+                                                                                      ],
+                                                                                      exclusive=True
+                                                                                      ),
                                                                      ActionStateModel(label='corner(s)',
-                                                                                      options=[ActionStateModel(label='One side',
-                                                                                                                options=['H1 side',
-                                                                                                                         'H2 side']),
-                                                                                               'Both sides']),]),
+                                                                                      options=[
+                                                                                          ActionStateModel(label='One side',
+                                                                                                           options=['H1 side',
+                                                                                                                    'H2 side'],
+                                                                                                           exclusive=True),
+                                                                                          'Both sides',
+                                                                                      ],
+                                                                                      exclusive=True
+                                                                                      ),
+                                                                     ]
+                                                            ),
                                            ActionStateModel(label='Curve down corners',
                                                             options=[ActionStateModel(label='One side',
                                                                                       options=['H1 side',
-                                                                                               'H2 side']),
+                                                                                               'H2 side'],
+                                                                                      exclusive=True),
                                                                      'Both sides']),
-                                           'Pucker',
-                                           'Vibrate',  # gray out if static
-                                           'Purse',
-                                           'Round',
-                                           'Tense',
+                                           ActionStateModel(label='Pucker'),
+                                           ActionStateModel(label='Vibrate'),   # gray out if static
+                                           ActionStateModel(label='Purse'),
+                                           ActionStateModel(label='Round'),
+                                           ActionStateModel(label='Tense'),
                                            ActionStateModel(label='Puff',
                                                             options=['Both lips',
                                                                      ActionStateModel(label='One lip',
                                                                                       options=['Upper lip',
-                                                                                               'Lower lip']),
-                                                                     ]
+                                                                                               'Lower lip'],
+                                                                                      exclusive=True),
+                                                                     ],
                                                             ),
                                            ])
 
@@ -194,28 +208,24 @@ mouth_tongue = NonManualModel(
                                                                                       )]
                                                             ),
                                            ActionStateModel(label='Contact',
-                                                            options=['Behind upper teeth',
-                                                                     'Touch upper lip',
-                                                                     'Touch lower lip',
-                                                                     'Touch lower teeth',
+                                                            options=[ActionStateModel(label='Behind upper teeth'),
+                                                                     ActionStateModel(label='Touch upper lip'),
+                                                                     ActionStateModel(label='Touch lower lip'),
+                                                                     ActionStateModel(label='Touch lower teeth'),
                                                                      ActionStateModel(label='Touch a corner of the mouth',
                                                                                       options=['H1 side corner',
                                                                                                'H2 side corner']),
                                                                      ActionStateModel(label='Push into cheek',
                                                                                       options=['H1 side cheek',
                                                                                                'H2 side cheek']),
-                                                                     'Push behind bottom lip',
-                                                                     'Push behind upper lip'])
+                                                                     ActionStateModel(label='Push behind bottom lip'),
+                                                                     ActionStateModel(label='Push behind upper lip')])
                                            ])
 )
 mouth_cheek = NonManualModel(
     label='cheek',
-    action_state=ActionStateModel(options=[ActionStateModel(label='Puff',
-                                                            options=None,
-                                                            exclusive=False),
-                                           ActionStateModel(label='Such in',
-                                                            options=None,
-                                                            exclusive=False),
+    action_state=ActionStateModel(options=[ActionStateModel(label='Puff'),
+                                           ActionStateModel(label='Such in'),
                                            ],
                                   )
 
