@@ -86,7 +86,6 @@ class ActionStateModel:
         self._value = value
 
 
-
 # children of major non-manual module 'Mouth'
 mouth_teeth = NonManualModel(
     label='Teeth',
@@ -156,7 +155,6 @@ mouth_lips = NonManualModel(
                                            'Purse',
                                            'Round',
                                            'Tense',
-                                           'Puff',
                                            ActionStateModel(label='Puff',
                                                             options=['Both lips',
                                                                      ActionStateModel(label='One lip',
@@ -212,7 +210,14 @@ mouth_tongue = NonManualModel(
 )
 mouth_cheek = NonManualModel(
     label='cheek',
-    action_state=ActionStateModel(options=['puff','Suck in'])
+    action_state=ActionStateModel(options=[ActionStateModel(label='Puff',
+                                                            options=None,
+                                                            exclusive=False),
+                                           ActionStateModel(label='Such in',
+                                                            options=None,
+                                                            exclusive=False),
+                                           ],
+                                  )
 
 )
 
@@ -242,10 +247,12 @@ facial_nose = NonManualModel(
     action_state=ActionStateModel(options=['Wrinkle',
                                            ActionStateModel(label='Move to side',
                                                             options=['H1 side',
-                                                                     'H2 side']),
+                                                                     'H2 side'],
+                                                            exclusive=True),
                                            ActionStateModel(label='Move nostril(s)',
                                                             options=['Widen / flare',
-                                                                     'Pinch'])])
+                                                                     'Pinch'],
+                                                            exclusive=True)])
 )
 
 
@@ -254,17 +261,18 @@ shoulder = NonManualModel(
     subparts={'specifier': 'side',
               'opposite action': False},
     action_state=ActionStateModel(options=[ActionStateModel(label='Straight',
-                                                             options=[ActionStateModel(label='Vertical',
-                                                                                       options=['Up', 'Down'],
-                                                                                       exclusive=True),
-                                                                      ActionStateModel(label='Sagittal',
-                                                                                       options=['Distal','Proximal'],
-                                                                                       exclusive=True)],
-                                                             exclusive=True),
-                                            ActionStateModel(label='Circumduction',
-                                                             options=['forward from top of circle',
-                                                                      'backward from top of circle'],
-                                                             exclusive=True)],
+                                                            options=[ActionStateModel(label='Vertical',
+                                                                                      options=['Up', 'Down'],
+                                                                                      ),
+                                                                     ActionStateModel(label='Sagittal',
+                                                                                      options=['Distal', 'Proximal'],
+                                                                                      )
+                                                                     ],
+                                                            exclusive=True),
+                                           ActionStateModel(label='Circumduction',
+                                                            options=['forward from top of circle',
+                                                                     'backward from top of circle'],
+                                                            exclusive=True)],
                                    )
 )
 body = NonManualModel(
@@ -331,12 +339,12 @@ eyegaze = NonManualModel(
                                                                      'toward Researcher',
                                                                      ActionStateModel(label='toward Hands',
                                                                                       options=['Both hands',
-                                                                                               'One hand',
                                                                                                ActionStateModel(
                                                                                                    label='One hand',
-                                                                                                   options=['H1', 'H2'])
-
-                                                                                      ]),
+                                                                                                   options=['H1', 'H2'],
+                                                                                                   exclusive=True)
+                                                                                               ],
+                                                                                      exclusive=True),
                                                                      'toward a discourse reference; specify:',  # specify
                                                                      'toward something else; specify:']),  # specify
                                            'Unfocused',
@@ -361,7 +369,8 @@ mouth = NonManualModel(
 air = NonManualModel(
     label='Air',
     action_state=ActionStateModel(options=[ActionStateModel(label='Breath',  # grey out if static
-                                                            options=['In', 'Out']),
+                                                            options=['In', 'Out'],
+                                                            exclusive=True),
                                            'Hold breath',  # grey out if dynamic
                                            'Press air toward lips'],
                                   )
@@ -369,5 +378,12 @@ air = NonManualModel(
 )
 
 nonmanual_root = NonManualModel(
-    children=[shoulder, body, head, eyegaze, facexp, mouth, air]
+    children=[shoulder,
+              body,
+              head,
+              eyegaze,
+              facexp,
+              mouth,
+              air
+              ]
 )

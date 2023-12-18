@@ -204,72 +204,68 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
         action_state_layout = QVBoxLayout()
+
         if nonman.action_state is not None:
             root_options = nonman.action_state
             self.parse_actionstate(root_options)
-            """
-
-            for option, child in options.items():
-                nonman.widget_rb_option = SLPAARadioButton(option)
-                action_state_groupbox_layout.addWidget(nonman.widget_rb_option)
-                if type(child) == dict:
-                    suboption_layout = QHBoxLayout()
-                    for o, c in child.items():
-                        subsub_layout = QVBoxLayout()
-                        nonman.widget_rb_suboption = SLPAARadioButton(o)
-                        for sub_c in c:
-                            nonman.widget_rb_subsub = SLPAARadioButton(sub_c)
-                            subsub_layout.addWidget(nonman.widget_rb_subsub)
-
-                        suboption_layout.addWidget(nonman.widget_rb_suboption)
-                        suboption_layout.addLayout(subsub_layout)
-                    action_state_groupbox_layout.addLayout(suboption_layout)
-        """
             action_state_layout.addLayout(self.widget_grouplayout_actionstate)
+
         action_state_groupbox.setLayout(action_state_layout)
-
-        # fixed as action/state for shoulder. for demonstration purposes
-
-        row.addWidget(action_state_groupbox)
+        scrollable = QScrollArea()
+        scrollable.setWidget(action_state_groupbox)
+        scrollable.setWidgetResizable(True)
+        row.addWidget(scrollable)
 
         return row
 
     def parse_actionstate(self, options):
-        # initial
 
         if isinstance(options, str):
-            # shallow module
-            self.widget_grouplayout_actionstate.addWidget(SLPAARadioButton(options))
+            # in shallow module
+            added_rb = SLPAARadioButton(options)
+            self.widget_grouplayout_actionstate.addWidget(added_rb)
+            self.widget_grouplayout_actionstate.setAlignment(added_rb, Qt.AlignTop)
             return
+
         elif options.label:
-            # parse this node
+            # parse this node and its children
             main_layout = QVBoxLayout()
-            main_btn = SLPAARadioButton(options.label)
+            main_layout.setAlignment(Qt.AlignTop)
+            if options.exclusive:
+                main_btn = SLPAARadioButton(options.label)
+            else:
+                main_btn = QCheckBox(options.label)
             main_layout.addWidget(main_btn)
             sub_layout = QVBoxLayout()
 
             sub_spacedlayout = QHBoxLayout()
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
 
-            for child in options.options:
-                if not isinstance(child, str):
-                    sub_cb, subsub_spacedlayout = self.fillin_vbox(child)
-                    sub_layout.addWidget(sub_cb)
-                    sub_layout.addLayout(subsub_spacedlayout)
-                else:
-                    sub_layout.addWidget(SLPAARadioButton(child))
+            if options.options is not None:
+                for child in options.options:
+                    if not isinstance(child, str):
+                        sub_cb, subsub_spacedlayout = self.fillin_vbox(child)
+                        sub_layout.addWidget(sub_cb)
+                        sub_layout.addLayout(subsub_spacedlayout)
+                    else:
+                        sub_layout.addWidget(SLPAARadioButton(child))
             sub_spacedlayout.addLayout(sub_layout)
             main_layout.addLayout(sub_spacedlayout)
             self.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
-            # in the root. initialize and need to go deep
+            # in the root. initialize and be ready to go deeper
             self.widget_grouplayout_actionstate = QHBoxLayout()
+            self.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
             for child in options.options:
                 self.parse_actionstate(child)
+
     def fillin_vbox(self, asm):
         # asm: ActionStateModel
-        sub_cb = QCheckBox(asm.label)  # vertical
-        subsub_layout = QVBoxLayout()  # up down
+        if asm.exclusive:
+            sub_heading = SLPAARadioButton(asm.label)
+        else:
+            sub_heading = QCheckBox(asm.label)
+        subsub_layout = QVBoxLayout()
         for o in asm.options:
             if not isinstance(o, str):
                 cb, sub_spacedlayout = self.fillin_vbox(o)
@@ -281,7 +277,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         spacedlayout.addLayout(subsub_layout)
 
-        return sub_cb, spacedlayout
+        return sub_heading, spacedlayout
 
     def build_row3(self, nonman):
         """
@@ -306,7 +302,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         repetition_group_layout.addWidget(nonman.widget_rb_rep_rep)
         repetition_group_layout.addWidget(nonman.widget_rb_rep_trill)
         repetition_group.setLayout(repetition_group_layout)
-
 
         # Directionality group
         directionality_group = QGroupBox("Directionality")
