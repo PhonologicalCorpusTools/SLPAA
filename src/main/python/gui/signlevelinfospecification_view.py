@@ -26,6 +26,7 @@ from PyQt5.QtCore import (
 from lexicon.lexicon_classes import SignLevelInformation
 from gui.decorator import check_empty_gloss
 
+
 class SignLevelDateDisplay(QLabel):
     def __init__(self, thedatetime=None, **kwargs):
         super().__init__(**kwargs)
@@ -46,6 +47,7 @@ class SignLevelDateDisplay(QLabel):
         self.set_datetime(None)
 
 
+# This model supplies the data for the multiple-glosses editor QListView() in the SignLevelInfoPanel
 class GlossesListModel(QStringListModel):
     enterglosshere_label = 'Double-click to enter gloss here (cannot be empty)'
 
@@ -54,6 +56,9 @@ class GlossesListModel(QStringListModel):
         self.setStringList(gloss_strings)
         self.dataChanged.connect(lambda tl, br: self.setStringList(self.glosses()))
 
+    # Set the model's stringList to the list of glosses provided, plus:
+    #   (a) if empty, a default placeholder item, and
+    #   (b) no matter what, a final empty item that is used by the view to allow users to add items.
     def setStringList(self, gloss_strings):
         if gloss_strings is None:
             gloss_strings = []
@@ -64,6 +69,14 @@ class GlossesListModel(QStringListModel):
 
         super().setStringList(gloss_strings)
 
+    # This function returns the list of actual glosses in the model.
+    # The return list does *not* include
+    #   (a) entries with length 0 or consisting solely of whitespace, or
+    #   (b) the default placeholder entry 'Double-click to enter gloss here (cannot be empty)'.
+    # This is as opposed to stringList(), which returns *all* the items in the model, including
+    # potentially empty and/or default entries.
+    # The intention is that stringList() should be used by GUI elements such as the model view,
+    # whereas glosses() should be used by data elements such as SignLevelInformation.
     def glosses(self):
         glosses = self.stringList()
         return [g for g in glosses if len(g.strip()) > 0 and g != self.enterglosshere_label]
@@ -72,7 +85,6 @@ class GlossesListModel(QStringListModel):
         self.setStringList(None)
 
 
-# TODO KV redo the order in which init creates itself
 class SignLevelInfoPanel(QFrame):
 
     def __init__(self, signlevelinfo, **kwargs):
@@ -90,40 +102,50 @@ class SignLevelInfoPanel(QFrame):
         main_layout.setSpacing(5)
 
         entryid_label = QLabel("Entry ID:")
-        gloss_label = QLabel('Gloss(es):')
-        lemma_label = QLabel('Lemma:')
-        idgloss_label = QLabel('ID-gloss:')
-        source_label = QLabel('Source:')
-        signer_label = QLabel('Signer:')
-        freq_label = QLabel('Frequency:')
-        coder_label = QLabel('Coder:')
-        created_label = QLabel('Date created:')
-        modified_label = QLabel('Date last modified:')
-        note_label = QLabel('Notes:')
-
         self.entryid_value = QLineEdit()
         self.entryid_value.setText(self.entryid_string())
         self.entryid_value.setEnabled(False)
+
+        gloss_label = QLabel('Gloss(es):')
         # as of 20231208, gloss is now a list rather than a string
         self.glosses_view = QListView()
         self.glosses_view.setMaximumHeight(100)
         self.glosses_model = GlossesListModel()
         self.glosses_view.setModel(self.glosses_model)
         self.glosses_view.setFocusPolicy(Qt.StrongFocus)
+
+        lemma_label = QLabel('Lemma:')
         self.lemma_edit = QLineEdit()
+
+        idgloss_label = QLabel('ID-gloss:')
         self.idgloss_edit = QLineEdit()
+
+        source_label = QLabel('Source:')
         self.source_edit = QLineEdit()
+
+        signer_label = QLabel('Signer:')
         self.signer_edit = QLineEdit()
+
+        freq_label = QLabel('Frequency:')
         self.freq_edit = QLineEdit()
+
+        coder_label = QLabel('Coder:')
         self.coder_edit = QLineEdit()
+
+        created_label = QLabel('Date created:')
         self.created_display = SignLevelDateDisplay()
+
+        modified_label = QLabel('Date last modified:')
         self.modified_display = SignLevelDateDisplay()
+
+        note_label = QLabel('Notes:')
         self.note_edit = QPlainTextEdit()
 
-        self.fingerspelled_cb = QCheckBox()
         fingerspelled_label = QLabel('Fingerspelled:')
-        self.compoundsign_cb = QCheckBox()
+        self.fingerspelled_cb = QCheckBox()
+
         compoundsign_label = QLabel('Compound sign:')
+        self.compoundsign_cb = QCheckBox()
 
         handdominance_label = QLabel("Hand dominance:")
         self.handdominance_buttongroup = QButtonGroup()  # parent=self)
