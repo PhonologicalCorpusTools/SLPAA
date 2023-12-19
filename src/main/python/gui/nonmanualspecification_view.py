@@ -242,13 +242,18 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
 
             if options.options is not None:
+                sub_btn_group = QButtonGroup(self)
                 for child in options.options:
                     if not isinstance(child, str):
-                        sub_cb, subsub_spacedlayout = self.fillin_vbox(child)
-                        sub_layout.addWidget(sub_cb)
+                        sub_heading, subsub_spacedlayout = self.fillin_vbox(child)
+                        if isinstance(sub_heading, QRadioButton):
+                            sub_btn_group.addButton(sub_heading)
+                        sub_layout.addWidget(sub_heading)
                         sub_layout.addLayout(subsub_spacedlayout)
                     else:
-                        sub_layout.addWidget(SLPAARadioButton(child))
+                        sub_rb = SLPAARadioButton(child)
+                        sub_layout.addWidget(sub_rb)
+                        sub_btn_group.addButton(sub_rb)
             sub_spacedlayout.addLayout(sub_layout)
             main_layout.addLayout(sub_spacedlayout)
             self.widget_grouplayout_actionstate.addLayout(main_layout)
@@ -256,6 +261,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # in the root. initialize and be ready to go deeper
             self.widget_grouplayout_actionstate = QHBoxLayout()
             self.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
+            self.main_btn_group = QButtonGroup(self)
             for child in options.options:
                 self.parse_actionstate(child)
 
@@ -266,13 +272,20 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         else:
             sub_heading = QCheckBox(asm.label)
         subsub_layout = QVBoxLayout()
-        for o in asm.options:
-            if not isinstance(o, str):
-                cb, sub_spacedlayout = self.fillin_vbox(o)
-                subsub_layout.addWidget(cb)
-                subsub_layout.addLayout(sub_spacedlayout)
-            else:
-                subsub_layout.addWidget(SLPAARadioButton(o))
+
+        if asm.options is not None:
+            btn_group = QButtonGroup(self)
+            for o in asm.options:
+                if not isinstance(o, str):
+                    cb, sub_spacedlayout = self.fillin_vbox(o)
+                    if isinstance(cb, QRadioButton):
+                        btn_group.addButton(cb)
+                    subsub_layout.addWidget(cb)
+                    subsub_layout.addLayout(sub_spacedlayout)
+                else:
+                    sub_rb = SLPAARadioButton(o)
+                    subsub_layout.addWidget(sub_rb)
+                    btn_group.addButton(sub_rb)
         spacedlayout = QHBoxLayout()
         spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         spacedlayout.addLayout(subsub_layout)
