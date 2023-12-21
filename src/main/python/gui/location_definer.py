@@ -472,10 +472,10 @@ class LocationDefinerTabWidget(QTabWidget):
         self.addTab(QWidget(), QIcon(self.app_ctx.icons['plus']), 'Add location')
 
         # hide close button for the '' tab. The location of the close button is OS-dependent.
-        if os.name == 'nt':  # For Windows, buttons appear on the right
-            self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.RightSide).hide()
-        elif os.name == 'posix':  # For Linux and macOS, they are on the left
-            self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.LeftSide).hide()
+        #if os.name == 'nt':  # For Windows, buttons appear on the right
+        #    self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.RightSide).hide()
+        #elif os.name == 'posix':  # For Linux and macOS, they are on the left
+        #    self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.LeftSide).hide()
 
     def add_location_tab(self, index):
         self.number_pages += 1
@@ -525,11 +525,13 @@ class LocationDefinerTabWidget(QTabWidget):
     def close_handler(self, index):
         widget = self.widget(index)
 
-        if widget:
+        if isinstance(widget, LocationDefinerPage):   # clicked Ⓧ on a location tab
             if not widget.default and widget.image_path:
                 os.remove(widget.image_path)
 
             widget.deleteLater()
+        else:                                         # Ⓧ on the 'Add Location' tab
+            return
 
         self.removeTab(index)
 
