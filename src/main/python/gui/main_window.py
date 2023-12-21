@@ -625,9 +625,10 @@ class MainWindow(QMainWindow):
         self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size',
                                                                                           defaultValue=QSize(1200, 900))
 
-        self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2)
+        self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2, type=int)
         self.app_settings['display']['tooltips'] = bool(self.app_qsettings.value('tooltips', defaultValue=True))
-        self.app_settings['display']['entryid_digits'] = self.app_qsettings.value('entryid_digits', defaultValue=4)
+        self.app_settings['display']['entryid_digits'] = self.app_qsettings.value('entryid_digits', defaultValue=4,
+                                                                                  type=int)
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('metadata')
