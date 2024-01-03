@@ -199,7 +199,7 @@ def get_node_sequence(item):
 
 
 
-def update_nodes(nodes):
+def get_mvmt_paths_to_add(nodes):
     paths_to_add = []
     length = len(nodes)
     # print(length)
@@ -207,8 +207,7 @@ def update_nodes(nodes):
     # Issue 193: Update thumb movements in joint activity section
     if nodes[0] == 'Joint activity':
         if (length > 1 and nodes[1] == 'Thumb base / metacarpophalangeal'):
-                
-            if (length > 2 and (nodes[2] == 'Abduction' or nodes[2] == 'Adduction')):
+            if (length > 2 and (nodes[2] in ['Abduction', 'Adduction'])):
                 nodes[1] = 'Thumb root / carpometacarpal (CMC)'
                 paths_to_add.append(nodes[0:2] + (['Radial abduction'] if nodes[2] == 'Abduction' else ['Radial adduction']))
                 paths_to_add.append(nodes[0:2] + (['Palmar abduction'] if nodes[2] == 'Abduction' else ['Palmar adduction']))
@@ -217,27 +216,22 @@ def update_nodes(nodes):
                 nodes[1] = 'Thumb root / carpometacarpal (CMC)'
                 paths_to_add.append(nodes)
                 
-            
             elif (length > 2 and nodes[2] == 'Opposition'):
                 nodes[1] = 'Thumb complex movement'
-                nodes.append('Opposition')
                 paths_to_add.append(nodes)
 
             else: # Flexion/extension
                 nodes[1] = 'Thumb base / metacarpophalangeal (MCP)'
                 paths_to_add.append(nodes)
             
- 
         elif (length > 1 and nodes[1] == 'Thumb non-base / interphalangeal'):
             nodes[1] = 'Thumb non-base / interphalangeal (IP)'
             paths_to_add.append(nodes)
             
-                
-
     # Issue 194: Add abs/rel movement options 
-    if (length > 2 and (nodes[2] == 'Axis direction' or nodes[2] == 'Plane') and nodes[3] != 'Absolute'):
-        nodes.insert(3, 'Absolute')
-        paths_to_add.append(nodes)
+    if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
+            nodes.insert(3, 'Absolute')
+            paths_to_add.append(nodes)
 
     return paths_to_add
 
@@ -265,7 +259,7 @@ for sign in converter.corpus.signs:
         newpaths = []
 
         for oldpath in missing_values:
-            paths_to_add = update_nodes(get_node_sequence(oldpath))
+            paths_to_add = get_mvmt_paths_to_add(get_node_sequence(oldpath))
             for path in paths_to_add:
 
                 newpath = delimiter.join(path)
