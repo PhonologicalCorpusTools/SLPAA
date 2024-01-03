@@ -206,18 +206,32 @@ def update_nodes(nodes):
    
     # Issue 193: Update thumb movements in joint activity section
     if nodes[0] == 'Joint activity':
-        if (nodes[1] == 'Thumb base / metacarpophalangeal'):
-            nodes[1] = 'Thumb base / metacarpophalangeal (MCP)'
-            paths_to_add.append(nodes)
+        if (length > 1 and nodes[1] == 'Thumb base / metacarpophalangeal'):
+                
+            if (length > 2 and (nodes[2] == 'Abduction' or nodes[2] == 'Adduction')):
+                nodes[1] = 'Thumb root / carpometacarpal (CMC)'
+                paths_to_add.append(nodes[0:2] + (['Radial abduction'] if nodes[2] == 'Abduction' else ['Radial adduction']))
+                paths_to_add.append(nodes[0:2] + (['Palmar abduction'] if nodes[2] == 'Abduction' else ['Palmar adduction']))
+            
+            elif (length > 2 and nodes[2] == 'Circumduction'):
+                nodes[1] = 'Thumb root / carpometacarpal (CMC)'
+                paths_to_add.append(nodes)
+                
+            
+            elif (length > 2 and nodes[2] == 'Opposition'):
+                nodes[1] = 'Thumb complex movement'
+                nodes.append('Opposition')
+                paths_to_add.append(nodes)
+
+            else: # Flexion/extension
+                nodes[1] = 'Thumb base / metacarpophalangeal (MCP)'
+                paths_to_add.append(nodes)
+            
  
         elif (length > 1 and nodes[1] == 'Thumb non-base / interphalangeal'):
             nodes[1] = 'Thumb non-base / interphalangeal (IP)'
             paths_to_add.append(nodes)
-
-        if (length > 2 and (nodes[2] == 'Abduction' or nodes[2] == 'Adduction')):
-            nodes[1] = 'Thumb root / carpometacarpal (CMC)'
-            paths_to_add.append(nodes[0:2] + (['Radial abduction'] if nodes[2] == 'Abduction' else ['Radial adduction']))
-            paths_to_add.append(nodes[0:2] + (['Palmar abduction'] if nodes[2] == 'Abduction' else ['Palmar adduction']))
+            
                 
 
     # Issue 194: Add abs/rel movement options 
