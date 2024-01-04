@@ -89,19 +89,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 nonman: NonManualModel
         """
         tab_widget = QTabWidget()
-
-        if nonman.children:
-            for sub_category in nonman.children:
-                sub_tab = self.add_tab(sub_category)
-                tab_widget.addTab(sub_tab, sub_category.label)
-            return tab_widget
-
         tab_widget.layout = QVBoxLayout()
 
         # This section is neutral
         nonman.widget_cb_neutral = QCheckBox("This section is neutral")
-        if nonman.neutral:
-            nonman.widget_cb_neutral.setChecked(True)
         tab_widget.layout.addWidget(nonman.widget_cb_neutral)
 
         row_1 = self.build_row1(nonman)  # [ static / dynamic ] [ Sub-parts ]
@@ -111,6 +102,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         tab_widget.layout.addLayout(row_1)
         tab_widget.layout.addLayout(row_2)
         tab_widget.layout.addLayout(row_3)
+
+        if nonman.children:
+            subtabs_container = QTabWidget()
+            for sub_category in nonman.children:
+                sub_tab = self.add_tab(sub_category)
+                subtabs_container.addTab(sub_tab, sub_category.label)
+            tab_widget.layout.addWidget(subtabs_container)
+            tab_widget.setLayout(tab_widget.layout)
+            return tab_widget
+
 
         tab_widget.setLayout(tab_widget.layout)
 
@@ -139,6 +140,18 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         sd_rb_groupbox.setLayout(vbox)
 
         row.addWidget(sd_rb_groupbox)
+
+        # special case: 'mouth' requires 'Type of mouth movement' which is contained in .subparts
+        if nonman.label == 'Mouth':
+            mvmt_type_box = QGroupBox("Type of mouth movement")
+            mvmt_type_box_layout = QVBoxLayout()
+            for type in nonman.subparts:
+                rb_to_add = SLPAARadioButton(type)
+                mvmt_type_box_layout.addWidget(rb_to_add)
+            mvmt_type_box.setLayout(mvmt_type_box_layout)
+
+            row.addWidget(mvmt_type_box)
+            return row
 
         # subparts group
         if nonman.subparts is not None:
@@ -198,6 +211,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         Returns:
             QHBoxLayout
         """
+        if nonman.action_state is None:
+            return None
+
         row = QHBoxLayout()
 
         # Action / state group
@@ -205,10 +221,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
         action_state_layout = QVBoxLayout()
 
-        if nonman.action_state is not None:
-            root_options = nonman.action_state
-            self.parse_actionstate(root_options)
-            action_state_layout.addLayout(self.widget_grouplayout_actionstate)
+        root_options = nonman.action_state
+        self.parse_actionstate(root_options)
+        action_state_layout.addLayout(self.widget_grouplayout_actionstate)
 
         action_state_groupbox.setLayout(action_state_layout)
         scrollable = QScrollArea()
@@ -302,6 +317,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         Returns:
             QHBoxLayout
         """
+        if nonman.action_state is None:  # Currently, if action state is unspecified 3rd row is also nonexistent
+            return None
+
         row = QHBoxLayout()
 
         # Repetition group

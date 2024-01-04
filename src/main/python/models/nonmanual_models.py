@@ -374,7 +374,13 @@ mouth = NonManualModel(
               mouth_opening,
               mouth_lips,
               mouth_tongue,
-              mouth_cheek]
+              mouth_cheek],
+    subparts=[   # 'subparts' only nominally. it is actually for 'Type of mouth movement'
+        'mouthing / mouth picture [i.e., taken from spoken language]',
+        'mouth gesture [i.e., inherent to the sign language]',
+        'emotional',
+        'other; specify: ______'
+    ]
 )
 air = NonManualModel(
     label='Air',
