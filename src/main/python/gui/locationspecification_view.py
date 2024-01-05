@@ -447,7 +447,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         main_layout = QVBoxLayout()
 
-        # This widget has three separate location trees, so that we can flip back and forth between
+        # This widget has two separate location trees, so that we can flip back and forth between
         # location types without losing intermediate information. However, once the save button is
         # clicked only the tree for the current location type is saved with the module.
         self.treemodel_body = None
@@ -620,6 +620,9 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             self.listmodel_body = lm
         elif self.getcurrentlocationtype().purelyspatial:
             self.listmodel_spatial = lm
+
+        # ensure the first item in the selected locations list (if any) is selected/highlighted
+        self.locationoptionsselectionpanel.pathslistview.setindex(-1)
 
     def check_phonologicalloc_cb(self, checked):
         self.phonological_cb.setChecked(True)
