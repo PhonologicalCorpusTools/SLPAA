@@ -1995,32 +1995,6 @@ class OrientationModule(ParameterModule):
     def root(self, root):
         self._root = root
         
-
-class OrientationPalm:
-    def __init__(self, hor, hor_ipsi, hor_contra, ver, ver_up, ver_down, sag, sag_dist, sag_prox):
-        self.hor = hor
-        self.hor_ipsi = hor_ipsi
-        self.hor_contra = hor_contra
-        self.ver = ver
-        self.ver_up = ver_up
-        self.ver_down = ver_down
-        self.sag = sag
-        self.sag_dist = sag_dist,
-        self.sag_prox = sag_prox
-        
-
-class OrientationFingerRoot:
-    def __init__(self, hor, hor_ipsi, hor_contra, ver, ver_up, ver_down, sag, sag_dist, sag_prox):
-        self.hor = hor
-        self.hor_ipsi = hor_ipsi
-        self.hor_contra = hor_contra
-        self.ver = ver
-        self.ver_up = ver_up
-        self.ver_down = ver_down
-        self.sag = sag
-        self.sag_dist = sag_dist,
-        self.sag_prox = sag_prox
-        
         
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.
