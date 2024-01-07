@@ -546,6 +546,35 @@ class LocationTreeModel(QStandardItemModel):
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
+    def uncheck_in_checkstates(self, paths_to_uncheck):
+        for path in paths_to_uncheck:
+            try:
+                self.serializedlocntree.checkstates[path] = Qt.Unchecked
+            except:
+                print("Could not uncheck.")
+    
+    '''
+    Removes from paths_to_add once found
+    '''
+    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
+        if treenode is not None:
+            for r in range(treenode.rowCount()):
+                treechild = treenode.child(r, 0)
+                if treechild is not None:
+                    pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
+
+                    if pathtext in paths_to_add:
+                        treechild.setCheckState(Qt.Checked)
+                        oldtext = paths_dict[pathtext]
+                        paths_to_add.remove(pathtext)
+
+                        if pathtext in self.serializedlocntree.addedinfos:
+                            treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
+                        if pathtext in self.serializedlocntree.detailstables.keys():
+                            treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+
+                    self.addcheckedvalues(treechild, paths_to_add, paths_dict)
+
     # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
     def setvaluesfromserializedtree(self, treenode):
         if treenode is not None:
@@ -576,10 +605,12 @@ class LocationTreeModel(QStandardItemModel):
         differences = []
         serialized = self.get_checked_from_serialized_tree()
         current = self.checked
+        
         for item in serialized:
             if item not in current:
                 differences.append(item)
-        # print("Serialized:" + str(len(serialized)) + "\nListed:" + str(len(current)))
+        print("Serialized:" + str(len(serialized)) + "\nListed:" + str(len(current)))
+                
         return differences
                 
     
