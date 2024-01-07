@@ -1313,7 +1313,9 @@ class MovementTreeModel(QStandardItemModel):
             except:
                 print("Could not uncheck.")
 
-
+    '''
+    Removes from paths_to_add once found
+    '''
     def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
         if treenode is not None:
             for r in range(treenode.rowCount()):
@@ -1329,6 +1331,7 @@ class MovementTreeModel(QStandardItemModel):
                     if pathtext in paths_to_add:
                         treechild.setCheckState(Qt.Checked)
                         oldtext = paths_dict[pathtext]
+                        paths_to_add.remove(pathtext)
 
                         if pathtext in self.serializedmvmttree.addedinfos:
                             treechild.addedinfo = copy(self.serializedmvmttree.addedinfos[oldtext])
