@@ -1201,7 +1201,7 @@ class MovementTreeModel(QStandardItemModel):
 
     # Compare what was serialized with what the current tree actually shows
     # Also updates the list
-    def compare_checked_lists(self):
+    def compare_checked_lists(self, verbose=False):
         differences = []
         serialized = self.get_checked_from_serialized_tree()
         self.checked = []
@@ -1209,7 +1209,10 @@ class MovementTreeModel(QStandardItemModel):
         for item in serialized:
             if item not in self.checked:
                 differences.append(item)
-        print("Serialized:" + str(len(serialized)) + "; Listed:" + str(len(self.checked)))
+        if len(serialized) == 0:
+            logging.warning("A movement module has no paths. Is something missing?")
+        if verbose:
+            print("   Serialized mvmt:" + str(len(serialized)) + "; Listed mvmt:" + str(len(self.checked)))
         # if (len(serialized) != len(self.checked)):
         #     for i in serialized:
         #         print (i)
