@@ -505,7 +505,7 @@ class LocationTreeModel(QStandardItemModel):
             try:
                 self._multiple_selection_allowed = serializedlocntree.multiple_selection_allowed
             except:
-                logging.warn("multiple selection attribute not present in serialized location tree")
+                # logging.warn("multiple selection attribute not present in serialized location tree")
                 self._multiple_selection_allowed = False
             # 
             rootnode = self.invisibleRootItem()
@@ -561,6 +561,7 @@ class LocationTreeModel(QStandardItemModel):
                         treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[pathtext])
 
                     self.setvaluesfromserializedtree(treechild)
+                    
 
     # def tempprintcheckeditems(self):
     #     treenode = self.invisibleRootItem()
@@ -924,7 +925,6 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
         elif "select" in sortbytext:
             self.setSortRole(Qt.UserRole+udr.timestamprole)
             self.sort(0)
-
 
 class LocationTreeItem(QStandardItem):
 

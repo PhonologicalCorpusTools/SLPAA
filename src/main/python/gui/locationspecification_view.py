@@ -319,6 +319,19 @@ class LocationOptionsSelectionPanel(QFrame):
 
         self.setLayout(main_layout)
 
+    
+    def get_listed_paths(self):
+        proxyModel = self.listproxymodel
+        sourceModel = self.listmodel
+        
+        paths = [] 
+
+        for row in range(proxyModel.rowCount()):
+            sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
+            path = sourceModel.data(sourceIndex, Qt.DisplayRole)
+            paths.append(path)
+        return paths
+    
     def enableImageTabs(self, enable):
         if self.showimagetabs:
             self.imagetabwidget.setEnabled(enable)
@@ -543,6 +556,31 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.setLayout(main_layout)
 
         self.enablelocationtools()
+
+    def multiple_selections_check(self):
+        paths = self.locationoptionsselectionpanel.get_listed_paths()
+        if len(paths) == 1:
+            return False
+        # if the multiple selections are parents of each other, doesn't count as multiple selections.
+        for i in range(len(paths)):
+            for j in range(i+1, len(paths)):
+                if (paths[i] not in paths[j] and paths[j] not in paths[i]):
+                    return True
+        return False
+
+    def validity_check(self):
+        selectionsvalid = True
+        warningmessage = "" 
+
+        self.locationoptionsselectionpanel.refresh_listproxies()
+        treemodel = self.getcurrenttreemodel()
+        
+        multiple_selections = self.multiple_selections_check()
+
+        if multiple_selections and not treemodel.multiple_selection_allowed:
+            selectionsvalid = False
+            warningmessage = warningmessage + "Multiple locations have been selected but 'Allow multiple selection' is not checked."
+        return selectionsvalid, warningmessage
 
     def getcurrentlocationtype(self):
         locationtype = LocationType(
