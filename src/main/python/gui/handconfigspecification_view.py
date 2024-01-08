@@ -1081,7 +1081,6 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         if moduletoload:
             self.panel.set_value(deepcopy(moduletoload))
             self.existingkey = moduletoload.uniqueid
-        # TODO KV also load forearm, uncertainty info
 
         main_layout.addWidget(self.panel)
         main_layout.addWidget(self.illustration)
@@ -1111,6 +1110,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
 
     def clear(self):
         self.panel.clear()
+        self.illustration.set_neutral_img()
 
     def desiredwidth(self):
         return 2000

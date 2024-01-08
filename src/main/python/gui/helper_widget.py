@@ -242,3 +242,9 @@ class OptionSwitch(QWidget):
             self.right_btn.setChecked(False)
 
         self.toggled.emit(self.getvalue())
+
+    def shrinksizetotext(self):
+        self.left_btn.setMinimumWidth(5)
+        self.right_btn.setMinimumWidth(5)
+        self.left_btn.adjustSize()
+        self.right_btn.adjustSize()

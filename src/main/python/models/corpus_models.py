@@ -1,8 +1,9 @@
+from datetime import datetime
+
 from PyQt5.QtCore import (
     Qt,
     QSortFilterProxyModel,
-    pyqtSignal,
-    QItemSelectionModel
+    pyqtSignal
 )
 
 from PyQt5.Qt import (
@@ -14,6 +15,7 @@ from PyQt5.Qt import (
 datecreatedrole = 1
 datemodifiedrole = 2
 entryidrole = 3
+lemmarole = 4
 
 
 class CorpusItem(QStandardItem):
@@ -23,12 +25,13 @@ class CorpusItem(QStandardItem):
 
         self.sign = sign
         self.setEditable(False)
-        # self.setText(sign.signlevel_information.gloss)
         self.setCheckable(False)
 
     def data(self, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
             return self.sign.signlevel_information.gloss
+        elif role == Qt.UserRole+lemmarole:
+            return self.sign.signlevel_information.lemma
         elif role == Qt.UserRole+datecreatedrole:
             return self.sign.signlevel_information.datecreated
         elif role == Qt.UserRole+datemodifiedrole:
@@ -53,34 +56,6 @@ class CorpusModel(QStandardItemModel):
         self.modelupdated.emit()
 
 
-# class CorpusModel(QAbstractItemModel):
-#     def __init__(self, signs=None, **kwargs):  # glosses=None, **kwargs):
-#         super().__init__(**kwargs)
-#         # self.glosses = glosses or []
-#         self.signs = signs or []
-#
-#     def data(self, index, role):
-#         print("the index you clicked has data...")
-#         print("row: ", index.row())
-#         # print("display (gloss): ", index.data(Qt.DisplayRole))
-#         # print("entry id: ", index.data(Qt.UserRole+entryidrole))
-#         # print("date created: ", index.data(Qt.UserRole+datecreatedrole))
-#         # print("date modified: ", index.data(Qt.UserRole+datemodifiedrole))
-#         if role == Qt.DisplayRole:
-#             # return self.glosses[index.row()]
-#             return self.signs[index.row()].signlevel_information.gloss
-#         elif role == Qt.UserRole+datecreatedrole:
-#             return self.signs[index.row()].signlevel_information.datecreated
-#         elif role == Qt.UserRole+datemodifiedrole:
-#             return self.signs[index.row()].signlevel_information.datelastmodified
-#         elif role == Qt.UserRole+entryidrole:
-#             return self.signs[index.row()].signlevel_information.entryid
-#
-#     def rowCount(self, index):
-#         # return len(self.glosses)
-#         return len(self.signs)
-
-
 class CorpusSortProxyModel(QSortFilterProxyModel):
 
     def __init__(self, parent=None):
@@ -88,16 +63,39 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortRole(Qt.DisplayRole)
-        self.sort(0)
+        self.sortorder = Qt.AscendingOrder
+        self.sortnow()
 
-    def updatesorttype(self, sortbytext=""):
-        if "alpha" in sortbytext:
-            self.setSortRole(Qt.DisplayRole)
-            self.sort(0)
-        elif "created" in sortbytext:
-            self.setSortRole(Qt.UserRole+datecreatedrole)
-            self.sort(0)
-        elif "modified" in sortbytext:
-            self.setSortRole(Qt.UserRole+datemodifiedrole)
-            self.sort(0)
+    def updatesort(self, sortbytext=None, ascending=None):
+        if ascending is not None:
+            self.sortorder = Qt.AscendingOrder if ascending else Qt.DescendingOrder
+            # otherwise leave sortorder as is
+        if sortbytext is not None:
+            if "alpha" in sortbytext:
+                if "gloss" in sortbytext:
+                    self.setSortRole(Qt.DisplayRole)
+                elif "lemma" in sortbytext:
+                    self.setSortRole(Qt.UserRole+lemmarole)
+            elif "created" in sortbytext:
+                self.setSortRole(Qt.UserRole+datecreatedrole)
+            elif "modified" in sortbytext:
+                self.setSortRole(Qt.UserRole+datemodifiedrole)
+            # otherwise leave sortRole as is
+        self.sortnow()
+
+    def lessThan(self, leftindex, rightindex):
+        leftdata = self.sourceModel().data(leftindex, self.sortRole())
+        rightdata = self.sourceModel().data(rightindex, self.sortRole())
+
+        # the default implementation of sort() in QSortFilterProxyModel isn't able to compare
+        # datetime.datetime objects, so I deal with those explicitly and then pass the rest off
+        if isinstance(leftdata, datetime) and isinstance(rightdata, datetime):
+            return leftdata < rightdata
+        else:
+            return super().lessThan(leftindex, rightindex)
+
+    def sortnow(self, column=0, sortorder=None):
+        if sortorder is None:
+            sortorder = self.sortorder
+        self.sort(column, sortorder)
 

@@ -22,6 +22,7 @@ from constant import FRACTION_CHAR
 from fractions import Fraction
 
 
+# This tab facilitates user interaction with display-related settings in the preference dialog.
 class DisplayTab(QWidget):
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
@@ -56,6 +57,7 @@ class DisplayTab(QWidget):
         self.settings['display']['entryid_digits'] = self.entryid_digits.value()
 
 
+# This tab facilitates user interaction with reminder-related settings in the preference dialog.
 class ReminderTab(QWidget):
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
@@ -72,6 +74,7 @@ class ReminderTab(QWidget):
         self.settings['reminder']['overwrite'] = self.overwrite_reminder.isChecked()
 
 
+# This tab facilitates user interaction with sign-related settings in the preference dialog.
 class SignDefaultsTab(QWidget):
     xslotdivisions_changed = pyqtSignal(dict, dict)
     xslotgeneration_changed = pyqtSignal(str, str)
@@ -195,6 +198,7 @@ class SignDefaultsTab(QWidget):
             self.xslotdivisions_changed.emit(previouspartials, newpartials)
 
 
+# This tab facilitates user interaction with location module-related settings in the preference dialog.
 class LocationTab(QWidget):
 
     def __init__(self, settings, **kwargs):
@@ -236,6 +240,7 @@ class LocationTab(QWidget):
         self.settings['location']['loctype'] = self.locationtype_group.checkedButton().property('loctype')
 
 
+# This is the global settings dialog that users access via the Settings menu.
 class PreferenceDialog(QDialog):
     prefs_saved = pyqtSignal()
     xslotdivisions_changed = pyqtSignal(dict, dict)
