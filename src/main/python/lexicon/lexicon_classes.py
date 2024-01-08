@@ -560,8 +560,22 @@ class Corpus:
         correctionsdict[ModuleTypes.LOCATION] = {}
 
         for sign in self.signs:
-            self.add_missing_paths_helper(sign, ModuleTypes.MOVEMENT, correctionsdict, verbose)
-            self.add_missing_paths_helper(sign, ModuleTypes.LOCATION, correctionsdict, verbose)
+            mvmt_paths_missing_bc, mvmt_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.MOVEMENT, correctionsdict, verbose)
+            locn_paths_missing_bc, locn_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.LOCATION, correctionsdict, verbose)
+
+        if len(mvmt_paths_missing_bc) != 0 or len(locn_paths_missing_bc) != 0:
+            logging.warning("Backwards compatibility is missing for the following paths:")
+            for i in mvmt_paths_missing_bc:
+                logging.warning(i)
+            for i in locn_paths_missing_bc:
+                logging.warning(i)
+        if len(mvmt_paths_not_found) != 0 or len(locn_paths_not_found) != 0:
+            logging.warning("Backwards compatibility is incorrect for the following paths:")
+            for i in mvmt_paths_not_found:
+                logging.warning(i)
+            for i in locn_paths_not_found:
+                logging.warning(i)
+
 
     def add_missing_paths_helper(self, sign, type, correctionsdict, verbose):
         moduledict = sign.getmoduledict(type)
@@ -609,18 +623,7 @@ class Corpus:
                 if p not in paths_missing_bc and p not in paths_not_found:
                     treemodel.uncheck_in_checkstates(missing_values)
 
-        if len(paths_missing_bc) != 0:
-            logging.warning("Backwards compatibility is missing for the following paths:")
-            for i in paths_missing_bc:
-                logging.warning(i)
-
-
-        if len(paths_not_found) != 0:
-            logging.warning("Backwards compatibility is incorrect for the following paths:")
-            for i in paths_not_found:
-                logging.warning(i)
-
-        return 
+        return paths_missing_bc, paths_not_found
 
     # Converts a string representing a movement/location path into a list of nodes
     def get_node_sequence(self, item):
