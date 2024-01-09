@@ -471,6 +471,7 @@ class SignSummaryPanel(QScrollArea):
         if mods_count > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
+
                 for mod in modules:
                     m_id = mod.uniqueid
                     self.current_y += self.default_xslot_height + self.verticalspacing
@@ -520,10 +521,10 @@ class SignSummaryPanel(QScrollArea):
         if mods_count > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
-                self.current_y += self.default_xslot_height + self.verticalspacing
 
                 for mod in modules:
                     m_id = mod.uniqueid
+                    self.current_y += self.default_xslot_height + self.verticalspacing
                     if isrel:
                         if mod.usesarticulator(HAND, artnum):
                             articulator = HAND
@@ -543,7 +544,6 @@ class SignSummaryPanel(QScrollArea):
                         paramrect.setToolTip(paramabbrev)
                         paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
                         self.moduleitems.append(paramrect)
-                        # self.current_y += 1
                         self.scene.addItem(paramrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
