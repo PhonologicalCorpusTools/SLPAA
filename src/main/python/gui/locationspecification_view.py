@@ -746,10 +746,12 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
+            self.locationoptionsselectionpanel.multiple_selection_rb.setEnabled(btn != self.signingspacespatial_radio)
         self.enablelocationtools()  # TODO KV should this be inside the if?
 
     def handle_toggle_locationtype(self, btn):
         if btn is not None and btn.isChecked():
+            self.locationoptionsselectionpanel.multiple_selection_rb.setEnabled(btn != self.signingspacespatial_radio)
             for b in self.signingspace_subgroup.buttons():
                 b.setEnabled(btn == self.signingspace_radio)
         self.enablelocationtools()  # TODO KV should this be inside the if?
