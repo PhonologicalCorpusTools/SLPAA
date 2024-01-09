@@ -341,7 +341,7 @@ class SignSummaryPanel(QScrollArea):
         self.addgridlines()
 
     def entryid_string(self, entryid_int=None):
-        numdigits = self.settings['display']['entryid_digits']
+        numdigits = int(self.settings['display']['entryid_digits'])
         if entryid_int is None:
             entryid_int = self.sign.signlevel_information.entryid
         entryid_string = str(entryid_int)
@@ -419,7 +419,7 @@ class SignSummaryPanel(QScrollArea):
             # x-slots aren't a thing; plan a rectangle whose width doesn't mean anything, timing-wise
             # the rectangle will be for the whole sign (treat it like a whole-sign x-slot)
             startfrac = 0
-            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction  # TODO KV check
+            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction
             widthfrac = endfrac - startfrac
 
             x = self.x_offset + self.indent + float(startfrac)*self.onexslot_width
@@ -779,7 +779,6 @@ class SignLevelMenuPanel(QScrollArea):
         main_frame.setLayout(main_layout)
 
         self._sign = sign
-        self.system_default_signtype = self.mainwindow.system_default_signtype
         self.modulebuttons_untimed = []
         self.modulebuttons_timed = []
 
@@ -814,7 +813,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.orientation_button = QPushButton("Add orientation module")
         self.orientation_button.setProperty("existingmodule", False)
-        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.ORIENTATION))
+        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.ORIENTATION))
         self.modulebuttons_timed.append(self.orientation_button)
 
         self.handshape_button = QPushButton("Add hand configuration module")
@@ -824,7 +823,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
-        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.NONMANUAL))
+        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.NONMANUAL))
         self.modulebuttons_timed.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
@@ -900,6 +899,21 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
+
+    def handle_delete_signlevelinfo(self, previous_selection):
+        if self.sign:  # does the sign to delete exist?
+            self.mainwindow.corpus.remove_sign(self.sign)
+            
+            # Update corpus display with the previous selection highlighted
+            if previous_selection:
+                self.sign_updated.emit(previous_selection)
+                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+                self.mainwindow.handle_sign_selected(previous_selection)
+            
+            else:
+                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+                self.mainwindow.handle_sign_selected(previous_selection)
+
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)

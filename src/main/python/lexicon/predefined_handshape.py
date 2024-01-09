@@ -440,6 +440,18 @@ class HandshapeClawed4(PredefinedHandshape):
         super().__init__(name, filename, canonical)
 
 
+class HandshapeClawed5(PredefinedHandshape):
+    def __init__(self, name='clawed 5', filename='clawed-5', canonical=(
+            'L', '{', 'i', 'F',
+            '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
+            '1', 'E', 'F', 'i',
+            '{', '2', 'E', 'F', 'i',
+            '{', '3', 'E', 'F', 'i',
+            '{', '4', 'E', 'F', 'i'
+    )):
+        super().__init__(name, filename, canonical)
+        
+        
 class HandshapeClawedExtended5(PredefinedHandshape):
     def __init__(self, name='clawed extended 5', filename='clawed-extended-5', canonical=(
             'L', '{', 'E', 'E',
@@ -532,6 +544,17 @@ class HandshapeClawedI(PredefinedHandshape):
 
 class HandshapeClawedL(PredefinedHandshape):
     def __init__(self, name='clawed L', filename='clawed-L', canonical=(
+            'L', '{', 'i', 'F',
+            '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
+            '1', 'E', 'F', 'i',
+            '<', '2', 'F', 'F', 'F',
+            '=', '3', 'F', 'F', 'F',
+            '=', '4', 'F', 'F', 'F'
+    )):
+        super().__init__(name, filename, canonical)
+        
+class HandshapeClawedExtendedL(PredefinedHandshape):
+    def __init__(self, name='clawed extended L', filename='clawed-extended-L', canonical=(
             'L', '{', 'E', 'E',
             '-', '-', NULL, '/', '-', '-', '-', '-', '-', '-',
             '1', 'E', 'F', 'F',

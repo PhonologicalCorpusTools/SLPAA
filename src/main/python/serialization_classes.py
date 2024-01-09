@@ -32,7 +32,6 @@ class ParameterModuleSerializable:
 
     @articulators.setter
     def articulators(self, articulators):
-        # TODO KV - validate?
         self._articulators = articulators
 
 

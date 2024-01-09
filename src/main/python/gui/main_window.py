@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 import json
 import csv
@@ -37,6 +38,7 @@ from PyQt5.QtGui import (
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
+from gui.countxslots_dialog import CountXslotsDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
 from gui.signtypespecification_view import Signtype
@@ -74,6 +76,7 @@ class MainWindow(QMainWindow):
         self.current_sign = None
 
         self.undostack = QUndoStack(parent=self)
+        self.unsaved_changes = False  # a flag that tracks any unsaved changes.
 
         self.predefined_handshape_dialog = None
 
@@ -81,8 +84,6 @@ class MainWindow(QMainWindow):
         self.system_default_locations = deepcopy(SAMPLE_LOCATIONS)
         self.system_default_movement = None
         self.system_default_handshape = None
-        # TODO KV not necessarily default... make a global setting?
-        self.system_default_signtype = Signtype([('Unspecified', False)])
 
         # handle setting-related stuff
         self.handle_app_settings()
@@ -158,6 +159,11 @@ class MainWindow(QMainWindow):
         action_test_location_graphics = QAction('Test location graphics...', parent=self)
         action_test_location_graphics.triggered.connect(self.on_action_test_location_graphics)
         action_test_location_graphics.setCheckable(False)
+
+        # count x-slots
+        action_count_xslots = QAction("Count x-slots...", parent=self)
+        action_count_xslots.triggered.connect(self.on_action_count_xslots)
+        action_count_xslots.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -294,6 +300,9 @@ class MainWindow(QMainWindow):
         menu_location.addAction(action_define_location)
         menu_location.addAction(action_test_location_graphics)
 
+        menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
+        menu_analysis_beta.addAction(action_count_xslots)
+
         corpusname = ""
         if self.corpus and self.corpus.name:
             corpusname = self.corpus.name
@@ -308,7 +317,7 @@ class MainWindow(QMainWindow):
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
-        self.signlevel_panel.sign_updated.connect(self.signsummary_panel.refreshsign)
+        self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -556,7 +565,9 @@ class MainWindow(QMainWindow):
                                               parent=self)
         response = initialization.exec_()
         if not response:  # close the window or press cancel
-            self.on_action_new_corpus(False)
+            # Note: I don't think this is ideal but using self.close()
+            # or self.on_action_close() fails to close the program
+            self.closeEvent(None)
 
     def handle_sign_selected(self, sign):
         selected_sign = sign
@@ -630,6 +641,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('signdefaults')
         self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance',
                                                                                       defaultValue='R')
+        self.app_settings['signdefaults']['signtype'] = self.app_qsettings.value('signtype', defaultValue='none')
         self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation',
                                                                                          defaultValue='none')
         self.app_qsettings.beginGroup('partial_xslots')
@@ -686,6 +698,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('signdefaults')
         self.app_qsettings.setValue('handdominance', self.app_settings['signdefaults']['handdominance'])
+        self.app_qsettings.setValue('signtype', self.app_settings['signdefaults']['signtype'])
         self.app_qsettings.setValue('xslot_generation', self.app_settings['signdefaults']['xslot_generation'])
 
         self.app_qsettings.beginGroup('partial_xslots')
@@ -712,6 +725,10 @@ class MainWindow(QMainWindow):
     def on_action_test_location_graphics(self):
         location_test_window = LocationGraphicsTestDialog(self.app_settings, self.app_ctx, parent=self)
         location_test_window.exec_()
+
+    def on_action_count_xslots(self):
+        count_xslots_window = CountXslotsDialog(self.app_settings, self.app_ctx, parent=self)
+        count_xslots_window.exec_()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
@@ -819,9 +836,9 @@ class MainWindow(QMainWindow):
             self.corpus.name = self.corpus_display.corpus_title.text()
             self.save_corpus_binary()
 
+        self.unsaved_changes = False
         self.undostack.clear()
 
-    @check_unsaved_corpus
     def on_action_saveas(self, clicked):
         self.corpus.name = self.corpus_display.corpus_title.text()
         name = self.corpus.name
@@ -836,7 +853,10 @@ class MainWindow(QMainWindow):
             if folder:
                 self.app_settings['storage']['recent_folder'] = folder
 
-        self.save_corpus_binary()
+            self.save_corpus_binary()
+
+            self.unsaved_changes = False
+            self.undostack.clear()
 
     def save_corpus_binary(self):
         with open(self.corpus.path, 'wb') as f:
@@ -858,7 +878,7 @@ class MainWindow(QMainWindow):
         pass
         # TODO: implement
 
-    # TODO KV check whether current corpus has been saved
+    @check_unsaved_change
     def on_action_new_corpus(self, clicked):
         self.current_sign = None
         self.action_delete_sign.setEnabled(False)
@@ -867,21 +887,25 @@ class MainWindow(QMainWindow):
 
         self.corpus_display.clear()
         self.signlevel_panel.clear()
+        self.unsaved_changes = False
         self.signlevel_panel.enable_module_buttons(False)
         self.signsummary_panel.refreshsign()
 
-    # TODO KV check whether current corpus has been saved
+    @check_unsaved_change
     def on_action_load_corpus(self, clicked):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            self.tr('Open Corpus'),
                                                            self.app_settings['storage']['recent_folder'],
                                                            self.tr('SLP-AA Corpus (*.slpaa)'))
+        if not file_name:
+            # the user cancelled out of the dialog
+            return False
         folder, _ = os.path.split(file_name)
         if folder:
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
-        self.corpus_display.corpus_title.setText(self.corpus.name)  # TODO KV better / more abstract access?
+        self.corpus_display.corpus_title.setText(self.corpus.name)
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
@@ -890,7 +914,8 @@ class MainWindow(QMainWindow):
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
-            
+
+        self.unsaved_changes = False
 
         return self.corpus is not None  # bool(Corpus)
 
@@ -911,9 +936,12 @@ class MainWindow(QMainWindow):
                                         'Do you want to delete the selected sign?')
         if response == QMessageBox.Yes:
             previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
-
-            self.corpus.remove_sign(self.current_sign)
-            self.corpus_display.updated_signs(self.corpus.signs, previous)
+            
+            # delete self.current_sign.
+            # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
+            self.signlevel_panel.handle_delete_signlevelinfo(previous)
+            # self.corpus.remove_sign(self.current_sign)
+            # self.corpus_display.updated_signs(self.corpus.signs, previous)
 
             self.select_sign([previous])
             self.handle_sign_selected(previous)
@@ -925,8 +953,17 @@ class MainWindow(QMainWindow):
         selectionmodel = self.corpus_display.corpus_view.selectionModel()
         indices = []
         for sign in signstoselect:
-            indices.append(list(self.corpus.signs).index(sign))
-        print(indices)
+            try:
+                indices.append(list(self.corpus.signs).index(sign))
+            except ValueError:
+                pass
+        # print(indices)
+
+    def flag_and_refresh(self, sign=None):
+        # this function is called when sign_updated Signal is emitted, i.e., any sign changes
+        # it flags unsaved_changes=True and passes on to refreshsign(), which updates the summary panel
+        self.unsaved_changes = True
+        self.signsummary_panel.refreshsign(sign)
 
     @check_unsaved_change
     def closeEvent(self, event):

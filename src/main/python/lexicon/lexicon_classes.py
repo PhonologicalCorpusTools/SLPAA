@@ -1,3 +1,5 @@
+import logging
+
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule
 from gui.signtypespecification_view import Signtype
@@ -45,8 +47,6 @@ class Sign:
     """
     def __init__(self, signlevel_info=None, serializedsign=None):
         self._signlevel_information = signlevel_info
-        # self._datecreated = int(datetime.timestamp(datetime.now()))
-        # self.lastmodifiednow()
         self._signtype = None
         self._xslotstructure = XslotStructure()
         self._specifiedxslots = False
@@ -123,8 +123,6 @@ class Sign:
     def serialize(self):
         return {
             'signlevel': self._signlevel_information.serialize(),
-            # 'date created': self._datecreated,
-            # 'date last modified': self._datelastmodified,
             'type': self._signtype,
             'xslot structure': self.xslotstructure,
             'specified xslots': self.specifiedxslots,
@@ -329,29 +327,8 @@ class Sign:
     @specifiedxslots.setter
     def specifiedxslots(self, specifiedxslots):
         self._specifiedxslots = specifiedxslots
-    #
-    # @property
-    # def datecreated(self):
-    #     return self._datecreated
-    #
-    # # input should be an integer timestamp
-    # @datecreated.setter
-    # def datecreated(self, created):
-    #     # TODO KV - validate?
-    #     self._datecreated = created
-    #
-    # @property
-    # def datelastmodified(self):
-    #     return self._datelastmodified
-    #
-    # # input should be an integer timestamp
-    # @datelastmodified.setter
-    # def signtype(self, lastmodified):
-    #     # TODO KV - validate?
-    #     self._datelastmodified = lastmodified
 
     def lastmodifiednow(self):
-        # self._datelastmodified = int(datetime.timestamp(datetime.now()))
         self.signlevel_information.lastmodifiednow()
 
     @property
@@ -360,7 +337,6 @@ class Sign:
 
     @signtype.setter
     def signtype(self, stype):
-        # TODO KV - validate?
         self._signtype = stype
 
     @property
@@ -369,7 +345,6 @@ class Sign:
 
     @xslotstructure.setter
     def xslotstructure(self, xslotstruct):
-        # TODO KV - validate?
         self._xslotstructure = xslotstruct
 
     def updatemodule_sharedattributes(self, current_mod, updated_mod):
@@ -489,6 +464,9 @@ class Corpus:
             # self.movement_definition = serializedcorpus['mvmt defn']
             self.path = serializedcorpus['path']
             self.highestID = serializedcorpus['highest id']
+            # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+            # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+            self.confirmhighestID("load")
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -497,7 +475,21 @@ class Corpus:
             self.path = path
             self.highestID = highestID
 
+    # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+    # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+    # this function should hopefully not be necessary forever, but for now I want to make sure that
+    # functionality isn't affected by an incorrectly-saved value
+    def confirmhighestID(self, saveorload):
+        entryIDs = [s.signlevel_information.entryid for s in self.signs]
+        max_entryID = max(entryIDs)
+        if max_entryID > self.highestID:
+            logging.warn(" upon " + saveorload + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
+            self.highestID = max_entryID
+
     def serialize(self):
+        # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+        # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
+        self.confirmhighestID("save")
         return {
             'name': self.name,
             'signs': [s.serialize() for s in list(self.signs)],
@@ -509,14 +501,32 @@ class Corpus:
     def get_sign_glosses(self):
         return sorted([sign.signlevel_information.gloss for sign in self.signs])
 
+
     def get_previous_sign(self, gloss):
+        """Given a sign gloss, return the next gloss to highlight in the list.
+
+        Args:
+            gloss: sign
+
+        Returns:
+            previous_sign: sign
+        """
         sign_glosses = self.get_sign_glosses()
         current_index = sign_glosses.index(gloss)
 
-        # if the very first sign is selected, then return the one after it, otherwise the previous one
-        previous_gloss = sign_glosses[current_index-1] if current_index-1 >= 0 else sign_glosses[1]
+        if len(sign_glosses) == 1:
+            # If there is only 1 sign, return the same sign
+            return None
+        
+        elif current_index == 0:
+            # Otherwise if this is the 1st sign, return the next sign in the list
+            previous_gloss = sign_glosses[1]
+        else:
+            # Otherwise, return the previous sign
+            previous_gloss = sign_glosses[current_index - 1]
 
         return self.get_sign_by_gloss(previous_gloss)
+
 
     def get_sign_by_gloss(self, gloss):
         # Every sign has a unique gloss, so this function will always return one sign

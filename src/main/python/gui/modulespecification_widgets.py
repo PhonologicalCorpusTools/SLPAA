@@ -1,5 +1,6 @@
 from PyQt5.QtCore import (
-    pyqtSignal
+    pyqtSignal,
+    Qt
 )
 
 from PyQt5.QtWidgets import (
@@ -13,7 +14,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QPushButton,
     QLabel,
-    QComboBox
+    QComboBox,
+    QListView,
+    QStyledItemDelegate
 )
 
 from lexicon.module_classes import AddedInfo
@@ -38,6 +41,46 @@ class ModuleSpecificationPanel(QFrame):
         return selectionsvalid, warningmessage
 
 
+# Styled QPushButton whose text is bolded iff the _hascontent attribute is true
+class SpecifyBodypartPushButton(QPushButton):
+
+    def __init__(self, title, **kwargs):
+        super().__init__(title, **kwargs)
+        self._hascontent = False
+
+        # styling
+        qss = """   
+            QPushButton[HasContent=true] {
+                font: bold;
+            }
+
+            QPushButton[HasContent=false] {
+                font: normal;
+            }
+        """
+        self.setStyleSheet(qss)
+        self.updateStyle()
+
+    @property
+    def hascontent(self):
+        return self._hascontent
+
+    @hascontent.setter
+    def hascontent(self, hascontent):
+        self._hascontent = hascontent
+        self.updateStyle()
+
+    def updateStyle(self):
+        self.setProperty('HasContent', self._hascontent)
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
+
+    def clear(self):
+        self._hascontent = False
+        self.updateStyle()
+
+
 class AddedInfoPushButton(QPushButton):
 
     def __init__(self, title, **kwargs):
@@ -48,16 +91,13 @@ class AddedInfoPushButton(QPushButton):
         qss = """   
             QPushButton[AddedInfo=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[AddedInfo=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property
@@ -284,3 +324,56 @@ class ArticulatorSelector(QWidget):
                 return True
 
         return False
+
+
+# used in both Location and Movement modules to display flattened paths list of selected nodes in tree
+class TreeListView(QListView):
+
+    def __init__(self):
+        super().__init__()
+
+    # sets the currently selected index to be indexint
+    # if indexint is -1:
+    #   if there's at least one item in the list then the first one is selected
+    #   if there's no content in the list then nothing happens
+    def setindex(self, indexint):
+        if indexint == -1:
+            if self.model().rowCount() > 0:
+                indexint = 0
+            else:
+                return
+        indexobj = self.model().index(indexint, 0)
+        self.setCurrentIndex(indexobj)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        # modifiers = event.modifiers()
+
+        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
+            indexesofselectedrows = self.selectionModel().selectedRows()
+            selectedlistitems = []
+            for itemindex in indexesofselectedrows:
+                listitemindex = self.model().mapToSource(itemindex)
+                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
+                selectedlistitems.append(listitem)
+            for listitem in selectedlistitems:
+                listitem.unselectpath()
+            # self.model().dataChanged.emit()
+
+
+# this class ensures that the items in the selected-paths list (for Location and Movement module dialogs, eg)
+# are bolded iff they have some content in the right-click menu ("Estimated", "Variable", etc)
+class TreePathsListItemDelegate(QStyledItemDelegate):
+
+    def initStyleOption(self, option, index):
+        # determine the actual tree item from the proxymodel index argument
+        proxymodel = index.model()
+        sourceindex = proxymodel.mapToSource(index)
+        sourcemodel = proxymodel.sourceModel()
+        treeitem = sourcemodel.itemFromIndex(sourceindex).treeitem
+
+        # check whether the treeitem has addedinfo content and bold/unbold as appropriate
+        hasaddedinfo = treeitem.addedinfo.hascontent()
+        option.font.setBold(hasaddedinfo)
+
+        super().initStyleOption(option, index)

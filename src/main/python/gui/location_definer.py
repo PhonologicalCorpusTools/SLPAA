@@ -318,9 +318,12 @@ class LocationDefinerPage(QWidget):
             self.location_viewer.setTransform(trans_matrix)
 
     def set_image(self):
+        # It changes images in 'Define location'
         file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'),
                                                            self.app_settings['storage']['recent_folder'],
                                                            self.tr('Image Files (*.png *.jpg *.bmp)'))
+        if file_name == '':  # if no image selected, do not change current photo
+            return
         _, basename = os.path.split(file_name)
 
         self.image_base = basename

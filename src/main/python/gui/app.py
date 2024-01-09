@@ -1,3 +1,7 @@
+import errno
+import sys
+from os import getcwd
+from os.path import join, exists, realpath, dirname
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
 from .main_window import MainWindow
 
@@ -13,6 +17,28 @@ class AppContext(ApplicationContext):
     @cached_property
     def main_window(self):
         return MainWindow(self)
+
+    def get_resource(self, relative_path):
+        """
+        Translate relative path to absolute path.
+
+        If frozen, refer to the MEIPASS directory;
+        If running from source, src/main/resources/base, followed by the rel path.
+        Raise FileNotFoundError if abs path cannot be decided
+        """
+        if hasattr(sys, 'frozen'):  # running as executable
+            resource_dir = join(sys._MEIPASS, 'resources')  # cf. 'datas' parameter in .spec
+        else:                       # running from source
+            parent_dir = dirname(getcwd())
+            resource_dir = join(parent_dir, 'resources', 'base')
+            # workaround
+            if relative_path == 'Icon.ico':
+                resource_dir = join(parent_dir, 'icons')
+
+        resource_path = join(resource_dir, relative_path)
+        if exists(resource_path):
+            return realpath(resource_path)
+        raise FileNotFoundError(errno.ENOENT, 'Could not locate resource', relative_path)
 
     @cached_property
     def icons(self):
@@ -118,6 +144,7 @@ class AppContext(ApplicationContext):
             '5': self.get_resource('predefined/5.png'),
             'bent-5': self.get_resource('predefined/bent-5.png'),
             'bent-midfinger-5': self.get_resource('predefined/bent-midfinger-5.png'),
+            'clawed-5': self.get_resource('predefined/clawed-5.png'),
             'clawed-extended-5': self.get_resource('predefined/clawed-extended-5.png'),
             'contracted-5': self.get_resource('predefined/contracted-5.png'),
             'relaxed-contracted-5': self.get_resource('predefined/relaxed-contracted-5.png'),
@@ -198,6 +225,7 @@ class AppContext(ApplicationContext):
             'L': self.get_resource('predefined/L.png'),
             'bent-L': self.get_resource('predefined/bent-L.png'),
             'bent-thumb-L': self.get_resource('predefined/bent-thumb-L.png'),
+            'clawed-L': self.get_resource('predefined/clawed-L.png'),
             'clawed-extended-L': self.get_resource('predefined/clawed-extended-L.png'),
             'contracted-L': self.get_resource('predefined/contracted-L.png'),
             'double-contracted-L': self.get_resource('predefined/double-contracted-L.png'),
