@@ -541,7 +541,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         
         multiple_selections = self.multiple_selections_check()
 
-        if multiple_selections and not treemodel.multiple_selection_allowed:
+        if self.getcurrentlocationtype().usesbodylocations() and multiple_selections and not treemodel.multiple_selection_allowed:
             selectionsvalid = False
             warningmessage = warningmessage + "Multiple locations have been selected but 'Allow multiple selection' is not checked."
         return selectionsvalid, warningmessage
@@ -856,7 +856,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
             btn.setChecked(False)
-
+            
+        self.locationoptionsselectionpanel.multiple_selection_rb.setEnabled(not loctype.purelyspatial)
         if loctype.body:
             self.body_radio.setChecked(True)
         elif loctype.signingspace:
