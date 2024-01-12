@@ -546,12 +546,14 @@ class LocationTreeModel(QStandardItemModel):
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
-    def uncheck_in_checkstates(self, paths_to_uncheck):
+    def uncheck_paths(self, paths_to_uncheck):
         for path in paths_to_uncheck:
             try:
                 self.serializedlocntree.checkstates[path] = Qt.Unchecked
+                self.serializedlocntree.addedinfos[path] = Qt.Unchecked
+                self.serializedlocntree.detailstables[path] = Qt.Unchecked
             except:
-                print("Could not uncheck.")
+                print("Could not uncheck old path.")
     
     '''
     Removes from paths_to_add once found
@@ -567,10 +569,11 @@ class LocationTreeModel(QStandardItemModel):
                         treechild.setCheckState(Qt.Checked)
                         oldtext = paths_dict[pathtext]
                         paths_to_add.remove(pathtext)
-
-                        if pathtext in self.serializedlocntree.addedinfos:
+                        print(self.serializedlocntree.addedinfos[oldtext])
+                        print(self.serializedlocntree.detailstables[oldtext])
+                        if oldtext in self.serializedlocntree.addedinfos:
                             treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
-                        if pathtext in self.serializedlocntree.detailstables.keys():
+                        if oldtext in self.serializedlocntree.detailstables.keys():
                             treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
 
                     self.addcheckedvalues(treechild, paths_to_add, paths_dict)

@@ -624,7 +624,7 @@ class Corpus:
 
             for p in missing_values:
                 if p not in paths_missing_bc and p not in paths_not_found:
-                    treemodel.uncheck_in_checkstates(missing_values)
+                    treemodel.uncheck_paths(missing_values)
 
         return paths_missing_bc, paths_not_found
 

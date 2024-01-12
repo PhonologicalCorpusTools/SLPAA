@@ -1310,12 +1310,13 @@ class MovementTreeModel(QStandardItemModel):
 
         return userspecifiedvalues
 
-    def uncheck_in_checkstates(self, paths_to_uncheck):
+    def uncheck_paths(self, paths_to_uncheck):
         for path in paths_to_uncheck:
             try:
                 self.serializedmvmttree.checkstates[path] = Qt.Unchecked
+                self.serializedmvmttree.addedinfos[path] = Qt.Unchecked
             except:
-                print("Could not uncheck.")
+                print("Could not uncheck old path.")
 
     '''
     Removes from paths_to_add once found
@@ -1337,10 +1338,10 @@ class MovementTreeModel(QStandardItemModel):
                         oldtext = paths_dict[pathtext]
                         paths_to_add.remove(pathtext)
 
-                        if pathtext in self.serializedmvmttree.addedinfos:
+                        if oldtext in self.serializedmvmttree.addedinfos:
                             treechild.addedinfo = copy(self.serializedmvmttree.addedinfos[oldtext])
-
-                        if pathtext in self.get_usv():
+                        
+                        if oldtext in self.get_usv():
                             # this also updates the associated list item as well as its display
                             treechild.setData(self.get_usv()[oldtext], Qt.UserRole + udr.userspecifiedvaluerole)
                             treechild.editablepart().setText(self.get_usv()[oldtext])
