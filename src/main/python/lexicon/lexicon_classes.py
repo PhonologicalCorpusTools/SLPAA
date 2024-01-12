@@ -467,7 +467,7 @@ class Corpus:
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID
             # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             self.confirmhighestID("load")
-            self.add_missing_paths(verbose=True) # Another backwards compatibility function for movement and location
+            self.add_missing_paths(verbose=False) # Another backwards compatibility function for movement and location
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -566,22 +566,23 @@ class Corpus:
             mvmt_paths_missing_bc, mvmt_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.MOVEMENT, correctionsdict, verbose)
             locn_paths_missing_bc, locn_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.LOCATION, correctionsdict, verbose)
 
-            paths_not_found = paths_not_found + mvmt_paths_not_found + locn_paths_not_found
-            paths_missing_bc = paths_missing_bc + mvmt_paths_missing_bc + locn_paths_missing_bc
+        #     paths_not_found = paths_not_found + mvmt_paths_not_found + locn_paths_not_found
+        #     paths_missing_bc = paths_missing_bc + mvmt_paths_missing_bc + locn_paths_missing_bc
 
-        if len(paths_missing_bc) != 0:
-            logging.warning("Backwards compatibility is missing for the following paths:")
-            for i in paths_missing_bc:
-                logging.warning(i)
-        if len(paths_not_found) != 0:
-            logging.warning("Backwards compatibility is incorrect for the following paths:")
-            for i in paths_not_found:
-                logging.warning(i)
+        # if len(paths_missing_bc) != 0:
+        #     logging.warning("Backwards compatibility is missing for the following paths:")
+        #     for i in paths_missing_bc:
+        #         logging.warning(i)
+        # if len(paths_not_found) != 0:
+        #     logging.warning("Backwards compatibility is incorrect for the following paths:")
+        #     for i in paths_not_found:
+        #         logging.warning(i)
 
 
     def add_missing_paths_helper(self, sign, type, correctionsdict, verbose):
         moduledict = sign.getmoduledict(type)
         gloss = sign.signlevel_information.gloss
+
 
         paths_missing_bc = []
         paths_not_found = []
@@ -614,8 +615,7 @@ class Corpus:
 
                 if len(paths_to_add) == 0: 
                     paths_missing_bc.append(oldpath)
-                    logging.warning("***************** ")
-                    logging.warning(oldpath)
+                    logging.warning(gloss + ": bad backwards compatibility for " + oldpath)
                     
                 for path in paths_to_add:
                     newpath = delimiter.join(path)
@@ -626,9 +626,7 @@ class Corpus:
             
             if len(newpaths) != 0:
                 for i in newpaths:
-                    
-                    logging.warning("***************** ")
-                    logging.warning(i)
+                    logging.warning(gloss  + ": bad backwards compatibility for " + i)
                     paths_not_found.append(thisdict[i])
 
             for p in missing_values:
@@ -686,6 +684,7 @@ class Corpus:
                     nodes[3] = 'Location:'
                 elif length > 4 and nodes[3] in ['Across', 'Along']:
                     nodes[4] = nodes[4].lower()
+                paths_to_add.append(nodes)
             # Issue 194: Add abs/rel movement options 
             if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
                     nodes.insert(3, 'Absolute')
