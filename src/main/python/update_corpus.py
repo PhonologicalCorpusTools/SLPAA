@@ -333,7 +333,7 @@ def convert(sign, type, correctionsdict):
             for i in newpaths:
                 bad_paths.append(i)
         print("_______________________________")
-        treemodel.uncheck_in_checkstates(missing_values)
+        treemodel.uncheck_paths(missing_values)
     print("_______________________________________________")
 
     if len(bad_paths) != 0:
