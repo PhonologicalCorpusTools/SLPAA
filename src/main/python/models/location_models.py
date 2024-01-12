@@ -609,8 +609,6 @@ class LocationTreeModel(QStandardItemModel):
         for item in serialized:
             if item not in current:
                 differences.append(item)
-        if len(serialized) == 0:
-            logging.warning("A location module has no paths. Is something missing?")
         if verbose:
             print("   Serialized locn:" + str(len(serialized)) + "; Listed locn:" + str(len(self.checked)))
                 

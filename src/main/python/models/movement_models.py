@@ -1209,8 +1209,6 @@ class MovementTreeModel(QStandardItemModel):
         for item in serialized:
             if item not in self.checked:
                 differences.append(item)
-        if len(serialized) == 0:
-            logging.warning("A movement module has no paths. Is something missing?")
         if verbose:
             print("   Serialized mvmt:" + str(len(serialized)) + "; Listed mvmt:" + str(len(self.checked)))
         # if (len(serialized) != len(self.checked)):
@@ -1247,10 +1245,13 @@ class MovementTreeModel(QStandardItemModel):
                 if (stored_dict[old_trill_path+delimiter+"Trilled"] == Qt.Checked):
                     stored_dict["Movement characteristics"+delimiter+"Repetition"] = Qt.Unchecked
                     stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Checked
+                    stored_dict.pop(old_trill_path + delimiter + "Trilled")
                 # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
                 else:
                     stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Unchecked
+                    stored_dict.pop(old_trill_path + delimiter + "Not trilled")
                 stored_dict.pop(old_trill_path)
+
 
         for stored_dict in dicts:
             pairstoadd = {}
