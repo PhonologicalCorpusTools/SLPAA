@@ -559,21 +559,23 @@ class Corpus:
         correctionsdict[ModuleTypes.MOVEMENT] = {}
         correctionsdict[ModuleTypes.LOCATION] = {}
 
+        paths_not_found = []
+        paths_missing_bc = []
+
         for sign in self.signs:
             mvmt_paths_missing_bc, mvmt_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.MOVEMENT, correctionsdict, verbose)
             locn_paths_missing_bc, locn_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.LOCATION, correctionsdict, verbose)
 
-        if len(mvmt_paths_missing_bc) != 0 or len(locn_paths_missing_bc) != 0:
+            paths_not_found = paths_not_found + mvmt_paths_not_found + locn_paths_not_found
+            paths_missing_bc = paths_missing_bc + mvmt_paths_missing_bc + locn_paths_missing_bc
+
+        if len(paths_missing_bc) != 0:
             logging.warning("Backwards compatibility is missing for the following paths:")
-            for i in mvmt_paths_missing_bc:
+            for i in paths_missing_bc:
                 logging.warning(i)
-            for i in locn_paths_missing_bc:
-                logging.warning(i)
-        if len(mvmt_paths_not_found) != 0 or len(locn_paths_not_found) != 0:
+        if len(paths_not_found) != 0:
             logging.warning("Backwards compatibility is incorrect for the following paths:")
-            for i in mvmt_paths_not_found:
-                logging.warning(i)
-            for i in locn_paths_not_found:
+            for i in paths_not_found:
                 logging.warning(i)
 
 
@@ -608,9 +610,13 @@ class Corpus:
             newpaths = []
 
             for oldpath in missing_values:
-                paths_to_add = self.get_paths_to_add(self.get_node_sequence(oldpath), type)
+                paths_to_add = self.get_paths_to_add(oldpath, type)
+
                 if len(paths_to_add) == 0: 
                     paths_missing_bc.append(oldpath)
+                    logging.warning("***************** ")
+                    logging.warning(oldpath)
+                    
                 for path in paths_to_add:
                     newpath = delimiter.join(path)
                     correctionsdict[type][gloss][newpath] = oldpath 
@@ -620,12 +626,14 @@ class Corpus:
             
             if len(newpaths) != 0:
                 for i in newpaths:
+                    
+                    logging.warning("***************** ")
+                    logging.warning(i)
                     paths_not_found.append(thisdict[i])
 
             for p in missing_values:
                 if p not in paths_missing_bc and p not in paths_not_found:
                     treemodel.uncheck_paths(missing_values)
-
         return paths_missing_bc, paths_not_found
 
     # Converts a string representing a movement/location path into a list of nodes
@@ -641,7 +649,8 @@ class Corpus:
         nodes.append(curr)
         return nodes
     
-    def get_paths_to_add(self, nodes, modtype):
+    def get_paths_to_add(self, path, modtype):
+        nodes = self.get_node_sequence(path)
         paths_to_add = []
         length = len(nodes)
         if modtype == ModuleTypes.MOVEMENT:
@@ -668,7 +677,15 @@ class Corpus:
                 elif (length > 1 and nodes[1] == 'Thumb non-base / interphalangeal'):
                     nodes[1] = 'Thumb non-base / interphalangeal (IP)'
                     paths_to_add.append(nodes)
-                    
+                
+            # Fix some minor spelling / punctuation changes from issue #195
+            if (length > 2 and nodes[2] == 'Rubbing'):
+                if length > 3 and nodes[3] == 'Articulators':
+                    nodes[3] = 'Articulator(s):'
+                elif length > 3 and nodes[3] == 'Location':
+                    nodes[3] = 'Location:'
+                elif length > 4 and nodes[3] in ['Across', 'Along']:
+                    nodes[4] = nodes[4].lower()
             # Issue 194: Add abs/rel movement options 
             if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
                     nodes.insert(3, 'Absolute')
@@ -676,6 +693,8 @@ class Corpus:
         else: # LOCATION
             # Issue 162: hand changes
             if 'hand' in nodes[0] and length > 1:
+                if nodes[0] == 'Other hand':
+                    nodes[0] = 'Whole hand'
                 if nodes[1] in ['Fingers', 'Thumb']:
                     nodes.insert(1, 'Fingers and thumb')
                 elif nodes[1][0:7] == 'Finger ':
@@ -694,16 +713,17 @@ class Corpus:
                 paths_to_add.append(nodes)
             # Issue 162: Arm changes
             elif nodes[0] == 'Arm (contralateral)':
-                nodes.insert(0, 'Arm')
+                nodes[0] = 'Arm'
                 if length == 1:
                     nodes[1] == 'Arm - contra'
-                elif length > 1:
-                    nodes.insert(1, nodes[1]) 
-                    nodes[2] = nodes[2] + ' - contra'
-                if length > 2: 
-                    nodes.insert(3, nodes[3])
-                    nodes[4] = nodes[4] + ' - contra'
-                paths_to_add.append(nodes)
+                else:
+                    if length == 2:
+                        nodes.insert(1, nodes[1]) 
+                        nodes[2] = nodes[2] + ' - contra'
+                    if length == 3: 
+                        nodes.insert(2, nodes[2])
+                        nodes[3] = nodes[3] + ' - contra'
+                    paths_to_add.append(nodes)
             # Issue 162: New torso layers
             elif nodes[0] == 'Torso' and length > 1:
                 if nodes[1] in ['Hip', 'Groin', 'Buttocks', 'Pelvis area']:
