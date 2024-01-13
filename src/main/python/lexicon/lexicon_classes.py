@@ -467,7 +467,7 @@ class Corpus:
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID
             # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             self.confirmhighestID("load")
-            self.add_missing_paths(verbose=False) # Another backwards compatibility function for movement and location
+            self.add_missing_paths(verbose=True) # Another backwards compatibility function for movement and location
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -554,85 +554,91 @@ class Corpus:
     def __repr__(self):
         return '<CORPUS: ' + repr(self.name) + '>'
     
-    def add_missing_paths(self, verbose=False):
-        correctionsdict = {}
-        correctionsdict[ModuleTypes.MOVEMENT] = {}
-        correctionsdict[ModuleTypes.LOCATION] = {}
-
-        paths_not_found = []
-        paths_missing_bc = []
-
+    def add_missing_paths(self, verbose):
         for sign in self.signs:
-            mvmt_paths_missing_bc, mvmt_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.MOVEMENT, correctionsdict, verbose)
-            locn_paths_missing_bc, locn_paths_not_found = self.add_missing_paths_helper(sign, ModuleTypes.LOCATION, correctionsdict, verbose)
-
-        #     paths_not_found = paths_not_found + mvmt_paths_not_found + locn_paths_not_found
-        #     paths_missing_bc = paths_missing_bc + mvmt_paths_missing_bc + locn_paths_missing_bc
-
-        # if len(paths_missing_bc) != 0:
-        #     logging.warning("Backwards compatibility is missing for the following paths:")
-        #     for i in paths_missing_bc:
-        #         logging.warning(i)
-        # if len(paths_not_found) != 0:
-        #     logging.warning("Backwards compatibility is incorrect for the following paths:")
-        #     for i in paths_not_found:
-        #         logging.warning(i)
+            self.add_missing_paths_helper(sign, verbose)
 
 
-    def add_missing_paths_helper(self, sign, type, correctionsdict, verbose):
-        moduledict = sign.getmoduledict(type)
+    def add_missing_paths_helper(self, sign, verbose):
+        correctionsdict = {ModuleTypes.MOVEMENT: {},
+                           ModuleTypes.LOCATION: {},
+                           ModuleTypes.RELATION: {}}
         gloss = sign.signlevel_information.gloss
-
-
-        paths_missing_bc = []
-        paths_not_found = []
-
         if verbose:
-                print('______________')
-                print(gloss)
+            print('______________')
+            print(gloss)
 
-        for count, k in enumerate(moduledict):
-            correctionsdict[type][gloss] = {}
-            module = moduledict[k]
-            treemodel = module.movementtreemodel if type == ModuleTypes.MOVEMENT else module.locationtreemodel
-
-            if len(treemodel.get_checked_from_serialized_tree()) == 0:
-                logging.warning(gloss + " " + type + str(count+1) +": Module has no selections. Is something missing?")
-
-            if verbose:
-                print(type + str(count+1))
-            missing_values = treemodel.compare_checked_lists(verbose)
-            if verbose:
-                if len(missing_values) != 0:
-                    print("   missing paths to add: ")
-                    for val in missing_values:
-                        print("   " + val)
-
-            newpaths = []
-
-            for oldpath in missing_values:
-                paths_to_add = self.get_paths_to_add(oldpath, type)
-
-                if len(paths_to_add) == 0: 
-                    paths_missing_bc.append(oldpath)
-                    logging.warning(gloss + ": bad backwards compatibility for " + oldpath)
-                    
-                for path in paths_to_add:
-                    newpath = delimiter.join(path)
-                    correctionsdict[type][gloss][newpath] = oldpath 
-                    newpaths.append(newpath)
-            thisdict = correctionsdict[type][gloss]
-            treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
+        for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+            moduledict = sign.getmoduledict(type)
             
-            if len(newpaths) != 0:
-                for i in newpaths:
-                    logging.warning(gloss  + ": bad backwards compatibility for " + i)
-                    paths_not_found.append(thisdict[i])
+            paths_missing_bc = []
+            paths_not_found = []
 
-            for p in missing_values:
-                if p not in paths_missing_bc and p not in paths_not_found:
-                    treemodel.uncheck_paths(missing_values)
-        return paths_missing_bc, paths_not_found
+            for count, k in enumerate(moduledict):
+                correctionsdict[type][gloss] = {}
+                module = moduledict[k]
+
+                if type == ModuleTypes.MOVEMENT:
+                    treemodel = module.movementtreemodel
+                elif type == ModuleTypes.LOCATION:
+                    treemodel = module.locationtreemodel
+                elif type == ModuleTypes.RELATION:
+                    bodyparts_dict = module.bodyparts_dict
+
+                    flag = False
+                    for bodypart in bodyparts_dict:
+                        if flag == True:
+                            break
+                        for n in bodyparts_dict[bodypart]:
+                            if module.usesarticulator(bodypart, n):
+                                flag = True
+                                treemodel = bodyparts_dict[bodypart][n].bodyparttreemodel
+                                break
+                    print(treemodel.get_checked_from_serialized_tree())
+                    
+                    
+
+                if len(treemodel.get_checked_from_serialized_tree()) == 0:
+                    logging.warning(gloss + " " + type + str(count+1) +": Module has no selections. Is something missing?")
+
+                if verbose:
+                    print(type + str(count+1))
+                missing_values = treemodel.compare_checked_lists(verbose)
+                if verbose:
+                    if len(missing_values) != 0:
+                        print("   missing paths to add: ")
+                        for val in missing_values:
+                            print("   " + val)
+
+                newpaths = []
+
+                for oldpath in missing_values:
+                    paths_to_add = self.get_paths_to_add(oldpath, type)
+
+                    if len(paths_to_add) == 0: 
+                        paths_missing_bc.append(oldpath)
+                        logging.warning(gloss + ": bad backwards compatibility for " + oldpath)
+                        
+                    for path in paths_to_add:
+                        newpath = delimiter.join(path)
+                        correctionsdict[type][gloss][newpath] = oldpath 
+                        newpaths.append(newpath)
+                thisdict = correctionsdict[type][gloss]
+                treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
+                
+                if len(newpaths) != 0:
+                    for i in newpaths:
+                        logging.warning(gloss  + ": bad backwards compatibility for " + i)
+                        paths_not_found.append(thisdict[i])
+
+                for p in missing_values:
+                    if p not in paths_missing_bc and p not in paths_not_found:
+                        treemodel.uncheck_paths(missing_values)
+        
+        # moduledict = sign.getmoduledict(ModuleTypes.RELATION)
+
+        
+        return 
 
     # Converts a string representing a movement/location path into a list of nodes
     def get_node_sequence(self, item):
@@ -689,7 +695,7 @@ class Corpus:
             if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
                     nodes.insert(3, 'Absolute')
                     paths_to_add.append(nodes)
-        else: # LOCATION
+        elif modtype == ModuleTypes.LOCATION: # LOCATION
             # Issue 162: hand changes
             if 'hand' in nodes[0] and length > 1:
                 if nodes[0] == 'Other hand':
