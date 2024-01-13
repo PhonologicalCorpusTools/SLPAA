@@ -597,10 +597,10 @@ class Corpus:
             treemodel = module.movementtreemodel if type == ModuleTypes.MOVEMENT else module.locationtreemodel
 
             if len(treemodel.get_checked_from_serialized_tree()) == 0:
-                logging.warning(gloss + ": Module has no selections. Is something missing?")
+                logging.warning(gloss + " " + type + str(count+1) +": Module has no selections. Is something missing?")
 
             if verbose:
-                print("module " + str(count+1))
+                print(type + str(count+1))
             missing_values = treemodel.compare_checked_lists(verbose)
             if verbose:
                 if len(missing_values) != 0:
