@@ -78,6 +78,7 @@ class ModuleSelectorDialog(QDialog):
                                                              incl_articulator_subopts=incl_articulator_subopts,
                                                              inphase=inphase,
                                                              parent=self)
+
         if self.includearticulatorselection:
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
@@ -88,10 +89,11 @@ class ModuleSelectorDialog(QDialog):
         self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
         main_layout.addLayout(self.arts_and_addedinfo_layout)
-
+        self.arts_and_addedinfo_layout.minimumSize()
         self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
                                               timingintervals=timingintervals,
                                               parent=self)
+
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addWidget(self.xslot_widget)
 
@@ -168,6 +170,10 @@ class ModuleSelectorDialog(QDialog):
         # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
         # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         # self.adjustSize()
+
+        # get first rendered widget heights and fix them.
+        self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
+        self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
 
     def handle_modulesaved(self, relationtosave, moduletype):
         self.module_saved.emit(relationtosave, moduletype)
