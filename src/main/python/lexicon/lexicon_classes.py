@@ -556,87 +556,89 @@ class Corpus:
     
     def add_missing_paths(self, verbose):
         for sign in self.signs:
-            self.add_missing_paths_helper(sign, verbose)
+            correctionsdict = {ModuleTypes.MOVEMENT: {},
+                               ModuleTypes.LOCATION: {},
+                               ModuleTypes.RELATION: {}}
+            gloss = sign.signlevel_information.gloss
+            if verbose:
+                print('______________\n' + gloss)
 
 
-    def add_missing_paths_helper(self, sign, verbose):
-        correctionsdict = {ModuleTypes.MOVEMENT: {},
-                           ModuleTypes.LOCATION: {},
-                           ModuleTypes.RELATION: {}}
-        gloss = sign.signlevel_information.gloss
+            for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+                moduledict = sign.getmoduledict(type)
+
+                for count, k in enumerate(moduledict):
+                    correctionsdict[type][gloss] = {}
+                    module = moduledict[k]
+
+                    if type == ModuleTypes.MOVEMENT:
+                        self.add_missing_paths_helper(gloss, module.movementtreemodel, type, count, correctionsdict, verbose)
+                    elif type == ModuleTypes.LOCATION:
+                        self.add_missing_paths_helper(gloss, module.locationtreemodel, type, count, correctionsdict, verbose)
+                    elif type == ModuleTypes.RELATION:
+                        bodyparts_dict = module.bodyparts_dict
+                        for b in [HAND, ARM, LEG]:
+                            if module.usesarticulator(b):
+                                for i in [1,2]:
+                                    if module.usesarticulator(b,i):
+                                        treemodel = bodyparts_dict[b][i].bodyparttreemodel
+                                        self.add_missing_paths_helper(gloss, treemodel, type, count, correctionsdict, verbose, i)
+
+    def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose, relnumber=None):
+        paths_missing_bc = []
+        paths_not_found = []
+
+        if len(treemodel.get_checked_from_serialized_tree()) == 0:
+            label = "   " + gloss + " " + str(type) + str(count+1)
+            if hasattr(treemodel, "bodyparttype"):
+                label = label + " " + treemodel.bodyparttype + str(relnumber)
+
+            logging.warning(label +": Module has no selections. Is something missing?")
+
         if verbose:
-            print('______________')
-            print(gloss)
+            label = str(type) + str(count+1)
+            if hasattr(treemodel, "bodyparttype"):
+                label = label + " " + treemodel.bodyparttype + str(relnumber)
+            print(label)
 
-        for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
-            moduledict = sign.getmoduledict(type)
-            
-            paths_missing_bc = []
-            paths_not_found = []
+        missing_values = treemodel.compare_checked_lists(verbose)
+        if verbose:
+            if len(missing_values) != 0:
+                print("   missing paths to add: ")
+                for val in missing_values:
+                    print("   " + val)
 
-            for count, k in enumerate(moduledict):
-                correctionsdict[type][gloss] = {}
-                module = moduledict[k]
+        newpaths = []
 
-                if type == ModuleTypes.MOVEMENT:
-                    treemodel = module.movementtreemodel
-                elif type == ModuleTypes.LOCATION:
-                    treemodel = module.locationtreemodel
-                elif type == ModuleTypes.RELATION:
-                    bodyparts_dict = module.bodyparts_dict
+        for oldpath in missing_values:
+            paths_to_add = self.get_paths_to_add(oldpath, type)
 
-                    flag = False
-                    for bodypart in bodyparts_dict:
-                        if flag == True:
-                            break
-                        for n in bodyparts_dict[bodypart]:
-                            if module.usesarticulator(bodypart, n):
-                                flag = True
-                                treemodel = bodyparts_dict[bodypart][n].bodyparttreemodel
-                                break
-                    print(treemodel.get_checked_from_serialized_tree())
-                    
-                    
-
-                if len(treemodel.get_checked_from_serialized_tree()) == 0:
-                    logging.warning(gloss + " " + type + str(count+1) +": Module has no selections. Is something missing?")
-
-                if verbose:
-                    print(type + str(count+1))
-                missing_values = treemodel.compare_checked_lists(verbose)
-                if verbose:
-                    if len(missing_values) != 0:
-                        print("   missing paths to add: ")
-                        for val in missing_values:
-                            print("   " + val)
-
-                newpaths = []
-
-                for oldpath in missing_values:
-                    paths_to_add = self.get_paths_to_add(oldpath, type)
-
-                    if len(paths_to_add) == 0: 
-                        paths_missing_bc.append(oldpath)
-                        logging.warning(gloss + ": bad backwards compatibility for " + oldpath)
-                        
-                    for path in paths_to_add:
-                        newpath = delimiter.join(path)
-                        correctionsdict[type][gloss][newpath] = oldpath 
-                        newpaths.append(newpath)
-                thisdict = correctionsdict[type][gloss]
-                treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
+            if len(paths_to_add) == 0: 
+                paths_missing_bc.append(oldpath)
+                label = "   " + gloss + " " + str(type) + str(count+1)
+                if hasattr(treemodel, "bodyparttype"):
+                    label = label + " " + treemodel.bodyparttype + str(relnumber)
+                logging.warning(label+": bad backwards compatibility for " + oldpath)
                 
-                if len(newpaths) != 0:
-                    for i in newpaths:
-                        logging.warning(gloss  + ": bad backwards compatibility for " + i)
-                        paths_not_found.append(thisdict[i])
-
-                for p in missing_values:
-                    if p not in paths_missing_bc and p not in paths_not_found:
-                        treemodel.uncheck_paths(missing_values)
+            for path in paths_to_add:
+                newpath = delimiter.join(path)
+                correctionsdict[type][gloss][newpath] = oldpath 
+                newpaths.append(newpath)
+        thisdict = correctionsdict[type][gloss]
+        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
         
-        # moduledict = sign.getmoduledict(ModuleTypes.RELATION)
+        if len(newpaths) != 0:
+            for i in newpaths:
+                label = "   " + gloss + " " + str(type) + str(count+1)
+                if hasattr(treemodel, "bodyparttype"):
+                    label = label + " " + treemodel.bodyparttype + str(relnumber)
+                logging.warning(label + str(count+1) +": bad backwards compatibility for " + i)
+                paths_not_found.append(thisdict[i])
 
+        for p in missing_values:
+            if p not in paths_missing_bc and p not in paths_not_found:
+                treemodel.uncheck_paths(missing_values)
+    
         
         return 
 
