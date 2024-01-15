@@ -39,11 +39,20 @@ from models.relation_models import ModuleLinkingListModel
 from models.location_models import BodypartTreeModel
 from models.nonmanual_models import NonManualModel, nonmanual_root
 from gui.relationspecification_view import RelationRadioButton as SLPAARadioButton
-from gui.relationspecification_view import RelationButtonGroup as SLPAAButtonGroup
+from gui.relationspecification_view import RelationButtonGroup
 from gui.modulespecification_widgets import ModuleSpecificationPanel
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
 from constant import HAND, ARM, LEG
+
+
+class SLPAAButtonGroup(RelationButtonGroup):
+    def __init__(self, buttonslist=None):
+        # buttonslist: list of QRadioButton to be included as a group
+        super().__init__()
+        if buttonslist is not None:
+            [self.addButton(button) for button in buttonslist]
+
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
@@ -132,10 +141,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # static / dynamic group
         nonman.widget_rb_static = QRadioButton("Static")
         nonman.widget_rb_dynamic = QRadioButton("Dynamic")
+        static_dynamic_list = [nonman.widget_rb_static, nonman.widget_rb_dynamic]
+        nonman.static_dynamic_group = SLPAAButtonGroup(static_dynamic_list)
 
         vbox = QVBoxLayout()
-        vbox.addWidget(nonman.widget_rb_static)
-        vbox.addWidget(nonman.widget_rb_dynamic)
+        [vbox.addWidget(widget) for widget in static_dynamic_list]
+
         sd_rb_groupbox = QGroupBox("Static / Dynamic")  # static/dynamic radio buttons group
         sd_rb_groupbox.setLayout(vbox)
 
@@ -163,25 +174,21 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
             nonman.widget_rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
             nonman.widget_rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
-            nonman.subpart_group = SLPAAButtonGroup()
-            nonman.subpart_group.addButton(nonman.widget_rb_subpart_both)
-            nonman.subpart_group.addButton(nonman.widget_rb_subpart_one)
-            # self.subpart_group.buttonToggled.connect(self.handle_subpart_rb_toggled)  #TODO Stanley
+            subpart_list = [nonman.widget_rb_subpart_both, nonman.widget_rb_subpart_one]
+
+            nonman.subpart_group = SLPAAButtonGroup(subpart_list)
 
             nonman.widget_rb_onepart_one = SLPAARadioButton("H1")
-            nonman.widget_rb_onepart_two =SLPAARadioButton("H2")
-            nonman.onepart_group = SLPAAButtonGroup()
-            nonman.onepart_group.addButton(nonman.widget_rb_onepart_one)
-            nonman.onepart_group.addButton(nonman.widget_rb_onepart_two)
-            # self.onepart_group.buttonToggled.connect(self.handle_onepart_rb_toggled)  #TODO Stanley
+            nonman.widget_rb_onepart_two = SLPAARadioButton("H2")
+            onepart_list = [nonman.widget_rb_onepart_one, nonman.widget_rb_onepart_two]
 
-            onepart_layout.addWidget(nonman.widget_rb_onepart_one)
-            onepart_layout.addWidget(nonman.widget_rb_onepart_two)
+            nonman.onepart_group = SLPAAButtonGroup(onepart_list)
+
+            [onepart_layout.addWidget(widget) for widget in onepart_list]
             onepart_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
             onepart_spacedlayout.addLayout(onepart_layout)
 
-            subpart_box_layout.addWidget(nonman.widget_rb_subpart_both)
-            subpart_box_layout.addWidget(nonman.widget_rb_subpart_one)
+            [subpart_box_layout.addWidget(widget) for widget in subpart_list]
             subpart_box_layout.addLayout(onepart_spacedlayout)
 
             subpart_box.setLayout(subpart_box_layout)
@@ -257,7 +264,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
 
             if options.options is not None:
-                sub_btn_group = QButtonGroup(self)
+                sub_btn_group = SLPAAButtonGroup()
                 for child in options.options:
                     if not isinstance(child, str):
                         sub_heading, subsub_spacedlayout = self.fillin_vbox(child)
@@ -276,7 +283,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # in the root. initialize and be ready to go deeper
             self.widget_grouplayout_actionstate = QHBoxLayout()
             self.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
-            self.main_btn_group = QButtonGroup(self)
+            self.main_btn_group = SLPAAButtonGroup()
             for child in options.options:
                 self.parse_actionstate(child)
 
@@ -289,7 +296,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         subsub_layout = QVBoxLayout()
 
         if asm.options is not None:
-            btn_group = QButtonGroup(self)
+            btn_group = SLPAAButtonGroup()
             for o in asm.options:
                 if not isinstance(o, str):
                     cb, sub_spacedlayout = self.fillin_vbox(o)
@@ -328,10 +335,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         nonman.widget_rb_rep_single = SLPAARadioButton("Single")
         nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated")
         nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled")
+        rep_list = [nonman.widget_rb_rep_single, nonman.widget_rb_rep_rep, nonman.widget_rb_rep_trill]
 
-        repetition_group_layout.addWidget(nonman.widget_rb_rep_single)
-        repetition_group_layout.addWidget(nonman.widget_rb_rep_rep)
-        repetition_group_layout.addWidget(nonman.widget_rb_rep_trill)
+        nonman.rep_group = SLPAAButtonGroup(rep_list)
+
+        [repetition_group_layout.addWidget(widget) for widget in rep_list]
         repetition_group.setLayout(repetition_group_layout)
 
         # Directionality group
@@ -339,9 +347,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         directionality_group_layout = QVBoxLayout()
         nonman.widget_rb_direction_uni = SLPAARadioButton("Unidirectional")
         nonman.widget_rb_direction_bi = SLPAARadioButton("Bidirectional")
+        directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
 
-        directionality_group_layout.addWidget(nonman.widget_rb_direction_uni)
-        directionality_group_layout.addWidget(nonman.widget_rb_direction_bi)
+        nonman.directionality_group = SLPAAButtonGroup(directionality_list)
+
+        [directionality_group_layout.addWidget(widget) for widget in directionality_list]
         directionality_group.setLayout(directionality_group_layout)
 
         # Additional movement characteristics group -- contains Size Speed Force Tension
@@ -351,9 +361,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                                  'Speed': ['Fast', 'Slow'],
                                  'Force': ['Strong', 'Weak'],
                                  'Tension': ['Tense', 'Lax']}
-        additional_subgroups = self.gen_add_move_char(additional_char_specs)
-        for subgroup in additional_subgroups:
-            additional_char_group_layout.addWidget(subgroup)
+        additional_subgroups, additional_rb_groups = self.gen_add_move_char(additional_char_specs)
+        [additional_char_group_layout.addWidget(widget) for widget in additional_subgroups]
+        nonman.additional_char_rb_group = additional_rb_groups
+
         additional_char_group.setLayout(additional_char_group_layout)
 
         # Adding all the groupboxes to form the row
@@ -364,21 +375,27 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         return row
 
     def gen_add_move_char(self, specs):
+        groupboxes = []
         groups = []
+
         for group, levels in specs.items():
             groupbox = QGroupBox(group)
             groupbox_layout = QVBoxLayout()
+            buttongroup = SLPAAButtonGroup()
 
             levels.insert(1, 'Normal')
 
             for level in levels:
-                groupbox_layout.addWidget(SLPAARadioButton(level))
+                rb_to_add = SLPAARadioButton(level)
+                buttongroup.addButton(rb_to_add)
+                groupbox_layout.addWidget(rb_to_add)
 
             groupbox.setLayout(groupbox_layout)
+            groupboxes.append(groupbox)
 
-            groups.append(groupbox)
+            groups.append(buttongroup)
 
-        return groups
+        return groupboxes, groups
 
     def validity_check(self):
         selectionsvalid = self.x_group.checkedButton() and self.y_group.checkedButton()
