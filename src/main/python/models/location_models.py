@@ -288,10 +288,6 @@ locn_options_leg = LocnOptionsNode("Leg and foot", fx, rb, nh, nonhand_surfaces_
         LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
         LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
     ]),
-    LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-        LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-        LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-    ]),
     LocnOptionsNode("Knee", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
         LocnOptionsNode("Knee - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
         LocnOptionsNode("Knee - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
@@ -854,7 +850,7 @@ class LocationTableModel(QAbstractTableModel):
             self.col_contents[index.column()][index.row()][1] = checked
         return True
 
-    # TODO KV are all of these true?
+    # TODO are all of these correct?
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
 

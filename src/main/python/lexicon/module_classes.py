@@ -106,7 +106,6 @@ class ParameterModule:
 
     @addedinfo.setter
     def addedinfo(self, addedinfo):
-        # TODO KV - validate?
         self._addedinfo = addedinfo
 
     @property
@@ -122,7 +121,6 @@ class ParameterModule:
 
     @articulators.setter
     def articulators(self, articulators):
-        # TODO KV - validate?
         self._articulators = articulators
 
     @property
@@ -131,7 +129,6 @@ class ParameterModule:
 
     @uniqueid.setter
     def uniqueid(self, uniqueid):
-        # TODO KV - validate?
         self._uniqueid = uniqueid
 
     @property
@@ -140,7 +137,6 @@ class ParameterModule:
 
     @timingintervals.setter
     def timingintervals(self, timingintervals):
-        # TODO KV - validate?
         self._timingintervals = [t for t in timingintervals]
 
     def getabbreviation(self):
@@ -338,7 +334,6 @@ class MovementModule(ParameterModule):
 
     @movementtreemodel.setter
     def movementtreemodel(self, movementtreemodel):
-        # TODO KV - validate?
         self._movementtreemodel = movementtreemodel
 
     @property
@@ -347,7 +342,6 @@ class MovementModule(ParameterModule):
 
     @inphase.setter
     def inphase(self, inphase):
-        # TODO KV - validate?
         self._inphase = inphase
 
     def getabbreviation(self):
@@ -411,7 +405,7 @@ class MovementModule(ParameterModule):
             "Single": "1x",
             "2": "2x",
             "3": "3x",
-            "4": "4x",  # TODO KV automate the abbreviations for integers
+            "4": "4x",  # TODO automate the abbreviations for integers
             ""
             "Same location": "same loc",
             "Different location": "diff. loc",
@@ -467,7 +461,6 @@ class PhonLocations:
 
     @phonologicalloc.setter
     def phonologicalloc(self, phonologicalloc):
-        # TODO KV - validate?
         self._phonologicalloc = phonologicalloc
 
     @property
@@ -476,7 +469,6 @@ class PhonLocations:
 
     @majorphonloc.setter
     def majorphonloc(self, majorphonloc):
-        # TODO KV - validate?
         self._majorphonloc = majorphonloc
 
     @property
@@ -485,7 +477,6 @@ class PhonLocations:
 
     @minorphonloc.setter
     def minorphonloc(self, minorphonloc):
-        # TODO KV - validate?
         self._minorphonloc = minorphonloc
 
     @property
@@ -494,7 +485,6 @@ class PhonLocations:
 
     @phoneticloc.setter
     def phoneticloc(self, phoneticloc):
-        # TODO KV - validate?
         self._phoneticloc = phoneticloc
 
     def allfalse(self):
@@ -530,7 +520,6 @@ class LocationType:
 
     @body.setter
     def body(self, checked):
-        # TODO KV - validate?
         self._body = checked
 
         if checked:
@@ -544,7 +533,6 @@ class LocationType:
 
     @signingspace.setter
     def signingspace(self, checked):
-        # TODO KV - validate?
         self._signingspace = checked
 
         if checked:
@@ -556,7 +544,6 @@ class LocationType:
 
     @bodyanchored.setter
     def bodyanchored(self, checked):
-        # TODO KV - validate?
         self._bodyanchored = checked
 
         if checked:
@@ -571,7 +558,6 @@ class LocationType:
 
     @purelyspatial.setter
     def purelyspatial(self, checked):
-        # TODO KV - validate?
         self._purelyspatial = checked
 
         if checked:
@@ -803,7 +789,6 @@ class AddedInfo:
 
     @iconic_flag.setter
     def iconic_flag(self, iconic_flag):
-        # TODO KV - validate?
         self._iconic_flag = iconic_flag
 
     @property
@@ -815,7 +800,6 @@ class AddedInfo:
 
     @iconic_note.setter
     def iconic_note(self, iconic_note):
-        # TODO KV - validate?
         self._iconic_note = iconic_note
 
     @property
@@ -824,7 +808,6 @@ class AddedInfo:
 
     @uncertain_flag.setter
     def uncertain_flag(self, uncertain_flag):
-        # TODO KV - validate?
         self._uncertain_flag = uncertain_flag
 
     @property
@@ -833,7 +816,6 @@ class AddedInfo:
 
     @uncertain_note.setter
     def uncertain_note(self, uncertain_note):
-        # TODO KV - validate?
         self._uncertain_note = uncertain_note
 
     @property
@@ -842,7 +824,6 @@ class AddedInfo:
 
     @estimated_flag.setter
     def estimated_flag(self, estimated_flag):
-        # TODO KV - validate?
         self._estimated_flag = estimated_flag
 
     @property
@@ -851,7 +832,6 @@ class AddedInfo:
 
     @estimated_note.setter
     def estimated_note(self, estimated_note):
-        # TODO KV - validate?
         self._estimated_note = estimated_note
 
     @property
@@ -860,7 +840,6 @@ class AddedInfo:
 
     @notspecified_flag.setter
     def notspecified_flag(self, notspecified_flag):
-        # TODO KV - validate?
         self._notspecified_flag = notspecified_flag
 
     @property
@@ -869,7 +848,6 @@ class AddedInfo:
 
     @notspecified_note.setter
     def notspecified_note(self, notspecified_note):
-        # TODO KV - validate?
         self._notspecified_note = notspecified_note
 
     @property
@@ -878,7 +856,6 @@ class AddedInfo:
 
     @variable_flag.setter
     def variable_flag(self, variable_flag):
-        # TODO KV - validate?
         self._variable_flag = variable_flag
 
     @property
@@ -887,7 +864,6 @@ class AddedInfo:
 
     @variable_note.setter
     def variable_note(self, variable_note):
-        # TODO KV - validate?
         self._variable_note = variable_note
 
     @property
@@ -896,7 +872,6 @@ class AddedInfo:
 
     @exceptional_flag.setter
     def exceptional_flag(self, exceptional_flag):
-        # TODO KV - validate?
         self._exceptional_flag = exceptional_flag
 
     @property
@@ -905,7 +880,6 @@ class AddedInfo:
 
     @incomplete_flag.setter
     def incomplete_flag(self, incomplete_flag):
-        # TODO KV - validate?
         self._incomplete_flag = incomplete_flag
 
     @property
@@ -914,7 +888,6 @@ class AddedInfo:
 
     @exceptional_note.setter
     def exceptional_note(self, exceptional_note):
-        # TODO KV - validate?
         self._exceptional_note = exceptional_note
 
     @property
@@ -923,7 +896,6 @@ class AddedInfo:
 
     @incomplete_note.setter
     def incomplete_note(self, incomplete_note):
-        # TODO KV - validate?
         self._incomplete_note = incomplete_note
 
     @property
@@ -932,7 +904,6 @@ class AddedInfo:
 
     @other_flag.setter
     def other_flag(self, other_flag):
-        # TODO KV - validate?
         self._other_flag = other_flag
 
     @property
@@ -941,7 +912,6 @@ class AddedInfo:
 
     @other_note.setter
     def other_note(self, other_note):
-        # TODO KV - validate?
         self._other_note = other_note
 
     def __repr__(self):
@@ -976,13 +946,10 @@ class AddedInfo:
 class Signtype:
 
     def __init__(self, specslist, addedinfo=None):
-        # specslist is a list of triples:
-        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
-        #   the second element is the corresponding abbreviation
-        #   the third element is a flag indicating whether or not to include this abbreviation in the concise form
-
-        # TODO KV actually pairs! first element is full signtype property composed of abbreviations
-        # second element is flag
+        # specslist is a list of pairs:
+        #   the first element is the full signtype property (correlated with radio buttons in selector dialog),
+        #   which is composed of the corresponding abbreviation
+        #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         # TODO KV need backward compatibility for this
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
@@ -1050,7 +1017,6 @@ class BodypartInfo:
 
     @bodyparttreemodel.setter
     def bodyparttreemodel(self, bodyparttreemodel):
-        # TODO KV - validate?
         self._bodyparttreemodel = bodyparttreemodel
 
     @property
@@ -1059,7 +1025,6 @@ class BodypartInfo:
 
     @bodyparttype.setter
     def bodyparttype(self, bodyparttype):
-        # TODO KV - validate?
         self._bodyparttype = bodyparttype
 
     @property
@@ -1068,7 +1033,6 @@ class BodypartInfo:
 
     @addedinfo.setter
     def addedinfo(self, addedinfo):
-        # TODO KV - validate?
         self._addedinfo = addedinfo
 
     @property
@@ -1077,7 +1041,6 @@ class BodypartInfo:
 
     @uniqueid.setter
     def uniqueid(self, uniqueid):
-        # TODO KV - validate?
         self._uniqueid = uniqueid
 
     # returns true iff the instance has some specified content beyond its "blank" initial state
@@ -1116,7 +1079,6 @@ class LocationModule(ParameterModule):
 
     @locationtreemodel.setter
     def locationtreemodel(self, locationtreemodel):
-        # TODO KV - validate?
         self._locationtreemodel = locationtreemodel
 
     @property
@@ -1125,7 +1087,6 @@ class LocationModule(ParameterModule):
 
     @phonlocs.setter
     def phonlocs(self, phonlocs):
-        # TODO KV - validate?
         self._phonlocs = phonlocs
 
     @property
@@ -1134,7 +1095,6 @@ class LocationModule(ParameterModule):
 
     @inphase.setter
     def inphase(self, inphase):
-        # TODO KV - validate?
         self._inphase = inphase
 
     def getabbreviation(self):
@@ -1495,7 +1455,6 @@ class RelationModule(ParameterModule):
 
     @relationx.setter
     def relationx(self, relationx):
-        # TODO KV - validate?
         self._relationx = relationx
 
     @property
@@ -1504,7 +1463,6 @@ class RelationModule(ParameterModule):
 
     @relationy.setter
     def relationy(self, relationy):
-        # TODO KV - validate?
         self._relationy = relationy
 
     @property
@@ -1513,7 +1471,6 @@ class RelationModule(ParameterModule):
 
     @bodyparts_dict.setter
     def bodyparts_dict(self, bodyparts_dict):
-        # TODO KV - validate?
         self._bodyparts_dict = bodyparts_dict
 
     @property
@@ -1522,7 +1479,6 @@ class RelationModule(ParameterModule):
 
     @contactrel.setter
     def contactrel(self, contactrel):
-        # TODO KV - validate?
         self._contactrel = contactrel
 
     @property
@@ -1531,7 +1487,6 @@ class RelationModule(ParameterModule):
 
     @xy_crossed.setter
     def xy_crossed(self, xy_crossed):
-        # TODO KV - validate?
         self._xy_crossed = xy_crossed
 
     @property
@@ -1540,7 +1495,6 @@ class RelationModule(ParameterModule):
 
     @xy_linked.setter
     def xy_linked(self, xy_linked):
-        # TODO KV - validate?
         self._xy_linked = xy_linked
 
     @property
@@ -1549,7 +1503,6 @@ class RelationModule(ParameterModule):
 
     @directions.setter
     def directions(self, directions):
-        # TODO KV - validate?
         self._directions = directions
 
     def usesarticulator(self, articulator, artnum=None):
@@ -1621,7 +1574,6 @@ class MannerRelation:
 
     @holding.setter
     def holding(self, checked):
-        # TODO KV - validate?
         self._holding = checked
 
         if checked:
@@ -1634,7 +1586,6 @@ class MannerRelation:
 
     @continuous.setter
     def continuous(self, checked):
-        # TODO KV - validate?
         self._continuous = checked
 
         if checked:
@@ -1647,7 +1598,6 @@ class MannerRelation:
 
     @intermittent.setter
     def intermittent(self, checked):
-        # TODO KV - validate?
         self._intermittent = checked
 
         if checked:
@@ -1697,13 +1647,7 @@ class ContactRelation:
 
     @contact.setter
     def contact(self, hascontact):
-        # TODO KV - validate?
         self._contact = hascontact
-
-        # if hascontact:
-        #     self._distance = None
-        # else:
-        #     self._manner = None
 
     @property
     def contacttype(self):
@@ -1711,7 +1655,6 @@ class ContactRelation:
 
     @contacttype.setter
     def contacttype(self, contacttype):
-        # TODO KV - validate?
         self._contacttype = contacttype
 
     @property
@@ -1720,7 +1663,6 @@ class ContactRelation:
 
     @manner.setter
     def manner(self, mannerrel):
-        # TODO KV - validate?
         self._manner = mannerrel
 
     @property
@@ -1729,7 +1671,6 @@ class ContactRelation:
 
     @distances.setter
     def distances(self, distances):
-        # TODO KV - validate?
         self._distances = distances
 
 
@@ -1768,7 +1709,6 @@ class ContactType:
 
     @light.setter
     def light(self, checked):
-        # TODO KV - validate?
         self._light = checked
 
         if checked:
@@ -1782,7 +1722,6 @@ class ContactType:
 
     @firm.setter
     def firm(self, checked):
-        # TODO KV - validate?
         self._firm = checked
 
         if checked:
@@ -1796,7 +1735,6 @@ class ContactType:
 
     @other.setter
     def other(self, checked):
-        # TODO KV - validate?
         self._other = checked
 
         if checked:
@@ -1809,10 +1747,11 @@ class ContactType:
 
     @othertext.setter
     def othertext(self, othertext):
-        # TODO KV - validate?
         self._othertext = othertext
 
 
+# This class is used by the Relation Module to track the axis on which to measure the relation between
+# two elements (X and Y), as well as the direction of X relative to Y.
 class Direction:
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
@@ -1868,7 +1807,6 @@ class Direction:
 
     @axis.setter
     def axis(self, axis):
-        # TODO KV - validate?
         self._axis = axis
 
     @property
@@ -1877,7 +1815,6 @@ class Direction:
 
     @axisselected.setter
     def axisselected(self, isselected):
-        # TODO KV - validate?
         self._axisselected = isselected
 
     @property
@@ -1886,7 +1823,6 @@ class Direction:
 
     @plus.setter
     def plus(self, isplus):
-        # TODO KV - validate?
         self._plus = isplus
 
         if isplus:
@@ -1899,7 +1835,6 @@ class Direction:
 
     @minus.setter
     def minus(self, isminus):
-        # TODO KV - validate?
         self._minus = isminus
 
         if isminus:
@@ -1912,7 +1847,6 @@ class Direction:
 
     @inline.setter
     def inline(self, isinline):
-        # TODO KV - validate?
         self._inline = isinline
 
         if isinline:
@@ -1920,6 +1854,8 @@ class Direction:
             self._minus = False
 
 
+# This class is used by the Relation Module to track the axis on which to measure the relation between
+# two elements (X and Y), as well as the relative distance between those two elements.
 class Distance:
 
     def __init__(self, axis, close=False, medium=False, far=False):
@@ -1943,7 +1879,6 @@ class Distance:
 
     @axis.setter
     def axis(self, axis):
-        # TODO KV - validate?
         self._axis = axis
 
     @property
@@ -1952,7 +1887,6 @@ class Distance:
 
     @close.setter
     def close(self, isclose):
-        # TODO KV - validate?
         self._close = isclose
 
         if isclose:
@@ -1965,7 +1899,6 @@ class Distance:
 
     @medium.setter
     def medium(self, ismedium):
-        # TODO KV - validate?
         self._medium = ismedium
 
         if ismedium:
@@ -1978,7 +1911,6 @@ class Distance:
 
     @far.setter
     def far(self, isfar):
-        # TODO KV - validate?
         self._far = isfar
 
         if isfar:
@@ -1986,7 +1918,10 @@ class Distance:
             self._medium = False
 
 
-# TODO KV comments
+# This module stores the transcription of one hand's configuration.
+# It includes specifications for each slot in each field, as well as whether the forearm is involved.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each slot,
+# forearm, and the hand config overall.
 class HandConfigurationModule(ParameterModule):
     def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, addedinfo=None):
         self._handconfiguration = handconfiguration
@@ -2028,14 +1963,15 @@ class HandConfigurationModule(ParameterModule):
         return predefinedname + fieldstext
 
 
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
+# TODO comments
 class OrientationModule(ParameterModule):
     def __init__(self):
-        # TODO KV implement
+        # TODO implement
         pass
 
 
+# This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
+# the transcription info for one hand configuration.
 class NonManualModule(ParameterModule):
     def __init__(self, articulators, timingintervals=None, addedinfo=None):
         super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
@@ -2066,6 +2002,8 @@ class HandConfigurationHand:
         ]
 
 
+# This class consists of 34 slots; each instance of a HandConfigurationField corresponds to a certain subset
+# of slots. The slots store the transcription info for one field in a hand configuration.
 class HandConfigurationField:
     def __init__(self, field_number, slots):
         self._field_number = field_number
@@ -2110,6 +2048,8 @@ class HandConfigurationField:
             return [self.slot30, self.slot31, self.slot32, self.slot33, self.slot34].__iter__()
 
 
+# This class represents the transcription for one single field of a hand configuration.
+# It also contains the "Added Info" (uncertain, estimated, etc) for the slot.
 class HandConfigurationSlot:
     def __init__(self, slot_number, symbol, addedinfo):
         self._slot_number = slot_number
@@ -2141,6 +2081,12 @@ class HandConfigurationSlot:
         self._symbol = new_symbol
 
 
+# This class is used to define the underlying structure for a particular sign's timing info.
+# It consists of three values:
+#   (1) the number of whole x-slots for the sign,
+#   (2) a list of fractional divisions (eg 1/2, 1/3, 1/4) that should be made available to the user to select when
+#       specifying timing information for the sign's modules
+#   (3) the (optional) additional fraction of an x-slot to include for the sign, on top of the specified whole number
 class XslotStructure:
 
     def __init__(self, number=1, fractionalpoints=None, additionalfraction=Fraction()):

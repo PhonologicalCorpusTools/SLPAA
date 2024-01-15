@@ -332,6 +332,19 @@ class TreeListView(QListView):
     def __init__(self):
         super().__init__()
 
+    # sets the currently selected index to be indexint
+    # if indexint is -1:
+    #   if there's at least one item in the list then the first one is selected
+    #   if there's no content in the list then nothing happens
+    def setindex(self, indexint):
+        if indexint == -1:
+            if self.model().rowCount() > 0:
+                indexint = 0
+            else:
+                return
+        indexobj = self.model().index(indexint, 0)
+        self.setCurrentIndex(indexobj)
+
     def keyPressEvent(self, event):
         key = event.key()
         # modifiers = event.modifiers()

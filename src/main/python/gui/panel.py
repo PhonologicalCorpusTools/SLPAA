@@ -341,7 +341,7 @@ class SignSummaryPanel(QScrollArea):
         self.addgridlines()
 
     def entryid_string(self, entryid_int=None):
-        numdigits = self.settings['display']['entryid_digits']
+        numdigits = int(self.settings['display']['entryid_digits'])
         if entryid_int is None:
             entryid_int = self.sign.signlevel_information.entryid
         entryid_string = str(entryid_int)
@@ -419,7 +419,7 @@ class SignSummaryPanel(QScrollArea):
             # x-slots aren't a thing; plan a rectangle whose width doesn't mean anything, timing-wise
             # the rectangle will be for the whole sign (treat it like a whole-sign x-slot)
             startfrac = 0
-            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction  # TODO KV check
+            endfrac = self.sign.xslotstructure.number + self.sign.xslotstructure.additionalfraction
             widthfrac = endfrac - startfrac
 
             x = self.x_offset + self.indent + float(startfrac)*self.onexslot_width
@@ -471,6 +471,7 @@ class SignSummaryPanel(QScrollArea):
         if mods_count > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
+
                 for mod in modules:
                     m_id = mod.uniqueid
                     self.current_y += self.default_xslot_height + self.verticalspacing
@@ -520,10 +521,10 @@ class SignSummaryPanel(QScrollArea):
         if mods_count > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
-                self.current_y += self.default_xslot_height + self.verticalspacing
 
                 for mod in modules:
                     m_id = mod.uniqueid
+                    self.current_y += self.default_xslot_height + self.verticalspacing
                     if isrel:
                         if mod.usesarticulator(HAND, artnum):
                             articulator = HAND
@@ -543,7 +544,6 @@ class SignSummaryPanel(QScrollArea):
                         paramrect.setToolTip(paramabbrev)
                         paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
                         self.moduleitems.append(paramrect)
-                        # self.current_y += 1
                         self.scene.addItem(paramrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
@@ -899,6 +899,21 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
+
+    def handle_delete_signlevelinfo(self, previous_selection):
+        if self.sign:  # does the sign to delete exist?
+            self.mainwindow.corpus.remove_sign(self.sign)
+            
+            # Update corpus display with the previous selection highlighted
+            if previous_selection:
+                self.sign_updated.emit(previous_selection)
+                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+                self.mainwindow.handle_sign_selected(previous_selection)
+            
+            else:
+                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
+                self.mainwindow.handle_sign_selected(previous_selection)
+
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
