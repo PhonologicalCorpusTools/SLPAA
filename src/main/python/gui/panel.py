@@ -878,7 +878,8 @@ class SignLevelMenuPanel(QScrollArea):
     def handle_signlevelbutton_click(self):
         signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, parent=self)
         signlevelinfo_selector.saved_signlevelinfo.connect(self.handle_save_signlevelinfo)
-        signlevelinfo_selector.exec_()
+        dialogresult = signlevelinfo_selector.exec_()
+        return dialogresult
 
     def handle_save_signlevelinfo(self, signlevelinfo):
         if self.sign:
