@@ -560,7 +560,6 @@ class Corpus:
                                ModuleTypes.LOCATION: {},
                                ModuleTypes.RELATION: {}}
             gloss = sign.signlevel_information.gloss
-
             for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
                 moduledict = sign.getmoduledict(type)
 
@@ -610,8 +609,6 @@ class Corpus:
             if len(paths_to_add) == 0: 
                 paths_missing_bc.append(oldpath)
                 label = "   " + gloss + " " + str(type) + str(count+1)
-                if hasattr(treemodel, "bodyparttype"):
-                    label = label + " " + treemodel.bodyparttype 
                 logging.warning(label+": bad backwards compatibility for " + oldpath)
                 
             for path in paths_to_add:
@@ -624,9 +621,7 @@ class Corpus:
         if len(newpaths) != 0:
             for i in newpaths:
                 label = "   " + gloss + " " + str(type) + str(count+1)
-                if hasattr(treemodel, "bodyparttype"):
-                    label = label + " " + treemodel.bodyparttype 
-                logging.warning(label + str(count+1) +": bad backwards compatibility for " + i)
+                logging.warning(label +": bad backwards compatibility for " + i)
                 paths_not_found.append(thisdict[i])
 
         for p in missing_values:
@@ -707,6 +702,9 @@ class Corpus:
                 elif nodes[1] == 'Selected fingers':
                     nodes.insert(1, 'Fingers and thumb')
                     nodes.insert(2, 'Selected fingers and thumb')
+                elif nodes[1] == 'Selected fingers and Thumb':
+                    nodes[1] = 'Selected fingers and thumb'
+                    nodes.insert(1, 'Fingers and thumb')
                 paths_to_add.append(nodes)
             # Issue 162: leg and feet changes
             elif nodes[0] == 'Legs and feet':
