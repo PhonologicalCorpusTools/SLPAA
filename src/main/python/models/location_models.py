@@ -598,7 +598,7 @@ class LocationTreeModel(QStandardItemModel):
         return checked
 
         # Compare what was serialized with what the current tree actually shows
-    def compare_checked_lists(self, verbose=False):
+    def compare_checked_lists(self):
         differences = []
         serialized = self.get_checked_from_serialized_tree()
         current = self.checked
@@ -606,8 +606,7 @@ class LocationTreeModel(QStandardItemModel):
         for item in serialized:
             if item not in current:
                 differences.append(item)
-        if verbose:
-            print("   Serialized locn:" + str(len(serialized)) + "; Listed locn:" + str(len(self.checked)))
+        # print("   Serialized locn:" + str(len(serialized)) + "; Listed locn:" + str(len(self.checked)))
                 
         return differences
                 
@@ -748,6 +747,8 @@ class BodypartTreeModel(LocationTreeModel):
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
             self.backwardcompatibility()
+        else:
+            logging.warning("no serialized locn tree")
 
     def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         

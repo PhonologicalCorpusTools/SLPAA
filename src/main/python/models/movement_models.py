@@ -1209,14 +1209,8 @@ class MovementTreeModel(QStandardItemModel):
         for item in serialized:
             if item not in self.checked:
                 differences.append(item)
-        if verbose:
-            print("   Serialized mvmt:" + str(len(serialized)) + "; Listed mvmt:" + str(len(self.checked)))
-        # if (len(serialized) != len(self.checked)):
-        #     for i in serialized:
-        #         print (i)
-        #     print("\n")
-        #     for i in self.checked:
-        #         print(i)
+        # print("   Serialized mvmt:" + str(len(serialized)) + "; Listed mvmt:" + str(len(self.checked)))
+
         return differences
     
     def get_usv(self):

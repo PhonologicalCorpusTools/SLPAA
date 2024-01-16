@@ -467,7 +467,7 @@ class Corpus:
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID
             # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             self.confirmhighestID("load")
-            self.add_missing_paths(verbose=True) # Another backwards compatibility function for movement and location
+            self.add_missing_paths() # Another backwards compatibility function for movement and location
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -554,15 +554,12 @@ class Corpus:
     def __repr__(self):
         return '<CORPUS: ' + repr(self.name) + '>'
     
-    def add_missing_paths(self, verbose):
+    def add_missing_paths(self):
         for sign in self.signs:
             correctionsdict = {ModuleTypes.MOVEMENT: {},
                                ModuleTypes.LOCATION: {},
                                ModuleTypes.RELATION: {}}
             gloss = sign.signlevel_information.gloss
-            if verbose:
-                print('______________\n' + gloss)
-
 
             for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
                 moduledict = sign.getmoduledict(type)
@@ -572,41 +569,38 @@ class Corpus:
                     module = moduledict[k]
 
                     if type == ModuleTypes.MOVEMENT:
-                        self.add_missing_paths_helper(gloss, module.movementtreemodel, type, count, correctionsdict, verbose)
+                        self.add_missing_paths_helper(gloss, module.movementtreemodel, type, count, correctionsdict)
                     elif type == ModuleTypes.LOCATION:
-                        self.add_missing_paths_helper(gloss, module.locationtreemodel, type, count, correctionsdict, verbose)
+                        self.add_missing_paths_helper(gloss, module.locationtreemodel, type, count, correctionsdict)
                     elif type == ModuleTypes.RELATION:
                         bodyparts_dict = module.bodyparts_dict
                         for b in [HAND, ARM, LEG]:
-                            if module.usesarticulator(b):
-                                for i in [1,2]:
-                                    if module.usesarticulator(b,i):
-                                        treemodel = bodyparts_dict[b][i].bodyparttreemodel
-                                        self.add_missing_paths_helper(gloss, treemodel, type, count, correctionsdict, verbose, i)
+                            # Kathleen requested to show only one warning even if both hands are used
+                            if module.usesarticulator(b, 1) and not module.usesarticulator(b, 2):
+                                treemodel = bodyparts_dict[b][1].bodyparttreemodel
+                                self.add_missing_paths_helper(gloss, treemodel, type, count, correctionsdict, verbose=True)
+                            elif module.usesarticulator(b, 2) and not module.usesarticulator(b, 1):
+                                treemodel = bodyparts_dict[b][2].bodyparttreemodel
+                                self.add_missing_paths_helper(gloss, treemodel, type, count, correctionsdict, verbose=True)
+                            elif module.usesarticulator(b,1) and module.usesarticulator(b,2):
+                                model1 = bodyparts_dict[b][1].bodyparttreemodel
+                                model2 = bodyparts_dict[b][2].bodyparttreemodel
+                                if len(model1.get_checked_from_serialized_tree()) == 0 or len(model2.get_checked_from_serialized_tree()) == 0:
+                                    label = "   " + gloss + " " + str(type) + str(count+1)
+                                    logging.warning(label +": Module has no selections. Is something missing?")
+                                self.add_missing_paths_helper(gloss, bodyparts_dict[b][1].bodyparttreemodel, type, count, correctionsdict, verbose=False)
+                                self.add_missing_paths_helper(gloss, bodyparts_dict[b][1].bodyparttreemodel, type, count, correctionsdict, verbose=False)
+                            
 
-    def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose, relnumber=None):
+    def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose=True):
         paths_missing_bc = []
         paths_not_found = []
 
-        if len(treemodel.get_checked_from_serialized_tree()) == 0:
+        if verbose and len(treemodel.get_checked_from_serialized_tree()) == 0:
             label = "   " + gloss + " " + str(type) + str(count+1)
-            if hasattr(treemodel, "bodyparttype"):
-                label = label + " " + treemodel.bodyparttype + str(relnumber)
-
             logging.warning(label +": Module has no selections. Is something missing?")
 
-        if verbose:
-            label = str(type) + str(count+1)
-            if hasattr(treemodel, "bodyparttype"):
-                label = label + " " + treemodel.bodyparttype + str(relnumber)
-            print(label)
-
-        missing_values = treemodel.compare_checked_lists(verbose)
-        if verbose:
-            if len(missing_values) != 0:
-                print("   missing paths to add: ")
-                for val in missing_values:
-                    print("   " + val)
+        missing_values = treemodel.compare_checked_lists()
 
         newpaths = []
 
@@ -617,7 +611,7 @@ class Corpus:
                 paths_missing_bc.append(oldpath)
                 label = "   " + gloss + " " + str(type) + str(count+1)
                 if hasattr(treemodel, "bodyparttype"):
-                    label = label + " " + treemodel.bodyparttype + str(relnumber)
+                    label = label + " " + treemodel.bodyparttype 
                 logging.warning(label+": bad backwards compatibility for " + oldpath)
                 
             for path in paths_to_add:
@@ -631,7 +625,7 @@ class Corpus:
             for i in newpaths:
                 label = "   " + gloss + " " + str(type) + str(count+1)
                 if hasattr(treemodel, "bodyparttype"):
-                    label = label + " " + treemodel.bodyparttype + str(relnumber)
+                    label = label + " " + treemodel.bodyparttype 
                 logging.warning(label + str(count+1) +": bad backwards compatibility for " + i)
                 paths_not_found.append(thisdict[i])
 
@@ -697,7 +691,7 @@ class Corpus:
             if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
                     nodes.insert(3, 'Absolute')
                     paths_to_add.append(nodes)
-        elif modtype == ModuleTypes.LOCATION: # LOCATION
+        else: # LOCATION and RELATION
             # Issue 162: hand changes
             if 'hand' in nodes[0] and length > 1:
                 if nodes[0] == 'Other hand':
