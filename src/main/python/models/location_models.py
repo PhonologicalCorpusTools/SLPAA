@@ -592,9 +592,10 @@ class LocationTreeModel(QStandardItemModel):
 
     def get_checked_from_serialized_tree(self):
         checked = []
-        for k in list(self.serializedlocntree.checkstates):
-            if self.serializedlocntree.checkstates[k] == Qt.Checked:
-                checked.append(k)
+        if hasattr(self, "serializedlocntree"):
+            for k in list(self.serializedlocntree.checkstates):
+                if self.serializedlocntree.checkstates[k] == Qt.Checked:
+                    checked.append(k)
         return checked
 
         # Compare what was serialized with what the current tree actually shows
@@ -610,13 +611,7 @@ class LocationTreeModel(QStandardItemModel):
                 
         return differences
                 
-    
-    def getcheckedleafnodes(self):
-        checked = []
-        for k in self.serializedlocntree.checkstates.keys():
-            if self.serializedlocntree.checkstates[k] == Qt.Checked:
-                checked.append(k)
-        return checked
+
 
 
 
@@ -737,7 +732,6 @@ class LocationTreeModel(QStandardItemModel):
                     return True
             return False
 
-
 class BodypartTreeModel(LocationTreeModel):
 
     def __init__(self, bodyparttype, serializedlocntree=None, forrelationmodule=False, **kwargs):
@@ -747,8 +741,6 @@ class BodypartTreeModel(LocationTreeModel):
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
             self.backwardcompatibility()
-        else:
-            logging.warning("no serialized locn tree")
 
     def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
         

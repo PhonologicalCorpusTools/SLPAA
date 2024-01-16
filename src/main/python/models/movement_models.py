@@ -1181,9 +1181,10 @@ class MovementTreeModel(QStandardItemModel):
 
     def get_checked_from_serialized_tree(self):
         checked = []
-        for k in list(self.serializedmvmttree.checkstates):
-            if self.serializedmvmttree.checkstates[k] == Qt.Checked:
-                checked.append(k)
+        if hasattr(self, "serializedmvmttree"):
+            for k in list(self.serializedmvmttree.checkstates):
+                if self.serializedmvmttree.checkstates[k] == Qt.Checked:
+                    checked.append(k)
         return checked
     
     def update_currently_checked(self, treenode):
