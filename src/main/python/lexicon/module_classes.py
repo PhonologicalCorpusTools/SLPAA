@@ -1520,9 +1520,6 @@ class RelationModule(ParameterModule):
             return articulators_in_use[artnum]
         
     def no_selections(self):
-        
-        if len(self.get_articulators_in_use()[0]) != 0:
-            return False
         for d in self.directions:
             if d.axisselected:
                 return False
