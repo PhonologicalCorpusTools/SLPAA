@@ -108,7 +108,7 @@ class BodypartSpecificationPanel(QFrame):
         self.addedinfobutton.addedinfo = addedinfo
 
     def clear(self):
-        self.locationoptionsselectionpanel.multiple_selection_rb.setChecked(False)
+        self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(False)
         treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
         treemodel.populate(treemodel.invisibleRootItem())
         self.locationoptionsselectionpanel.treemodel = treemodel
