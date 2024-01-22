@@ -586,9 +586,9 @@ class Corpus:
                                 model2 = bodyparts_dict[b][2].bodyparttreemodel
                                 if len(model1.get_checked_from_serialized_tree()) == 0 or len(model2.get_checked_from_serialized_tree()) == 0:
                                     label = "   " + gloss + " " + str(type) + str(count+1)
-                                    logging.warning(label +": Module has no handpart selections. Is something missing?")
-                                self.add_missing_paths_helper(gloss, bodyparts_dict[b][1].bodyparttreemodel, type, count, correctionsdict, verbose=False)
-                                self.add_missing_paths_helper(gloss, bodyparts_dict[b][2].bodyparttreemodel, type, count, correctionsdict, verbose=False)
+                                    logging.warning(label +": Module has no bodypart selections. Is something missing?")
+                                self.add_missing_paths_helper(gloss, model1, type, count, correctionsdict, verbose=False)
+                                self.add_missing_paths_helper(gloss, model2, type, count, correctionsdict, verbose=False)
                             
 
     def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose=True):
@@ -597,7 +597,10 @@ class Corpus:
 
         if verbose and len(treemodel.get_checked_from_serialized_tree()) == 0:
             label = "   " + gloss + " " + str(type) + str(count+1)
-            logging.warning(label +": Module has no selections. Is something missing?")
+            if type != ModuleTypes.RELATION:
+                logging.warning(label +": Module has no selections. Is something missing?")
+            else: # specify "handpart" because Relation modules have other selections.
+                logging.warning(label +": Module has no bodypart selections. Is something missing?")
 
         missing_values = treemodel.compare_checked_lists()
 
