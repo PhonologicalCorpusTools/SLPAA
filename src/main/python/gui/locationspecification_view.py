@@ -1,3 +1,5 @@
+import io, re
+
 from PyQt5.QtWidgets import (
     QListView,
     QTableView,
@@ -29,7 +31,9 @@ from PyQt5.QtWidgets import (
     QApplication,
     QFrame,
     QScrollArea,
-    QPlainTextEdit
+    QPlainTextEdit,
+    QMenu,
+    QAction
 )
 
 from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
@@ -831,10 +835,11 @@ class SVGDisplayTab(QWidget):
         self.imgscroll.zoomfactor_changed.connect(lambda scale: self.zoomfactor_changed.emit(scale))
         # main_layout.addWidget(self.imgscroll)
         img_layout.addWidget(self.imgscroll)
-        self.bodypart_note = QPlainTextEdit("last clicked: n/a")
-        self.bodypart_note.setMaximumHeight(65)
-        img_layout.addWidget(self.bodypart_note)
-        self.imgscroll.img_clicked.connect(lambda txt: self.bodypart_note.setPlainText("last clicked: " + txt))
+        # self.bodypart_note = QPlainTextEdit("last clicked: n/a")
+        # self.bodypart_note.setMaximumHeight(90)
+        # img_layout.addWidget(self.bodypart_note)
+        # self.imgscroll.img_clicked.connect(lambda listofids: self.bodypart_note.setPlainText("last clicked: " + " / ".join(listofids)))
+        self.imgscroll.img_clicked.connect(self.handle_img_clicked)
         main_layout.addLayout(img_layout)
 
         zoom_layout = QVBoxLayout()
@@ -858,6 +863,13 @@ class SVGDisplayTab(QWidget):
 
         self.setMinimumHeight(400)
 
+    def handle_img_clicked(self, clickpoint, listofids):
+        # self.bodypart_note.setPlainText("last clicked: " + ", ".join(listofids))
+        elementid_actions = [QAction(elid) for elid in listofids]
+        elementids_menu = QMenu()
+        elementids_menu.addActions(elementid_actions)
+        elementids_menu.exec_(clickpoint.toPoint())
+
     def force_zoom(self, scale):
         self.blockSignals(True)
         self.zoom_slider.blockSignals(True)
@@ -873,7 +885,7 @@ class SVGDisplayTab(QWidget):
 
 
 class SVGDisplayScroll(QScrollArea):
-    img_clicked = pyqtSignal(str)
+    img_clicked = pyqtSignal(QPointF, list)
     zoomfactor_changed = pyqtSignal(int)
     factor_from_scale = {
         1: 0.20,
@@ -895,8 +907,10 @@ class SVGDisplayScroll(QScrollArea):
         self.img_layout = QHBoxLayout()
 
         self.renderer = QSvgRenderer(imagepath, parent=self)
+        self.elementids = []
+        self.gatherelementids(imagepath)
         self.scn = SVGGraphicsScene([], parent=self)
-        self.scn.img_clicked.connect(lambda txt: self.img_clicked.emit(txt))
+        self.scn.img_clicked.connect(lambda clickpoint, listofids: self.img_clicked.emit(clickpoint, listofids))
 
         self.initializeSVGitems()
 
@@ -905,8 +919,18 @@ class SVGDisplayScroll(QScrollArea):
         main_layout.addLayout(self.img_layout)
         self.setLayout(main_layout)
 
+    def gatherelementids(self, svgfilepath):
+        elementids = []
+        with io.open(svgfilepath, "r") as svgfile:
+            for ln in svgfile:
+                idmatches = re.match('.*id="(.*?)".*', ln)
+                if idmatches:
+                    elementids.append(idmatches.group(1))
+        self.elementids = elementids
+
     def initializeSVGitems(self):
-        for elementid in ["WHOLE_ARM", "WHOLE_ARM-2", "WHOLE_ARM-3", "WHOLE_ARM-4", "LOWER_TORSO-2", "UPPER_TORSO", "UPPER_TORSO-2", "UPPER_TORSO-3", "UPPER_TORSO-4", "UPPER_TORSO-5", "UPPER_TORSO-6", "UPPER_TORSO-7", "UPPER_TORSO-8", "SHOULDER", "SHOULDER-2"]:
+        # for elementid in ["WHOLE_ARM", "WHOLE_ARM-2", "WHOLE_ARM-3", "WHOLE_ARM-4", "LOWER_TORSO-2", "UPPER_TORSO", "UPPER_TORSO-2", "UPPER_TORSO-3", "UPPER_TORSO-4", "UPPER_TORSO-5", "UPPER_TORSO-6", "UPPER_TORSO-7", "UPPER_TORSO-8", "SHOULDER", "SHOULDER-2"]:
+        for elementid in self.elementids:
             if self.renderer.elementExists(elementid):
                 elementx = self.renderer.boundsOnElement(elementid).x()
                 elementy = self.renderer.boundsOnElement(elementid).y()
@@ -932,7 +956,7 @@ class SVGDisplayScroll(QScrollArea):
 
 
 class SVGGraphicsScene(QGraphicsScene):
-    img_clicked = pyqtSignal(str)
+    img_clicked = pyqtSignal(QPointF, list)
 
     def __init__(self, svgitems, **kwargs):
         super().__init__(**kwargs)
@@ -945,10 +969,17 @@ class SVGGraphicsScene(QGraphicsScene):
         # print("     scenePos():", event.scenePos().x(), event.scenePos().y())
         # print("     itemsBoundingRect():", self.itemsBoundingRect().x(), self.itemsBoundingRect().y(), self.itemsBoundingRect().width(), self.itemsBoundingRect().height())
 
-        items = self.items(QPointF(event.scenePos().x(), event.scenePos().y()))
+        clickpoint = QPointF(event.scenePos().x(), event.scenePos().y())
+        items = self.items(clickpoint)
         # print("     items at click:", [it.elementId() for it in items])
-        ids = ["all" if it.elementId() == "" else it.elementId() for it in items]
-        self.img_clicked.emit(", ".join(ids))
+        clickedids = ["all" if it.elementId() == "" else it.elementId() for it in items]
+        allids = [it.elementId() for it in self.items()]
+        print("all IDs (" + str(len(allids)) + "):", allids)
+        # print("type of graphics items' parents is:", [type(it.parentItem()) for it in self.items()])
+        # clickedidstext = ", ".join(ids)
+        # allidstext = ", ".join(allids)
+        # self.img_clicked.emit(clickedidstext + " / all: " + allidstext)
+        self.img_clicked.emit(clickpoint, clickedids)
 
 
 # # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
