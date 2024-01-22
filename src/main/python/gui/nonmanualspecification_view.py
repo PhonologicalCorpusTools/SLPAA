@@ -229,8 +229,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         action_state_layout = QVBoxLayout()
 
         root_options = nonman.action_state
-        self.parse_actionstate(root_options)
-        action_state_layout.addLayout(self.widget_grouplayout_actionstate)
+        self.parse_actionstate(parent=self, options=root_options)
+        action_state_layout.addLayout(root_options.widget_grouplayout_actionstate)
 
         action_state_groupbox.setLayout(action_state_layout)
         scrollable = QScrollArea()
@@ -240,13 +240,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         return row
 
-    def parse_actionstate(self, options):
+    def parse_actionstate(self, parent, options):
 
         if isinstance(options, str):
             # in shallow module
             added_rb = SLPAARadioButton(options)
-            self.widget_grouplayout_actionstate.addWidget(added_rb)
-            self.widget_grouplayout_actionstate.setAlignment(added_rb, Qt.AlignTop)
+            parent.as_main_btn_group.addButton(added_rb)
+            options.widget_grouplayout_actionstate.addWidget(added_rb)
+            options.widget_grouplayout_actionstate.setAlignment(added_rb, Qt.AlignTop)
             return
 
         elif options.label:
@@ -255,6 +256,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             main_layout.setAlignment(Qt.AlignTop)
             if options.exclusive:
                 main_btn = SLPAARadioButton(options.label)
+                parent.as_main_btn_group.addButton(main_btn)
             else:
                 main_btn = QCheckBox(options.label)
             main_layout.addWidget(main_btn)
@@ -276,16 +278,19 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                         sub_rb = SLPAARadioButton(child)
                         sub_layout.addWidget(sub_rb)
                         sub_btn_group.addButton(sub_rb)
+                parent.as_sub_btn_groups.append(sub_btn_group)
             sub_spacedlayout.addLayout(sub_layout)
             main_layout.addLayout(sub_spacedlayout)
-            self.widget_grouplayout_actionstate.addLayout(main_layout)
+            parent.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
             # in the root. initialize and be ready to go deeper
-            self.widget_grouplayout_actionstate = QHBoxLayout()
-            self.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
-            self.main_btn_group = SLPAAButtonGroup()
+            options.widget_grouplayout_actionstate = QHBoxLayout()
+            options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
+            options.as_main_btn_group = SLPAAButtonGroup()
+            options.as_sub_btn_groups = []  # container for sub buttons
             for child in options.options:
-                self.parse_actionstate(child)
+                self.parse_actionstate(parent=options,
+                                       options=child)
 
     def fillin_vbox(self, asm):
         # asm: ActionStateModel
