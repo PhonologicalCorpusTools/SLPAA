@@ -572,35 +572,35 @@ class Corpus:
                     elif type == ModuleTypes.LOCATION:
                         self.add_missing_paths_helper(gloss, module.locationtreemodel, type, count, correctionsdict)
                     elif type == ModuleTypes.RELATION:
-                        bodyparts_dict = module.bodyparts_dict
-                        for b in [HAND, ARM, LEG]:
-                            # Kathleen requested to show only one warning even if both hands are used
-                            if module.usesarticulator(b, 1) and not module.usesarticulator(b, 2):
-                                treemodel = bodyparts_dict[b][1].bodyparttreemodel
-                                self.add_missing_paths_helper(gloss, treemodel, type, count, correctionsdict, verbose=True)
-                            elif module.usesarticulator(b, 2) and not module.usesarticulator(b, 1):
-                                treemodel = bodyparts_dict[b][2].bodyparttreemodel
-                                self.add_missing_paths_helper(gloss, treemodel, type, count, correctionsdict, verbose=True)
-                            elif module.usesarticulator(b,1) and module.usesarticulator(b,2):
-                                model1 = bodyparts_dict[b][1].bodyparttreemodel
-                                model2 = bodyparts_dict[b][2].bodyparttreemodel
-                                if len(model1.get_checked_from_serialized_tree()) == 0 or len(model2.get_checked_from_serialized_tree()) == 0:
-                                    label = "   " + gloss + " " + str(type) + str(count+1)
-                                    logging.warning(label +": Module has no bodypart selections. Is something missing?")
-                                self.add_missing_paths_helper(gloss, model1, type, count, correctionsdict, verbose=False)
-                                self.add_missing_paths_helper(gloss, model2, type, count, correctionsdict, verbose=False)
-                            
+                        if module.no_selections():
+                            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+                            mssg = ": Main module has no selections. Is something missing?"
+                            logging.warning(label + mssg)
 
+                        bodyparts_dict = module.bodyparts_dict
+                        articulators,numbers = module.get_articulators_in_use()
+                        models = []
+                        for ctr in range(len(articulators)):
+                            models.append(bodyparts_dict[articulators[ctr]][numbers[ctr]].bodyparttreemodel)
+
+                        empty_module_flag = False
+                        for m in models:
+                            if len(m.get_checked_from_serialized_tree()) == 0:
+                                empty_module_flag = True
+                            self.add_missing_paths_helper(gloss, m, type, count, correctionsdict, verbose=False)
+                        if empty_module_flag:
+                            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+                            mssg = ": Module has no bodypart selections. Is something missing?"
+                            logging.warning(label + mssg)
+                          
     def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose=True):
         paths_missing_bc = []
         paths_not_found = []
 
         if verbose and len(treemodel.get_checked_from_serialized_tree()) == 0:
-            label = "   " + gloss + " " + str(type) + str(count+1)
-            if type != ModuleTypes.RELATION:
-                logging.warning(label +": Module has no selections. Is something missing?")
-            else: # specify "handpart" because Relation modules have other selections.
-                logging.warning(label +": Module has no bodypart selections. Is something missing?")
+            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+            mssg = ": Module has no selections. Is something missing?"
+            logging.warning(label + mssg)
 
         missing_values = treemodel.compare_checked_lists()
 

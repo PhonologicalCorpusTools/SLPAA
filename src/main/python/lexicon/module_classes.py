@@ -1518,6 +1518,26 @@ class RelationModule(ParameterModule):
             return articulators_in_use[1] or articulators_in_use[2]
         else:
             return articulators_in_use[artnum]
+        
+    def no_selections(self):
+        
+        if len(self.get_articulators_in_use()[0]) != 0:
+            return False
+        for d in self.directions:
+            if d.axisselected:
+                return False
+            
+        return (self.contactrel.contact == None and not self.xy_crossed and not self.xy_linked)
+    
+    def get_articulators_in_use(self):
+        a = []
+        n = []
+        for b in [HAND, ARM, LEG]:
+            for i in [1,2]:
+                if self.usesarticulator(b,i):
+                    a.append(b)
+                    n.append(i)
+        return a, n
 
     def hands_in_use(self):
         return {
