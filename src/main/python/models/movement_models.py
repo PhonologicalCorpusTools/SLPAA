@@ -295,7 +295,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
             ]),
             MvmtOptionsNode("Plane", fx, cb, children=[  # choose as many as needed, but only one direction per plane
                 MvmtOptionsNode("H1 and H2 move in opposite directions", fx, cb, "H1 & H2 opposite"),
-                MvmtOptionsNode("Absolute", fx, cb, children=[
+                MvmtOptionsNode("Absolute", fx, rb, children=[
                     MvmtOptionsNode("Horizontal", fx, cb, "Hor", children=[
                         MvmtOptionsNode(subgroup, button_type=0, children=[
                             MvmtOptionsNode("Ipsilateral from top of circle", fx, rb, "ipsi from top"),
@@ -322,7 +322,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                     ]),
                 
                 ]),
-                MvmtOptionsNode("Relative", fx, cb, children=[
+                MvmtOptionsNode("Relative", fx, rb, children=[
                     MvmtOptionsNode("Finger(s)", fx, rb, children=[
                         MvmtOptionsNode("On plane of finger", fx, cb, children=[
                             MvmtOptionsNode("To tip end from radial side", fx, rb),
