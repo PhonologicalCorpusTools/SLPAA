@@ -687,8 +687,8 @@ class Corpus:
                 paths_to_add.append(nodes)
             # Issue 194: Add abs/rel movement options 
             if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
-                    nodes.insert(3, 'Absolute')
-                    paths_to_add.append(nodes)
+                nodes.insert(3, 'Absolute')
+                paths_to_add.append(nodes)
         else: # LOCATION and RELATION
             # Issue 162: hand changes
             if 'hand' in nodes[0] and length > 1:
@@ -717,15 +717,14 @@ class Corpus:
             elif nodes[0] == 'Arm (contralateral)':
                 nodes[0] = 'Arm'
                 if length == 1:
-                    nodes[1] == 'Arm - contra'
-                else:
-                    if length == 2:
-                        nodes.insert(1, nodes[1]) 
-                        nodes[2] = nodes[2] + ' - contra'
-                    if length == 3: 
-                        nodes.insert(2, nodes[2])
-                        nodes[3] = nodes[3] + ' - contra'
-                    paths_to_add.append(nodes)
+                    nodes.insert(1, 'Arm - contra')
+                elif length == 2:
+                    nodes.insert(1, nodes[1]) 
+                    nodes[2] = nodes[2] + ' - contra'
+                elif length == 3: 
+                    nodes.insert(2, nodes[2])
+                    nodes[3] = nodes[3] + ' - contra'
+                paths_to_add.append(nodes)
             # Issue 162: New torso layers
             elif nodes[0] == 'Torso' and length > 1:
                 if nodes[1] in ['Hip', 'Groin', 'Buttocks', 'Pelvis area']:
