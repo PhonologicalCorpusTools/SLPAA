@@ -35,7 +35,7 @@ class SigntypeSpecificationPanel(QFrame):
 
         self.buttongroups = []
 
-        # TODO KV should button properties be integers instead of strings,
+        # TODO should button properties be integers instead of strings,
         #   so it's easier to add more user-specified options?
 
         # buttons and groups for highest level
@@ -302,6 +302,7 @@ class SigntypeSpecificationPanel(QFrame):
                 allbuttons[btnidx].setChecked(True)
             else:
                 nolongeravailable.append(spec)
+
         if len(nolongeravailable) > 1:
             print(
                 "This sign had sign type options specified that are no longer available and will be removed" +
@@ -317,6 +318,7 @@ class SigntypeSpecificationPanel(QFrame):
         for g in self.buttongroups:
             g.setExclusive(False)
             for b in g.buttons():
+                b.setEnabled(True)
                 b.setChecked(False)
             g.setExclusive(True)
 
@@ -472,12 +474,9 @@ class SigntypeSelectorDialog(QDialog):
 
         # TODO KV delete self.app_settings = app_settings
         self.mainwindow = self.parent().mainwindow
+        self.settings = self.mainwindow.app_settings
 
-        if signtypetoload is not None:
-            self.signtype = signtypetoload
-        else:
-            self.signtype = self.mainwindow.system_default_signtype
-
+        self.signtype = signtypetoload or self.get_default_signtype()
         self.signtype_widget = SigntypeSpecificationPanel()
         self.signtype_widget.setsigntype(self.signtype)
 
@@ -492,6 +491,8 @@ class SigntypeSelectorDialog(QDialog):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.button(QDialogButtonBox.RestoreDefaults).setAutoDefault(False)
+        self.button_box.button(QDialogButtonBox.Save).setDefault(True)
 
         self.button_box.clicked.connect(self.handle_button_click)
 
@@ -499,6 +500,17 @@ class SigntypeSelectorDialog(QDialog):
 
         self.setLayout(main_layout)
         # self.setMinimumSize(QSize(500, 1100))  # 500, 850
+
+    def get_default_signtype(self):
+        signtype_default = self.settings['signdefaults']['signtype']
+        signtype_specs = []
+        if signtype_default == 'unspec':
+            signtype_specs = [('Unspecified', False)]
+        elif signtype_default == '1hand':
+            signtype_specs = [('1h', False)]
+        elif signtype_default == '2hand':
+            signtype_specs = [('2h', False)]
+        return Signtype(signtype_specs)
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -525,6 +537,7 @@ class SigntypeSelectorDialog(QDialog):
                 QMessageBox.critical(self, "Warning", dependency_warning)
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            self.signtype_widget.setsigntype(self.mainwindow.system_default_signtype)
+            # TODO KV - problem: not all relevant radio buttons are enabled when restoring default
+            self.signtype_widget.setsigntype(self.get_default_signtype())
 
 

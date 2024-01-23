@@ -48,7 +48,7 @@ class InitializationDialog(QDialog):
         main_layout.addWidget(separate_line1, 1, 0, 1, 2)
 
         # Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
-        buttons = QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.Close
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.button_box.clicked.connect(self.handle_button_click)
 
@@ -56,7 +56,7 @@ class InitializationDialog(QDialog):
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
-        if standard == QDialogButtonBox.Cancel:
+        if standard == QDialogButtonBox.Close:
             self.reject()
 
     def create_blank_corpus(self, blank_func, clicked):

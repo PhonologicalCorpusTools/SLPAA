@@ -37,12 +37,13 @@ from lexicon.module_classes import (
 )
 from models.relation_models import ModuleLinkingListModel
 from models.location_models import BodypartTreeModel
-from gui.modulespecification_widgets import ModuleSpecificationPanel
+from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
 from constant import HAND, ARM, LEG
 
 
+# This panel contains all the relation-specific options for users to define an instance of a Relation module.
 class RelationSpecificationPanel(ModuleSpecificationPanel):
     timingintervals_inherited = pyqtSignal(list)
 
@@ -86,24 +87,27 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.setLayout(main_layout)
         self.check_enable_allsubmenus()
 
+    # ensure that user has provided the minimum required information in order to specify a Relation module
     def validity_check(self):
         selectionsvalid = self.x_group.checkedButton() and self.y_group.checkedButton()
         warningmessage = "" if selectionsvalid else "Requires both an X and a Y selection."
         return selectionsvalid, warningmessage
 
+    # set timing info so that subsections (eg contact) of the Relation module can be enabled/disabled accordingly
     def timinglinknotification(self, haspoint, hasinterval):
         self.islinkedtopoint = haspoint
         self.islinkedtointerval = hasinterval
         self.check_enable_allsubmenus()
 
+    # return a Relation Module composed of the currently-specified data in the GUI
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
 
         relmod = RelationModule(relationx=self.getcurrentx(),
                                 relationy=self.getcurrenty(),
                                 bodyparts_dict=self.bodyparts_dict,
                                 contactrel=self.getcurrentcontact(),
-                                xy_crossed=self.crossed_cb.isChecked(),
-                                xy_linked=self.linked_cb.isChecked(),
+                                xy_crossed=self.crossed_cb.isEnabled() and self.crossed_cb.isChecked(),
+                                xy_linked=self.linked_cb.isEnabled() and self.linked_cb.isChecked(),
                                 directionslist=self.getcurrentdirections(),
                                 articulators=articulators,
                                 timingintervals=timingintervals,
@@ -179,14 +183,15 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     # 1. Contact manner can only be coded if
     #   (a) 'contact' is selected AND
-    #   (b) the module is linked to an interval
+    #   (b) the module is linked to an interval OR x-slots are off
     # 2. OR Can also be available if
     #   (a) neither 'contact' nor 'no contact' is selected AND
     #   (b) there are no selections in manner or distance
     # 3. BUT if 'movement' is selected for Y,
     #   then Contact, Manner, Direction, and Distance menus are all inactive below
     def check_enable_manner(self):
-        meetscondition1 = self.contact_rb.isChecked() and self.islinkedtointerval
+        xslots_off = self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none'
+        meetscondition1 = self.contact_rb.isChecked() and (self.islinkedtointerval or xslots_off)
 
         meetscondition2 = self.contactmannerdistance_empty()
 
@@ -226,13 +231,18 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             box.setEnabled(enable_distance)
 
     # if 'movement' is selected for Y,
-    #  then Contact, Manner, Direction, and Distance menus are all inactive below
+    #  then Contact, Manner, Direction (including crossed/linked), and Distance menus are all inactive below
     def check_enable_direction(self):
         enable_direction = not (self.y_existingmod_radio.isChecked() and
                                 self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT)
         for box in [self.dirhor_box, self.dirver_box, self.dirsag_box]:
             box.setEnabled(enable_direction)
+        self.crossed_cb.setEnabled(enable_direction)
+        self.linked_cb.setEnabled(enable_direction)
 
+    # if the user checks any of the distance-related radio buttons
+    #   ("close", "med", or "far" for any axis)
+    #   then the "no contact" radio button will be automatically checked
     def handle_distancebutton_toggled(self, btn, ischecked):
         if btn.group().checkedButton() is not None:
             self.nocontact_rb.setChecked(True)
@@ -246,8 +256,9 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         radiogroup.addButton(radio2)
         radiogroup.addButton(radio3)
         if axis_cb is not None:
-            radiogroup.buttonToggled.connect(lambda rb, ischecked: self.handle_axisgroup_toggled(rb, ischecked, axis_cb))
-            axis_cb.toggled.connect(lambda ischecked: self.handle_axiscb_toggled(ischecked, radiogroup))
+            # then we are setting up direction rather than distance
+            radiogroup.buttonToggled.connect(lambda rb, ischecked: self.handle_directiongroup_toggled(ischecked, axis_cb))
+            axis_cb.toggled.connect(lambda ischecked: self.handle_directioncb_toggled(ischecked, radiogroup))
             axis_layout.addWidget(axis_cb)
         elif axis_label is not None:
             axis_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
@@ -261,14 +272,15 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         return axis_layout
 
-    def handle_axiscb_toggled(self, ischecked, radiogroup):
-        isdirgroup = radiogroup in [self.dirhor_group, self.dirver_group, self.dirsag_group]
-        contactchecked = self.contact_rb.isChecked()
-
+    # if user checks/unchecks a direction axis checkbox, ensure that its child radio buttons
+    #   are enabled/disabled as appropriate
+    def handle_directioncb_toggled(self, ischecked, radiogroup):
         for btn in radiogroup.buttons():
-            btn.setEnabled(ischecked and (isdirgroup or not contactchecked))
+            btn.setEnabled(ischecked or radiogroup.checkedButton() is None)
 
-    def handle_axisgroup_toggled(self, rb, ischecked, axis_cb):
+    # if user checks one of the direction axis radio buttons, ensure that its parent checkbox is
+    #   also checked
+    def handle_directiongroup_toggled(self, ischecked, axis_cb):
         if not ischecked:
             # don't need to do anything special
             return
@@ -339,18 +351,11 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         direction_box.setLayout(direction_layout)
         return direction_box
 
+    # create nested layout for specifying contact and contact manner
     def create_contactandmanner_layout(self):
         contactandmanner_layout = QHBoxLayout()
 
-        # create layout for specifying contact & manner
-        self.contact_box = self.create_contact_box()
-        contactandmanner_layout.addWidget(self.contact_box)
-
-        return contactandmanner_layout
-
-    # create layout for specifying contact & manner
-    def create_contact_box(self):
-        contact_box = QGroupBox("Contact")
+        self.contact_box = QGroupBox("Contact")
         contact_box_layout = QHBoxLayout()
         contact_layout = QVBoxLayout()
         contacttype_spacedlayout = QHBoxLayout()
@@ -392,15 +397,19 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.manner_box = self.create_manner_box()
         contact_box_layout.addWidget(self.manner_box)
 
-        contact_box.setLayout(contact_box_layout)
-        return contact_box
+        self.contact_box.setLayout(contact_box_layout)
+        contactandmanner_layout.addWidget(self.contact_box)
+        return contactandmanner_layout
 
+    # check dependencies/requirements and enable/disable all subsections as appropriate
     def check_enable_allsubmenus(self):
         self.check_enable_contact()
         self.check_enable_distance()
         self.check_enable_direction()
         self.check_enable_manner()
 
+    # if user clicks one of the contact-type radio buttons, the (parent) contact radio button should also be checked
+    # ensure also that if the 'other' contact-type button is checked, that the 'specify' text box is enabled
     def handle_contacttypegroup_toggled(self, btn, checked):
         if self.contacttype_group.checkedButton() is not None:
             self.contact_rb.setChecked(True)
@@ -447,10 +456,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         manner_box.setLayout(manner_layout)
         return manner_box
 
+    # if user clicks one of the contact-manner radio buttons, the contact radio button should also be checked
     def handle_mannerbutton_toggled(self, btn, ischecked):
         if btn.group().checkedButton() is not None:
             self.contact_rb.setChecked(True)
 
+    # create side-by-side layout for selecting the two elements between which there is a relation
     def create_xandy_layout(self):
         xandy_layout = QHBoxLayout()
 
@@ -490,7 +501,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         handpart_layout = QHBoxLayout()
         handpart_label = QLabel("For H1 and/or H2:")
-        self.handpart_button = QPushButton("Specify hand parts")
+        self.handpart_button = SpecifyBodypartPushButton("Specify hand parts")
         self.handpart_button.clicked.connect(self.handle_handpartbutton_clicked)
         self.check_enable_handpartbutton()
         handpart_layout.addWidget(handpart_label)
@@ -498,7 +509,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         armpart_layout = QHBoxLayout()
         armpart_label = QLabel("For Arm1 and/or Arm2:")
-        self.armpart_button = QPushButton("Specify arm parts")
+        self.armpart_button = SpecifyBodypartPushButton("Specify arm parts")
         self.armpart_button.clicked.connect(self.handle_armpartbutton_clicked)
         self.check_enable_armpartbutton()
         armpart_layout.addWidget(armpart_label)
@@ -506,7 +517,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         legpart_layout = QHBoxLayout()
         legpart_label = QLabel("For Leg1 and/or Leg2:")
-        self.legpart_button = QPushButton("Specify leg parts")
+        self.legpart_button = SpecifyBodypartPushButton("Specify leg parts")
         self.legpart_button.clicked.connect(self.handle_legpartbutton_clicked)
         self.check_enable_legpartbutton()
         legpart_layout.addWidget(legpart_label)
@@ -518,21 +529,25 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         bodyparts_box.setLayout(box_layout)
         return bodyparts_box
 
+    # enable the button for selecting handparts iff there is at least one hand selected in either X or Y
     def check_enable_handpartbutton(self):
         h1_selected = self.x_h1_radio.isChecked() or self.x_both_radio.isChecked()
         h2_selected = self.x_h2_radio.isChecked() or self.x_both_radio.isChecked() or self.y_h2_radio.isChecked()
         self.handpart_button.setEnabled(h1_selected or h2_selected)
 
+    # enable the button for selecting armparts iff there is at least one arm selected in either X or Y
     def check_enable_armpartbutton(self):
         a1_selected = self.x_a1_radio.isChecked()
         a2_selected = self.x_a2_radio.isChecked() or self.y_a2_radio.isChecked()
         self.armpart_button.setEnabled(a1_selected or a2_selected)
 
+    # enable the button for selecting legparts iff there is at least one leg selected in either X or Y
     def check_enable_legpartbutton(self):
         l1_selected = self.x_l1_radio.isChecked() or self.y_l1_radio.isChecked()
         l2_selected = self.x_l2_radio.isChecked() or self.y_l2_radio.isChecked()
         self.legpart_button.setEnabled(l1_selected or l2_selected)
 
+    # prepare labels and open the dialog to select the handpart(s) involved in the relation
     def handle_handpartbutton_clicked(self):
         bodyparttype = HAND
         h1label = ""
@@ -547,9 +562,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         if self.y_h2_radio.isChecked():
             h2label = "Y"
         handpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=h1label, bodypart2label=h2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], forrelationmodule=True, parent=self)
-        handpart_selector.bodyparts_saved.connect(self.handle_bodyparts_saved)
+        handpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.handpart_button))
         handpart_selector.exec_()
 
+    # prepare labels and open the dialog to select the armpart(s) involved in the relation
     def handle_armpartbutton_clicked(self):
         bodyparttype = ARM
         a1label = ""
@@ -561,9 +577,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         if self.y_a2_radio.isChecked():
             a2label = "Y"
         armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label, bodypart2label=a2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], forrelationmodule=True,parent=self)
-        armpart_selector.bodyparts_saved.connect(self.handle_bodyparts_saved)
+        armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
         armpart_selector.exec_()
 
+    # prepare labels and open the dialog to select the legpart(s) involved in the relation
     def handle_legpartbutton_clicked(self):
         bodyparttype = LEG
         l1label = ""
@@ -577,57 +594,14 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         elif self.y_l2_radio.isChecked():
             l2label = "Y"
         legpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=l1label, bodypart2label=l2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2],  forrelationmodule=True, parent=self)
-        legpart_selector.bodyparts_saved.connect(self.handle_bodyparts_saved)
+        legpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.legpart_button))
         legpart_selector.exec_()
 
-    def handle_bodyparts_saved(self, bodypart1info, bodypart2info):
+    # set bodypart info for the relation module, from the bodypart selection dialog
+    def handle_bodyparts_saved(self, bodypart1info, bodypart2info, bodypart_button):
         self.bodyparts_dict[bodypart1info.bodyparttype][1] = bodypart1info
         self.bodyparts_dict[bodypart2info.bodyparttype][2] = bodypart2info
-
-    # create layout for selecting the "X" item of the relation
-    def create_x_box_orig(self):
-        x_box = QGroupBox("Select X")
-        x_layout = QVBoxLayout()
-        x_other_layout = QHBoxLayout()
-        x_bothconnected_layout = QHBoxLayout()
-        self.x_group = QButtonGroup()
-        self.x_group.buttonToggled.connect(self.handle_xgroup_toggled)
-        self.x_h1_radio = RelationRadioButton("H1")
-        self.x_h2_radio = RelationRadioButton("H2")
-        self.x_both_radio = RelationRadioButton("Both hands")
-        self.x_bothconnected_cb = QCheckBox("As a connected unit")
-        self.x_bothconnected_cb.toggled.connect(self.handle_xconnected_toggled)
-        self.x_a1_radio = RelationRadioButton("Arm1")
-        self.x_a2_radio = RelationRadioButton("Arm2")
-        self.x_l1_radio = RelationRadioButton("Leg1")
-        self.x_l2_radio = RelationRadioButton("Leg2")
-        self.x_other_radio = RelationRadioButton("Other")
-        self.x_other_text = QLineEdit()
-        self.x_other_text.setPlaceholderText("Specify")
-        self.x_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.x_other_radio))
-        self.x_group.addButton(self.x_h1_radio)
-        self.x_group.addButton(self.x_h2_radio)
-        self.x_group.addButton(self.x_both_radio)
-        self.x_group.addButton(self.x_a1_radio)
-        self.x_group.addButton(self.x_a2_radio)
-        self.x_group.addButton(self.x_l1_radio)
-        self.x_group.addButton(self.x_l2_radio)
-        self.x_group.addButton(self.x_other_radio)
-        x_layout.addWidget(self.x_h1_radio)
-        x_layout.addWidget(self.x_h2_radio)
-        x_layout.addWidget(self.x_both_radio)
-        x_bothconnected_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        x_bothconnected_layout.addWidget(self.x_bothconnected_cb)
-        x_layout.addLayout(x_bothconnected_layout)
-        x_layout.addWidget(self.x_a1_radio)
-        x_layout.addWidget(self.x_a2_radio)
-        x_layout.addWidget(self.x_l1_radio)
-        x_layout.addWidget(self.x_l2_radio)
-        x_other_layout.addWidget(self.x_other_radio)
-        x_other_layout.addWidget(self.x_other_text)
-        x_layout.addLayout(x_other_layout)
-        x_box.setLayout(x_layout)
-        return x_box
+        bodypart_button.hascontent = bodypart1info.hascontent() or bodypart2info.hascontent()
 
     # create layout for selecting the "X" item of the relation
     def create_x_box(self):
@@ -680,6 +654,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         x_box.setLayout(x_layout)
         return x_box
 
+    # if user clicks a button in the X group, enable/disable related options as appropriate
     def handle_xgroup_toggled(self, btn, ischecked):
         selectedbutton = self.x_group.checkedButton()
 
@@ -694,6 +669,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.check_enable_armpartbutton()
         self.check_enable_legpartbutton()
 
+    # if user clicks a button in the Y group, enable/disable related options as appropriate
     def handle_ygroup_toggled(self, btn, ischecked):
         selectedbutton = self.y_group.checkedButton()
 
@@ -713,6 +689,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # check whether submenus (contact, manner, direction, distance) should be enabled
         self.check_enable_allsubmenus()
 
+    # if user checks the "as a connected unit" radio button, ensure the parent ("both") radio button is also checked
     def handle_xconnected_toggled(self, ischecked):
         if not ischecked:
             # don't need to do anything special
@@ -721,6 +698,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # ensure the parent is checked
         self.x_both_radio.setChecked(True)
 
+    # if user specifies text for an "other" selection, ensure the parent ("other") radio button is checked
     def handle_othertext_edited(self, txt, parentradiobutton):
         if txt == "":
             # don't need to do anything special
@@ -728,61 +706,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         # ensure the parent is checked
         parentradiobutton.setChecked(True)
-
-    # create layout for selecting the "Y" item of the relation
-    def create_y_box_orig(self):
-        y_box = QGroupBox("Select Y")
-        y_layout = QVBoxLayout()
-        y_existingmodule_layout = QHBoxLayout()
-        y_list_layout = QHBoxLayout()
-        y_other_layout = QHBoxLayout()
-
-        self.y_group = QButtonGroup()
-        self.y_group.buttonToggled.connect(self.handle_ygroup_toggled)
-        self.y_h2_radio = RelationRadioButton("H2")
-        self.y_a2_radio = RelationRadioButton("Arm2")
-        self.y_l1_radio = RelationRadioButton("Leg1")
-        self.y_l2_radio = RelationRadioButton("Leg2")
-        self.y_existingmod_radio = RelationRadioButton("Existing module:")
-        self.y_existingmod_switch = OptionSwitch("Location", "Movement")
-        self.existingmod_listview = QListView()
-        self.locmodslist = list(self.mainwindow.current_sign.locationmodules.values())
-        self.locmodslist = [loc for loc in self.locmodslist if loc.locationtreemodel.locationtype.usesbodylocations()]
-        self.locmodnums = self.mainwindow.current_sign.locationmodulenumbers
-        self.movmodslist = list(self.mainwindow.current_sign.movementmodules.values())
-        self.movmodnums = self.mainwindow.current_sign.movementmodulenumbers
-        self.existingmodule_listmodel = ModuleLinkingListModel()
-        self.existingmod_listview.setModel(self.existingmodule_listmodel)
-        self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
-        self.existingmod_listview.setSelectionMode(QAbstractItemView.MultiSelection)
-        self.existingmod_listview.clicked.connect(lambda index: self.handle_existingmod_clicked(index))
-        self.y_other_radio = RelationRadioButton("Other")
-        self.y_other_text = QLineEdit()
-        self.y_other_text.setPlaceholderText("Specify")
-        self.y_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.y_other_radio))
-        self.y_group.addButton(self.y_h2_radio)
-        self.y_group.addButton(self.y_a2_radio)
-        self.y_group.addButton(self.y_l1_radio)
-        self.y_group.addButton(self.y_l2_radio)
-        self.y_group.addButton(self.y_existingmod_radio)
-        self.y_group.addButton(self.y_other_radio)
-
-        y_layout.addWidget(self.y_h2_radio)
-        y_layout.addWidget(self.y_a2_radio)
-        y_layout.addWidget(self.y_l1_radio)
-        y_layout.addWidget(self.y_l2_radio)
-        y_existingmodule_layout.addWidget(self.y_existingmod_radio)
-        y_existingmodule_layout.addWidget(self.y_existingmod_switch)
-        y_existingmodule_layout.addStretch()
-        y_layout.addLayout(y_existingmodule_layout)
-        y_list_layout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        y_list_layout.addWidget(self.existingmod_listview)
-        y_layout.addLayout(y_list_layout)
-        y_other_layout.addWidget(self.y_other_radio)
-        y_other_layout.addWidget(self.y_other_text)
-        y_layout.addLayout(y_other_layout)
-        y_box.setLayout(y_layout)
-        return y_box
 
     # create layout for selecting the "Y" item of the relation
     def create_y_box(self):
@@ -846,6 +769,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         y_box.setLayout(y_layout)
         return y_box
 
+    # if user toggles the switch for selecting an existing module (movement or location),
+    #   ensure the parent ("existing module") radio button is checked, that the list of
+    #   existing modules is updated as per the selected module type, and that related
+    #   subsections are enabled/disabled as appropriate
     def handle_existingmodswitch_toggled(self, selection_dict):
         if True in selection_dict.values():
             self.y_existingmod_radio.setChecked(True)
@@ -853,6 +780,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         self.check_enable_allsubmenus()
 
+    # update the list of existing modules according to which module type was selected
     def update_existingmodule_list(self, selection_dict):
         if selection_dict[1]:
             self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums, ModuleTypes.LOCATION)
@@ -861,6 +789,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         else:
             self.existingmodule_listmodel.setmoduleslist(None)
 
+    # if user clicks an existing module in the list, make sure that the parent
+    #   ("existing module") radio button is checked
     def handle_existingmod_clicked(self, modelindex):
         if modelindex not in self.existingmod_listview.selectedIndexes():
             # don't need to do anything special
@@ -889,7 +819,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             if articulator == HAND:
                 if articulator_dict[1] and articulator_dict[2]:
                     self.x_both_radio.setChecked(True)
-                    if linkedfrommodule.inphase >- 3:
+                    if linkedfrommodule.inphase >= 3:
                         self.x_bothconnected_cb.setChecked(True)
                 elif articulator_dict[1]:
                     self.x_h1_radio.setChecked(True)
@@ -922,6 +852,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             if linked_type == ModuleTypes.LOCATION and linkedfrommodule.locationtreemodel.locationtype.bodyanchored:
                 self.nocontact_rb.setChecked(True)
 
+    # set GUI values from an existing Relation Module that we are loading into this panel
     def setvalues(self, moduletoload):
         self.setcurrentx(moduletoload.relationx)
         self.setcurrenty(moduletoload.relationy)
@@ -929,10 +860,16 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.crossed_cb.setChecked(moduletoload.xy_crossed)
         self.linked_cb.setChecked(moduletoload.xy_linked)
         self.setcurrentdirection(moduletoload.directions)
-        self.bodyparts_dict = moduletoload.bodyparts_dict
+        self.setbodyparts(moduletoload.bodyparts_dict)
 
-        # TODO KV set the linked-from module if there is one in moduletoload
+    # set the current Relation module to have the bodyparts specified in the input dict
+    def setbodyparts(self, bodyparts_dict):
+        self.bodyparts_dict = bodyparts_dict
+        self.handpart_button.hascontent = self.bodyparts_dict[HAND][1].hascontent() or self.bodyparts_dict[HAND][2].hascontent()
+        self.armpart_button.hascontent = self.bodyparts_dict[ARM][1].hascontent() or self.bodyparts_dict[ARM][2].hascontent()
+        self.legpart_button.hascontent = self.bodyparts_dict[LEG][1].hascontent() or self.bodyparts_dict[LEG][2].hascontent()
 
+    # set the GUI values for X element selection from the given input
     def setcurrentx(self, relationx):
         if relationx is not None:
             self.x_other_text.setText(relationx.othertext)
@@ -947,6 +884,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             self.x_l2_radio.setChecked(relationx.leg2)
             self.x_other_radio.setChecked(relationx.other)
 
+    # return the current X element specification as per the GUI values
     def getcurrentx(self):
         return RelationX(h1=self.x_h1_radio.isChecked(),
                          h2=self.x_h2_radio.isChecked(),
@@ -959,6 +897,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                          other=self.x_other_radio.isChecked(),
                          othertext=self.x_other_text.text())
 
+    # set the GUI values for Y element selection from the given input
     def setcurrenty(self, relationy):
         if relationy is not None:
             self.y_other_text.setText(relationy.othertext)
@@ -971,6 +910,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                 self.setcurrentlinkedmoduleinfo(relationy.linkedmoduleids, relationy.linkedmoduletype)
             self.y_other_radio.setChecked(relationy.other)
 
+    # return the current Y element specification as per the GUI values
     def getcurrenty(self):
         return RelationY(h2=self.y_h2_radio.isChecked(),
                          arm2=self.y_a2_radio.isChecked(),
@@ -982,6 +922,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                          other=self.y_other_radio.isChecked(),
                          othertext=self.y_other_text.text())
 
+    # return the current contact specification as per the GUI values
     def getcurrentcontact(self):
         hascontact = self.contact_rb.isChecked()
         hasnocontact = self.nocontact_rb.isChecked()
@@ -998,6 +939,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             contactreln = ContactRelation(contact=None, distance_list=distances)
         return contactreln
 
+    # return the current contact-type specification as per the GUI values
     def getcurrentcontacttype(self):
         contacttype = ContactType(
             light=self.contactlight_rb.isChecked(),
@@ -1007,6 +949,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         )
         return contacttype
 
+    # return the current contact-manner specification as per the GUI values
     def getcurrentmanner(self):
         contactmannerreln = MannerRelation(
             holding=self.holding_rb.isChecked(),
@@ -1015,6 +958,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         )
         return contactmannerreln
 
+    # return the current directions specification as per the GUI values
     def getcurrentdirections(self):
         direction_hor = Direction(axis=Direction.HORIZONTAL,
                                   axisselected=self.dirhor_cb.isChecked(),
@@ -1037,6 +981,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         directions = [direction_hor, direction_ver, direction_sag]
         return directions
 
+    # return the current distances specification as per the GUI values
     def getcurrentdistances(self):
         distance_hor = Distance(axis=Direction.HORIZONTAL,
                                 close=self.dishorclose_rb.isChecked(),
@@ -1053,6 +998,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         distances = [distance_hor, distance_ver, distance_sag]
         return distances
 
+    # set the GUI values for contact selection from the given input
     def setcurrentcontact(self, contactrel):
         if contactrel is None or contactrel.contact is None:
             return
@@ -1067,12 +1013,14 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             if contactrel.distances:
                 self.setcurrentdistances(contactrel.distances)
 
+    # set the GUI values for contact-manner selection from the given input
     def setcurrentmanner(self, mannerrel):
         if mannerrel is not None:
             self.holding_rb.setChecked(mannerrel.holding)
             self.continuous_rb.setChecked(mannerrel.continuous)
             self.intermittent_rb.setChecked(mannerrel.intermittent)
 
+    # set the GUI values for contact-type selection from the given input
     def setcurrentcontacttype(self, contacttype):
         if contacttype is not None:
             self.contactlight_rb.setChecked(contacttype.light)
@@ -1080,6 +1028,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             self.contactother_rb.setChecked(contacttype.other)
             self.contact_other_text.setText(contacttype.othertext)
 
+    # set the GUI values for directions selection from the given input
     def setcurrentdirection(self, directions_list):
         if directions_list is not None:
             hor_direction = [axis_dir for axis_dir in directions_list if axis_dir.axis == Direction.HORIZONTAL][0]
@@ -1104,6 +1053,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                 self.dirsagdist_rb.setChecked(sag_direction.minus)
                 self.dirsaginline_rb.setChecked(sag_direction.inline)
 
+    # set the GUI values for directions selection from the given input
     def setcurrentdistances(self, distances_list):
         if distances_list is not None:
             hor_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.HORIZONTAL][0]
@@ -1122,6 +1072,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             self.dissagmed_rb.setChecked(sag_distance.medium)
             self.dissagfar_rb.setChecked(sag_distance.far)
 
+    # return the type of the "existing module" currently selected in the GUI
     def getcurrentlinkedmoduletype(self):
         switch_dict = self.y_existingmod_switch.getvalue()
         if switch_dict[1]:
@@ -1131,6 +1082,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         else:
             return None
 
+    # return the module IDs of the "existing module"s currently selected in the GUI
     def getcurrentlinkedmoduleids(self):
         selected_indexes = self.existingmod_listview.selectionModel().selectedIndexes()
         # if len(selected_indexes) > 1:
@@ -1145,6 +1097,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             # return self.existingmodule_listmodel.itemFromIndex(selected_indexes[0]).module.uniqueid
         return selected_ids
 
+    # set the GUI values for "existing module" type and module IDs from the given inputs
     def setcurrentlinkedmoduleinfo(self, linkedmoduleids, linkedmoduletype):
         self.existingmod_listview.clearSelection()
         self.setcurrentlinkedmoduletype(linkedmoduletype)
@@ -1156,6 +1109,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             if len(self.existingmod_listview.selectionModel().selectedIndexes()) > 0:
                 self.y_existingmod_radio.setChecked(True)
 
+    # set the GUI value for "existing module" type from the given input
     def setcurrentlinkedmoduletype(self, moduletype):
         selectiondict = {
             1: moduletype == ModuleTypes.LOCATION,
@@ -1164,6 +1118,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_existingmod_switch.setvalue(selectiondict)
         self.update_existingmodule_list(selectiondict)
 
+    # clear and enable all buttons in the given buttongroup
     def clear_group_buttons(self, buttongroup):
         buttongroup.setExclusive(False)
 
@@ -1173,6 +1128,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         buttongroup.setExclusive(True)
 
+    # clear and enable all GUI elements for X selection
     def clear_x_options(self):
         self.clear_group_buttons(self.x_group)
         self.x_other_text.clear()
@@ -1180,10 +1136,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         self.enable_x_options(True)
 
+    # enable all GUI elements for X selection
     def enable_x_options(self, doenable):
         self.x_other_text.setEnabled(doenable)
         self.x_bothconnected_cb.setEnabled(doenable)
 
+    # clear and enable all GUI elements for Y selection
     def clear_y_options(self):
         self.clear_group_buttons(self.y_group)
         self.setcurrentlinkedmoduleinfo(None, None)
@@ -1191,10 +1149,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         self.enable_y_options(True)
 
+    # enable all GUI elements for Y selection
     def enable_y_options(self, doenable):
         self.y_other_text.setEnabled(doenable)
         self.existingmod_listview.setEnabled(doenable)
 
+    # clear and enable all GUI elements for distance selection
     def clear_distance_buttons(self):
         for grp in [self.dishor_group, self.disver_group, self.dissag_group]:
             self.clear_group_buttons(grp)
@@ -1202,6 +1162,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         for grpbox in [self.dishor_box, self.disver_box, self.dissag_box]:
             grpbox.setEnabled(True)
 
+    # clear and enable all GUI elements for direction selection
     def clear_direction_buttons(self):
         for cb in [self.dirhor_cb, self.dirver_cb, self.dirsag_cb]:
             cb.setChecked(False)
@@ -1211,6 +1172,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         for grpbox in [self.dirhor_box, self.dirver_box, self.dirsag_box]:
             grpbox.setEnabled(True)
 
+    # clear and enable all GUI elements for relation module specification
     def clear(self):
         self.clear_x_options()
         self.clear_y_options()
@@ -1226,6 +1188,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         return 700
 
 
+# this radio button class tracks not only its current state
+#   (and, as usual, mutual exclusivity with buttons in the same group)
+#   but also, when a group button is toggled, updates the group with its identity
+#   for the purposes of being able to un-check when appropriate
 class RelationRadioButton(QRadioButton):
 
     def __init__(self, text, **kwargs):
@@ -1237,6 +1203,7 @@ class RelationRadioButton(QRadioButton):
         super().setChecked(checked)
 
 
+# this buttongroup allows for unchecking buttons even when the group is set to mutually exclusive
 class RelationButtonGroup(QButtonGroup):
 
     def __init__(self, **kwargs):

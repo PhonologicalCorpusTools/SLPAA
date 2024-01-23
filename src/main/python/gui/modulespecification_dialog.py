@@ -78,6 +78,7 @@ class ModuleSelectorDialog(QDialog):
                                                              incl_articulator_subopts=incl_articulator_subopts,
                                                              inphase=inphase,
                                                              parent=self)
+
         if self.includearticulatorselection:
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
@@ -88,10 +89,11 @@ class ModuleSelectorDialog(QDialog):
         self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
         main_layout.addLayout(self.arts_and_addedinfo_layout)
-
+        self.arts_and_addedinfo_layout.minimumSize()
         self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
                                               timingintervals=timingintervals,
                                               parent=self)
+
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             main_layout.addWidget(self.xslot_widget)
 
@@ -168,6 +170,10 @@ class ModuleSelectorDialog(QDialog):
         # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
         # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         # self.adjustSize()
+
+        # get first rendered widget heights and fix them.
+        self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
+        self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
 
     def handle_modulesaved(self, relationtosave, moduletype):
         self.module_saved.emit(relationtosave, moduletype)
@@ -363,10 +369,6 @@ class AssociatedRelationsDialog(QDialog):
         module_selector.exec_()
         self.refresh_listmodel()
 
-    # def handle_moduledeleted(self, mod_id):
-    #     self.mainwindow.signlevel_panel.handle_delete_module(existingkey=mod_id, moduletype=ModuleTypes.RELATION)
-    #     self.refresh_listmodel()
-
     def refresh_listmodel(self):
         self.relationslist = list(self.mainwindow.current_sign.relationmodules.values())
         self.relationmodulenumsdict = self.mainwindow.current_sign.relationmodulenumbers
@@ -474,6 +476,7 @@ class AssociatedRelationsPanel(QFrame):
             module_selector.exec_()
 
 
+# Styled QPushButton whose text is bolded iff the _hasrelations attribute is true
 class SeeRelationsPushButton(QPushButton):
 
     def __init__(self, title, hasrelations=False, **kwargs):
@@ -484,16 +487,13 @@ class SeeRelationsPushButton(QPushButton):
         qss = """   
             QPushButton[HasRelations=true] {
                 font: bold;
-                /*border: 2px dashed black;*/
             }
 
             QPushButton[HasRelations=false] {
                 font: normal;
-                /*border: 1px solid grey;*/
             }
         """
         self.setStyleSheet(qss)
-
         self.updateStyle()
 
     @property

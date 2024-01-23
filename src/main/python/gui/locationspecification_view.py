@@ -1,7 +1,5 @@
 from PyQt5.QtWidgets import (
-    QListView,
     QTableView,
-    QTreeView,
     QGraphicsView,
     QGraphicsScene,
     QGraphicsPixmapItem,
@@ -15,7 +13,6 @@ from PyQt5.QtWidgets import (
     QCompleter,
     QButtonGroup,
     QGroupBox,
-    QStackedWidget,
     QAbstractItemView,
     QHeaderView,
     QCheckBox,
@@ -24,11 +21,6 @@ from PyQt5.QtWidgets import (
     QWidget,
     QSpacerItem,
     QSizePolicy,
-    QStyledItemDelegate,
-    QStyleOptionButton,
-    QStyle,
-    QStyleOptionFrame,
-    QApplication,
     QFrame
 )
 
@@ -51,21 +43,13 @@ from lexicon.module_classes import delimiter, LocationModule, PhonLocations, use
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
-import logging
-
-class LocationTreeView(QTreeView):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.setEditTriggers(QAbstractItemView.DoubleClicked | QAbstractItemView.SelectedClicked)
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 
 
 class LocnTreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(LocationTreeItem)
 
-    def __init__(self, **kwargs):  # parentlayout=None,
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.refreshed = True
         self.lasttextentry = ""
@@ -133,27 +117,6 @@ class LocnTreeSearchComboBox(QComboBox):
             self.lasttextentry = ""
             self.lastcompletedentry = ""
             super().keyPressEvent(event)
-
-
-class LocnTreeListView(QListView):
-
-    def __init__(self):
-        super().__init__()
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        # modifiers = event.modifiers()
-
-        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
-            indexesofselectedrows = self.selectionModel().selectedRows()
-            selectedlistitems = []
-            for itemindex in indexesofselectedrows:
-                listitemindex = self.model().mapToSource(itemindex)
-                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
-                selectedlistitems.append(listitem)
-            for listitem in selectedlistitems:
-                listitem.unselectpath()
-            # self.model().dataChanged.emit()
 
 
 class LocationGraphicsView(QGraphicsView):
@@ -263,10 +226,9 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     return validpathsoftreeitems[0]
 
 
-def findvaliditemspaths(pathitemslists):
+def findvaliditemspaths(pathitemslists): 
     validpaths = []
     if len(pathitemslists) > 1:  # the path is longer than 1 level
-        # pathitemslistslotohi = pathitemslists[::-1]
         for lastitem in pathitemslists[-1]:
             for secondlastitem in pathitemslists[-2]:
                 if lastitem.parent() == secondlastitem:
@@ -276,7 +238,6 @@ def findvaliditemspaths(pathitemslists):
                             validpaths.append(higherpath + [lastitem])
     elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
         for lastitem in pathitemslists[0]:
-            # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
             validpaths.append([lastitem])
     else:
         # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
@@ -315,8 +276,24 @@ class LocationOptionsSelectionPanel(QFrame):
         selection_layout = self.create_selection_layout()
         main_layout.addLayout(selection_layout)
 
+        if treemodeltoload is not None and isinstance(treemodeltoload, LocationTreeModel):
+            self.set_multiple_selection_from_content(self.treemodel.multiple_selection_allowed)
+
         self.setLayout(main_layout)
 
+    
+    def get_listed_paths(self):
+        proxyModel = self.listproxymodel
+        sourceModel = self.listmodel
+        
+        paths = [] 
+
+        for row in range(proxyModel.rowCount()):
+            sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
+            path = sourceModel.data(sourceIndex, Qt.DisplayRole)
+            paths.append(path)
+        return paths
+    
     def enableImageTabs(self, enable):
         if self.showimagetabs:
             self.imagetabwidget.setEnabled(enable)
@@ -338,8 +315,7 @@ class LocationOptionsSelectionPanel(QFrame):
                 print("enter pressed")
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
-            proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
-            # proxyindex = self.pathslistview.selectedIndexes()[0]
+            proxyindex = self.pathslistview.currentIndex()  # TODO what if multiple are selected?
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
@@ -354,7 +330,6 @@ class LocationOptionsSelectionPanel(QFrame):
 
     @treemodel.setter
     def treemodel(self, treemodel):
-        # TODO KV - validate?
         self._treemodel = treemodel
         self._listmodel = treemodel.listmodel
 
@@ -364,7 +339,6 @@ class LocationOptionsSelectionPanel(QFrame):
 
     @listmodel.setter
     def listmodel(self, listmodel):
-        # TODO KV - validate?
         self._listmodel = listmodel
 
     def refresh_listproxies(self):
@@ -428,7 +402,8 @@ class LocationOptionsSelectionPanel(QFrame):
 
         list_layout = QVBoxLayout()
 
-        self.pathslistview = LocnTreeListView()
+        self.pathslistview = TreeListView()
+        self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(300)
@@ -452,6 +427,10 @@ class LocationOptionsSelectionPanel(QFrame):
         buttons_layout.addWidget(self.sortcombo)
         buttons_layout.addStretch()
 
+        self.multiple_selection_cb = QCheckBox("Allow multiple selection")
+        self.multiple_selection_cb.clicked.connect(self.handle_toggle_multiple_selection)
+        buttons_layout.addWidget(self.multiple_selection_cb)
+
         self.clearbutton = QPushButton("Clear")
         self.clearbutton.clicked.connect(self.clearlist)
         buttons_layout.addWidget(self.clearbutton)
@@ -459,11 +438,16 @@ class LocationOptionsSelectionPanel(QFrame):
         list_layout.addLayout(buttons_layout)
 
         self.detailstableview = LocationTableView()
-        # TODO KV set model, checkboxes, etc
 
         list_layout.addWidget(self.detailstableview)
 
         return list_layout
+    
+    def set_multiple_selection_from_content(self, multsel):
+        self.multiple_selection_cb.setChecked(multsel)
+    
+    def handle_toggle_multiple_selection(self):
+        self.treemodel.multiple_selection_allowed = self.multiple_selection_cb.isChecked()
 
     def clearlist(self, button):
         numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()
@@ -472,6 +456,12 @@ class LocationOptionsSelectionPanel(QFrame):
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
+        
+    
+    def reset_sort(self):
+        """Reset sort option to default."""
+        self.sortcombo.setCurrentIndex(0)
+        self.sort()
 
 
 class LocationSpecificationPanel(ModuleSpecificationPanel):
@@ -484,7 +474,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         main_layout = QVBoxLayout()
 
-        # This widget has three separate location trees, so that we can flip back and forth between
+        # This widget has two separate location trees, so that we can flip back and forth between
         # location types without losing intermediate information. However, once the save button is
         # clicked only the tree for the current location type is saved with the module.
         self.treemodel_body = None
@@ -531,6 +521,31 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.setLayout(main_layout)
 
         self.enablelocationtools()
+
+    def multiple_selections_check(self):
+        paths = self.locationoptionsselectionpanel.get_listed_paths()
+        if len(paths) == 1:
+            return False
+        # if the multiple selections are parents of each other, doesn't count as multiple selections.
+        for i in range(len(paths)):
+            for j in range(i+1, len(paths)):
+                if (paths[i] not in paths[j] and paths[j] not in paths[i]):
+                    return True
+        return False
+
+    def validity_check(self):
+        selectionsvalid = True
+        warningmessage = "" 
+
+        self.locationoptionsselectionpanel.refresh_listproxies()
+        treemodel = self.getcurrenttreemodel()
+        
+        multiple_selections = self.multiple_selections_check()
+
+        if self.getcurrentlocationtype().usesbodylocations() and multiple_selections and not treemodel.multiple_selection_allowed:
+            selectionsvalid = False
+            warningmessage = warningmessage + "Multiple locations have been selected but 'Allow multiple selection' is not checked."
+        return selectionsvalid, warningmessage
 
     def getcurrentlocationtype(self):
         locationtype = LocationType(
@@ -665,6 +680,9 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         elif self.getcurrentlocationtype().purelyspatial:
             self.listmodel_spatial = lm
 
+        # ensure the first item in the selected locations list (if any) is selected/highlighted
+        self.locationoptionsselectionpanel.pathslistview.setindex(-1)
+
     def check_phonologicalloc_cb(self, checked):
         self.phonological_cb.setChecked(True)
 
@@ -704,7 +722,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
         self.defaultneutral_cb.setEnabled(btn == self.signingspacespatial_radio)
-        self.enablelocationtools()  # TODO KV should this be inside the if?
+            self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(btn != self.signingspacespatial_radio)
+        self.enablelocationtools()  # TODO should this be inside the if?
 
     def handle_toggle_defaultneutral(self, btn):
         itemstoselect = gettreeitemsinpath(self.parent().treemodel,
@@ -723,7 +742,11 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         if btn is not None and btn.isChecked():
             for b in self.signingspace_subgroup.buttons():
                 b.setEnabled(btn == self.signingspace_radio)
-        self.enablelocationtools()  # TODO KV should this be inside the if?
+            self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(
+                self.signingspacespatial_radio.isChecked() == False 
+                or self.signingspacespatial_radio.isEnabled() == False)
+
+        self.enablelocationtools()  # TODO should this be inside the if?
 
     def enablelocationtools(self):
         # self.refresh_listproxies()
@@ -799,12 +822,31 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.minorphonloc_cb.setEnabled(True)
 
     def clear(self):
+        """Restore GUI to the defaults."""
         self.clear_loctype_buttons_to_default()
         self.clear_phonlocs_buttons()
         self.recreate_treeandlistmodels()
+        
+        # Reset selections
+        self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(False)
         self.locationoptionsselectionpanel.treemodel = self.getcurrenttreemodel()
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.clear_details()
+        
+        # Reset sort
+        self.locationoptionsselectionpanel.reset_sort()
+        
+        # Reset zoom and link
+        self.locationoptionsselectionpanel.imagetabwidget.reset_zoomfactor()
+        self.locationoptionsselectionpanel.imagetabwidget.reset_link()
+        
+        # Reset view to front panel
+        self.locationoptionsselectionpanel.imagetabwidget.setCurrentIndex(0)
+        
+        # self.locationoptionsselectionpanel.imagetabwidget
+        # Update panels given default selections/disables panels
+        self.enablelocationtools()
+
 
     def recreate_treeandlistmodels(self):
         self.treemodel_body = LocationTreeModel()
@@ -840,9 +882,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
             btn.setChecked(False)
-        
+                    
         self.defaultneutral_cb.setEnabled(False)
 
+        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(not loctype.purelyspatial)
         if loctype.body:
             self.body_radio.setChecked(True)
         elif loctype.signingspace:
@@ -901,7 +944,19 @@ class ImageTabWidget(QTabWidget):
         othertab.force_link(ischecked)
         othertab.force_zoom(thistab.zoom_slider.value())
         # self.backtab.force_link(ischecked)
-
+        
+    def reset_zoomfactor(self):
+        """Reset the zoom factor for this image display to zero zoom and back to the front tab."""
+        self.fronttab.zoom_slider.setValue(0)
+        self.backtab.zoom_slider.setValue(0)
+        self.fronttab.force_zoom(self.fronttab.zoom_slider.value())
+        self.backtab.force_zoom(self.backtab.zoom_slider.value())
+        
+    def reset_link(self):
+        """Unlink zoom buttons between front/back."""
+        self.handle_linkbutton_toggled(False, self.fronttab)
+        self.handle_linkbutton_toggled(False, self.backtab)
+        
 
 class ImageDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
@@ -956,27 +1011,3 @@ class ImageDisplayTab(QWidget):
         self.blockSignals(True)
         self.link_button.setChecked(ischecked)
         self.blockSignals(False)
-
-
-# Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-# TODO KV can this be combined with the one for movement?
-class LocationTreeItemDelegate(QStyledItemDelegate):
-
-    def paint(self, painter, option, index):
-        if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
-            widget = option.widget
-            style = widget.style() if widget else QApplication.style()
-            opt = QStyleOptionButton()
-            opt.rect = option.rect
-            opt.text = index.data()
-            opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
-            style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-        else:
-            QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                opt = QStyleOptionFrame()
-                opt.rect = option.rect
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-

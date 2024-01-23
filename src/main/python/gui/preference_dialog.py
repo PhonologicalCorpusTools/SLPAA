@@ -22,6 +22,7 @@ from constant import FRACTION_CHAR
 from fractions import Fraction
 
 
+# This tab facilitates user interaction with display-related settings in the preference dialog.
 class DisplayTab(QWidget):
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
@@ -56,6 +57,7 @@ class DisplayTab(QWidget):
         self.settings['display']['entryid_digits'] = self.entryid_digits.value()
 
 
+# This tab facilitates user interaction with reminder-related settings in the preference dialog.
 class ReminderTab(QWidget):
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
@@ -72,6 +74,7 @@ class ReminderTab(QWidget):
         self.settings['reminder']['overwrite'] = self.overwrite_reminder.isChecked()
 
 
+# This tab facilitates user interaction with sign-related settings in the preference dialog.
 class SignDefaultsTab(QWidget):
     xslotdivisions_changed = pyqtSignal(dict, dict)
     xslotgeneration_changed = pyqtSignal(str, str)
@@ -98,6 +101,30 @@ class SignDefaultsTab(QWidget):
                 button.setChecked(True)
                 break
         main_layout.addRow(QLabel('Default hand dominance:'), self.handdominance_layout)
+
+        self.signtype_layout = QHBoxLayout()
+        self.signtype_group = QButtonGroup(parent=self)
+        self.signtype_none_radio = QRadioButton('None')
+        self.signtype_none_radio.setProperty('signtype', 'none')
+        self.signtype_group.addButton(self.signtype_none_radio)
+        self.signtype_layout.addWidget(self.signtype_none_radio)
+        self.signtype_unspec_radio = QRadioButton('Unspecified')
+        self.signtype_unspec_radio.setProperty('signtype', 'unspec')
+        self.signtype_group.addButton(self.signtype_unspec_radio)
+        self.signtype_layout.addWidget(self.signtype_unspec_radio)
+        self.signtype_one_radio = QRadioButton('1 hand')
+        self.signtype_one_radio.setProperty('signtype', '1hand')
+        self.signtype_group.addButton(self.signtype_one_radio)
+        self.signtype_layout.addWidget(self.signtype_one_radio)
+        self.signtype_two_radio = QRadioButton('2 hands')
+        self.signtype_two_radio.setProperty('signtype', '2hand')
+        self.signtype_group.addButton(self.signtype_two_radio)
+        self.signtype_layout.addWidget(self.signtype_two_radio)
+        for button in self.signtype_group.buttons():
+            if self.settings['signdefaults']['signtype'] == button.property('signtype'):
+                button.setChecked(True)
+                break
+        main_layout.addRow(QLabel('Default sign type:'), self.signtype_layout)
 
         self.xslots_layout = QHBoxLayout()
         self.xslots_group = QButtonGroup(parent=self)
@@ -156,6 +183,7 @@ class SignDefaultsTab(QWidget):
 
     def save_settings(self):
         self.settings['signdefaults']['handdominance'] = self.handdominance_group.checkedButton().property('hand')
+        self.settings['signdefaults']['signtype'] = self.signtype_group.checkedButton().property('signtype')
         previous_xslotgeneration = self.settings['signdefaults']['xslot_generation']
         new_xslotgeneration = self.xslots_group.checkedButton().property('xslots')
         self.settings['signdefaults']['xslot_generation'] = new_xslotgeneration
@@ -170,6 +198,7 @@ class SignDefaultsTab(QWidget):
             self.xslotdivisions_changed.emit(previouspartials, newpartials)
 
 
+# This tab facilitates user interaction with location module-related settings in the preference dialog.
 class LocationTab(QWidget):
 
     def __init__(self, settings, **kwargs):
@@ -197,10 +226,6 @@ class LocationTab(QWidget):
         self.loctype_signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
         self.locationtype_group.addButton(self.loctype_signingspacespatial_radio)
         self.locationtype_layout.addWidget(self.loctype_signingspacespatial_radio)
-        self.loctype_axis_radio = QRadioButton('Axis of relation')
-        self.loctype_axis_radio.setProperty('loctype', 'axis')
-        self.locationtype_group.addButton(self.loctype_axis_radio)
-        self.locationtype_layout.addWidget(self.loctype_axis_radio)
         self.loctype_none_radio = QRadioButton('None of these')
         self.loctype_none_radio.setProperty('loctype', 'none')
         self.locationtype_group.addButton(self.loctype_none_radio)
@@ -215,6 +240,7 @@ class LocationTab(QWidget):
         self.settings['location']['loctype'] = self.locationtype_group.checkedButton().property('loctype')
 
 
+# This is the global settings dialog that users access via the Settings menu.
 class PreferenceDialog(QDialog):
     prefs_saved = pyqtSignal()
     xslotdivisions_changed = pyqtSignal(dict, dict)
