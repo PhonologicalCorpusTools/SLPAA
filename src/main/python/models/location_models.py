@@ -494,6 +494,7 @@ class LocationTreeModel(QStandardItemModel):
         self._listmodel = None  # LocationListModel(self)
         self.itemChanged.connect(self.updateCheckState)
         self._locationtype = LocationType()
+        self.checked=[]
 
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
@@ -541,6 +542,36 @@ class LocationTreeModel(QStandardItemModel):
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
+    def uncheck_paths(self, paths_to_uncheck):
+        for path in paths_to_uncheck:
+            try:
+                self.serializedlocntree.checkstates[path] = Qt.Unchecked
+                self.serializedlocntree.addedinfos[path] = Qt.Unchecked
+                self.serializedlocntree.detailstables[path] = Qt.Unchecked
+            except:
+                print("Could not uncheck old path.")
+    
+    '''
+    Removes from paths_to_add once found
+    '''
+    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
+        if treenode is not None:
+            for r in range(treenode.rowCount()):
+                treechild = treenode.child(r, 0)
+                if treechild is not None:
+                    pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
+
+                    if pathtext in paths_to_add:
+                        treechild.setCheckState(Qt.Checked)
+                        oldtext = paths_dict[pathtext]
+                        paths_to_add.remove(pathtext)
+                        if oldtext in self.serializedlocntree.addedinfos:
+                            treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
+                        if oldtext in self.serializedlocntree.detailstables.keys():
+                            treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+
+                    self.addcheckedvalues(treechild, paths_to_add, paths_dict)
+
     # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
     def setvaluesfromserializedtree(self, treenode):
         if treenode is not None:
@@ -550,12 +581,39 @@ class LocationTreeModel(QStandardItemModel):
                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
                     if pathtext in self.serializedlocntree.checkstates.keys():
                         treechild.setCheckState(self.serializedlocntree.checkstates[pathtext])
+                        if self.serializedlocntree.checkstates[pathtext] == Qt.Checked:
+                            self.checked.append(pathtext)
                     if pathtext in self.serializedlocntree.addedinfos.keys():
                         treechild.addedinfo = copy(self.serializedlocntree.addedinfos[pathtext])
                     if pathtext in self.serializedlocntree.detailstables.keys():
                         treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[pathtext])
 
                     self.setvaluesfromserializedtree(treechild)
+
+    def get_checked_from_serialized_tree(self):
+        checked = []
+        if hasattr(self, "serializedlocntree"):
+            for k in list(self.serializedlocntree.checkstates):
+                if self.serializedlocntree.checkstates[k] == Qt.Checked:
+                    checked.append(k)
+        return checked
+
+        # Compare what was serialized with what the current tree actually shows
+    def compare_checked_lists(self):
+        differences = []
+        serialized = self.get_checked_from_serialized_tree()
+        current = self.checked
+        
+        for item in serialized:
+            if item not in current:
+                differences.append(item)
+        # print("   Serialized locn:" + str(len(serialized)) + "; Listed locn:" + str(len(self.checked)))
+                
+        return differences
+                
+
+
+
 
     # def tempprintcheckeditems(self):
     #     treenode = self.invisibleRootItem()
@@ -673,7 +731,6 @@ class LocationTreeModel(QStandardItemModel):
                 elif self.hasselections(treechild):
                     return True
             return False
-
 
 class BodypartTreeModel(LocationTreeModel):
 

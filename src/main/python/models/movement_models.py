@@ -1164,6 +1164,7 @@ class MovementTreeModel(QStandardItemModel):
         super().__init__(**kwargs)
         self._listmodel = None  # MovementListModel(self)
         self.optionstree = optionstree
+        self.checked = []
         self.setColumnCount(2)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updaterelateddata)
@@ -1176,20 +1177,50 @@ class MovementTreeModel(QStandardItemModel):
             makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
             userspecifiedvalues = self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode, userspecifiedvalues)
-            # self.printTree(rootnode, level=0)
 
-    # def printTree(self, treenode, level):
-        
-    #     if treenode is not None:
-    #         spaces = " " * level
-    #         for r in range(treenode.rowCount()):
+
+    def get_checked_from_serialized_tree(self):
+        checked = []
+        if hasattr(self, "serializedmvmttree"):
+            for k in list(self.serializedmvmttree.checkstates):
+                if self.serializedmvmttree.checkstates[k] == Qt.Checked:
+                    checked.append(k)
+        return checked
+    
+    def update_currently_checked(self, treenode):
+        if treenode is not None:
+            for r in range(treenode.rowCount()):
+                treechild = treenode.child(r, 0)
                 
-    #             treechild = treenode.child(r, 0)
-    #             if treechild is not None:
-    #                 pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-    #                 logging.warn(spaces + pathtext)
-    #                 self.printTree(treechild, level+1)
+                if treechild is not None:
+                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    if pathtext in self.serializedmvmttree.checkstates:
+                        if self.serializedmvmttree.checkstates[pathtext] == Qt.Checked:
+                            self.checked.append(pathtext)
 
+                    self.update_currently_checked(treechild)
+
+    # Compare what was serialized with what the current tree actually shows
+    # Also updates the list
+    def compare_checked_lists(self, verbose=False):
+        differences = []
+        serialized = self.get_checked_from_serialized_tree()
+        self.checked = []
+        self.update_currently_checked(self.invisibleRootItem())
+        for item in serialized:
+            if item not in self.checked:
+                differences.append(item)
+        # print("   Serialized mvmt:" + str(len(serialized)) + "; Listed mvmt:" + str(len(self.checked)))
+
+        return differences
+    
+    def get_usv(self):
+        if hasattr(self.serializedmvmttree, 'userspecifiedvalues'):
+            return self.serializedmvmttree.userspecifiedvalues
+        else:
+            return {}
+
+                
     # TODO gz - update
     def backwardcompatibility(self):
         hadtoaddusv = False
@@ -1209,10 +1240,13 @@ class MovementTreeModel(QStandardItemModel):
                 if (stored_dict[old_trill_path+delimiter+"Trilled"] == Qt.Checked):
                     stored_dict["Movement characteristics"+delimiter+"Repetition"] = Qt.Unchecked
                     stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Checked
+                    stored_dict.pop(old_trill_path + delimiter + "Trilled")
                 # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
                 else:
                     stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Unchecked
+                    stored_dict.pop(old_trill_path + delimiter + "Not trilled")
                 stored_dict.pop(old_trill_path)
+
 
         for stored_dict in dicts:
             pairstoadd = {}
@@ -1271,6 +1305,46 @@ class MovementTreeModel(QStandardItemModel):
 
         return userspecifiedvalues
 
+    def uncheck_paths(self, paths_to_uncheck):
+        for path in paths_to_uncheck:
+            try:
+                self.serializedmvmttree.checkstates[path] = Qt.Unchecked
+                self.serializedmvmttree.addedinfos[path] = Qt.Unchecked
+            except:
+                print("Could not uncheck old path.")
+
+    '''
+    Removes from paths_to_add once found
+    '''
+    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
+        if treenode is not None:
+            for r in range(treenode.rowCount()):
+                treechild = treenode.child(r, 0)
+
+                
+                if treechild is not None:
+                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    # try:
+                    #     print (pathtext)
+                    # except: continue
+
+                    if pathtext in paths_to_add:
+                        treechild.setCheckState(Qt.Checked)
+                        oldtext = paths_dict[pathtext]
+                        paths_to_add.remove(pathtext)
+
+                        if oldtext in self.serializedmvmttree.addedinfos:
+                            treechild.addedinfo = copy(self.serializedmvmttree.addedinfos[oldtext])
+                        
+                        if oldtext in self.get_usv():
+                            # this also updates the associated list item as well as its display
+                            treechild.setData(self.get_usv()[oldtext], Qt.UserRole + udr.userspecifiedvaluerole)
+                            treechild.editablepart().setText(self.get_usv()[oldtext])
+
+                    self.addcheckedvalues(treechild, paths_to_add, paths_dict)
+
+        
+    
     def setvaluesfromserializedtree(self, treenode, userspecifiedvalues):
         if treenode is not None:
             for r in range(treenode.rowCount()):
