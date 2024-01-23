@@ -225,7 +225,7 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     return validpathsoftreeitems[0]
 
 
-def findvaliditemspaths(pathitemslists):
+def findvaliditemspaths(pathitemslists): 
     validpaths = []
     if len(pathitemslists) > 1:  # the path is longer than 1 level
         for lastitem in pathitemslists[-1]:
@@ -275,8 +275,24 @@ class LocationOptionsSelectionPanel(QFrame):
         selection_layout = self.create_selection_layout()
         main_layout.addLayout(selection_layout)
 
+        if treemodeltoload is not None and isinstance(treemodeltoload, LocationTreeModel):
+            self.set_multiple_selection_from_content(self.treemodel.multiple_selection_allowed)
+
         self.setLayout(main_layout)
 
+    
+    def get_listed_paths(self):
+        proxyModel = self.listproxymodel
+        sourceModel = self.listmodel
+        
+        paths = [] 
+
+        for row in range(proxyModel.rowCount()):
+            sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
+            path = sourceModel.data(sourceIndex, Qt.DisplayRole)
+            paths.append(path)
+        return paths
+    
     def enableImageTabs(self, enable):
         if self.showimagetabs:
             self.imagetabwidget.setEnabled(enable)
@@ -410,6 +426,10 @@ class LocationOptionsSelectionPanel(QFrame):
         buttons_layout.addWidget(self.sortcombo)
         buttons_layout.addStretch()
 
+        self.multiple_selection_cb = QCheckBox("Allow multiple selection")
+        self.multiple_selection_cb.clicked.connect(self.handle_toggle_multiple_selection)
+        buttons_layout.addWidget(self.multiple_selection_cb)
+
         self.clearbutton = QPushButton("Clear")
         self.clearbutton.clicked.connect(self.clearlist)
         buttons_layout.addWidget(self.clearbutton)
@@ -421,6 +441,12 @@ class LocationOptionsSelectionPanel(QFrame):
         list_layout.addWidget(self.detailstableview)
 
         return list_layout
+    
+    def set_multiple_selection_from_content(self, multsel):
+        self.multiple_selection_cb.setChecked(multsel)
+    
+    def handle_toggle_multiple_selection(self):
+        self.treemodel.multiple_selection_allowed = self.multiple_selection_cb.isChecked()
 
     def clearlist(self, button):
         numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()
@@ -494,6 +520,31 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.setLayout(main_layout)
 
         self.enablelocationtools()
+
+    def multiple_selections_check(self):
+        paths = self.locationoptionsselectionpanel.get_listed_paths()
+        if len(paths) == 1:
+            return False
+        # if the multiple selections are parents of each other, doesn't count as multiple selections.
+        for i in range(len(paths)):
+            for j in range(i+1, len(paths)):
+                if (paths[i] not in paths[j] and paths[j] not in paths[i]):
+                    return True
+        return False
+
+    def validity_check(self):
+        selectionsvalid = True
+        warningmessage = "" 
+
+        self.locationoptionsselectionpanel.refresh_listproxies()
+        treemodel = self.getcurrenttreemodel()
+        
+        multiple_selections = self.multiple_selections_check()
+
+        if self.getcurrentlocationtype().usesbodylocations() and multiple_selections and not treemodel.multiple_selection_allowed:
+            selectionsvalid = False
+            warningmessage = warningmessage + "Multiple locations have been selected but 'Allow multiple selection' is not checked."
+        return selectionsvalid, warningmessage
 
     def getcurrentlocationtype(self):
         locationtype = LocationType(
@@ -662,12 +713,17 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
+            self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(btn != self.signingspacespatial_radio)
         self.enablelocationtools()  # TODO should this be inside the if?
 
     def handle_toggle_locationtype(self, btn):
         if btn is not None and btn.isChecked():
             for b in self.signingspace_subgroup.buttons():
                 b.setEnabled(btn == self.signingspace_radio)
+            self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(
+                self.signingspacespatial_radio.isChecked() == False 
+                or self.signingspacespatial_radio.isEnabled() == False)
+
         self.enablelocationtools()  # TODO should this be inside the if?
 
     def enablelocationtools(self):
@@ -750,6 +806,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.recreate_treeandlistmodels()
         
         # Reset selections
+        self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(False)
         self.locationoptionsselectionpanel.treemodel = self.getcurrenttreemodel()
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.clear_details()
@@ -802,7 +859,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
             btn.setChecked(False)
-
+            
+        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(not loctype.purelyspatial)
         if loctype.body:
             self.body_radio.setChecked(True)
         elif loctype.signingspace:
