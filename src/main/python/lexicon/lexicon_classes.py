@@ -413,7 +413,11 @@ class Sign:
             if current_module.directions != updated_module.directions:
                 current_module.directions = updated_module.directions
                 ischanged = True
-
+        elif moduletype == ModuleTypes.ORIENTATION:
+            if current_module.palm != updated_module.palm:
+                current_module.palm = updated_module.palm
+            if current_module.root != updated_module.root:
+                current_module.root = updated_module.root
         if ischanged:
             self.lastmodifiednow()
 
