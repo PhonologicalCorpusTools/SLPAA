@@ -120,7 +120,7 @@ class ModuleSelectorDialog(QDialog):
         self.handle_articulator_changed(articulators[0])
         self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
 
-        if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+        if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION]:
             self.associatedrelations_widget = AssociatedRelationsPanel(parent=self)
             if self.existingkey is not None:
                 self.associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
