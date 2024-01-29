@@ -1081,7 +1081,7 @@ class MovementListItem(QStandardItem):
 
             if self.treeitem.data(Qt.UserRole+udr.isuserspecifiablerole):
                 currentlistdisplay = self.data(Qt.DisplayRole)
-                newlistdisplay = re.sub(" \[.*\]$", "", currentlistdisplay)
+                newlistdisplay = re.sub(r" \[.*\]$", "", currentlistdisplay)
                 if value != "":
                     newlistdisplay += " [" + value + "]"
                 self.setData(newlistdisplay, Qt.DisplayRole)
