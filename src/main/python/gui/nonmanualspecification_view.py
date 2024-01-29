@@ -69,6 +69,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.widget_cb_neutral = QCheckBox("All sections are neutral")
         main_layout.addWidget(self.widget_cb_neutral)
 
+        # non manual specs
+        self.nonman_specifications = {}
+
+
         # different major non manual tabs
         self.tab_widget = QTabWidget()             # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)  # Create and add tabs to the tab widget
@@ -87,6 +91,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         Args:
             nonman_units: list of NonManualModel
         """
+
         for nonman_unit in nonman_units:
             major_tab = self.add_tab(nonman_unit)
             self.tab_widget.addTab(major_tab, nonman_unit.label)
@@ -162,6 +167,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             mvmt_type_box.setLayout(mvmt_type_box_layout)
 
             row.addWidget(mvmt_type_box)
+            self.nonman_specifications[nonman.label] =  nonman
             return row
 
         # subparts group
@@ -205,6 +211,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             visibility_box_layout.addWidget(nonman.widget_rb_visible_not)
             visibility_box.setLayout(visibility_box_layout)
             row.addWidget(visibility_box)
+        self.nonman_specifications[nonman.label] = nonman
         return row
 
     def build_row2(self, nonman):
@@ -403,18 +410,22 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         return groupboxes, groups
 
     def validity_check(self):
-        selectionsvalid = self.x_group.checkedButton() and self.y_group.checkedButton()
-        warningmessage = "" if selectionsvalid else "Requires both an X and a Y selection."
-        return selectionsvalid, warningmessage
+        # called when 'save' clicked. need to confirm
+        return True, ''
 
     def timinglinknotification(self, haspoint, hasinterval):
         self.islinkedtopoint = haspoint
         self.islinkedtointerval = hasinterval
         self.check_enable_allsubmenus()
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
 
-        nonman_mod = NonManualModule(nonman_specs=self.specifications,
+    def get_nonman_specs(self):
+        usr_input = self.nonman_specifications
+        print(usr_input)
+
+    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+        # package the user input and deliver
+        nonman_mod = NonManualModule(nonman_specs=self.get_nonman_specs(),
                                      articulators=articulators,
                                      timingintervals=timingintervals,
                                      addedinfo=addedinfo,)
@@ -424,76 +435,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.existingkey = nonman_mod.uniqueid
         return nonman_mod
 
-    # create side-by-side layout for specifying distance
-    def create_distance_box(self):
-        distance_box = QGroupBox("Distance between X and Y")
-        distance_layout = QHBoxLayout()
 
-        # create layout for horizontal distance options
-        self.dishor_box = QGroupBox()
-        self.dishor_label = QLabel("Horizontal")
-        self.dishorclose_rb = RelationRadioButton("Close")
-        self.dishormed_rb = RelationRadioButton("Med.")
-        self.dishorfar_rb = RelationRadioButton("Far")
-        self.dishor_group = RelationButtonGroup()
-        self.dishor_group.buttonToggled.connect(self.handle_distancebutton_toggled)
-        dis_hor_layout = self.create_axis_layout(self.dishorclose_rb,
-                                                 self.dishormed_rb,
-                                                 self.dishorfar_rb,
-                                                 self.dishor_group,
-                                                 axis_label=self.dishor_label)
-        self.dishor_box.setLayout(dis_hor_layout)
-        distance_layout.addWidget(self.dishor_box)
-
-        # create layout for vertical distance options
-        self.disver_box = QGroupBox()
-        self.disver_label = QLabel("Vertical")
-        self.disverclose_rb = RelationRadioButton("Close")
-        self.disvermed_rb = RelationRadioButton("Med.")
-        self.disverfar_rb = RelationRadioButton("Far")
-        self.disver_group = RelationButtonGroup()
-        self.disver_group.buttonToggled.connect(self.handle_distancebutton_toggled)
-        dis_ver_layout = self.create_axis_layout(self.disverclose_rb,
-                                                 self.disvermed_rb,
-                                                 self.disverfar_rb,
-                                                 self.disver_group,
-                                                 axis_label=self.disver_label)
-        self.disver_box.setLayout(dis_ver_layout)
-        distance_layout.addWidget(self.disver_box)
-
-        # create layout for sagittal direction options
-        self.dissag_box = QGroupBox()
-        self.dissag_label = QLabel("Sagittal")
-        self.dissagclose_rb = RelationRadioButton("Close")
-        self.dissagmed_rb = RelationRadioButton("Med.")
-        self.dissagfar_rb = RelationRadioButton("Far")
-        self.dissag_group = RelationButtonGroup()
-        self.dissag_group.buttonToggled.connect(self.handle_distancebutton_toggled)
-        dis_sag_layout = self.create_axis_layout(self.dissagclose_rb,
-                                                 self.dissagmed_rb,
-                                                 self.dissagfar_rb,
-                                                 self.dissag_group,
-                                                 axis_label=self.dissag_label)
-        self.dissag_box.setLayout(dis_sag_layout)
-        distance_layout.addWidget(self.dissag_box)
-
-        distance_box.setLayout(distance_layout)
-        return distance_box
-
-    # if 'movement' is selected for Y,
-    #  then Contact, Manner, Direction, and Distance menus are all inactive below
-    def check_enable_contact(self):
-        self.contact_box.setEnabled(not(self.y_existingmod_radio.isChecked() and
-                                    self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT))
-
-    # 1. Contact manner can only be coded if
-    #   (a) 'contact' is selected AND
-    #   (b) the module is linked to an interval
-    # 2. OR Can also be available if
-    #   (a) neither 'contact' nor 'no contact' is selected AND
-    #   (b) there are no selections in manner or distance
-    # 3. BUT if 'movement' is selected for Y,
-    #   then Contact, Manner, Direction, and Distance menus are all inactive below
     def check_enable_manner(self):
         meetscondition1 = self.contact_rb.isChecked() and self.islinkedtointerval
 
