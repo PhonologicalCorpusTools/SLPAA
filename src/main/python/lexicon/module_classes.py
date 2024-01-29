@@ -500,7 +500,6 @@ class LocationType:
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
-        self._defaultneutral = defaultneutral
 
     def __repr__(self):
         repr_str = "nil"
@@ -566,6 +565,7 @@ class LocationType:
 
             self._bodyanchored = False
             self._body = False
+
 
     def usesbodylocations(self):
         return self._body or self._bodyanchored
@@ -1283,7 +1283,6 @@ class RelationX:
     @othertext.setter
     def othertext(self, othertext):
         self._othertext = othertext
-
 
 class RelationY:
 
