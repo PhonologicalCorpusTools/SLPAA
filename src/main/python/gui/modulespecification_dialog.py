@@ -111,16 +111,12 @@ class ModuleSelectorDialog(QDialog):
             self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         elif self.moduletype == ModuleTypes.ORIENTATION:
             self.module_widget = OrientationSpecificationPanel(moduletoload=moduletoload, parent=self)
-            self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
-            self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
-            self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
-            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         main_layout.addWidget(self.module_widget)
 
         self.handle_articulator_changed(articulators[0])
         self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
 
-        if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION]:
+        if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
             self.associatedrelations_widget = AssociatedRelationsPanel(parent=self)
             if self.existingkey is not None:
                 self.associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
