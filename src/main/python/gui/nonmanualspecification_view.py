@@ -246,8 +246,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # in shallow module
             added_rb = SLPAARadioButton(options)
             parent.as_main_btn_group.addButton(added_rb)
-            options.widget_grouplayout_actionstate.addWidget(added_rb)
-            options.widget_grouplayout_actionstate.setAlignment(added_rb, Qt.AlignTop)
+            parent.widget_grouplayout_actionstate.addWidget(added_rb)
+            parent.widget_grouplayout_actionstate.setAlignment(added_rb, Qt.AlignTop)
             return
 
         elif options.label:
