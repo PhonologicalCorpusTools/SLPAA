@@ -905,8 +905,12 @@ class MainWindow(QMainWindow):
 
     def on_action_delete_sign(self, clicked):
         if self.current_sign:  # does the sign to delete exist?
-            response = QMessageBox.question(self, 'Delete the selected sign',
-                                            'Do you want to delete the selected sign?')
+            glosseslist = self.current_sign.signlevel_information.gloss
+            question1 = "Do you want to delete the selected sign, with gloss"
+            question2 = ("es" if len(glosseslist) > 1 else "") + " " + ", ".join(glosseslist) + "?"
+            moreinfo = "" if len(self.current_sign.signlevel_information.gloss) <= 1 else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
+            response = QMessageBox.question(self, "Delete the selected sign",
+                                            question1 + question2 + moreinfo)
             if response == QMessageBox.Yes:
                 self.corpus.remove_sign(self.current_sign)
                 self.corpus_display.updated_signs(self.corpus.signs)  # , current_index=-1)  # rownumtohighlight)
