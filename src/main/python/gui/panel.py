@@ -325,7 +325,7 @@ class SignSummaryPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText("/".join(self.sign.signlevel_information.gloss) + " - " + self.entryid_string())
+            signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss) + " - " + self.entryid_string())
         signleveltext.setPos(self.x_offset, self.current_y)
         self.current_y += 30
         self.scene.addItem(signleveltext)
@@ -899,21 +899,6 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
-
-    def handle_delete_signlevelinfo(self, previous_selection):
-        if self.sign:  # does the sign to delete exist?
-            self.mainwindow.corpus.remove_sign(self.sign)
-            
-            # Update corpus display with the previous selection highlighted
-            if previous_selection:
-                self.sign_updated.emit(previous_selection)
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
-                self.mainwindow.handle_sign_selected(previous_selection)
-            
-            else:
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
-                self.mainwindow.handle_sign_selected(previous_selection)
-
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)

@@ -20,36 +20,62 @@ lemmarole = 4
 
 class CorpusItem(QStandardItem):
 
-    def __init__(self, sign=None, gloss=None):
+    def __init__(self, sign=None, identifyingtext=None, isentryid=False, settings=None):
         super().__init__()
 
         self.sign = sign
-        self.glosstodisplay = gloss
+        self.texttodisplay = identifyingtext
+        self.isentryid = isentryid
+        self.settings = settings
         self.setEditable(False)
         self.setCheckable(False)
 
+    def entryid_string(self):
+        numdigits = int(self.settings['display']['entryid_digits']) if self.settings else 0
+        entryid_string = ""
+        if self.isentryid:
+            entryid_string = str(self.texttodisplay)
+            entryid_string = "0"*(numdigits - len(entryid_string)) + entryid_string
+        return entryid_string
+
     def data(self, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            if self.glosstodisplay is not None:
-                return self.glosstodisplay
+            if self.texttodisplay is not None:
+                if self.isentryid:
+                    if self.settings is not None:
+                        return self.entryid_string()
+                    else:
+                        return str(self.texttodisplay)
+                return self.texttodisplay
             else:
-                return self.sign.signlevel_information.gloss[0]
-        elif role == Qt.UserRole+lemmarole:
-            return self.sign.signlevel_information.lemma
+                return ""  # self.sign.signlevel_information.gloss[0]
+        # elif role == Qt.UserRole+lemmarole:
+        #     return self.sign.signlevel_information.lemma
         elif role == Qt.UserRole+datecreatedrole:
             return self.sign.signlevel_information.datecreated
         elif role == Qt.UserRole+datemodifiedrole:
             return self.sign.signlevel_information.datelastmodified
-        elif role == Qt.UserRole+entryidrole:
-            return self.sign.signlevel_information.entryid
+        # elif role == Qt.UserRole+entryidrole:
+        #     return self.sign.signlevel_information.entryid
 
 
 class CorpusModel(QStandardItemModel):
     modelupdated = pyqtSignal()
 
-    def __init__(self, signs=None, **kwargs):
+    def __init__(self, signs=None, settings=None, **kwargs):
+    # def __init__(self, corpus=None, settings=None, **kwargs):
         super().__init__(**kwargs)
+        self.signs = signs
         self.setsigns(signs)
+        self.settings = settings
+        self.col_labels = ["Entry ID", "Gloss", "Lemma", "ID-Gloss"]
+
+    def headerData(self, section, orientation, role=None):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            header = self.col_labels[section]
+            return header
+        else:
+            return super().headerData(section, orientation, role)
 
     def setsigns(self, signs):
         signs = signs or []
@@ -57,8 +83,11 @@ class CorpusModel(QStandardItemModel):
         for sign in signs:
             for gloss in sign.signlevel_information.gloss:
                 if len(gloss.strip()) > 0:
-                    signitem = CorpusItem(sign, gloss)
-                    self.appendRow(signitem)
+                    entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid), isentryid=True, settings=self.settings)
+                    glossitem = CorpusItem(sign, gloss)
+                    lemmaitem = CorpusItem(sign, sign.signlevel_information.lemma)
+                    idglossitem = CorpusItem(sign, sign.signlevel_information.idgloss)
+                    self.appendRow([entryiditem, glossitem, lemmaitem, idglossitem])
         self.modelupdated.emit()
 
 
@@ -70,6 +99,7 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortRole(Qt.DisplayRole)
         self.sortorder = Qt.AscendingOrder
+        self.sortcolumn = 1  # gloss
         self.sortnow()
 
     def updatesort(self, sortbytext=None, ascending=None):
@@ -77,16 +107,26 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
             self.sortorder = Qt.AscendingOrder if ascending else Qt.DescendingOrder
             # otherwise leave sortorder as is
         if sortbytext is not None:
-            if "alpha" in sortbytext:
-                if "gloss" in sortbytext:
-                    self.setSortRole(Qt.DisplayRole)
-                elif "lemma" in sortbytext:
-                    self.setSortRole(Qt.UserRole+lemmarole)
-            elif "created" in sortbytext:
+            if "entry ID" in sortbytext:
+                self.setSortRole(Qt.DisplayRole)
+                self.sortcolumn = 0  # entryID
+            elif "alpha by gloss" in sortbytext:
+                self.setSortRole(Qt.DisplayRole)
+                self.sortcolumn = 1
+            elif "alpha by lemma" in sortbytext:
+                self.setSortRole(Qt.DisplayRole)
+                self.sortcolumn = 2
+                # self.setSortRole(Qt.UserRole+lemmarole)
+            elif "alpha by ID-gloss" in sortbytext:
+                self.setSortRole(Qt.DisplayRole)
+                self.sortcolumn = 3
+            elif "date created" in sortbytext:
                 self.setSortRole(Qt.UserRole+datecreatedrole)
-            elif "modified" in sortbytext:
+                # column doesn't matter
+            elif "date last modified" in sortbytext:
                 self.setSortRole(Qt.UserRole+datemodifiedrole)
-            # otherwise leave sortRole as is
+                # column doesn't matter
+            # otherwise leave sortRole & sortcolumn as they are
         self.sortnow()
 
     def lessThan(self, leftindex, rightindex):
@@ -100,8 +140,8 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         else:
             return super().lessThan(leftindex, rightindex)
 
-    def sortnow(self, column=0, sortorder=None):
+    def sortnow(self, sortorder=None):
         if sortorder is None:
             sortorder = self.sortorder
-        self.sort(column, sortorder)
+        self.sort(self.sortcolumn, sortorder)
 

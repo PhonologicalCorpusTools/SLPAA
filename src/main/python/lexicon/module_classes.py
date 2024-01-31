@@ -179,13 +179,11 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
             self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
             self._handdominance = signlevel_info['handdominance']
-        else:
-            print("TODO KV no sign level info; what to do?")
 
     def __eq__(self, other):
         aresame = True
         if isinstance(other, SignLevelInformation):
-            if self._entryid != other.entryid or self.gloss != other.gloss or self._lemma != other.lemma:
+            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
                 aresame = False
             if self._idgloss != other.idgloss or self._source != other.source or self._signer != other.signer:
                 aresame = False
@@ -204,7 +202,7 @@ class SignLevelInformation:
     def serialize(self):
         return {
             'entryid': self._entryid,
-            'gloss': self.gloss,
+            'gloss': self._gloss,
             'lemma': self._lemma,
             'idgloss': self._idgloss,
             'source': self._source,

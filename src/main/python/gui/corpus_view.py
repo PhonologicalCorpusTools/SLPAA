@@ -1,14 +1,13 @@
 from PyQt5.QtCore import (
     Qt,
-    pyqtSignal,
-    QItemSelectionModel
+    pyqtSignal
 )
 
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
     QLineEdit,
-    QListView,
+    QTableView,
     QVBoxLayout,
     QHBoxLayout,
     QComboBox,
@@ -40,25 +39,26 @@ class CorpusDisplay(QWidget):
 
     def __init__(self, corpus_title="", **kwargs):
         super().__init__(**kwargs)
+        self.mainwindow = self.parent()
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        # self.corpus_title = QLineEdit(corpus_title, parent=self)
         self.corpus_title = CorpusTitleEdit(corpus_title, parent=self)
         self.corpus_title.focus_out.connect(lambda title: self.title_changed.emit(title))
         self.corpus_title.setPlaceholderText('Untitled')
         main_layout.addWidget(self.corpus_title)
 
-        self.corpus_model = CorpusModel(parent=self)
-        self.corpus_view = QListView(parent=self)
+        self.corpus_model = CorpusModel(settings=self.mainwindow.app_settings, parent=self)
+        self.corpus_view = QTableView(parent=self)
+        self.corpus_view.verticalHeader().hide()
         self.corpus_sortproxy = CorpusSortProxyModel(parent=self)
         self.corpus_sortproxy.setSourceModel(self.corpus_model)
         self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sortnow())
-        # self.corpus_view.setModel(self.corpus_model)
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.clicked.connect(self.handle_selection)
         self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
+        self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         # Corpus filter by gloss
         self.corpus_filter_input = QLineEdit()
@@ -72,7 +72,8 @@ class CorpusDisplay(QWidget):
         sort_layout.addWidget(sortlabel)
         self.sortcombo = QComboBox()
         self.sortcombo.addItems(
-            ["alpha by gloss (default)", "alpha by lemma", "date created", "date last modified"])
+            ["entry ID", "alpha by gloss (default)", "alpha by lemma", "alpha by ID-gloss", "date created", "date last modified"])
+        self.sortcombo.setCurrentIndex(1)
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
         self.sortcombo.currentTextChanged.connect(lambda txt: self.corpus_sortproxy.updatesort(sortbytext=txt))
         sort_layout.addWidget(self.sortcombo)
@@ -82,50 +83,31 @@ class CorpusDisplay(QWidget):
         self.ascdesc_grp.addButton(self.ascend_radio)
         self.ascdesc_grp.addButton(self.descend_radio)
         self.ascend_radio.setChecked(True)
-        self.ascdesc_grp.buttonToggled.connect(lambda: self.corpus_sortproxy.updatesort(ascending=self.ascend_radio.isChecked()))
+        self.ascdesc_grp.buttonToggled.connect(
+            lambda: self.corpus_sortproxy.updatesort(ascending=self.ascend_radio.isChecked()))
         sort_layout.addWidget(self.ascend_radio)
         sort_layout.addWidget(self.descend_radio)
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
     def handle_selection(self, index):
-        # gloss = self.corpus_model.glosses[index.row()]
-        # themodel = index.model()
-        # if hasattr(themodel, 'mapToSource'):
-        #     print("selected index is from a proxy model!")
-        #     underlyingindex = themodel.mapToSource(index)
-        #     underlyingsign = self.corpus_model.signs[underlyingindex.row()]
-        #     print("row: ", underlyingindex.row(), " / sign gloss: ", underlyingsign.signlevel_information.gloss)
-        # else:
-        #     print("selected index is no from from a uproxy model!")
-
         index = index.model().mapToSource(index)
-        sign = self.corpus_model.itemFromIndex(index).sign  #  signs[index.row()]  #.signlevel_information.gloss
-        # print("row: ", index.row(), " / sign gloss: ", sign.signlevel_information.gloss)
-        # self.selected_gloss.emit(gloss)
+        sign = self.corpus_model.itemFromIndex(index).sign
         self.selected_sign.emit(sign)
 
     def updated_signs(self, signs, current_sign=None):
         self.corpus_model.setsigns(signs)
         self.corpus_model.layoutChanged.emit()
-        
-        # Reset the selection mode
-        try:
-            index = 0 if current_sign is None else list(signs).index(current_sign)
-            # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
-            # # sourcemodelindex = self.corpus_view.model().index(index, 0)
-            # # proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
-            # # self.corpus_view.selectionModel().setCurrentIndex(proxymodelindex, QItemSelectionModel.SelectCurrent)
-            self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0), 
-                                                              QItemSelectionModel.SelectCurrent)
 
+        # Reset the selection
+        try:
+            # TODO KV assigning selection by current_sign needs to be redone for the multi-gloss version
+            index = 0  # if current_sign is None else list(signs).index(current_sign)
+            sourcemodelindex = self.corpus_view.model().sourceModel().index(index, 0)
+            proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
+            self.corpus_view.selectRow(proxymodelindex.row())
         except ValueError:
             self.clear()
-             
-    def remove_sign(self, sign):
-        self.corpus_model.signs.remove(sign)
-        self.corpus_model.layoutChanged.emit()
-        self.corpus_view.clearSelection()
 
     def clear(self):
         self.corpus_title.setText("")
@@ -136,4 +118,4 @@ class CorpusDisplay(QWidget):
 
     def filter_corpus_list(self):
         self.corpus_sortproxy.setFilterRegExp(self.sender().text())
-        self.corpus_view.clearSelection() # Deselects all signs in the corpus list 
+        self.corpus_view.clearSelection()  # Deselects all signs in the corpus list

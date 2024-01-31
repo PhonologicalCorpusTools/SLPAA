@@ -25,6 +25,7 @@ from PyQt5.QtCore import (
 
 from lexicon.lexicon_classes import SignLevelInformation
 from gui.decorator import check_empty_gloss
+from gui.modulespecification_widgets import TreeListView
 
 
 class SignLevelDateDisplay(QLabel):
@@ -85,6 +86,19 @@ class GlossesListModel(QStringListModel):
         self.setStringList(None)
 
 
+class GlossesListView(QListView):
+
+    def __init__(self):
+        super().__init__()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
+            indexesofselectedrows = self.selectionModel().selectedRows()
+            for itemindex in indexesofselectedrows:
+                self.model().removeRow(itemindex.row())
+
+
 class SignLevelInfoPanel(QFrame):
 
     def __init__(self, signlevelinfo, **kwargs):
@@ -108,7 +122,7 @@ class SignLevelInfoPanel(QFrame):
 
         gloss_label = QLabel('Gloss(es):')
         # as of 20231208, gloss is now a list rather than a string
-        self.glosses_view = QListView()
+        self.glosses_view = GlossesListView()
         self.glosses_view.setMaximumHeight(100)
         self.glosses_model = GlossesListModel()
         self.glosses_view.setModel(self.glosses_model)

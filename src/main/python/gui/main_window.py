@@ -1,5 +1,4 @@
 import os
-import sys
 import pickle
 import json
 import csv
@@ -41,7 +40,6 @@ from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
-from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
@@ -808,30 +806,6 @@ class MainWindow(QMainWindow):
 
     @check_unsaved_corpus
     def on_action_save(self, clicked):
-        # signlevel_info = self.signlevelinfo_scroll.get_value()
-        # location_transcription_info = self.parameter_scroll.location_layout.get_location_value()
-        # global_hand_info = self.transcription_scroll.global_info.get_value()
-        # configs = [self.transcription_scroll.config1.get_value(),
-        #            self.transcription_scroll.config2.get_value()]
-        #
-        # # if missing then some of them will be none
-        # if signlevel_info and location_transcription_info and global_hand_info and configs:
-        #     if self.current_sign:
-        #         response = QMessageBox.question(self, 'Overwrite the current sign',
-        #                                         'Do you want to overwrite the existing transcriptions?')
-        #         if response == QMessageBox.Yes:
-        #             self.corpus.remove_sign(self.current_sign)
-        #         else:
-        #             return
-        #
-        #     if not self.new_sign:
-        #         self.new_sign = Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
-        #     # new_sign = self.new_sign if self.new_sign else Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
-        #     self.corpus.add_sign(self.new_sign)
-        #     self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.new_sign.signlevel_information.gloss)
-        #     self.current_sign = self.new_sign
-        #     self.action_delete_sign.setEnabled(True)
-
         if self.corpus.path:
             self.corpus.name = self.corpus_display.corpus_title.text()
             self.save_corpus_binary()
@@ -864,7 +838,6 @@ class MainWindow(QMainWindow):
 
     def load_corpus_binary(self, path):
         with open(path, 'rb') as f:
-            # corpus = Corpus(serializedcorpus=pickle.load(f))
             corpus = Corpus(serializedcorpus=renamed_load(f))
             # in case we're loading a corpus that was originally created on a different machine / in a different folder
             corpus.path = path
@@ -909,7 +882,7 @@ class MainWindow(QMainWindow):
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
-        else: # if loading a blank corpus
+        else:  # if loading a blank corpus
             self.signsummary_panel.mainwindow.current_sign = None # refreshsign() checks for this
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
@@ -924,7 +897,6 @@ class MainWindow(QMainWindow):
 
     def on_action_new_sign(self, clicked):
         self.current_sign = None
-        # self.new_sign = None
         self.action_delete_sign.setEnabled(False)
 
         self.corpus_display.corpus_view.clearSelection()
@@ -932,32 +904,12 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.handle_signlevelbutton_click()
 
     def on_action_delete_sign(self, clicked):
-        response = QMessageBox.question(self, 'Delete the selected sign',
-                                        'Do you want to delete the selected sign?')
-        if response == QMessageBox.Yes:
-            previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
-            
-            # delete self.current_sign.
-            # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
-            self.signlevel_panel.handle_delete_signlevelinfo(previous)
-            # self.corpus.remove_sign(self.current_sign)
-            # self.corpus_display.updated_signs(self.corpus.signs, previous)
-
-            self.select_sign([previous])
-            self.handle_sign_selected(previous)
-            # TODO KV need to also have that sign selected in the corpus view,
-            #  as well as displaying its summary in the xslot view
-
-    # TODO KV finish implementing
-    def select_sign(self, signstoselect):
-        selectionmodel = self.corpus_display.corpus_view.selectionModel()
-        indices = []
-        for sign in signstoselect:
-            try:
-                indices.append(list(self.corpus.signs).index(sign))
-            except ValueError:
-                pass
-        # print(indices)
+        if self.current_sign:  # does the sign to delete exist?
+            response = QMessageBox.question(self, 'Delete the selected sign',
+                                            'Do you want to delete the selected sign?')
+            if response == QMessageBox.Yes:
+                self.corpus.remove_sign(self.current_sign)
+                self.corpus_display.updated_signs(self.corpus.signs)  # , current_index=-1)  # rownumtohighlight)
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes
