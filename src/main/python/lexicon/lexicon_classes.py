@@ -6,6 +6,7 @@ from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
+from gui import search
 from constant import HAND, ARM, LEG
 
 NULL = '\u2205'
@@ -747,3 +748,6 @@ class Corpus:
                 nodes[3].replace('Mastoid process', 'Behind ear')
                 paths_to_add.append(nodes)
         return paths_to_add
+    
+    def search(self, searchitem):
+        return

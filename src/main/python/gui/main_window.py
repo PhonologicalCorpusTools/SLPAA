@@ -39,6 +39,7 @@ from PyQt5.QtGui import (
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
+from gui.search import SearchDisplay
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
@@ -165,6 +166,11 @@ class MainWindow(QMainWindow):
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
+
+        # search
+        action_search = QAction("Search", parent=self)
+        action_search.triggered.connect(self.on_action_search)
+        action_search.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -303,6 +309,7 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
+        menu_analysis_beta.addAction(action_search)
 
         corpusname = ""
         if self.corpus and self.corpus.name:
@@ -731,6 +738,10 @@ class MainWindow(QMainWindow):
     def on_action_count_xslots(self):
         count_xslots_window = CountXslotsDialog(self.app_settings, self.app_ctx, parent=self)
         count_xslots_window.exec_()
+
+    def on_action_search(self):
+        search_display = SearchDisplay(parent=self, corpus=self.corpus)
+        search_display.show()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
