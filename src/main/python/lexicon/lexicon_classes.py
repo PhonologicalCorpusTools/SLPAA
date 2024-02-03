@@ -588,7 +588,7 @@ class Corpus:
                             if len(m.get_checked_from_serialized_tree()) == 0:
                                 empty_module_flag = True
                             self.add_missing_paths_helper(gloss, m, type, count, correctionsdict, verbose=False)
-                        if empty_module_flag:
+                        if empty_module_flag and module.contactrel.contact:
                             label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
                             mssg = ": Module has no bodypart selections. Is something missing?"
                             logging.warning(label + mssg)
