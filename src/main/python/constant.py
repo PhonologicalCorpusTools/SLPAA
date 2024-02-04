@@ -337,3 +337,7 @@ ARTICULATOR_ABBREVS = {
     ARM: "A",
     LEG: "L"
 }
+
+SIGNLEVELINFO_TARGET = "sign level info"
+XSLOT_TARGET = "xslot"
+SIGNTYPEINFO_TARGET = "sign type info"
