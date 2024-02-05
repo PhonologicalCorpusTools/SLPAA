@@ -1972,12 +1972,6 @@ class OrientationModule(ParameterModule):
 
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.
-class NonManualModule(ParameterModule):
-    def __init__(self, articulators, timingintervals=None, addedinfo=None):
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
-        pass
-
-
 class HandConfigurationHand:
     def __init__(self, fields):
         self.field2, self.field3, self.field4, self.field5, self.field6, self.field7 = [HandConfigurationField(field['field_number'], field['slots']) for field in fields]
@@ -2000,6 +1994,14 @@ class HandConfigurationHand:
             '', '3', '', '', '',
             '', '4', '', '', ''
         ]
+
+
+class NonManualModule(ParameterModule):
+    def __init__(self, nonman_specs, articulators, timingintervals=None, addedinfo=None):
+        self._nonmanual = nonman_specs
+
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        pass
 
 
 # This class consists of 34 slots; each instance of a HandConfigurationField corresponds to a certain subset
