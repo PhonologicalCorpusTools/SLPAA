@@ -1,15 +1,9 @@
-# Nonmanual module debugging. make sure to remove this when PR.
+# Nonmanual specification module debugging. make sure to remove this when PR.
 
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
 
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
-
-
-class NonManTest(NonManualSpecificationPanel):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
 
 class TestWindow(QMainWindow):
     def __init__(self):
@@ -19,7 +13,7 @@ class TestWindow(QMainWindow):
 
         self.mainwindow = self
         self.module_widget = QWidget()
-        self.module_widget = NonManTest(parent=self)
+        self.module_widget = NonManualSpecificationPanel(parent=self)
 
         self.setCentralWidget(self.module_widget)
 

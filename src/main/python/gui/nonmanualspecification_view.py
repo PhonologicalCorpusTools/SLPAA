@@ -38,7 +38,7 @@ from lexicon.module_classes import (
 from models.relation_models import ModuleLinkingListModel
 from models.location_models import BodypartTreeModel
 from models.nonmanual_models import NonManualModel, nonmanual_root
-from gui.relationspecification_view import RelationRadioButton as SLPAARadioButton
+from gui.relationspecification_view import RelationRadioButton
 from gui.relationspecification_view import RelationButtonGroup
 from gui.modulespecification_widgets import ModuleSpecificationPanel
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
@@ -53,6 +53,13 @@ class SLPAAButtonGroup(RelationButtonGroup):
         if buttonslist is not None:
             [self.addButton(button) for button in buttonslist]
 
+
+class SLPAARadioButton(RelationRadioButton):
+    def __init__(self, text, btn_text=None):
+        # btn_text: button text for easy reference
+        super().__init__(text)
+        if btn_text is not None:
+            self.setProperty('buttonText', btn_text)
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
@@ -144,8 +151,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         row = QHBoxLayout()
 
         # static / dynamic group
-        nonman.widget_rb_static = QRadioButton("Static")
-        nonman.widget_rb_dynamic = QRadioButton("Dynamic")
+        nonman.widget_rb_static = SLPAARadioButton("Static", 'static')
+        nonman.widget_rb_dynamic = SLPAARadioButton("Dynamic", 'dynamic')
         static_dynamic_list = [nonman.widget_rb_static, nonman.widget_rb_dynamic]
         nonman.static_dynamic_group = SLPAAButtonGroup(static_dynamic_list)
 
@@ -178,14 +185,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             onepart_spacedlayout = QHBoxLayout()
             onepart_layout = QHBoxLayout()
 
-            nonman.widget_rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
-            nonman.widget_rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
+            nonman.widget_rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s", 'both')
+            nonman.widget_rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}", 'one')
             subpart_list = [nonman.widget_rb_subpart_both, nonman.widget_rb_subpart_one]
 
             nonman.subpart_group = SLPAAButtonGroup(subpart_list)
 
-            nonman.widget_rb_onepart_one = SLPAARadioButton("H1")
-            nonman.widget_rb_onepart_two = SLPAARadioButton("H2")
+            nonman.widget_rb_onepart_one = SLPAARadioButton("H1", 'h1')
+            nonman.widget_rb_onepart_two = SLPAARadioButton("H2", 'h2')
             onepart_list = [nonman.widget_rb_onepart_one, nonman.widget_rb_onepart_two]
 
             nonman.onepart_group = SLPAAButtonGroup(onepart_list)
@@ -344,9 +351,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # Repetition group
         repetition_group = QGroupBox("Repetition")
         repetition_group_layout = QVBoxLayout()
-        nonman.widget_rb_rep_single = SLPAARadioButton("Single")
-        nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated")
-        nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled")
+        nonman.widget_rb_rep_single = SLPAARadioButton("Single", 'single')
+        nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated", 'repeated')
+        nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled", 'trilled')
         rep_list = [nonman.widget_rb_rep_single, nonman.widget_rb_rep_rep, nonman.widget_rb_rep_trill]
 
         nonman.rep_group = SLPAAButtonGroup(rep_list)
@@ -398,7 +405,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             levels.insert(1, 'Normal')
 
             for level in levels:
-                rb_to_add = SLPAARadioButton(level)
+                rb_to_add = SLPAARadioButton(level, level.lower())
                 buttongroup.addButton(rb_to_add)
                 groupbox_layout.addWidget(rb_to_add)
 
@@ -420,8 +427,38 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
 
     def get_nonman_specs(self):
+        res = {}
         usr_input = self.nonman_specifications
-        print(usr_input)
+        for module in usr_input.keys():
+            current_module = usr_input[module]
+            module_output = {}
+
+            # get what the user selected between static or dynamic
+            module_output['static_dynamic'] = what_selected(current_module.static_dynamic_group)
+
+            # special case: 'mouth' has 'type of mouth movement' (others have 'subparts')
+            if module == 'Mouth':
+                pass
+
+            # get choice between both, h1, h2
+            else:
+                onepart_selection = what_selected(current_module.onepart_group)
+                one_or_both = what_selected(current_module.subpart_group)
+                module_output['subpart'] = one_or_both if one_or_both == 'both' else onepart_selection
+
+            # this time, repetition and directionality
+            module_output['repetition'] = what_selected(current_module.rep_group)
+            module_output['directionality'] = what_selected(current_module.directionality_group)
+
+            # additional mvmt characteristics
+            addit_mvmt_chars = [what_selected(selection) for selection in current_module.additional_char_rb_group]
+
+            addit_keys = ['size', 'speed', 'force', 'tension']
+            for k, v in zip(addit_keys, addit_mvmt_chars):
+                module_output[k] = v
+
+            res['module'] = module_output
+
 
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         # package the user input and deliver
@@ -435,6 +472,15 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.existingkey = nonman_mod.uniqueid
         return nonman_mod
 
+    def save_static_dynamic(self, rb_group):
+        # rb_group: radio button group for either static or dynamic
+        usr_selection = rb_group.checkedID()
+        if usr_selection == -1:
+            return None
+        elif usr_selection == -2:
+            return 'static'
+        else:
+            return 'dynamic'
 
     def check_enable_manner(self):
         meetscondition1 = self.contact_rb.isChecked() and self.islinkedtointerval
@@ -1475,3 +1521,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def desiredheight(self):
         return 700
+
+
+def what_selected(btn_group):
+    # input: SLPAAButtonGroup.
+    # helper function to get what user input among btns in the group
+    if btn_group.checkedButton() is None:
+        return None
+    return btn_group.checkedButton().property('buttonText')
