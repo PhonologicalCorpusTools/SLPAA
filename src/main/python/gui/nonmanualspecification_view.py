@@ -168,13 +168,15 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.label == 'Mouth':
             mvmt_type_box = QGroupBox("Type of mouth movement")
             mvmt_type_box_layout = QVBoxLayout()
+            nonman.mvmt_type_group = SLPAAButtonGroup()
             for type in nonman.subparts:
-                rb_to_add = SLPAARadioButton(type)
+                rb_to_add = SLPAARadioButton(type, type.lower())
                 mvmt_type_box_layout.addWidget(rb_to_add)
+                nonman.mvmt_type_group.addButton(rb_to_add)
             mvmt_type_box.setLayout(mvmt_type_box_layout)
 
             row.addWidget(mvmt_type_box)
-            self.nonman_specifications[nonman.label] =  nonman
+            self.nonman_specifications[nonman.label] = nonman
             return row
 
         # subparts group
@@ -212,8 +214,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.visibility is not None:
             visibility_box = QGroupBox("Visibility")
             visibility_box_layout = QVBoxLayout()
-            nonman.widget_rb_visible = SLPAARadioButton("Visible")
-            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible")
+            nonman.widget_rb_visible = SLPAARadioButton("Visible", 'visible')
+            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible", 'not visible')
             visibility_box_layout.addWidget(nonman.widget_rb_visible)
             visibility_box_layout.addWidget(nonman.widget_rb_visible_not)
             visibility_box.setLayout(visibility_box_layout)
@@ -426,46 +428,62 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.check_enable_allsubmenus()
 
 
-    def get_nonman_specs(self):
+    def wrapper_get_nonman_specs(self):
         res = {}
         usr_input = self.nonman_specifications
-        for module in usr_input.keys():
+        major_modules = [module_title.label for module_title in nonmanual_root.children]
+        for module in major_modules:
             current_module = usr_input[module]
-            module_output = {}
+            res[module] = self.get_nonman_specs(current_module)
+        return res
 
-            # get what the user selected between static or dynamic
-            module_output['static_dynamic'] = what_selected(current_module.static_dynamic_group)
+    def get_nonman_specs(self, current_module, parent=None):
+        module_output = {'static_dynamic': what_selected(current_module.static_dynamic_group)}
 
-            # special case: 'mouth' has 'type of mouth movement' (others have 'subparts')
-            if module == 'Mouth':
-                pass
+        # special case: 'mouth' has 'type of mouth movement' (others have 'subparts')
+        if current_module.label == 'Mouth':
+            module_output['mvmt_type'] = what_selected(current_module.mvmt_type_group)
+            # 'mouth' will exceptionally have 'mvmt_type' key for 'type of mouth movement'
 
-            # get choice between both, h1, h2
-            else:
+        # get choice between both, h1, h2
+        else:
+            try:
                 onepart_selection = what_selected(current_module.onepart_group)
                 one_or_both = what_selected(current_module.subpart_group)
                 module_output['subpart'] = one_or_both if one_or_both == 'both' else onepart_selection
+            except AttributeError:  # when no subpart spec exists, such as 'body', 'head', etc.
+                pass
 
-            # this time, repetition and directionality
-            module_output['repetition'] = what_selected(current_module.rep_group)
-            module_output['directionality'] = what_selected(current_module.directionality_group)
+        module_output['children'] = None
 
-            # additional mvmt characteristics
-            addit_mvmt_chars = [what_selected(selection) for selection in current_module.additional_char_rb_group]
+        # case of embedded module like 'facial expression'
+        if current_module.children is not None:
+            module_output['children'] = {}
+            for child in current_module.children:
+                module_output['children'][child.label] = self.get_nonman_specs(child, parent=current_module)
+            return module_output
 
-            addit_keys = ['size', 'speed', 'force', 'tension']
-            for k, v in zip(addit_keys, addit_mvmt_chars):
-                module_output[k] = v
+        # this time, repetition and directionality
+        module_output['repetition'] = what_selected(current_module.rep_group)
+        module_output['directionality'] = what_selected(current_module.directionality_group)
 
-            # finally, action/state
-            #TODO
+        # additional mvmt characteristics
+        addit_mvmt_chars = [what_selected(selection) for selection in current_module.additional_char_rb_group]
 
-            res[module] = module_output
-        return res
+        addit_keys = ['size', 'speed', 'force', 'tension']
+        for k, v in zip(addit_keys, addit_mvmt_chars):
+            module_output[k] = v
+
+        # finally, action/state
+        #TODO
+
+        return module_output
+
+
 
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         # package the user input and deliver
-        nonman_mod = NonManualModule(nonman_specs=self.get_nonman_specs(),
+        nonman_mod = NonManualModule(nonman_specs=self.wrapper_get_nonman_specs(),
                                      articulators=articulators,
                                      timingintervals=timingintervals,
                                      addedinfo=addedinfo,)
