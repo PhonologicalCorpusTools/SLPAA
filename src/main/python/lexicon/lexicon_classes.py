@@ -347,80 +347,18 @@ class Sign:
     def xslotstructure(self, xslotstruct):
         self._xslotstructure = xslotstruct
 
-    def updatemodule_sharedattributes(self, current_mod, updated_mod):
-        ischanged = False
-        if current_mod.articulators != updated_mod.articulators:
-            current_mod.articulators = updated_mod.articulators
-            ischanged = True
-        if current_mod.timingintervals != updated_mod.timingintervals:
-            current_mod.timingintervals = updated_mod.timingintervals
-            ischanged = True
-        if current_mod.addedinfo != updated_mod.addedinfo:
-            current_mod.addedinfo = updated_mod.addedinfo
-            ischanged = True
-        return ischanged
-
     def updatemodule(self, existingkey, updated_module, moduletype):
         current_module = self.getmoduledict(moduletype)[existingkey]
         ischanged = False
 
-        if self.updatemodule_sharedattributes(current_module, updated_module):
-            ischanged = True
-        
-        if moduletype == ModuleTypes.MOVEMENT:
-            if current_module.movementtreemodel != updated_module.movementtreemodel:
-                current_module.movementtreemodel = updated_module.movementtreemodel
+        currentmod_attrs = current_module.__dict__
+        updatedmod_attrs = updated_module.__dict__
+        for attr in currentmod_attrs:
+            if currentmod_attrs[attr] != updatedmod_attrs[attr]:
+                # TODO KV note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
+                # therefore copies (even if identical) of these classes will not be assessed as equal
+                currentmod_attrs[attr] = updatedmod_attrs[attr]
                 ischanged = True
-            if current_module.inphase != updated_module.inphase:
-                current_module.inphase = updated_module.inphase
-                ischanged = True
-        elif moduletype == ModuleTypes.LOCATION:
-            if current_module.locationtreemodel != updated_module.locationtreemodel:
-                current_module.locationtreemodel = updated_module.locationtreemodel
-                ischanged = True
-            if current_module.inphase != updated_module.inphase:
-                current_module.inphase = updated_module.inphase
-                ischanged = True
-            if current_module.phonlocs != updated_module.phonlocs:
-                current_module.phonlocs = updated_module.phonlocs
-                ischanged = True
-        elif moduletype == ModuleTypes.HANDCONFIG:
-            if current_module.handconfiguration != updated_module.handconfiguration:
-                current_module.handconfiguration = updated_module.handconfiguration
-                ischanged = True
-            if current_module.overalloptions != updated_module.overalloptions:
-                current_module.overalloptions = updated_module.overalloptions
-                ischanged = True
-        elif moduletype == ModuleTypes.RELATION:
-            if current_module.relationx != updated_module.relationx:
-                current_module.relationx = updated_module.relationx
-                ischanged = True
-            if current_module.relationy != updated_module.relationy:
-                current_module.relationy = updated_module.relationy
-                ischanged = True
-            if current_module.bodyparts_dict != updated_module.bodyparts_dict:
-                current_module.bodyparts_dict = updated_module.bodyparts_dict
-                ischanged = True
-            if current_module.contactrel != updated_module.contactrel:
-                current_module.contactrel = updated_module.contactrel
-                ischanged = True
-            if current_module.xy_crossed != updated_module.xy_crossed:
-                current_module.xy_crossed = updated_module.xy_crossed
-                ischanged = True
-            if current_module.xy_linked != updated_module.xy_linked:
-                current_module.xy_linked = updated_module.xy_linked
-                ischanged = True
-            if current_module.directions != updated_module.directions:
-                current_module.directions = updated_module.directions
-                ischanged = True
-        elif moduletype == ModuleTypes.ORIENTATION:
-            if current_module.palm != updated_module.palm:
-                current_module.palm = updated_module.palm
-                ischanged = True
-            if current_module.root != updated_module.root:
-                current_module.root = updated_module.root
-                ischanged = True
-            
         if ischanged:
             self.lastmodifiednow()
 

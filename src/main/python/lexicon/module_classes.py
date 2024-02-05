@@ -455,6 +455,16 @@ class PhonLocations:
         self._minorphonloc = minorphonloc
         self._phoneticloc = phoneticloc
 
+    def __eq__(self, other):
+        if isinstance(other, PhonLocations):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @property
     def phonologicalloc(self):
         return self._phonologicalloc
@@ -779,6 +789,16 @@ class AddedInfo:
         self._incomplete_note = incomplete_note
         self._other_flag = other_flag
         self._other_note = other_note
+
+    def __eq__(self, other):
+        if isinstance(other, AddedInfo):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def iconic_flag(self):
@@ -1117,12 +1137,9 @@ class RelationX:
 
     def __eq__(self, other):
         if isinstance(other, RelationX):
-            if self._h1 == other.h1 and self._h2 == other.h2 and self._both == other.both \
-                    and self._connected == other.connected \
-                    and self._arm1 == other.arm1 and self._arm2 == other._arm2 \
-                    and self._leg1 == other.leg1 and self._leg2 == other.leg2 \
-                    and self._other == other.other and self._othertext == other.othertext:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -1299,12 +1316,9 @@ class RelationY:
 
     def __eq__(self, other):
         if isinstance(other, RelationY):
-            if self._h2 == other.h2 and self._arm2 == other.arm2 \
-                    and self._leg1 == other.leg1 and self._leg2 == other.leg2 \
-                    and self._existingmodule == other.existingmodule and \
-                    self._linkedmoduletype == other.linkedmoduletype and self._linkedmoduleids == other.linkedmoduleids \
-                    and self._other == other.other and self._othertext == other.othertext:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -1635,8 +1649,9 @@ class ContactRelation:
 
     def __eq__(self, other):
         if isinstance(other, ContactRelation):
-            if self._contact == other.contact and self._contacttype == other.contacttype and self._manner == other.manner and self._distances == other.distances:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -1700,8 +1715,9 @@ class ContactType:
 
     def __eq__(self, other):
         if isinstance(other, ContactType):
-            if self._light == other.light and self._firm == other.firm and self._other == other.other and self._othertext == other.othertext:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -2022,6 +2038,16 @@ class HandConfigurationHand:
     def __iter__(self):
         return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
 
+    def __eq__(self, other):
+        if isinstance(other, HandConfigurationHand):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def get_hand_transcription_list(self):
         return [slot.symbol for slot in self.__iter__()]
 
@@ -2047,6 +2073,16 @@ class HandConfigurationField:
         self._slots = slots
 
         self.set_slots()
+
+    def __eq__(self, other):
+        if isinstance(other, HandConfigurationField):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def field_number(self):
@@ -2092,6 +2128,16 @@ class HandConfigurationSlot:
         self._slot_number = slot_number
         self._symbol = symbol
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    def __eq__(self, other):
+        if isinstance(other, HandConfigurationSlot):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def addedinfo(self):
