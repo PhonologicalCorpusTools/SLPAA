@@ -1982,11 +1982,37 @@ class HandConfigurationModule(ParameterModule):
 
 # TODO comments
 class OrientationModule(ParameterModule):
-    def __init__(self):
-        # TODO implement
-        pass
+    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None, inphase=None):
+        self._palm = palmdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+        self._root = rootdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+        
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
 
-
+    @property
+    def palm(self):
+        return self._palm
+    
+    @palm.setter
+    def palm(self, palm):
+        self._palm = palm
+        
+    @property
+    def root(self):
+        return self._root
+    
+    @root.setter
+    def root(self, root):
+        self._root = root
+        
+        
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.
 class HandConfigurationHand:

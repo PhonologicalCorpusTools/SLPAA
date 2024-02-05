@@ -366,7 +366,7 @@ class Sign:
 
         if self.updatemodule_sharedattributes(current_module, updated_module):
             ischanged = True
-
+        
         if moduletype == ModuleTypes.MOVEMENT:
             if current_module.movementtreemodel != updated_module.movementtreemodel:
                 current_module.movementtreemodel = updated_module.movementtreemodel
@@ -413,7 +413,14 @@ class Sign:
             if current_module.directions != updated_module.directions:
                 current_module.directions = updated_module.directions
                 ischanged = True
-
+        elif moduletype == ModuleTypes.ORIENTATION:
+            if current_module.palm != updated_module.palm:
+                current_module.palm = updated_module.palm
+                ischanged = True
+            if current_module.root != updated_module.root:
+                current_module.root = updated_module.root
+                ischanged = True
+            
         if ischanged:
             self.lastmodifiednow()
 
