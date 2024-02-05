@@ -457,8 +457,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             for k, v in zip(addit_keys, addit_mvmt_chars):
                 module_output[k] = v
 
-            res['module'] = module_output
+            # finally, action/state
+            #TODO
 
+            res[module] = module_output
+        return res
 
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         # package the user input and deliver
