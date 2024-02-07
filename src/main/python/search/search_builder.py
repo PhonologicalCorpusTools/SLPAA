@@ -27,26 +27,29 @@ from PyQt5.QtWidgets import (
     QTableView,
     QHeaderView,
     QSizePolicy,
-    QMainWindow
+    QMainWindow,
+    QItemDelegate,
+    QStyledItemDelegate
 )
-from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET
+from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
+from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, HAND, ARM, LEG
 import copy 
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, pyqtSlot
 # from lexicon.lexicon_classes import Sign
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes
-from models.search_models import SearchModel, SearchTargetItem
+from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
-from gui.search_classes import Search_SignLevelInfoSelectorDialog
+from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog
 
 class SearchWindow(QMainWindow):
 
     def __init__(self, app_settings, corpus=None, **kwargs):
         super().__init__(**kwargs)
-
         self.searchmodel = SearchModel()
         self.corpus = corpus
         self.app_settings = app_settings
+        self.current_sign = SearchWindowSign()
 
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
@@ -83,6 +86,7 @@ class SearchWindow(QMainWindow):
             self.mdi_area.addSubWindow(w)    
 
         self.mdi_area.tileSubWindows()
+        self.showMaximized()
         # TODO Fix this
         # w = self.mdi_area.width()
         # h = self.mdi_area.height()
@@ -90,8 +94,6 @@ class SearchWindow(QMainWindow):
         # build_search_window.setGeometry(int(2*w/3), 0, int(1*w/3), int(1/2*h))
         # search_param_window.setGeometry(int(2*w/3), int(1/2*h), int(1*w/3), int(1/2*h))
         
-
-    
     def handle_search_clicked(self, type):
         
         mssg = ""
@@ -106,9 +108,11 @@ class SearchWindow(QMainWindow):
             self.searchmodel.searchtype = type
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
-            box = QMessageBox()
-            box.setText("a beautiful search will occur")
-            box.exec_()
+
+            QMessageBox.critical(self, "Search", "a beautiful search occured")
+            
+            # self.results_view = ResultsView(self.searchmodel, self.corpus)
+            # self.results_view.show()
 
     def handle_match_type_changed(self, type):
         self.search_params_view.match_type = type
@@ -135,9 +139,20 @@ class SearchTargetsView(QWidget):
     def set_table_ui(self):
         self.table_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.table_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.table_view.setStyleSheet("QTableView {alignment: AlignCenter;}")
+        # self.table_view.setStyleSheet("QTableView {alignment: AlignCenter;}")
         self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.table_view.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.table_view.setItemDelegateForColumn(2, ListDelegate()) # The "values" column contains lists
+
+class ListDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+    def displayText(self, value, locale):
+        if isinstance(value, list):
+            display_text = '; '.join(value) # TODO prefer multiline...
+            return display_text
+        return super().displayText(value, locale)
 
         
 class BuildSearchTargetView(SignLevelMenuPanel): 
@@ -169,11 +184,16 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         self.target_added.emit(target)
 
     def handle_signlevelbutton_click(self):
-        initialdialog = XSlotTypeDialog(parent=self)
-        initialdialog.continue_clicked.connect(lambda name, xslottype, num: self.show_next_dialog(SIGNLEVELINFO_TARGET, name, xslottype, num))
+        initialdialog = NameDialog(parent=self)
+        initialdialog.continue_clicked.connect(lambda name: self.show_next_dialog(SIGNLEVELINFO_TARGET, name))
         initialdialog.exec_()
 
-    def show_next_dialog(self, targettype, name, xslottype, num):
+    def handle_menumodulebtn_clicked(self, moduletype):
+        initialdialog = XSlotTypeDialog(parent=self)
+        initialdialog.continue_clicked.connect(lambda name, xslottype, xslotnum: self.show_next_dialog(moduletype, name, xslottype, xslotnum))
+        initialdialog.exec_()
+
+    def show_next_dialog(self, targettype, name, xslottype=None, num=None):
         target = SearchTargetItem()
         target.targettype = targettype
         target.name = name
@@ -184,6 +204,24 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(None, parent=self)
             signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo))
             signlevelinfo_selector.exec_()
+        
+        if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
+            includearticulators = [HAND, ARM, LEG] if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
+            else ([] if targettype == ModuleTypes.RELATION else [HAND])
+            includephase = 2 if targettype == ModuleTypes.MOVEMENT else (
+                1 if targettype == ModuleTypes.LOCATION else
+                0  # default
+            )
+            module_selector = Search_ModuleSelectorDialog(moduletype=targettype,
+                                                xslotstructure=None,
+                                                moduletoload=None,
+                                                includephase=includephase,
+                                                incl_articulators=includearticulators,
+                                                incl_articulator_subopts=includephase,
+                                                parent=self)
+            module_selector.module_saved.connect(lambda moduletosave, savedtype: self.handle_save_module(moduletosave, moduletype=savedtype))
+            module_selector.exec_()
+
 
     def handle_save_signlevelinfo(self, target, signlevel_info):
         target.dict["entryid"] = signlevel_info.entryid
@@ -206,6 +244,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
 
 class NameWidget(QWidget):
+    on_name_entered = pyqtSignal()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = None
@@ -221,8 +260,39 @@ class NameWidget(QWidget):
 
     def on_name_edited(self):
         self.name = self.text_entry.text()
+        self.on_name_entered.emit()
 
-class XSlotTypeDialog(QDialog): # also includes the name widget
+
+class NameDialog(QDialog):
+    continue_clicked = pyqtSignal(str)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.name_widget = NameWidget(parent=self)
+        self.name_widget.on_name_entered.connect(self.toggle_continue_selectable)
+        layout = QVBoxLayout()
+        layout.addWidget(self.name_widget)
+        self.buttonbox = InitialButtonBox(parent=self)
+        self.buttonbox.continue_clicked.connect(self.on_continue_clicked)
+        self.buttonbox.restore_defaults_clicked.connect(self.on_restore_defaults_clicked)
+        layout.addWidget(self.buttonbox)
+
+        self.setLayout(layout)
+    
+    def toggle_continue_selectable(self):
+        self.buttonbox.save_button.setEnabled(self.name_widget.name != "")
+
+
+    def on_continue_clicked(self):
+        self.continue_clicked.emit(self.name_widget.name)
+        self.accept()
+    
+    def on_restore_defaults_clicked(self):
+        self.name_widget.text_entry.setText("")
+        self.buttonbox.save_button.setEnabled(False)
+
+class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
     continue_clicked = pyqtSignal(str, str, str)
 
     def __init__(self, **kwargs):
@@ -231,6 +301,7 @@ class XSlotTypeDialog(QDialog): # also includes the name widget
         self.name_widget = NameWidget(parent=self)
         layout = QVBoxLayout()
         layout.addWidget(self.name_widget)
+        self.name_widget.on_name_entered.connect(self.toggle_continue_selectable)
 
         self.xslot_type = None
 
@@ -260,23 +331,26 @@ class XSlotTypeDialog(QDialog): # also includes the name widget
         layout.addLayout(concrete_xslots_layout)
 
         self.buttonbox = InitialButtonBox(parent=self)
-        for b in self.buttonbox.buttons():
-            b.setEnabled(False)
+        self.buttonbox.save_button.setEnabled(False)
         self.buttonbox.continue_clicked.connect(self.on_continue_clicked)
         self.buttonbox.restore_defaults_clicked.connect(self.on_restore_defaults_clicked)
         layout.addWidget(self.buttonbox)
 
-        
         self.setLayout(layout)
     
-    def on_xslots_num_edited(self, num):
+    def toggle_continue_selectable(self):
+        self.buttonbox.save_button.setEnabled(self.name_widget.name != ""  
+            and (self.concrete_xslots_num.text() != "" and self.concrete_xslots_rb.isChecked()
+            or (self.xslot_type_button_group.checkedButton() and not self.concrete_xslots_rb.isChecked())))
+        
+    def on_xslots_num_edited(self):
         self.concrete_xslots_rb.setChecked(True)
+        self.toggle_continue_selectable()
 
     def on_xslot_type_clicked(self, btn):
-        self.xslot_type = btn
-        for b in self.buttonbox.buttons():
-            b.setEnabled(True)    
+        self.xslot_type = btn   
         self.concrete_xslots_num.setEnabled(btn == self.concrete_xslots_rb)
+        self.toggle_continue_selectable()
 
     def on_continue_clicked(self):
         txt = ""
@@ -316,6 +390,7 @@ class XSlotTargetDialog(QDialog):
         layout = QVBoxLayout()
         self.name_widget = NameWidget(parent=self)
         layout.addWidget(self.name_widget)
+        self.name_widget.on_name_entered.connect(self.toggle_continue_selectable)
 
         self.min_xslots_cb = QCheckBox('Minimum number of x_slots:')
         self.max_xslots_cb = QCheckBox('Maximum number of x_slots:') 
@@ -346,25 +421,30 @@ class XSlotTargetDialog(QDialog):
 
         self.setLayout(layout)
     
-    # todo combine into one function?
+    def toggle_continue_selectable(self):
+        self.buttonbox.save_button.setEnabled(self.name_widget.name != "" and 
+                                              (self.max_num.text() != "" or self.min_num.text() != ""))
+    
+    # TODO combine into one function?
     def on_xslottarget_max_edited(self):
         num = self.max_num.text()
         self.max_xslots_cb.setEnabled(num != "")
         self.max_xslots_cb.setChecked(num != "")
+        self.toggle_continue_selectable()
 
     def on_xslottarget_min_edited(self):
         num = self.min_num.text()
         self.min_xslots_cb.setEnabled(num != "")
         self.min_xslots_cb.setChecked(num != "")
+        self.toggle_continue_selectable()
 
     def on_save_clicked(self):
-        max = self.max_num.text()
-        min = self.min_num.text()
+        max = self.max_num.text() if self.max_xslots_cb.isChecked() else ""
+        min = self.min_num.text() if self.min_xslots_cb.isChecked() else ""
         txt = ""
         
-        # TODO update so that save disabled if nothing specified
         if (max == "" and min == ""):
-            txt = "Specify at least one of [max, min]."
+            txt = "Please select at least one of [max, min]."
         elif not ((max.isdigit() or max == "") and (min.isdigit() or min == "")):
             txt = "\nMax and min specifications must be positive integers."
         elif (max != "" and min != "" and int(max) < int(min)):
@@ -377,6 +457,7 @@ class XSlotTargetDialog(QDialog):
             self.accept()
 
     def on_restore_defaults_clicked(self):
+        self.buttonbox.save_button.setEnabled(False)
         for b in [self.min_xslots_cb, self.max_xslots_cb]:
             b.setChecked(False)
             b.setEnabled(False)
@@ -496,18 +577,20 @@ class SaveTargetButtonBox(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        save_button = QPushButton('Save', self)
-        cancel_button = QPushButton('Cancel', self)
-        restore_defaults_button = QPushButton('Restore defaults', self)
+        self.save_button = QPushButton('Save', self)
+        self.cancel_button = QPushButton('Cancel', self)
+        self.restore_defaults_button = QPushButton('Restore defaults', self)
+
+        self.save_button.setEnabled(False)
 
         layout = QHBoxLayout(self)
-        layout.addWidget(save_button)
-        layout.addWidget(cancel_button)
-        layout.addWidget(restore_defaults_button)
+        layout.addWidget(self.save_button)
+        layout.addWidget(self.cancel_button)
+        layout.addWidget(self.restore_defaults_button)
 
-        save_button.clicked.connect(self.on_save_clicked)
-        cancel_button.clicked.connect(self.on_cancel_clicked)
-        restore_defaults_button.clicked.connect(self.on_restore_defaults_clicked)
+        self.save_button.clicked.connect(self.on_save_clicked)
+        self.cancel_button.clicked.connect(self.on_cancel_clicked)
+        self.restore_defaults_button.clicked.connect(self.on_restore_defaults_clicked)
 
 
     def on_save_clicked(self):
@@ -530,6 +613,8 @@ class InitialButtonBox(QWidget):
         self.save_button = QPushButton('Continue', self)
         self.cancel_button = QPushButton('Cancel', self)
         self.restore_defaults_button = QPushButton('Restore defaults', self)
+        
+        self.save_button.setEnabled(False) 
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.save_button)
@@ -552,10 +637,21 @@ class InitialButtonBox(QWidget):
     def on_restore_defaults_clicked(self):
         self.restore_defaults_clicked.emit()
 
+class SearchWindowSign: # equivalent of sign for when xslotstructure etc need to be specified due to subclassing
+    def __init__(self):
+        self.xslotstructure = XslotStructure()
 
-def search(corpus, searchmodel):
-    # for sign in corpus.signs:
-    #     for 
+class ResultsView(QWidget):
+    def __init__(self, searchmodel, corpus, **kwargs):
+        super().__init__(**kwargs)
 
-    return searchmodel
-    
+        self.setWindowTitle("Search Results")
+        
+        self.model = ResultsModel(searchmodel, corpus)
+
+        self.table_view = QTableView(parent=self)
+        self.table_view.setModel(self.model)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.table_view)
+        self.setLayout(layout)

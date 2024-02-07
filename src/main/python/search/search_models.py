@@ -4,13 +4,31 @@ import io
 import copy 
 from PyQt5.Qt import (
     QStandardItem,
-    QStandardItemModel,
-    
+    QStandardItemModel, 
+    QMessageBox
 )
-from PyQt5.QtCore import QModelIndex
+from PyQt5.QtWidgets import QStyledItemDelegate, QMessageBox
+
+from PyQt5.QtCore import QModelIndex, Qt
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes
 from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET
+
+
+class TargetHeaders:
+    NAME = 0
+    TYPE = 1
+    VALUE = 2
+    INCLUDE = 3
+    NEGATIVE = 4
+    XSLOTS = 5
+
+class ResultHeaders:
+    NAME = 0
+    TYPE = 1
+    VALUE = 2
+    NEGATIVE = 3
+    XSLOTS = 4
 
 
 class SearchModel(QStandardItemModel):
@@ -19,9 +37,10 @@ class SearchModel(QStandardItemModel):
         self._matchtype = None # exact / minimal
         self._matchdegree = None # any / all
         self._searchtype = None # new / add
-        self._targets = targets
+        self._targets = targets # TODO necessary? for loading targets eventually?
 
-        self.headers = ["Type", "Value","Include?", "Negative?",  "X-slots", "Name"]
+        self.headers = ["Name", "Type", "Value", "Include?", "Negative?",  "X-slots"]
+        
 
         self.setHorizontalHeaderLabels(self.headers)
 
@@ -32,40 +51,48 @@ class SearchModel(QStandardItemModel):
     # TODO maybe change to be more tree like (hierarchy by type)
     def add_target(self, t):
         self.targets.append(t)
+
+        type = QStandardItem(t.targettype)
+        include_cb = QStandardItem()
+        include_cb.setCheckable(True)
+        negative_cb = QStandardItem()
+        negative_cb.setCheckable(True)
+        name = QStandardItem(t.name)
+
+        if t.xslottype is not None: # TODO specify exactly which target types should have an xslottype or not
+            if t.xslottype == "concrete":
+                xslotval = t.xslotnum
+                xslottype = QStandardItem(xslotval + " x-slots")
+            else:
+                xslottype = QStandardItem(t.xslottype)
+        else:
+            xslottype = QStandardItem()
+        
+        val = []
         for k,v in t.dict.items(): # two-valued targets
             if v not in [None, ""]:
-                type = QStandardItem(t.targettype)
-                
-                val = QStandardItem(str(k)+"="+str(v))
-                xslottype = QStandardItem(t.xslottype)
-                if xslottype is not None: # TODO
-                    xslotval = xslottype
-                    if xslottype == "concrete":
-                        xslotval = t.xslotnum
-                include_cb = QStandardItem()
-                include_cb.setCheckable(True)
-                negative_cb = QStandardItem()
-                negative_cb.setCheckable(True)
-                name = QStandardItem(t.name)
-                self.appendRow([type, val, include_cb, negative_cb, xslottype, name])
+                val.append(str(k)+"="+str(v))
+        value = QStandardItem()
+        value.setData(val, Qt.DisplayRole)
+     
+        self.appendRow([name, type, value, include_cb, negative_cb, xslottype])
 
         # # TODO insert in a better place depending on the type
         # finalrow = self.rowCount() 
         # finalcol = len(self.headers) - 1
         # self.rowsInserted.emit(QModelIndex(), self.index(finalrow, 0), self.index(finalrow, finalcol))
 
-
-
-
-        
-
-                
-
-
     def __repr__(self):
         repr = "searchmodel:\n " + str(self.matchtype) + " match; " +  "match " + str(self.matchdegree) + "\n" + str(self.searchtype) + " search"
         return repr
 
+
+    def is_negative(self, row):
+        return (self.itemFromIndex(self.index(row, TargetHeaders.NEGATIVE)).checkState() == Qt.Checked)
+
+    def is_included(self, row):
+        return (self.itemFromIndex(self.index(row, TargetHeaders.INCLUDE)).checkState() == Qt.Checked)
+    
     @property
     def targets(self):
         return self._targets
@@ -103,7 +130,7 @@ class SearchTargetItem(QStandardItem):
         self._targettype = None
         self._xslottype = None 
         self._xslotnum = None # only set if xslottype is concrete
-        self.dict = dict() # for binary targets (eg xslot_min=3). update for unary targets (eg list of location nodes)
+        self.dict = dict() # TODO for binary targets (eg xslot_min=3). update for unary targets (eg list of location nodes)
 
 
     def __repr__(self):
@@ -145,3 +172,31 @@ class SearchTargetItem(QStandardItem):
     @xslotnum.setter
     def xslotnum(self, value):
         self._xslotnum = value
+
+class ResultsModel(QStandardItemModel):
+    def __init__(self, searchmodel, corpus, **kwargs):
+        super().__init__(**kwargs)
+
+
+        # self.headers = ["Name", "Type", "Value", "Negative?",  "X-slots"]
+        # self.setHorizontalHeaderLabels(self.headers)
+
+        # try:
+        #     index = searchmodel.index(0, 0)
+        #     print(searchmodel.data(index))
+        # except:
+        #     print("couldt")
+        # self.searchmodel = searchmodel
+        # print(self.searchmodel)
+        # index = self.searchmodel.index(0, 0)
+        # name_txt = self.searchmodel.data(index)
+        # for row in range(self.searchmodel.rowCount()):
+        #      print(row)
+            # if self.searchmodel.is_included(row):
+
+                # print(name_txt)
+                # name_txt = self.searchmodel.data(self.searchmodel.index(row, TargetHeaders.NAME))
+
+                # self.setItem(row, ResultHeaders.NAME, QStandardItem(name_txt))
+                # self.setItem(row, ResultHeaders.NEGATIVE, self.searchmodel.itemFromIndex(self.index(row, TargetHeaders.NEGATIVE)).clone())
+                # self.setItem(row, ResultHeaders.XSLOTS, self.searchmodel.itemFromIndex(self.index(row, TargetHeaders.XSLOTS)).clone())

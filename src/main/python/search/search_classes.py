@@ -5,7 +5,7 @@ from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, Sig
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
-from gui.xslotspecification_view import XslotSelectorDialog
+from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
 from lexicon.lexicon_classes import Sign, SignLevelInformation
 from gui.modulespecification_dialog import ModuleSelectorDialog
@@ -26,6 +26,12 @@ from PyQt5.QtWidgets import (
     QLabel,
     QWidget
 )
+
+from gui.movementspecification_view import MovementSpecificationPanel
+from gui.locationspecification_view import LocationSpecificationPanel
+from gui.handconfigspecification_view import HandConfigSpecificationPanel
+from gui.relationspecification_view import RelationSpecificationPanel
+from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
 class Search_SignLevelInfoSelectorDialog(QDialog):
     saved_signlevelinfo = pyqtSignal(SignLevelInformation)
@@ -106,9 +112,9 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         self.modified_display = QLineEdit()
         self.note_edit = QPlainTextEdit()
 
-        self.fingerspelled_grp = QButtonGroup()
-        self.fingerspelled_T_rb = CustomRadioButton("True")
-        self.fingerspelled_F_rb = CustomRadioButton("False")
+        self.fingerspelled_grp = CustomRBGrp()
+        self.fingerspelled_T_rb = QRadioButton("True")
+        self.fingerspelled_F_rb = QRadioButton("False")
         self.fingerspelled_grp.addButton(self.fingerspelled_T_rb)
         self.fingerspelled_grp.addButton(self.fingerspelled_F_rb)
         fingerspelled_label = QLabel('Fingerspelled:')
@@ -117,9 +123,9 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         self.fingerspelled_layout.addWidget(self.fingerspelled_F_rb)
         self.fingerspelled_layout.addStretch()
 
-        self.compoundsign_grp = QButtonGroup()
-        self.compoundsign_T_rb = CustomRadioButton("True")
-        self.compoundsign_F_rb = CustomRadioButton("False")
+        self.compoundsign_grp = CustomRBGrp()
+        self.compoundsign_T_rb = QRadioButton("True")
+        self.compoundsign_F_rb = QRadioButton("False")
         self.compoundsign_grp.addButton(self.compoundsign_T_rb)
         self.compoundsign_grp.addButton(self.compoundsign_F_rb)
         compoundsign_label = QLabel('Compound sign:')
@@ -128,12 +134,13 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         self.compoundsign_layout.addWidget(self.compoundsign_F_rb)
         self.compoundsign_layout.addStretch()
 
-        handdominance_label = QLabel("Hand dominance:")
-        self.handdominance_buttongroup = QButtonGroup()  # parent=self)
-        self.handdominance_l_radio = CustomRadioButton("Left")
-        self.handdominance_r_radio = CustomRadioButton("Right")
+        
+        self.handdominance_buttongroup = CustomRBGrp()  # parent=self)
+        self.handdominance_l_radio = QRadioButton("Left")
+        self.handdominance_r_radio = QRadioButton("Right")
         self.handdominance_buttongroup.addButton(self.handdominance_l_radio)
         self.handdominance_buttongroup.addButton(self.handdominance_r_radio)
+        handdominance_label = QLabel("Hand dominance:")
         self.handdominance_layout = QHBoxLayout()
         self.handdominance_layout.addWidget(self.handdominance_l_radio)
         self.handdominance_layout.addWidget(self.handdominance_r_radio)
@@ -220,18 +227,31 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
             for b in grp:
                 b.setChecked(False)
 
+class Search_ModuleSelectorDialog(ModuleSelectorDialog):
+    def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=..., incl_articulator_subopts=0, **kwargs):
+        super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, includephase, incl_articulators, incl_articulator_subopts, **kwargs)
 
-class CustomRadioButton(QRadioButton): # Allows unchecking
-    def __init__(self, text, parent=None):
-        super().__init__(text, parent)
-        self.toggled.connect(self.on_toggled)
+    def assign_module_widget(self, moduletype, moduletoload):
+        if moduletype == ModuleTypes.MOVEMENT:
+            self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif moduletype == ModuleTypes.LOCATION:
+            self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif self.moduletype == ModuleTypes.RELATION:
+            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
+            self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
+            self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
+            self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
+            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
 
-    def on_toggled(self, checked):
-        if checked:
-            # Allow toggling to checked state
-            self.setChecked(True)
-        else:
-            # Allow toggling to unchecked state
-            self.setChecked(False)
-
+class CustomRBGrp(QButtonGroup):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setExclusive(False)
+        self.buttonClicked.connect(self.uncheck_buttons)
+    
+    def uncheck_buttons(self, button):
+        for b in self.buttons():
+            b.setChecked(b==button)
 

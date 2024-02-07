@@ -98,18 +98,7 @@ class ModuleSelectorDialog(QDialog):
             main_layout.addWidget(self.xslot_widget)
 
         self.module_widget = QWidget()
-        if moduletype == ModuleTypes.MOVEMENT:
-            self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif moduletype == ModuleTypes.LOCATION:
-            self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif moduletype == ModuleTypes.HANDCONFIG:
-            self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif self.moduletype == ModuleTypes.RELATION:
-            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
-            self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
-            self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
-            self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
-            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+        self.assign_module_widget(moduletype, moduletoload)
         main_layout.addWidget(self.module_widget)
 
         self.handle_articulator_changed(articulators[0])
@@ -175,6 +164,20 @@ class ModuleSelectorDialog(QDialog):
         self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
         self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
 
+    def assign_module_widget(self, moduletype, moduletoload):
+        if moduletype == ModuleTypes.MOVEMENT:
+            self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif moduletype == ModuleTypes.LOCATION:
+            self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif self.moduletype == ModuleTypes.RELATION:
+            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
+            self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
+            self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
+            self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
+            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+    
     def handle_modulesaved(self, relationtosave, moduletype):
         self.module_saved.emit(relationtosave, moduletype)
         self.style_seeassociatedrelations()
