@@ -895,7 +895,6 @@ class SignLevelMenuPanel(QScrollArea):
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(self.sign)
-            self.mainwindow.handle_sign_selected(self.sign)
 
         self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)

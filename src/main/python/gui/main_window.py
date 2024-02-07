@@ -306,6 +306,7 @@ class MainWindow(QMainWindow):
             corpusname = self.corpus.name
         self.corpus_display = CorpusDisplay(corpusname, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
+        self.corpus_display.selection_cleared.connect(self.handle_sign_selected)
         self.corpus_display.title_changed.connect(self.setCorpusName)
 
         self.corpus_scroll = QScrollArea(parent=self)
@@ -567,13 +568,11 @@ class MainWindow(QMainWindow):
             # or self.on_action_close() fails to close the program
             self.closeEvent(None)
 
-    def handle_sign_selected(self, sign):
-        selected_sign = sign
-
+    def handle_sign_selected(self, selected_sign=None):
         self.current_sign = selected_sign
-        self.action_delete_sign.setEnabled(True)
+        self.action_delete_sign.setEnabled(selected_sign is not None)
         self.signlevel_panel.sign = selected_sign
-        self.signlevel_panel.enable_module_buttons(True)
+        self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
 
     def handle_app_settings(self):
@@ -913,7 +912,8 @@ class MainWindow(QMainWindow):
                                             question1 + question2 + moreinfo)
             if response == QMessageBox.Yes:
                 self.corpus.remove_sign(self.current_sign)
-                self.corpus_display.updated_signs(self.corpus.signs)  # , current_index=-1)  # rownumtohighlight)
+                self.corpus_display.updated_signs(self.corpus.signs)
+                self.action_delete_sign.setEnabled(False)
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes

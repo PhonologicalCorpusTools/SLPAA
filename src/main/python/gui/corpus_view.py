@@ -35,6 +35,7 @@ class CorpusTitleEdit(QLineEdit):
 
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
+    selection_cleared = pyqtSignal()
     title_changed = pyqtSignal(str)
 
     def __init__(self, corpus_title="", **kwargs):
@@ -90,22 +91,37 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
-    def handle_selection(self, index):
-        index = index.model().mapToSource(index)
-        sign = self.corpus_model.itemFromIndex(index).sign
-        self.selected_sign.emit(sign)
+    def handle_selection(self, index=None):
+        if index is not None:
+            index = index.model().mapToSource(index)
+            sign = self.corpus_model.itemFromIndex(index).sign
+            self.selected_sign.emit(sign)
+        else:
+            self.selection_cleared.emit()
 
     def updated_signs(self, signs, current_sign=None):
         self.corpus_model.setsigns(signs)
         self.corpus_model.layoutChanged.emit()
 
-        # Reset the selection
+        # (re)set the selection
         try:
-            # TODO KV assigning selection by current_sign needs to be redone for the multi-gloss version
-            index = 0  # if current_sign is None else list(signs).index(current_sign)
-            sourcemodelindex = self.corpus_view.model().sourceModel().index(index, 0)
-            proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
-            self.corpus_view.selectRow(proxymodelindex.row())
+            rowtoselect = -1
+            selected_proxyindex = None
+            if current_sign is not None:
+                # this whole chunk is meant to identify the row of the proxy model that should be selected
+                # (ie, the one containing the indicated sign)
+                # there must be a less convoluted way to do this, but I'm not sure what it might be...?
+                proxymodelrow = 0
+                while rowtoselect == -1 and proxymodelrow in range(self.corpus_view.model().rowCount()):
+                    selected_proxyindex = self.corpus_view.model().index(proxymodelrow, 0)
+                    sourcemodelindex = self.corpus_view.model().mapToSource(selected_proxyindex)
+                    corpusitem = self.corpus_view.model().sourceModel().itemFromIndex(sourcemodelindex)
+                    sign = corpusitem.sign
+                    if sign == current_sign:
+                        rowtoselect = proxymodelrow
+                    proxymodelrow += 1
+            self.corpus_view.selectRow(rowtoselect)  # row -1 (ie, no selection) if current_sign is None
+            self.handle_selection(selected_proxyindex)
         except ValueError:
             self.clear()
 
