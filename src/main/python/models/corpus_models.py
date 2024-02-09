@@ -49,14 +49,10 @@ class CorpusItem(QStandardItem):
                 return self.texttodisplay
             else:
                 return ""  # self.sign.signlevel_information.gloss[0]
-        # elif role == Qt.UserRole+lemmarole:
-        #     return self.sign.signlevel_information.lemma
         elif role == Qt.UserRole+datecreatedrole:
             return self.sign.signlevel_information.datecreated
         elif role == Qt.UserRole+datemodifiedrole:
             return self.sign.signlevel_information.datelastmodified
-        # elif role == Qt.UserRole+entryidrole:
-        #     return self.sign.signlevel_information.entryid
 
 
 class CorpusModel(QStandardItemModel):
@@ -78,9 +74,9 @@ class CorpusModel(QStandardItemModel):
             return super().headerData(section, orientation, role)
 
     def setsigns(self, signs):
-        signs = signs or []
+        self.signs = signs or []
         self.clear()
-        for sign in signs:
+        for sign in self.signs:
             for gloss in sign.signlevel_information.gloss:
                 if len(gloss.strip()) > 0:
                     entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid), isentryid=True, settings=self.settings)
@@ -101,6 +97,13 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         self.sortorder = Qt.AscendingOrder
         self.sortcolumn = 1  # gloss
         self.sortnow()
+
+    def getrownumsmatchingsign(self, sign):
+        matchingrownums = []
+        for rownum in range(self.rowCount()):
+            if self.sourceModel().itemFromIndex(self.mapToSource(self.index(rownum, 0))).sign == sign:
+                matchingrownums.append(rownum)
+        return matchingrownums
 
     def updatesort(self, sortbytext=None, ascending=None):
         if ascending is not None:

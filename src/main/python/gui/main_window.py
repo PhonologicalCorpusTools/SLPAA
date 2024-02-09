@@ -912,8 +912,7 @@ class MainWindow(QMainWindow):
                                             question1 + question2 + moreinfo)
             if response == QMessageBox.Yes:
                 self.corpus.remove_sign(self.current_sign)
-                self.corpus_display.updated_signs(self.corpus.signs)
-                self.action_delete_sign.setEnabled(False)
+                self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes

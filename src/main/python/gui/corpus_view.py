@@ -24,7 +24,7 @@ class CorpusTitleEdit(QLineEdit):
     focus_out = pyqtSignal(str)
 
     def __init__(self, corpus_title, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(corpus_title, **kwargs)
         self.setFocusPolicy(Qt.StrongFocus)
 
     def focusOutEvent(self, event):
@@ -93,37 +93,73 @@ class CorpusDisplay(QWidget):
 
     def handle_selection(self, index=None):
         if index is not None:
-            index = index.model().mapToSource(index)
+            index = self.corpus_sortproxy.mapToSource(index)
             sign = self.corpus_model.itemFromIndex(index).sign
             self.selected_sign.emit(sign)
         else:
             self.selection_cleared.emit()
 
-    def updated_signs(self, signs, current_sign=None):
+    # if deleted==True, then current_sign is the sign that was deleted and we should select the *next* one
+    # but if deleted==False, then current_sign is the one that should be selected (because it was either just added or just updated)
+    def updated_signs(self, signs, current_sign=None, deleted=False):
+        selected_proxyindex = None
+        rowtoselect = -1
+
+        if deleted:
+            curproxymodelindex = self.corpus_view.selectionModel().selectedRows()[-1]
+            curselectedrownum = curproxymodelindex.row()
+
+            deletedsignsrownums = self.corpus_sortproxy.getrownumsmatchingsign(current_sign)
+            decreaseselectedrowby = len([rn for rn in deletedsignsrownums if rn <= curselectedrownum])
+            rowtoselect = curselectedrownum - decreaseselectedrowby + 1
+
         self.corpus_model.setsigns(signs)
-        self.corpus_model.layoutChanged.emit()
 
         # (re)set the selection
         try:
-            rowtoselect = -1
-            selected_proxyindex = None
-            if current_sign is not None:
-                # this whole chunk is meant to identify the row of the proxy model that should be selected
-                # (ie, the one containing the indicated sign)
-                # there must be a less convoluted way to do this, but I'm not sure what it might be...?
-                proxymodelrow = 0
-                while rowtoselect == -1 and proxymodelrow in range(self.corpus_view.model().rowCount()):
-                    selected_proxyindex = self.corpus_view.model().index(proxymodelrow, 0)
-                    sourcemodelindex = self.corpus_view.model().mapToSource(selected_proxyindex)
-                    corpusitem = self.corpus_view.model().sourceModel().itemFromIndex(sourcemodelindex)
-                    sign = corpusitem.sign
-                    if sign == current_sign:
-                        rowtoselect = proxymodelrow
-                    proxymodelrow += 1
+            if deleted:
+                if rowtoselect not in range(self.getrowcount()):
+                    rowtoselect = self.getrowcount() - 1
+                selected_proxyindex = self.getproxyindex(fromproxyrowcol=(rowtoselect, 0))
+            else:
+                if current_sign is not None:
+                    # this whole chunk is meant to identify the row of the proxy model that should be selected
+                    # (ie, the one containing the indicated sign)
+                    # there must be a less convoluted way to do this, but I'm not sure what it might be...?
+                    proxymodelrow = 0
+                    while rowtoselect == -1 and proxymodelrow in range(self.getrowcount()):
+                        selected_proxyindex = self.getproxyindex(fromproxyrowcol=(proxymodelrow, 0))
+                        sourcemodelindex = self.getsourceindex(fromproxyindex=selected_proxyindex)
+                        corpusitem = self.getcorpusitem(fromsourceindex=sourcemodelindex)
+                        sign = corpusitem.sign
+                        if sign == current_sign:
+                            rowtoselect = proxymodelrow
+                        proxymodelrow += 1
+
             self.corpus_view.selectRow(rowtoselect)  # row -1 (ie, no selection) if current_sign is None
-            self.handle_selection(selected_proxyindex)
+            self.handle_selection(None if rowtoselect < 0 else selected_proxyindex)
         except ValueError:
             self.clear()
+
+    def getproxyindex(self, fromproxyrowcol=None, fromsourceindex=None):
+        if fromproxyrowcol:
+            return self.corpus_view.model().index(fromproxyrowcol[0], fromproxyrowcol[1])
+        elif fromsourceindex:
+            return self.corpus_view.model().mapFromSource(fromsourceindex)
+        return None
+
+    def getsourceindex(self, fromproxyrowcol=None, fromproxyindex=None):
+        if fromproxyrowcol:
+            return self.corpus_view.model().mapToSource(self.getproxyindex(fromproxyrowcol=fromproxyrowcol))
+        elif fromproxyindex:
+            return self.corpus_view.model().mapToSource(fromproxyindex)
+        return None
+
+    def getcorpusitem(self, fromsourceindex):
+        return self.corpus_view.model().sourceModel().itemFromIndex(fromsourceindex)
+
+    def getrowcount(self):
+        return self.corpus_view.model().rowCount()
 
     def clear(self):
         self.corpus_title.setText("")
