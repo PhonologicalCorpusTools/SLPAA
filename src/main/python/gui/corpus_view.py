@@ -91,10 +91,10 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
-    def handle_selection(self, index=None):
-        if index is not None:
-            index = self.corpus_sortproxy.mapToSource(index)
-            sign = self.corpus_model.itemFromIndex(index).sign
+    def handle_selection(self, proxyindex=None):
+        if proxyindex is not None and proxyindex.model() is not None:
+            sourceindex = self.corpus_sortproxy.mapToSource(proxyindex)
+            sign = self.corpus_model.itemFromIndex(sourceindex).sign
             self.selected_sign.emit(sign)
         else:
             self.selection_cleared.emit()
@@ -137,7 +137,7 @@ class CorpusDisplay(QWidget):
                         proxymodelrow += 1
 
             self.corpus_view.selectRow(rowtoselect)  # row -1 (ie, no selection) if current_sign is None
-            self.handle_selection(None if rowtoselect < 0 else selected_proxyindex)
+            self.handle_selection(selected_proxyindex)
         except ValueError:
             self.clear()
 
