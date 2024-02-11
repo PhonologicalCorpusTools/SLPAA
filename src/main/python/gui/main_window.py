@@ -27,7 +27,8 @@ from PyQt5.QtWidgets import (
     QUndoStack,
     QMdiArea,
     QMdiSubWindow,
-    QWidget
+    QWidget,
+    QDialog
 )
 
 from PyQt5.QtGui import (
@@ -924,13 +925,20 @@ class MainWindow(QMainWindow):
         self.close()
 
     def on_action_new_sign(self, clicked):
+        # save currently-selected sign in case user cancels creating the new sign
+        stashed_corpusselection = self.corpus_display.corpus_view.currentIndex()
+
         self.current_sign = None
-        # self.new_sign = None
         self.action_delete_sign.setEnabled(False)
 
         self.corpus_display.corpus_view.clearSelection()
         self.signlevel_panel.clear()
-        self.signlevel_panel.handle_signlevelbutton_click()
+        dialogresult = self.signlevel_panel.handle_signlevelbutton_click()
+
+        # reset to previously-select sign if user cancels out of creating the new sign
+        if dialogresult == QDialog.Rejected:
+            self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
+            self.corpus_display.handle_selection(stashed_corpusselection)
 
     def on_action_delete_sign(self, clicked):
         response = QMessageBox.question(self, 'Delete the selected sign',

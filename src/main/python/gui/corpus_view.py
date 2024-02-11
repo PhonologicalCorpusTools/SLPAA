@@ -76,8 +76,8 @@ class CorpusDisplay(QWidget):
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
         self.sortcombo.currentTextChanged.connect(lambda txt: self.corpus_sortproxy.updatesort(sortbytext=txt))
         sort_layout.addWidget(self.sortcombo)
-        self.ascend_radio = QRadioButton("↑")
-        self.descend_radio = QRadioButton("↓")
+        self.ascend_radio = QRadioButton("A→Z; 1→9")
+        self.descend_radio = QRadioButton("Z→A; 9→1")
         self.ascdesc_grp = QButtonGroup()
         self.ascdesc_grp.addButton(self.ascend_radio)
         self.ascdesc_grp.addButton(self.descend_radio)
@@ -89,21 +89,11 @@ class CorpusDisplay(QWidget):
         main_layout.addLayout(sort_layout)
 
     def handle_selection(self, index):
-        # gloss = self.corpus_model.glosses[index.row()]
-        # themodel = index.model()
-        # if hasattr(themodel, 'mapToSource'):
-        #     print("selected index is from a proxy model!")
-        #     underlyingindex = themodel.mapToSource(index)
-        #     underlyingsign = self.corpus_model.signs[underlyingindex.row()]
-        #     print("row: ", underlyingindex.row(), " / sign gloss: ", underlyingsign.signlevel_information.gloss)
-        # else:
-        #     print("selected index is no from from a uproxy model!")
-
-        index = index.model().mapToSource(index)
-        sign = self.corpus_model.itemFromIndex(index).sign  #  signs[index.row()]  #.signlevel_information.gloss
-        # print("row: ", index.row(), " / sign gloss: ", sign.signlevel_information.gloss)
-        # self.selected_gloss.emit(gloss)
-        self.selected_sign.emit(sign)
+        themodel = index.model()
+        if themodel is not None:
+            index = themodel.mapToSource(index)
+            sign = self.corpus_model.itemFromIndex(index).sign  
+            self.selected_sign.emit(sign)
 
     def updated_signs(self, signs, current_sign=None):
         self.corpus_model.setsigns(signs)

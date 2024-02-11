@@ -1,7 +1,7 @@
 import logging
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule
+from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, delimiter
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -351,73 +351,18 @@ class Sign:
     def xslotstructure(self, xslotstruct):
         self._xslotstructure = xslotstruct
 
-    def updatemodule_sharedattributes(self, current_mod, updated_mod):
-        ischanged = False
-        if current_mod.articulators != updated_mod.articulators:
-            current_mod.articulators = updated_mod.articulators
-            ischanged = True
-        if current_mod.timingintervals != updated_mod.timingintervals:
-            current_mod.timingintervals = updated_mod.timingintervals
-            ischanged = True
-        if current_mod.addedinfo != updated_mod.addedinfo:
-            current_mod.addedinfo = updated_mod.addedinfo
-            ischanged = True
-        return ischanged
-
     def updatemodule(self, existingkey, updated_module, moduletype):
         current_module = self.getmoduledict(moduletype)[existingkey]
         ischanged = False
 
-        if self.updatemodule_sharedattributes(current_module, updated_module):
-            ischanged = True
-
-        if moduletype == ModuleTypes.MOVEMENT:
-            if current_module.movementtreemodel != updated_module.movementtreemodel:
-                current_module.movementtreemodel = updated_module.movementtreemodel
+        currentmod_attrs = current_module.__dict__
+        updatedmod_attrs = updated_module.__dict__
+        for attr in currentmod_attrs:
+            if currentmod_attrs[attr] != updatedmod_attrs[attr]:
+                # TODO KV note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
+                # therefore copies (even if identical) of these classes will not be assessed as equal
+                currentmod_attrs[attr] = updatedmod_attrs[attr]
                 ischanged = True
-            if current_module.inphase != updated_module.inphase:
-                current_module.inphase = updated_module.inphase
-                ischanged = True
-        elif moduletype == ModuleTypes.LOCATION:
-            if current_module.locationtreemodel != updated_module.locationtreemodel:
-                current_module.locationtreemodel = updated_module.locationtreemodel
-                ischanged = True
-            if current_module.inphase != updated_module.inphase:
-                current_module.inphase = updated_module.inphase
-                ischanged = True
-            if current_module.phonlocs != updated_module.phonlocs:
-                current_module.phonlocs = updated_module.phonlocs
-                ischanged = True
-        elif moduletype == ModuleTypes.HANDCONFIG:
-            if current_module.handconfiguration != updated_module.handconfiguration:
-                current_module.handconfiguration = updated_module.handconfiguration
-                ischanged = True
-            if current_module.overalloptions != updated_module.overalloptions:
-                current_module.overalloptions = updated_module.overalloptions
-                ischanged = True
-        elif moduletype == ModuleTypes.RELATION:
-            if current_module.relationx != updated_module.relationx:
-                current_module.relationx = updated_module.relationx
-                ischanged = True
-            if current_module.relationy != updated_module.relationy:
-                current_module.relationy = updated_module.relationy
-                ischanged = True
-            if current_module.bodyparts_dict != updated_module.bodyparts_dict:
-                current_module.bodyparts_dict = updated_module.bodyparts_dict
-                ischanged = True
-            if current_module.contactrel != updated_module.contactrel:
-                current_module.contactrel = updated_module.contactrel
-                ischanged = True
-            if current_module.xy_crossed != updated_module.xy_crossed:
-                current_module.xy_crossed = updated_module.xy_crossed
-                ischanged = True
-            if current_module.xy_linked != updated_module.xy_linked:
-                current_module.xy_linked = updated_module.xy_linked
-                ischanged = True
-            if current_module.directions != updated_module.directions:
-                current_module.directions = updated_module.directions
-                ischanged = True
-
         if ischanged:
             self.lastmodifiednow()
 
@@ -471,6 +416,7 @@ class Corpus:
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID
             # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             self.confirmhighestID("load")
+            self.add_missing_paths() # Another backwards compatibility function for movement and location
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -556,3 +502,197 @@ class Corpus:
 
     def __repr__(self):
         return '<CORPUS: ' + repr(self.name) + '>'
+    
+    def add_missing_paths(self):
+        for sign in self.signs:
+            correctionsdict = {ModuleTypes.MOVEMENT: {},
+                               ModuleTypes.LOCATION: {},
+                               ModuleTypes.RELATION: {}}
+            gloss = sign.signlevel_information.gloss
+            for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+                moduledict = sign.getmoduledict(type)
+
+                for count, k in enumerate(moduledict):
+                    correctionsdict[type][gloss] = {}
+                    module = moduledict[k]
+
+                    if type == ModuleTypes.MOVEMENT:
+                        self.add_missing_paths_helper(gloss, module.movementtreemodel, type, count, correctionsdict)
+                    elif type == ModuleTypes.LOCATION:
+                        self.add_missing_paths_helper(gloss, module.locationtreemodel, type, count, correctionsdict)
+                    elif type == ModuleTypes.RELATION:
+                        if module.no_selections():
+                            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+                            mssg = ": Main module has no selections. Is something missing?"
+                            logging.warning(label + mssg)
+
+                        bodyparts_dict = module.bodyparts_dict
+                        articulators,numbers = module.get_articulators_in_use()
+                        models = []
+                        for ctr in range(len(articulators)):
+                            models.append(bodyparts_dict[articulators[ctr]][numbers[ctr]].bodyparttreemodel)
+
+                        empty_module_flag = False
+                        for m in models:
+                            if len(m.get_checked_from_serialized_tree()) == 0:
+                                empty_module_flag = True
+                            self.add_missing_paths_helper(gloss, m, type, count, correctionsdict, verbose=False)
+                        if empty_module_flag and module.contactrel.contact:
+                            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+                            mssg = ": Module has no bodypart selections. Is something missing?"
+                            logging.warning(label + mssg)
+                          
+    def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose=True):
+        paths_missing_bc = []
+        paths_not_found = []
+
+        if verbose and len(treemodel.get_checked_from_serialized_tree()) == 0:
+            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+            mssg = ": Module has no selections. Is something missing?"
+            logging.warning(label + mssg)
+
+        missing_values = treemodel.compare_checked_lists()
+
+        newpaths = []
+
+        for oldpath in missing_values:
+            paths_to_add = self.get_paths_to_add(oldpath, type)
+
+            if len(paths_to_add) == 0: 
+                paths_missing_bc.append(oldpath)
+                label = "   " + gloss + " " + str(type) + str(count+1)
+                logging.warning(label+": bad backwards compatibility for " + oldpath)
+                
+            for path in paths_to_add:
+                newpath = delimiter.join(path)
+                correctionsdict[type][gloss][newpath] = oldpath 
+                newpaths.append(newpath)
+        thisdict = correctionsdict[type][gloss]
+        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
+        
+        if len(newpaths) != 0:
+            for i in newpaths:
+                label = "   " + gloss + " " + str(type) + str(count+1)
+                logging.warning(label +": bad backwards compatibility for " + i)
+                paths_not_found.append(thisdict[i])
+
+        for p in missing_values:
+            if p not in paths_missing_bc and p not in paths_not_found:
+                treemodel.uncheck_paths(missing_values)
+    
+        
+        return 
+
+    # Converts a string representing a movement/location path into a list of nodes
+    def get_node_sequence(self, item):
+        nodes = []
+        curr = ""
+        for c in item:
+            if (c is not delimiter):
+                curr = curr + c
+            else:
+                nodes.append(curr)
+                curr = ""
+        nodes.append(curr)
+        return nodes
+    
+    def get_paths_to_add(self, path, modtype):
+        nodes = self.get_node_sequence(path)
+        paths_to_add = []
+        length = len(nodes)
+        if modtype == ModuleTypes.MOVEMENT:
+            # Issue 193: Update thumb movements in joint activity section
+            if nodes[0] == 'Joint activity':
+                if (length > 1 and nodes[1] == 'Thumb base / metacarpophalangeal'):
+                    if (length > 2 and (nodes[2] in ['Abduction', 'Adduction'])):
+                        nodes[1] = 'Thumb root / carpometacarpal (CMC)'
+                        paths_to_add.append(nodes[0:2] + (['Radial abduction'] if nodes[2] == 'Abduction' else ['Radial adduction']))
+                        paths_to_add.append(nodes[0:2] + (['Palmar abduction'] if nodes[2] == 'Abduction' else ['Palmar adduction']))
+                    
+                    elif (length > 2 and nodes[2] == 'Circumduction'):
+                        nodes[1] = 'Thumb root / carpometacarpal (CMC)'
+                        paths_to_add.append(nodes)
+                        
+                    elif (length > 2 and nodes[2] == 'Opposition'):
+                        nodes[1] = 'Thumb complex movement'
+                        paths_to_add.append(nodes)
+
+                    else: # Flexion/extension
+                        nodes[1] = 'Thumb base / metacarpophalangeal (MCP)'
+                        paths_to_add.append(nodes)
+                    
+                elif (length > 1 and nodes[1] == 'Thumb non-base / interphalangeal'):
+                    nodes[1] = 'Thumb non-base / interphalangeal (IP)'
+                    paths_to_add.append(nodes)
+                
+            # Fix some minor spelling / punctuation changes from issue #195
+            if (length > 2 and nodes[2] == 'Rubbing'):
+                if length > 3 and nodes[3] == 'Articulators':
+                    nodes[3] = 'Articulator(s):'
+                elif length > 3 and nodes[3] == 'Location':
+                    nodes[3] = 'Location:'
+                elif length > 4 and nodes[3] in ['Across', 'Along']:
+                    nodes[4] = nodes[4].lower()
+                paths_to_add.append(nodes)
+            # Issue 194: Add abs/rel movement options 
+            if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
+                nodes.insert(3, 'Absolute')
+                paths_to_add.append(nodes)
+        else: # LOCATION and RELATION
+            # Issue 162: hand changes
+            if 'hand' in nodes[0] and length > 1:
+                if nodes[0] == 'Other hand':
+                    nodes[0] = 'Whole hand'
+                if nodes[1] in ['Fingers', 'Thumb']:
+                    nodes.insert(1, 'Fingers and thumb')
+                elif nodes[1][0:7] == 'Finger ':
+                    nodes.insert(1, 'Fingers and thumb')
+                    nodes.insert(2, 'Fingers')
+                elif nodes[1][0:8] == 'Between ':
+                    nodes.insert(1, 'Fingers and thumb')
+                    nodes.insert(2, 'Between fingers')
+                elif nodes[1] == 'Selected fingers':
+                    nodes.insert(1, 'Fingers and thumb')
+                    nodes.insert(2, 'Selected fingers and thumb')
+                elif nodes[1] == 'Selected fingers and Thumb':
+                    nodes[1] = 'Selected fingers and thumb'
+                    nodes.insert(1, 'Fingers and thumb')
+                paths_to_add.append(nodes)
+            # Issue 162: leg and feet changes
+            elif nodes[0] == 'Legs and feet':
+                nodes[0] = 'Leg and foot'
+                paths_to_add.append(nodes)
+            # Issue 162: Arm changes
+            elif nodes[0] == 'Arm (contralateral)':
+                nodes[0] = 'Arm'
+                if length == 1:
+                    nodes.insert(1, 'Arm - contra')
+                elif length == 2:
+                    nodes.insert(1, nodes[1]) 
+                    nodes[2] = nodes[2] + ' - contra'
+                elif length == 3: 
+                    nodes.insert(2, nodes[2])
+                    nodes[3] = nodes[3] + ' - contra'
+                paths_to_add.append(nodes)
+            # Issue 162: New torso layers
+            elif nodes[0] == 'Torso' and length > 1:
+                if nodes[1] in ['Hip', 'Groin', 'Buttocks', 'Pelvis area']:
+                    nodes.insert(1, 'Lower torso')
+                else:
+                    nodes.insert(1, 'Upper torso')
+                paths_to_add.append(nodes)
+            # Issue 162: New face layers
+            elif length > 2 and nodes[0] == 'Head' and nodes[1] == 'Face':
+                if nodes[2] in ['Above forehead (hairline)', 'Forehead', 'Temple']:
+                    nodes.insert(2, 'Forehead region')
+                elif nodes[2] in ['Eyebrow', 'Eye']:
+                    nodes.insert(2, 'Eye region')
+                elif length > 3 and nodes[3] in ['Upper eyelid', 'Lower eyelid']:
+                    nodes.insert(4, 'Eyelid')
+                elif nodes[-1] == 'Septum':
+                    nodes.insert(length-2, 'Septum/nostril area')
+                paths_to_add.append(nodes)
+            elif length > 2 and nodes[1] == 'Ear':
+                nodes[3].replace('Mastoid process', 'Behind ear')
+                paths_to_add.append(nodes)
+        return paths_to_add

@@ -813,7 +813,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.orientation_button = QPushButton("Add orientation module")
         self.orientation_button.setProperty("existingmodule", False)
-        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.ORIENTATION))
+        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.ORIENTATION))
         self.modulebuttons_timed.append(self.orientation_button)
 
         self.handshape_button = QPushButton("Add hand configuration module")
@@ -878,7 +878,8 @@ class SignLevelMenuPanel(QScrollArea):
     def handle_signlevelbutton_click(self):
         signlevelinfo_selector = SignlevelinfoSelectorDialog(self.sign.signlevel_information if self.sign else None, parent=self)
         signlevelinfo_selector.saved_signlevelinfo.connect(self.handle_save_signlevelinfo)
-        signlevelinfo_selector.exec_()
+        dialogresult = signlevelinfo_selector.exec_()
+        return dialogresult
 
     def handle_save_signlevelinfo(self, signlevelinfo):
         if self.sign:
