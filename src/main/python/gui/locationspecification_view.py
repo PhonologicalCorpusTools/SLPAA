@@ -1,4 +1,4 @@
-import io, re
+import io, re, random
 
 from PyQt5.QtWidgets import (
     QListView,
@@ -817,12 +817,25 @@ class ImageTabWidget(QTabWidget):
             self.handle_linkbutton_toggled(False, tab)
 
 
+class LocationAction(QAction):
+    def __init__(self, name, svgscrollarea, app_ctx, **kwargs):
+        super().__init__(name, **kwargs)
+        self.name = name
+        self.svgscrollarea = svgscrollarea
+        self.app_ctx = app_ctx
+        self.triggered.connect(self.getnewimage)
+
+    def getnewimage(self):
+        self.svgscrollarea.handle_image_changed(self.app_ctx.predefined_locations_yellow[self.name])
+
+
 class SVGDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
 
     def __init__(self, app_ctx, frontbackside='front', specificpath="", **kwargs):
         super().__init__(**kwargs)
+        self.app_ctx = app_ctx
         if specificpath != "":
             imagepath = specificpath
         else:
@@ -831,7 +844,7 @@ class SVGDisplayTab(QWidget):
         main_layout = QHBoxLayout()
         img_layout = QVBoxLayout()
 
-        self.imgscroll = SVGDisplayScroll(imagepath)
+        self.imgscroll = SVGDisplayScroll(imagepath, app_ctx)
         self.imgscroll.zoomfactor_changed.connect(lambda scale: self.zoomfactor_changed.emit(scale))
         # main_layout.addWidget(self.imgscroll)
         img_layout.addWidget(self.imgscroll)
@@ -863,12 +876,21 @@ class SVGDisplayTab(QWidget):
 
         self.setMinimumHeight(400)
 
-    def handle_img_clicked(self, clickpoint, listofids):
+    def handle_img_clicked(self, clickpoint, listofids, mousebutton):
+        listofids = list(set(listofids))
+        print("IDs at click " + str(len(listofids)) + ":", listofids)
         # self.bodypart_note.setPlainText("last clicked: " + ", ".join(listofids))
-        elementid_actions = [QAction(elid) for elid in listofids]
-        elementids_menu = QMenu()
-        elementids_menu.addActions(elementid_actions)
-        elementids_menu.exec_(clickpoint.toPoint())
+        if mousebutton == Qt.RightButton:
+            print("right button released at", clickpoint.toPoint())
+            # elementid_actions = [QAction(elid) for elid in listofids]
+            elementname_actions = [LocationAction(self.app_ctx.predefined_locations_description_byfilename[elid], self.imgscroll, self.app_ctx) for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
+            elementids_menu = QMenu()
+            elementids_menu.addActions(elementname_actions)
+            elementids_menu.exec_(clickpoint.toPoint())
+        elif mousebutton == Qt.LeftButton:
+            print("left button released at", clickpoint.toPoint())
+        # elif mousebutton == Qt.MiddleButton:
+        #     print("middle button released at", clickpoint.toPoint())
 
     def force_zoom(self, scale):
         self.blockSignals(True)
@@ -885,7 +907,7 @@ class SVGDisplayTab(QWidget):
 
 
 class SVGDisplayScroll(QScrollArea):
-    img_clicked = pyqtSignal(QPointF, list)
+    img_clicked = pyqtSignal(QPointF, list, int)
     zoomfactor_changed = pyqtSignal(int)
     factor_from_scale = {
         1: 0.20,
@@ -899,7 +921,7 @@ class SVGDisplayScroll(QScrollArea):
         9: 5.0
     }
 
-    def __init__(self, imagepath, **kwargs):
+    def __init__(self, imagepath, app_ctx, **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QHBoxLayout()
@@ -909,8 +931,9 @@ class SVGDisplayScroll(QScrollArea):
         self.renderer = QSvgRenderer(imagepath, parent=self)
         self.elementids = []
         self.gatherelementids(imagepath)
-        self.scn = SVGGraphicsScene([], parent=self)
-        self.scn.img_clicked.connect(lambda clickpoint, listofids: self.img_clicked.emit(clickpoint, listofids))
+        self.scn = SVGGraphicsScene([], app_ctx, parent=self)
+        self.scn.img_clicked.connect(lambda clickpoint, listofids, mousebutton: self.img_clicked.emit(clickpoint, listofids, mousebutton))
+        self.scn.img_changed.connect(self.handle_image_changed)
 
         self.initializeSVGitems()
 
@@ -918,6 +941,13 @@ class SVGDisplayScroll(QScrollArea):
         self.img_layout.addWidget(self.vw)
         main_layout.addLayout(self.img_layout)
         self.setLayout(main_layout)
+
+    def handle_image_changed(self, newimagepath):
+        self.scn.clear()
+        self.renderer.load(newimagepath)
+        self.elementids = []
+        self.gatherelementids(newimagepath)
+        self.initializeSVGitems()
 
     def gatherelementids(self, svgfilepath):
         elementids = []
@@ -956,10 +986,12 @@ class SVGDisplayScroll(QScrollArea):
 
 
 class SVGGraphicsScene(QGraphicsScene):
-    img_clicked = pyqtSignal(QPointF, list)
+    img_clicked = pyqtSignal(QPointF, list, int)
+    img_changed = pyqtSignal(str)
 
-    def __init__(self, svgitems, **kwargs):
+    def __init__(self, svgitems, app_ctx, **kwargs):
         super().__init__(**kwargs)
+        self.app_ctx = app_ctx
         for it in svgitems:
             self.addItem(it)
 
@@ -968,18 +1000,18 @@ class SVGGraphicsScene(QGraphicsScene):
         # print("     pos():", event.pos().x(), event.pos().y())
         # print("     scenePos():", event.scenePos().x(), event.scenePos().y())
         # print("     itemsBoundingRect():", self.itemsBoundingRect().x(), self.itemsBoundingRect().y(), self.itemsBoundingRect().width(), self.itemsBoundingRect().height())
-
+        mousebutton = event.button()
         clickpoint = QPointF(event.scenePos().x(), event.scenePos().y())
         items = self.items(clickpoint)
-        # print("     items at click:", [it.elementId() for it in items])
-        clickedids = ["all" if it.elementId() == "" else it.elementId() for it in items]
+        clickedids = [it.elementId() for it in items if it.elementId() != ""]
+        # possible_ids_for_image = [clicked_id for clicked_id in clickedids if clicked_id in self.app_ctx.predefined_locations_test.keys()]
+        # random_id = possible_ids_for_image[random.randrange(0, len(possible_ids_for_image))]
+        # random_image = self.app_ctx.predefined_locations_test[random_id]
+        # self.img_changed.emit(random_image)
+        # print("randomly chose sub-image:", random_id)
         allids = [it.elementId() for it in self.items()]
-        print("all IDs (" + str(len(allids)) + "):", allids)
-        # print("type of graphics items' parents is:", [type(it.parentItem()) for it in self.items()])
-        # clickedidstext = ", ".join(ids)
-        # allidstext = ", ".join(allids)
-        # self.img_clicked.emit(clickedidstext + " / all: " + allidstext)
-        self.img_clicked.emit(clickpoint, clickedids)
+        # print("all IDs (" + str(len(allids)) + "):", allids)
+        self.img_clicked.emit(clickpoint, clickedids, mousebutton)
 
 
 # # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
