@@ -113,10 +113,7 @@ class ModuleSelectorDialog(QDialog):
             self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
             self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         elif self.moduletype == ModuleTypes.NONMANUAL:
-            # TODO Stanley
             self.module_widget = NonManualSpecificationPanel(moduletoload=moduletoload, parent=self)
-            pass
-
         elif self.moduletype == ModuleTypes.ORIENTATION:
             self.module_widget = OrientationSpecificationPanel(moduletoload=moduletoload, parent=self)
         main_layout.addWidget(self.module_widget)

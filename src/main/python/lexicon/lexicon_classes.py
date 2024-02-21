@@ -121,6 +121,8 @@ class Sign:
             return self.relationmodulenumbers
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodulenumbers
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodulenumbers
         else:
             return {}
 
