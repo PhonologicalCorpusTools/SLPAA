@@ -55,11 +55,9 @@ class SLPAAButtonGroup(RelationButtonGroup):
 
 
 class SLPAARadioButton(RelationRadioButton):
-    def __init__(self, text, btn_text=None):
+    def __init__(self, text):
         # btn_text: button text for easy reference
         super().__init__(text)
-        if btn_text is not None:
-            self.setProperty('buttonText', btn_text)
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
@@ -156,8 +154,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         row = QHBoxLayout()
 
         # static / dynamic group
-        nonman.widget_rb_static = SLPAARadioButton("Static", 'static')
-        nonman.widget_rb_dynamic = SLPAARadioButton("Dynamic", 'dynamic')
+        nonman.widget_rb_static = SLPAARadioButton("Static")
+        nonman.widget_rb_dynamic = SLPAARadioButton("Dynamic")
         static_dynamic_list = [nonman.widget_rb_static, nonman.widget_rb_dynamic]
         nonman.static_dynamic_group = SLPAAButtonGroup(static_dynamic_list)
 
@@ -175,7 +173,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             mvmt_type_box_layout = QVBoxLayout()
             nonman.mvmt_type_group = SLPAAButtonGroup()
             for type in nonman.subparts:
-                rb_to_add = SLPAARadioButton(type, type.lower())
+                rb_to_add = SLPAARadioButton(type)
                 mvmt_type_box_layout.addWidget(rb_to_add)
                 nonman.mvmt_type_group.addButton(rb_to_add)
             mvmt_type_box.setLayout(mvmt_type_box_layout)
@@ -192,14 +190,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             onepart_spacedlayout = QHBoxLayout()
             onepart_layout = QHBoxLayout()
 
-            nonman.widget_rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s", 'both')
-            nonman.widget_rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}", 'one')
+            nonman.widget_rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
+            nonman.widget_rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
             subpart_list = [nonman.widget_rb_subpart_both, nonman.widget_rb_subpart_one]
 
             nonman.subpart_group = SLPAAButtonGroup(subpart_list)
 
-            nonman.widget_rb_onepart_one = SLPAARadioButton("H1", 'h1')
-            nonman.widget_rb_onepart_two = SLPAARadioButton("H2", 'h2')
+            nonman.widget_rb_onepart_one = SLPAARadioButton("H1")
+            nonman.widget_rb_onepart_two = SLPAARadioButton("H2")
             onepart_list = [nonman.widget_rb_onepart_one, nonman.widget_rb_onepart_two]
 
             nonman.onepart_group = SLPAAButtonGroup(onepart_list)
@@ -219,8 +217,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.visibility is not None:
             visibility_box = QGroupBox("Visibility")
             visibility_box_layout = QVBoxLayout()
-            nonman.widget_rb_visible = SLPAARadioButton("Visible", 'visible')
-            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible", 'not visible')
+            nonman.widget_rb_visible = SLPAARadioButton("Visible")
+            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible")
             visibility_box_layout.addWidget(nonman.widget_rb_visible)
             visibility_box_layout.addWidget(nonman.widget_rb_visible_not)
             visibility_box.setLayout(visibility_box_layout)
@@ -262,7 +260,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         return row
 
     def parse_actionstate(self, parent, options):
-
         if isinstance(options, str):
             # in shallow module
             added_rb = SLPAARadioButton(options)
@@ -358,9 +355,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # Repetition group
         repetition_group = QGroupBox("Repetition")
         repetition_group_layout = QVBoxLayout()
-        nonman.widget_rb_rep_single = SLPAARadioButton("Single", 'single')
-        nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated", 'repeated')
-        nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled", 'trilled')
+        nonman.widget_rb_rep_single = SLPAARadioButton("Single")
+        nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated")
+        nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled")
         rep_list = [nonman.widget_rb_rep_single, nonman.widget_rb_rep_rep, nonman.widget_rb_rep_trill]
 
         nonman.rep_group = SLPAAButtonGroup(rep_list)
@@ -371,8 +368,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # Directionality group
         directionality_group = QGroupBox("Directionality")
         directionality_group_layout = QVBoxLayout()
-        nonman.widget_rb_direction_uni = SLPAARadioButton("Unidirectional", 'undirectional')
-        nonman.widget_rb_direction_bi = SLPAARadioButton("Bidirectional", 'bidirectional')
+        nonman.widget_rb_direction_uni = SLPAARadioButton("Unidirectional")
+        nonman.widget_rb_direction_bi = SLPAARadioButton("Bidirectional")
         directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
 
         nonman.directionality_group = SLPAAButtonGroup(directionality_list)
@@ -412,7 +409,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             levels.insert(1, 'Normal')
 
             for level in levels:
-                rb_to_add = SLPAARadioButton(level, level.lower())
+                rb_to_add = SLPAARadioButton(level)
                 buttongroup.addButton(rb_to_add)
                 groupbox_layout.addWidget(rb_to_add)
 
@@ -502,48 +499,57 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         for module in major_modules:
             values_toload = toload_dict[module]
             load_destination = template[module]
-
-            # static dynamic
-            select_button(btn_group=load_destination.static_dynamic_group,
-                          btn_txt=values_toload['static_dynamic'])
-            # sub-part(s)
-            try:
-                if values_toload['subpart'] == 'both':
-                    select_button(btn_group=load_destination.subpart_group,
-                                  btn_txt='both')
-                elif values_toload['subpart'] is not None:
-                    select_button(btn_group=load_destination.subpart_group,
-                                  btn_txt='one')
-                    select_button(btn_group=load_destination.onepart_group,
-                                  btn_txt=values_toload['subpart'])
-
-            except KeyError:  # when no subpart spec exists, such as 'body', 'head', etc.
-                pass
-
-            # repetition
-            try:
-                select_button(btn_group=load_destination.rep_group,
-                              btn_txt=values_toload['repetition'])
-            except AttributeError:
-                pass
-
-            # directionality
-            try:
-                select_button(btn_group=load_destination.directionality_group,
-                              btn_txt=values_toload['directionality'])
-            except AttributeError:
-                pass
-
-            # additional movement characteristics (size, speed, force, tenstion)
-            try:
-                for btn_group, btn_txt in zip(load_destination.additional_char_rb_group, ['size','speed','force','tension']):
-                    select_button(btn_group=btn_group,
-                                  btn_txt=values_toload[btn_txt])
-            except AttributeError:
-                pass
+            load_destination = load_specifications(values_toload, load_destination)
+            if values_toload['children'] is None:  # Does not include embedded tabs
+                return
+            for i, (label, child) in enumerate(values_toload['children'].items()):
+                child_values_toload = child
+                child_load_destination = template[label]
+                load_destination.children[i] = load_specifications(child_values_toload, child_load_destination)
 
 
-            # TODO: load_action_state
+def load_specifications(values_toload, load_destination):
+    # static dynamic
+    select_button(btn_group=load_destination.static_dynamic_group,
+                  btn_txt=values_toload['static_dynamic'])
+    # sub-part(s)
+    try:
+        if values_toload['subpart'] == 'both':
+            select_button(btn_group=load_destination.subpart_group,
+                          btn_txt='both')
+        elif values_toload['subpart'] is not None:
+            select_button(btn_group=load_destination.subpart_group,
+                          btn_txt='one')
+            select_button(btn_group=load_destination.onepart_group,
+                          btn_txt=values_toload['subpart'])
+
+    except KeyError:  # when no subpart spec exists, such as 'body', 'head', etc.
+        pass
+
+    # repetition
+    try:
+        select_button(btn_group=load_destination.rep_group,
+                      btn_txt=values_toload['repetition'])
+    except AttributeError:
+        pass
+
+    # directionality
+    try:
+        select_button(btn_group=load_destination.directionality_group,
+                      btn_txt=values_toload['directionality'])
+    except AttributeError:
+        pass
+
+    # additional movement characteristics (size, speed, force, tenstion)
+    try:
+        for btn_group, btn_txt in zip(load_destination.additional_char_rb_group, ['size', 'speed', 'force', 'tension']):
+            select_button(btn_group=btn_group,
+                          btn_txt=values_toload[btn_txt])
+    except AttributeError:
+        pass
+
+
+    return load_destination
 
 
 def what_selected(btn_group):
@@ -551,7 +557,7 @@ def what_selected(btn_group):
     # helper function to get what user input among btns in the group
     if btn_group.checkedButton() is None:
         return None
-    return btn_group.checkedButton().property('buttonText')
+    return btn_group.checkedButton().text()
 
 
 def select_button(btn_group, btn_txt):
@@ -560,5 +566,5 @@ def select_button(btn_group, btn_txt):
         return None
 
     for btn in btn_group.buttons():
-        if btn.property('buttonText') == btn_txt:
+        if btn.text() == btn_txt:
             btn.setChecked(True)
