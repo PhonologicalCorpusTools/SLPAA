@@ -41,17 +41,13 @@ class SearchModel(QStandardItemModel):
 
         self.headers = ["Name", "Type", "Value", "Include?", "Negative?",  "X-slots"]
         
-
         self.setHorizontalHeaderLabels(self.headers)
 
         if len(targets) > 0:
             for t in targets:
                 self.add_target(t)
     
-    # TODO maybe change to be more tree like (hierarchy by type)
-    def add_target(self, t):
-        self.targets.append(t)
-
+    def get_row_data(self, t):
         type = QStandardItem(t.targettype)
         include_cb = QStandardItem()
         include_cb.setCheckable(True)
@@ -65,22 +61,36 @@ class SearchModel(QStandardItemModel):
                 xslottype = QStandardItem(xslotval + " x-slots")
             else:
                 xslottype = QStandardItem(t.xslottype)
+            xslottype.setData((t.xslottype, t.xslotnum), Qt.UserRole + 1)
         else:
             xslottype = QStandardItem()
         
         val = []
-        for k,v in t.dict.items(): # two-valued targets
+        for k,v in t.values.items(): # two-valued targets
             if v not in [None, ""]:
                 val.append(str(k)+"="+str(v))
         value = QStandardItem()
         value.setData(val, Qt.DisplayRole)
-     
-        self.appendRow([name, type, value, include_cb, negative_cb, xslottype])
+        value.setData(t.values, Qt.UserRole + 1)
+        return [name, type, value, include_cb, negative_cb, xslottype]
+
+    def modify_target(self, t, row):
+        row_data = self.get_row_data(t)
+        for col, data in enumerate(row_data):
+            self.setItem(row, col, data)
+
+    
+    # TODO maybe change to be more tree like (hierarchy by type)
+    def add_target(self, t):
+        # self.targets.append(t) # need to deal with modifying targets
+        self.appendRow(self.get_row_data(t))
 
         # # TODO insert in a better place depending on the type
         # finalrow = self.rowCount() 
         # finalcol = len(self.headers) - 1
         # self.rowsInserted.emit(QModelIndex(), self.index(finalrow, 0), self.index(finalrow, finalcol))
+
+
 
     def __repr__(self):
         repr = "searchmodel:\n " + str(self.matchtype) + " match; " +  "match " + str(self.matchdegree) + "\n" + str(self.searchtype) + " search"
@@ -123,19 +133,20 @@ class SearchModel(QStandardItemModel):
     def searchtype(self, value):
         self._searchtype = value
 
+# TODO should we do different item classes for each targettype, instead of having a dict ?
 class SearchTargetItem(QStandardItem):
-    def __init__(self, **kwargs):
+    def __init__(self, name=None, targettype=None, xslottype=None, xslotnum=None, values=dict(), **kwargs):
         super().__init__(**kwargs)
-        self._name = None
-        self._targettype = None
-        self._xslottype = None 
-        self._xslotnum = None # only set if xslottype is concrete
-        self.dict = dict() # TODO for binary targets (eg xslot_min=3). update for unary targets (eg list of location nodes)
+        self._name = name
+        self._targettype = targettype
+        self._xslottype = xslottype 
+        self._xslotnum = xslotnum # only set if xslottype is concrete
+        self.values = values # TODO for binary targets (eg xslot_min=3). update for unary targets (eg list of location nodes)
 
 
     def __repr__(self):
         msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\nxslotnum: " + str(self.xslotnum) + "\ntargettype " + str(self.targettype)  
-        msg += "\nDict: " + repr(self.dict)
+        msg += "\nValues: " + repr(self.values)
         return msg
     
     @property

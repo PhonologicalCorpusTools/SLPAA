@@ -1,4 +1,5 @@
 
+import logging
 # from gui.hand_configuration import ConfigGlobal, Config
 from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInfoPanel
@@ -24,13 +25,15 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QLabel,
-    QWidget
+    QWidget,
+    QMessageBox
 )
 
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
 from gui.relationspecification_view import RelationSpecificationPanel
+from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
 class Search_SignLevelInfoSelectorDialog(QDialog):
@@ -228,22 +231,102 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
                 b.setChecked(False)
 
 class Search_ModuleSelectorDialog(ModuleSelectorDialog):
-    def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=..., incl_articulator_subopts=0, **kwargs):
+    def __init__(self, moduletype, xslotstructure=None, xslottype=None, xslotnum=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=..., incl_articulator_subopts=0, **kwargs):
+        self.xslottype = xslottype
+        self.xslotnum = xslotnum
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, includephase, incl_articulators, incl_articulator_subopts, **kwargs)
+        
+    def add_button_box(self, new_instance=False):
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.button(QDialogButtonBox.Save).setText("Save target and add another")
+        self.button_box.button(QDialogButtonBox.Apply).setDefault(True)
+        self.button_box.button(QDialogButtonBox.Apply).setText("Save target")
+
+        # TODO KV keep? from orig locationdefinerdialog:
+        #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
+        self.button_box.clicked.connect(self.handle_button_click)
+
+        self.main_layout.addWidget(self.button_box)
 
     def assign_module_widget(self, moduletype, moduletoload):
         if moduletype == ModuleTypes.MOVEMENT:
-            self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
+            self.module_widget = Search_MovementSpecPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.LOCATION:
-            self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
+            logging.warning("Location is not implemented")
         elif moduletype == ModuleTypes.HANDCONFIG:
-            self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
+            logging.warning("hand config is not implemented")
         elif self.moduletype == ModuleTypes.RELATION:
-            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
-            self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
-            self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
-            self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
-            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+            logging.warning("relation is not implemented")
+    
+    def handle_xslot_widget(self, xslotstructure, timingintervals):
+        self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
+                                              timingintervals=timingintervals,
+                                              parent=self)
+
+        if self.xslottype != "ignore":
+            self.main_layout.addWidget(self.xslot_widget)
+
+    
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+
+        if standard == QDialogButtonBox.Cancel:
+            self.reject()
+
+        elif standard == QDialogButtonBox.Save:  # save and add another
+            self.validate_and_save(addanother=True, closedialog=False)
+
+        elif standard == QDialogButtonBox.Apply:  # save and close
+            self.validate_and_save(addanother=False, closedialog=True)
+
+        elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
+            # TODO KV -- where should the "defaults" be defined?
+            self.articulators_widget.clear()
+            self.addedinfobutton.clear()
+            self.xslot_widget.clear()
+            self.module_widget.clear()
+
+    def validate_and_save(self, addanother=False, closedialog=False):
+        inphase = self.articulators_widget.getphase()
+        addedinfo = self.addedinfobutton.addedinfo
+        # validate hand selection
+        articulatorsvalid, articulators = self.validate_articulators()
+
+        # validate timing interval(s) selection
+        timingvalid, timingintervals = self.validate_timingintervals()
+
+        # validate module selections
+        modulevalid, modulemessage = self.module_widget.validity_check()
+
+        messagestring = ""
+
+        savedmodule = None
+        if messagestring != "":
+            # warn user that there's missing and/or invalid info and don't let them save
+            QMessageBox.critical(self, "Warning", messagestring)
+        elif addanother:
+            # save info and then refresh screen to start next module
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            self.module_saved.emit(savedmodule, self.moduletype)
+            self.articulators_widget.clear()
+            self.addedinfobutton.clear()
+            self.xslot_widget.clear()
+            self.module_widget.clear()
+            self.module_widget.existingkey = None
+            if self.moduletype == ModuleTypes.RELATION:
+                self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+        elif not addanother:
+            # save info
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            self.module_saved.emit(savedmodule, self.moduletype)
+            if closedialog:
+                # close dialog if caller requests it (but if we're only saving so, eg,
+                # we can add an associated relation module, then closedialog will be False)
+                self.accept()
+
+        return savedmodule
+
 
 class CustomRBGrp(QButtonGroup):
     def __init__(self, parent=None):
@@ -255,3 +338,18 @@ class CustomRBGrp(QButtonGroup):
         for b in self.buttons():
             b.setChecked(b==button)
 
+class Search_MovementSpecPanel(MovementSpecificationPanel):
+    def __init__(self, moduletoload=None, **kwargs):
+        super().__init__(moduletoload, **kwargs)
+
+class Search_LocationSpecPanel(LocationSpecificationPanel):
+    def __init__(self, moduletoload=None, showimagetabs=True, **kwargs):
+        super().__init__(moduletoload, showimagetabs, **kwargs)
+
+class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
+    def __init__(self, moduletoload=None, **kwargs):
+        super().__init__(moduletoload, **kwargs)
+
+class Search_RelationSpecPanel(RelationSpecificationPanel):
+    def __init__(self, moduletoload=None, **kwargs):
+        super().__init__(moduletoload, **kwargs)
