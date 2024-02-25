@@ -270,6 +270,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         elif options.label:
             # parse this node and its children
+            options.widget_grouplayout_actionstate = QVBoxLayout()
+            options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
+            options.as_main_btn_group = SLPAAButtonGroup()
+            options.as_sub_btn_groups = []  # container for sub buttons
+
             main_layout = QVBoxLayout()
             main_layout.setAlignment(Qt.AlignTop)
             if options.exclusive:
@@ -286,22 +291,19 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             if options.options is not None:
                 sub_btn_group = SLPAAButtonGroup()
                 for child in options.options:
-                    if not isinstance(child, str):
-                        sub_heading, subsub_spacedlayout = self.fillin_vbox(child)
-                        if isinstance(sub_heading, QRadioButton):
-                            sub_btn_group.addButton(sub_heading)
-                        sub_layout.addWidget(sub_heading)
-                        sub_layout.addLayout(subsub_spacedlayout)
-                    else:
+                    if isinstance(child, str):
                         sub_rb = SLPAARadioButton(child)
                         sub_layout.addWidget(sub_rb)
                         sub_btn_group.addButton(sub_rb)
-                parent.as_sub_btn_groups.append(sub_btn_group)
-            sub_spacedlayout.addLayout(sub_layout)
-            main_layout.addLayout(sub_spacedlayout)
+                        sub_spacedlayout.addLayout(sub_layout)
+                        parent.as_sub_btn_groups.append(sub_btn_group)
+                    else:
+                        self.parse_actionstate(parent=options, options=child)
+                        sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
+                    main_layout.addLayout(sub_spacedlayout)
             parent.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
-            # in the root. initialize and be ready to go deeper
+            # in the root. be ready to go deeper
             options.widget_grouplayout_actionstate = QHBoxLayout()
             options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
             options.as_main_btn_group = SLPAAButtonGroup()
@@ -309,33 +311,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             for child in options.options:
                 self.parse_actionstate(parent=options,
                                        options=child)
-
-    def fillin_vbox(self, asm):
-        # asm: ActionStateModel
-        if asm.exclusive:
-            sub_heading = SLPAARadioButton(asm.label)
-        else:
-            sub_heading = QCheckBox(asm.label)
-        subsub_layout = QVBoxLayout()
-
-        if asm.options is not None:
-            btn_group = SLPAAButtonGroup()
-            for o in asm.options:
-                if not isinstance(o, str):
-                    cb, sub_spacedlayout = self.fillin_vbox(o)
-                    if isinstance(cb, QRadioButton):
-                        btn_group.addButton(cb)
-                    subsub_layout.addWidget(cb)
-                    subsub_layout.addLayout(sub_spacedlayout)
-                else:
-                    sub_rb = SLPAARadioButton(o)
-                    subsub_layout.addWidget(sub_rb)
-                    btn_group.addButton(sub_rb)
-        spacedlayout = QHBoxLayout()
-        spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        spacedlayout.addLayout(subsub_layout)
-
-        return sub_heading, spacedlayout
 
     def build_row3(self, nonman):
         """
@@ -491,6 +466,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         return nonman_mod
 
     def setvalues(self, moduletoload):
+        # load saved values and set template values by them.
         toload_dict = moduletoload._nonmanual
 
         major_modules = [module_title.label for module_title in nonmanual_root.children]  # major modules in non manual
@@ -509,6 +485,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
 
 def load_specifications(values_toload, load_destination):
+    # values_toload: saved user selections to load
+    # load_destination: major modules like 'shoulder' 'facial expressions'...
+
     # static dynamic
     select_button(btn_group=load_destination.static_dynamic_group,
                   btn_txt=values_toload['static_dynamic'])
