@@ -504,7 +504,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             load_destination = template[module]
             load_destination = load_specifications(values_toload, load_destination)
             if values_toload['children'] is None:  # Does not include embedded tabs
-                return
+                continue
             for i, (label, child) in enumerate(values_toload['children'].items()):
                 child_values_toload = child
                 child_load_destination = template[label]
@@ -555,9 +555,12 @@ def load_specifications(values_toload, load_destination):
         pass
 
     # action state
-    as_to_load = values_toload['action_state']  # packaged action_state selections. comes as Dict
-    if len(as_to_load['root']) != 0:
-        load_destination.action_state = load_actionstate(as_to_load, load_destination.action_state)
+    try:
+        as_to_load = values_toload['action_state']  # packaged action_state selections. comes as Dict
+        if len(as_to_load['root']) != 0:
+            load_destination.action_state = load_actionstate(as_to_load, load_destination.action_state)
+    except KeyError:
+        pass
 
     return load_destination
 
