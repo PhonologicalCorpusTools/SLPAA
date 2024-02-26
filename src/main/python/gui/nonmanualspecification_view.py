@@ -273,6 +273,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             options.widget_grouplayout_actionstate = QVBoxLayout()
             options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
             options.as_main_btn_group = SLPAAButtonGroup()
+            options.as_main_cb_list = []
             options.as_sub_btn_groups = []  # container for sub buttons
 
             main_layout = QVBoxLayout()
@@ -282,6 +283,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 parent.as_main_btn_group.addButton(main_btn)
             else:
                 main_btn = QCheckBox(options.label)
+                parent.as_main_cb_list.append(main_btn)
             main_layout.addWidget(main_btn)
             sub_layout = QVBoxLayout()
 
@@ -289,14 +291,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
 
             if options.options is not None:
-                sub_btn_group = SLPAAButtonGroup()
                 for child in options.options:
                     if isinstance(child, str):
                         sub_rb = SLPAARadioButton(child)
                         sub_layout.addWidget(sub_rb)
-                        sub_btn_group.addButton(sub_rb)
+                        options.as_main_btn_group.addButton(sub_rb)
                         sub_spacedlayout.addLayout(sub_layout)
-                        parent.as_sub_btn_groups.append(sub_btn_group)
                     else:
                         self.parse_actionstate(parent=options, options=child)
                         sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
@@ -307,6 +307,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             options.widget_grouplayout_actionstate = QHBoxLayout()
             options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
             options.as_main_btn_group = SLPAAButtonGroup()
+            options.as_main_cb_list = []
             options.as_sub_btn_groups = []  # container for sub buttons
             for child in options.options:
                 self.parse_actionstate(parent=options,
@@ -447,11 +448,37 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             module_output[k] = v
 
         # finally, action/state
-        #TODO
+        as_dict = {}  # usr selections parsed as Dictionary. to be passed as module_output['action_state']
+        _, v = self.package_action_state(as_dict, current_module.action_state)
+        as_dict['root'] = v
+
+        module_output['action_state'] = as_dict
 
         return module_output
 
+    def package_action_state(self, d, asm, parent=None):
+        # d: Dict. Upper level representation
+        # parent: parent ActionStateModel
+        # asm: ActionStateModel to be packaged as dictionary.
+        r = {}
+        selected_cb = what_selected(asm.as_main_cb_list)
+        selected_btn = what_selected(asm.as_main_btn_group)
+        selected_options = selected_cb + [selected_btn] if selected_btn is not None else selected_cb
 
+        for child in asm.options:
+            if isinstance(child, str):
+                # at the bottom
+                r = [] if isinstance(r, dict) else r
+                if selected_btn is not None and child == selected_btn:
+                    r = selected_btn
+                elif len(selected_cb) > 0:
+                    r.extend(selected_cb)
+            else:
+                if child.label not in selected_options:
+                    continue
+                res_k, res_v = self.package_action_state(d, child, parent=asm)
+                r[res_k] = res_v
+        return asm.label, r
 
     def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
         # package the user input and deliver
@@ -489,41 +516,41 @@ def load_specifications(values_toload, load_destination):
     # load_destination: major modules like 'shoulder' 'facial expressions'...
 
     # static dynamic
-    select_button(btn_group=load_destination.static_dynamic_group,
-                  btn_txt=values_toload['static_dynamic'])
+    select_this(btn_group=load_destination.static_dynamic_group,
+                btn_txt=values_toload['static_dynamic'])
     # sub-part(s)
     try:
         if values_toload['subpart'] == 'both':
-            select_button(btn_group=load_destination.subpart_group,
-                          btn_txt='both')
+            select_this(btn_group=load_destination.subpart_group,
+                        btn_txt='both')
         elif values_toload['subpart'] is not None:
-            select_button(btn_group=load_destination.subpart_group,
-                          btn_txt='one')
-            select_button(btn_group=load_destination.onepart_group,
-                          btn_txt=values_toload['subpart'])
+            select_this(btn_group=load_destination.subpart_group,
+                        btn_txt='one')
+            select_this(btn_group=load_destination.onepart_group,
+                        btn_txt=values_toload['subpart'])
 
     except KeyError:  # when no subpart spec exists, such as 'body', 'head', etc.
         pass
 
     # repetition
     try:
-        select_button(btn_group=load_destination.rep_group,
-                      btn_txt=values_toload['repetition'])
+        select_this(btn_group=load_destination.rep_group,
+                    btn_txt=values_toload['repetition'])
     except AttributeError:
         pass
 
     # directionality
     try:
-        select_button(btn_group=load_destination.directionality_group,
-                      btn_txt=values_toload['directionality'])
+        select_this(btn_group=load_destination.directionality_group,
+                    btn_txt=values_toload['directionality'])
     except AttributeError:
         pass
 
     # additional movement characteristics (size, speed, force, tenstion)
     try:
         for btn_group, btn_txt in zip(load_destination.additional_char_rb_group, ['size', 'speed', 'force', 'tension']):
-            select_button(btn_group=btn_group,
-                          btn_txt=values_toload[btn_txt])
+            select_this(btn_group=btn_group,
+                        btn_txt=values_toload[btn_txt])
     except AttributeError:
         pass
 
@@ -531,15 +558,20 @@ def load_specifications(values_toload, load_destination):
     return load_destination
 
 
-def what_selected(btn_group):
-    # input: SLPAAButtonGroup.
-    # helper function to get what user input among btns in the group
-    if btn_group.checkedButton() is None:
-        return None
-    return btn_group.checkedButton().text()
+def what_selected(group):
+    # input: SLPAAButtonGroup or list of QCheckBox objects
+    # helper function to get what user input among buttons/checkboxes in the group
+    if isinstance(group,QButtonGroup):
+        # get selected button (exclusive)
+        if group.checkedButton() is None:
+            return None
+        return group.checkedButton().text()
+    elif isinstance(group, list):
+        # get selected checkboxes (potentially many)
+        return [cb.text() for cb in group if cb.isChecked()]
 
 
-def select_button(btn_group, btn_txt):
+def select_this(btn_group, btn_txt):
     # given SLPAAButtonGroup, select the button named 'btn_txt'
     if not isinstance(btn_group, SLPAAButtonGroup) or not isinstance(btn_txt, str):
         return None
