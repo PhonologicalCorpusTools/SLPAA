@@ -818,15 +818,34 @@ class ImageTabWidget(QTabWidget):
 
 
 class LocationAction(QAction):
-    def __init__(self, name, svgscrollarea, app_ctx, **kwargs):
-        super().__init__(name, **kwargs)
-        self.name = name
-        self.svgscrollarea = svgscrollarea
+
+    # hand_matrix = {
+    #     "R": {
+    #         "contra": "L",
+    #         "ipsi": "R"
+    #     },
+    #     "L": {
+    #         "contra": "R",
+    #         "ipsi": "L"
+    #     }
+    # }
+
+    def __init__(self, elid, svgscrollarea, app_ctx, **kwargs):
         self.app_ctx = app_ctx
+        self.dominantside = self.app_ctx.main_window.current_sign.signlevel_information.handdominance
+        self.absoluteside = "R" if "Right" in elid else ("L" if "Left" in elid else "")
+        self.name = self.app_ctx.predefined_locations_description_byfilename[elid].replace(self.app_ctx.contraoripsi, self.get_relativehand())
+        super().__init__(self.name, **kwargs)
+        self.svgscrollarea = svgscrollarea
         self.triggered.connect(self.getnewimage)
 
+    def get_relativehand(self):
+        return "ipsi" if self.dominantside == self.absoluteside else "contra"
+
     def getnewimage(self):
-        self.svgscrollarea.handle_image_changed(self.app_ctx.predefined_locations_yellow[self.name])
+        selectedside = self.absoluteside or self.app_ctx.both
+        name = self.name.replace(" - contra", "").replace(" - ipsi", "")
+        self.svgscrollarea.handle_image_changed(self.app_ctx.predefined_locations_yellow[name][selectedside][self.app_ctx.nodiv])
 
 
 class SVGDisplayTab(QWidget):
@@ -883,7 +902,9 @@ class SVGDisplayTab(QWidget):
         if mousebutton == Qt.RightButton:
             print("right button released at", clickpoint.toPoint())
             # elementid_actions = [QAction(elid) for elid in listofids]
-            elementname_actions = [LocationAction(self.app_ctx.predefined_locations_description_byfilename[elid], self.imgscroll, self.app_ctx) for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
+            # elementnames = [self.app_ctx.predefined_locations_description_byfilename[elid] for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
+            # elementname_actions = [LocationAction(elementname, self.imgscroll, self.app_ctx) for elementname in elementnames]
+            elementname_actions = [LocationAction(elid, self.imgscroll, self.app_ctx) for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
             elementids_menu = QMenu()
             elementids_menu.addActions(elementname_actions)
             elementids_menu.exec_(clickpoint.toPoint())

@@ -181,7 +181,6 @@ class SignLevelInfoPanel(QFrame):
         self.compoundsign_cb.setChecked(False)
         self.set_handdominance(self.defaulthand)
 
-
     def set_handdominance(self, handdominance):
         if handdominance == 'R':
             self.handdominance_r_radio.setChecked(True)

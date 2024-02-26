@@ -5,15 +5,17 @@ from os.path import join, exists, realpath, dirname
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
 from .main_window import MainWindow
 
-right = "R"
-left = "L"
-both = "both/all"
-div = "with divisions"
-nodiv = "no divisions"
-contraoripsi = "contra/ipsi"
-
 
 class AppContext(ApplicationContext):
+    right = "R"
+    left = "L"
+    both = "both/all"
+    div = "with_Divisions"
+    nodiv = "no divisions"
+    contraoripsi = "contra/ipsi"
+    contra = "contra"
+    ipsi = "ipsi"
+
     def __init__(self):
         super().__init__()
         
@@ -128,454 +130,460 @@ class AppContext(ApplicationContext):
     def predefined_locations_bycolour(self, colour):
         return {
             "Abdominal/waist area": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Abdominal-Waist_Area-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Abdominal-Waist_Area-' + colour + '.svg')}
             },
             "Above forehead (hairline)": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Above_Forehead-Hairline-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Above_Forehead-Hairline-' + colour + '.svg')}
             },
             "Ankle": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Ankles-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Ankle-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Ankle-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Ankle-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Ankle-' + colour + '.svg')},
+            },
+            "Ankles": {
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Ankles-' + colour + '.svg')},
             },
             "Armpit": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Armpits-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Armpit-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Armpit-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Armpit-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Armpit-' + colour + '.svg')},
             },
-            # TODO KV fix
-            "Ankles": self.get_resource('predefined_locations/' + colour + '_HL/Ankles-' + colour + '.svg'),
-            "Armpits": self.get_resource('predefined_locations/' + colour + '_HL/Armpits-' + colour + '.svg'),
-            "Arms": self.get_resource('predefined_locations/' + colour + '_HL/Arms-' + colour + '.svg'),
-            "Chin": self.get_resource('predefined_locations/' + colour + '_HL/Chin-' + colour + '.svg'),
+            "Armpits": {
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Armpits-' + colour + '.svg')},
+            },
+            # # TODO KV fix
+            # "Ankles": self.get_resource('predefined_locations/' + colour + '_HL/Ankles-' + colour + '.svg'),
+            # "Armpits": self.get_resource('predefined_locations/' + colour + '_HL/Armpits-' + colour + '.svg'),
+            # "Arms": self.get_resource('predefined_locations/' + colour + '_HL/Arms-' + colour + '.svg'),
+            # "Chin": self.get_resource('predefined_locations/' + colour + '_HL/Chin-' + colour + '.svg'),
             "Arm": {
-                left: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Arm_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Arm-' + colour + '.svg'),
+                self.left: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Arm_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Arm-' + colour + '.svg'),
                 },
-                right: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Arm_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Arm-' + colour + '.svg'),
+                self.right: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Arm_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Arm-' + colour + '.svg'),
                 },
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Arms_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Arms-' + colour + '.svg'),
+            },
+            "Arms": {
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Arms_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Arms-' + colour + '.svg'),
                 }
             },
             "Back of head": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Back_of_Head-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Back_of_Head-' + colour + '.svg')}
             },
             "Behind ear": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Behind_Ears-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Behind_Ear-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Behind_Ear-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Behind_Ears-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Behind_Ear-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Behind_Ear-' + colour + '.svg')},
             },
             "Below nose / philtrum": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Below_Nose-Philtrum-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Below_Nose-Philtrum-' + colour + '.svg')}
             },
             "Between eyebrows": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Eyebrows-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Eyebrows-' + colour + '.svg')}
             },
             "Between Fingers 1 and 2": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers_1_and_2-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers_1_and_2-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Fingers_1_and_2-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers_1_and_2-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers_1_and_2-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Fingers_1_and_2-' + colour + '.svg')},
             },
             "Between Fingers 2 and 3": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers_2_and_3-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers_2_and_3-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Fingers_2_and_3-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers_2_and_3-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers_2_and_3-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Fingers_2_and_3-' + colour + '.svg')},
             },
             "Between Fingers 3 and 4": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers_3_and_4-' + colour + '.svg')},
-                left: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers_3_and_4-' + colour + '.svg')},
-                right: {nodiv: self.get_resource(
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers_3_and_4-' + colour + '.svg')},
+                self.left: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers_3_and_4-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource(
                     'predefined_locations/' + colour + '_HL/Right_Between_Fingers_3_and_4-' + colour + '.svg')},
             },
             "Between fingers": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Fingers-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Fingers-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Between_Fingers-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Fingers-' + colour + '.svg')},
             },
             "Between Thumb and Finger 1": {
-                both: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Thumb_and_Finger_1-' + colour + '.svg')},
-                left: {nodiv: self.get_resource(
+                self.both: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Between_Thumb_and_Finger_1-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource(
                     'predefined_locations/' + colour + '_HL/Left_Between_Thumb_and_Finger_1-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Thumb_and_Finger_1-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Between_Thumb_and_Finger_1-' + colour + '.svg')},
             },
             "Biceps": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Biceps-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Bicep-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Bicep-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Biceps-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Bicep-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Bicep-' + colour + '.svg')},
             },
             "Buttocks": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Buttocks-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Buttocks-' + colour + '.svg')}
             },
             "Cheek": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheeks-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Cheek-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Cheek-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheeks-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Cheek-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Cheek-' + colour + '.svg')}
             },
             "Cheek/nose": {
-                both: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheek_and_Nose-' + colour + '.svg'),
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Cheek_and_Nose_with_Divisions-' + colour + '.svg')
+                self.both: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheek_and_Nose-' + colour + '.svg'),
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Cheek_and_Nose_with_Divisions-' + colour + '.svg')
                 }
             },
             "Cheekbone in front of ear": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheekbone_in_Front_of_Ear-' + colour + '.svg')},
-                left: {nodiv: self.get_resource(
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheekbone_in_Front_of_Ear-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource(
                     'predefined_locations/' + colour + '_HL/Left_Cheekbone_in_Front_of_Ear-' + colour + '.svg')},
-                right: {nodiv: self.get_resource(
+                self.right: {self.nodiv: self.get_resource(
                     'predefined_locations/' + colour + '_HL/Right_Cheekbone_in_Front_of_Ear-' + colour + '.svg')}
             },
             "Cheekbone under eye": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheekbone_under_Eye-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Cheekbone_under_Eye-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Cheekbone_under_Eye-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Cheekbone_under_Eye-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Cheekbone_under_Eye-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Cheekbone_under_Eye-' + colour + '.svg')}
             },
             "Chest/breast area": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Chest-Breast_Area-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Chest-Breast_Area-' + colour + '.svg')}
             },
-            # "Chin": {
-            #     both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Chin-' + colour + '.svg')}
-            # },
+            "Chin": {
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Chin-' + colour + '.svg')}
+            },
             # Corner of mouth doesn't exist in Location tree as a general option-- only in contra- & ipsi-specific forms
             "Corner of mouth": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Corners_of_Mouth-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Corner_of_Mouth-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Corner_of_Mouth-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Corners_of_Mouth-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Corner_of_Mouth-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Corner_of_Mouth-' + colour + '.svg')}
             },
             "Earlobe": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Earlobes-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Earlobe-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Earlobe-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Earlobes-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Earlobe-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Earlobe-' + colour + '.svg')},
             },
             "Ear": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Ears_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Ears-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Ears_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Ears-' + colour + '.svg'),
                 },
-                left: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Ear_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Ear-' + colour + '.svg'),
+                self.left: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Ear_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Ear-' + colour + '.svg'),
                 },
-                right: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Ear_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Ear-' + colour + '.svg'),
+                self.right: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Ear_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Ear-' + colour + '.svg'),
                 }
             },
             "Elbow": {
-                both: {self.get_resource('predefined_locations/' + colour + '_HL/Elbows-' + colour + '.svg')},
-                left: {self.get_resource('predefined_locations/' + colour + '_HL/Left_Elbow-' + colour + '.svg')},
-                right: {self.get_resource('predefined_locations/' + colour + '_HL/Right_Elbow-' + colour + '.svg')}
+                self.both: {self.get_resource('predefined_locations/' + colour + '_HL/Elbows-' + colour + '.svg')},
+                self.left: {self.get_resource('predefined_locations/' + colour + '_HL/Left_Elbow-' + colour + '.svg')},
+                self.right: {self.get_resource('predefined_locations/' + colour + '_HL/Right_Elbow-' + colour + '.svg')}
             },
             "Eye region": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Eye_Region_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eye_Region-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Eye_Region_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eye_Region-' + colour + '.svg'),
                 },
             },
             "Eyebrow": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Eyebrows_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eyebrows-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Eyebrows_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eyebrows-' + colour + '.svg'),
                 },
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Eyebrow-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Eyebrow-' + colour + '.svg')}
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Eyebrow-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Eyebrow-' + colour + '.svg')}
             },
             "Eyelid": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eyelids-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Eyelids-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Eyelids-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eyelids-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Eyelids-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Eyelids-' + colour + '.svg')}
             },
             "Eye": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Eyes_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eyes-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Eyes_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Eyes-' + colour + '.svg'),
                 },
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Eye-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Eye-' + colour + '.svg')}
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Eye-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Eye-' + colour + '.svg')}
             },
             "Face": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Face_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Face-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Face_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Face-' + colour + '.svg'),
                 },
             },
             "Finger 1": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_1-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_1-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_1-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_1-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_1-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_1-' + colour + '.svg')},
             },
             "Finger 2": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_2-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_2-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_2-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_2-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_2-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_2-' + colour + '.svg')},
             },
             "Finger 3": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_3-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_3-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_3-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_3-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_3-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_3-' + colour + '.svg')},
             },
             "Finger 4": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_4-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_4-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_4-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Finger_4-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Finger_4-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Finger_4-' + colour + '.svg')},
             },
             "Fingers and thumb": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Fingers_and_Thumbs-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Fingers_and_Thumb-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Fingers_and_Thumb-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Fingers_and_Thumbs-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Fingers_and_Thumb-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Fingers_and_Thumb-' + colour + '.svg')}
             },
             "Fingers": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Fingers-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Fingers-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Fingers-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Fingers-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Fingers-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Fingers-' + colour + '.svg')}
             },
             "Foot": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Feet-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Foot-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Foot-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Feet-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Foot-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Foot-' + colour + '.svg')}
             },
             "Forearm": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Forearms-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Forearm-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Forearm-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Forearms-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Forearm-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Forearm-' + colour + '.svg')},
             },
             "Forehead region": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Forehead_Region_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Forehead_Region-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Forehead_Region_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Forehead_Region-' + colour + '.svg'),
                 },
             },
             "Forehead": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Forehead-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Forehead-' + colour + '.svg')}
             },
             "Groin": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Groin-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Groin-' + colour + '.svg')}
             },
             "Hand minus fingers": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Hands_minus_Fingers-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hand_minus_Fingers-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hand_minus_Fingers-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Hands_minus_Fingers-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hand_minus_Fingers-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hand_minus_Fingers-' + colour + '.svg')}
             },
             "Whole hand": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Hands_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Hands-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Hands_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Hands-' + colour + '.svg'),
                 },
-                left: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hand-' + colour + '.svg'),
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hand_with_Divisions-' + colour + '.svg')
+                self.left: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hand-' + colour + '.svg'),
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hand_with_Divisions-' + colour + '.svg')
                 },
-                right: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hand-' + colour + '.svg'),
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hand_with_Divisions-' + colour + '.svg')
+                self.right: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hand-' + colour + '.svg'),
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hand_with_Divisions-' + colour + '.svg')
                 }
             },
             "Head": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Head_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Head-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Head_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Head-' + colour + '.svg'),
                 },
             },
             "Heel of hand": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Heels_of_Hands-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Heel_of_Hand-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Heel_of_Hand-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Heels_of_Hands-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Heel_of_Hand-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Heel_of_Hand-' + colour + '.svg')},
             },
             "Hip": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Hips-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hip-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hip-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Hips-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Hip-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Hip-' + colour + '.svg')}
             },
             "Jaw": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Jaws-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Jaw-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Jaw-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Jaws-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Jaw-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Jaw-' + colour + '.svg')}
             },
             "Knee": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Knees-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Knee-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Knee-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Knees-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Knee-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Knee-' + colour + '.svg')}
             },
             "Legs and feet": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Legs_and_Feet_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Legs_and_Feet-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Legs_and_Feet_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Legs_and_Feet-' + colour + '.svg'),
                 },
-                left: {
-                    div: self.get_resource(
+                self.left: {
+                    self.div: self.get_resource(
                         'predefined_locations/' + colour + '_HL/Left_Leg_and_Foot_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Leg_and_Foot-' + colour + '.svg')
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Leg_and_Foot-' + colour + '.svg')
                 },
-                right: {
-                    div: self.get_resource(
+                self.right: {
+                    self.div: self.get_resource(
                         'predefined_locations/' + colour + '_HL/Right_Leg_and_Foot_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Leg_and_Foot-' + colour + '.svg')
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Leg_and_Foot-' + colour + '.svg')
                 }
             },
             "Lips": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lips-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lips-' + colour + '.svg')},
             },
             "Lower eyelid": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Eyelids-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Lower_Eyelid-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Lower_Eyelid-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Eyelids-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Lower_Eyelid-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Lower_Eyelid-' + colour + '.svg')}
             },
             "Lower leg": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Legs-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Lower_Leg-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Lower_Leg-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Legs-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Lower_Leg-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Lower_Leg-' + colour + '.svg')}
             },
             "Lower lip": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Lip-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Lip-' + colour + '.svg')},
             },
             "Lower torso": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Torso_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Torso-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Torso_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Lower_Torso-' + colour + '.svg'),
                 },
             },
             "Mouth": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Mouth_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Mouth-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Mouth_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Mouth-' + colour + '.svg'),
                 },
             },
             "Neck": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Neck-' + colour + '.svg'), },
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Neck-' + colour + '.svg'), },
             },
             "Nose": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Nose_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Nose_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose-' + colour + '.svg'),
                 },
             },
             "Nose root": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose_Root-' + colour + '.svg'), },
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose_Root-' + colour + '.svg'), },
             },
             "Nose ridge": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose_Ridge-' + colour + '.svg'), },
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose_Ridge-' + colour + '.svg'), },
             },
             "Nose tip": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose_Tip-' + colour + '.svg'), },
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nose_Tip-' + colour + '.svg'), },
             },
             "Nostril": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nostrils-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Nostril-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Nostril-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Nostrils-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Nostril-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Nostril-' + colour + '.svg')}
             },
             "Outer corner of eye": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Outer_Corners_of_Eyes-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Outer_Corner_of_Left_Eye-' + colour + '.svg')},
-                right: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Outer_Corner_of_Right_Eye-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Outer_Corners_of_Eyes-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Outer_Corner_of_Left_Eye-' + colour + '.svg')},
+                self.right: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Outer_Corner_of_Right_Eye-' + colour + '.svg')},
             },
             "Overall": {
-                both: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Overall_Highlight-' + colour + '.svg'),
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Overall_with_Divisions-' + colour + '.svg')
+                self.both: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Overall_Highlight-' + colour + '.svg'),
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Overall_with_Divisions-' + colour + '.svg')
                 },
             },
             "Pelvis area": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Pelvis_Area-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Pelvis_Area-' + colour + '.svg')}
             },
             "Septum": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Septum-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Septum-' + colour + '.svg')},
             },
             "Septum/nostril area": {
-                both: {
-                    div: self.get_resource(
+                self.both: {
+                    self.div: self.get_resource(
                         'predefined_locations/' + colour + '_HL/Septum-Nostril_Area_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Septum-Nostril_Area-' + colour + '.svg')
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Septum-Nostril_Area-' + colour + '.svg')
                 },
             },
             "Shoulder": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Shoulders-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Shoulder-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Shoulder-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Shoulders-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Shoulder-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Shoulder-' + colour + '.svg')}
             },
             "Side of face": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Sides_of_Face-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Side_of_Face-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Side_of_Face-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Sides_of_Face-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Side_of_Face-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Side_of_Face-' + colour + '.svg')}
             },
             "Sternum/clavicle area": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Sternum-Clavicle_Area-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Sternum-Clavicle_Area-' + colour + '.svg')},
             },
             "Teeth": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Teeth-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Teeth-' + colour + '.svg')},
             },
             "Temple": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Temple-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Temple-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Temple-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Temple-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Temple-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Temple-' + colour + '.svg')}
             },
             "Thumb": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Thumbs-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Thumb-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Thumb-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Thumbs-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Thumb-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Thumb-' + colour + '.svg')}
             },
             "Top of head": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Top_of_Head-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Top_of_Head-' + colour + '.svg')},
             },
             "Torso": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Torso_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Torso-' + colour + '.svg')
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Torso_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Torso-' + colour + '.svg')
                 },
             },
             "Under chin": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Underchin-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Underchin-' + colour + '.svg')},
             },
             "Upper arm above biceps": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Arms_above_Bicep-' + colour + '.svg')},
-                left: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Arm_above_Bicep-' + colour + '.svg')},
-                right: {
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Arm_above_Bicep-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Arms_above_Bicep-' + colour + '.svg')},
+                self.left: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Arm_above_Bicep-' + colour + '.svg')},
+                self.right: {
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Arm_above_Bicep-' + colour + '.svg')}
             },
             "Upper arm": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Arms_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Arms-' + colour + '.svg'),
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Arms_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Arms-' + colour + '.svg'),
                 },
-                left: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Arm_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Arm-' + colour + '.svg')
+                self.left: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Arm_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Arm-' + colour + '.svg')
                 },
-                right: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Arm_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Arm-' + colour + '.svg')
+                self.right: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Arm_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Arm-' + colour + '.svg')
                 }
             },
             "Upper eyelid": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Eyelids-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Eyelid-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Eyelid-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Eyelids-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Eyelid-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Eyelid-' + colour + '.svg')}
             },
             "Upper leg": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Legs-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Leg-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Leg-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Legs-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Upper_Leg-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Upper_Leg-' + colour + '.svg')}
             },
             "Upper lip": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Lip-' + colour + '.svg')},
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Lip-' + colour + '.svg')},
             },
             "Upper torso": {
-                both: {
-                    div: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Torso_with_Divisions-' + colour + '.svg'),
-                    nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Torso-' + colour + '.svg')
+                self.both: {
+                    self.div: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Torso_with_Divisions-' + colour + '.svg'),
+                    self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Upper_Torso-' + colour + '.svg')
                 },
             },
             "Wrist": {
-                both: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Wrists-' + colour + '.svg')},
-                left: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Wrist-' + colour + '.svg')},
-                right: {nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Wrist-' + colour + '.svg')}
+                self.both: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Wrists-' + colour + '.svg')},
+                self.left: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Left_Wrist-' + colour + '.svg')},
+                self.right: {self.nodiv: self.get_resource('predefined_locations/' + colour + '_HL/Right_Wrist-' + colour + '.svg')}
             },
         }
 
@@ -585,47 +593,165 @@ class AppContext(ApplicationContext):
             "Abdominal-Waist_Area": "Abdominal/waist area",
             "Above_Forehead-Hairline": "Above Forehead (hairline)",
             "Ankles": "Ankles",
-            "Right_Ankle":  "Ankle - " + contraoripsi,
-            "Left_Ankle": "Ankle - " + contraoripsi,
+            "Right_Ankle":  "Ankle - " + self.contraoripsi,
+            "Left_Ankle": "Ankle - " + self.contraoripsi,
             "Armpits": "Armpits",
-            "Right_Armpit": "Armpit - " + contraoripsi,
-            "Left_Armpit": "Armpit - " + contraoripsi,
+            "Right_Armpit": "Armpit - " + self.contraoripsi,
+            "Left_Armpit": "Armpit - " + self.contraoripsi,
             "Arms": "Arms",
-            "Right_Arm": "Arm - " + contraoripsi,
-            "Left_Arm": "Arm - " + contraoripsi,
+            "Right_Arm": "Arm - " + self.contraoripsi,
+            "Left_Arm": "Arm - " + self.contraoripsi,
             "Below_Nose-Philtrum": "Below nose / philtrum",
             "Between_Eyebrows": "Between eyebrows",
             "Between_Fingers_1_and_2": "Between Fingers 1 and 2",
-            "Right_Between_Fingers_1_and_2": "Between Fingers 1 and 2 - " + contraoripsi,
-            "Left_Between_Fingers_1_and_2": "Between Fingers 1 and 2 - " + contraoripsi,
+            "Right_Between_Fingers_1_and_2": "Between Fingers 1 and 2 - " + self.contraoripsi,
+            "Left_Between_Fingers_1_and_2": "Between Fingers 1 and 2 - " + self.contraoripsi,
             "Between_Fingers_2_and_3": "Between Fingers 2 and 3",
-            "Right_Between_Fingers_2_and_3": "Between Fingers 2 and 3 - " + contraoripsi,
-            "Left_Between_Fingers_2_and_3": "Between Fingers 2 and 3 - " + contraoripsi,
+            "Right_Between_Fingers_2_and_3": "Between Fingers 2 and 3 - " + self.contraoripsi,
+            "Left_Between_Fingers_2_and_3": "Between Fingers 2 and 3 - " + self.contraoripsi,
             "Between_Fingers_3_and_4": "Between Fingers 3 and 4",
-            "Right_Between_Fingers_3_and_4": "Between Fingers 3 and 4 - " + contraoripsi,
-            "Left_Between_Fingers_3_and_4": "Between Fingers 3 and 4 - " + contraoripsi,
+            "Right_Between_Fingers_3_and_4": "Between Fingers 3 and 4 - " + self.contraoripsi,
+            "Left_Between_Fingers_3_and_4": "Between Fingers 3 and 4 - " + self.contraoripsi,
             "Between_Fingers": "Between fingers",
-            "Right_Between_Fingers": "Between fingers - " + contraoripsi,
-            "Left_Between_Fingers": "Between fingers - " + contraoripsi,
+            "Right_Between_Fingers": "Between fingers - " + self.contraoripsi,
+            "Left_Between_Fingers": "Between fingers - " + self.contraoripsi,
             "Between_Thumb_and_Finger_1": "Between Thumb and Finger 1",
-            "Right_Between_Thumb_and_Finger_1": "Between Thumb and Finger 1 - " + contraoripsi,
-            "Left_Between_Thumb_and_Finger_1": "Between Thumb and Finger 1 - " + contraoripsi,
+            "Right_Between_Thumb_and_Finger_1": "Between Thumb and Finger 1 - " + self.contraoripsi,
+            "Left_Between_Thumb_and_Finger_1": "Between Thumb and Finger 1 - " + self.contraoripsi,
             "Biceps": "Biceps",
-            "Left_Bicep": "Biceps - " + contraoripsi,
-            "Right_Bicep": "Biceps - " + contraoripsi,
+            "Left_Bicep": "Biceps - " + self.contraoripsi,
+            "Right_Bicep": "Biceps - " + self.contraoripsi,
             "Cheek_and_Nose": "Cheek/nose",
             "Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear",
-            "Left_Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear - " + contraoripsi,
-            "Right_Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear - " + contraoripsi,
+            "Left_Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear - " + self.contraoripsi,
+            "Right_Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear - " + self.contraoripsi,
             "Cheekbone_under_Eye": "Cheekbone under eye",
-            "Right_Cheekbone_under_Eye": "Cheekbone under eye - " + contraoripsi,
-            "Left_Cheekbone_under_Eye": "Cheekbone under eye - " + contraoripsi,
+            "Right_Cheekbone_under_Eye": "Cheekbone under eye - " + self.contraoripsi,
+            "Left_Cheekbone_under_Eye": "Cheekbone under eye - " + self.contraoripsi,
             "Cheeks": "Cheeks",
-            "Left_Cheek": "Cheek - " + contraoripsi,
-            "Right_Cheek": "Cheek - " + contraoripsi,
+            "Left_Cheek": "Cheek - " + self.contraoripsi,
+            "Right_Cheek": "Cheek - " + self.contraoripsi,
             "Chest-Breast_Area": "Chest/breast area",
             "Chin": "Chin",
-            # TODO KV continue
+            "Corners_of_Mouth": "Corner of mouth",
+            "Left_Corner_of_Mouth": "Corner of mouth - " + self.contraoripsi,
+            "Right_Corner_of_Mouth": "Corner of mouth - " + self.contraoripsi,
+            "Earlobes": "Earlobes",
+            "Right_Earlobe": "Earlobe - " + self.contraoripsi,
+            "Left_Earlobe": "Earlobe - " + self.contraoripsi,
+            "Ears": "Ears",
+            "Right_Ear": "Ear - " + self.contraoripsi,
+            "Left_Ear": "Ear - " + self.contraoripsi,
+            "Elbows": "Elbows",
+            "Right_Elbow": "Elbow - " + self.contraoripsi,
+            "Left_Elbow": "Elbow - " + self.contraoripsi,
+            "Eye_Region": "Eye region",
+            "Eyebrows": "Eyebrows",
+            "Right_Eyebrow": "Eyebrow - " + self.contraoripsi,
+            "Left_Eyebrow": "Eyebrow - " + self.contraoripsi,
+            "Eyelids": "Eyelids",
+            "Right_Eyelids": "Eyelids - " + self.contraoripsi,
+            "Left_Eyelids": "Eyelids - " + self.contraoripsi,
+            "Eyes": "Eyes",
+            "Right_Eye": "Eye - " + self.contraoripsi,
+            "Left_Eye": "Eye - " + self.contraoripsi,
+            "Face": "Face",
+            "Feet": "Feet",
+            "Right_Foot": "Foot - " + self.contraoripsi,
+            "Left_Foot": "Foot - " + self.contraoripsi,
+            "Forearms": "Forearms",
+            "Right_Forearm": "Forearm - " + self.contraoripsi,
+            "Left_Forearm": "Forearm - " + self.contraoripsi,
+            "Finger_1": "Finger 1",
+            "Right_Finger_1": "Finger 1 - " + self.contraoripsi,
+            "Left_Finger_1": "Finger 1 - " + self.contraoripsi,
+            "Finger_2": "Finger 2",
+            "Right_Finger_2": "Finger 2 - " + self.contraoripsi,
+            "Left_Finger_2": "Finger 2 - " + self.contraoripsi,
+            "Finger_3": "Finger 3",
+            "Right_Finger_3": "Finger 3 - " + self.contraoripsi,
+            "Left_Finger_3": "Finger 3 - " + self.contraoripsi,
+            "Finger_4": "Finger 4",
+            "Right_Finger_4": "Finger 4 - " + self.contraoripsi,
+            "Left_Finger_4": "Finger 4 - " + self.contraoripsi,
+            "Fingers_and_Thumbs": "Fingers and thumbs",
+            "Right_Fingers_and_Thumb": "Fingers and thumb - " + self.contraoripsi,
+            "Left_Fingers_and_Thumb": "Fingers and thumb - " + self.contraoripsi,
+            "Fingers": "Fingers",
+            "Right_Fingers": "Fingers - " + self.contraoripsi,
+            "Left_Fingers": "Fingers - " + self.contraoripsi,
+            "Forearms": "Forearms",
+            "Right_Forearm": "Forearm - " + self.contraoripsi,
+            "Left_Forearm": "Forearm - " + self.contraoripsi,
+            "Forehead_Region": "Forehead region",
+            "Forehead": "Forehead",
+            "Groin": "Groin",
+            "Hands_minus_Fingers": "Hands minus fingers",
+            "Right_Hand_minus_Fingers": "Hand_minus_Fingers - " + self.contraoripsi,
+            "Left_Hand_minus_Fingers": "Hand_minus_Fingers - " + self.contraoripsi,
+            "Hands": "Hands",
+            "Right_Hand": "Hand - " + self.contraoripsi,
+            "Left_Hand": "Hand - " + self.contraoripsi,
+            "Heels_of_Hands": "Heels of hands",
+            "Right_Heel_of_Hands": "Heel of hand - " + self.contraoripsi,
+            "Left_Heel_of_Hands": "Heel of hand - " + self.contraoripsi,
+            "Hips": "Hips",
+            "Right_Hip": "Hip - " + self.contraoripsi,
+            "Left_Hip": "Hip - " + self.contraoripsi,
+            "Jaws": "Jaws",
+            "Right_Jaw": "Jaw - " + self.contraoripsi,
+            "Left_Jaw": "Jaw - " + self.contraoripsi,
+            "Knees": "Knees",
+            "Right_Knee": "Knee - " + self.contraoripsi,
+            "Left_Knee": "Knee - " + self.contraoripsi,
+            "Legs_and_Feet": "Legs and feet",
+            "Right_Leg_and_Foot": "Leg and foot - " + self.contraoripsi,
+            "Left_Leg_and_Foot": "Leg and foot - " + self.contraoripsi,
+            "Lips": "Lips",
+            "Lower_Eyelids": "Lower eyelids",
+            "Right_Lower_Eyelid": "Lower eyelid - " + self.contraoripsi,
+            "Left_Lower_Eyelid": "Lower eyelid - " + self.contraoripsi,
+            "Nostrils": "Nostrils",
+            "Right_Nostril": "Nostril - " + self.contraoripsi,
+            "Left_Nostril": "Nostril - " + self.contraoripsi,
+            "Shoulders": "Shoulders",
+            "Right_Shoulder": "Shoulder - " + self.contraoripsi,
+            "Left_Shoulder": "Shoulder - " + self.contraoripsi,
+            "Sides_of_Face": "Sides of face",
+            "Right_Side_of_Face": "Side of face - " + self.contraoripsi,
+            "Left_Side_of_Face": "Side of face - " + self.contraoripsi,
+            "Temple": "Temple",
+            "Right_Temple": "Temple - " + self.contraoripsi,
+            "Left_Temple": "Temple - " + self.contraoripsi,
+            "Thumbs": "Thumbs",
+            "Right_Thumb": "Thumb - " + self.contraoripsi,
+            "Left_Thumb": "Thumb - " + self.contraoripsi,
+            "Upper_Arms_above_Bicep": "Upper arms above bicep",
+            "Right_Upper_Arm_above_Bicep": "Upper arm above bicep - " + self.contraoripsi,
+            "Left_Upper_Arm_above_Bicep": "Upper arm above bicep - " + self.contraoripsi,
+            "Upper_Eyelids": "Upper eyelids",
+            "Right_Upper_Eyelid": "Upper eyelids - " + self.contraoripsi,
+            "Left_Upper_Eyelid": "Upper eyelids - " + self.contraoripsi,
+            "Upper_Legs": "Upper legs",
+            "Right_Upper_Leg": "Upper leg - " + self.contraoripsi,
+            "Left_Upper_Leg": "Upper leg - " + self.contraoripsi,
+            "Upper_Lip": "Upper lip",
+            "Upper_Torso": "Upper torso",
+            "Wrists": "Wrists",
+            "Right_Wrist": "Wrist - " + self.contraoripsi,
+            "Left_Wrist": "Wrist - " + self.contraoripsi,
+            "Septum-Nostril_Area": "Septum/nostril area",
+            "Septum": "Septum",
+            "Sternum-Clavicle_Area": "Sternum/clavicle area",
+            "Teeth": "Teeth",
+            "Top_of_Head": "Top of head",
+            "Torso": "Torso",
+            "Underchin": "Under chin",
+            "Upper_Arms": "Upper arms",
+            "Right_Upper_Arm": "Upper arm - " + self.contraoripsi,
+            "Left_Upper_Arm": "Upper arm - " + self.contraoripsi,
+            "Upper_Torso": "Upper torso",
+            # TODO KV check
         }
 
     @cached_property
