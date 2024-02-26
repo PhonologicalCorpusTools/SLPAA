@@ -907,6 +907,7 @@ class SVGDisplayTab(QWidget):
             elementname_actions = [LocationAction(elid, self.imgscroll, self.app_ctx) for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
             elementids_menu = QMenu()
             elementids_menu.addActions(elementname_actions)
+            print("about to create menu at", clickpoint)
             elementids_menu.exec_(clickpoint.toPoint())
         elif mousebutton == Qt.LeftButton:
             print("left button released at", clickpoint.toPoint())
@@ -1022,17 +1023,18 @@ class SVGGraphicsScene(QGraphicsScene):
         # print("     scenePos():", event.scenePos().x(), event.scenePos().y())
         # print("     itemsBoundingRect():", self.itemsBoundingRect().x(), self.itemsBoundingRect().y(), self.itemsBoundingRect().width(), self.itemsBoundingRect().height())
         mousebutton = event.button()
-        clickpoint = QPointF(event.scenePos().x(), event.scenePos().y())
-        items = self.items(clickpoint)
+        scenepoint = QPointF(event.scenePos().x(), event.scenePos().y())
+        screenpoint = QPointF(event.screenPos().x(), event.screenPos().y())
+        items = self.items(scenepoint)
         clickedids = [it.elementId() for it in items if it.elementId() != ""]
         # possible_ids_for_image = [clicked_id for clicked_id in clickedids if clicked_id in self.app_ctx.predefined_locations_test.keys()]
         # random_id = possible_ids_for_image[random.randrange(0, len(possible_ids_for_image))]
         # random_image = self.app_ctx.predefined_locations_test[random_id]
         # self.img_changed.emit(random_image)
         # print("randomly chose sub-image:", random_id)
-        allids = [it.elementId() for it in self.items()]
-        # print("all IDs (" + str(len(allids)) + "):", allids)
-        self.img_clicked.emit(clickpoint, clickedids, mousebutton)
+        # allids = [it.elementId() for it in self.items()]
+        # # print("all IDs (" + str(len(allids)) + "):", allids)
+        self.img_clicked.emit(screenpoint, clickedids, mousebutton)
 
 
 # # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
