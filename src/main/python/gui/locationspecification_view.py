@@ -316,12 +316,22 @@ class LocationOptionsSelectionPanel(QFrame):
 
         if self.showimagetabs:
             self.imagetabwidget = ImageTabWidget(treemodel=self.treemodel, parent=self)
+            self.imagetabwidget.region_selected.connect(self.handle_region_selected)
             selection_layout.addWidget(self.imagetabwidget)
 
         list_layout = self.create_list_layout()
         selection_layout.addLayout(list_layout)
 
         return selection_layout
+
+    def handle_region_selected(self, regionname):
+        # TODO KV
+        # then select that item AND (?) call self.selectlistitem(locationtreeitem) to add to list
+        matchingitems = self.treemodel.findItems(regionname, Qt.MatchRecursive)
+        print("locationtreemodel items matching regionname", regionname, ":", [it.text() for it in matchingitems])
+        for item in matchingitems:
+            item.setCheckState(Qt.Checked)
+            # self.selectlistitem(item)
 
     def update_detailstable(self, selected=None, deselected=None):
         selectedindexes = self.pathslistview.selectionModel().selectedIndexes()
@@ -771,6 +781,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
 
 class ImageTabWidget(QTabWidget):
+    region_selected = pyqtSignal(str)
 
     def __init__(self, treemodel, **kwargs):
         super().__init__(**kwargs)
@@ -780,6 +791,7 @@ class ImageTabWidget(QTabWidget):
         self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.fronttab.linkbutton_toggled.connect(lambda ischecked:
                                                  self.handle_linkbutton_toggled(ischecked, self.fronttab))
+        self.fronttab.region_selected.connect(lambda regionname: self.region_selected.emit(regionname))
         self.addTab(self.fronttab, "Front")
         self.backtab = SVGDisplayTab(self.mainwindow.app_ctx, 'back')
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
@@ -818,17 +830,7 @@ class ImageTabWidget(QTabWidget):
 
 
 class LocationAction(QAction):
-
-    # hand_matrix = {
-    #     "R": {
-    #         "contra": "L",
-    #         "ipsi": "R"
-    #     },
-    #     "L": {
-    #         "contra": "R",
-    #         "ipsi": "L"
-    #     }
-    # }
+    region_selected = pyqtSignal(str)
 
     def __init__(self, elid, svgscrollarea, app_ctx, **kwargs):
         self.app_ctx = app_ctx
@@ -837,20 +839,28 @@ class LocationAction(QAction):
         self.name = self.app_ctx.predefined_locations_description_byfilename[elid].replace(self.app_ctx.contraoripsi, self.get_relativehand())
         super().__init__(self.name, **kwargs)
         self.svgscrollarea = svgscrollarea
-        self.triggered.connect(self.getnewimage)
+        self.triggered.connect(self.handle_selection)
+        # self.triggered.connect(self.getnewimage)
 
     def get_relativehand(self):
         return "ipsi" if self.dominantside == self.absoluteside else "contra"
 
-    def getnewimage(self):
+    def handle_selection(self):
         selectedside = self.absoluteside or self.app_ctx.both
         name = self.name.replace(" - contra", "").replace(" - ipsi", "")
+        self.region_selected.emit(name)
+        self.getnewimage(selectedside, name)
+
+    def getnewimage(self, selectedside, name):
+        # selectedside = self.absoluteside or self.app_ctx.both
+        # name = self.name.replace(" - contra", "").replace(" - ipsi", "")
         self.svgscrollarea.handle_image_changed(self.app_ctx.predefined_locations_yellow[name][selectedside][self.app_ctx.nodiv])
 
 
 class SVGDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
+    region_selected = pyqtSignal(str)
 
     def __init__(self, app_ctx, frontbackside='front', specificpath="", **kwargs):
         super().__init__(**kwargs)
@@ -865,12 +875,7 @@ class SVGDisplayTab(QWidget):
 
         self.imgscroll = SVGDisplayScroll(imagepath, app_ctx)
         self.imgscroll.zoomfactor_changed.connect(lambda scale: self.zoomfactor_changed.emit(scale))
-        # main_layout.addWidget(self.imgscroll)
         img_layout.addWidget(self.imgscroll)
-        # self.bodypart_note = QPlainTextEdit("last clicked: n/a")
-        # self.bodypart_note.setMaximumHeight(90)
-        # img_layout.addWidget(self.bodypart_note)
-        # self.imgscroll.img_clicked.connect(lambda listofids: self.bodypart_note.setPlainText("last clicked: " + " / ".join(listofids)))
         self.imgscroll.img_clicked.connect(self.handle_img_clicked)
         main_layout.addLayout(img_layout)
 
@@ -897,20 +902,18 @@ class SVGDisplayTab(QWidget):
 
     def handle_img_clicked(self, clickpoint, listofids, mousebutton):
         listofids = list(set(listofids))
-        print("IDs at click " + str(len(listofids)) + ":", listofids)
-        # self.bodypart_note.setPlainText("last clicked: " + ", ".join(listofids))
+        print(str(len(listofids)) + " IDs at click:", listofids)
         if mousebutton == Qt.RightButton:
-            print("right button released at", clickpoint.toPoint())
-            # elementid_actions = [QAction(elid) for elid in listofids]
-            # elementnames = [self.app_ctx.predefined_locations_description_byfilename[elid] for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
-            # elementname_actions = [LocationAction(elementname, self.imgscroll, self.app_ctx) for elementname in elementnames]
+            # print("right button released at", clickpoint.toPoint())
             elementname_actions = [LocationAction(elid, self.imgscroll, self.app_ctx) for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
+            for locationaction in elementname_actions:
+                locationaction.region_selected.connect(lambda regionname: self.region_selected.emit(regionname))
             elementids_menu = QMenu()
             elementids_menu.addActions(elementname_actions)
-            print("about to create menu at", clickpoint)
+            # print("about to create menu at", clickpoint)
             elementids_menu.exec_(clickpoint.toPoint())
-        elif mousebutton == Qt.LeftButton:
-            print("left button released at", clickpoint.toPoint())
+        # elif mousebutton == Qt.LeftButton:
+            # print("left button released at", clickpoint.toPoint())
         # elif mousebutton == Qt.MiddleButton:
         #     print("middle button released at", clickpoint.toPoint())
 
