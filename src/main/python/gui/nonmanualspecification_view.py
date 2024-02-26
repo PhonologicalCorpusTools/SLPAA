@@ -554,8 +554,57 @@ def load_specifications(values_toload, load_destination):
     except AttributeError:
         pass
 
+    # action state
+    as_to_load = values_toload['action_state']  # packaged action_state selections. comes as Dict
+    if len(as_to_load['root']) != 0:
+        load_destination.action_state = load_actionstate(as_to_load, load_destination.action_state)
 
     return load_destination
+
+
+def load_actionstate(saved_dict, asm, parent=None):
+    # see content of saved_dict and fill out the action state part of the nonman spec dialog (asm)
+    # saved_dict: Dict. previous action_state selections
+    # asm: ActionStateModel
+    # parent: ActionStateModel that is one level higher than asm or None (if asm is the root)
+    for i, child in enumerate(asm.options):
+        if isinstance(child, str):
+            # bottom. select a button or cb.
+            to_select = get_value_from_saved_dict(key_to_find=asm.label,
+                                                  input_dict=saved_dict,
+                                                  parent=parent.label)
+            if child == to_select:
+                select_this(asm.as_main_btn_group, to_select)
+        else:
+            if get_value_from_saved_dict(child.label, saved_dict, asm.label) is not None:
+                if len(asm.as_main_cb_list) > 0:
+                    checkmark_this(asm.as_main_cb_list, child.label)
+                else:
+                    select_this(asm.as_main_btn_group, child.label)
+                asm.options[i] = load_actionstate(saved_dict, child, parent=asm)
+    return asm
+
+
+def get_value_from_saved_dict(key_to_find, input_dict, parent=None):
+    parent = 'root' if parent is None else parent
+
+    # Check if the parent is in the dictionary
+    if parent in input_dict and isinstance(input_dict[parent], dict):
+        # Check if the key to find is in the parent dictionary
+        if key_to_find in input_dict[parent]:
+            return input_dict[parent][key_to_find]
+
+    # If the key is not found, recursively search in nested dictionaries
+    for key, value in input_dict.items():
+        if isinstance(value, dict):
+            result = get_value_from_saved_dict(key_to_find=key_to_find,
+                                               input_dict=value,
+                                               parent=parent)
+            if result is not None:
+                return result
+
+    # Return None if the key is not found in the dictionary
+    return None
 
 
 def what_selected(group):
@@ -579,3 +628,12 @@ def select_this(btn_group, btn_txt):
     for btn in btn_group.buttons():
         if btn.text() == btn_txt:
             btn.setChecked(True)
+
+
+def checkmark_this(cb_list, cb_text):
+    if len(cb_list) == 0:
+        return None
+
+    for cb in cb_list:
+        if cb.text() == cb_text:
+            cb.setChecked(True)
