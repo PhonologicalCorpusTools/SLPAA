@@ -64,8 +64,8 @@ class Search_SignLevelInfoSelectorDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
-        self.signlevelinfo_widget.set_starting_focus()
         self.setMinimumSize(QSize(700, 500))  # width, height
+            
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -86,6 +86,8 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
     def __init__(self, signlevelinfo, **kwargs):
         super().__init__(signlevelinfo, **kwargs)
         QWidget().setLayout(self.layout()) # reparent the current inherited layout
+        self.signlevelinfo = signlevelinfo
+        
         self.create_and_set_layout() # otherwise, will be attempting to set layout to something that already has a layout
     
     def create_and_set_layout(self):
@@ -162,16 +164,20 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         main_layout.addRow(fingerspelled_label, self.fingerspelled_layout)
         main_layout.addRow(compoundsign_label, self.compoundsign_layout)
         main_layout.addRow(handdominance_label, self.handdominance_layout)
-
+        self.set_value()
         self.setLayout(main_layout)
 
     def get_handdominance(self):
         if self.handdominance_r_radio.isChecked():
             return 'R'
-        elif self.handdominance_r_radio.isChecked():
+        elif self.handdominance_l_radio.isChecked():
             return 'L'
         else:
             return ""
+    
+    def set_handdominance(self, val):
+        self.handdominance_r_radio.setChecked(val=='R')
+        self.handdominance_l_radio.setChecked(val=='L')
 
     def get_compoundsignstatus(self):
         if self.compoundsign_F_rb.isChecked():
@@ -180,6 +186,12 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
             return 'T'
         else:
             return ""
+    
+    def set_compoundsignstatus(self, val):
+        if val is not None:
+            self.compoundsign_T_rb.setChecked(val=='T')
+            self.compoundsign_F_rb.setChecked(val=='F')
+
 
     def get_fingerspelledstatus(self):
         if self.fingerspelled_F_rb.isChecked():
@@ -188,6 +200,11 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
             return 'T'
         else:
             return ""
+
+    def set_fingerspelledstatus(self, val):
+        if val is not None:
+            self.fingerspelled_T_rb.setChecked(val=='T')
+            self.fingerspelled_F_rb.setChecked(val=='F')
 
     # don't check that gloss is populated
     def get_value(self):
@@ -208,6 +225,23 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
             'handdominance': self.get_handdominance()
         }
 
+    def set_value(self, signlevelinfo=None):
+        if not signlevelinfo:
+            signlevelinfo = self.signlevelinfo
+        if self.signlevelinfo:
+            self.entryid_value.setText(signlevelinfo.entryid)
+            self.gloss_edit.setText(signlevelinfo.gloss)
+            self.lemma_edit.setText(signlevelinfo.lemma)
+            self.source_edit.setText(signlevelinfo.source)
+            self.signer_edit.setText(signlevelinfo.signer)
+            self.freq_edit.setText(str(signlevelinfo.frequency))
+            self.coder_edit.setText(signlevelinfo.coder)
+            self.created_display.setText(signlevelinfo.datecreated)
+            self.modified_display.setText(signlevelinfo.datelastmodified)
+            self.note_edit.setPlainText(signlevelinfo.note if signlevelinfo.note is not None else "")
+            self.set_fingerspelledstatus(signlevelinfo.fingerspelled)
+            self.set_compoundsignstatus(signlevelinfo.compoundsign)
+            self.set_handdominance(signlevelinfo.handdominance)
     # Remove the wrapper that forces gloss to be populated
     def get_gloss(self):
         return self.gloss_edit.text()
@@ -332,11 +366,14 @@ class CustomRBGrp(QButtonGroup):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setExclusive(False)
-        self.buttonClicked.connect(self.uncheck_buttons)
+        self.buttonClicked.connect(self.on_button_click)
     
-    def uncheck_buttons(self, button):
-        for b in self.buttons():
-            b.setChecked(b==button)
+    def on_button_click(self, button):
+        if button.isChecked():
+            for b in self.buttons():
+                b.setChecked(b==button)
+        else:
+            button.setChecked(False)
 
 class Search_MovementSpecPanel(MovementSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):

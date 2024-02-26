@@ -40,7 +40,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject, pyqtSlot
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure
 from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel
-from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
+from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
 from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog
 
 class SearchWindow(QMainWindow):
@@ -139,9 +139,9 @@ class SearchWindow(QMainWindow):
         self.searchmodel.modify_target(target, row)
     
     # TODO i want this in the SearchTargets class, but it needs access to the SearchBuilder
+    # seems repetitive! is there a better way to do this?
     def handle_target_doubleclicked(self, index):
         row = index.row()
-
         item = self.search_targets_view.get_search_target_item(row)
 
         if item.targettype == XSLOT_TARGET:
@@ -149,6 +149,11 @@ class SearchWindow(QMainWindow):
             timing_selector.target_saved.connect(lambda target_name, max_xslots, min_xslots: 
                                                  self.build_search_target_view.handle_save_xslottarget(target_name, max_xslots, min_xslots, row=row))
             timing_selector.exec_()
+
+        elif item.targettype == SIGNLEVELINFO_TARGET:
+            initialdialog = NameDialog(parent=self, preexistingname=item.name)
+            initialdialog.continue_clicked.connect(lambda name: self.build_search_target_view.show_next_dialog(SIGNLEVELINFO_TARGET, name, preexistingitem=item, row=row))
+            initialdialog.exec_()
 
             
 class SearchTargetsView(QWidget):
@@ -193,8 +198,6 @@ class SearchTargetsView(QWidget):
 
         return it
 
-            
-
 
 class ListDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
@@ -223,6 +226,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         timing_selector = XSlotTargetDialog(parent=self)
         timing_selector.target_saved.connect(self.handle_save_xslottarget)
         timing_selector.exec_()
+    
+    def emit_signal(self, target, row):
+        if row == None:
+            self.target_added.emit(target)
+        else: # modify a preexisting target located at given row
+            self.target_modified.emit(target, row)
 
     def handle_save_xslottarget(self, target_name, max_xslots, min_xslots, row=None):
         target = SearchTargetItem()
@@ -232,10 +241,8 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             target.values["xslot min"] = min_xslots
         if max_xslots != "":
             target.values["xslot max"] = max_xslots
-        if row == None:
-            self.target_added.emit(target)
-        else: # modify a preexisting target located at given row
-            self.target_modified.emit(target, row)
+        self.emit_signal(target, row)
+
 
     def handle_signlevelbutton_click(self):
         initialdialog = NameDialog(parent=self)
@@ -247,7 +254,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         initialdialog.continue_clicked.connect(lambda name, xslottype, xslotnum: self.show_next_dialog(moduletype, name, xslottype, xslotnum))
         initialdialog.exec_()
 
-    def show_next_dialog(self, targettype, name, xslottype=None, num=None): # TODO most of these arguments are not used
+    def show_next_dialog(self, targettype, name, xslottype=None, num=None, preexistingitem=None, row=None): # TODO most of these arguments are not used
         target = SearchTargetItem()
         target.targettype = targettype
         target.name = name
@@ -255,8 +262,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         target.xslotnum = num
 
         if targettype==SIGNLEVELINFO_TARGET:
-            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(None, parent=self)
-            signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo))
+            if preexistingitem is not None:
+                sli = SignLevelInformation(preexistingitem.values)
+            else:
+                sli = None
+            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(sli, parent=self)
+            signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo, row=row))
             signlevelinfo_selector.exec_()
         
         if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
@@ -286,9 +297,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         target.values["articulators"] = module_to_save.articulators
         self.target_added.emit(target)
 
-
-
-    def handle_save_signlevelinfo(self, target, signlevel_info):
+    def handle_save_signlevelinfo(self, target, signlevel_info, row=None):
         target.values["entryid"] = signlevel_info.entryid
         target.values["gloss"] = signlevel_info.gloss
         target.values["lemma"] = signlevel_info.lemma
@@ -304,7 +313,8 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         target.values["compoundsign"] = signlevel_info.compoundsign
         target.values["handdominance"] = signlevel_info.handdominance
        
-        self.target_added.emit(target)
+        self.emit_signal(target, row)
+            
 
 # TODO move these classes to search_classes.py
 class NameWidget(QWidget):
@@ -330,7 +340,7 @@ class NameWidget(QWidget):
 class NameDialog(QDialog):
     continue_clicked = pyqtSignal(str)
 
-    def __init__(self, **kwargs):
+    def __init__(self, preexistingname=None, **kwargs):
         super().__init__(**kwargs)
 
         self.name_widget = NameWidget(parent=self)
@@ -343,9 +353,15 @@ class NameDialog(QDialog):
         layout.addWidget(self.buttonbox)
 
         self.setLayout(layout)
+        if preexistingname is not None:
+            self.reload_item(preexistingname)
     
     def toggle_continue_selectable(self):
         self.buttonbox.save_button.setEnabled(self.name_widget.name != "")
+    
+    def reload_item(self, name):
+        self.name_widget.text_entry.setText(name)
+        self.toggle_continue_selectable()
 
 
     def on_continue_clicked(self):
@@ -458,8 +474,8 @@ class XSlotTargetDialog(QDialog):
         layout.addWidget(self.name_widget)
         self.name_widget.on_name_entered.connect(self.toggle_continue_selectable)
 
-        self.min_xslots_cb = QCheckBox('Minimum number of x_slots:')
-        self.max_xslots_cb = QCheckBox('Maximum number of x_slots:') 
+        self.min_xslots_cb = QCheckBox('Minimum number of x-slots:')
+        self.max_xslots_cb = QCheckBox('Maximum number of x-slots:') 
         self.max_num = QLineEdit()
         self.min_num = QLineEdit()
         self.max_num.textChanged.connect(self.on_xslottarget_max_edited)
