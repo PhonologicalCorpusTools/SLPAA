@@ -468,11 +468,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         for child in asm.options:
             if isinstance(child, str):
                 # at the bottom
-                r = [] if isinstance(r, dict) else r
                 if selected_btn is not None and child == selected_btn:
-                    r = selected_btn
+                    r[selected_btn] = {}
                 elif len(selected_cb) > 0:
-                    r.extend(selected_cb)
+                    for cb in selected_cb:
+                        r[cb] = {}
             else:
                 if child.label not in selected_options:
                     continue
@@ -573,11 +573,16 @@ def load_actionstate(saved_dict, asm, parent=None):
     for i, child in enumerate(asm.options):
         if isinstance(child, str):
             # bottom. select a button or cb.
-            to_select = get_value_from_saved_dict(key_to_find=asm.label,
-                                                  input_dict=saved_dict,
-                                                  parent=parent.label)
-            if child == to_select:
-                select_this(asm.as_main_btn_group, to_select)
+            if parent is None:
+                # shallow button directly connected to the root
+                to_select = [key for key, value in saved_dict['root'].items() if len(value) == 0]
+            else:
+                to_select = get_value_from_saved_dict(key_to_find=asm.label,
+                                                      input_dict=saved_dict,
+                                                      parent=parent.label)
+                to_select = list(to_select.keys())
+            if child in to_select:
+                select_this(asm.as_main_btn_group, child)
         else:
             if get_value_from_saved_dict(child.label, saved_dict, asm.label) is not None:
                 if len(asm.as_main_cb_list) > 0:
