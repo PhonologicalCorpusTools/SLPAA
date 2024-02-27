@@ -449,15 +449,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         # finally, action/state
         as_dict = {}  # usr selections parsed as Dictionary. to be passed as module_output['action_state']
-        _, v = self.package_action_state(as_dict, current_module.action_state)
+        _, v = self.package_action_state(current_module.action_state)
         as_dict['root'] = v
 
         module_output['action_state'] = as_dict
 
         return module_output
 
-    def package_action_state(self, d, asm, parent=None):
-        # d: Dict. Upper level representation
+    def package_action_state(self, asm):
         # parent: parent ActionStateModel
         # asm: ActionStateModel to be packaged as dictionary.
         r = {}
@@ -466,7 +465,18 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         selected_options = selected_cb + [selected_btn] if selected_btn is not None else selected_cb
 
         for child in asm.options:
+            at_bottom = False
             if isinstance(child, str):
+                # bottom radio buttons
+                at_bottom = True
+            elif child.label not in selected_options:
+                # not a selected option, then skip packaging.
+                continue
+            elif child.options is None:
+                # bottom check boxes
+                at_bottom = True
+
+            if at_bottom:
                 # at the bottom
                 if selected_btn is not None and child == selected_btn:
                     r[selected_btn] = {}
@@ -474,9 +484,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                     for cb in selected_cb:
                         r[cb] = {}
             else:
-                if child.label not in selected_options:
-                    continue
-                res_k, res_v = self.package_action_state(d, child, parent=asm)
+                res_k, res_v = self.package_action_state(child)
                 r[res_k] = res_v
         return asm.label, r
 
@@ -571,10 +579,18 @@ def load_actionstate(saved_dict, asm, parent=None):
     # asm: ActionStateModel
     # parent: ActionStateModel that is one level higher than asm or None (if asm is the root)
     for i, child in enumerate(asm.options):
+        bottom = False
         if isinstance(child, str):
+            bottom = True
+        elif child.options is None:
+            # bottom check boxes
+            bottom = True
+            child = child.label
+
+        if bottom:
             # bottom. select a button or cb.
             if parent is None:
-                # shallow button directly connected to the root
+                # shallow button/checkbox directly connected to the root
                 to_select = [key for key, value in saved_dict['root'].items() if len(value) == 0]
             else:
                 to_select = get_value_from_saved_dict(key_to_find=asm.label,
@@ -582,7 +598,12 @@ def load_actionstate(saved_dict, asm, parent=None):
                                                       parent=parent.label)
                 to_select = list(to_select.keys())
             if child in to_select:
-                select_this(asm.as_main_btn_group, child)
+                all_cb = [cb.text() for cb in asm.as_main_cb_list]
+                all_btn = asm.as_main_btn_group.buttons()
+                if child in all_cb:
+                    checkmark_this(asm.as_main_cb_list, child)
+                elif child in all_btn:
+                    select_this(asm.as_main_btn_group, child)
         else:
             if get_value_from_saved_dict(child.label, saved_dict, asm.label) is not None:
                 if len(asm.as_main_cb_list) > 0:
@@ -636,6 +657,7 @@ def select_this(btn_group, btn_txt):
     for btn in btn_group.buttons():
         if btn.text() == btn_txt:
             btn.setChecked(True)
+            return
 
 
 def checkmark_this(cb_list, cb_text):
@@ -645,3 +667,4 @@ def checkmark_this(cb_list, cb_text):
     for cb in cb_list:
         if cb.text() == cb_text:
             cb.setChecked(True)
+            return
