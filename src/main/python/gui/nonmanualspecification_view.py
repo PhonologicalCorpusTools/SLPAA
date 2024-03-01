@@ -1,25 +1,15 @@
 from PyQt5.QtWidgets import (
-    QListView,
-    QLineEdit,
-    QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
-    QLabel,
     QButtonGroup,
     QGroupBox,
-    QAbstractItemView,
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton, QTabWidget, QWidget, QScrollArea
+    QTabWidget, QScrollArea
 )
 
-from PyQt5.QtCore import (
-    Qt,
-    QEvent,
-    pyqtSignal,
-    QItemSelectionModel
-)
+from PyQt5.QtCore import (Qt, pyqtSignal,)
 
 from lexicon.module_classes import (
     NonManualModule,
@@ -35,15 +25,10 @@ from lexicon.module_classes import (
     ContactType,
     BodypartInfo
 )
-from models.relation_models import ModuleLinkingListModel
-from models.location_models import BodypartTreeModel
 from models.nonmanual_models import NonManualModel, nonmanual_root
-from gui.relationspecification_view import RelationRadioButton
+from gui.relationspecification_view import RelationRadioButton as SLPAARadioButton
 from gui.relationspecification_view import RelationButtonGroup
 from gui.modulespecification_widgets import ModuleSpecificationPanel
-from gui.bodypartspecification_dialog import BodypartSelectorDialog
-from gui.helper_widget import OptionSwitch
-from constant import HAND, ARM, LEG
 
 
 class SLPAAButtonGroup(RelationButtonGroup):
@@ -52,12 +37,6 @@ class SLPAAButtonGroup(RelationButtonGroup):
         super().__init__()
         if buttonslist is not None:
             [self.addButton(button) for button in buttonslist]
-
-
-class SLPAARadioButton(RelationRadioButton):
-    def __init__(self, text):
-        # btn_text: button text for easy reference
-        super().__init__(text)
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
@@ -76,7 +55,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         # non manual specs
         self.nonman_specifications = {}
-
 
         # different major non manual tabs
         self.tab_widget = QTabWidget()             # Create a tab widget
@@ -123,9 +101,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         row_2 = self.build_row2(nonman)  # action / state
         row_3 = self.build_row3(nonman)  # mvmt characteristics
 
-        tab_widget.layout.addLayout(row_1)
-        tab_widget.layout.addLayout(row_2)
-        tab_widget.layout.addLayout(row_3)
+        rows = [row_1, row_2, row_3]
+        [tab_widget.layout.addLayout(row) for row in rows if row is not None]
 
         if nonman.children:
             subtabs_container = QTabWidget()
@@ -135,7 +112,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             tab_widget.layout.addWidget(subtabs_container)
             tab_widget.setLayout(tab_widget.layout)
             return tab_widget
-
 
         tab_widget.setLayout(tab_widget.layout)
 
@@ -399,7 +375,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
     def validity_check(self):
         # called when 'save' clicked. need to confirm
         return True, ''
-
 
     def wrapper_get_nonman_specs(self):
         res = {}
