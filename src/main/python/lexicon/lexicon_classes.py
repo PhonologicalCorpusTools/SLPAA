@@ -84,6 +84,9 @@ class Sign:
             self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
             self.handconfigmodules = serializedsign['cfg modules']
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
+            self.nonmanualmodules = serializedsign['nonman modules']
+            self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
+                if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.NONMANUAL)
 
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
@@ -140,6 +143,8 @@ class Sign:
             'rel module numbers': self.relationmodulenumbers,
             'ori modules': self.orientationmodules,
             'ori module numbers': self.orientationmodulenumbers,
+            'nonman modules': self.nonmanualmodules,
+            'nonman module numbers': self.nonmanualmodulenumbers,
             'cfg modules': self.handconfigmodules,
             'cfg module numbers': self.handconfigmodulenumbers,
         }
