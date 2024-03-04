@@ -6,6 +6,7 @@ from PyQt5.QtCore import (
     QRectF,
     QPoint,
     pyqtSignal,
+    QSettings
 )
 
 from PyQt5.QtWidgets import (
@@ -325,7 +326,7 @@ class SignSummaryPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
+            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid.display_string())
         signleveltext.setPos(self.x_offset, self.current_y)
         self.current_y += 30
         self.scene.addItem(signleveltext)
@@ -339,14 +340,6 @@ class SignSummaryPanel(QScrollArea):
         self.addhand(2)
         self.addnonhand()
         self.addgridlines()
-
-    def entryid_string(self, entryid_int=None):
-        numdigits = int(self.settings['display']['entryid_digits'])
-        if entryid_int is None:
-            entryid_int = self.sign.signlevel_information.entryid
-        entryid_string = str(entryid_int)
-        entryid_string = "0" * (numdigits - len(entryid_string)) + entryid_string
-        return entryid_string
 
     def addsigntype(self):
         if self.sign.signtype is not None:

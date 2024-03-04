@@ -22,6 +22,7 @@ from PyQt5.QtCore import (
 )
 
 from lexicon.lexicon_classes import SignLevelInformation
+from lexicon.module_classes import EntryID
 from gui.decorator import check_empty_gloss
 
 class SignLevelDateDisplay(QLabel):
@@ -44,7 +45,6 @@ class SignLevelDateDisplay(QLabel):
         self.set_datetime(None)
 
 
-# TODO KV redo the order in which init creates itself
 class SignLevelInfoPanel(QFrame):
 
     def __init__(self, signlevelinfo, **kwargs):
@@ -62,37 +62,35 @@ class SignLevelInfoPanel(QFrame):
         main_layout.setSpacing(5)
 
         entryid_label = QLabel("Entry ID:")
-        gloss_label = QLabel('Gloss:')
-        lemma_label = QLabel('Lemma:')
-        source_label = QLabel('Source:')
-        signer_label = QLabel('Signer:')
-        freq_label = QLabel('Frequency:')
-        coder_label = QLabel('Coder:')
-        created_label = QLabel('Date created:')
-        modified_label = QLabel('Date last modified:')
-        note_label = QLabel('Notes:')
-
         self.entryid_value = QLineEdit()
-        self.entryid_value.setText(self.entryid_string())
+        self.entryid_value.setText(self.entryid().display_string())
         self.entryid_value.setEnabled(False)
+        gloss_label = QLabel('Gloss:')
         self.gloss_edit = QLineEdit()
         self.gloss_edit.setFocusPolicy(Qt.StrongFocus)
+        lemma_label = QLabel('Lemma:')
         self.lemma_edit = QLineEdit()
+        source_label = QLabel('Source:')
         self.source_edit = QLineEdit()
+        signer_label = QLabel('Signer:')
         self.signer_edit = QLineEdit()
+        freq_label = QLabel('Frequency:')
         self.freq_edit = QLineEdit()
+        coder_label = QLabel('Coder:')
         self.coder_edit = QLineEdit()
+        created_label = QLabel('Date created:')
         self.created_display = SignLevelDateDisplay()
+        modified_label = QLabel('Date last modified:')
         self.modified_display = SignLevelDateDisplay()
+        note_label = QLabel('Notes:')
         self.note_edit = QPlainTextEdit()
-
-        self.fingerspelled_cb = QCheckBox()
         fingerspelled_label = QLabel('Fingerspelled:')
-        self.compoundsign_cb = QCheckBox()
+        self.fingerspelled_cb = QCheckBox()
         compoundsign_label = QLabel('Compound sign:')
+        self.compoundsign_cb = QCheckBox()
 
         handdominance_label = QLabel("Hand dominance:")
-        self.handdominance_buttongroup = QButtonGroup()  # parent=self)
+        self.handdominance_buttongroup = QButtonGroup()
         self.handdominance_l_radio = QRadioButton('Left')
         self.handdominance_l_radio.setProperty('hand', 'L')
         self.handdominance_r_radio = QRadioButton('Right')
@@ -129,15 +127,7 @@ class SignLevelInfoPanel(QFrame):
         if self.signlevelinfo is not None:
             return self.signlevelinfo.entryid
         else:
-            return self.mainwindow.corpus.highestID+1
-
-    def entryid_string(self, entryid_int=None):
-        numdigits = int(self.settings['display']['entryid_digits'])
-        if entryid_int is None:
-            entryid_int = self.entryid()
-        entryid_string = str(entryid_int)
-        entryid_string = "0"*(numdigits - len(entryid_string)) + entryid_string
-        return entryid_string
+            return EntryID(counter=self.mainwindow.corpus.highestID+1, date=datetime.now())
 
     def set_starting_focus(self):
         self.gloss_edit.setFocus()
@@ -146,7 +136,7 @@ class SignLevelInfoPanel(QFrame):
         if not signlevelinfo:
             signlevelinfo = self.signlevelinfo
         if self.signlevelinfo:
-            self.entryid_value.setText(self.entryid_string(signlevelinfo.entryid))
+            self.entryid_value.setText(self.signlevelinfo.entryid.display_string())
             self.gloss_edit.setText(signlevelinfo.gloss)
             self.lemma_edit.setText(signlevelinfo.lemma)
             self.source_edit.setText(signlevelinfo.source)
@@ -180,7 +170,6 @@ class SignLevelInfoPanel(QFrame):
         self.fingerspelled_cb.setChecked(False)
         self.compoundsign_cb.setChecked(False)
         self.set_handdominance(self.defaulthand)
-
 
     def set_handdominance(self, handdominance):
         if handdominance == 'R':

@@ -295,10 +295,10 @@ class Sign:
         self.relationmodules = unserialized
 
     def __hash__(self):
-        return hash(self.signlevel_information.entryid)
+        return hash(self.signlevel_information.entryid.display_string())  # TODO KV how are equality/keys determined?
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
-    def __eq__(self, other):
+    def __eq__(self, other):  # TODO KV how are equality/keys determined?
         return isinstance(other, Sign) and self.signlevel_information.entryid == other.signlevel_information.entryid
 
     def __repr__(self):
@@ -412,7 +412,7 @@ class Corpus:
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID
             # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             self.confirmhighestID("load")
-            self.add_missing_paths() # Another backwards compatibility function for movement and location
+            self.add_missing_paths()  # Another backwards compatibility function for movement and location
         else:
             self.name = name
             self.signs = signs if signs else set()
@@ -426,8 +426,8 @@ class Corpus:
     # this function should hopefully not be necessary forever, but for now I want to make sure that
     # functionality isn't affected by an incorrectly-saved value
     def confirmhighestID(self, saveorload):
-        entryIDs = [s.signlevel_information.entryid for s in self.signs]
-        max_entryID = max(entryIDs)
+        entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs]
+        max_entryID = max(entryIDcounters)
         if max_entryID > self.highestID:
             logging.warn(" upon " + saveorload + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
@@ -482,7 +482,7 @@ class Corpus:
 
     def add_sign(self, new_sign):
         self.signs.add(new_sign)
-        self.highestID = max([new_sign.signlevel_information.entryid, self.highestID])
+        self.highestID = max(new_sign.signlevel_information.entryid.counter, self.highestID)
 
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)

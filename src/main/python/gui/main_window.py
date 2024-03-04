@@ -13,7 +13,8 @@ from PyQt5.QtCore import (
     QSize,
     QSettings,
     QPoint,
-    pyqtSignal
+    pyqtSignal,
+    QCoreApplication
 )
 
 from PyQt5.QtWidgets import (
@@ -72,6 +73,8 @@ class MainWindow(QMainWindow):
     def __init__(self, app_ctx):
         super().__init__()
         self.app_ctx = app_ctx
+        QCoreApplication.setOrganizationName("UBC Phonology Tools")
+        QCoreApplication.setApplicationName("Sign Language Phonetic Annotator and Analyzer")
 
         self.corpus = None
         self.current_sign = None
@@ -582,70 +585,76 @@ class MainWindow(QMainWindow):
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
 
-        self.app_qsettings = QSettings('UBC Phonology Tools',
-                                       application='Sign Language Phonetic Annotator and Analyzer')
+        self.app_qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         self.app_qsettings.beginGroup('storage')
         self.app_settings['storage']['recent_folder'] = self.app_qsettings.value(
             'recent_folder',
             defaultValue=os.path.expanduser('~/Documents'))
-        self.app_settings['storage']['corpora'] = self.app_qsettings.value('corpora',
-                                                                           defaultValue=os.path.normpath(
-                                                                               os.path.join(
-                                                                                   os.path.expanduser('~/Documents'),
-                                                                                   'PCT', 'SLP-AA', 'CORPORA')))
-        self.app_settings['storage']['image'] = self.app_qsettings.value('image',
-                                                                         defaultValue=os.path.normpath(
-                                                                             os.path.join(
-                                                                                 os.path.expanduser('~/Documents'),
-                                                                                 'PCT', 'SLP-AA', 'IMAGE')))
-        self.app_qsettings.endGroup()
+        self.app_settings['storage']['corpora'] = self.app_qsettings.value(
+            'corpora',
+            defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'CORPORA'))
+        )
+        self.app_settings['storage']['image'] = self.app_qsettings.value(
+            'image',
+            defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'IMAGE'))
+        )
+        self.app_qsettings.endGroup()  # storage
 
         self.app_qsettings.beginGroup('display')
         self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(2000, 1200))
         self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(0, 23))
 
-        self.app_settings['display']['sub_corpus_show'] = bool(self.app_qsettings.value('sub_corpus_show',
-                                                                                        defaultValue=True))
-        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos',
-                                                                                  defaultValue=QPoint(0, 0))
-        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size',
-                                                                                   defaultValue=QSize(340, 700))
+        self.app_settings['display']['sub_corpus_show'] = bool(self.app_qsettings.value('sub_corpus_show', defaultValue=True))
+        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 0))
+        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(340, 700))
 
-        self.app_settings['display']['sub_signlevelmenu_show'] = bool(self.app_qsettings.value('sub_signlevelmenu_show',
-                                                                                               defaultValue=True))
-        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos',
-                                                                                         defaultValue=QPoint(340, 0))
-        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size',
-                                                                                          defaultValue=QSize(320, 700))
+        self.app_settings['display']['sub_signlevelmenu_show'] = bool(self.app_qsettings.value('sub_signlevelmenu_show', defaultValue=True))
+        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(340, 0))
+        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(320, 700))
 
-        self.app_settings['display']['sub_visualsummary_show'] = bool(self.app_qsettings.value('sub_visualsummary_show',
-                                                                                               defaultValue=True))
-        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos',
-                                                                                         defaultValue=QPoint(660, 0))
-        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size',
-                                                                                          defaultValue=QSize(1200, 900))
+        self.app_settings['display']['sub_visualsummary_show'] = bool(self.app_qsettings.value('sub_visualsummary_show', defaultValue=True))
+        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(660, 0))
+        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(1200, 900))
 
         self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2, type=int)
         self.app_settings['display']['tooltips'] = bool(self.app_qsettings.value('tooltips', defaultValue=True))
-        self.app_settings['display']['entryid_digits'] = self.app_qsettings.value('entryid_digits', defaultValue=4,
-                                                                                  type=int)
-        self.app_qsettings.endGroup()
+        # backward compatibility:
+        #   entryid_digits used to be under the display section but has now (20240229) moved to a separate entryid section
+        #   if this setting was saved under display, make sure it's re-stored in entryid and that 'display/entryid_digits' is removed
+        existing_entryid_digits = None
+        if self.app_qsettings.contains('entryid_digits'):
+            existing_entryid_digits = self.app_qsettings.value('entryid_digits')
+            self.app_qsettings.remove('entryid_digits')
+        self.app_qsettings.endGroup()  # display
+
+        self.app_qsettings.beginGroup('entryid')
+        self.app_qsettings.beginGroup('counter')
+        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=False, type=bool)))
+        self.app_qsettings.setValue('order', int(self.app_qsettings.value('order', defaultValue=0, type=int)))
+        counterdigits = existing_entryid_digits or int(self.app_qsettings.value('digits', defaultValue=4, type=int))
+        self.app_qsettings.setValue('digits', counterdigits)
+        self.app_qsettings.endGroup()  # counter
+        self.app_qsettings.beginGroup('date')
+        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=False, type=bool)))
+        self.app_qsettings.setValue('order', int(self.app_qsettings.value('order', defaultValue=0, type=int)))
+        self.app_qsettings.setValue('format', str(self.app_qsettings.value('format', defaultValue='YYYY-MM', type=str)))
+        self.app_qsettings.endGroup()  # date
+        self.app_qsettings.setValue('delimiter', self.app_qsettings.value('delimiter', defaultValue='_', type=str))
+        self.app_qsettings.endGroup()  # entryid
 
         self.app_qsettings.beginGroup('metadata')
         self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue='NEWUSERNAME')
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # metadata
 
         self.app_qsettings.beginGroup('reminder')
         self.app_settings['reminder']['overwrite'] = bool(self.app_qsettings.value('overwrite', defaultValue=True))
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
-        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance',
-                                                                                      defaultValue='R')
+        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
         self.app_settings['signdefaults']['signtype'] = self.app_qsettings.value('signtype', defaultValue='none')
-        self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation',
-                                                                                         defaultValue='none')
+        self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none')
         self.app_qsettings.beginGroup('partial_xslots')
         self.app_settings['signdefaults']['partial_xslots'] = defaultdict(dict)
         self.app_settings['signdefaults']['partial_xslots'][str(Fraction(1, 2))] = \
@@ -669,8 +678,7 @@ class MainWindow(QMainWindow):
             os.makedirs(self.app_settings['storage']['image'])
 
     def save_app_settings(self):
-        self.app_qsettings = QSettings('UBC Phonology Tools',
-                                       application='Sign Language Phonetic Annotator and Analyzer')
+        self.app_qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         self.app_qsettings.beginGroup('storage')
         self.app_qsettings.setValue('recent_folder', self.app_settings['storage']['recent_folder'])
@@ -687,8 +695,10 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
-        self.app_qsettings.setValue('entryid_digits', self.app_settings['display']['entryid_digits'])
         self.app_qsettings.endGroup()
+
+        # We don't need to explicitly save any of the 'entryid' group values, because they are never cached
+        # into self.app_settings; they're always directly saved to and referenced from QSettings in real time
 
         self.app_qsettings.beginGroup('metadata')
         self.app_qsettings.setValue('coder', self.app_settings['metadata']['coder'])
@@ -810,30 +820,6 @@ class MainWindow(QMainWindow):
 
     @check_unsaved_corpus
     def on_action_save(self, clicked):
-        # signlevel_info = self.signlevelinfo_scroll.get_value()
-        # location_transcription_info = self.parameter_scroll.location_layout.get_location_value()
-        # global_hand_info = self.transcription_scroll.global_info.get_value()
-        # configs = [self.transcription_scroll.config1.get_value(),
-        #            self.transcription_scroll.config2.get_value()]
-        #
-        # # if missing then some of them will be none
-        # if signlevel_info and location_transcription_info and global_hand_info and configs:
-        #     if self.current_sign:
-        #         response = QMessageBox.question(self, 'Overwrite the current sign',
-        #                                         'Do you want to overwrite the existing transcriptions?')
-        #         if response == QMessageBox.Yes:
-        #             self.corpus.remove_sign(self.current_sign)
-        #         else:
-        #             return
-        #
-        #     if not self.new_sign:
-        #         self.new_sign = Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
-        #     # new_sign = self.new_sign if self.new_sign else Sign(signlevel_info, global_hand_info, configs, location_transcription_info)
-        #     self.corpus.add_sign(self.new_sign)
-        #     self.corpus_view.updated_glosses(self.corpus.get_sign_glosses(), self.new_sign.signlevel_information.gloss)
-        #     self.current_sign = self.new_sign
-        #     self.action_delete_sign.setEnabled(True)
-
         if self.corpus.path:
             self.corpus.name = self.corpus_display.corpus_title.text()
             self.save_corpus_binary()
@@ -911,7 +897,7 @@ class MainWindow(QMainWindow):
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
-        else: # if loading a blank corpus
+        else:  # if loading a blank corpus
             self.signsummary_panel.mainwindow.current_sign = None # refreshsign() checks for this
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
@@ -919,7 +905,7 @@ class MainWindow(QMainWindow):
 
         self.unsaved_changes = False
 
-        return self.corpus is not None  # bool(Corpus)
+        return self.corpus is not None
 
     def on_action_close(self, clicked):
         self.close()
@@ -966,7 +952,6 @@ class MainWindow(QMainWindow):
                 indices.append(list(self.corpus.signs).index(sign))
             except ValueError:
                 pass
-        # print(indices)
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes
