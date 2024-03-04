@@ -172,6 +172,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
             nonman.subpart_group = SLPAAButtonGroup(subpart_list)
 
+            nonman.subpart_group.buttonToggled.connect(lambda rb, ischecked:
+                                                       self.handle_onepart_btn_toggled(rb, ischecked, nonman))
+
             nonman.rb_onepart_one = SLPAARadioButton("H1")
             nonman.rb_onepart_two = SLPAARadioButton("H2")
             onepart_list = [nonman.rb_onepart_one, nonman.rb_onepart_two]
@@ -206,9 +209,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         return row
 
     def handle_onepart_btn_toggled(self, rb, ischecked, nonman):
-        if ischecked:
+        if 'H' in rb.text() and ischecked:
+            # H1 or H2 under One {specifier} selected.
             # make sure to have parent selected
             nonman.rb_subpart_one.setChecked(True)
+        elif 'One' in rb.text() and not ischecked:
+            # deselecting One should deselect its children.
+            for btn in nonman.onepart_group.buttons():
+                btn.group().setExclusive(False)
+                btn.setChecked(False)
+                btn.group().setExclusive(True)
 
     def handle_mid_rb_toggled(self, ischecked, btn_self, parent, children):
         """
