@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QTabWidget, QScrollArea
+    QTabWidget, QScrollArea, QRadioButton
 )
 
 from PyQt5.QtCore import (Qt, pyqtSignal,)
@@ -166,17 +166,20 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             onepart_spacedlayout = QHBoxLayout()
             onepart_layout = QHBoxLayout()
 
-            nonman.widget_rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
-            nonman.widget_rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
-            subpart_list = [nonman.widget_rb_subpart_both, nonman.widget_rb_subpart_one]
+            nonman.rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
+            nonman.rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
+            subpart_list = [nonman.rb_subpart_both, nonman.rb_subpart_one]
 
             nonman.subpart_group = SLPAAButtonGroup(subpart_list)
 
-            nonman.widget_rb_onepart_one = SLPAARadioButton("H1")
-            nonman.widget_rb_onepart_two = SLPAARadioButton("H2")
-            onepart_list = [nonman.widget_rb_onepart_one, nonman.widget_rb_onepart_two]
+            nonman.rb_onepart_one = SLPAARadioButton("H1")
+            nonman.rb_onepart_two = SLPAARadioButton("H2")
+            onepart_list = [nonman.rb_onepart_one, nonman.rb_onepart_two]
 
-            nonman.onepart_group = SLPAAButtonGroup(onepart_list)
+            nonman.onepart_group = SLPAAButtonGroup(onepart_list)  # radiobutton group for H1 and H2
+
+            nonman.onepart_group.buttonToggled.connect(lambda rb, ischecked:
+                                                       self.handle_onepart_btn_toggled(rb, ischecked, nonman))
 
             [onepart_layout.addWidget(widget) for widget in onepart_list]
             onepart_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
@@ -201,6 +204,32 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             row.addWidget(visibility_box)
         self.nonman_specifications[nonman.label] = nonman
         return row
+
+    def handle_onepart_btn_toggled(self, rb, ischecked, nonman):
+        if ischecked:
+            # make sure to have parent selected
+            nonman.rb_subpart_one.setChecked(True)
+
+    def handle_mid_rb_toggled(self, ischecked, btn_self, parent, children):
+        """
+        Middle button handler. When selected, select a parent. When deselected, grey out children.
+        :param ischecked: Bool. whether the btn is checked
+        :param btn_self: button itself.
+        :param parent: QRadioButton or ActiostateModel object
+        :param children: SLPAAButtonGroup. children button group to grey out when btn_self is unselected
+        """
+        print(f'[DEBUG] caught {btn_self.text()}. checked: {ischecked}')
+
+        if ischecked:
+            # toggle parent as well
+            self.handle_bottom_rb_toggled(btn_self, ischecked, parent)
+        else:
+            # kill children
+            for btn in children.buttons():
+                btn.group().setExclusive(False)
+                btn.setChecked(False)
+                btn.group().setExclusive(True)
+                btn.repaint()  # mac specific issue
 
     def build_row2(self, nonman):
         """
@@ -236,55 +265,70 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         return row
 
     def parse_actionstate(self, parent, options):
+        """
+        Parses the action state options, reletive to parent and options.options (children)
+        """
         if isinstance(options, str):
             # in shallow module
-            added_rb = SLPAARadioButton(options)
-            parent.as_main_btn_group.addButton(added_rb)
-            parent.widget_grouplayout_actionstate.addWidget(added_rb)
-            parent.widget_grouplayout_actionstate.setAlignment(added_rb, Qt.AlignTop)
+            main_btn = SLPAARadioButton(options)
+            parent.as_btn_group.addButton(main_btn)
+            parent.widget_grouplayout_actionstate.addWidget(main_btn)
+            parent.widget_grouplayout_actionstate.setAlignment(main_btn, Qt.AlignTop)
+
+            #parent.as_btn_group.buttonToggled.connect(lambda rb, ischecked: self.handle_rb_toggled(rb, ischecked, parent))
+            main_btn.toggled.connect(lambda checked: self.handle_bottom_rb_toggled(main_btn, checked, parent.main_btn))
             return
 
         elif options.label:
             # parse this node and its children
             options.widget_grouplayout_actionstate = QVBoxLayout()
             options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
-            options.as_main_btn_group = SLPAAButtonGroup()
-            options.as_main_cb_list = []
-            options.as_sub_btn_groups = []  # container for sub buttons
+            options.as_btn_group = SLPAAButtonGroup()  # btn group to contain children
+            options.as_cb_list = []  # checkbox list to contain children
 
             main_layout = QVBoxLayout()
             main_layout.setAlignment(Qt.AlignTop)
             if options.exclusive:
-                main_btn = SLPAARadioButton(options.label)
-                parent.as_main_btn_group.addButton(main_btn)
+                # create the button itself.
+                options.main_btn = SLPAARadioButton(options.label)
+                parent.as_btn_group.addButton(options.main_btn)
             else:
-                main_btn = QCheckBox(options.label)
-                parent.as_main_cb_list.append(main_btn)
-            main_layout.addWidget(main_btn)
+                # create the checkbox itself.
+                options.main_btn = QCheckBox(options.label)
+                parent.as_cb_list.append(options.main_btn)
+            main_layout.addWidget(options.main_btn)
+            options.main_btn.toggled.connect(lambda checked: self.handle_mid_rb_toggled(ischecked=checked,
+                                                                                        btn_self=options.main_btn,
+                                                                                        parent=parent,
+                                                                                        children=options.as_btn_group))
             sub_layout = QVBoxLayout()
 
             sub_spacedlayout = QHBoxLayout()
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
 
             if options.options is not None:
+                # parse children
                 for child in options.options:
                     if isinstance(child, str):
                         sub_rb = SLPAARadioButton(child)
                         sub_layout.addWidget(sub_rb)
-                        options.as_main_btn_group.addButton(sub_rb)
+                        options.as_btn_group.addButton(sub_rb)
                         sub_spacedlayout.addLayout(sub_layout)
+                        #options.as_btn_group.buttonToggled.connect(
+                        #    lambda rb, ischecked: self.handle_rb_toggled(rb, ischecked, options.main_btn))
+                        sub_rb.toggled.connect(lambda checked: self.handle_bottom_rb_toggled(None, checked, options.main_btn))
+
                     else:
                         self.parse_actionstate(parent=options, options=child)
                         sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
-                    main_layout.addLayout(sub_spacedlayout)
+                main_layout.addLayout(sub_spacedlayout)
             parent.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
             # in the root. be ready to go deeper
             options.widget_grouplayout_actionstate = QHBoxLayout()
             options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
-            options.as_main_btn_group = SLPAAButtonGroup()
-            options.as_main_cb_list = []
-            options.as_sub_btn_groups = []  # container for sub buttons
+            options.as_btn_group = SLPAAButtonGroup()
+            options.as_cb_list = []
             for child in options.options:
                 self.parse_actionstate(parent=options,
                                        options=child)
@@ -435,8 +479,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # parent: parent ActionStateModel
         # asm: ActionStateModel to be packaged as dictionary.
         r = {}
-        selected_cb = what_selected(asm.as_main_cb_list)
-        selected_btn = what_selected(asm.as_main_btn_group)
+        selected_cb = what_selected(asm.as_cb_list)
+        selected_btn = what_selected(asm.as_btn_group)
         selected_options = selected_cb + [selected_btn] if selected_btn is not None else selected_cb
 
         for child in asm.options:
@@ -492,6 +536,28 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 child_values_toload = child
                 child_load_destination = template[label]
                 load_destination.children[i] = load_specifications(child_values_toload, child_load_destination)
+
+    def handle_bottom_rb_toggled(self, _, ischecked, parent):
+        """
+        Bottom button handler. When selected ensure its parent is also selected.
+        :param ischecked: Bool. Whether the button is checked
+        :param parent: QRadioButton or ActiostateModel object
+        """
+        parent_btn = id_parent_btn(parent)
+
+        if parent_btn is None:
+            return
+
+        if ischecked:
+            # ensure the parent is checked
+            parent_btn.setChecked(True)
+            parent_btn.repaint()  # mac specific issue
+
+        else:
+            parent_btn.setChecked(False)
+            parent_btn.repaint()
+
+
 
 
 def load_specifications(values_toload, load_destination):
@@ -573,20 +639,37 @@ def load_actionstate(saved_dict, asm, parent=None):
                                                       parent=parent.label)
                 to_select = list(to_select.keys())
             if child in to_select:
-                all_cb = [cb.text() for cb in asm.as_main_cb_list]
-                all_btn = asm.as_main_btn_group.buttons()
+                all_cb = [cb.text() for cb in asm.as_cb_list]
+                all_btn = asm.as_btn_group.buttons()
                 if child in all_cb:
-                    checkmark_this(asm.as_main_cb_list, child)
+                    checkmark_this(asm.as_cb_list, child)
                 elif child in all_btn:
-                    select_this(asm.as_main_btn_group, child)
+                    select_this(asm.as_btn_group, child)
         else:
             if get_value_from_saved_dict(child.label, saved_dict, asm.label) is not None:
-                if len(asm.as_main_cb_list) > 0:
-                    checkmark_this(asm.as_main_cb_list, child.label)
+                if len(asm.as_cb_list) > 0:
+                    checkmark_this(asm.as_cb_list, child.label)
                 else:
-                    select_this(asm.as_main_btn_group, child.label)
+                    select_this(asm.as_btn_group, child.label)
                 asm.options[i] = load_actionstate(saved_dict, child, parent=asm)
     return asm
+
+
+def id_parent_btn(parent):
+    """
+    who is this parent? safely identify the parent's button.
+    """
+    if not isinstance(parent, QRadioButton):
+        # parent is not a button but an ActiostateModel. Need to get main_btn from it.
+        try:
+            return parent.main_btn
+        except AttributeError:
+            # dealing with the root. root has no btn.
+            return None
+
+    return parent
+
+
 
 
 def get_value_from_saved_dict(key_to_find, input_dict, parent=None):
