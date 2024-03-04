@@ -630,7 +630,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('entryid')
         self.app_qsettings.beginGroup('counter')
-        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=False, type=bool)))
+        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=True, type=bool)))
         self.app_qsettings.setValue('order', int(self.app_qsettings.value('order', defaultValue=0, type=int)))
         counterdigits = existing_entryid_digits or int(self.app_qsettings.value('digits', defaultValue=4, type=int))
         self.app_qsettings.setValue('digits', counterdigits)
