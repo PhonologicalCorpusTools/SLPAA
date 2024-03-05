@@ -29,7 +29,13 @@ from PyQt5.QtWidgets import (
     QMdiArea,
     QMdiSubWindow,
     QWidget,
-    QDialog
+    QDialog,
+    QLabel,
+    QSpinBox,
+    QHBoxLayout,
+    QVBoxLayout,
+    QFrame,
+    QDialogButtonBox
 )
 
 from PyQt5.QtGui import (
@@ -878,6 +884,8 @@ class MainWindow(QMainWindow):
         self.unsaved_changes = False
         self.signlevel_panel.enable_module_buttons(False)
         self.signsummary_panel.refreshsign()
+        mincounter_dialog = MinCounterDialog(parent=self)
+        mincounter_dialog.exec_()
 
     @check_unsaved_change
     def on_action_load_corpus(self, clicked):
@@ -963,3 +971,45 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.save_app_settings()
         super().closeEvent(event)
+
+
+class MinCounterDialog(QDialog):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
+        main_layout = QVBoxLayout()
+
+        counter_layout = QHBoxLayout()
+        counter_label = QLabel("Sequential numbering for sign EntryIDs in this corpus should begin at:", parent=self)
+        counter_spin = QSpinBox()
+        counter_spin.setMinimum(1)
+        counter_spin.setMaximum(999999)
+        counter_spin.setEnabled(self.parent().corpus.highestID < self.parent().corpus.minimumID)
+        counter_layout.addWidget(counter_label)
+        counter_layout.addWidget(counter_spin)
+        main_layout.addLayout(counter_layout)
+        warning_explanation = "Most users in most cases will leave this at the default value of 1. You might choose to set it to a different"
+        warning_explanation += "\nvalue if you have a particular numbering system that you would like to use for signs in this corpus."
+        warning_explanation += "\n\nNote that this value cannot be changed after signs have been added to the corpus;"
+        warning_explanation += "\nhowever, it will be adjusted automatically if merging two corpora with overlapping numbering."
+        note_label = QLabel(warning_explanation)
+        main_layout.addWidget(note_label)
+
+        horizontal_line = QFrame()
+        horizontal_line.setFrameShape(QFrame.HLine)
+        horizontal_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(horizontal_line)
+
+        buttons = QDialogButtonBox.Save
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.clicked.connect(lambda btn: self.handle_button_click(btn, counter_spin.value()))
+
+        main_layout.addWidget(self.button_box)
+        self.setLayout(main_layout)
+
+    def handle_button_click(self, button, countervalue):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Save:
+            self.parent().corpus.increaseminID(countervalue)
+            self.accept()

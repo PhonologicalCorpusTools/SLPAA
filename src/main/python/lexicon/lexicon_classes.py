@@ -401,13 +401,14 @@ class Sign:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, highestID=0):
+    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, minimumID=1, highestID=0):
         if serializedcorpus:
             self.name = serializedcorpus['name']
             self.signs = set([Sign(serializedsign=s) for s in serializedcorpus['signs']])
             self.location_definition = serializedcorpus['loc defn']
             # self.movement_definition = serializedcorpus['mvmt defn']
             self.path = serializedcorpus['path']
+            self.minimumID = serializedcorpus['minimum id'] if 'minimum id' in serializedcorpus.keys() else 1
             self.highestID = serializedcorpus['highest id']
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID
             # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
@@ -419,6 +420,7 @@ class Corpus:
             self.location_definition = location_definition
             # self.movement_definition = movement_definition
             self.path = path
+            self.minimumID = minimumID
             self.highestID = highestID
 
     # check and make sure the highest ID saved is equivalent to the actual highest entry ID
@@ -433,13 +435,12 @@ class Corpus:
             self.highestID = max_entryID
 
     def increaseminID(self, newmin):
-        entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs] or [0]
-        curmin = min(entryIDcounters)
-        if newmin > curmin:
-            increase_amount = newmin - curmin
+        if newmin > self.minimumID:
+            increase_amount = newmin - self.minimumID
+            self.minimumID = newmin
             for s in self.signs:
                 s.signlevel_information.entryid.counter += increase_amount
-            self.confirmhighestID("update")
+            self.highestID += increase_amount
 
     def serialize(self):
         # check and make sure the highest ID saved is equivalent to the actual highest entry ID
@@ -450,6 +451,7 @@ class Corpus:
             'signs': [s.serialize() for s in list(self.signs)],
             'loc defn': self.location_definition,
             'path': self.path,
+            'minimum id': self.minimumID,
             'highest id': self.highestID
         }
 
@@ -482,7 +484,7 @@ class Corpus:
 
         return self.get_sign_by_gloss(previous_gloss)
 
-
+    # TODO update this-- gloss is no longer a unique key for signs
     def get_sign_by_gloss(self, gloss):
         # Every sign has a unique gloss, so this function will always return one sign
         for sign in self.signs:
