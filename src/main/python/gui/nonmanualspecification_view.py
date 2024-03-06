@@ -220,25 +220,29 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 btn.setChecked(False)
                 btn.group().setExclusive(True)
 
-    def handle_mid_rb_toggled(self, ischecked, btn_self, parent, children):
+    def handle_mid_rb_toggled(self, ischecked, asm, parent):
         """
         Middle button handler. When selected, select a parent. When deselected, grey out children.
         :param ischecked: Bool. whether the btn is checked
-        :param btn_self: button itself.
+        :param asm: ActionStateModel from which button and children will be derived
         :param parent: QRadioButton or ActiostateModel object
-        :param children: SLPAAButtonGroup. children button group to grey out when btn_self is unselected
         """
+        btn_self = asm.main_btn
         print(f'[DEBUG] caught {btn_self.text()}. checked: {ischecked}')
 
         if ischecked:
             # toggle parent as well
-            self.handle_bottom_rb_toggled(btn_self, ischecked, parent)
+            self.handle_btn_toggled(btn_self, True, parent)
         else:
             # kill children
-            for btn in children.buttons():
-                btn.group().setExclusive(False)
-                btn.setChecked(False)
-                btn.group().setExclusive(True)
+            children = asm.as_btn_group.buttons() + asm.as_cb_list
+            for btn in children:
+                if isinstance(btn,QRadioButton):
+                    btn.group().setExclusive(False)
+                    btn.setChecked(False)
+                    btn.group().setExclusive(True)
+                else:
+                    btn.setChecked(False)
                 btn.repaint()  # mac specific issue
 
     def build_row2(self, nonman):
@@ -284,9 +288,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             parent.as_btn_group.addButton(main_btn)
             parent.widget_grouplayout_actionstate.addWidget(main_btn)
             parent.widget_grouplayout_actionstate.setAlignment(main_btn, Qt.AlignTop)
-
-            #parent.as_btn_group.buttonToggled.connect(lambda rb, ischecked: self.handle_rb_toggled(rb, ischecked, parent))
-            main_btn.toggled.connect(lambda checked: self.handle_bottom_rb_toggled(main_btn, checked, parent.main_btn))
+            main_btn.toggled.connect(lambda checked: self.handle_btn_toggled(main_btn, checked, parent.main_btn))
             return
 
         elif options.label:
@@ -302,15 +304,26 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 # create the button itself.
                 options.main_btn = SLPAARadioButton(options.label)
                 parent.as_btn_group.addButton(options.main_btn)
+
+                # manage button behaviour -- (de)select parent/child as well.
+                options.main_btn.toggled.connect(lambda checked:
+                                                 self.handle_mid_rb_toggled(ischecked=checked,
+                                                                            asm=options,
+                                                                            parent=parent)
+                                                 )
             else:
                 # create the checkbox itself.
                 options.main_btn = QCheckBox(options.label)
                 parent.as_cb_list.append(options.main_btn)
+
+                # manage checkbox behaviour -- (de)select parent/child as well.
+                options.main_btn.stateChanged.connect(lambda checked:
+                                                      self.handle_mid_rb_toggled(ischecked=checked,
+                                                                                 asm=options,
+                                                                                 parent=parent)
+                                                      )
+
             main_layout.addWidget(options.main_btn)
-            options.main_btn.toggled.connect(lambda checked: self.handle_mid_rb_toggled(ischecked=checked,
-                                                                                        btn_self=options.main_btn,
-                                                                                        parent=parent,
-                                                                                        children=options.as_btn_group))
             sub_layout = QVBoxLayout()
 
             sub_spacedlayout = QHBoxLayout()
@@ -326,7 +339,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                         sub_spacedlayout.addLayout(sub_layout)
                         #options.as_btn_group.buttonToggled.connect(
                         #    lambda rb, ischecked: self.handle_rb_toggled(rb, ischecked, options.main_btn))
-                        sub_rb.toggled.connect(lambda checked: self.handle_bottom_rb_toggled(None, checked, options.main_btn))
+                        sub_rb.toggled.connect(lambda checked: self.handle_btn_toggled(None, checked, options.main_btn))
 
                     else:
                         self.parse_actionstate(parent=options, options=child)
@@ -547,13 +560,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 child_load_destination = template[label]
                 load_destination.children[i] = load_specifications(child_values_toload, child_load_destination)
 
-    def handle_bottom_rb_toggled(self, _, ischecked, parent):
+    def handle_btn_toggled(self, _, ischecked, parent):
         """
         Bottom button handler. When selected ensure its parent is also selected.
         :param ischecked: Bool. Whether the button is checked
         :param parent: QRadioButton or ActiostateModel object
         """
-        parent_btn = id_parent_btn(parent)
+        parent_btn = id_parent(parent)
 
         if parent_btn is None:
             return
@@ -665,12 +678,16 @@ def load_actionstate(saved_dict, asm, parent=None):
     return asm
 
 
-def id_parent_btn(parent):
+def id_parent(parent):
     """
-    who is this parent? safely identify the parent's button.
+    who is your parent? safely identify the parent button or checkbox.
     """
-    if not isinstance(parent, QRadioButton):
-        # parent is not a button but an ActiostateModel. Need to get main_btn from it.
+    if isinstance(parent, QCheckBox):
+        # parent is a checkbox
+        return parent
+
+    elif not isinstance(parent, QRadioButton):
+        # parent is not a button but an ActiostateModel. Need to get main_btn (button or checkbox) from it.
         try:
             return parent.main_btn
         except AttributeError:
