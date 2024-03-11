@@ -181,23 +181,14 @@ class SignLevelInformation:
             self._handdominance = signlevel_info['handdominance']
 
     def __eq__(self, other):
-        aresame = True
         if isinstance(other, SignLevelInformation):
-            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
-                aresame = False
-            if self._idgloss != other.idgloss or self._source != other.source or self._signer != other.signer:
-                aresame = False
-            if self._frequency != other.frequency or self._coder != other.coder:
-                aresame = False
-            if self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
-                aresame = False
-            if self._note != other.note or self._fingerspelled != other.fingerspelled:
-                aresame = False
-            if self._handdominance != other.handdominance or self._compoundsign != other.compoundsign:
-                aresame = False
-        else:
-            aresame = False
-        return aresame
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def serialize(self):
         return {
