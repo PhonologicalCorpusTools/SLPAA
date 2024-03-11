@@ -68,6 +68,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         scroll_area.setMinimumHeight(300)
         main_layout.addWidget(scroll_area)
 
+        # snapshot of the blank slate (for 'restore to default')
+        self._clean_nonman = self.wrapper_get_nonman_specs()
+
         # when loading already saved module
         if moduletoload is not None and isinstance(moduletoload, NonManualModule):
             self.setvalues(moduletoload)
@@ -542,9 +545,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.existingkey = nonman_mod.uniqueid
         return nonman_mod
 
+    def clear(self):
+        self.setvalues(self._clean_nonman)
+
     def setvalues(self, moduletoload):
         # load saved values and set template values by them.
-        toload_dict = moduletoload._nonmanual
+        toload_dict = moduletoload
+
+        if not isinstance(moduletoload, dict):
+            # moduletoload is a NonManualModule, so extract _nonmanual from it
+            toload_dict = moduletoload._nonmanual
 
         major_modules = [module_title.label for module_title in nonmanual_root.children]  # major modules in non manual
         template = self.nonman_specifications  # empty template of specification window
@@ -581,8 +591,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             parent_btn.repaint()
 
 
-
-
 def load_specifications(values_toload, load_destination):
     # values_toload: saved user selections to load
     # load_destination: major modules like 'shoulder' 'facial expressions'...
@@ -600,6 +608,12 @@ def load_specifications(values_toload, load_destination):
                         btn_txt='one')
             select_this(btn_group=load_destination.onepart_group,
                         btn_txt=values_toload['subpart'])
+        else:
+            # deselect all
+            select_this(btn_group=load_destination.subpart_group,
+                        btn_txt=None)
+            select_this(btn_group=load_destination.onepart_group,
+                        btn_txt=None)
 
     except KeyError:  # when no subpart spec exists, such as 'body', 'head', etc.
         pass
@@ -631,10 +645,34 @@ def load_specifications(values_toload, load_destination):
         as_to_load = values_toload['action_state']  # packaged action_state selections. comes as Dict
         if len(as_to_load['root']) != 0:
             load_destination.action_state = load_actionstate(as_to_load, load_destination.action_state)
+        else:
+            # initialize action_state (i.e., deselct all)
+            load_destination.action_state = initialize_actionstate(load_destination.action_state)
     except KeyError:
         pass
 
     return load_destination
+
+
+def initialize_actionstate(asm):
+    # asm: ActionStateModel to be initialized
+    for child in asm.options:
+        if isinstance(child, str) or child.options is None:
+            # at the bottom
+            deselect_all(asm.as_cb_list, asm.as_btn_group)
+        else:
+            # not at the bottom. need to go deeper
+            child = initialize_actionstate(child)
+    return asm
+
+
+def deselect_all(cb_list, btn_group):
+
+    [cb.setChecked(False) for cb in cb_list]
+
+    btn_group.setExclusive(False)
+    [btn.setChecked(False) for btn in btn_group.buttons()]
+    btn_group.setExclusive(True)
 
 
 def load_actionstate(saved_dict, asm, parent=None):
@@ -697,8 +735,6 @@ def id_parent(parent):
     return parent
 
 
-
-
 def get_value_from_saved_dict(key_to_find, input_dict, parent=None):
     parent = 'root' if parent is None else parent
 
@@ -736,8 +772,16 @@ def what_selected(group):
 
 def select_this(btn_group, btn_txt):
     # given SLPAAButtonGroup, select the button named 'btn_txt'
-    if not isinstance(btn_group, SLPAAButtonGroup) or not isinstance(btn_txt, str):
+    if not isinstance(btn_group, SLPAAButtonGroup):
         return None
+
+    if btn_txt is None:
+        # reset to the default
+        btn_group.setExclusive(False)
+        [btn.setChecked(False) for btn in btn_group.buttons()]
+        btn_group.setExclusive(True)
+
+        return
 
     for btn in btn_group.buttons():
         if btn.text() == btn_txt:
