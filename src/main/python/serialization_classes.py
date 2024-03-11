@@ -10,7 +10,7 @@ from PyQt5.QtCore import (
 from lexicon.module_classes import userdefinedroles as udr
 from models.movement_models import fx
 from constant import HAND
-
+import logging
 
 class ParameterModuleSerializable:
 
@@ -134,9 +134,10 @@ class LocationTreeSerializable:
         self.checkstates = {}
         self.detailstables = {}
         self.addedinfos = {}
+        self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
 
         self.collectdatafromLocationTreeModel(treenode)
-
+        
         self.locationtype = copy(locntreemodel.locationtype)
 
     # collect data from the LocationTreeModel to store in this LocationTreeSerializable

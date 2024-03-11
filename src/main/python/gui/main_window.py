@@ -12,7 +12,8 @@ from PyQt5.QtCore import (
     QSize,
     QSettings,
     QPoint,
-    pyqtSignal
+    pyqtSignal,
+    QCoreApplication
 )
 
 from PyQt5.QtWidgets import (
@@ -27,7 +28,13 @@ from PyQt5.QtWidgets import (
     QMdiArea,
     QMdiSubWindow,
     QWidget,
-    QDialog
+    QDialog,
+    QLabel,
+    QSpinBox,
+    QHBoxLayout,
+    QVBoxLayout,
+    QFrame,
+    QDialogButtonBox
 )
 
 from PyQt5.QtGui import (
@@ -70,6 +77,8 @@ class MainWindow(QMainWindow):
     def __init__(self, app_ctx):
         super().__init__()
         self.app_ctx = app_ctx
+        QCoreApplication.setOrganizationName("UBC Phonology Tools")
+        QCoreApplication.setApplicationName("Sign Language Phonetic Annotator and Analyzer")
 
         self.corpus = None
         self.current_sign = None
@@ -579,69 +588,76 @@ class MainWindow(QMainWindow):
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
 
-        self.app_qsettings = QSettings('UBC Phonology Tools',
-                                       application='Sign Language Phonetic Annotator and Analyzer')
+        self.app_qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         self.app_qsettings.beginGroup('storage')
         self.app_settings['storage']['recent_folder'] = self.app_qsettings.value(
             'recent_folder',
             defaultValue=os.path.expanduser('~/Documents'))
-        self.app_settings['storage']['corpora'] = self.app_qsettings.value('corpora',
-                                                                           defaultValue=os.path.normpath(
-                                                                               os.path.join(
-                                                                                   os.path.expanduser('~/Documents'),
-                                                                                   'PCT', 'SLP-AA', 'CORPORA')))
-        self.app_settings['storage']['image'] = self.app_qsettings.value('image',
-                                                                         defaultValue=os.path.normpath(
-                                                                             os.path.join(
-                                                                                 os.path.expanduser('~/Documents'),
-                                                                                 'PCT', 'SLP-AA', 'IMAGE')))
-        self.app_qsettings.endGroup()
+        self.app_settings['storage']['corpora'] = self.app_qsettings.value(
+            'corpora',
+            defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'CORPORA'))
+        )
+        self.app_settings['storage']['image'] = self.app_qsettings.value(
+            'image',
+            defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'IMAGE'))
+        )
+        self.app_qsettings.endGroup()  # storage
 
         self.app_qsettings.beginGroup('display')
         self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(2000, 1200))
         self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(0, 23))
 
-        self.app_settings['display']['sub_corpus_show'] = bool(self.app_qsettings.value('sub_corpus_show',
-                                                                                        defaultValue=True))
-        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos',
-                                                                                  defaultValue=QPoint(0, 0))
-        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size',
-                                                                                   defaultValue=QSize(340, 700))
+        self.app_settings['display']['sub_corpus_show'] = bool(self.app_qsettings.value('sub_corpus_show', defaultValue=True))
+        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 0))
+        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(340, 700))
 
-        self.app_settings['display']['sub_signlevelmenu_show'] = bool(self.app_qsettings.value('sub_signlevelmenu_show',
-                                                                                               defaultValue=True))
-        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos',
-                                                                                         defaultValue=QPoint(340, 0))
-        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size',
-                                                                                          defaultValue=QSize(320, 700))
+        self.app_settings['display']['sub_signlevelmenu_show'] = bool(self.app_qsettings.value('sub_signlevelmenu_show', defaultValue=True))
+        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(340, 0))
+        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(320, 700))
 
-        self.app_settings['display']['sub_visualsummary_show'] = bool(self.app_qsettings.value('sub_visualsummary_show',
-                                                                                               defaultValue=True))
-        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos',
-                                                                                         defaultValue=QPoint(660, 0))
-        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size',
-                                                                                          defaultValue=QSize(1200, 900))
+        self.app_settings['display']['sub_visualsummary_show'] = bool(self.app_qsettings.value('sub_visualsummary_show', defaultValue=True))
+        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(660, 0))
+        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(1200, 900))
 
-        self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2)
+        self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2, type=int)
         self.app_settings['display']['tooltips'] = bool(self.app_qsettings.value('tooltips', defaultValue=True))
-        self.app_settings['display']['entryid_digits'] = self.app_qsettings.value('entryid_digits', defaultValue=4)
-        self.app_qsettings.endGroup()
+        # backward compatibility:
+        #   entryid_digits used to be under the display section but has now (20240229) moved to a separate entryid section
+        #   if this setting was saved under display, make sure it's re-stored in entryid and that 'display/entryid_digits' is removed
+        existing_entryid_digits = None
+        if self.app_qsettings.contains('entryid_digits'):
+            existing_entryid_digits = self.app_qsettings.value('entryid_digits')
+            self.app_qsettings.remove('entryid_digits')
+        self.app_qsettings.endGroup()  # display
+
+        self.app_qsettings.beginGroup('entryid')
+        self.app_qsettings.beginGroup('counter')
+        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=True, type=bool)))
+        self.app_qsettings.setValue('order', int(self.app_qsettings.value('order', defaultValue=0, type=int)))
+        counterdigits = existing_entryid_digits or int(self.app_qsettings.value('digits', defaultValue=4, type=int))
+        self.app_qsettings.setValue('digits', counterdigits)
+        self.app_qsettings.endGroup()  # counter
+        self.app_qsettings.beginGroup('date')
+        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=False, type=bool)))
+        self.app_qsettings.setValue('order', int(self.app_qsettings.value('order', defaultValue=0, type=int)))
+        self.app_qsettings.setValue('format', str(self.app_qsettings.value('format', defaultValue='YYYY-MM', type=str)))
+        self.app_qsettings.endGroup()  # date
+        self.app_qsettings.setValue('delimiter', self.app_qsettings.value('delimiter', defaultValue='_', type=str))
+        self.app_qsettings.endGroup()  # entryid
 
         self.app_qsettings.beginGroup('metadata')
         self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue='NEWUSERNAME')
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # metadata
 
         self.app_qsettings.beginGroup('reminder')
         self.app_settings['reminder']['overwrite'] = bool(self.app_qsettings.value('overwrite', defaultValue=True))
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
-        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance',
-                                                                                      defaultValue='R')
+        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
         self.app_settings['signdefaults']['signtype'] = self.app_qsettings.value('signtype', defaultValue='none')
-        self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation',
-                                                                                         defaultValue='none')
+        self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none')
         self.app_qsettings.beginGroup('partial_xslots')
         self.app_settings['signdefaults']['partial_xslots'] = defaultdict(dict)
         self.app_settings['signdefaults']['partial_xslots'][str(Fraction(1, 2))] = \
@@ -665,8 +681,7 @@ class MainWindow(QMainWindow):
             os.makedirs(self.app_settings['storage']['image'])
 
     def save_app_settings(self):
-        self.app_qsettings = QSettings('UBC Phonology Tools',
-                                       application='Sign Language Phonetic Annotator and Analyzer')
+        self.app_qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         self.app_qsettings.beginGroup('storage')
         self.app_qsettings.setValue('recent_folder', self.app_settings['storage']['recent_folder'])
@@ -683,8 +698,10 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
-        self.app_qsettings.setValue('entryid_digits', self.app_settings['display']['entryid_digits'])
         self.app_qsettings.endGroup()
+
+        # We don't need to explicitly save any of the 'entryid' group values, because they are never cached
+        # into self.app_settings; they're always directly saved to and referenced from QSettings in real time
 
         self.app_qsettings.beginGroup('metadata')
         self.app_qsettings.setValue('coder', self.app_settings['metadata']['coder'])
@@ -863,6 +880,8 @@ class MainWindow(QMainWindow):
         self.unsaved_changes = False
         self.signlevel_panel.enable_module_buttons(False)
         self.signsummary_panel.refreshsign()
+        mincounter_dialog = MinCounterDialog(parent=self)
+        mincounter_dialog.exec_()
 
     @check_unsaved_change
     def on_action_load_corpus(self, clicked):
@@ -890,7 +909,7 @@ class MainWindow(QMainWindow):
 
         self.unsaved_changes = False
 
-        return self.corpus is not None  # bool(Corpus)
+        return self.corpus is not None
 
     def on_action_close(self, clicked):
         self.close()
@@ -898,6 +917,7 @@ class MainWindow(QMainWindow):
     def on_action_new_sign(self, clicked):
         # save currently-selected sign in case user cancels creating the new sign
         stashed_corpusselection = self.corpus_display.corpus_view.currentIndex()
+
         self.current_sign = None
         self.action_delete_sign.setEnabled(False)
 
@@ -910,6 +930,25 @@ class MainWindow(QMainWindow):
             self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
             self.corpus_display.handle_selection(stashed_corpusselection)
 
+# ############### on_action_delete_sign from main branch
+#     def on_action_delete_sign(self, clicked):
+#         response = QMessageBox.question(self, 'Delete the selected sign',
+#                                         'Do you want to delete the selected sign?')
+#         if response == QMessageBox.Yes:
+#             previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
+#
+#             # delete self.current_sign.
+#             # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
+#             self.signlevel_panel.handle_delete_signlevelinfo(previous)
+#             # self.corpus.remove_sign(self.current_sign)
+#             # self.corpus_display.updated_signs(self.corpus.signs, previous)
+#
+#             self.select_sign([previous])
+#             self.handle_sign_selected(previous)
+#             # TODO KV need to also have that sign selected in the corpus view,
+#             #  as well as displaying its summary in the xslot view
+
+############### on_action_delete_sign from 105 branch
     def on_action_delete_sign(self, clicked):
         if self.current_sign:  # does the sign to delete exist?
             glosseslist = self.current_sign.signlevel_information.gloss
@@ -922,6 +961,20 @@ class MainWindow(QMainWindow):
                 self.corpus.remove_sign(self.current_sign)
                 self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
 
+# ################# select_sign from main branch
+#     # TODO KV finish implementing
+#     def select_sign(self, signstoselect):
+#         selectionmodel = self.corpus_display.corpus_view.selectionModel()
+#         indices = []
+#         for sign in signstoselect:
+#             try:
+#                 indices.append(list(self.corpus.signs).index(sign))
+#             except ValueError:
+#                 pass
+
+################# select_sign from 105 branch
+    # does not exist
+
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes
         # it flags unsaved_changes=True and passes on to refreshsign(), which updates the summary panel
@@ -932,3 +985,45 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.save_app_settings()
         super().closeEvent(event)
+
+
+class MinCounterDialog(QDialog):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
+        main_layout = QVBoxLayout()
+
+        counter_layout = QHBoxLayout()
+        counter_label = QLabel("Sequential numbering for sign EntryIDs in this corpus should begin at:", parent=self)
+        counter_spin = QSpinBox()
+        counter_spin.setMinimum(1)
+        counter_spin.setMaximum(999999)
+        counter_spin.setEnabled(self.parent().corpus.highestID < self.parent().corpus.minimumID)
+        counter_layout.addWidget(counter_label)
+        counter_layout.addWidget(counter_spin)
+        main_layout.addLayout(counter_layout)
+        warning_explanation = "Most users in most cases will leave this at the default value of 1. You might choose to set it to a different"
+        warning_explanation += "\nvalue if you have a particular numbering system that you would like to use for signs in this corpus."
+        warning_explanation += "\n\nNote that this value cannot be changed after signs have been added to the corpus;"
+        warning_explanation += "\nhowever, it will be adjusted automatically if merging two corpora with overlapping numbering."
+        note_label = QLabel(warning_explanation)
+        main_layout.addWidget(note_label)
+
+        horizontal_line = QFrame()
+        horizontal_line.setFrameShape(QFrame.HLine)
+        horizontal_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(horizontal_line)
+
+        buttons = QDialogButtonBox.Save
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.clicked.connect(lambda btn: self.handle_button_click(btn, counter_spin.value()))
+
+        main_layout.addWidget(self.button_box)
+        self.setLayout(main_layout)
+
+    def handle_button_click(self, button, countervalue):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Save:
+            self.parent().corpus.increaseminID(countervalue)
+            self.accept()

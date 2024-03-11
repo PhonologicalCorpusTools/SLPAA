@@ -6,6 +6,7 @@ from PyQt5.QtCore import (
     QRectF,
     QPoint,
     pyqtSignal,
+    QSettings
 )
 
 from PyQt5.QtWidgets import (
@@ -325,7 +326,13 @@ class SignSummaryPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss) + " - " + self.entryid_string())
+# <<<<<<< HEAD
+#             signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss) + " - " + self.entryid_string())
+# =======
+#             signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid.display_string())
+# >>>>>>> main
+            signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss)
+                                       + " - " + self.sign.signlevel_information.entryid.display_string())
         signleveltext.setPos(self.x_offset, self.current_y)
         self.current_y += 30
         self.scene.addItem(signleveltext)
@@ -339,14 +346,6 @@ class SignSummaryPanel(QScrollArea):
         self.addhand(2)
         self.addnonhand()
         self.addgridlines()
-
-    def entryid_string(self, entryid_int=None):
-        numdigits = int(self.settings['display']['entryid_digits'])
-        if entryid_int is None:
-            entryid_int = self.sign.signlevel_information.entryid
-        entryid_string = str(entryid_int)
-        entryid_string = "0" * (numdigits - len(entryid_string)) + entryid_string
-        return entryid_string
 
     def addsigntype(self):
         if self.sign.signtype is not None:
@@ -471,6 +470,7 @@ class SignSummaryPanel(QScrollArea):
         if mods_count > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
+
                 for mod in modules:
                     m_id = mod.uniqueid
                     self.current_y += self.default_xslot_height + self.verticalspacing
@@ -520,10 +520,10 @@ class SignSummaryPanel(QScrollArea):
         if mods_count > 0:
             if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
                 # everything just gets listed vertically
-                self.current_y += self.default_xslot_height + self.verticalspacing
 
                 for mod in modules:
                     m_id = mod.uniqueid
+                    self.current_y += self.default_xslot_height + self.verticalspacing
                     if isrel:
                         if mod.usesarticulator(HAND, artnum):
                             articulator = HAND
@@ -543,7 +543,6 @@ class SignSummaryPanel(QScrollArea):
                         paramrect.setToolTip(paramabbrev)
                         paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
                         self.moduleitems.append(paramrect)
-                        # self.current_y += 1
                         self.scene.addItem(paramrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
@@ -813,7 +812,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.orientation_button = QPushButton("Add orientation module")
         self.orientation_button.setProperty("existingmodule", False)
-        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.ORIENTATION))
+        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.ORIENTATION))
         self.modulebuttons_timed.append(self.orientation_button)
 
         self.handshape_button = QPushButton("Add hand configuration module")

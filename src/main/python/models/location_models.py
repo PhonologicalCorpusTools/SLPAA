@@ -14,7 +14,7 @@ from PyQt5.Qt import (
 import logging
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
-from serialization_classes import LocationTableSerializable
+from serialization_classes import LocationTreeSerializable, LocationTableSerializable
 from constant import HAND, ARM, LEG
 
 
@@ -111,9 +111,8 @@ subarea_lists = {
 
 
 class LocnOptionsNode:
-        # id MUST NOT change
-    # __slots__ = ['display_name','user_specifiability','button_type', 'location', 'surfaces','subareas', 'tooltip', 'options', 'children', 'id']
     # if more params are needed, use self.options
+    # TODO - gz i imagine that if the user needs to modify the display_name, self.options can be used
 
     def __init__(self, display_name="treeroot", user_specifiability=None, button_type=None, 
                  location=None, surfaces=None, subareas=None, options=None, tooltip=None, children=None, id=-1):
@@ -239,10 +238,10 @@ locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, han
             LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints),
         ]),
         LocnOptionsNode("Between fingers", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], children=[
-            LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
         ]),
         LocnOptionsNode("Selected fingers and thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
             LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
@@ -252,8 +251,8 @@ locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, han
 
 
 locn_options_arm = LocnOptionsNode("Arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-    LocnOptionsNode("Arm - contra", fx, rb, nh, nonhand_surfaces, None),
-    LocnOptionsNode("Arm - ipsi", fx, rb, nh, nonhand_surfaces, None),
+    LocnOptionsNode("Arm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
+    LocnOptionsNode("Arm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
     LocnOptionsNode("Upper arm", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
         LocnOptionsNode("Upper arm - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
         LocnOptionsNode("Upper arm - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
@@ -284,10 +283,6 @@ locn_options_arm = LocnOptionsNode("Arm", fx, rb, nh, nonhand_surfaces_2, nonhan
 locn_options_leg = LocnOptionsNode("Leg and foot", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
     LocnOptionsNode("Leg and foot - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
     LocnOptionsNode("Leg and foot - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-    LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
-        LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
-        LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
-    ]),
     LocnOptionsNode("Upper leg", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas, children=[
         LocnOptionsNode("Upper leg - contra", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas),
         LocnOptionsNode("Upper leg - ipsi", fx, rb, nh, nonhand_surfaces_2, nonhand_subareas)
@@ -496,12 +491,20 @@ class LocationTreeModel(QStandardItemModel):
     def __init__(self, serializedlocntree=None, **kwargs):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
-        self.itemChanged.connect(self.updateCheckState)
+        self._multiple_selection_allowed = False
+        self.itemChanged.connect(lambda item: self.updateCheckState(item))
         self._locationtype = LocationType()
+        self.checked=[]
 
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
             self.locationtype = self.serializedlocntree.locationtype
+            try:
+                self._multiple_selection_allowed = serializedlocntree.multiple_selection_allowed
+            except:
+                # logging.warn("multiple selection attribute not present in serialized location tree")
+                self._multiple_selection_allowed = False
+            # 
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
             makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
@@ -545,21 +548,81 @@ class LocationTreeModel(QStandardItemModel):
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
+    def uncheck_paths(self, paths_to_uncheck):
+        for path in paths_to_uncheck:
+            try:
+                self.serializedlocntree.checkstates[path] = Qt.Unchecked
+                self.serializedlocntree.addedinfos[path] = Qt.Unchecked
+                self.serializedlocntree.detailstables[path] = Qt.Unchecked
+            except:
+                print("Could not uncheck old path.")
+    
+    '''
+    Removes from paths_to_add once found
+    '''
+    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
+        if treenode is not None:
+            for r in range(treenode.rowCount()):
+                treechild = treenode.child(r, 0)
+                if treechild is not None:
+                    pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
+
+                    if pathtext in paths_to_add:
+                        treechild.setCheckState(Qt.Checked)
+                        oldtext = paths_dict[pathtext]
+                        paths_to_add.remove(pathtext)
+                        if oldtext in self.serializedlocntree.addedinfos:
+                            treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
+                        if oldtext in self.serializedlocntree.detailstables.keys():
+                            treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+
+                    self.addcheckedvalues(treechild, paths_to_add, paths_dict)
+
     # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
     def setvaluesfromserializedtree(self, treenode):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
+                    
                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
+                    
                     if pathtext in self.serializedlocntree.checkstates.keys():
                         treechild.setCheckState(self.serializedlocntree.checkstates[pathtext])
+                        if self.serializedlocntree.checkstates[pathtext] == Qt.Checked:
+                            self.checked.append(pathtext)
                     if pathtext in self.serializedlocntree.addedinfos.keys():
                         treechild.addedinfo = copy(self.serializedlocntree.addedinfos[pathtext])
                     if pathtext in self.serializedlocntree.detailstables.keys():
                         treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[pathtext])
 
                     self.setvaluesfromserializedtree(treechild)
+                    
+
+    def get_checked_from_serialized_tree(self):
+        checked = []
+        if hasattr(self, "serializedlocntree"):
+            for k in list(self.serializedlocntree.checkstates):
+                if self.serializedlocntree.checkstates[k] == Qt.Checked:
+                    checked.append(k)
+        return checked
+
+        # Compare what was serialized with what the current tree actually shows
+    def compare_checked_lists(self):
+        differences = []
+        serialized = self.get_checked_from_serialized_tree()
+        current = self.checked
+        
+        for item in serialized:
+            if item not in current:
+                differences.append(item)
+        # print("   Serialized locn:" + str(len(serialized)) + "; Listed locn:" + str(len(self.checked)))
+                
+        return differences
+                
+
+
+
 
     # def tempprintcheckeditems(self):
     #     treenode = self.invisibleRootItem()
@@ -585,16 +648,25 @@ class LocationTreeModel(QStandardItemModel):
     #                 print(addedinfo)
     #         self.tempprinthelper(treechild)
 
+    @property
+    def multiple_selection_allowed(self):
+        return self._multiple_selection_allowed
+
+    @multiple_selection_allowed.setter
+    def multiple_selection_allowed(self, is_allowed):
+        self._multiple_selection_allowed = is_allowed
+    
+    
     def updateCheckState(self, item):
         thestate = item.checkState()
         if thestate == Qt.Checked:
             # TODO KV then the user must have checked it,
             #  so make sure to partially-fill ancestors and also look at ME siblings
-            item.check(fully=True)
+            item.check(fully=True, multiple_selection_allowed = self.multiple_selection_allowed)
         elif thestate == Qt.PartiallyChecked:
             # TODO KV then the software must have updated it based on some other user action
             # make sure any ME siblings are unchecked
-            item.check(fully=False)
+            item.check(fully=False, multiple_selection_allowed = self.multiple_selection_allowed)
         elif thestate == Qt.Unchecked:
             # TODO KV then either...
             # (1) the user unchecked it and we have to uncheck ancestors and look into ME siblings, or
@@ -677,7 +749,6 @@ class LocationTreeModel(QStandardItemModel):
                 elif self.hasselections(treechild):
                     return True
             return False
-
 
 class BodypartTreeModel(LocationTreeModel):
 
@@ -941,7 +1012,6 @@ class LocationPathsProxyModel(QSortFilterProxyModel):
             self.setSortRole(Qt.UserRole+udr.timestamprole)
             self.sort(0)
 
-
 class LocationTreeItem(QStandardItem):
 
     def __init__(self, txt="", listit=None, mutuallyexclusive=False, ishandloc=nh,
@@ -1029,7 +1099,7 @@ class LocationTreeItem(QStandardItem):
     def addedinfo(self, addedinfo):
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
-    def check(self, fully=True):
+    def check(self, fully=True, multiple_selection_allowed=False):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
         self.listitem.setData(fully, Qt.UserRole + udr.selectedrole)
         if fully:
@@ -1040,13 +1110,14 @@ class LocationTreeItem(QStandardItem):
         # gather siblings in order to deal with mutual exclusivity (radio buttons)
         siblings = self.collectsiblings()
 
-        # if this is a radio button item, make sure none of its siblings are checked
-        if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
-            for sib in siblings:
-                sib.uncheck(force=True)
-        else:  # or if it has radio button siblings, make sure they are unchecked
-            for me_sibling in [s for s in siblings if s.data(Qt.UserRole + udr.mutuallyexclusiverole)]:
-                me_sibling.uncheck(force=True)
+        if not multiple_selection_allowed:
+            # if this is a radio button item, make sure none of its siblings are checked
+            if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
+                for sib in siblings:
+                    sib.uncheck(force=True)
+            else:  # or if it has radio button siblings, make sure they are unchecked
+                for me_sibling in [s for s in siblings if s.data(Qt.UserRole + udr.mutuallyexclusiverole)]:
+                    me_sibling.uncheck(force=True)
 
     def collectsiblings(self):
 

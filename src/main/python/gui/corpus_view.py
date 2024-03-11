@@ -78,8 +78,8 @@ class CorpusDisplay(QWidget):
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
         self.sortcombo.currentTextChanged.connect(lambda txt: self.corpus_sortproxy.updatesort(sortbytext=txt))
         sort_layout.addWidget(self.sortcombo)
-        self.ascend_radio = QRadioButton("↑")
-        self.descend_radio = QRadioButton("↓")
+        self.ascend_radio = QRadioButton("A→Z; 1→9")
+        self.descend_radio = QRadioButton("Z→A; 9→1")
         self.ascdesc_grp = QButtonGroup()
         self.ascdesc_grp.addButton(self.ascend_radio)
         self.ascdesc_grp.addButton(self.descend_radio)
@@ -91,6 +91,15 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
+############## handle_selection from main branch
+    # def handle_selection(self, index):
+    #     themodel = index.model()
+    #     if themodel is not None:
+    #         index = themodel.mapToSource(index)
+    #         sign = self.corpus_model.itemFromIndex(index).sign
+    #         self.selected_sign.emit(sign)
+
+############## handle_selection from 105 branch
     def handle_selection(self, proxyindex=None):
         if proxyindex is not None and proxyindex.model() is not None:
             sourceindex = self.corpus_sortproxy.mapToSource(proxyindex)
@@ -99,6 +108,25 @@ class CorpusDisplay(QWidget):
         else:
             self.selection_cleared.emit()
 
+############## updated_signs from main branch
+    # def updated_signs(self, signs, current_sign=None):
+    #     self.corpus_model.setsigns(signs)
+    #     self.corpus_model.layoutChanged.emit()
+    #
+    #     # Reset the selection mode
+    #     try:
+    #         index = 0 if current_sign is None else list(signs).index(current_sign)
+    #         # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
+    #         # # sourcemodelindex = self.corpus_view.model().index(index, 0)
+    #         # # proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
+    #         # # self.corpus_view.selectionModel().setCurrentIndex(proxymodelindex, QItemSelectionModel.SelectCurrent)
+    #         self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
+    #                                                           QItemSelectionModel.SelectCurrent)
+    #
+    #     except ValueError:
+    #         self.clear()
+
+############## updated_signs from 105 branch
     # if deleted==True, then current_sign is the sign that was deleted and we should select the *next* one
     # but if deleted==False, then current_sign is the one that should be selected (because it was either just added or just updated)
     def updated_signs(self, signs, current_sign=None, deleted=False):
