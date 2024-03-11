@@ -46,6 +46,8 @@ class Sign:
     Gloss in signlevel_information is used as the unique key
     """
     def __init__(self, signlevel_info=None, serializedsign=None):
+        if signlevel_info is not None:
+            signlevel_info.parentsign = self
         self._signlevel_information = signlevel_info
         self._signtype = None
         self._xslotstructure = XslotStructure()
@@ -64,7 +66,7 @@ class Sign:
         self.handconfigmodulenumbers = {}
 
         if serializedsign is not None:
-            self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'])
+            self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
             signtype = serializedsign['type']
             self._signtype = Signtype(signtype.specslist) if signtype is not None else None
             if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
@@ -311,6 +313,7 @@ class Sign:
     @signlevel_information.setter
     def signlevel_information(self, signlevelinfo):
         self._signlevel_information = signlevelinfo  # SignLevelInformation(signlevelinfo)
+        self._signlevel_information.parentsign = self
 
     @property
     def location(self):

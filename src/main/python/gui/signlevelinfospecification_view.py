@@ -63,7 +63,6 @@ class SignLevelInfoPanel(QFrame):
 
         entryid_label = QLabel("Entry ID:")
         self.entryid_value = QLineEdit()
-        self.entryid_value.setText(self.entryid().display_string())
         self.entryid_value.setEnabled(False)
         gloss_label = QLabel('Gloss:')
         self.gloss_edit = QLineEdit()
@@ -123,11 +122,17 @@ class SignLevelInfoPanel(QFrame):
 
         self.setLayout(main_layout)
 
-    def entryid(self):
+    def entryid_counter(self):
         if self.signlevelinfo is not None:
-            return self.signlevelinfo.entryid
+            return self.signlevelinfo.entryid.counter
         else:
-            return EntryID(counter=self.mainwindow.corpus.highestID+1, date=datetime.now())
+            return self.mainwindow.corpus.highestID+1
+
+    def entryid_string(self):
+        if self.signlevelinfo is not None:
+            return self.signlevelinfo.entryid.display_string()
+        else:
+            return ""
 
     def set_starting_focus(self):
         self.gloss_edit.setFocus()
@@ -136,7 +141,7 @@ class SignLevelInfoPanel(QFrame):
         if not signlevelinfo:
             signlevelinfo = self.signlevelinfo
         if self.signlevelinfo:
-            self.entryid_value.setText(self.signlevelinfo.entryid.display_string())
+            self.entryid_value.setText(self.entryid_string())
             self.gloss_edit.setText(signlevelinfo.gloss)
             self.lemma_edit.setText(signlevelinfo.lemma)
             self.source_edit.setText(signlevelinfo.source)
@@ -187,7 +192,7 @@ class SignLevelInfoPanel(QFrame):
                 self.created_display.set_datetime(newtime)
                 self.modified_display.set_datetime(newtime)
             return {
-                'entryid': self.entryid(),
+                'entryid': self.entryid_counter(),
                 'gloss': self.get_gloss(),
                 'lemma': self.lemma_edit.text(),
                 'source': self.source_edit.text(),

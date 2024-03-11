@@ -145,14 +145,14 @@ class ParameterModule:
 
 
 class EntryID:
-    def __init__(self, counter, date):
+    def __init__(self, counter=None, parentsign=None):
+        self.parentsign = parentsign
         # all other attributes of EntryID are sourced from QSettings, sign, and/or sign-level info,
         # so that they're not stored twice (and therefore we don't need to update in multiple places
         # if any of those values change)
         self._counter = counter
-        self._date = date
 
-        # TODO - eventually add other attributes (coder, signer, source, and recording info)
+        # TODO - eventually add other attributes (coder, signer, source, recording info)
         # see class EntryIDTab in preference_dialog.py
         # and https://github.com/PhonologicalCorpusTools/SLPAA/issues/18#issuecomment-1074184453
 
@@ -166,30 +166,28 @@ class EntryID:
 
     @property
     def date(self):
-        return self._date
-
-    @date.setter
-    def date(self, newdate):
-        if isinstance(newdate, datetime):
-            self._date = newdate
+        if self.parentsign is not None:
+            return self.parentsign.signlevel_information.datecreated
+        else:  # this shouldn't ever actually happen, but just in case...
+            return datetime.now()
 
     def getattributestringfromname(self, attr_name, qsettings):
-        attr_dict = self.__dict__
         if attr_name == 'date':
             return "" if self.date is None else self.date.strftime(qsettings.value('entryid/date/format'))
         elif attr_name == 'counter':
             counter_string = str(self.counter)
             return "0" * (qsettings.value('entryid/counter/digits') - len(counter_string)) + counter_string
-        elif ('_' + attr_name) in attr_dict.keys():
-            return attr_dict['_' + attr_name]
+        elif attr_name in dir(self):
+            # assuming we have a @property function for this attribute and it doesn't need any additional formatting
+            return getattr(self, attr_name)
         else:
-            return None
+            return ""
 
     def display_string(self):
         qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         orders_strings = []
-        for attr in ['counter', 'date']:
+        for attr in ['counter', 'date']:  # could these come from 'attr in dir(self)' instead?
             if qsettings.value('entryid/' + attr + '/visible'):
                 orders_strings.append((qsettings.value('entryid/' + attr + '/order'), self.getattributestringfromname(attr, qsettings)))
         orders_strings.sort()
@@ -225,12 +223,15 @@ class EntryID:
 
 
 class SignLevelInformation:
-    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
+    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None, parentsign=None):
+        self._parentsign = parentsign
+
         if serializedsignlevelinfo is not None:
             datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
             # as of 20240209, entryid has shifted from being an integer to an EntryID object
-            entryid = serializedsignlevelinfo['entryid']
-            self._entryid = EntryID(counter=entryid, date=datecreated) if isinstance(entryid, int) else entryid
+            # but due to complications with EntryID containing a reference to its parent Sign,
+            # we still store it as only the counter value and then recreate when loading from file
+            self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
             self._gloss = serializedsignlevelinfo['gloss']
             self._lemma = serializedsignlevelinfo['lemma']
             self._source = serializedsignlevelinfo['source']
@@ -245,7 +246,7 @@ class SignLevelInformation:
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
         elif signlevel_info is not None:
-            self._entryid = signlevel_info['entryid']
+            self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
             self._source = signlevel_info['source']
@@ -274,7 +275,7 @@ class SignLevelInformation:
 
     def serialize(self):
         return {
-            'entryid': self._entryid,
+            'entryid': self._entryid.counter,
             'gloss': self._gloss,
             'lemma': self._lemma,
             'source': self._source,
@@ -290,11 +291,22 @@ class SignLevelInformation:
         }
 
     @property
+    def parentsign(self):
+        return self._parentsign
+
+    @parentsign.setter
+    def parentsign(self, new_parentsign):
+        self._parentsign = new_parentsign
+        self._entryid.parentsign = new_parentsign
+
+    @property
     def entryid(self):
         return self._entryid
 
     @entryid.setter
     def entryid(self, new_entryid):
+        if new_entryid.parentsign is None:
+            new_entryid.parentsign = self.parentsign
         self._entryid = new_entryid
 
     @property
