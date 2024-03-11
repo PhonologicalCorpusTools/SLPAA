@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QDialogButtonBox,
     QLabel,
-    QPushButton
+    QPushButton,
+    QMessageBox
 )
 
 from PyQt5.QtCore import (
@@ -20,6 +21,7 @@ from models.location_models import BodypartTreeModel
 from lexicon.module_classes import AddedInfo, delimiter, BodypartInfo
 from constant import HAND, ARM, LEG
 from serialization_classes import LocationTreeSerializable
+import logging
 
 bodypartpairs = {}
 for part in [HAND, ARM, LEG]:
@@ -30,13 +32,14 @@ for part in [HAND, ARM, LEG]:
 class BodypartSpecificationPanel(QFrame):
     copybutton_clicked = pyqtSignal()
 
-    def __init__(self, bodypart, label, bodyparttype, bodypartinfotoload=None, **kwargs):
+    def __init__(self, bodypart, label, bodyparttype, bodypartinfotoload=None, forrelationmodule=False, **kwargs):
         super().__init__(**kwargs)
+        
         self.mainwindow = self.parent().mainwindow
         self.bodyparttype = bodyparttype
+        self.forrelationmodule=forrelationmodule
 
         main_layout = QVBoxLayout()
-
         treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
         treemodel.populate(treemodel.invisibleRootItem())
         addedinfo = AddedInfo()
@@ -44,7 +47,7 @@ class BodypartSpecificationPanel(QFrame):
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
             if bodypartinfotoload.bodyparttreemodel is not None:
-                treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel))
+                treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel), forrelationmodule=self.forrelationmodule)
             addedinfo = deepcopy(bodypartinfotoload.addedinfo)
 
         # create layout with bodypart title and added info button
@@ -92,7 +95,7 @@ class BodypartSpecificationPanel(QFrame):
         if bodypartinfotoload is not None and isinstance(bodypartinfotoload, BodypartInfo):
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
-            treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel))
+            treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel),forrelationmodule=self.forrelationmodule)
             addedinfo = deepcopy(bodypartinfotoload.addedinfo)
         else:
             treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
@@ -105,26 +108,53 @@ class BodypartSpecificationPanel(QFrame):
         self.addedinfobutton.addedinfo = addedinfo
 
     def clear(self):
+        self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(False)
         treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
         treemodel.populate(treemodel.invisibleRootItem())
         self.locationoptionsselectionpanel.treemodel = treemodel
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.clear_details()
 
+    def multiple_selections_check(self):
+        paths = self.locationoptionsselectionpanel.get_listed_paths()
+        if len(paths) == 1:
+            return False
+        # if the multiple selections are parents of each other, doesn't count as multiple selections.
+        for i in range(len(paths)):
+            for j in range(i+1, len(paths)):
+                if (paths[i] not in paths[j] and paths[j] not in paths[i]):
+                    return True
+        return False
+
+    def validity_check(self):
+        selectionsvalid = True
+        warningmessage = "" 
+
+        self.locationoptionsselectionpanel.refresh_listproxies()
+        treemodel = self.locationoptionsselectionpanel.treemodel
+        
+        multiple_selections = self.multiple_selections_check()
+
+        if multiple_selections and not treemodel.multiple_selection_allowed:
+            selectionsvalid = False
+            warningmessage = warningmessage + "Multiple locations have been selected but 'Allow multiple selection' is not checked."
+        return selectionsvalid, warningmessage
+
 
 class BodypartSelectorDialog(QDialog):
     bodyparts_saved = pyqtSignal(BodypartInfo, BodypartInfo)
 
-    def __init__(self, bodyparttype, bodypart1label=None, bodypart2label=None, bodypart1infotoload=None, bodypart2infotoload=None, **kwargs):
+    def __init__(self, bodyparttype, bodypart1label=None, bodypart2label=None, bodypart1infotoload=None, bodypart2infotoload=None, forrelationmodule=False,**kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
         self.bodyparttype = bodyparttype
+        self.forrelationmodule = forrelationmodule
 
         main_layout = QVBoxLayout()
         hands_layout = QHBoxLayout()
 
-        self.bodypart1_panel = BodypartSpecificationPanel(self.bodyparttype+'1', bodypart1label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart1infotoload, parent=self)
-        self.bodypart2_panel = BodypartSpecificationPanel(self.bodyparttype+'2', bodypart2label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart2infotoload, parent=self)
+        self.bodypart1_panel = BodypartSpecificationPanel(self.bodyparttype+'1', bodypart1label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart1infotoload, forrelationmodule=self.forrelationmodule, parent=self)
+        self.bodypart2_panel = BodypartSpecificationPanel(self.bodyparttype+'2', bodypart2label, bodyparttype=self.bodyparttype, bodypartinfotoload=bodypart2infotoload, forrelationmodule=self.forrelationmodule, parent=self)
         self.bodypart1_panel.copybutton_clicked.connect(lambda: self.bodypart1_panel.setbodypartinfo(self.bodypart2_panel.getbodypartinfo()))
         self.bodypart2_panel.copybutton_clicked.connect(lambda: self.bodypart2_panel.setbodypartinfo(self.bodypart1_panel.getbodypartinfo()))
 
@@ -157,17 +187,35 @@ class BodypartSelectorDialog(QDialog):
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
-
         if standard == QDialogButtonBox.Cancel:
             self.reject()
 
         elif standard == QDialogButtonBox.Save:
-
-            # save info and then close dialog
-            self.bodyparts_saved.emit(self.bodypart1_panel.getbodypartinfo(), self.bodypart2_panel.getbodypartinfo())
-            self.accept()
+            self.validate_and_save()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
             # TODO KV -- where should the "defaults" be defined?
             self.bodypart1_panel.clear()
             self.bodypart2_panel.clear()
+            
+            
+
+            
+    def validate_and_save(self):
+        messagestring = ""
+
+        modulevalid1, modulemessage1 = self.bodypart1_panel.validity_check()
+        modulevalid2, modulemessage2 = self.bodypart2_panel.validity_check()
+
+        messagestring += modulemessage1 if not modulevalid1 else ""
+        messagestring += modulemessage2 if not modulevalid2 else ""
+
+        if messagestring != "":
+            # refuse to save without valid module selections
+            # warn user that there's missing and/or invalid info and don't let them save
+            QMessageBox.critical(self, "Warning", messagestring)
+        else:
+            # save info and then close dialog
+            self.bodyparts_saved.emit(self.bodypart1_panel.getbodypartinfo(), self.bodypart2_panel.getbodypartinfo())
+            self.accept()
+

@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import (
-    QListView,
     QTreeView,
     QPushButton,
     QHBoxLayout,
@@ -25,7 +24,7 @@ from PyQt5.QtCore import (
 from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
 from serialization_classes import MovementTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 from constant import HAND
 
 
@@ -121,27 +120,6 @@ class MovementTreeView(QTreeView):
         return super().edit(index, trigger, event)
 
 
-class MvmtTreeListView(QListView):
-
-    def __init__(self):
-        super().__init__()
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        # modifiers = event.modifiers()
-
-        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
-            indexesofselectedrows = self.selectionModel().selectedRows()
-            selectedlistitems = []
-            for itemindex in indexesofselectedrows:
-                listitemindex = self.model().mapToSource(itemindex)
-                listitem = self.model().sourceModel().itemFromIndex(listitemindex)
-                selectedlistitems.append(listitem)
-            for listitem in selectedlistitems:
-                listitem.unselectpath()
-            # self.model().dataChanged.emit()
-
-
 def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     pathlist = pathstring.split(delim)
     pathitemslists = []
@@ -164,7 +142,6 @@ def findvaliditemspaths(pathitemslists):
                             validpaths.append(higherpath + [lastitem])
     elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
         for lastitem in pathitemslists[0]:
-            # if lastitem.parent() == .... used to be if topitem.childCount() == 0:
             validpaths.append([lastitem])
     else:
         # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
@@ -177,28 +154,9 @@ def findvaliditemspaths(pathitemslists):
 # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
 class MvmtTreeItemDelegate(QStyledItemDelegate):
 
-    # def createEditor(self, parent, option, index):
-    #     theeditor = QStyledItemDelegate.createEditor(self, parent, option, index)
-    #     theeditor.returnPressed.connect(self.returnkeypressed)
-    #     return theeditor
-    #
-    # def setEditorData(self, editor, index):
-    #     editor.setText(index.data(role=Qt.DisplayRole))
-    #
-    # def setModelData(self, editor, model, index):
-    #     editableitem = model.itemFromIndex(index)
-    #     if isinstance(editableitem, QStandardItem) and not isinstance(editableitem, MovementTreeItem) and not isinstance(editableitem, MovementListItem):
-    #         # then this is the editable part of a movement tree item
-    #         treeitem = editableitem.parent().child(editableitem.row(), 0)
-    #         editableitem.setData(editor.text(), role=Qt.DisplayRole)
-    #
-    # def __init__(self):
-    #     super().__init__()
-    #     self.commitData.connect(self.validatedata)
-
-    def returnkeypressed(self):
-        print("return pressed")
-        return True
+    # def returnkeypressed(self):
+    #     print("return pressed")
+    #     return True
 
     def paint(self, painter, option, index):
         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
@@ -219,9 +177,7 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
 
 
-
 class MovementSpecificationPanel(ModuleSpecificationPanel):
-    # see_relations = pyqtSignal()
 
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
@@ -260,11 +216,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
         self.combobox.completer().setFilterMode(Qt.MatchContains)
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
-        # tct = TreeClickTracker(self)  todo kv
-        # self.combobox.installEventFilter(tct)
         search_layout.addWidget(self.combobox)
 
-        # self.addLayout(search_layout)
         main_layout.addLayout(search_layout)
 
         selection_layout = QHBoxLayout()
@@ -287,7 +240,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         list_layout = QVBoxLayout()
 
-        self.pathslistview = MvmtTreeListView()
+        self.pathslistview = TreeListView()
+        self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
         self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)
