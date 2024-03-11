@@ -5,6 +5,7 @@ import logging
 
 from PyQt5.QtCore import (
     Qt,
+    QSettings
 )
 
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
@@ -143,17 +144,101 @@ class ParameterModule:
         return "TODO no Module abbreviations implemented yet"
 
 
+class EntryID:
+    def __init__(self, counter=None, parentsign=None):
+        self.parentsign = parentsign
+        # all other attributes of EntryID are sourced from QSettings, sign, and/or sign-level info,
+        # so that they're not stored twice (and therefore we don't need to update in multiple places
+        # if any of those values change)
+        self._counter = counter
+
+        # TODO - eventually add other attributes (coder, signer, source, recording info)
+        # see class EntryIDTab in preference_dialog.py
+        # and https://github.com/PhonologicalCorpusTools/SLPAA/issues/18#issuecomment-1074184453
+
+    @property
+    def counter(self):
+        return self._counter
+
+    @counter.setter
+    def counter(self, new_counter):
+        self._counter = new_counter
+
+    @property
+    def date(self):
+        if self.parentsign is not None:
+            return self.parentsign.signlevel_information.datecreated
+        else:  # this shouldn't ever actually happen, but just in case...
+            return datetime.now()
+
+    def getattributestringfromname(self, attr_name, qsettings):
+        if attr_name == 'date':
+            return "" if self.date is None else self.date.strftime(qsettings.value('entryid/date/format'))
+        elif attr_name == 'counter':
+            counter_string = str(self.counter)
+            return "0" * (qsettings.value('entryid/counter/digits') - len(counter_string)) + counter_string
+        elif attr_name in dir(self):
+            # assuming we have a @property function for this attribute and it doesn't need any additional formatting
+            return getattr(self, attr_name)
+        else:
+            return ""
+
+    def display_string(self):
+        qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+
+        orders_strings = []
+        for attr in ['counter', 'date']:  # could these come from 'attr in dir(self)' instead?
+            if qsettings.value('entryid/' + attr + '/visible'):
+                orders_strings.append((qsettings.value('entryid/' + attr + '/order'), self.getattributestringfromname(attr, qsettings)))
+        orders_strings.sort()
+        return qsettings.value('entryid/delimiter').join([string for (order, string) in orders_strings])
+
+    # == check compares the displayed strings
+    def __eq__(self, other):
+        if isinstance(other, EntryID):
+            return self.display_string() == other.display_string()
+        return False
+
+    # != check compares the displayed strings
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    # < check compares the displayed strings
+    def __lt__(self, other):
+        if isinstance(other, EntryID):
+            return self.display_string() < other.display_string()
+        return False
+
+    # > check compares the displayed strings
+    def __gt__(self, other):
+        return other.__lt__(self)
+
+    # <= check compares the displayed strings
+    def __le__(self, other):
+        return not self.__gt__(other)
+
+    # >= check compares the displayed strings
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
+
 class SignLevelInformation:
-    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
+    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None, parentsign=None):
+        self._parentsign = parentsign
+
         if serializedsignlevelinfo is not None:
-            self._entryid = serializedsignlevelinfo['entryid']
+            datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            # as of 20240209, entryid has shifted from being an integer to an EntryID object
+            # but due to complications with EntryID containing a reference to its parent Sign,
+            # we still store it as only the counter value and then recreate when loading from file
+            self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
             self._gloss = serializedsignlevelinfo['gloss']
             self._lemma = serializedsignlevelinfo['lemma']
             self._source = serializedsignlevelinfo['source']
             self._signer = serializedsignlevelinfo['signer']
             self._frequency = serializedsignlevelinfo['frequency']
             self._coder = serializedsignlevelinfo['coder']
-            self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            self._datecreated = datecreated
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
             # backward compatibility for attribute added 20230412!
@@ -161,7 +246,7 @@ class SignLevelInformation:
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
         elif signlevel_info is not None:
-            self._entryid = signlevel_info['entryid']
+            self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
             self._source = signlevel_info['source']
@@ -179,25 +264,18 @@ class SignLevelInformation:
             print("TODO KV no sign level info; what to do?")
 
     def __eq__(self, other):
-        aresame = True
         if isinstance(other, SignLevelInformation):
-            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
-                aresame = False
-            if self._source != other.source or self._signer != other.signer or self._frequency != other.frequency:
-                aresame = False
-            if self._coder != other.coder or self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
-                aresame = False
-            if self._note != other.note or self._fingerspelled != other.fingerspelled or self._handdominance != other.handdominance:
-                aresame = False
-            if self._compoundsign != other.compoundsign:
-                aresame = False
-        else:
-            aresame = False
-        return aresame
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def serialize(self):
         return {
-            'entryid': self._entryid,
+            'entryid': self._entryid.counter,
             'gloss': self._gloss,
             'lemma': self._lemma,
             'source': self._source,
@@ -213,11 +291,22 @@ class SignLevelInformation:
         }
 
     @property
+    def parentsign(self):
+        return self._parentsign
+
+    @parentsign.setter
+    def parentsign(self, new_parentsign):
+        self._parentsign = new_parentsign
+        self._entryid.parentsign = new_parentsign
+
+    @property
     def entryid(self):
         return self._entryid
 
     @entryid.setter
     def entryid(self, new_entryid):
+        if new_entryid.parentsign is None:
+            new_entryid.parentsign = self.parentsign
         self._entryid = new_entryid
 
     @property
