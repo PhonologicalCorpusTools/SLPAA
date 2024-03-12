@@ -9,6 +9,7 @@ from PyQt5.QtCore import (
 
 from PyQt5.Qt import (
     QStandardItem,
+    QModelIndex,
     QStandardItemModel
 )
 import logging
@@ -655,6 +656,15 @@ class LocationTreeModel(QStandardItemModel):
     @multiple_selection_allowed.setter
     def multiple_selection_allowed(self, is_allowed):
         self._multiple_selection_allowed = is_allowed
+    
+    def get_checked_items(self, parent_index=QModelIndex()):
+        checked_values = []
+        for row in range(self.rowCount(parent_index)):
+            index = self.index(row, 0, parent_index)
+            if index.data(Qt.CheckStateRole) == Qt.Checked:
+                checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
+            checked_values.extend(self.get_checked_items(index))
+        return checked_values
     
     
     def updateCheckState(self, item):
