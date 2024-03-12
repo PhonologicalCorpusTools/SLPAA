@@ -5,7 +5,10 @@ import copy
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel, 
-    QMessageBox
+    QMessageBox,
+    QLabel,
+    QVBoxLayout,
+    QDialog
 )
 from PyQt5.QtWidgets import QStyledItemDelegate, QMessageBox
 
@@ -13,7 +16,7 @@ from PyQt5.QtCore import QModelIndex, Qt
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes
 from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET
-
+import logging
 
 class TargetHeaders:
     NAME = 0
@@ -42,10 +45,11 @@ class SearchModel(QStandardItemModel):
         self.headers = ["Name", "Type", "Value", "Include?", "Negative?",  "X-slots"]
         
         self.setHorizontalHeaderLabels(self.headers)
+        # if len(targets) > 0:
+        #     for t in targets:
+        #         self.add_target(t)
+    
 
-        if len(targets) > 0:
-            for t in targets:
-                self.add_target(t)
     
     def get_row_data(self, t):
         type = QStandardItem(t.targettype)
@@ -54,6 +58,8 @@ class SearchModel(QStandardItemModel):
         negative_cb = QStandardItem()
         negative_cb.setCheckable(True)
         name = QStandardItem(t.name)
+        name.setData(t.module, Qt.UserRole + 1)
+        value = QStandardItem()
 
         if t.xslottype is not None: # TODO specify exactly which target types should have an xslottype or not
             if t.xslottype == "concrete":
@@ -65,13 +71,31 @@ class SearchModel(QStandardItemModel):
         else:
             xslottype = QStandardItem()
         
-        val = []
-        for k,v in t.values.items(): # two-valued targets
-            if v not in [None, ""]:
-                val.append(str(k)+"="+str(v))
-        value = QStandardItem()
-        value.setData(val, Qt.DisplayRole)
-        value.setData(t.values, Qt.UserRole + 1)
+        if t.module is None:
+            val = []
+            for k,v in t.values.items(): # two-valued targets
+                if v not in [None, ""]:
+                    val.append(str(k)+"="+str(v))
+            
+            value.setData(val, Qt.DisplayRole)
+            value.setData(t.values, Qt.UserRole + 1)
+        
+        elif t.module is not None and t.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+            arts = t.module.articulators
+            if t.targettype == ModuleTypes.MOVEMENT:
+                model = t.module.movementtreemodel
+            elif t.targettype == ModuleTypes.LOCATION:
+                model = t.module.locationtreemodel
+            val = []
+
+            # val.append(arts[0]) # TODO fix articulators
+            checked_paths = model.get_checked_items()
+            for path in checked_paths:
+                val.append(path)
+
+            value.setData(val, Qt.DisplayRole)
+            value.setData(arts, Qt.UserRole + 1)
+            value.setData(checked_paths, Qt.UserRole + 2) # TODO maybe don't hardcode
         return [name, type, value, include_cb, negative_cb, xslottype]
 
     def modify_target(self, t, row):
@@ -80,15 +104,56 @@ class SearchModel(QStandardItemModel):
             self.setItem(row, col, data)
 
     
-    # TODO maybe change to be more tree like (hierarchy by type)
     def add_target(self, t):
-        # self.targets.append(t) # need to deal with modifying targets
         self.appendRow(self.get_row_data(t))
 
-        # # TODO insert in a better place depending on the type
-        # finalrow = self.rowCount() 
-        # finalcol = len(self.headers) - 1
-        # self.rowsInserted.emit(QModelIndex(), self.index(finalrow, 0), self.index(finalrow, finalcol))
+    def get_selected_rows(self):
+        row_numbers = []
+        for row in range(self.rowCount()):
+            if self.is_included(row):
+                row_numbers.append(row)
+        return row_numbers
+
+
+
+
+    def search_corpus(self, corpus): # TODO potentiall add a rows_to_skip for adding on to existing results table
+        selected_rows = self.get_selected_rows()
+        dialog = QDialog()
+        layout = QVBoxLayout()
+
+        # TODO for now, assume match type minimal, not exact
+        if self.matchdegree == 'all': #  
+            mvmt_paths_to_match = []
+            locn_paths_to_match = []
+
+            for row in selected_rows:
+                ttype = self.target_type(row)
+                if ttype == ModuleTypes.MOVEMENT:
+                    mvmt_paths_to_match.extend(self.target_paths(row))
+                # eg if target_name is in rows_to_skip, continue
+                
+
+            layout.addWidget(QLabel("matching mvmt"))
+            for sign in corpus.signs:
+                if len(mvmt_paths_to_match) > 0:
+                    # TODO switch to using the generic get module dict function 
+                    checked_mvmt_paths = []
+                    for module in sign.movementmodules.values():
+                        checked_mvmt_paths.extend(module.movementtreemodel.get_checked_items())
+                    logging.warning(checked_mvmt_paths)
+                    logging.warning(mvmt_paths_to_match)
+                    ok = all(path in checked_mvmt_paths for path in mvmt_paths_to_match)
+                    txt = sign.signlevel_information.gloss + " matches: " + str(ok)
+                    layout.addWidget(QLabel(txt))
+
+
+        
+        dialog.setLayout(layout)
+        dialog.exec_()
+
+
+
 
 
 
@@ -96,6 +161,21 @@ class SearchModel(QStandardItemModel):
         repr = "searchmodel:\n " + str(self.matchtype) + " match; " +  "match " + str(self.matchdegree) + "\n" + str(self.searchtype) + " search"
         return repr
 
+    
+    def target_name(self, row):
+        return self.index(row, TargetHeaders.NAME).data()
+    
+    def target_type(self, row):
+        return self.index(row, TargetHeaders.TYPE).data()
+    
+    def target_xslottype(self, row):
+        return self.index(row, TargetHeaders.XSLOTS).data()
+    
+    def target_paths(self, row):
+        return self.index(row, TargetHeaders.VALUE).data(Qt.UserRole + 2)
+    
+    def target_articulators(self, row):
+        return self.index(row, TargetHeaders.VALUE).data(Qt.UserRole + 1)
 
     def is_negative(self, row):
         return (self.itemFromIndex(self.index(row, TargetHeaders.NEGATIVE)).checkState() == Qt.Checked)
@@ -135,14 +215,14 @@ class SearchModel(QStandardItemModel):
 
 # TODO should we do different item classes for each targettype, instead of having a dict ?
 class SearchTargetItem(QStandardItem):
-    def __init__(self, name=None, targettype=None, xslottype=None, xslotnum=None, values=dict(), **kwargs):
+    def __init__(self, name=None, targettype=None, xslottype=None, xslotnum=None, values=None, module=None, **kwargs):
         super().__init__(**kwargs)
         self._name = name
         self._targettype = targettype
         self._xslottype = xslottype 
         self._xslotnum = xslotnum # only set if xslottype is concrete
-        self.values = values # TODO for binary targets (eg xslot_min=3). update for unary targets (eg list of location nodes)
-
+        self._values = values if values is not None else {} # for binary targets (eg xslot_min=3). update for unary targets (eg list of location nodes)
+        self._module = module
 
     def __repr__(self):
         msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\nxslotnum: " + str(self.xslotnum) + "\ntargettype " + str(self.targettype)  
@@ -156,6 +236,17 @@ class SearchTargetItem(QStandardItem):
     @targettype.setter
     def targettype(self, value):
         self._targettype = value
+
+    @property
+    def values(self):
+        return self._values
+
+    @values.setter
+    def values(self, d):
+        self._values = d
+    
+    def add_value(self, k,v):
+        self._values[k] = v
     
     @property
     def name(self):
@@ -183,6 +274,14 @@ class SearchTargetItem(QStandardItem):
     @xslotnum.setter
     def xslotnum(self, value):
         self._xslotnum = value
+
+    @property
+    def module(self):
+        return self._module
+    
+    @module.setter
+    def module(self, m):
+        self._module = m
 
 class ResultsModel(QStandardItemModel):
     def __init__(self, searchmodel, corpus, **kwargs):

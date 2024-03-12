@@ -269,11 +269,11 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         self.xslottype = xslottype
         self.xslotnum = xslotnum
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, includephase, incl_articulators, incl_articulator_subopts, **kwargs)
-        
+
+
     def add_button_box(self, new_instance=False):
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
-        self.button_box.button(QDialogButtonBox.Save).setText("Save target and add another")
         self.button_box.button(QDialogButtonBox.Apply).setDefault(True)
         self.button_box.button(QDialogButtonBox.Apply).setText("Save target")
 
@@ -287,11 +287,11 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         if moduletype == ModuleTypes.MOVEMENT:
             self.module_widget = Search_MovementSpecPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.LOCATION:
-            logging.warning("Location is not implemented")
+            self.module_widget = Search_LocationSpecPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.HANDCONFIG:
-            logging.warning("hand config is not implemented")
+            QMessageBox.critical(self, "Warning", "hand config not impl")
         elif self.moduletype == ModuleTypes.RELATION:
-            logging.warning("relation is not implemented")
+            QMessageBox.critical(self, "Warning", "rel not impl")
     
     def handle_xslot_widget(self, xslotstructure, timingintervals):
         self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
@@ -307,9 +307,6 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
 
         if standard == QDialogButtonBox.Cancel:
             self.reject()
-
-        elif standard == QDialogButtonBox.Save:  # save and add another
-            self.validate_and_save(addanother=True, closedialog=False)
 
         elif standard == QDialogButtonBox.Apply:  # save and close
             self.validate_and_save(addanother=False, closedialog=True)
@@ -339,18 +336,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         if messagestring != "":
             # warn user that there's missing and/or invalid info and don't let them save
             QMessageBox.critical(self, "Warning", messagestring)
-        elif addanother:
-            # save info and then refresh screen to start next module
-            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
-            self.module_saved.emit(savedmodule, self.moduletype)
-            self.articulators_widget.clear()
-            self.addedinfobutton.clear()
-            self.xslot_widget.clear()
-            self.module_widget.clear()
-            self.module_widget.existingkey = None
-            if self.moduletype == ModuleTypes.RELATION:
-                self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
-        elif not addanother:
+        else:
             # save info
             savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
             self.module_saved.emit(savedmodule, self.moduletype)
@@ -375,9 +361,11 @@ class CustomRBGrp(QButtonGroup):
         else:
             button.setChecked(False)
 
+# TODO possibly not necessary. can use base classes
 class Search_MovementSpecPanel(MovementSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
+
 
 class Search_LocationSpecPanel(LocationSpecificationPanel):
     def __init__(self, moduletoload=None, showimagetabs=True, **kwargs):

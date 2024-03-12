@@ -36,7 +36,7 @@ from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
 from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, HAND, ARM, LEG
 import copy 
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, pyqtSlot
-# from lexicon.lexicon_classes import Sign
+from lexicon.lexicon_classes import Sign
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure
 from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel
@@ -65,13 +65,12 @@ class SearchWindow(QMainWindow):
 
     def init_ui(self):
 
-        self.search_targets_view = SearchTargetsView(self.searchmodel, parent=self)
-        self.search_targets_view.table_view.doubleClicked.connect(self.handle_target_doubleclicked) 
+        self.search_targets_view = SearchTargetsView(self.searchmodel, mainwindow=self, parent=self)
         self.search_params_view = SearchParamsView(parent=self)
         self.search_params_view.search_clicked.connect(self.handle_search_clicked)
         self.build_search_target_view = BuildSearchTargetView(sign=None, mainwindow=self, parent=self)
         self.build_search_target_view.target_added.connect(self.handle_new_search_target_added)
-        self.build_search_target_view.target_modified.connect(self.handle_search_target_modified)
+        self.build_search_target_view.target_modified.connect(self.searchmodel.modify_target)
 
         search_param_window = QMdiSubWindow()
         search_param_window.setWidget(self.search_params_view)
@@ -109,11 +108,12 @@ class SearchWindow(QMainWindow):
         if mssg != "":
             QMessageBox.critical(self, "Warning", mssg)
         else:
+            logging.warning("searching")
             self.searchmodel.searchtype = type
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
 
-            QMessageBox.critical(self, "Search", "a beautiful search occured")
+            self.searchmodel.search_corpus(self.corpus)
             
             # self.results_view = ResultsView(self.searchmodel, self.corpus)
             # self.results_view.show()
@@ -125,41 +125,15 @@ class SearchWindow(QMainWindow):
         self.search_params_view.match_type = degree
 
     def handle_new_search_target_added(self, target):
-        xslotstructure = None
-        if target.xslottype == "concrete":
-            xslotstructure = XslotStructure(target.xslotnum)
-        elif target.xslottype == "abstract xslot":
-            xslotstructure = XslotStructure(1)
-        elif target.xslottype == "abstract whole sign":
-            xslotstructure = XslotStructure(1)
-        self.current_sign.xslotstructure = xslotstructure
         self.searchmodel.add_target(target)
     
-    def handle_search_target_modified(self, target, row):
-        self.searchmodel.modify_target(target, row)
-    
-    # TODO i want this in the SearchTargets class, but it needs access to the SearchBuilder
-    # seems repetitive! is there a better way to do this?
-    def handle_target_doubleclicked(self, index):
-        row = index.row()
-        item = self.search_targets_view.get_search_target_item(row)
-
-        if item.targettype == XSLOT_TARGET:
-            timing_selector = XSlotTargetDialog(parent=self, preexistingitem=item)
-            timing_selector.target_saved.connect(lambda target_name, max_xslots, min_xslots: 
-                                                 self.build_search_target_view.handle_save_xslottarget(target_name, max_xslots, min_xslots, row=row))
-            timing_selector.exec_()
-
-        elif item.targettype == SIGNLEVELINFO_TARGET:
-            initialdialog = NameDialog(parent=self, preexistingname=item.name)
-            initialdialog.continue_clicked.connect(lambda name: self.build_search_target_view.show_next_dialog(SIGNLEVELINFO_TARGET, name, preexistingitem=item, row=row))
-            initialdialog.exec_()
 
             
 class SearchTargetsView(QWidget):
-    def __init__(self, searchmodel, **kwargs):
+    def __init__(self, searchmodel, mainwindow, **kwargs):
         super().__init__(**kwargs)
         self.model = searchmodel
+        self.mainwindow = mainwindow
 
         self.table_view = QTableView(parent=self)
         self.table_view.setModel(self.model)
@@ -168,6 +142,8 @@ class SearchTargetsView(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.table_view)
         self.setLayout(layout)
+
+        self.table_view.doubleClicked.connect(self.handle_target_doubleclicked) 
     
     def set_table_ui(self):
         self.table_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -193,10 +169,66 @@ class SearchTargetsView(QWidget):
             targettype=self.model.item(row, TargetHeaders.TYPE).data(Qt.DisplayRole),
             xslottype=xslottype,
             xslotnum=xslotnum,
-            values=self.model.item(row, TargetHeaders.VALUE).data(Qt.UserRole + 1)
-        )
+            values=self.model.item(row, TargetHeaders.VALUE).data(Qt.UserRole + 1),
+            module=self.model.item(row, TargetHeaders.NAME).data(Qt.UserRole + 1)
 
+        )
         return it
+    
+    def open_module_dialog(self, modulekey, moduletype):
+        modules_list = self.mainwindow.current_sign.getmoduledict(moduletype)
+        module_to_edit = modules_list[modulekey]
+        includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
+            else ([] if moduletype == ModuleTypes.RELATION else [HAND])
+        includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
+            1 if moduletype == ModuleTypes.LOCATION else
+            0  # default
+        )
+        module_selector = Search_ModuleSelectorDialog(moduletype=moduletype,
+                                               xslotstructure=self.sign.xslotstructure,
+                                               moduletoload=module_to_edit,
+                                               includephase=includephase,
+                                               incl_articulators=includearticulators,
+                                               incl_articulator_subopts=includephase,
+                                               parent=self
+                                               )
+        module_selector.module_saved.connect(
+            lambda module_to_save, savedtype:
+            self.mainwindow.build_search_target_view.handle_save_module(module_to_save=module_to_save,
+                                                               moduletype=savedtype,
+                                                               existing_key=modulekey)
+        )
+        module_selector.module_deleted.connect(
+            lambda: self.mainwindow.build_search_target_view.handle_delete_module(existingkey=modulekey, moduletype=moduletype)
+        )
+        module_selector.exec_()
+
+
+    def handle_target_doubleclicked(self, index):
+        row = index.row()
+        item = self.get_search_target_item(row)
+
+        if item.targettype == XSLOT_TARGET:
+            timing_selector = XSlotTargetDialog(parent=self, preexistingitem=item)
+            timing_selector.target_saved.connect(lambda target_name, max_xslots, min_xslots: 
+                                                 self.mainwindow.build_search_target_view.handle_save_xslottarget(target_name, max_xslots, min_xslots, row=row))
+            timing_selector.exec_()
+
+        elif item.targettype == SIGNLEVELINFO_TARGET:
+            initialdialog = NameDialog(parent=self, preexistingname=item.name)
+            initialdialog.continue_clicked.connect(lambda name: self.mainwindow.build_search_target_view.show_next_dialog(SIGNLEVELINFO_TARGET, name, preexistingitem=item, row=row))
+            initialdialog.exec_()
+        
+        elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+            initialdialog = XSlotTypeDialog(parent=self, preexistingitem=item)
+            initialdialog.continue_clicked.connect(
+                lambda name: self.mainwindow.build_search_target_view.show_next_dialog(item.targettype, name, preexistingitem=item, row=row))
+            initialdialog.exec_()
+
+        
+        else:
+            QMessageBox.critical(self, "not implemented", "modify on double click not implemented for this target type")
+
 
 
 class ListDelegate(QStyledItemDelegate):
@@ -215,7 +247,8 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
     def __init__(self, sign, mainwindow, **kwargs):
         super().__init__(sign, mainwindow, **kwargs)
-        
+        self.sign = self.mainwindow.current_sign
+
     def enable_module_buttons(self, yesorno):
         for btn in self.modulebuttons_untimed + self.modulebuttons_timed:
             btn.setEnabled(True)
@@ -251,7 +284,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
     def handle_menumodulebtn_clicked(self, moduletype):
         initialdialog = XSlotTypeDialog(parent=self)
-        initialdialog.continue_clicked.connect(lambda name, xslottype, xslotnum: self.show_next_dialog(moduletype, name, xslottype, xslotnum))
+        initialdialog.continue_clicked.connect(lambda name, xslottype, xslotnum: self.show_next_dialog(moduletype,name,xslottype,xslotnum))
         initialdialog.exec_()
 
     def show_next_dialog(self, targettype, name, xslottype=None, num=None, preexistingitem=None, row=None): # TODO most of these arguments are not used
@@ -260,6 +293,11 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         target.name = name
         target.xslottype = xslottype
         target.xslotnum = num
+        target.values = {}
+        target.module = None
+
+        if preexistingitem is not None:
+            target.module = preexistingitem.module
 
         if targettype==SIGNLEVELINFO_TARGET:
             if preexistingitem is not None:
@@ -270,7 +308,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo, row=row))
             signlevelinfo_selector.exec_()
         
-        if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
+        elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
             includearticulators = [HAND, ARM, LEG] if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
             else ([] if targettype == ModuleTypes.RELATION else [HAND])
             includephase = 2 if targettype == ModuleTypes.MOVEMENT else (
@@ -278,24 +316,30 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                 0  # default
             )
 
-
             # xslotstructure = XslotStructure()
             module_selector = Search_ModuleSelectorDialog(moduletype=targettype,
                                                 xslotstructure=None,
                                                 xslottype=xslottype,
                                                 xslotnum=num,
-                                                moduletoload=None,
+                                                moduletoload=target.module,
                                                 includephase=includephase,
                                                 incl_articulators=includearticulators,
                                                 incl_articulator_subopts=includephase,
                                                 parent=self)
-            module_selector.module_saved.connect(lambda module_to_save: self.handle_add_target(target, module_to_save))
+            module_selector.module_saved.connect(lambda module_to_save: self.handle_add_target(target, module_to_save, row=row))
             module_selector.exec_()
 
-    def handle_add_target(self, target, module_to_save):
-        print(module_to_save)
-        target.values["articulators"] = module_to_save.articulators
-        self.target_added.emit(target)
+    def handle_add_target(self, target, module_to_save, row=None):
+        moduletype = target.targettype
+        existingkey = module_to_save.uniqueid
+        if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype):
+            self.sign.addmodule(module_to_save, moduletype)
+        else:
+            self.sign.updatemodule(existingkey, module_to_save, moduletype)
+
+        # target.values["articulators"] = module_to_save.articulators
+        target.module = module_to_save
+        self.emit_signal(target, row)
 
     def handle_save_signlevelinfo(self, target, signlevel_info, row=None):
         target.values["entryid"] = signlevel_info.entryid
@@ -312,9 +356,19 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         target.values["fingerspelled"] = signlevel_info.fingerspelled
         target.values["compoundsign"] = signlevel_info.compoundsign
         target.values["handdominance"] = signlevel_info.handdominance
-       
+        # TODO update to use signlevel info instead of target values
         self.emit_signal(target, row)
-            
+    
+    @property
+    def sign(self):
+        return self._sign
+    
+    @sign.setter
+    def sign(self, sign): # remove parent class's gloss attribute
+        self._sign = sign
+
+    def clear(self): # remove parent class's gloss attribute
+        self._sign = None
 
 # TODO move these classes to search_classes.py
 class NameWidget(QWidget):
@@ -335,7 +389,6 @@ class NameWidget(QWidget):
     def on_name_edited(self):
         self.name = self.text_entry.text()
         self.on_name_entered.emit()
-
 
 class NameDialog(QDialog):
     continue_clicked = pyqtSignal(str)
@@ -375,7 +428,7 @@ class NameDialog(QDialog):
 class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
     continue_clicked = pyqtSignal(str, str, str)
 
-    def __init__(self, **kwargs):
+    def __init__(self, preexistingitem=None, **kwargs):
         super().__init__(**kwargs)
 
         self.name_widget = NameWidget(parent=self)
@@ -418,12 +471,14 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         layout.addWidget(self.buttonbox)
 
         self.setLayout(layout)
+
+        if preexistingitem is not None:
+            self.reload_item(preexistingitem)
     
     def toggle_continue_selectable(self):
-        
         self.buttonbox.save_button.setEnabled(self.name_widget.name != ""  
             and ((self.concrete_xslots_num.text() != "" and self.concrete_xslots_rb.isChecked())
-            or (self.xslot_type_button_group.checkedButton() and not self.concrete_xslots_rb.isChecked())))
+            or (self.xslot_type_button_group.checkedButton() is not None and not self.concrete_xslots_rb.isChecked())))
         
     def on_xslots_num_edited(self):
         self.concrete_xslots_rb.setChecked(True)
@@ -445,15 +500,37 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         else:
             if self.xslot_type == self.ignore_xslots_rb:
                 type = "ignore"
+                self.continue_clicked.emit(self.name_widget.name, type, self.concrete_xslots_num.text())
+                self.accept()
             elif self.xslot_type == self.abstract_xslot_rb:
+                QMessageBox.critical(self, "not implemented", "abstract xs not implemented")
                 type = "abstract xslot"
+                
             elif self.xslot_type == self.abstract_whole_sign_rb:
+                QMessageBox.critical(self, "not implemented", "abstract sign not impl")
                 type = "abstract whole sign"
             else:
+                QMessageBox.critical(self, "not implemented", "concrete x slots not implemeneted")
                 type = "concrete"
             
-            self.continue_clicked.emit(self.name_widget.name, type, self.concrete_xslots_num.text())
-            self.accept()
+    def reload_item(self, it):
+        self.name_widget.text_entry.setText(it.name)
+        self.xslot_type = it.xslottype
+
+        if it.xslottype == "abstract xslot":
+            btn_to_check = self.abstract_xslot_rb
+        elif it.xslottype == "abstract whole sign":
+            btn_to_check = self.abstract_whole_sign_rb
+        elif it.xslottype == "concrete":   
+            btn_to_check = self.concrete_xslots_rb
+            self.concrete_xslots_num.setText(it.xslotnum)
+        else:
+            btn_to_check = self.ignore_xslots_rb
+        
+        for b in self.xslot_type_button_group.buttons():
+            b.setChecked(b==btn_to_check)
+
+        self.toggle_continue_selectable()
     
     def on_restore_defaults_clicked(self):
         for b in self.buttonbox.buttons():
@@ -508,8 +585,10 @@ class XSlotTargetDialog(QDialog):
 
     def reload_item(self, it):
         self.name_widget.text_entry.setText(it.name)
-        self.max_num.setText(it.values["xslot max"])
-        self.min_num.setText(it.values["xslot min"])
+        if "xslot max" in it.values:
+            self.max_num.setText(it.values["xslot max"])
+        if "xslot min" in it.values:
+            self.min_num.setText(it.values["xslot min"])
         self.toggle_continue_selectable()
     
     def toggle_continue_selectable(self):
@@ -730,15 +809,33 @@ class InitialButtonBox(QWidget):
 
 # TODO consider if main sign inherits from this
 # check if xslotstructure is None
-class SearchWindowSign: # equivalent of sign for when xslotstructure etc need to be specified due to subclassing
-    def __init__(self):
+class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc need to be specified due to subclassing
+    def __init__(self, signlevel_info=None, serializedsign=None):
+        super().__init__(signlevel_info, serializedsign)
         self._xslotstructure = XslotStructure()
+
+    def addmodule(self, module_to_add, moduletype):
+        self.getmoduledict(moduletype)[module_to_add.uniqueid] = module_to_add
+
+    def removemodule(self, uniqueid, moduletype):
+        self.getmoduledict(moduletype).pop(uniqueid)
+    
+    def lastmodifiednow(self):
+        return
+
+
+    # TODO. probably add xslotstructure, signtype, and signlevel module dicts in the same way as mvmt and loc
     @property
     def xslotstructure(self):
         return self._xslotstructure
+    
     @xslotstructure.setter
     def xslotstructure(self, xslotstructure):
         self._xslotstructure = xslotstructure
+    
+    
+    
+
     
 
 class ResultsView(QWidget):
