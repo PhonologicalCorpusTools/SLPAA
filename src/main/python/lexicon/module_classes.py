@@ -191,7 +191,7 @@ class EntryID:
             if qsettings.value('entryid/' + attr + '/visible', type=bool):
                 orders_strings.append((qsettings.value('entryid/' + attr + '/order', type=int), self.getattributestringfromname(attr, qsettings)))
         orders_strings.sort()
-        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings])
+        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or "[Entry ID is blank]"
 
     # == check compares the displayed strings
     def __eq__(self, other):
