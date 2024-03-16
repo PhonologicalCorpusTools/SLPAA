@@ -8,23 +8,9 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QTabWidget, QScrollArea, QRadioButton
 )
-
 from PyQt5.QtCore import (Qt, pyqtSignal,)
 
-from lexicon.module_classes import (
-    NonManualModule,
-    LocationModule,
-    MovementModule,
-    MannerRelation,
-    Distance,
-    Direction,
-    RelationX,
-    RelationY,
-    ModuleTypes,
-    ContactRelation,
-    ContactType,
-    BodypartInfo
-)
+from lexicon.module_classes import NonManualModule
 from models.nonmanual_models import NonManualModel, nonmanual_root
 from gui.relationspecification_view import RelationRadioButton as SLPAARadioButton
 from gui.relationspecification_view import RelationButtonGroup
@@ -219,9 +205,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         elif 'One' in rb.text() and not ischecked:
             # deselecting One should deselect its children.
             for btn in nonman.onepart_group.buttons():
-                btn.group().setExclusive(False)
-                btn.setChecked(False)
-                btn.group().setExclusive(True)
+                deselect_rb_group(btn.group())
 
     def handle_mid_rb_toggled(self, ischecked, asm, parent):
         """
@@ -240,10 +224,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # kill children
             children = asm.as_btn_group.buttons() + asm.as_cb_list
             for btn in children:
-                if isinstance(btn,QRadioButton):
-                    btn.group().setExclusive(False)
-                    btn.setChecked(False)
-                    btn.group().setExclusive(True)
+                if isinstance(btn, QRadioButton):
+                    deselect_rb_group(btn.group())
                 else:
                     btn.setChecked(False)
                 btn.repaint()  # mac specific issue
@@ -291,7 +273,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             parent.as_btn_group.addButton(main_btn)
             parent.widget_grouplayout_actionstate.addWidget(main_btn)
             parent.widget_grouplayout_actionstate.setAlignment(main_btn, Qt.AlignTop)
-            main_btn.toggled.connect(lambda checked: self.handle_btn_toggled(main_btn, checked, parent.main_btn))
+            main_btn.toggled.connect(lambda checked: self.handle_btn_toggled(main_btn, checked, parent))
             return
 
         elif options.label:
@@ -591,6 +573,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             parent_btn.repaint()
 
 
+def deselect_rb_group(rb_group):
+    rb_group.setExclusive(False)
+    [btn.setChecked(False) for btn in rb_group.buttons()]
+    rb_group.setExclusive(True)
+
+
 def load_specifications(values_toload, load_destination):
     # values_toload: saved user selections to load
     # load_destination: major modules like 'shoulder' 'facial expressions'...
@@ -647,32 +635,19 @@ def load_specifications(values_toload, load_destination):
             load_destination.action_state = load_actionstate(as_to_load, load_destination.action_state)
         else:
             # initialize action_state (i.e., deselct all)
-            load_destination.action_state = initialize_actionstate(load_destination.action_state)
+            deselect_all(load_destination.action_state)
     except KeyError:
         pass
 
     return load_destination
 
 
-def initialize_actionstate(asm):
-    # asm: ActionStateModel to be initialized
-    for child in asm.options:
-        if isinstance(child, str) or child.options is None:
-            # at the bottom
-            deselect_all(asm.as_cb_list, asm.as_btn_group)
-        else:
-            # not at the bottom. need to go deeper
-            child = initialize_actionstate(child)
-    return asm
+def deselect_all(asm):
+    # deselect checkbox children
+    [cb.setChecked(False) for cb in asm.as_cb_list]
 
-
-def deselect_all(cb_list, btn_group):
-
-    [cb.setChecked(False) for cb in cb_list]
-
-    btn_group.setExclusive(False)
-    [btn.setChecked(False) for btn in btn_group.buttons()]
-    btn_group.setExclusive(True)
+    # deselect radiobutton children
+    deselect_rb_group(asm.as_btn_group)
 
 
 def load_actionstate(saved_dict, asm, parent=None):
@@ -777,10 +752,7 @@ def select_this(btn_group, btn_txt):
 
     if btn_txt is None:
         # reset to the default
-        btn_group.setExclusive(False)
-        [btn.setChecked(False) for btn in btn_group.buttons()]
-        btn_group.setExclusive(True)
-
+        deselect_rb_group(btn_group)
         return
 
     for btn in btn_group.buttons():
