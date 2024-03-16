@@ -98,7 +98,7 @@ class EntryIDTab(QWidget):
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        self.instructions_label = QLabel("Select which elements, and in which order, will comprise the Entry ID for each sign.")
+        self.instructions_label = QLabel("Select which elements, and in which order, will be displayed as the Entry ID for each sign.")
         main_layout.addWidget(self.instructions_label)
         self.qsettings_entryid = QSettings()  # organization name & application name were set in MainWindow.__init__()
         self.qsettings_entryid.beginGroup('entryid')
@@ -108,18 +108,19 @@ class EntryIDTab(QWidget):
         self.counter_label = QLabel("Sequential number of sign in corpus")
         self.counter_layout = QHBoxLayout()
         self.counter_cb = QCheckBox(parent=self)
-        self.counter_cb.setChecked(bool(self.qsettings_entryid.value('counter/visible')))
+        self.counter_cb.setChecked(self.qsettings_entryid.value('counter/visible', type=bool))
         self.counter_layout.addWidget(self.counter_cb)
         self.counter_order = QSpinBox(parent=self)
         self.counter_order.setMinimum(0)
-        self.counter_order.setValue(int(self.qsettings_entryid.value('counter/order')))
+        if self.counter_cb.isChecked():
+            self.counter_order.setValue(self.qsettings_entryid.value('counter/order', type=int))
         self.counter_layout.addWidget(self.counter_order)
         self.counter_layout.addStretch()
         self.counterdigits_label = QLabel("Min # of displayed digits:")
         self.counter_layout.addWidget(self.counterdigits_label)
         self.counterdigits_spin = QSpinBox(parent=self)
         self.counterdigits_spin.setMinimum(1)
-        self.counterdigits_spin.setValue(int(self.qsettings_entryid.value('counter/digits')))
+        self.counterdigits_spin.setValue(self.qsettings_entryid.value('counter/digits', type=int))
         self.counter_layout.addWidget(self.counterdigits_spin)
         self.addupdatelisteners(self.counter_layout)
         form_layout.addRow(self.counter_label, self.counter_layout)
@@ -127,17 +128,17 @@ class EntryIDTab(QWidget):
         self.date_label = QLabel("Date sign created")
         self.date_layout = QHBoxLayout()
         self.date_cb = QCheckBox(parent=self)
-        self.date_cb.setChecked(bool(self.qsettings_entryid.value('date/visible')))
+        self.date_cb.setChecked(self.qsettings_entryid.value('date/visible', type=bool))
         self.date_layout.addWidget(self.date_cb)
         self.date_order = QSpinBox(parent=self)
         self.date_order.setMinimum(0)
-        self.date_order.setValue(int(self.qsettings_entryid.value('date/order')))
+        if self.date_cb.isChecked():
+            self.date_order.setValue(self.qsettings_entryid.value('date/order', type=int))
         self.date_layout.addWidget(self.date_order)
         self.date_layout.addStretch()
         self.dateformat_label = QLabel("Format:")
         self.date_layout.addWidget(self.dateformat_label)
-        tempformatvalue = str(self.qsettings_entryid.value('date/format'))
-        self.dateformat_combo = EntryIDElementComboBox(datatype="dateformat", curvalue=str(self.qsettings_entryid.value('date/format')), parent=self)
+        self.dateformat_combo = EntryIDElementComboBox(datatype="dateformat", curvalue=self.qsettings_entryid.value('date/format', type=str), parent=self)
         self.date_layout.addWidget(self.dateformat_combo)
         self.addupdatelisteners(self.date_layout)
         form_layout.addRow(self.date_label, self.date_layout)
@@ -191,7 +192,7 @@ class EntryIDTab(QWidget):
         # TODO implement details; see https://github.com/PhonologicalCorpusTools/SLPAA/issues/18
 
         self.delim_label = QLabel("Delimiter:")
-        self.delim_combo = EntryIDElementComboBox(datatype="delimiter", curvalue=str(self.qsettings_entryid.value('delimiter')), parent=self)
+        self.delim_combo = EntryIDElementComboBox(datatype="delimiter", curvalue=self.qsettings_entryid.value('delimiter', type=str), parent=self)
         self.delim_combo.currentTextChanged.connect(self.updatepreview)
         form_layout.addRow(self.delim_label, self.delim_combo)
         
@@ -262,23 +263,23 @@ class EntryIDTab(QWidget):
             self.preview_text.setText("ordering conflict; no preview available")
 
     def save_settings(self):
-        self.qsettings_entryid.beginGroup('entryid')
-        self.qsettings_entryid.setValue('delimiter', self.delim_combo.get_value())
+        if self.check_ordering():
+            self.qsettings_entryid.beginGroup('entryid')
+            self.qsettings_entryid.setValue('delimiter', self.delim_combo.get_value())
 
-        self.qsettings_entryid.beginGroup('counter')
-        self.qsettings_entryid.setValue('visible', self.counter_cb.isChecked())
-        self.qsettings_entryid.setValue('order', self.counter_order.value() if self.counter_cb.isChecked() else 0)
-        self.qsettings_entryid.setValue('digits', self.counterdigits_spin.value())
-        self.qsettings_entryid.endGroup()  # counter
+            self.qsettings_entryid.setValue('counter/visible', self.counter_cb.isChecked())
+            self.qsettings_entryid.setValue('counter/order', self.counter_order.value() if self.counter_cb.isChecked() else 0)
+            self.qsettings_entryid.setValue('counter/digits', self.counterdigits_spin.value())
 
-        self.qsettings_entryid.beginGroup('date')
-        self.qsettings_entryid.setValue('visible', self.date_cb.isChecked())
-        self.qsettings_entryid.setValue('order', self.date_order.value() if self.date_cb.isChecked() else 0)
-        self.qsettings_entryid.setValue('format', self.dateformat_combo.get_value())
-        self.qsettings_entryid.endGroup()  # date
+            self.qsettings_entryid.setValue('date/visible', self.date_cb.isChecked())
+            self.qsettings_entryid.setValue('date/order', self.date_order.value() if self.date_cb.isChecked() else 0)
+            self.qsettings_entryid.setValue('date/format', self.dateformat_combo.get_value())
 
-        self.qsettings_entryid.endGroup()  # entryid
-
+            self.qsettings_entryid.endGroup()  # entryid
+            self.qsettings_entryid.sync()
+            return ""
+        else:
+            return "[Entry ID tab] Ordering conflict: Please make sure there are no duplicated order values."
 
 # This tab facilitates user interaction with reminder-related settings in the preference dialog.
 class ReminderTab(QWidget):
@@ -561,10 +562,14 @@ class PreferenceDialog(QDialog):
         if standard == QDialogButtonBox.Cancel:
             self.reject()
         elif standard == QDialogButtonBox.Save:
-            self.display_tab.save_settings()
-            self.entryid_tab.save_settings()
-            self.reminder_tab.save_settings()
-            self.signdefaults_tab.save_settings()
-            self.location_tab.save_settings()
-            self.prefs_saved.emit()
-            self.accept()
+            errormessages = []
+            for tab in [self.display_tab, self.entryid_tab, self.reminder_tab, self.signdefaults_tab, self.location_tab]:
+                errorstring = tab.save_settings()
+                if errorstring:
+                    errormessages.append(errorstring)
+            if len(errormessages) > 0:
+                QMessageBox.critical(self, "Error saving preferences", "\n".join(errormessages))
+                return
+            else:
+                self.prefs_saved.emit()
+                self.accept()

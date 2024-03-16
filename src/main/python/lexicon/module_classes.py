@@ -173,10 +173,10 @@ class EntryID:
 
     def getattributestringfromname(self, attr_name, qsettings):
         if attr_name == 'date':
-            return "" if self.date is None else self.date.strftime(qsettings.value('entryid/date/format'))
+            return "" if self.date is None else self.date.strftime(qsettings.value('entryid/date/format', type=str))
         elif attr_name == 'counter':
             counter_string = str(self.counter)
-            return "0" * (qsettings.value('entryid/counter/digits') - len(counter_string)) + counter_string
+            return "0" * (qsettings.value('entryid/counter/digits', type=int) - len(counter_string)) + counter_string
         elif attr_name in dir(self):
             # assuming we have a @property function for this attribute and it doesn't need any additional formatting
             return getattr(self, attr_name)
@@ -188,10 +188,10 @@ class EntryID:
 
         orders_strings = []
         for attr in ['counter', 'date']:  # could these come from 'attr in dir(self)' instead?
-            if qsettings.value('entryid/' + attr + '/visible'):
-                orders_strings.append((qsettings.value('entryid/' + attr + '/order'), self.getattributestringfromname(attr, qsettings)))
+            if qsettings.value('entryid/' + attr + '/visible', type=bool):
+                orders_strings.append((qsettings.value('entryid/' + attr + '/order', type=int), self.getattributestringfromname(attr, qsettings)))
         orders_strings.sort()
-        return qsettings.value('entryid/delimiter').join([string for (order, string) in orders_strings])
+        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or "[Entry ID is blank]"
 
     # == check compares the displayed strings
     def __eq__(self, other):
