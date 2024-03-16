@@ -77,6 +77,11 @@ class ActionStateModel:
 
         self._value = None
 
+    def __str__(self):
+        if self._value is None:
+            return 'root'
+        return self.label
+
     @property
     def value(self):
         return self._value
