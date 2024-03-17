@@ -181,7 +181,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             subpart_box_layout.addLayout(onepart_spacedlayout)
 
             subpart_box.setLayout(subpart_box_layout)
-
+            subpart_box.setFixedHeight(subpart_box.sizeHint().height())
             row.addWidget(subpart_box)
 
         # visibility group
@@ -393,6 +393,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         nonman.additional_char_rb_group = additional_rb_groups
 
         additional_char_group.setLayout(additional_char_group_layout)
+        additional_char_group.setFixedHeight(additional_char_group.sizeHint().height())
 
         # Adding all the groupboxes to form the row
         row.addWidget(repetition_group)
