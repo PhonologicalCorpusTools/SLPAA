@@ -87,6 +87,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # This section is neutral
         nonman.widget_cb_neutral = QCheckBox("This section is neutral")
         tab_widget.layout.addWidget(nonman.widget_cb_neutral)
+        nonman.widget_cb_neutral.stateChanged.connect(lambda state: self.greyout_children(state, tab_widget))
 
         row_1 = self.build_row1(nonman)  # [ static / dynamic ] [ Sub-parts ]
         row_2 = self.build_row2(nonman)  # action / state
@@ -107,6 +108,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         tab_widget.setLayout(tab_widget.layout)
 
         return tab_widget
+
+    def greyout_children(self, state, tab_widget):
+        need_disable = state == Qt.Checked
+        target_groupboxes = [w for w in tab_widget.findChildren(QGroupBox)]
+
+        for gb in target_groupboxes:
+            gb.setDisabled(need_disable)
 
     def build_row1(self, nonman):
         """
