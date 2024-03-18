@@ -24,6 +24,12 @@ class SLPAAButtonGroup(RelationButtonGroup):
         if buttonslist is not None:
             [self.addButton(button) for button in buttonslist]
 
+        self.buttonClicked.connect(self.handle_button_clicked)  # override RelationButtonGroup's handle_button_clicked()
+
+    def handle_button_clicked(self, btn):
+        # we are going to let the user clicked an already-selected button.
+        self.previously_checked = btn
+
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
     timingintervals_inherited = pyqtSignal(list)
@@ -289,6 +295,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # kill children
             children = asm.as_btn_group.buttons() + asm.as_cb_list
             for btn in children:
+                if not btn.isChecked():
+                    # if the btn/cb is not already checked, just leave it alone
+                    continue
                 if isinstance(btn, QRadioButton):
                     deselect_rb_group(btn.group())
                 else:
