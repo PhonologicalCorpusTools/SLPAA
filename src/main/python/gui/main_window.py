@@ -170,6 +170,7 @@ class MainWindow(QMainWindow):
         # search
         action_search = QAction("Search", parent=self)
         action_search.triggered.connect(self.on_action_search)
+        action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
         action_search.setCheckable(False)
 
         # new corpus
@@ -601,6 +602,11 @@ class MainWindow(QMainWindow):
                                                                                os.path.join(
                                                                                    os.path.expanduser('~/Documents'),
                                                                                    'PCT', 'SLP-AA', 'CORPORA')))
+        self.app_settings['storage']['searches'] = self.app_qsettings.value('searches',
+                                                                           defaultValue=os.path.normpath(
+                                                                               os.path.join(
+                                                                                   os.path.expanduser('~/Documents'),
+                                                                                   'PCT', 'SLP-AA', 'SEARCHES')))
         self.app_settings['storage']['image'] = self.app_qsettings.value('image',
                                                                          defaultValue=os.path.normpath(
                                                                              os.path.join(
