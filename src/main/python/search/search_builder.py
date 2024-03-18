@@ -1,4 +1,5 @@
-import io
+import io, os, pickle
+from PyQt5.QtGui import QKeySequence
 
 from PyQt5.QtWidgets import (
     QVBoxLayout,
@@ -29,7 +30,8 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QMainWindow,
     QItemDelegate,
-    QStyledItemDelegate
+    QStyledItemDelegate,
+    QAction
 )
 import logging
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
@@ -51,6 +53,7 @@ class SearchWindow(QMainWindow):
         self.corpus = corpus
         self.app_settings = app_settings
         self.current_sign = SearchWindowSign()
+        self.unsaved_changes = False
 
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
@@ -63,8 +66,63 @@ class SearchWindow(QMainWindow):
         layout = QVBoxLayout(main_widget)
         layout.addWidget(self.mdi_area)
 
-    def init_ui(self):
 
+    def create_menu_bar(self):
+        menu_bar = self.menuBar()
+
+        file_menu = menu_bar.addMenu('File')
+
+        open_action = QAction('Load target file', self)
+        open_action.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
+        open_action.triggered.connect(self.open_target_file)
+        file_menu.addAction(open_action)
+
+        save_action = QAction('Save target file', self)
+        save_action.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
+        save_action.triggered.connect(self.save_target_file)
+        file_menu.addAction(save_action)
+
+        settings_menu = menu_bar.addMenu('Settings')
+
+    def open_target_file(self):
+        file_name, file_type = QFileDialog.getOpenFileName(self,
+                                                           self.tr('Load Targets'),
+                                                           self.app_settings['storage']['recent_folder'],
+                                                           self.tr('SLP-AA SearchTargets (*.slpst)'))
+        if not file_name:
+            # the user cancelled out of the dialog
+            return False
+        folder, _ = os.path.split(file_name)
+        if folder:
+            self.app_settings['storage']['recent_folder'] = folder
+
+        self.searchmodel = self.load_search_binary(file_name)
+        self.search_targets_view.table_view.setModel(self.searchmodel)
+
+        self.unsaved_changes = False
+
+        return self.searchmodel is not None  # bool(Corpus)
+
+    def save_target_file(self):
+        
+        name = self.searchmodel.name or "New search"
+        file_name, _ = QFileDialog.getSaveFileName(self,
+                                                   self.tr('Save Targets'),
+                                                   os.path.join(self.app_settings['storage']['recent_folder'],
+                                                                name + '.slpst'),  # 'corpus.slpaa'),
+                                                   self.tr('SLP-AA Search Targets (*.slpst)'))
+        if file_name:
+            self.searchmodel.path = file_name
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.app_settings['storage']['recent_folder'] = folder
+
+            self.save_search_binary()
+            
+
+
+    def init_ui(self):
+        self.create_menu_bar()
         self.search_targets_view = SearchTargetsView(self.searchmodel, mainwindow=self, parent=self)
         self.search_params_view = SearchParamsView(parent=self)
         self.search_params_view.search_clicked.connect(self.handle_search_clicked)
@@ -102,9 +160,10 @@ class SearchWindow(QMainWindow):
         mssg = ""
         if self.search_params_view.match_type is None: 
             mssg += "Missing match type."
-        if len(self.searchmodel.targets) > 0 and self.search_params_view.match_degree is None:
+        if self.searchmodel.rowCount() > 0 and self.search_params_view.match_degree is None:
             mssg += "\nMissing multiple target match type."
-        
+        elif self.searchmodel.rowCount() == 0:
+            mssg += "\nNothing to search"
         if mssg != "":
             QMessageBox.critical(self, "Warning", mssg)
         else:
@@ -125,7 +184,20 @@ class SearchWindow(QMainWindow):
         self.search_params_view.match_type = degree
 
     def handle_new_search_target_added(self, target):
+        # TODO update unsaved_changes when targets added or modified.
         self.searchmodel.add_target(target)
+
+    def save_search_binary(self):
+        with open(self.searchmodel.path, 'wb') as f:
+            pickle.dump(self.searchmodel.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
+        self.unsaved_changes = False
+    
+    def load_search_binary(self, path):
+        with open(path, 'rb') as f:
+            searchmodel = SearchModel(serializedsearchmodel=pickle.load(f))
+            # in case we're loading a corpus that was originally created on a different machine / in a different folder
+            searchmodel.path = path
+            return searchmodel
     
 
             
@@ -162,15 +234,15 @@ class SearchTargetsView(QWidget):
         xslottype = None
         xslotnum = None
         if xslotinfo.data() is not None:
-            xslottype = xslotinfo.data(Qt.UserRole + 1)[0]
-            xslotnum = xslotinfo.data(Qt.UserRole + 1)[1]
+            xslottype = xslotinfo.data(Qt.UserRole)[0]
+            xslotnum = xslotinfo.data(Qt.UserRole)[1]
         it = SearchTargetItem(
             name=self.model.item(row, TargetHeaders.NAME).data(Qt.DisplayRole),
             targettype=self.model.item(row, TargetHeaders.TYPE).data(Qt.DisplayRole),
             xslottype=xslottype,
             xslotnum=xslotnum,
-            values=self.model.item(row, TargetHeaders.VALUE).data(Qt.UserRole + 1),
-            module=self.model.item(row, TargetHeaders.NAME).data(Qt.UserRole + 1)
+            values=self.model.item(row, TargetHeaders.VALUE).data(Qt.UserRole),
+            module=self.model.item(row, TargetHeaders.NAME).data(Qt.UserRole)
 
         )
         return it
@@ -681,7 +753,7 @@ class SearchParamsView(QFrame):
         self.minimal_match_rb.setObjectName("minimal")
         self.match_type_button_group.addButton(self.exact_match_rb)
         self.match_type_button_group.addButton(self.minimal_match_rb)
-        self.match_type_button_group.buttonClicked.connect(self.on_match_type_button_clicked)
+        self.match_type_button_group.buttonToggled.connect(self.on_match_type_button_clicked)
 
         self.match_degree_button_group = QButtonGroup()
         self.match_any_rb = QRadioButton("Return signs that match any selected targets")
@@ -690,7 +762,7 @@ class SearchParamsView(QFrame):
         self.match_all_rb.setObjectName("all")
         self.match_degree_button_group.addButton(self.match_any_rb)
         self.match_degree_button_group.addButton(self.match_all_rb)
-        self.match_degree_button_group.buttonClicked.connect(self.on_match_degree_button_clicked)
+        self.match_degree_button_group.buttonToggled.connect(self.on_match_degree_button_clicked)
 
         layout.addWidget(QLabel("Type of match"))
         layout.addWidget(self.exact_match_rb)
@@ -698,6 +770,10 @@ class SearchParamsView(QFrame):
         layout.addWidget(QLabel("Multiple targets"))
         layout.addWidget(self.match_any_rb)
         layout.addWidget(self.match_all_rb)
+
+        # TODO change default?
+        self.match_any_rb.setChecked(True)
+        self.minimal_match_rb.setChecked(True)
 
         return layout
 
