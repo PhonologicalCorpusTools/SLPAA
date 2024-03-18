@@ -39,6 +39,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # 'All neutral' checkbox
         self.widget_cb_neutral = QCheckBox("All sections are neutral")
         main_layout.addWidget(self.widget_cb_neutral)
+        self.widget_cb_neutral.stateChanged.connect(self.greyout_all)
 
         # non manual specs
         self.nonman_specifications = {}
@@ -62,6 +63,20 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if moduletoload is not None and isinstance(moduletoload, NonManualModule):
             self.setvalues(moduletoload)
             self.existingkey = moduletoload.uniqueid
+
+    def greyout_all(self, state):
+        # state: Bool. whether the 'all section neutral' cb checked
+        # prompted: Bool default to False. True if the user actively checked, False if programmatically called.
+        need_disable = state == Qt.Checked
+
+        if not need_disable:
+            # unchecking 'all neutral' does NOT mean unchecking children 'this section neutral'
+            return
+
+        # However, checking 'all neutral' should also check all children 'this ... neutral'
+        this_neutral_cbs = [w for w in self.tab_widget.findChildren(QCheckBox) if 'This section' in w.text()]
+        for cb in this_neutral_cbs:
+            cb.setChecked(need_disable)
 
     def create_major_tabs(self, nonman_units):
         """
@@ -87,9 +102,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # This section is neutral
         nonman.widget_cb_neutral = QCheckBox("This section is neutral")
         tab_widget.layout.addWidget(nonman.widget_cb_neutral)
-        nonman.widget_cb_neutral.stateChanged.connect(lambda state: self.greyout_children(state=state,
-                                                                                          itself=nonman.widget_cb_neutral,
-                                                                                          child_tab=tab_widget))
+        nonman.widget_cb_neutral.stateChanged.connect(lambda state: self.greyout_children(state,
+                                                                                          nonman.widget_cb_neutral,
+                                                                                          tab_widget))
 
         row_1 = self.build_row1(nonman)  # [ static / dynamic ] [ Sub-parts ]
         row_2 = self.build_row2(nonman)  # action / state
@@ -111,11 +126,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         return tab_widget
 
-    def greyout_children(self, itself, state, child_tab):
+    def greyout_children(self, state, itself, child_tab):
         # called when 'this section is neutral' checkbox state changes
         # have all children widgets disabled when checked / enabled when unchecked
         # itself: clicked checkbox itself
         need_disable = state == Qt.Checked
+
+        # unchecking any 'this section is neutral' means NOT 'all sections are neutral'
+        if not need_disable:
+            self.widget_cb_neutral.setChecked(False)
+
         target_groupboxes = [w for w in child_tab.findChildren(QGroupBox)]  # child groupboxes
         target_cbs = [w for w in child_tab.findChildren(QCheckBox) if w is not itself]  # for disabling/enabling a 'neutral' cb in nested tabs
 
