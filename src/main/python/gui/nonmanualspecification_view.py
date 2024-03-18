@@ -34,6 +34,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.islinkedtointerval = False
 
         main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignTop)
 
         # 'All neutral' checkbox
         self.widget_cb_neutral = QCheckBox("All sections are neutral")
@@ -45,13 +46,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # different major non manual tabs
         self.tab_widget = QTabWidget()             # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)  # Create and add tabs to the tab widget
-        self.tab_widget.setMinimumHeight(500)
+        self.tab_widget.setMinimumHeight(700)
         self.setLayout(main_layout)
 
         scroll_area = QScrollArea(self)
         scroll_area.setWidgetResizable(True)
         scroll_area.setWidget(self.tab_widget)
-        scroll_area.setMinimumHeight(300)
+        scroll_area.setMinimumHeight(350)
         main_layout.addWidget(scroll_area)
 
         # snapshot of the blank slate (for 'restore to default')
@@ -81,6 +82,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         """
         tab_widget = QTabWidget()
         tab_widget.layout = QVBoxLayout()
+        tab_widget.layout.setAlignment(Qt.AlignTop)
 
         # This section is neutral
         nonman.widget_cb_neutral = QCheckBox("This section is neutral")
@@ -117,6 +119,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             QHBoxLayout
         """
         row = QHBoxLayout()
+        row.setAlignment(Qt.AlignTop)
 
         # static / dynamic group
         nonman.widget_rb_static = SLPAARadioButton("Static")
@@ -125,10 +128,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         nonman.static_dynamic_group = SLPAAButtonGroup(static_dynamic_list)
 
         vbox = QVBoxLayout()
+        vbox.setAlignment(Qt.AlignTop)
         [vbox.addWidget(widget) for widget in static_dynamic_list]
 
         sd_rb_groupbox = QGroupBox("Static / Dynamic")  # static/dynamic radio buttons group
         sd_rb_groupbox.setLayout(vbox)
+        sd_rb_groupbox.setFixedHeight(sd_rb_groupbox.sizeHint().height())  # initially set height. might be overridden.
 
         row.addWidget(sd_rb_groupbox)
 
@@ -136,13 +141,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.label == 'Mouth':
             mvmt_type_box = QGroupBox("Type of mouth movement")
             mvmt_type_box_layout = QVBoxLayout()
+            mvmt_type_box.setAlignment(Qt.AlignTop)
             nonman.mvmt_type_group = SLPAAButtonGroup()
             for type in nonman.subparts:
                 rb_to_add = SLPAARadioButton(type)
                 mvmt_type_box_layout.addWidget(rb_to_add)
                 nonman.mvmt_type_group.addButton(rb_to_add)
             mvmt_type_box.setLayout(mvmt_type_box_layout)
-
+            row1_height = mvmt_type_box.sizeHint().height()
+            mvmt_type_box.setFixedWidth(row1_height)
+            sd_rb_groupbox.setFixedHeight(row1_height)
             row.addWidget(mvmt_type_box)
             self.nonman_specifications[nonman.label] = nonman
             return row
@@ -152,8 +160,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             subpart_specs = nonman.subparts
             subpart_box = QGroupBox("Sub-part(s)")
             subpart_box_layout = QVBoxLayout()
+            subpart_box_layout.setAlignment(Qt.AlignTop)
+
             onepart_spacedlayout = QHBoxLayout()
+            onepart_spacedlayout.setAlignment(Qt.AlignTop)
+
             onepart_layout = QHBoxLayout()
+            onepart_layout.setAlignment(Qt.AlignTop)
 
             nonman.rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
             nonman.rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
@@ -181,19 +194,34 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             subpart_box_layout.addLayout(onepart_spacedlayout)
 
             subpart_box.setLayout(subpart_box_layout)
-            subpart_box.setFixedHeight(subpart_box.sizeHint().height())
+
+            # set row1 height. the height should be fixed to give space to Action/State
+            row1_height = subpart_box.sizeHint().height()
+            subpart_box.setFixedHeight(row1_height)
+            sd_rb_groupbox.setFixedHeight(row1_height)
+
             row.addWidget(subpart_box)
 
         # visibility group
-        if nonman.visibility is not None:
+        elif nonman.visibility is not None:
             visibility_box = QGroupBox("Visibility")
             visibility_box_layout = QVBoxLayout()
+            visibility_box_layout.setAlignment(Qt.AlignTop)
+
             nonman.widget_rb_visible = SLPAARadioButton("Visible")
-            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible")
             visibility_box_layout.addWidget(nonman.widget_rb_visible)
+
+            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible")
             visibility_box_layout.addWidget(nonman.widget_rb_visible_not)
+
             visibility_box.setLayout(visibility_box_layout)
+
+            # set row1 height. the height should be fixed to give space to Action/State
+            row1_height = visibility_box.sizeHint().height()
+            visibility_box.setFixedHeight(row1_height)
+            sd_rb_groupbox.setFixedHeight(row1_height)
             row.addWidget(visibility_box)
+
         self.nonman_specifications[nonman.label] = nonman
         return row
 
@@ -245,11 +273,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             return None
 
         row = QHBoxLayout()
+        row.setAlignment(Qt.AlignTop)
 
         # Action / state group
 
         action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
         action_state_layout = QVBoxLayout()
+        action_state_layout.setAlignment(Qt.AlignTop)
 
         root_options = nonman.action_state
         self.parse_actionstate(parent=self, options=root_options)
@@ -310,6 +340,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
             main_layout.addWidget(options.main_btn)
             sub_layout = QVBoxLayout()
+            sub_layout.setAlignment(Qt.AlignTop)
 
             sub_spacedlayout = QHBoxLayout()
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
@@ -355,10 +386,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             return None
 
         row = QHBoxLayout()
+        row.setAlignment(Qt.AlignTop)
 
         # Repetition group
         repetition_group = QGroupBox("Repetition")
         repetition_group_layout = QVBoxLayout()
+        repetition_group_layout.setAlignment(Qt.AlignTop)
         nonman.widget_rb_rep_single = SLPAARadioButton("Single")
         nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated")
         nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled")
@@ -372,6 +405,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # Directionality group
         directionality_group = QGroupBox("Directionality")
         directionality_group_layout = QVBoxLayout()
+        directionality_group_layout.setAlignment(Qt.AlignTop)
         nonman.widget_rb_direction_uni = SLPAARadioButton("Unidirectional")
         nonman.widget_rb_direction_bi = SLPAARadioButton("Bidirectional")
         directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
@@ -384,6 +418,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # Additional movement characteristics group -- contains Size Speed Force Tension
         additional_char_group = QGroupBox("Additional mvmt characteristics")
         additional_char_group_layout = QHBoxLayout()
+        additional_char_group_layout.setAlignment(Qt.AlignTop)
         additional_char_specs = {'Size': ['Big', 'Small'],
                                  'Speed': ['Fast', 'Slow'],
                                  'Force': ['Strong', 'Weak'],
@@ -393,7 +428,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         nonman.additional_char_rb_group = additional_rb_groups
 
         additional_char_group.setLayout(additional_char_group_layout)
-        additional_char_group.setFixedHeight(additional_char_group.sizeHint().height())
+
+        # set fixed height. fixed b/c more space for action/state
+        row3_height = additional_char_group.sizeHint().height()
+        repetition_group.setFixedHeight(row3_height)
+        directionality_group.setFixedHeight(row3_height)  # fixed for space to action/state
+        additional_char_group.setFixedHeight(row3_height)
 
         # Adding all the groupboxes to form the row
         row.addWidget(repetition_group)
