@@ -12,9 +12,23 @@ from PyQt5.QtCore import (Qt, pyqtSignal,)
 
 from lexicon.module_classes import NonManualModule
 from models.nonmanual_models import NonManualModel, nonmanual_root
-from gui.relationspecification_view import RelationRadioButton as SLPAARadioButton
+from gui.relationspecification_view import RelationRadioButton
 from gui.relationspecification_view import RelationButtonGroup
 from gui.modulespecification_widgets import ModuleSpecificationPanel
+
+
+class SLPAARadioButton(RelationRadioButton):
+    def __init__(self, text, **kwargs):
+        super().__init__(text, **kwargs)
+
+    def setChecked(self, checked):
+        # override RelationRadioButton's setChecked() method to deal with programmatically unselected btns.
+        if self.group() is not None:
+            if checked:
+                self.group().previously_checked = self
+            else:
+                self.group().previously_checked = None
+        super().setChecked(checked)
 
 
 class SLPAAButtonGroup(RelationButtonGroup):
@@ -23,12 +37,6 @@ class SLPAAButtonGroup(RelationButtonGroup):
         super().__init__()
         if buttonslist is not None:
             [self.addButton(button) for button in buttonslist]
-
-        self.buttonClicked.connect(self.handle_button_clicked)  # override RelationButtonGroup's handle_button_clicked()
-
-    def handle_button_clicked(self, btn):
-        # we are going to let the user clicked an already-selected button.
-        self.previously_checked = btn
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
