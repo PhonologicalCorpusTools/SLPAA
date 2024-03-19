@@ -200,7 +200,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 nonman.mvmt_type_group.addButton(rb_to_add)
             mvmt_type_box.setLayout(mvmt_type_box_layout)
             row1_height = mvmt_type_box.sizeHint().height()
-            mvmt_type_box.setFixedWidth(row1_height)
+            mvmt_type_box.setFixedHeight(row1_height)
             sd_rb_groupbox.setFixedHeight(row1_height)
             row.addWidget(mvmt_type_box)
             self.nonman_specifications[nonman.label] = nonman
