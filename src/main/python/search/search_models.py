@@ -33,12 +33,7 @@ class TargetHeaders:
     NEGATIVE = 4
     XSLOTS = 5
 
-class ResultHeaders:
-    NAME = 0
-    TYPE = 1
-    VALUE = 2
-    NEGATIVE = 3
-    XSLOTS = 4
+
 
 
 class SearchModel(QStandardItemModel):
@@ -52,7 +47,7 @@ class SearchModel(QStandardItemModel):
 
         self.headers = ["Name", "Type", "Value", "Include?", "Negative?",  "X-slots"]
         self.setHorizontalHeaderLabels(self.headers)
-        self.serializedsearchmodel = serializedsearchmodel
+        self.serializedsearchmodel = None
         if serializedsearchmodel is not None:
             self.serializedsearchmodel = serializedsearchmodel.serializedmodel
             self.setvaluesfromserializedmodel()
@@ -127,9 +122,12 @@ class SearchModel(QStandardItemModel):
             locn_paths_to_match = []
 
             for row in selected_rows:
+                module = self.target_module(row)
+                svi = self.target_values(row)
                 ttype = self.target_type(row)
                 if ttype == ModuleTypes.MOVEMENT:
-                    mvmt_paths_to_match.extend(self.target_paths(row))
+                    paths = module.movementtreemodel.get_checked_items()
+                    mvmt_paths_to_match.extend(paths)
                 # eg if target_name is in rows_to_skip, continue
                 
 
@@ -137,31 +135,30 @@ class SearchModel(QStandardItemModel):
             for sign in corpus.signs:
                 if len(mvmt_paths_to_match) > 0:
                     # TODO switch to using the generic get module dict function 
-                    checked_mvmt_paths = {}
+                    checked_mvmt_paths = set()
                     for module in sign.movementmodules.values():
-                        checked_mvmt_paths.extend(module.movementtreemodel.get_checked_items())
+                        checked_mvmt_paths.add(module.movementtreemodel.get_checked_items())
                     logging.warning(checked_mvmt_paths)
                     logging.warning(mvmt_paths_to_match)
                     ok = all(path in checked_mvmt_paths for path in mvmt_paths_to_match)
                     txt = sign.signlevel_information.gloss + " matches: " + str(ok)
                     layout.addWidget(QLabel(txt))
 
-
         dialog.setLayout(layout)
         dialog.exec_()
 
 
     def unserialize(self, type, serialmodule):
-        if type == ModuleTypes.MOVEMENT:
-            mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
-            articulators = serialmodule.articulators
-            inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
-            timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-            unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
-            return unserialized
+        if serialmodule is not None:
+            if type == ModuleTypes.MOVEMENT:
+                mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
+                articulators = serialmodule.articulators
+                inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
+                timingintervals = serialmodule.timingintervals
+                addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+                unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+                return unserialized
         else:
-            logging.warn("Unserialize not implemented for this type")
             return None
 
     def __repr__(self):
@@ -318,8 +315,8 @@ class SearchModelSerializable:
     def collectdatafromSearchModel(self, searchmodel):
         model = {}
         if searchmodel is not None:
-            row_data = {} 
             for r in range(searchmodel.rowCount()):
+                row_data = {} 
                 name = searchmodel.target_name(r)
                 ttype = searchmodel.target_type(r)
                 module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))

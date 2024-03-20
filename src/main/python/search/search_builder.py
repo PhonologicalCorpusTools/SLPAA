@@ -31,8 +31,10 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QItemDelegate,
     QStyledItemDelegate,
-    QAction
+    QAction,
+    QTabWidget
 )
+from search.results import ResultsView
 import logging
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
 from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, HAND, ARM, LEG
@@ -170,10 +172,15 @@ class SearchWindow(QMainWindow):
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
 
-            self.searchmodel.search_corpus(self.corpus)
+            # self.searchmodel.search_corpus(self.corpus)
+            self.create_results_view()
             
-            # self.results_view = ResultsView(self.searchmodel, self.corpus)
-            # self.results_view.show()
+    
+    def create_results_view(self, results=None):
+        self.results_view = ResultsView()
+        self.results_view.show()
+
+
 
     def handle_match_type_changed(self, type):
         self.search_params_view.match_type = type
@@ -948,19 +955,3 @@ class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc n
     def xslotstructure(self, xslotstructure):
         self._xslotstructure = xslotstructure
     
-
-
-class ResultsView(QWidget):
-    def __init__(self, searchmodel, corpus, **kwargs):
-        super().__init__(**kwargs)
-
-        self.setWindowTitle("Search Results")
-        
-        self.model = ResultsModel(searchmodel, corpus)
-
-        self.table_view = QTableView(parent=self)
-        self.table_view.setModel(self.model)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.table_view)
-        self.setLayout(layout)
