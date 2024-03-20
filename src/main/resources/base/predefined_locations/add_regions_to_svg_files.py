@@ -27,7 +27,7 @@ def replace(frontorback, srcfilenames, srcfolder, destfolder):
                         with io.open("style_replacement.txt", "r") as style_replace:
                             dst.writelines(style_replace.readlines())
                     elif "</defs>" in ln:
-                        with io.open("defs_replacement_" + frontorback + ".txt", "r") as defs_replace:
+                        with io.open("defs_replacement_updated_" + frontorback + ".txt", "r") as defs_replace:
                             dst.writelines(defs_replace.readlines())
                     else:
                         dst.write(ln)

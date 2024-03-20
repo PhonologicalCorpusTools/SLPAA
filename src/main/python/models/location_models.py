@@ -225,7 +225,7 @@ class LocnOptionsNode:
     def insert_child(self, node):
         self.children.append(node)
 
-# TODO KV these should go into constant.py... or something similar
+# should these go into constant.py... or somewhere similar?
 locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
     LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas),
     LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas),
@@ -445,12 +445,6 @@ locn_options_body.insert_child(locn_options_hand)
 locn_options_body.assign_ids(-1)
 
 
-
-# TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
-# unless we're going to reference the same code (as for movement) for building the tree & list models
-# attributes are:
-#   name, editability, mutual exclusivity, hand/nonhand location,
-#   surfaces, subareas/bone-joints, tooltip, children
 locn_options_purelyspatial = LocnOptionsNode("purelyspatial_options_root", children=[
     LocnOptionsNode("Default neutral space", fx, cb, tooltip="neutral"),
     LocnOptionsNode("Horizontal axis", fx, cb, tooltip="hor", children=[
@@ -540,6 +534,9 @@ class LocationTreeModel(QStandardItemModel):
                     keystoremove.append(k)
                 if "H1 is behind H2" in k:
                     pairstoadd[k.replace("H1 is behind H2", "H1 is more proximal than H2")] = stored_dict[k]
+                    keystoremove.append(k)
+                if "Nostrils" in k:  # all other body locations are named with the singular
+                    pairstoadd[k.replace("Nostrils", "Nostril")] = stored_dict[k]
                     keystoremove.append(k)
 
             for oldkey in keystoremove:

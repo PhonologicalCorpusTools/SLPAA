@@ -702,7 +702,7 @@ class Corpus:
                 elif length > 3 and nodes[3] in ['Upper eyelid', 'Lower eyelid']:
                     nodes.insert(4, 'Eyelid')
                 elif nodes[-1] == 'Septum':
-                    nodes.insert(length-2, 'Septum/nostril area')
+                    nodes.insert(length-2, 'Septum / nostril area')
                 paths_to_add.append(nodes)
             elif length > 2 and nodes[1] == 'Ear':
                 nodes[3].replace('Mastoid process', 'Behind ear')

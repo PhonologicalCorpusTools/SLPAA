@@ -1,4 +1,4 @@
-import io, re, random
+import io, re, os
 
 from PyQt5.QtWidgets import (
     QTableView,
@@ -415,13 +415,10 @@ class LocationOptionsSelectionPanel(QFrame):
         return selection_layout
 
     def handle_region_selected(self, regionname):
-        # TODO KV
-        # then select that item AND (?) call self.selectlistitem(locationtreeitem) to add to list
+        # then select that item, which also adds it to the visible list
         matchingitems = self.treemodel.findItems(regionname, Qt.MatchRecursive)
-        print("locationtreemodel items matching regionname", regionname, ":", [it.text() for it in matchingitems])
         for item in matchingitems:
             item.setCheckState(Qt.Checked)
-            # self.selectlistitem(item)
 
     def update_detailstable(self, selected=None, deselected=None):
         selectedindexes = self.pathslistview.selectionModel().selectedIndexes()
@@ -932,11 +929,13 @@ class ImageTabWidget(QTabWidget):
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.backtab.linkbutton_toggled.connect(lambda ischecked:
                                                 self.handle_linkbutton_toggled(ischecked, self.backtab))
+        # TODO handle backtab.region_selected signal
         self.addTab(self.backtab, "Back")
         self.sidetab = SVGDisplayTab(self.mainwindow.app_ctx, 'side')
         self.sidetab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.sidetab.linkbutton_toggled.connect(lambda ischecked:
                                                 self.handle_linkbutton_toggled(ischecked, self.sidetab))
+        # TODO handle sidetab.region_selected signal
         self.addTab(self.sidetab, "Side")
 
         self.alltabs = [self.fronttab, self.backtab, self.sidetab]
@@ -971,11 +970,10 @@ class LocationAction(QAction):
         self.app_ctx = app_ctx
         self.dominantside = self.app_ctx.main_window.current_sign.signlevel_information.handdominance
         self.absoluteside = "R" if "Right" in elid else ("L" if "Left" in elid else "")
-        self.name = self.app_ctx.predefined_locations_description_byfilename[elid].replace(self.app_ctx.contraoripsi, self.get_relativehand())
+        self.name = self.app_ctx.predef_locns_descr_byfilename(elid).replace(self.app_ctx.contraoripsi, self.get_relativehand())
         super().__init__(self.name, **kwargs)
         self.svgscrollarea = svgscrollarea
         self.triggered.connect(self.handle_selection)
-        # self.triggered.connect(self.getnewimage)
 
     def get_relativehand(self):
         return "ipsi" if self.dominantside == self.absoluteside else "contra"
@@ -987,8 +985,6 @@ class LocationAction(QAction):
         self.getnewimage(selectedside, name)
 
     def getnewimage(self, selectedside, name):
-        # selectedside = self.absoluteside or self.app_ctx.both
-        # name = self.name.replace(" - contra", "").replace(" - ipsi", "")
         self.svgscrollarea.handle_image_changed(self.app_ctx.predefined_locations_yellow[name][selectedside][self.app_ctx.nodiv])
 
 
@@ -997,13 +993,10 @@ class SVGDisplayTab(QWidget):
     linkbutton_toggled = pyqtSignal(bool)
     region_selected = pyqtSignal(str)
 
-    def __init__(self, app_ctx, frontbackside='front', specificpath="", **kwargs):
+    def __init__(self, app_ctx, frontbackside='front', **kwargs):
         super().__init__(**kwargs)
         self.app_ctx = app_ctx
-        if specificpath != "":
-            imagepath = specificpath
-        else:
-            imagepath = app_ctx.temp_test_images['sample_' + frontbackside]
+        imagepath = self.app_ctx.default_location_images[frontbackside]
 
         main_layout = QHBoxLayout()
         img_layout = QVBoxLayout()
@@ -1012,6 +1005,7 @@ class SVGDisplayTab(QWidget):
         self.imgscroll.zoomfactor_changed.connect(lambda scale: self.zoomfactor_changed.emit(scale))
         img_layout.addWidget(self.imgscroll)
         self.imgscroll.img_clicked.connect(self.handle_img_clicked)
+        self.imgscroll.img_doubleclicked.connect(self.handle_img_doubleclicked)
         main_layout.addLayout(img_layout)
 
         zoom_layout = QVBoxLayout()
@@ -1037,20 +1031,46 @@ class SVGDisplayTab(QWidget):
 
     def handle_img_clicked(self, clickpoint, listofids, mousebutton):
         listofids = list(set(listofids))
-        print(str(len(listofids)) + " IDs at click:", listofids)
         if mousebutton == Qt.RightButton:
-            # print("right button released at", clickpoint.toPoint())
-            elementname_actions = [LocationAction(elid, self.imgscroll, self.app_ctx) for elid in listofids if elid in self.app_ctx.predefined_locations_description_byfilename.keys()]
+            elementname_actions = []
+            for elid in listofids:
+                locationname = self.app_ctx.predef_locns_descr_byfilename(elid)
+                locationname_noside = locationname.replace(" - " + self.app_ctx.contraoripsi, "")
+                if locationname_noside in self.app_ctx.predefined_locations_key.keys():
+                    elementname_actions.append(LocationAction(elid, self.imgscroll, self.app_ctx))
             for locationaction in elementname_actions:
                 locationaction.region_selected.connect(lambda regionname: self.region_selected.emit(regionname))
             elementids_menu = QMenu()
             elementids_menu.addActions(elementname_actions)
-            # print("about to create menu at", clickpoint)
             elementids_menu.exec_(clickpoint.toPoint())
-        # elif mousebutton == Qt.LeftButton:
-            # print("left button released at", clickpoint.toPoint())
-        # elif mousebutton == Qt.MiddleButton:
-        #     print("middle button released at", clickpoint.toPoint())
+
+    def handle_img_doubleclicked(self, mousebutton):
+        # TODO KV this is a mess-- figure out a tidier way to do this
+        if mousebutton == Qt.LeftButton:
+            imagepath = self.imgscroll.imagepath
+            if "_with_Divisions" in imagepath:
+                # switch to no divisions
+                newimagepath = imagepath.replace("_with_Divisions", "")
+                self.imgscroll.handle_image_changed(newimagepath)
+            else:
+                _, imagefile = os.path.split(imagepath)
+                side = self.app_ctx.right if 'Right' in imagefile else (self.app_ctx.left if 'Left' in imagefile else self.app_ctx.both)
+                colour = "yellow" if "yellow" in imagefile else ("green" if "green" in imagefile else "violet")
+                locationtext = self.app_ctx.predef_locns_descr_byfilename(imagefile.replace(".svg", "")).replace("-" + colour, "").replace(" - " + self.app_ctx.contraoripsi, "")
+                if colour == "yellow":
+                    newimagepath = self.app_ctx.predefined_locations_yellow[locationtext][side][self.app_ctx.div]
+                elif colour == "green":
+                    newimagepath = self.app_ctx.predefined_locations_green[locationtext][side][self.app_ctx.div]
+                elif colour == "violet":
+                    newimagepath = self.app_ctx.predefined_locations_violet[locationtext][side][self.app_ctx.div]
+                newimagepath = newimagepath.replace("-" + colour, "_with_Divisions" + "-" + colour)
+                # newimagepath = self.app_ctx.predefined_locations_bycolour(colour)[locationtext][side][self.app_ctx.div]
+                if newimagepath != "":
+                # if self.app_ctx.predefined_locations_key[locationtext][side][self.app_ctx.div]:
+                    # then there is a version of this image with divisions to switch to
+                    # newimagepath =
+                    # newimagepath = imagepath.replace("-" + colour, "_with_Divisions" + "-" + colour)
+                    self.imgscroll.handle_image_changed(newimagepath)
 
     def force_zoom(self, scale):
         self.blockSignals(True)
@@ -1069,6 +1089,7 @@ class SVGDisplayTab(QWidget):
 
 class SVGDisplayScroll(QScrollArea):
     img_clicked = pyqtSignal(QPointF, list, int)
+    img_doubleclicked = pyqtSignal(int)
     zoomfactor_changed = pyqtSignal(int)
     factor_from_scale = {
         1: 0.20,
@@ -1088,12 +1109,14 @@ class SVGDisplayScroll(QScrollArea):
         main_layout = QHBoxLayout()
 
         self.img_layout = QHBoxLayout()
+        self.imagepath = imagepath
 
-        self.renderer = QSvgRenderer(imagepath, parent=self)
+        self.renderer = QSvgRenderer(self.imagepath, parent=self)
         self.elementids = []
-        self.gatherelementids(imagepath)
+        self.gatherelementids(self.imagepath)
         self.scn = SVGGraphicsScene([], app_ctx, parent=self)
         self.scn.img_clicked.connect(lambda clickpoint, listofids, mousebutton: self.img_clicked.emit(clickpoint, listofids, mousebutton))
+        self.scn.img_doubleclicked.connect(lambda mousebutton: self.img_doubleclicked.emit(mousebutton))
         self.scn.img_changed.connect(self.handle_image_changed)
 
         self.initializeSVGitems()
@@ -1105,9 +1128,10 @@ class SVGDisplayScroll(QScrollArea):
 
     def handle_image_changed(self, newimagepath):
         self.scn.clear()
-        self.renderer.load(newimagepath)
+        self.imagepath = newimagepath
+        self.renderer.load(self.imagepath)
         self.elementids = []
-        self.gatherelementids(newimagepath)
+        self.gatherelementids(self.imagepath)
         self.initializeSVGitems()
 
     def gatherelementids(self, svgfilepath):
@@ -1120,7 +1144,6 @@ class SVGDisplayScroll(QScrollArea):
         self.elementids = elementids
 
     def initializeSVGitems(self):
-        # for elementid in ["WHOLE_ARM", "WHOLE_ARM-2", "WHOLE_ARM-3", "WHOLE_ARM-4", "LOWER_TORSO-2", "UPPER_TORSO", "UPPER_TORSO-2", "UPPER_TORSO-3", "UPPER_TORSO-4", "UPPER_TORSO-5", "UPPER_TORSO-6", "UPPER_TORSO-7", "UPPER_TORSO-8", "SHOULDER", "SHOULDER-2"]:
         for elementid in self.elementids:
             if self.renderer.elementExists(elementid):
                 elementx = self.renderer.boundsOnElement(elementid).x()
@@ -1148,6 +1171,7 @@ class SVGDisplayScroll(QScrollArea):
 
 class SVGGraphicsScene(QGraphicsScene):
     img_clicked = pyqtSignal(QPointF, list, int)
+    img_doubleclicked = pyqtSignal(int)
     img_changed = pyqtSignal(str)
 
     def __init__(self, svgitems, app_ctx, **kwargs):
@@ -1156,45 +1180,14 @@ class SVGGraphicsScene(QGraphicsScene):
         for it in svgitems:
             self.addItem(it)
 
+    def mouseDoubleClickEvent(self, event):
+        mousebutton = event.button()
+        self.img_doubleclicked.emit(mousebutton)
+
     def mouseReleaseEvent(self, event):
-        # print("mouse release in svg graphics scene")
-        # print("     pos():", event.pos().x(), event.pos().y())
-        # print("     scenePos():", event.scenePos().x(), event.scenePos().y())
-        # print("     itemsBoundingRect():", self.itemsBoundingRect().x(), self.itemsBoundingRect().y(), self.itemsBoundingRect().width(), self.itemsBoundingRect().height())
         mousebutton = event.button()
         scenepoint = QPointF(event.scenePos().x(), event.scenePos().y())
         screenpoint = QPointF(event.screenPos().x(), event.screenPos().y())
         items = self.items(scenepoint)
         clickedids = [it.elementId() for it in items if it.elementId() != ""]
-        # possible_ids_for_image = [clicked_id for clicked_id in clickedids if clicked_id in self.app_ctx.predefined_locations_test.keys()]
-        # random_id = possible_ids_for_image[random.randrange(0, len(possible_ids_for_image))]
-        # random_image = self.app_ctx.predefined_locations_test[random_id]
-        # self.img_changed.emit(random_image)
-        # print("randomly chose sub-image:", random_id)
-        # allids = [it.elementId() for it in self.items()]
-        # # print("all IDs (" + str(len(allids)) + "):", allids)
         self.img_clicked.emit(screenpoint, clickedids, mousebutton)
-
-
-# # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
-# # TODO KV can this be combined with the one for movement?
-# class LocationTreeItemDelegate(QStyledItemDelegate):
-#
-#     def paint(self, painter, option, index):
-#         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
-#             widget = option.widget
-#             style = widget.style() if widget else QApplication.style()
-#             opt = QStyleOptionButton()
-#             opt.rect = option.rect
-#             opt.text = index.data()
-#             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
-#             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-#         else:
-#             QStyledItemDelegate.paint(self, painter, option, index)
-#             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-#                 opt = QStyleOptionFrame()
-#                 opt.rect = option.rect
-#                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
-
