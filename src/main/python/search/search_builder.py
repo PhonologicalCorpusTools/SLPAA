@@ -43,7 +43,7 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure
 from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
-from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog
+from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, SearchValuesItem
 
 class SearchWindow(QMainWindow):
 
@@ -98,7 +98,7 @@ class SearchWindow(QMainWindow):
 
         self.searchmodel = self.load_search_binary(file_name)
         self.search_targets_view.table_view.setModel(self.searchmodel)
-
+        self.current_sign.updatemodules(self.searchmodel)
         self.unsaved_changes = False
 
         return self.searchmodel is not None  # bool(Corpus)
@@ -119,8 +119,6 @@ class SearchWindow(QMainWindow):
 
             self.save_search_binary()
             
-
-
     def init_ui(self):
         self.create_menu_bar()
         self.search_targets_view = SearchTargetsView(self.searchmodel, mainwindow=self, parent=self)
@@ -128,7 +126,7 @@ class SearchWindow(QMainWindow):
         self.search_params_view.search_clicked.connect(self.handle_search_clicked)
         self.build_search_target_view = BuildSearchTargetView(sign=None, mainwindow=self, parent=self)
         self.build_search_target_view.target_added.connect(self.handle_new_search_target_added)
-        self.build_search_target_view.target_modified.connect(self.searchmodel.modify_target)
+        self.build_search_target_view.target_modified.connect(self.handle_target_modified)
 
         search_param_window = QMdiSubWindow()
         search_param_window.setWidget(self.search_params_view)
@@ -186,6 +184,11 @@ class SearchWindow(QMainWindow):
     def handle_new_search_target_added(self, target):
         # TODO update unsaved_changes when targets added or modified.
         self.searchmodel.add_target(target)
+    
+    def handle_target_modified(self, target, row):
+        self.searchmodel.modify_target(target, row)
+
+
 
     def save_search_binary(self):
         with open(self.searchmodel.path, 'wb') as f:
@@ -204,11 +207,10 @@ class SearchWindow(QMainWindow):
 class SearchTargetsView(QWidget):
     def __init__(self, searchmodel, mainwindow, **kwargs):
         super().__init__(**kwargs)
-        self.model = searchmodel
         self.mainwindow = mainwindow
 
         self.table_view = QTableView(parent=self)
-        self.table_view.setModel(self.model)
+        self.table_view.setModel(searchmodel)
         self.set_table_ui()
 
         layout = QVBoxLayout()
@@ -230,21 +232,17 @@ class SearchTargetsView(QWidget):
         
     
     def get_search_target_item(self, row):
-        xslotinfo = self.model.item(row, TargetHeaders.XSLOTS)
-        xslottype = None
-        xslotnum = None
-        if xslotinfo.data() is not None:
-            xslottype = xslotinfo.data(Qt.UserRole)[0]
-            xslotnum = xslotinfo.data(Qt.UserRole)[1]
+        model = self.table_view.model()
         it = SearchTargetItem(
-            name=self.model.item(row, TargetHeaders.NAME).data(Qt.DisplayRole),
-            targettype=self.model.item(row, TargetHeaders.TYPE).data(Qt.DisplayRole),
-            xslottype=xslottype,
-            xslotnum=xslotnum,
-            values=self.model.item(row, TargetHeaders.VALUE).data(Qt.UserRole),
-            module=self.model.item(row, TargetHeaders.NAME).data(Qt.UserRole)
-
+            name=model.target_name(row),
+            targettype=model.target_type(row),
+            xslottype=model.target_xslottype(row),
+            searchvaluesitem=model.target_values(row),
+            module=model.target_module(row),
+            negative=model.is_negative(row),
+            include=model.is_included(row)
         )
+
         return it
     
     def open_module_dialog(self, modulekey, moduletype):
@@ -280,10 +278,11 @@ class SearchTargetsView(QWidget):
         row = index.row()
         item = self.get_search_target_item(row)
 
+
         if item.targettype == XSLOT_TARGET:
             timing_selector = XSlotTargetDialog(parent=self, preexistingitem=item)
             timing_selector.target_saved.connect(lambda target_name, max_xslots, min_xslots: 
-                                                 self.mainwindow.build_search_target_view.handle_save_xslottarget(target_name, max_xslots, min_xslots, row=row))
+                                                 self.mainwindow.build_search_target_view.handle_save_xslottarget(target_name, max_xslots, min_xslots, preexistingitem=item, row=row))
             timing_selector.exec_()
 
         elif item.targettype == SIGNLEVELINFO_TARGET:
@@ -293,9 +292,11 @@ class SearchTargetsView(QWidget):
         
         elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
             initialdialog = XSlotTypeDialog(parent=self, preexistingitem=item)
-            initialdialog.continue_clicked.connect(
-                lambda name: self.mainwindow.build_search_target_view.show_next_dialog(item.targettype, name, preexistingitem=item, row=row))
+            initialdialog.continue_clicked.connect(lambda name, xslottype: 
+            self.mainwindow.build_search_target_view.show_next_dialog(item.targettype, name, xslottype, preexistingitem=item, row=row))
             initialdialog.exec_()
+
+            initialdialog = XSlotTypeDialog(parent=self)
 
         
         else:
@@ -338,14 +339,23 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         else: # modify a preexisting target located at given row
             self.target_modified.emit(target, row)
 
-    def handle_save_xslottarget(self, target_name, max_xslots, min_xslots, row=None):
-        target = SearchTargetItem()
-        target.targettype = XSLOT_TARGET
-        target.name = target_name
-        if min_xslots != "":
-            target.values["xslot min"] = min_xslots
-        if max_xslots != "":
-            target.values["xslot max"] = max_xslots
+    def handle_save_xslottarget(self, target_name, max_xslots, min_xslots, preexistingitem=None, row=None):
+        negative=False 
+        include=False
+        if preexistingitem is not None:
+            negative = preexistingitem.negative
+            include = preexistingitem.include
+
+        svi = SearchValuesItem(type=XSLOT_TARGET, 
+                               module=None, 
+                               values={ "xslot min":min_xslots, 
+                                       "xslot max": max_xslots })
+        target = SearchTargetItem(name=target_name, 
+                                  targettype=XSLOT_TARGET, 
+                                  xslottype=None, 
+                                  searchvaluesitem=svi,
+                                  include=include,
+                                  negative=negative)
         self.emit_signal(target, row)
 
 
@@ -356,24 +366,31 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
     def handle_menumodulebtn_clicked(self, moduletype):
         initialdialog = XSlotTypeDialog(parent=self)
-        initialdialog.continue_clicked.connect(lambda name, xslottype, xslotnum: self.show_next_dialog(moduletype,name,xslottype,xslotnum))
+        initialdialog.continue_clicked.connect(lambda name, xslottype: self.show_next_dialog(moduletype,name,xslottype))
         initialdialog.exec_()
 
-    def show_next_dialog(self, targettype, name, xslottype=None, num=None, preexistingitem=None, row=None): # TODO most of these arguments are not used
-        target = SearchTargetItem()
-        target.targettype = targettype
-        target.name = name
-        target.xslottype = xslottype
-        target.xslotnum = num
-        target.values = {}
-        target.module = None
-
+    def show_next_dialog(self, targettype, name, xslottype=None, preexistingitem=None, row=None): 
+        module = None
+        negative = False
+        include = False
         if preexistingitem is not None:
-            target.module = preexistingitem.module
+            module = preexistingitem.module
+            negative = preexistingitem.negative
+            include = preexistingitem.include
+
+        target = SearchTargetItem(
+            name=name,
+            targettype=targettype,
+            xslottype=xslottype,
+            searchvaluesitem=None,
+            module=module,
+            negative=negative,
+            include=include
+        )
 
         if targettype==SIGNLEVELINFO_TARGET:
             if preexistingitem is not None:
-                sli = SignLevelInformation(preexistingitem.values)
+                sli = SignLevelInformation(preexistingitem.searchvaluesitem.values)
             else:
                 sli = None
             signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(sli, parent=self)
@@ -392,7 +409,6 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             module_selector = Search_ModuleSelectorDialog(moduletype=targettype,
                                                 xslotstructure=None,
                                                 xslottype=xslottype,
-                                                xslotnum=num,
                                                 moduletoload=target.module,
                                                 includephase=includephase,
                                                 incl_articulators=includearticulators,
@@ -409,26 +425,28 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         else:
             self.sign.updatemodule(existingkey, module_to_save, moduletype)
 
-        # target.values["articulators"] = module_to_save.articulators
+        target.searchvaluesitem = SearchValuesItem(moduletype, module_to_save)
         target.module = module_to_save
         self.emit_signal(target, row)
 
     def handle_save_signlevelinfo(self, target, signlevel_info, row=None):
-        target.values["entryid"] = signlevel_info.entryid
-        target.values["gloss"] = signlevel_info.gloss
-        target.values["lemma"] = signlevel_info.lemma
-        target.values["source"] = signlevel_info.source
-        target.values["signer"] = signlevel_info.signer
-        target.values["frequency"] = signlevel_info.frequency
-        target.values["coder"] = signlevel_info.coder
-        target.values["date created"] = signlevel_info.datecreated
-        target.values["date last modified"] = signlevel_info.datelastmodified
-        target.values["note"] = signlevel_info.note
+        values = {}
+        values["entryid"] = signlevel_info.entryid
+        values["gloss"] = signlevel_info.gloss
+        values["lemma"] = signlevel_info.lemma
+        values["source"] = signlevel_info.source
+        values["signer"] = signlevel_info.signer
+        values["frequency"] = signlevel_info.frequency
+        values["coder"] = signlevel_info.coder
+        values["date created"] = signlevel_info.datecreated
+        values["date last modified"] = signlevel_info.datelastmodified
+        values["note"] = signlevel_info.note
         # backward compatibility for attribute added 20230412!
-        target.values["fingerspelled"] = signlevel_info.fingerspelled
-        target.values["compoundsign"] = signlevel_info.compoundsign
-        target.values["handdominance"] = signlevel_info.handdominance
+        values["fingerspelled"] = signlevel_info.fingerspelled
+        values["compoundsign"] = signlevel_info.compoundsign
+        values["handdominance"] = signlevel_info.handdominance
         # TODO update to use signlevel info instead of target values
+        target.searchvaluesitem = SearchValuesItem(target.targettype, module=None, values=values)
         self.emit_signal(target, row)
     
     @property
@@ -498,7 +516,7 @@ class NameDialog(QDialog):
         self.buttonbox.save_button.setEnabled(False)
 
 class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
-    continue_clicked = pyqtSignal(str, str, str)
+    continue_clicked = pyqtSignal(str, XslotTypeItem)
 
     def __init__(self, preexistingitem=None, **kwargs):
         super().__init__(**kwargs)
@@ -572,7 +590,8 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         else:
             if self.xslot_type == self.ignore_xslots_rb:
                 type = "ignore"
-                self.continue_clicked.emit(self.name_widget.name, type, self.concrete_xslots_num.text())
+                toemit = XslotTypeItem(type, self.concrete_xslots_num.text())
+                self.continue_clicked.emit(self.name_widget.name, toemit)
                 self.accept()
             elif self.xslot_type == self.abstract_xslot_rb:
                 QMessageBox.critical(self, "not implemented", "abstract xs not implemented")
@@ -588,14 +607,13 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
     def reload_item(self, it):
         self.name_widget.text_entry.setText(it.name)
         self.xslot_type = it.xslottype
-
-        if it.xslottype == "abstract xslot":
+        if it.xslottype.type == "abstract xslot":
             btn_to_check = self.abstract_xslot_rb
-        elif it.xslottype == "abstract whole sign":
+        elif it.xslottype.type == "abstract whole sign":
             btn_to_check = self.abstract_whole_sign_rb
-        elif it.xslottype == "concrete":   
+        elif it.xslottype.type == "concrete":   
             btn_to_check = self.concrete_xslots_rb
-            self.concrete_xslots_num.setText(it.xslotnum)
+            self.concrete_xslots_num.setText(it.xslottype.num)
         else:
             btn_to_check = self.ignore_xslots_rb
         
@@ -657,10 +675,10 @@ class XSlotTargetDialog(QDialog):
 
     def reload_item(self, it):
         self.name_widget.text_entry.setText(it.name)
-        if "xslot max" in it.values:
-            self.max_num.setText(it.values["xslot max"])
-        if "xslot min" in it.values:
-            self.min_num.setText(it.values["xslot min"])
+        if "xslot max" in it.searchvaluesitem.values:
+            self.max_num.setText(it.searchvaluesitem.values["xslot max"])
+        if "xslot min" in it.searchvaluesitem.values:
+            self.min_num.setText(it.searchvaluesitem.values["xslot min"])
         self.toggle_continue_selectable()
     
     def toggle_continue_selectable(self):
@@ -889,6 +907,13 @@ class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc n
     def __init__(self, signlevel_info=None, serializedsign=None):
         super().__init__(signlevel_info, serializedsign)
         self._xslotstructure = XslotStructure()
+    
+    def updatemodules(self, model):
+        for row in range(model.rowCount()):
+            moduletype = model.target_type(row)
+            if moduletype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT, ModuleTypes.HANDCONFIG, ModuleTypes.RELATION, ModuleTypes.ORIENTATION]:
+                module_to_add = model.target_module(row)
+                self.addmodule(module_to_add, moduletype)
 
     def addmodule(self, module_to_add, moduletype):
         self.getmoduledict(moduletype)[module_to_add.uniqueid] = module_to_add
@@ -898,6 +923,20 @@ class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc n
     
     def lastmodifiednow(self):
         return
+
+    def getmoduledict(self, moduletype):
+        if moduletype == ModuleTypes.LOCATION:
+            return self.locationmodules
+        elif moduletype == ModuleTypes.MOVEMENT:
+            return self.movementmodules
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            return self.handconfigmodules
+        elif moduletype == ModuleTypes.RELATION:
+            return self.relationmodules
+        elif moduletype == ModuleTypes.ORIENTATION:
+            return self.orientationmodules
+        else:
+            return {}
 
 
     # TODO. probably add xslotstructure, signtype, and signlevel module dicts in the same way as mvmt and loc
@@ -909,10 +948,7 @@ class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc n
     def xslotstructure(self, xslotstructure):
         self._xslotstructure = xslotstructure
     
-    
-    
 
-    
 
 class ResultsView(QWidget):
     def __init__(self, searchmodel, corpus, **kwargs):

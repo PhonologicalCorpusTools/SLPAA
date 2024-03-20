@@ -22,8 +22,7 @@ from models.movement_models import MovementTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 
 
-PATHSROLE = Qt.UserRole + 1
-ARTICULATORSROLE = Qt.UserRole + 2
+
 
 
 class TargetHeaders:
@@ -58,94 +57,52 @@ class SearchModel(QStandardItemModel):
             self.serializedsearchmodel = serializedsearchmodel.serializedmodel
             self.setvaluesfromserializedmodel()
 
-    # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
     def setvaluesfromserializedmodel(self):
-        print(self.serializedsearchmodel)
         
         for name in self.serializedsearchmodel:
-
             row_data = self.serializedsearchmodel[name]
             ttype = row_data[TargetHeaders.TYPE]
-            xtype = row_data[TargetHeaders.XSLOTS]["type"]
-            xslotnum = row_data[TargetHeaders.XSLOTS]["num"]
-            valuedict = row_data[TargetHeaders.VALUE]["dict"]
-            paths = row_data[TargetHeaders.VALUE]["paths"]
-            articulators = row_data[TargetHeaders.VALUE]["articulators"]
-            
+            xtype = row_data[TargetHeaders.XSLOTS]
+            svi = row_data[TargetHeaders.VALUE]
             include = row_data[TargetHeaders.INCLUDE] 
             negative = row_data[TargetHeaders.NEGATIVE] 
             module = self.unserialize(ttype, row_data["module"]) 
 
-            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, xslotnum=xslotnum, values=valuedict, module=module)
-
-            row = self.create_row_from_target(target, include=include, negative=negative, paths=paths, articulators=articulators)
+            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, negative=negative, include=include)
+            row = self.create_row_from_target(target)
             self.appendRow(row)
-            return
     
     def serialize(self):
         return SearchModelSerializable(self)
  
-    # TODO: rewrite searchtargetitem so that the same dict is used everywhere, including for serializing?
-    def create_row_from_target(self, t, include=None, displaytext=None, negative=None, paths=None, articulators=None):
-        type = QStandardItem(t.targettype)
-        include_cb = QStandardItem()
-        include_cb.setCheckable(True)
-        if include is not None:
-            include_cb.setCheckState(include)
-        negative_cb = QStandardItem()
-        negative_cb.setCheckable(True)
-        if negative is not None:
-            negative_cb.setCheckState(negative)
+    def create_row_from_target(self, t):
+        
         name = QStandardItem(t.name)
         name.setData(t.module, Qt.UserRole)
+
+        type = QStandardItem(t.targettype)
+
+        include_cb = QStandardItem()
+        include_cb.setCheckable(True)
+        include_cb.setCheckState(t.include)
+
+        negative_cb = QStandardItem()
+        negative_cb.setCheckable(True)
+        negative_cb.setCheckState(t.negative)
+
+        xslottype = QStandardItem()
+        xslottype.setData(repr(t.xslottype), Qt.DisplayRole)
+        xslottype.setData(t.xslottype, Qt.UserRole)
+        
         value = QStandardItem()
+        value.setData(t.searchvaluesitem.displayval(t.module), Qt.DisplayRole)
+        value.setData(t.searchvaluesitem, Qt.UserRole+1)
 
-        if t.xslottype is not None: # TODO specify exactly which target types should have an xslottype or not
-            if t.xslottype == "concrete":
-                xslotval = t.xslotnum
-                xslottype = QStandardItem(xslotval + " x-slots")
-            else:
-                xslottype = QStandardItem(t.xslottype)
-            xslottype.setData((t.xslottype, t.xslotnum), Qt.UserRole)
-        else:
-            xslottype = QStandardItem('ignore') # TODO fix how nonetype is handled
-            xslottype.setData(('ignore', None), Qt.UserRole)
-        
-            
-        if t.module is None:
-            val = []
-            for k,v in t.values.items(): # two-valued targets
-                if v not in [None, ""]:
-                    val.append(str(k)+"="+str(v))
-            if displaytext is not None:
-                value.setData(displaytext, Qt.DisplayRole)
-            else:
-                value.setData(val, Qt.DisplayRole)
-            
-        
-        elif t.module is not None and t.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
-            arts = articulators if articulators is not None else t.module.articulators
-            if t.targettype == ModuleTypes.MOVEMENT:
-                model = t.module.movementtreemodel
-            elif t.targettype == ModuleTypes.LOCATION:
-                model = t.module.locationtreemodel
-            val = []
-
-            # val.append(arts[0]) # TODO fix articulators
-            checked_paths = paths if paths is not None else model.get_checked_items()
-
-            for path in checked_paths:
-                val.append(path)
-
-            value.setData(val, Qt.DisplayRole)
-            value.setData(t.values, Qt.UserRole)
-            value.setData(arts, ARTICULATORSROLE)
-            value.setData(checked_paths, PATHSROLE) 
         return [name, type, value, include_cb, negative_cb, xslottype]
 
     def modify_target(self, t, row):
         row_data = self.create_row_from_target(t)
-        for col, data in enumerate(row_data):   
+        for col, data in enumerate(row_data):
             self.setItem(row, col, data)
 
     
@@ -190,9 +147,9 @@ class SearchModel(QStandardItemModel):
                     layout.addWidget(QLabel(txt))
 
 
-        
         dialog.setLayout(layout)
         dialog.exec_()
+
 
     def unserialize(self, type, serialmodule):
         if type == ModuleTypes.MOVEMENT:
@@ -205,7 +162,7 @@ class SearchModel(QStandardItemModel):
             return unserialized
         else:
             logging.warn("Unserialize not implemented for this type")
-            pass
+            return None
 
     def __repr__(self):
         repr = "searchmodel:\n " + str(self.matchtype) + " match; " +  "match " + str(self.matchdegree) + "\n" + str(self.searchtype) + " search"
@@ -221,31 +178,16 @@ class SearchModel(QStandardItemModel):
         return self.index(row, TargetHeaders.TYPE).data(Qt.DisplayRole)
     
     def target_xslottype(self, row):
-        return self.index(row, TargetHeaders.XSLOTS).data(Qt.UserRole)[0]
-
-    def target_xslotnum(self, row):
-        return self.index(row, TargetHeaders.XSLOTS).data(Qt.UserRole)[1]
-    
-    def target_xslottext(self, row):
-        return self.index(row, TargetHeaders.XSLOTS).data(Qt.DisplayRole)
-
-    def target_text(self, row):
-        return self.index(row, TargetHeaders.VALUE).data(Qt.DisplayRole)
+        return self.index(row, TargetHeaders.XSLOTS).data(Qt.UserRole)
     
     def target_values(self, row):
-        return self.index(row, TargetHeaders.VALUE).data(Qt.UserRole)
-    
-    def target_paths(self, row):
-        return self.index(row, TargetHeaders.VALUE).data(PATHSROLE)
-    
-    def target_articulators(self, row):
-        return self.index(row, TargetHeaders.VALUE).data(ARTICULATORSROLE)
+        return self.index(row, TargetHeaders.VALUE).data(Qt.UserRole+1)
 
     def is_negative(self, row):
-        return (self.itemFromIndex(self.index(row, TargetHeaders.NEGATIVE)).checkState() == Qt.Checked)
+        return (self.itemFromIndex(self.index(row, TargetHeaders.NEGATIVE)).checkState() != Qt.Unchecked)
 
     def is_included(self, row):
-        return (self.itemFromIndex(self.index(row, TargetHeaders.INCLUDE)).checkState() == Qt.Checked)
+        return (self.itemFromIndex(self.index(row, TargetHeaders.INCLUDE)).checkState() != Qt.Unchecked)
     
     @property
     def targets(self):
@@ -277,16 +219,17 @@ class SearchModel(QStandardItemModel):
     def searchtype(self, value):
         self._searchtype = value
 
-# TODO should we do different item classes for each targettype, instead of having a dict ?
+# TODO move the methods above into here?
 class SearchTargetItem(QStandardItem):
-    def __init__(self, name=None, targettype=None, xslottype=None, xslotnum=None, values=None, module=None, **kwargs):
+    def __init__(self, name=None, targettype=None, xslottype=None, searchvaluesitem=None, module=None, negative=False, include=False, **kwargs):
         super().__init__(**kwargs)
         self._name = name
         self._targettype = targettype
         self._xslottype = xslottype 
-        self._xslotnum = xslotnum # only set if xslottype is concrete
-        self._values = values if values is not None else {} # for binary targets (eg xslot_min=3). update for unary targets (eg list of location nodes)
+        self._searchvaluesitem = searchvaluesitem
         self._module = module
+        self.negative = negative
+        self.include = include
 
     def __repr__(self):
         msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\nxslotnum: " + str(self.xslotnum) + "\ntargettype " + str(self.targettype)  
@@ -302,15 +245,12 @@ class SearchTargetItem(QStandardItem):
         self._targettype = value
 
     @property
-    def values(self):
-        return self._values
+    def searchvaluesitem(self):
+        return self._searchvaluesitem
 
-    @values.setter
-    def values(self, d):
-        self._values = d
-    
-    def add_value(self, k,v):
-        self._values[k] = v
+    @searchvaluesitem.setter
+    def searchvaluesitem(self, v):
+        self._searchvaluesitem = v
     
     @property
     def name(self):
@@ -327,17 +267,6 @@ class SearchTargetItem(QStandardItem):
     @xslottype.setter
     def xslottype(self, value):
         self._xslottype = value
-
-    @property
-    def xslotnum(self):
-        if self._xslotnum == None:
-            return "None"
-    
-        return self._xslotnum
-
-    @xslotnum.setter
-    def xslotnum(self, value):
-        self._xslotnum = value
 
     @property
     def module(self):
@@ -394,24 +323,14 @@ class SearchModelSerializable:
                 name = searchmodel.target_name(r)
                 ttype = searchmodel.target_type(r)
                 module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
-
-
                 row_data[TargetHeaders.TYPE] = ttype
-                row_data[TargetHeaders.VALUE] = {
-                    "dict": searchmodel.target_text(r),
-                    "paths": searchmodel.target_paths(r),
-                    "articulators": searchmodel.target_articulators(r)
-                }
+                row_data[TargetHeaders.VALUE] = searchmodel.target_values(r)
                 row_data[TargetHeaders.INCLUDE] = searchmodel.is_included(r)
                 row_data[TargetHeaders.NEGATIVE] = searchmodel.is_negative(r)
-                row_data[TargetHeaders.XSLOTS] = {
-                    "type": searchmodel.target_xslottype(r), 
-                    "num": searchmodel.target_xslotnum(r)
-                }
+                row_data[TargetHeaders.XSLOTS] = searchmodel.target_xslottype(r)
                 row_data["module"] = module
 
-                model[name] = row_data
-        logging.warning("collect data")
+                model[name] = row_data  
         return model
     
     def get_serialized_parameter_module(self, type, module):
@@ -422,18 +341,3 @@ class SearchModelSerializable:
         if type == ModuleTypes.RELATION:
             return RelationModuleSerializable(module)
 
-    
-
-
-    
-    def target_paths(self, row):
-        return self.index(row, TargetHeaders.VALUE).data(PATHSROLE)
-    
-    def target_articulators(self, row):
-        return self.index(row, TargetHeaders.VALUE).data(ARTICULATORSROLE)
-
-    def is_negative(self, row):
-        return (self.itemFromIndex(self.index(row, TargetHeaders.NEGATIVE)).checkState() == Qt.Checked)
-
-    def is_included(self, row):
-        return (self.itemFromIndex(self.index(row, TargetHeaders.INCLUDE)).checkState() == Qt.Checked)
