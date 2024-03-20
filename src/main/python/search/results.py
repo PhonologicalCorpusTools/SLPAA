@@ -31,6 +31,8 @@ from PyQt5.QtWidgets import (
     QAction,
     QTabWidget
 )
+
+from PyQt5.QtCore import QModelIndex, Qt
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel, 
@@ -49,27 +51,33 @@ class ResultHeaders:
     GLOSS = 4
 
 class ResultsView(QWidget):
-    def __init__(self, **kwargs):
+    def __init__(self, resultsdict, **kwargs):
         super().__init__(**kwargs)
-        logging.warning("initiating results")
         self.setWindowTitle("Search Results")
-        
+        self.resultsdict = resultsdict
 
         # Create a tab widget
         main_layout = QVBoxLayout()
         self.tab_widget = QTabWidget()
-        
+        self.listdelegate = ListDelegate()
+
         self.summarytab = QWidget()
-        self.summary_table_view = QTableView(parent=self)
-        self.summary_table_view.setModel(ResultSummaryModel())
+        self.summary_table_view = QTableView()
+        self.summarymodel = ResultSummaryModel()
+        self.summarymodel.populate(self.resultsdict)
+        self.summary_table_view.setModel(self.summarymodel)
+        self.summary_table_view.setItemDelegate(self.listdelegate)
         summarylayout = QVBoxLayout()
         summarylayout.addWidget(self.summary_table_view)
         self.summarytab.setLayout(summarylayout)
         
         self.individualtab = QWidget()
+        self.individual_table_view = QTableView()
+        self.individualmodel = IndividualSummaryModel()
+        self.individualmodel.populate(self.resultsdict)
+        self.individual_table_view.setModel(self.individualmodel)
+        self.individual_table_view.setItemDelegate(self.listdelegate)
         individuallayout = QVBoxLayout()
-        self.individual_table_view = QTableView(parent=self)
-        self.individual_table_view.setModel(IndividualSummaryModel())
         individuallayout.addWidget(self.individual_table_view)
         self.individualtab.setLayout(individuallayout)
 
@@ -80,7 +88,14 @@ class ResultsView(QWidget):
         main_layout.addWidget(self.tab_widget)
         self.setLayout(main_layout)
 
-
+class ListDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+    def displayText(self, value, locale):
+        if isinstance(value, list) or isinstance(value, tuple):
+            display_text = '; '.join(value) # TODO prefer multiline...
+            return display_text
+        return super().displayText(value, locale)
 
 class ResultSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
@@ -88,6 +103,22 @@ class ResultSummaryModel(QStandardItemModel):
 
         self.headers = ["Corpus", "Target Name(s)", "Result Type(s)", "Frequency"]
         self.setHorizontalHeaderLabels(self.headers)
+    
+    def populate(self, resultsdict):
+        for targetname in resultsdict:
+            resultrow = resultsdict[targetname]
+            name = QStandardItem()
+            name.setData(targetname, Qt.DisplayRole)
+            corpus = QStandardItem()
+            corpus.setData(resultrow["corpus"], Qt.DisplayRole)
+            resulttypes = QStandardItem()
+            resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
+            frequency = QStandardItem()
+            frequency.setData(len(resultrow["signs"]), Qt.DisplayRole)
+
+            self.appendRow([corpus, name, resulttypes, frequency])
+
+
 
 
 class IndividualSummaryModel(QStandardItemModel):
@@ -96,3 +127,19 @@ class IndividualSummaryModel(QStandardItemModel):
 
         self.headers = ["Corpus", "Target Name(s)", "Result Type(s)", "Entry ID", "Gloss"]
         self.setHorizontalHeaderLabels(self.headers)
+
+    def populate(self, resultsdict):
+        for targetname in resultsdict:
+            resultrow = resultsdict[targetname]
+            for sign in resultrow["signs"]:
+                name = QStandardItem()
+                name.setData(targetname, Qt.DisplayRole)
+                corpus = QStandardItem()
+                corpus.setData(resultrow["corpus"], Qt.DisplayRole)
+                resulttypes = QStandardItem()
+                resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
+                entryid = QStandardItem()
+                entryid.setData(sign[0], Qt.DisplayRole)
+                gloss = QStandardItem()
+                gloss.setData(sign[1], Qt.DisplayRole)
+                self.appendRow([corpus, name, resulttypes, entryid, gloss])

@@ -113,39 +113,50 @@ class SearchModel(QStandardItemModel):
 
     def search_corpus(self, corpus): # TODO potentially add a rows_to_skip for adding on to existing results table
         selected_rows = self.get_selected_rows()
-        dialog = QDialog()
-        layout = QVBoxLayout()
+
+        resultsdict = {}
+
+        if self.matchdegree == 'all':
+            target_name = tuple(self.target_name(row) for row in selected_rows)
+            target_negative = []
+            for row in selected_rows:
+                if self.is_negative(row):
+                    target_negative.append("Negative")
+                else:
+                    target_negative.append("Positive")
+            matchingsigns = [] # each element is a gloss/id tuple
+            for sign in corpus.signs:
+                if self.sign_matches_all(selected_rows, sign):
+                    matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid])
+            resultsdict[target_name] = {"corpus": corpus.name, "signs": matchingsigns, "negative": target_negative}
+        return resultsdict
 
         # TODO for now, assume match type minimal, not exact
-        if self.matchdegree == 'all': #  
-            mvmt_paths_to_match = []
-            locn_paths_to_match = []
+        # if self.matchdegree == 'all': #  
+        #     mvmt_paths_to_match = []
+        #     locn_paths_to_match = []
 
-            for row in selected_rows:
-                module = self.target_module(row)
-                svi = self.target_values(row)
-                ttype = self.target_type(row)
-                if ttype == ModuleTypes.MOVEMENT:
-                    paths = module.movementtreemodel.get_checked_items()
-                    mvmt_paths_to_match.extend(paths)
-                # eg if target_name is in rows_to_skip, continue
+        #     for row in selected_rows:
+        #         module = self.target_module(row)
+        #         svi = self.target_values(row)
+        #         ttype = self.target_type(row)
+        #         if ttype == ModuleTypes.MOVEMENT:
+        #             paths = module.movementtreemodel.get_checked_items()
+        #             mvmt_paths_to_match.extend(paths)
+        #         # eg if target_name is in rows_to_skip, continue
                 
-
-            layout.addWidget(QLabel("matching mvmt"))
-            for sign in corpus.signs:
-                if len(mvmt_paths_to_match) > 0:
-                    # TODO switch to using the generic get module dict function 
-                    checked_mvmt_paths = set()
-                    for module in sign.movementmodules.values():
-                        checked_mvmt_paths.add(module.movementtreemodel.get_checked_items())
-                    logging.warning(checked_mvmt_paths)
-                    logging.warning(mvmt_paths_to_match)
-                    ok = all(path in checked_mvmt_paths for path in mvmt_paths_to_match)
-                    txt = sign.signlevel_information.gloss + " matches: " + str(ok)
-                    layout.addWidget(QLabel(txt))
-
-        dialog.setLayout(layout)
-        dialog.exec_()
+    def sign_matches_all(self, rows, sign):
+        return True
+        # for sign in corpus.signs:
+        #     if len(mvmt_paths_to_match) > 0:
+        #         # TODO switch to using the generic get module dict function 
+        #         checked_mvmt_paths = set()
+        #         for module in sign.movementmodules.values():
+        #             checked_mvmt_paths.add(module.movementtreemodel.get_checked_items())
+        #         logging.warning(checked_mvmt_paths)
+        #         logging.warning(mvmt_paths_to_match)
+        #         ok = all(path in checked_mvmt_paths for path in mvmt_paths_to_match)
+        #         txt = sign.signlevel_information.gloss + " matches: " + str(ok)
 
 
     def unserialize(self, type, serialmodule):

@@ -172,13 +172,10 @@ class SearchWindow(QMainWindow):
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
 
-            # self.searchmodel.search_corpus(self.corpus)
-            self.create_results_view()
-            
-    
-    def create_results_view(self, results=None):
-        self.results_view = ResultsView()
-        self.results_view.show()
+            resultsdict = self.searchmodel.search_corpus(self.corpus)
+            self.results_view = ResultsView(resultsdict)
+            self.results_view.show()
+        
 
 
 
@@ -797,7 +794,7 @@ class SearchParamsView(QFrame):
         layout.addWidget(self.match_all_rb)
 
         # TODO change default?
-        self.match_any_rb.setChecked(True)
+        self.match_all_rb.setChecked(True)
         self.minimal_match_rb.setChecked(True)
 
         return layout
@@ -812,34 +809,6 @@ class SearchParamsView(QFrame):
     def on_match_degree_button_clicked(self, button):
         self.match_degree = button.objectName()
     
-class SearchResultsView(QWidget):
-    def __init__(self):
-        super().__init__()
-        results=['testing', 'testing', 'beep boop']
-
-        layout = self.create_search_results_layout(results)
-        self.setLayout(layout)
-
-        # Set dialog properties
-        self.setWindowTitle("Results")
-    
-    def create_search_results_layout(self, results):
-        results_layout = QVBoxLayout()
-        
-        for text in results:
-            label = QLabel(text)
-            results_layout.addWidget(label)
-
-        scroll_widget = QWidget()
-        scroll_widget.setLayout(results_layout)
-
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(scroll_widget)
-
-        main_layout = QVBoxLayout(self)
-        main_layout.addWidget(scroll_area)
-        return main_layout
     
 class SaveTargetButtonBox(QWidget):
     save_clicked = pyqtSignal()
