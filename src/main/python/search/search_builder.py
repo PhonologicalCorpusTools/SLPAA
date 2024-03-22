@@ -43,9 +43,9 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject, pyqtSlot
 from lexicon.lexicon_classes import Sign
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure
-from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel
+from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
-from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, SearchValuesItem
+from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem
 
 class SearchWindow(QMainWindow):
 
@@ -167,7 +167,6 @@ class SearchWindow(QMainWindow):
         if mssg != "":
             QMessageBox.critical(self, "Warning", mssg)
         else:
-            logging.warning("searching")
             self.searchmodel.searchtype = type
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
@@ -230,7 +229,8 @@ class SearchTargetsView(QWidget):
         self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self.table_view.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.table_view.setItemDelegateForColumn(2, ListDelegate()) # The "values" column contains lists
+        self.list_del = ListDelegate()
+        self.table_view.setItemDelegateForColumn(2, self.list_del) # The "values" column contains lists
 
         self.table_view.setEditTriggers(QTableView.NoEditTriggers) # disable edit via clicking table
         
@@ -291,7 +291,8 @@ class SearchTargetsView(QWidget):
 
         elif item.targettype == SIGNLEVELINFO_TARGET:
             initialdialog = NameDialog(parent=self, preexistingname=item.name)
-            initialdialog.continue_clicked.connect(lambda name: self.mainwindow.build_search_target_view.show_next_dialog(SIGNLEVELINFO_TARGET, name, preexistingitem=item, row=row))
+            initialdialog.continue_clicked.connect(lambda name: 
+                                                   self.mainwindow.build_search_target_view.show_next_dialog(SIGNLEVELINFO_TARGET, name, preexistingitem=item, row=row))
             initialdialog.exec_()
         
         elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
@@ -299,8 +300,6 @@ class SearchTargetsView(QWidget):
             initialdialog.continue_clicked.connect(lambda name, xslottype: 
             self.mainwindow.build_search_target_view.show_next_dialog(item.targettype, name, xslottype, preexistingitem=item, row=row))
             initialdialog.exec_()
-
-            initialdialog = XSlotTypeDialog(parent=self)
 
         
         else:
@@ -352,7 +351,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
         svi = SearchValuesItem(type=XSLOT_TARGET, 
                                module=None, 
-                               values={ "xslot min":min_xslots, 
+                               values={ "xslot min": min_xslots, 
                                        "xslot max": max_xslots })
         target = SearchTargetItem(name=target_name, 
                                   targettype=XSLOT_TARGET, 
@@ -360,6 +359,8 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                                   searchvaluesitem=svi,
                                   include=include,
                                   negative=negative)
+
+
         self.emit_signal(target, row)
 
 
@@ -641,7 +642,7 @@ class XSlotTargetDialog(QDialog):
         super().__init__(**kwargs)
 
         layout = QVBoxLayout()
-        self.name_widget = NameWidget(parent=self)
+        self.name_widget = NameWidget()
         layout.addWidget(self.name_widget)
         self.name_widget.on_name_entered.connect(self.toggle_continue_selectable)
 

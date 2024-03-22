@@ -71,11 +71,11 @@ class SearchModel(QStandardItemModel):
         return SearchModelSerializable(self)
  
     def create_row_from_target(self, t):
-        
+
         name = QStandardItem(t.name)
         name.setData(t.module, Qt.UserRole)
 
-        type = QStandardItem(t.targettype)
+        ttype = QStandardItem(t.targettype)
 
         include_cb = QStandardItem()
         include_cb.setCheckable(True)
@@ -90,10 +90,11 @@ class SearchModel(QStandardItemModel):
         xslottype.setData(t.xslottype, Qt.UserRole)
         
         value = QStandardItem()
-        value.setData(t.searchvaluesitem.displayval(t.module), Qt.DisplayRole)
         value.setData(t.searchvaluesitem, Qt.UserRole+1)
+        value.setData(t.searchvaluesitem.displayval, Qt.DisplayRole)
+        
 
-        return [name, type, value, include_cb, negative_cb, xslottype]
+        return [name, ttype, value, include_cb, negative_cb, xslottype]
 
     def modify_target(self, t, row):
         row_data = self.create_row_from_target(t)
@@ -101,7 +102,7 @@ class SearchModel(QStandardItemModel):
             self.setItem(row, col, data)
 
     
-    def add_target(self, t):
+    def add_target(self, t):     
         self.appendRow(self.create_row_from_target(t))
 
     def get_selected_rows(self):
@@ -349,3 +350,64 @@ class SearchModelSerializable:
         if type == ModuleTypes.RELATION:
             return RelationModuleSerializable(module)
 
+# Only store values that are included in the search target 
+# e.g. if no paths are specified in the target, don't save a self.paths attribute
+class SearchValuesItem:
+    def __init__(self, type, module=None, values=None): # TODO consider if module and values parameters are needed here (module is already saved in model under name)
+        self.type = type 
+        self.values = values
+        self.displayval = self.getdisplayval(module)
+        
+    def has_arts(self, module):
+        return module.articulators[1][1] or module.articulators[1][2]
+    
+    def has_phase(self, module):
+        return module.inphase
+    
+    def has_added_info(self, module):
+        return module.addedinfo is not None
+
+    def get_paths(self, model):
+        return model.get_checked_items() 
+
+    def __repr__(self):
+        return str(self.displayval)
+    
+    # for displaying in the "value" column of the searchmodel. Returns a list.
+    def getdisplayval(self, module): # TODO consider if module can be an attribute (remove the module saved in searchmodel under name)
+        todisplay = []
+        if self.type == ModuleTypes.MOVEMENT: # TODO parameter modules share many of these options
+            if self.has_arts(module): # if articulators are specified
+                todisplay.append(self.articulatordisplaytext(module.articulators, module.inphase))
+            if self.has_added_info(module):
+                pass
+                # todisplay.append("Additional info") # TODO could be more specific re type / contents of additional info
+            todisplay.extend(self.get_paths(module.movementtreemodel))
+        else:
+            if self.values is not None:
+                for k, v in self.values.items():
+                    if v not in [None, ""]:
+                        todisplay.append(str(k)+"="+str(v))
+        return todisplay
+        
+    def articulatordisplaytext(self, arts, phase):
+        k = arts[0] # hand, arm, or leg
+        if arts[1][1] and not arts[1][2]:
+            todisplay = k + " " + str(1)
+        elif arts[1][2] and not arts[1][1]:
+            todisplay = k + " " + str(2)
+        elif arts[1][1] and arts[1][2]:
+            
+            todisplay = "Both " + k.lower() + "s"
+            if phase == 1:
+                todisplay += " in phase"
+            elif phase == 2:
+                todisplay += " out of phase"
+            elif phase == 3:
+                todisplay += " connected"
+            elif phase == 4:
+                todisplay += " connected, in phase"
+        return todisplay
+
+
+        
