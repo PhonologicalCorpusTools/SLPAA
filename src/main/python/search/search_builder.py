@@ -45,7 +45,7 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure
 from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
-from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem
+from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, Search_SigntypeSelectorDialog
 
 class SearchWindow(QMainWindow):
 
@@ -295,6 +295,13 @@ class SearchTargetsView(QWidget):
                                                    self.mainwindow.build_search_target_view.show_next_dialog(SIGNLEVELINFO_TARGET, name, preexistingitem=item, row=row))
             initialdialog.exec_()
         
+        elif item.targettype == SIGNTYPEINFO_TARGET:
+            initialdialog = NameDialog(parent=self, preexistingname=item.name)
+            initialdialog.continue_clicked.connect(lambda name: 
+                                                   self.mainwindow.build_search_target_view.show_next_dialog(SIGNTYPEINFO_TARGET, name, preexistingitem=item, row=row))
+            initialdialog.exec_()
+
+        
         elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
             initialdialog = XSlotTypeDialog(parent=self, preexistingitem=item)
             initialdialog.continue_clicked.connect(lambda name, xslottype: 
@@ -368,6 +375,11 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         initialdialog = NameDialog(parent=self)
         initialdialog.continue_clicked.connect(lambda name: self.show_next_dialog(SIGNLEVELINFO_TARGET, name))
         initialdialog.exec_()
+    
+    def handle_signtypebutton_click(self):
+        initialdialog = NameDialog(parent=self)
+        initialdialog.continue_clicked.connect(lambda name: self.show_next_dialog(SIGNTYPEINFO_TARGET, name))
+        initialdialog.exec_()
 
     def handle_menumodulebtn_clicked(self, moduletype):
         initialdialog = XSlotTypeDialog(parent=self)
@@ -393,7 +405,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             include=include
         )
 
-        if targettype==SIGNLEVELINFO_TARGET:
+        if targettype == SIGNLEVELINFO_TARGET:
             if preexistingitem is not None:
                 sli = SignLevelInformation(preexistingitem.searchvaluesitem.values)
             else:
@@ -401,6 +413,13 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(sli, parent=self)
             signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo, row=row))
             signlevelinfo_selector.exec_()
+        
+        elif targettype == SIGNTYPEINFO_TARGET:            
+            signtypeinfo_selector = Search_SigntypeSelectorDialog(signtypetoload=module, parent=self)
+            signtypeinfo_selector.saved_signtype.connect(lambda signtype: self.handle_save_signtype(target, signtype, row=row))
+            signtypeinfo_selector.exec_()
+            pass
+
         
         elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
             includearticulators = [HAND, ARM, LEG] if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
@@ -432,6 +451,11 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
         target.searchvaluesitem = SearchValuesItem(moduletype, module_to_save)
         target.module = module_to_save
+        self.emit_signal(target, row)
+    
+    def handle_save_signtype(self, target, signtype, row=None):
+        target.searchvaluesitem = SearchValuesItem(SIGNTYPEINFO_TARGET, signtype)
+        target.module = signtype
         self.emit_signal(target, row)
 
     def handle_save_signlevelinfo(self, target, signlevel_info, row=None):

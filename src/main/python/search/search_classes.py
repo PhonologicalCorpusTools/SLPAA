@@ -264,6 +264,10 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
             for b in grp:
                 b.setChecked(False)
 
+class Search_SigntypeSelectorDialog(SigntypeSelectorDialog):
+    def __init__(self, signtypetoload, **kwargs):
+        super().__init__(signtypetoload, **kwargs)
+
 class Search_ModuleSelectorDialog(ModuleSelectorDialog):
     def __init__(self, moduletype, xslotstructure=None, xslottype=None, xslotnum=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=..., incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype

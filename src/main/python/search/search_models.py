@@ -170,6 +170,8 @@ class SearchModel(QStandardItemModel):
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
                 unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
                 return unserialized
+            elif type == SIGNTYPEINFO_TARGET:
+                return serialmodule
         else:
             return None
 
@@ -349,6 +351,8 @@ class SearchModelSerializable:
             return LocationModuleSerializable(module)
         if type == ModuleTypes.RELATION:
             return RelationModuleSerializable(module)
+        else:
+            return module
 
 # Only store values that are included in the search target 
 # e.g. if no paths are specified in the target, don't save a self.paths attribute
@@ -383,6 +387,10 @@ class SearchValuesItem:
                 pass
                 # todisplay.append("Additional info") # TODO could be more specific re type / contents of additional info
             todisplay.extend(self.get_paths(module.movementtreemodel))
+        elif self.type == SIGNTYPEINFO_TARGET:
+            for v in module.specslist:
+                if v[1]:
+                    todisplay.append(v[0])
         else:
             if self.values is not None:
                 for k, v in self.values.items():
