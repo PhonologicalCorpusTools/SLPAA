@@ -528,12 +528,19 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         usr_input = self.nonman_specifications
         major_modules = [module_title.label for module_title in nonmanual_root.children]
         for module in major_modules:
-            current_module = usr_input[module]
-            res[module] = self.get_nonman_specs(current_module)
+            this_module = usr_input[module]
+            res[module] = self.get_nonman_specs(this_module)
         return res
 
     def get_nonman_specs(self, current_module, parent=None):
-        module_output = {'static_dynamic': what_selected(current_module.static_dynamic_group)}
+        # this function parses user inputs and return a dict.
+        module_output = {'neutral': current_module.widget_cb_neutral.isChecked()}
+
+        if module_output['neutral'] is True:
+            # if 'this section is neutral' selected, just return module_output
+            return module_output
+
+        module_output['static_dynamic'] = what_selected(current_module.static_dynamic_group)
 
         # special case: 'mouth' has 'type of mouth movement' (others have 'subparts')
         if current_module.label == 'Mouth':
@@ -626,7 +633,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.setvalues(self._clean_nonman)
 
     def setvalues(self, moduletoload):
-        # load saved values and set template values by them.
+        # called when loading previously saved specifications (e.g., by clicking on an xslot)
+        # set template values by moduletoload (previously saved values)
         toload_dict = moduletoload
 
         if not isinstance(moduletoload, dict):
@@ -636,16 +644,30 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         major_modules = [module_title.label for module_title in nonmanual_root.children]  # major modules in non manual
         template = self.nonman_specifications  # empty template of specification window
 
+        all_neutral_flag = True  # flag to decide whether to select 'all sections are neutral'
+
         for module in major_modules:
             values_toload = toload_dict[module]
             load_destination = template[module]
             load_destination = load_specifications(values_toload, load_destination)
-            if values_toload['children'] is None:  # Does not include embedded tabs
+
+            if load_destination.widget_cb_neutral.isChecked():
+                # if 'this section is neutral' selected, move on to the next major module
                 continue
+            else:
+                all_neutral_flag = False
+
+            if values_toload['children'] is None:  # does not include embedded tabs
+                continue                           # then move on
+
             for i, (label, child) in enumerate(values_toload['children'].items()):
                 child_values_toload = child
                 child_load_destination = template[label]
                 load_destination.children[i] = load_specifications(child_values_toload, child_load_destination)
+
+        # all neutral
+        if all_neutral_flag:
+            self.widget_cb_neutral.setChecked(True)
 
     def handle_btn_toggled(self, _, ischecked, parent):
         """
@@ -677,6 +699,11 @@ def deselect_rb_group(rb_group):
 def load_specifications(values_toload, load_destination):
     # values_toload: saved user selections to load
     # load_destination: major modules like 'shoulder' 'facial expressions'...
+
+    if values_toload['neutral']:
+        # if the section is neutral, just check 'this section is neutral' and return
+        load_destination.widget_cb_neutral.setChecked(True)
+        return load_destination
 
     # static dynamic
     select_this(btn_group=load_destination.static_dynamic_group,
