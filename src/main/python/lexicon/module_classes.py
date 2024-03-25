@@ -411,6 +411,9 @@ class SignLevelInformation:
         self._handdominance = new_handdominance
 
 
+# This module stores the movement information for a particular articulator/s.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected movement
+# as well as for the module overall.
 class MovementModule(ParameterModule):
     def __init__(self, movementtreemodel, articulators, timingintervals=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
@@ -1173,6 +1176,11 @@ class BodypartInfo:
         return "TODO no BodypartInfo abbreviations implemented yet"
 
 
+# This module stores the location information for a particular articulator/s.
+# It offers the user different location types (on body, in signing space), location options, and
+# (for body-referenced locations) specific surfaces and/or subareas.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected location
+# as well as for the module overall.
 class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, articulators, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
         if phonlocs is None:
@@ -1532,7 +1540,6 @@ class RelationY:
 
 class RelationModule(ParameterModule):
 
-    # def __init__(self, relationx, relationy, hand1part, hand2part, arm1part, arm2part, leg1part, leg2part, contactrel, xy_crossed, xy_linked, directionslist, hands, timingintervals=None, addedinfo=None):
     def __init__(self, relationx, relationy, bodyparts_dict, contactrel, xy_crossed, xy_linked, directionslist, articulators, timingintervals=None, addedinfo=None):
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
@@ -2040,6 +2047,41 @@ class Distance:
             self._medium = False
 
 
+# This module stores the absolute orientation of a particular hand/s.
+# It includes specifications for palm and root directions.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for the module overall.
+class OrientationModule(ParameterModule):
+    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None):
+        self._palm = palmdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+        self._root = rootdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+
+    @property
+    def palm(self):
+        return self._palm
+
+    @palm.setter
+    def palm(self, palm):
+        self._palm = palm
+
+    @property
+    def root(self):
+        return self._root
+
+    @root.setter
+    def root(self, root):
+        self._root = root
+
+
 # This module stores the transcription of one hand's configuration.
 # It includes specifications for each slot in each field, as well as whether the forearm is involved.
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for each slot,
@@ -2084,39 +2126,6 @@ class HandConfigurationModule(ParameterModule):
 
         return predefinedname + fieldstext
 
-
-# TODO comments
-class OrientationModule(ParameterModule):
-    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None, inphase=None):
-        self._palm = palmdirs_list or [
-            Direction(axis=Direction.HORIZONTAL),
-            Direction(axis=Direction.VERTICAL),
-            Direction(axis=Direction.SAGITTAL)
-        ]
-        self._root = rootdirs_list or [
-            Direction(axis=Direction.HORIZONTAL),
-            Direction(axis=Direction.VERTICAL),
-            Direction(axis=Direction.SAGITTAL)
-        ]
-        
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
-
-    @property
-    def palm(self):
-        return self._palm
-    
-    @palm.setter
-    def palm(self, palm):
-        self._palm = palm
-        
-    @property
-    def root(self):
-        return self._root
-    
-    @root.setter
-    def root(self, root):
-        self._root = root
-        
         
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.
