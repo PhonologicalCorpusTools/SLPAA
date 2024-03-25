@@ -705,6 +705,8 @@ def load_specifications(values_toload, load_destination):
         load_destination.widget_cb_neutral.setChecked(True)
         return load_destination
 
+    load_destination.widget_cb_neutral.setChecked(False)
+
     # static dynamic
     select_this(btn_group=load_destination.static_dynamic_group,
                 btn_txt=values_toload['static_dynamic'])
