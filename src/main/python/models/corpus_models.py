@@ -30,22 +30,22 @@ class CorpusItem(QStandardItem):
         self.setEditable(False)
         self.setCheckable(False)
 
-    def entryid_string(self):
-        numdigits = int(self.settings['display']['entryid_digits']) if self.settings else 0
-        entryid_string = ""
-        if self.isentryid:
-            entryid_string = str(self.texttodisplay)
-            entryid_string = "0"*(numdigits - len(entryid_string)) + entryid_string
-        return entryid_string
+    # def entryid_string(self):
+    #     numdigits = int(self.settings['display']['entryid_digits']) if self.settings else 0
+    #     entryid_string = ""
+    #     if self.isentryid:
+    #         entryid_string = str(self.texttodisplay)
+    #         entryid_string = "0"*(numdigits - len(entryid_string)) + entryid_string
+    #     return entryid_string
 
     def data(self, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
             if self.texttodisplay is not None:
-                if self.isentryid:
-                    if self.settings is not None:
-                        return self.entryid_string()
-                    else:
-                        return str(self.texttodisplay)
+                # if self.isentryid:
+                #     if self.settings is not None:
+                #         return self.entryid_string()
+                #     else:
+                #         return str(self.texttodisplay)
                 return self.texttodisplay
             else:
                 return ""  # self.sign.signlevel_information.gloss[0]
@@ -79,7 +79,8 @@ class CorpusModel(QStandardItemModel):
         for sign in self.signs:
             for gloss in sign.signlevel_information.gloss:
                 if len(gloss.strip()) > 0:
-                    entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid), isentryid=True, settings=self.settings)
+                    # entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid), isentryid=True, settings=self.settings)
+                    entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid.display_string()), isentryid=True, settings=self.settings)
                     glossitem = CorpusItem(sign, gloss)
                     lemmaitem = CorpusItem(sign, sign.signlevel_information.lemma)
                     idglossitem = CorpusItem(sign, sign.signlevel_information.idgloss)
