@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import (
     QFileDialog
 )
 
+from lexicon.module_classes import EntryID
+
 
 def check_unsaved_change(func):
     @functools.wraps(func)
@@ -52,27 +54,74 @@ def check_empty_gloss(func):
             return func(self, *args, **kwargs)
     return wrapper_check_empty_gloss
 
-
-def check_duplicated_gloss(func):
+def check_empty_glosslemmaIDgloss(func):
     @functools.wraps(func)
-    def wrapper_duplicated_gloss(self, *args, **kwargs):
-        signlevel_info = self.signlevelinfo_scroll.get_value()
-        if signlevel_info is None:
+    def wrapper_check_empty_glosslemmaIDgloss(self, *args, **kwargs):
+        if len(self.glosses_model.glosses()) == 0 and self.lemma_edit.text() == "" and self.idgloss_edit.text() == "":
+            QMessageBox.critical(self, 'No identifiers', 'All of gloss, lemma, and ID-gloss are empty; please enter a value for at least one of these fields.')
+            return func(self, *args, **kwargs)
+        else:
+            return func(self, *args, **kwargs)
+    return wrapper_check_empty_glosslemmaIDgloss
+
+
+# # TODO KV doesn't look like this is used anymore
+# def check_duplicated_gloss(func):
+#     @functools.wraps(func)
+#     def wrapper_duplicated_gloss(self, *args, **kwargs):
+#         signlevel_info = self.signlevelinfo_scroll.get_value()
+#         if signlevel_info is None:
+#             return
+#         else:
+#             if self.current_sign:
+#                 if signlevel_info['gloss'] == \
+#                         self.current_sign.signlevel_info.gloss or \
+#                         signlevel_info['gloss'] not in self.corpus.get_sign_glosses():
+#                     return func(self, *args, **kwargs)
+#
+#             if signlevel_info['gloss'] in self.corpus.get_sign_glosses():
+#                 QMessageBox.critical(self, 'Duplicated Gloss',
+#                                      'Please use a different gloss. Duplicated glosses are not allowed.')
+#                 return
+#             else:
+#                 return func(self, *args, **kwargs)
+#     return wrapper_duplicated_gloss
+
+def check_duplicated_lemma(func):
+    @functools.wraps(func)
+    def wrapper_duplicated_lemma(self, *args, **kwargs):
+        signlevelinfo_dict = self.get_value()
+
+        if not self.settings['reminder']['duplicatelemma']:
+            # user doesn't want to see warnings for duplicate lemmas
+            return func(self, *args, **kwargs)
+
+        if signlevelinfo_dict is None:
             return
         else:
-            if self.current_sign:
-                if signlevel_info['gloss'] == \
-                        self.current_sign.signlevel_info.gloss or \
-                        signlevel_info['gloss'] not in self.corpus.get_sign_glosses():
-                    return func(self, *args, **kwargs)
+            thislemma = signlevelinfo_dict['lemma']
+            lemmasincorpus = self.mainwindow.corpus.get_sign_lemmas()
 
-            if signlevel_info['gloss'] in self.corpus.get_sign_glosses():
-                QMessageBox.critical(self, 'Duplicated Gloss',
-                                     'Please use a different gloss. Duplicated glosses are not allowed.')
-                return
-            else:
+            if thislemma not in lemmasincorpus:
                 return func(self, *args, **kwargs)
-    return wrapper_duplicated_gloss
+            elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma == thislemma:
+                return func(self, *args, **kwargs)
+            else:
+                othersignswiththislemma = [sign for sign in self.mainwindow.corpus.signs
+                                           if thislemma == sign.signlevel_information.lemma
+                                           and sign != self.mainwindow.current_sign]
+                messagetext = "This lemma is also used by the sign(s) listed below:"
+                for sign in othersignswiththislemma:
+                    glosseslist = sign.signlevel_information.gloss
+                    messagetext += "\n - gloss" + \
+                                   ("es" if len(glosseslist) > 1 else "") + \
+                                   " " + \
+                                   ", ".join(glosseslist)
+                    if sign.signlevel_information.entryid.display_string() != EntryID.nodisplay:
+                        messagetext += " / Entry ID " + sign.signlevel_information.entryid.display_string()
+                QMessageBox.warning(self, "Duplicated Lemma", messagetext)
+                return func(self, *args, **kwargs)
+    return wrapper_duplicated_lemma
 
 
 def check_unsaved_corpus(func):

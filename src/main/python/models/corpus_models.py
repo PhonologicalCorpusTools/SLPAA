@@ -77,14 +77,17 @@ class CorpusModel(QStandardItemModel):
         self.signs = signs or []
         self.clear()
         for sign in self.signs:
-            for gloss in sign.signlevel_information.gloss:
-                if len(gloss.strip()) > 0:
-                    # entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid), isentryid=True, settings=self.settings)
-                    entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid.display_string()), isentryid=True, settings=self.settings)
-                    glossitem = CorpusItem(sign, gloss)
-                    lemmaitem = CorpusItem(sign, sign.signlevel_information.lemma)
-                    idglossitem = CorpusItem(sign, sign.signlevel_information.idgloss)
-                    self.appendRow([entryiditem, glossitem, lemmaitem, idglossitem])
+            glosses = sign.signlevel_information.gloss
+            if len(glosses) == 0:
+                glosses.append("")
+            for gloss in glosses:
+                # if len(gloss.strip()) > 0:
+                # entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid), isentryid=True, settings=self.settings)
+                entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid.display_string()), isentryid=True, settings=self.settings)
+                glossitem = CorpusItem(sign, gloss)
+                lemmaitem = CorpusItem(sign, sign.signlevel_information.lemma)
+                idglossitem = CorpusItem(sign, sign.signlevel_information.idgloss)
+                self.appendRow([entryiditem, glossitem, lemmaitem, idglossitem])
         self.modelupdated.emit()
 
 

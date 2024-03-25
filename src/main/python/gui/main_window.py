@@ -656,6 +656,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('reminder')
         self.app_settings['reminder']['overwrite'] = self.app_qsettings.value('overwrite', defaultValue=True, type=bool)
+        self.app_settings['reminder']['duplicatelemma'] = self.app_qsettings.value('duplicatelemma', defaultValue=True, type=bool)
         self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
@@ -720,6 +721,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('reminder')
         self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
+        self.app_qsettings.setValue('duplicatelemma', self.app_settings['reminder']['duplicatelemma'])
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('signdefaults')
@@ -975,7 +977,8 @@ class MainWindow(QMainWindow):
         if self.current_sign:  # does the sign to delete exist?
             glosseslist = self.current_sign.signlevel_information.gloss
             question1 = "Do you want to delete the selected sign, with gloss"
-            question2 = ("es" if len(glosseslist) > 1 else "") + " " + ", ".join(glosseslist) + "?"
+            glossesstring = ", ".join(glosseslist) or "[blank]"
+            question2 = ("es" if len(glosseslist) > 1 else "") + " " + glossesstring + "?"
             moreinfo = "" if len(self.current_sign.signlevel_information.gloss) <= 1 else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
             response = QMessageBox.question(self, "Delete the selected sign",
                                             question1 + question2 + moreinfo)

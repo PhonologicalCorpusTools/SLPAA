@@ -307,10 +307,15 @@ class ReminderTab(QWidget):
 
         self.overwrite_reminder = QCheckBox(parent=self)
         self.overwrite_reminder.setChecked(settings['reminder']['overwrite'])
-        main_layout.addRow(QLabel('Always ask before overwriting a sign:'), self.overwrite_reminder)
+        main_layout.addRow(QLabel("Always ask before overwriting a sign:"), self.overwrite_reminder)
+
+        self.duplicatelemma_reminder = QCheckBox(parent=self)
+        self.duplicatelemma_reminder.setChecked(settings['reminder']['duplicatelemma'])
+        main_layout.addRow(QLabel("Always show warning when a new lemma duplicates an existing one:"), self.duplicatelemma_reminder)
 
     def save_settings(self):
         self.settings['reminder']['overwrite'] = self.overwrite_reminder.isChecked()
+        self.settings['reminder']['duplicatelemma'] = self.duplicatelemma_reminder.isChecked()
 
 
 # This tab facilitates user interaction with sign-related settings in the preference dialog.
