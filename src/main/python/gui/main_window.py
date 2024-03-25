@@ -1,5 +1,4 @@
 import os
-import sys
 import pickle
 import json
 import csv
@@ -35,7 +34,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QFrame,
-    QDialogButtonBox
+    QDialogButtonBox,
+    QApplication
 )
 
 from PyQt5.QtGui import (
@@ -49,7 +49,6 @@ from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
-from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
@@ -100,6 +99,7 @@ class MainWindow(QMainWindow):
         self.check_storage()
         self.resize(self.app_settings['display']['size'])
         self.move(self.app_settings['display']['position'])
+        self.handle_fontsize_changed(self.app_settings['display']['fontsize'])
 
         # date information
         self.today = date.today()
@@ -626,6 +626,7 @@ class MainWindow(QMainWindow):
 
         self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2, type=int)
         self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True, type=bool)
+        self.app_settings['display']['fontsize'] = self.app_qsettings.value('fontsize', defaultValue=8, type=int)
         # backward compatibility:
         #   entryid_digits used to be under the display section but has now (20240229) moved to a separate entryid section
         #   if this setting was saved under display, make sure it's re-stored in entryid and that 'display/entryid_digits' is removed
@@ -708,6 +709,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
+        self.app_qsettings.setValue('fontsize', self.app_settings['display']['fontsize'])
         self.app_qsettings.endGroup()
 
         # We don't need to explicitly save any of the 'entryid' group values, because they are never cached
@@ -767,11 +769,22 @@ class MainWindow(QMainWindow):
                                        timingfracsinuse=self.getcurrentlyused_timingfractions(),
                                        parent=self)
         pref_dialog.xslotgeneration_changed.connect(self.handle_xslotgeneration_changed)
+        pref_dialog.fontsize_changed.connect(self.handle_fontsize_changed)
         pref_dialog.prefs_saved.connect(self.signsummary_panel.refreshsign)
         pref_dialog.exec_()
 
     def handle_xslotgeneration_changed(self, prev_xslotgen, new_xslotgen):
         self.signlevel_panel.enable_module_buttons(len(self.corpus.signs) > 0)
+
+    def handle_fontsize_changed(self, newfontsize):
+        app = QApplication.instance()
+        if app is None:
+            # if it does not exist then a QApplication is created
+            app = QApplication([])
+        font = app.font()
+        font.setPointSize(newfontsize)
+        app.setFont(font)
+
 
     def getcurrentlyused_timingfractions(self):
         fractionsinuse = []
