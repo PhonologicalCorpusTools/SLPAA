@@ -236,19 +236,6 @@ class SignLevelInformation:
             self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
             # as of 20231208, gloss is now a list rather than a string
             self._gloss = [serializedsignlevelinfo['gloss']] if isinstance(serializedsignlevelinfo['gloss'], str) else serializedsignlevelinfo['gloss']
-
-# <<<<<<< HEAD
-#             self._entryid = serializedsignlevelinfo['entryid']
-#             # as of 20231208, gloss is now a list rather than a string
-#             self._gloss = [serializedsignlevelinfo['gloss']] if isinstance(serializedsignlevelinfo['gloss'], str) else serializedsignlevelinfo['gloss']
-# =======
-#             datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
-#             # as of 20240209, entryid has shifted from being an integer to an EntryID object
-#             # but due to complications with EntryID containing a reference to its parent Sign,
-#             # we still store it as only the counter value and then recreate when loading from file
-#             self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
-#             self._gloss = serializedsignlevelinfo['gloss']
-# >>>>>>> main
             self._lemma = serializedsignlevelinfo['lemma']
             # backward compatibility for attribute added 20231211
             self._idgloss = serializedsignlevelinfo['idgloss'] if 'idgloss' in serializedsignlevelinfo.keys() else ''

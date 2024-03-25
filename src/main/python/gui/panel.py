@@ -326,11 +326,6 @@ class SignSummaryPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-# <<<<<<< HEAD
-#             signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss) + " - " + self.entryid_string())
-# =======
-#             signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid.display_string())
-# >>>>>>> main
             signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss)
                                        + " - " + self.sign.signlevel_information.entryid.display_string())
         signleveltext.setPos(self.x_offset, self.current_y)

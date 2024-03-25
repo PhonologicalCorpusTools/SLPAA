@@ -206,13 +206,6 @@ class SignLevelInfoPanel(QFrame):
         if not signlevelinfo:
             signlevelinfo = self.signlevelinfo
         if self.signlevelinfo:
-# <<<<<<< HEAD
-#             self.entryid_value.setText(self.entryid_string(signlevelinfo.entryid))
-#             self.glosses_model.setStringList(signlevelinfo.gloss)
-# =======
-#             self.entryid_value.setText(self.entryid_string())
-#             self.gloss_edit.setText(signlevelinfo.gloss)
-# >>>>>>> main
             self.entryid_value.setText(self.entryid_string())
             self.glosses_model.setStringList(signlevelinfo.gloss)
             self.lemma_edit.setText(signlevelinfo.lemma)
@@ -360,16 +353,16 @@ class SignlevelinfoSelectorDialog(QDialog):
         if signlevelinfo_dict is None:
             return
         else:
-            thislemma = signlevelinfo_dict['lemma']
-            lemmasincorpus = self.mainwindow.corpus.get_sign_lemmas()
+            thislemma_lower = signlevelinfo_dict['lemma'].lower()
+            lemmasincorpus_lower = [lemma.lower() for lemma in self.mainwindow.corpus.get_sign_lemmas()]
 
-            if thislemma not in lemmasincorpus:
+            if thislemma_lower not in lemmasincorpus_lower:
                 return
-            elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma == thislemma:
+            elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma.lower() == thislemma_lower:
                 return
             else:
                 othersignswiththislemma = [sign for sign in self.mainwindow.corpus.signs
-                                           if thislemma == sign.signlevel_information.lemma
+                                           if thislemma_lower == sign.signlevel_information.lemma.lower()
                                            and sign != self.mainwindow.current_sign]
                 messagetext = "This lemma is also used by the sign(s) listed below:"
                 for sign in othersignswiththislemma:

@@ -99,16 +99,16 @@ def check_duplicated_lemma(func):
         if signlevelinfo_dict is None:
             return
         else:
-            thislemma = signlevelinfo_dict['lemma']
-            lemmasincorpus = self.mainwindow.corpus.get_sign_lemmas()
+            thislemma_lower = signlevelinfo_dict['lemma'].lower()
+            lemmasincorpus_lower = [lemma.lower() for lemma in self.mainwindow.corpus.get_sign_lemmas()]
 
-            if thislemma not in lemmasincorpus:
+            if thislemma_lower not in lemmasincorpus_lower:
                 return func(self, *args, **kwargs)
-            elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma == thislemma:
+            elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma.lower() == thislemma_lower:
                 return func(self, *args, **kwargs)
             else:
                 othersignswiththislemma = [sign for sign in self.mainwindow.corpus.signs
-                                           if thislemma == sign.signlevel_information.lemma
+                                           if thislemma_lower == sign.signlevel_information.lemma.lower()
                                            and sign != self.mainwindow.current_sign]
                 messagetext = "This lemma is also used by the sign(s) listed below:"
                 for sign in othersignswiththislemma:
