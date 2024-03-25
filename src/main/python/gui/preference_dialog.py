@@ -28,6 +28,8 @@ from fractions import Fraction
 
 # This tab facilitates user interaction with display-related settings in the preference dialog.
 class DisplayTab(QWidget):
+    fontsize_changed = pyqtSignal(int)
+
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
 
@@ -49,10 +51,23 @@ class DisplayTab(QWidget):
         self.show_tooltip.setChecked(settings['display']['tooltips'])
         main_layout.addRow(QLabel("Show tooltip:"), self.show_tooltip)
 
+        fontsize_layout = QHBoxLayout()
+        self.fontsize_spin = QSpinBox(parent=self)
+        self.fontsize_spin.setMinimum(1)
+        self.fontsize_spin.setMaximum(40)
+        self.fontsize_spin.setValue(settings['display']['fontsize'])
+        fontsize_layout.addWidget(self.fontsize_spin)
+        main_layout.addRow(QLabel("Font size (points):"), fontsize_layout)
+
     def save_settings(self):
         self.settings['display']['sig_figs'] = int(self.decimal_place.value())
         self.settings['display']['tooltips'] = self.show_tooltip.isChecked()
         self.settings['metadata']['coder'] = str(self.coder_name.text())
+
+        newfontsize = int(self.fontsize_spin.value())
+        if newfontsize != self.settings['display']['fontsize']:
+            self.fontsize_changed.emit(newfontsize)
+        self.settings['display']['fontsize'] = newfontsize
 
 
 class EntryIDElementComboBox(QComboBox):
@@ -469,6 +484,7 @@ class PreferenceDialog(QDialog):
     prefs_saved = pyqtSignal()
     xslotdivisions_changed = pyqtSignal(dict, dict)
     xslotgeneration_changed = pyqtSignal(str, str)
+    fontsize_changed = pyqtSignal(int)
 
     def __init__(self, settings, timingfracsinuse, **kwargs):
         super().__init__(**kwargs)
@@ -483,6 +499,7 @@ class PreferenceDialog(QDialog):
         main_layout.addWidget(tabs)
 
         self.display_tab = DisplayTab(settings, parent=self)
+        self.display_tab.fontsize_changed.connect(self.fontsize_changed.emit)
         tabs.addTab(self.display_tab, 'Display')
 
         self.entryid_tab = EntryIDTab(settings, parent=self)
