@@ -34,7 +34,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QFrame,
-    QDialogButtonBox
+    QDialogButtonBox,
+    QApplication
 )
 
 from PyQt5.QtGui import (
@@ -98,6 +99,7 @@ class MainWindow(QMainWindow):
         self.check_storage()
         self.resize(self.app_settings['display']['size'])
         self.move(self.app_settings['display']['position'])
+        self.handle_fontsize_changed(self.app_settings['display']['fontsize'])
 
         # date information
         self.today = date.today()
@@ -593,7 +595,8 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('storage')
         self.app_settings['storage']['recent_folder'] = self.app_qsettings.value(
             'recent_folder',
-            defaultValue=os.path.expanduser('~/Documents'))
+            defaultValue=os.path.expanduser('~/Documents')
+        )
         self.app_settings['storage']['corpora'] = self.app_qsettings.value(
             'corpora',
             defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'CORPORA'))
@@ -608,56 +611,57 @@ class MainWindow(QMainWindow):
         self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(2000, 1200))
         self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(0, 23))
 
-        self.app_settings['display']['sub_corpus_show'] = bool(self.app_qsettings.value('sub_corpus_show', defaultValue=True))
+        self.app_settings['display']['sub_corpus_show'] = self.app_qsettings.value('sub_corpus_show', defaultValue=True, type=bool)
         self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 0))
         self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(340, 700))
 
-        self.app_settings['display']['sub_signlevelmenu_show'] = bool(self.app_qsettings.value('sub_signlevelmenu_show', defaultValue=True))
+        self.app_settings['display']['sub_signlevelmenu_show'] = self.app_qsettings.value('sub_signlevelmenu_show', defaultValue=True, type=bool)
         self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(340, 0))
         self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(320, 700))
 
-        self.app_settings['display']['sub_visualsummary_show'] = bool(self.app_qsettings.value('sub_visualsummary_show', defaultValue=True))
+        self.app_settings['display']['sub_visualsummary_show'] = self.app_qsettings.value('sub_visualsummary_show', defaultValue=True, type=bool)
         self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(660, 0))
         self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(1200, 900))
 
         self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2, type=int)
-        self.app_settings['display']['tooltips'] = bool(self.app_qsettings.value('tooltips', defaultValue=True))
+        self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True, type=bool)
+        self.app_settings['display']['fontsize'] = self.app_qsettings.value('fontsize', defaultValue=8, type=int)
         # backward compatibility:
         #   entryid_digits used to be under the display section but has now (20240229) moved to a separate entryid section
         #   if this setting was saved under display, make sure it's re-stored in entryid and that 'display/entryid_digits' is removed
         existing_entryid_digits = None
         if self.app_qsettings.contains('entryid_digits'):
-            existing_entryid_digits = self.app_qsettings.value('entryid_digits')
+            existing_entryid_digits = self.app_qsettings.value('entryid_digits', type=int)
             self.app_qsettings.remove('entryid_digits')
         self.app_qsettings.endGroup()  # display
 
         self.app_qsettings.beginGroup('entryid')
         self.app_qsettings.beginGroup('counter')
-        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=True, type=bool)))
-        self.app_qsettings.setValue('order', int(self.app_qsettings.value('order', defaultValue=0, type=int)))
-        counterdigits = existing_entryid_digits or int(self.app_qsettings.value('digits', defaultValue=4, type=int))
+        self.app_qsettings.setValue('visible', self.app_qsettings.value('visible', defaultValue=True, type=bool))
+        self.app_qsettings.setValue('order', self.app_qsettings.value('order', defaultValue=0, type=int))
+        counterdigits = existing_entryid_digits or self.app_qsettings.value('digits', defaultValue=4, type=int)
         self.app_qsettings.setValue('digits', counterdigits)
         self.app_qsettings.endGroup()  # counter
         self.app_qsettings.beginGroup('date')
-        self.app_qsettings.setValue('visible', bool(self.app_qsettings.value('visible', defaultValue=False, type=bool)))
-        self.app_qsettings.setValue('order', int(self.app_qsettings.value('order', defaultValue=0, type=int)))
-        self.app_qsettings.setValue('format', str(self.app_qsettings.value('format', defaultValue='YYYY-MM', type=str)))
+        self.app_qsettings.setValue('visible', self.app_qsettings.value('visible', defaultValue=False, type=bool))
+        self.app_qsettings.setValue('order', self.app_qsettings.value('order', defaultValue=0, type=int))
+        self.app_qsettings.setValue('format', self.app_qsettings.value('format', defaultValue='YYYY-MM', type=str))
         self.app_qsettings.endGroup()  # date
         self.app_qsettings.setValue('delimiter', self.app_qsettings.value('delimiter', defaultValue='_', type=str))
         self.app_qsettings.endGroup()  # entryid
 
         self.app_qsettings.beginGroup('metadata')
-        self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue='NEWUSERNAME')
+        self.app_settings['metadata']['coder'] = self.app_qsettings.value('coder', defaultValue='NEWUSERNAME', type=str)
         self.app_qsettings.endGroup()  # metadata
 
         self.app_qsettings.beginGroup('reminder')
-        self.app_settings['reminder']['overwrite'] = bool(self.app_qsettings.value('overwrite', defaultValue=True))
+        self.app_settings['reminder']['overwrite'] = self.app_qsettings.value('overwrite', defaultValue=True, type=bool)
         self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
-        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R')
+        self.app_settings['signdefaults']['handdominance'] = self.app_qsettings.value('handdominance', defaultValue='R', type=str)
         self.app_settings['signdefaults']['signtype'] = self.app_qsettings.value('signtype', defaultValue='none')
-        self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none')
+        self.app_settings['signdefaults']['xslot_generation'] = self.app_qsettings.value('xslot_generation', defaultValue='none', type=str)
         self.app_qsettings.beginGroup('partial_xslots')
         self.app_settings['signdefaults']['partial_xslots'] = defaultdict(dict)
         self.app_settings['signdefaults']['partial_xslots'][str(Fraction(1, 2))] = \
@@ -695,9 +699,16 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('sub_corpus_show', not self.sub_corpus.isHidden())
         self.app_qsettings.setValue('sub_corpus_pos', self.sub_corpus.pos())
         self.app_qsettings.setValue('sub_corpus_size', self.sub_corpus.size())
+        self.app_qsettings.setValue('sub_signlevelmenu_show', not self.sub_signlevelmenu.isHidden())
+        self.app_qsettings.setValue('sub_signlevelmenu_pos', self.sub_signlevelmenu.pos())
+        self.app_qsettings.setValue('sub_signlevelmenu_size', self.sub_signlevelmenu.size())
+        self.app_qsettings.setValue('sub_visualsummary_show', not self.sub_visualsummary.isHidden())
+        self.app_qsettings.setValue('sub_visualsummary_pos', self.sub_visualsummary.pos())
+        self.app_qsettings.setValue('sub_visualsummary_size', self.sub_visualsummary.size())
 
         self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
+        self.app_qsettings.setValue('fontsize', self.app_settings['display']['fontsize'])
         self.app_qsettings.endGroup()
 
         # We don't need to explicitly save any of the 'entryid' group values, because they are never cached
@@ -757,11 +768,22 @@ class MainWindow(QMainWindow):
                                        timingfracsinuse=self.getcurrentlyused_timingfractions(),
                                        parent=self)
         pref_dialog.xslotgeneration_changed.connect(self.handle_xslotgeneration_changed)
+        pref_dialog.fontsize_changed.connect(self.handle_fontsize_changed)
         pref_dialog.prefs_saved.connect(self.signsummary_panel.refreshsign)
         pref_dialog.exec_()
 
     def handle_xslotgeneration_changed(self, prev_xslotgen, new_xslotgen):
         self.signlevel_panel.enable_module_buttons(len(self.corpus.signs) > 0)
+
+    def handle_fontsize_changed(self, newfontsize):
+        app = QApplication.instance()
+        if app is None:
+            # if it does not exist then a QApplication is created
+            app = QApplication([])
+        font = app.font()
+        font.setPointSize(newfontsize)
+        app.setFont(font)
+
 
     def getcurrentlyused_timingfractions(self):
         fractionsinuse = []
