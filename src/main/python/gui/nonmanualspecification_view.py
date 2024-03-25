@@ -232,6 +232,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                     specify_layout = SpecifyLayout(btn_label=type,
                                                    text=txt_line)
                     rb_to_add = specify_layout.radio_btn
+                    nonman.widget_le_specify = specify_layout.lineEdit
                     mvmt_type_box_layout.addLayout(specify_layout)
                 else:
                     rb_to_add = SLPAARadioButton(type)
@@ -594,6 +595,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # special case: 'mouth' has 'type of mouth movement' (others have 'subparts')
         if current_module.label == 'Mouth':
             module_output['mvmt_type'] = what_selected(current_module.mvmt_type_group)
+            if module_output['mvmt_type'] == 'other':
+                 module_output['mvmt_type'] = f"{module_output['mvmt_type']};{current_module.widget_le_specify.text()}"
             # 'mouth' will exceptionally have 'mvmt_type' key for 'type of mouth movement'
 
         # get choice between both, h1, h2
@@ -786,13 +789,10 @@ def load_specifications(values_toload, load_destination):
             raise KeyError
         if ';' in mvmt_type:
             # selected 'other' and specified
-            content = mvmt_type.split(';')[1]
-            select_this(btn_group=load_destination.subpart_group,
-                        btn_txt='other')
-            load_destination.subpart_group_other_text.setText(content)
-        else:
-            select_this(btn_group=load_destination.subpart_group,
-                        btn_txt=mvmt_type)
+            mvmt_type, content = mvmt_type.split(';')
+            load_destination.widget_le_specify.setText(content)
+        select_this(btn_group=load_destination.mvmt_type_group,
+                    btn_txt=mvmt_type)
 
     except KeyError:
         pass
