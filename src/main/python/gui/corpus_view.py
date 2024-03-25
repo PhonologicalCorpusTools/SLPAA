@@ -149,6 +149,8 @@ class CorpusDisplay(QWidget):
                 if rowtoselect not in range(self.getrowcount()):
                     rowtoselect = self.getrowcount() - 1
                 selected_proxyindex = self.getproxyindex(fromproxyrowcol=(rowtoselect, 0))
+                ########### TODO KV this works well in terms of identifying what to select,
+                # but the selected row isn't necessarily visible
             else:
                 if current_sign is not None:
                     # this whole chunk is meant to identify the row of the proxy model that should be selected
