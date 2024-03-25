@@ -97,12 +97,9 @@ class ModuleSelectorDialog(QDialog):
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             self.usexslots = True
             self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
-                                              timingintervals=timingintervals,
-                                              parent=self)
+                                                  timingintervals=timingintervals,
+                                                  parent=self)
             main_layout.addWidget(self.xslot_widget)
-
-        # if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
-        #     main_layout.addWidget(self.xslot_widget)
 
         self.module_widget = QWidget()
         if moduletype == ModuleTypes.MOVEMENT:
@@ -196,10 +193,10 @@ class ModuleSelectorDialog(QDialog):
 
     def check_enable_saveaddrelation(self):
         hastiming = self.validate_timingintervals()[0]
-        hashands = self.validate_articulators()[0]
+        hasarticulators = self.validate_articulators()[0]
         bodyloc = (
             self.module_widget.getcurrentlocationtype().usesbodylocations() if self.moduletype == ModuleTypes.LOCATION else None)
-        self.associatedrelations_widget.check_enable_saveaddrelation(hastiming, hashands, bodyloc)
+        self.associatedrelations_widget.check_enable_saveaddrelation(hastiming, hasarticulators, bodyloc)
 
     def style_seeassociatedrelations(self):
         self.associatedrelations_widget.style_seeassociatedrelations()
@@ -222,14 +219,6 @@ class ModuleSelectorDialog(QDialog):
             timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
             timingvalid = True
 
-        # timingintervals = self.xslot_widget.gettimingintervals()
-        # timingvalid = True
-        # if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
-        #     timingvalid = False
-        # elif self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
-        #     # no x-slots; make the timing interval be for the whole sign
-        #     timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
-
         return timingvalid, timingintervals
 
     # validate articulator selection (all modules except relation must have at least one articulator selected)
@@ -238,15 +227,9 @@ class ModuleSelectorDialog(QDialog):
             articulator, articulator_dict = self.articulators_widget.getarticulators()
             articulatorsvalid = not (articulator is None or True not in articulator_dict.values())
         else:
-            articulator = None
-            articulator_dict = None
+            articulator = ""  # otherwise "Hand", "Arm", or "Leg"
+            articulator_dict = {1: False, 2: False}  # as if no articulators are selected
             articulatorsvalid = True
-
-        #
-        # articulator, articulator_dict = self.articulators_widget.getarticulators()
-        # articulatorsvalid = True
-        # if self.usearticulators and (articulator is None or True not in articulator_dict.values()):
-        #     articulatorsvalid = False
 
         return articulatorsvalid, (articulator, articulator_dict)
 
@@ -286,7 +269,6 @@ class ModuleSelectorDialog(QDialog):
             self.validate_and_save(addanother=False, closedialog=True)
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
-            # TODO KV -- where should the "defaults" be defined?
             self.articulators_widget.clear()
             self.addedinfobutton.clear()
             if self.usexslots:
@@ -467,10 +449,10 @@ class AssociatedRelationsPanel(QFrame):
         hasrelation = self.anchorhasassociatedrelations()
         self.seerelations_button.hasrelations = hasrelation
 
-    def check_enable_saveaddrelation(self, hastiming=None, hashands=None, bodyloc=None):
+    def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
         enable_addrelation = True
 
-        if hastiming is None and hashands is None and bodyloc is None:
+        if hastiming is None and hasarticulators is None and bodyloc is None:
             enable_addrelation = False
 
         # only use arguments if they have a boolean value (ie, are not None)
@@ -481,9 +463,9 @@ class AssociatedRelationsPanel(QFrame):
         if bodyloc is not None:
             # make sure the anchor is not a purely spatial location
             enable_addrelation = enable_addrelation and bodyloc
-        if hashands is not None:
+        if hasarticulators is not None:
             # make sure the anchor has a valid hand(s) selection
-            enable_addrelation = enable_addrelation and hashands
+            enable_addrelation = enable_addrelation and hasarticulators
 
         self.addrelation_button.setEnabled(enable_addrelation)
 
