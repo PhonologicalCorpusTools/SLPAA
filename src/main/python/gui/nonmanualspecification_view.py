@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QTabWidget, QScrollArea, QRadioButton
+    QTabWidget, QScrollArea, QRadioButton, QLineEdit
 )
 from PyQt5.QtCore import (Qt, pyqtSignal,)
 
@@ -37,6 +37,38 @@ class SLPAAButtonGroup(RelationButtonGroup):
         super().__init__()
         if buttonslist is not None:
             [self.addButton(button) for button in buttonslist]
+
+class SpecifyLayout(QHBoxLayout):
+    # something like " ○ Other: ________" that consists of radiobutton + lineEdit
+
+    def __init__(self, btn_label, text):
+        super().__init__()
+        self.setAlignment(Qt.AlignLeft)
+        # radio button
+        self.radio_btn = SLPAARadioButton(btn_label)
+        self.radio_btn.toggled.connect(self.radio_button_toggled)
+        self.addWidget(self.radio_btn)
+
+        # line edit
+        self.lineEdit = QLineEdit()
+        self.lineEdit.setPlaceholderText(text)
+
+        self.lineEdit.textEdited.connect(lambda content: self.handle_txt_edit(content, self.radio_btn))
+        self.addWidget(self.lineEdit)
+
+    def __str__(self):
+        return f'{self.radio_btn.text()};{self.lineEdit.text()}'
+
+    def handle_txt_edit(self, content, radio_btn):
+        if content == "":
+            return
+
+        # if txt entered, check its partner radio_button
+        self.radio_btn.setChecked(True)
+
+    def radio_button_toggled(self, checked):
+        # called whenever radiobutton is toggled.
+        self.lineEdit.setEnabled(checked)
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
@@ -195,14 +227,23 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             mvmt_type_box.setAlignment(Qt.AlignTop)
             nonman.mvmt_type_group = SLPAAButtonGroup()
             for type in nonman.subparts:
-                rb_to_add = SLPAARadioButton(type)
-                mvmt_type_box_layout.addWidget(rb_to_add)
+                if ';' in type:
+                    type, txt_line = type.split(';')
+                    specify_layout = SpecifyLayout(btn_label=type,
+                                                   text=txt_line)
+                    rb_to_add = specify_layout.radio_btn
+                    mvmt_type_box_layout.addLayout(specify_layout)
+                else:
+                    rb_to_add = SLPAARadioButton(type)
+                    mvmt_type_box_layout.addWidget(rb_to_add)
                 nonman.mvmt_type_group.addButton(rb_to_add)
             mvmt_type_box.setLayout(mvmt_type_box_layout)
             row1_height = mvmt_type_box.sizeHint().height()
             mvmt_type_box.setFixedHeight(row1_height)
             sd_rb_groupbox.setFixedHeight(row1_height)
             row.addWidget(mvmt_type_box)
+            row.setStretchFactor(sd_rb_groupbox, 1)
+            row.setStretchFactor(mvmt_type_box, 1)
             self.nonman_specifications[nonman.label] = nonman
             return row
 
@@ -397,23 +438,31 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             sub_layout.setAlignment(Qt.AlignTop)
 
             sub_spacedlayout = QHBoxLayout()
+            sub_spacedlayout.setAlignment(Qt.AlignTop)
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
 
             if options.options is not None:
                 # parse children
                 for child in options.options:
                     if isinstance(child, str):
-                        sub_rb = SLPAARadioButton(child)
-                        sub_layout.addWidget(sub_rb)
+                        if ';' in child:
+                            # need radiobutton and lineEdit
+                            rb_label, txt_line = child.split(';')
+                            specify_layout = SpecifyLayout(btn_label=rb_label, text=txt_line)
+                            sub_rb = specify_layout.radio_btn
+                            sub_layout.addLayout(specify_layout)
+                        else:
+                            sub_rb = SLPAARadioButton(child)
+                            sub_layout.addWidget(sub_rb)
                         options.as_btn_group.addButton(sub_rb)
                         sub_spacedlayout.addLayout(sub_layout)
-                        #options.as_btn_group.buttonToggled.connect(
-                        #    lambda rb, ischecked: self.handle_rb_toggled(rb, ischecked, options.main_btn))
+
                         sub_rb.toggled.connect(lambda checked: self.handle_btn_toggled(None, checked, options.main_btn))
 
                     else:
                         self.parse_actionstate(parent=options, options=child)
                         sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
+                        sub_spacedlayout.setStretchFactor(options.widget_grouplayout_actionstate, 1)
                 main_layout.addLayout(sub_spacedlayout)
             parent.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
@@ -728,6 +777,24 @@ def load_specifications(values_toload, load_destination):
                         btn_txt=None)
 
     except KeyError:  # when no subpart spec exists, such as 'body', 'head', etc.
+        pass
+
+    # special case: 'mouth' movement type
+    try:
+        mvmt_type = values_toload['mvmt_type']
+        if mvmt_type is None:
+            raise KeyError
+        if ';' in mvmt_type:
+            # selected 'other' and specified
+            content = mvmt_type.split(';')[1]
+            select_this(btn_group=load_destination.subpart_group,
+                        btn_txt='other')
+            load_destination.subpart_group_other_text.setText(content)
+        else:
+            select_this(btn_group=load_destination.subpart_group,
+                        btn_txt=mvmt_type)
+
+    except KeyError:
         pass
 
     # repetition

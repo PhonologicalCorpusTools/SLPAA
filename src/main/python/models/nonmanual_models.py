@@ -360,8 +360,8 @@ eyegaze = NonManualModel(
                                                                                                    exclusive=True)
                                                                                                ],
                                                                                       exclusive=True),
-                                                                     'toward a discourse reference; specify:',  # specify
-                                                                     'toward something else; specify:']),  # specify
+                                                                     'toward a discourse reference; Specify',  # specify
+                                                                     'toward something else; Specify']),  # specify
                                            'Unfocused',
                                            'Rolling'  # grey out if Static is selected
                                            ])
@@ -384,7 +384,7 @@ mouth = NonManualModel(
         'mouthing / mouth picture [i.e., taken from spoken language]',
         'mouth gesture [i.e., inherent to the sign language]',
         'emotional',
-        'other; specify: ______'
+        'other; Specify'
     ]
 )
 air = NonManualModel(
