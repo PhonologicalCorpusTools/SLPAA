@@ -52,6 +52,7 @@ class SearchWindow(QMainWindow):
     def __init__(self, app_settings, corpus=None, **kwargs):
         super().__init__(**kwargs)
         self.searchmodel = SearchModel()
+        self.app_ctx = self.parent().app_ctx
         self.corpus = corpus
         self.app_settings = app_settings
         self.current_sign = SearchWindowSign()
@@ -418,7 +419,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             signtypeinfo_selector = Search_SigntypeSelectorDialog(signtypetoload=module, parent=self)
             signtypeinfo_selector.saved_signtype.connect(lambda signtype: self.handle_save_signtype(target, signtype, row=row))
             signtypeinfo_selector.exec_()
-            pass
+            
 
         
         elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
@@ -917,7 +918,10 @@ class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc n
                 self.addmodule(module_to_add, moduletype)
 
     def addmodule(self, module_to_add, moduletype):
-        self.getmoduledict(moduletype)[module_to_add.uniqueid] = module_to_add
+        if module_to_add is not None:
+            self.getmoduledict(moduletype)[module_to_add.uniqueid] = module_to_add
+        else:
+            logging.warning("failed to add " + moduletype)
 
     def removemodule(self, uniqueid, moduletype):
         self.getmoduledict(moduletype).pop(uniqueid)

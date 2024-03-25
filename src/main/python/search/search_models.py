@@ -10,15 +10,17 @@ from PyQt5.Qt import (
     QVBoxLayout,
     QDialog
 )
+from collections import defaultdict
 from PyQt5.QtWidgets import QStyledItemDelegate, QMessageBox
 
 from PyQt5.QtCore import QModelIndex, Qt
 from gui.panel import SignLevelMenuPanel
-from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, MovementModule
+from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, MovementModule, LocationModule
 from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET
 import logging
 
 from models.movement_models import MovementTreeModel
+from models.location_models import LocationTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 
 
@@ -105,62 +107,141 @@ class SearchModel(QStandardItemModel):
     def add_target(self, t):     
         self.appendRow(self.create_row_from_target(t))
 
+    
     def get_selected_rows(self):
-        row_numbers = []
+        rows = []
         for row in range(self.rowCount()):
             if self.is_included(row):
-                row_numbers.append(row)
-        return row_numbers
+                rows.append(row)
+        return rows
 
     def search_corpus(self, corpus): # TODO potentially add a rows_to_skip for adding on to existing results table
         selected_rows = self.get_selected_rows()
+        negative_rows = []        
+        # Create a dictionary to store like targets together. Keys are target type, values are lists containing row numbers.
+        target_dict = defaultdict(list) 
+        for row in selected_rows:
+            if self.is_included(row):
+                target_dict[self.target_type(row)].append(row)
+            if self.is_negative(row):
+                negative_rows.append("Negative")
+            else:
+                negative_rows.append("Positive")
 
         resultsdict = {}
 
         if self.matchdegree == 'all':
             target_name = tuple(self.target_name(row) for row in selected_rows)
-            target_negative = []
-            for row in selected_rows:
-                if self.is_negative(row):
-                    target_negative.append("Negative")
-                else:
-                    target_negative.append("Positive")
             matchingsigns = [] # each element is a gloss/id tuple
             for sign in corpus.signs:
-                if self.sign_matches_all(selected_rows, sign):
+                logging.warning("working on " + sign.signlevel_information.gloss)
+                if self.sign_matches_all(target_dict, sign):
                     matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid])
-            resultsdict[target_name] = {"corpus": corpus.name, "signs": matchingsigns, "negative": target_negative}
+            resultsdict[target_name] = {"corpus": corpus.name, "signs": matchingsigns, "negative": negative_rows}
         return resultsdict
 
-        # TODO for now, assume match type minimal, not exact
-        # if self.matchdegree == 'all': #  
-        #     mvmt_paths_to_match = []
-        #     locn_paths_to_match = []
 
-        #     for row in selected_rows:
-        #         module = self.target_module(row)
-        #         svi = self.target_values(row)
-        #         ttype = self.target_type(row)
-        #         if ttype == ModuleTypes.MOVEMENT:
-        #             paths = module.movementtreemodel.get_checked_items()
-        #             mvmt_paths_to_match.extend(paths)
-        #         # eg if target_name is in rows_to_skip, continue
-                
-    def sign_matches_all(self, rows, sign):
+    def sign_matches_all(self, target_dict, sign):
+        ''''''
+        # ORDER: xslot, sign level, sign type, mvmt, locn, reln
+        if XSLOT_TARGET in target_dict:
+            targetrows = target_dict[XSLOT_TARGET]
+            pass
+        if SIGNLEVELINFO_TARGET in target_dict:
+            if not self.sign_matches_SLI(target_dict[SIGNLEVELINFO_TARGET], sign):
+                return False
+
+        if SIGNTYPEINFO_TARGET in target_dict:
+            targetrows = target_dict[SIGNTYPEINFO_TARGET]
+
+        if ModuleTypes.MOVEMENT in target_dict:
+            if not self.sign_matches_mvmt(target_dict[ModuleTypes.MOVEMENT], sign):
+                return False
+        if ModuleTypes.LOCATION in target_dict:
+            pass
+        if ModuleTypes.RELATION in target_dict: 
+            pass
+
         return True
-        # for sign in corpus.signs:
-        #     if len(mvmt_paths_to_match) > 0:
-        #         # TODO switch to using the generic get module dict function 
-        #         checked_mvmt_paths = set()
-        #         for module in sign.movementmodules.values():
-        #             checked_mvmt_paths.add(module.movementtreemodel.get_checked_items())
-        #         logging.warning(checked_mvmt_paths)
-        #         logging.warning(mvmt_paths_to_match)
-        #         ok = all(path in checked_mvmt_paths for path in mvmt_paths_to_match)
-        #         txt = sign.signlevel_information.gloss + " matches: " + str(ok)
+
+    def sign_matches_SLI(self, sli_rows, sign):
+        '''Returns True if the sign matches the specified rows (corresponding to SLI targets)'''
+        
+        binary_vals = {
+            "fingerspelled": sign.signlevel_information.fingerspelled,
+            "compoundsign": sign.signlevel_information.compoundsign,
+            "handdominance": sign.signlevel_information.handdominance
+        }
+        date_vals = {
+            "datecreated": sign.signlevel_information.datecreated,
+            "datelastmodified": sign.signlevel_information.datelastmodified
+        }
+        text_vals = {
+            "entryid": sign.signlevel_information.entryid,
+            "gloss": sign.signlevel_information.gloss,
+            "lemma": sign.signlevel_information.lemma,
+            "source": sign.signlevel_information.source,
+            "signer": sign.signlevel_information.signer,
+            "frequency": sign.signlevel_information.frequency,
+            "coder": sign.signlevel_information.coder,
+            "note": sign.signlevel_information.note
+        }
+        # CHECK TEXT PROPERTIES
+        for val in text_vals:
+            target_vals = []
+            for row in sli_rows:
+                this_val = self.target_values(row).values[val]
+                if this_val not in [None, ""]:
+                    target_vals.append(this_val)
+            if len(target_vals) > 1:
+                return False
+            if len(target_vals) == 1:
+                # logging.warning("checking text val " + val + " is " + target_vals[0])
+                if text_vals[val] != target_vals[0]:
+                    return False
+        # CHECK BINARY PROPERTIES
+        for val in binary_vals:
+            target_vals = []
+            for row in sli_rows:
+                this_val = self.target_values(row).values[val]
+                if this_val not in [None, ""]:
+                    target_vals.append(this_val)
+            if len(target_vals) > 1 and not all(x == target_vals[0] for x in target_vals):
+                return False
+            if len(target_vals) == 1:
+                # logging.warning("checking binary val " + val + " is " + target_vals[0])
+                if binary_vals[val] != target_vals[0]:
+                    return False
+        return True
+
+    def sign_matches_mvmt(self, mvmt_rows, sign):
+        for row in mvmt_rows:
+            svi = self.target_values(row)
+            if hasattr(svi, "articulators"):
+                sign_arts = set()
+                for module in sign.getmoduledict(ModuleTypes.MOVEMENT).values():
+                    sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
+                for row in mvmt_rows:
+                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
+                    if arts not in sign_arts:
+                        logging.warning(arts + "not in " + str(sign_arts))
+                        return False
+                    else:
+                        logging.warning("found matching art: " + str(arts))
+            if hasattr(svi, "paths"):
+                sign_paths = set()
+                for module in sign.getmoduledict(ModuleTypes.MOVEMENT).values():
+                    for p in module.movementtreemodel.get_checked_items():
+                        sign_paths.add(p)
+                if not all(path in sign_paths for path in svi.paths):
+                    return False
+                else:
+                    logging.warning("found matching paths " + str(svi.paths))
+                    
+        return True
 
 
-    def unserialize(self, type, serialmodule):
+    def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
             if type == ModuleTypes.MOVEMENT:
                 mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
@@ -169,6 +250,15 @@ class SearchModel(QStandardItemModel):
                 timingintervals = serialmodule.timingintervals
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
                 unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+                return unserialized
+            elif type == ModuleTypes.LOCATION:
+                locntreemodel = LocationTreeModel(serialmodule.locationtree)
+                articulators = serialmodule.articulators
+                inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
+                timingintervals = serialmodule.timingintervals
+                addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # 
+                phonlocs = serialmodule.phonlocs
+                unserialized = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs, inphase)
                 return unserialized
             elif type == SIGNTYPEINFO_TARGET:
                 return serialmodule
@@ -361,18 +451,10 @@ class SearchValuesItem:
         self.type = type 
         self.values = values
         self.displayval = self.getdisplayval(module)
-        
-    def has_arts(self, module):
-        return module.articulators[1][1] or module.articulators[1][2]
-    
-    def has_phase(self, module):
-        return module.inphase
     
     def has_added_info(self, module):
         return module.addedinfo is not None
 
-    def get_paths(self, model):
-        return model.get_checked_items() 
 
     def __repr__(self):
         return str(self.displayval)
@@ -381,12 +463,17 @@ class SearchValuesItem:
     def getdisplayval(self, module): # TODO consider if module can be an attribute (remove the module saved in searchmodel under name)
         todisplay = []
         if self.type == ModuleTypes.MOVEMENT: # TODO parameter modules share many of these options
-            if self.has_arts(module): # if articulators are specified
-                todisplay.append(self.articulatordisplaytext(module.articulators, module.inphase))
+            if module.articulators[1][1] or module.articulators[1][2]:
+                self.articulators = module.articulators
+                self.inphase = module.inphase
+                todisplay.append(articulatordisplaytext(module.articulators, module.inphase))
             if self.has_added_info(module):
                 pass
                 # todisplay.append("Additional info") # TODO could be more specific re type / contents of additional info
-            todisplay.extend(self.get_paths(module.movementtreemodel))
+            paths = module.movementtreemodel.get_checked_items()
+            if len(paths) > 0:
+                self.paths = paths
+                todisplay.extend(self.paths)
         elif self.type == SIGNTYPEINFO_TARGET:
             for v in module.specslist:
                 if v[1]:
@@ -398,24 +485,24 @@ class SearchValuesItem:
                         todisplay.append(str(k)+"="+str(v))
         return todisplay
         
-    def articulatordisplaytext(self, arts, phase):
-        k = arts[0] # hand, arm, or leg
-        if arts[1][1] and not arts[1][2]:
-            todisplay = k + " " + str(1)
-        elif arts[1][2] and not arts[1][1]:
-            todisplay = k + " " + str(2)
-        elif arts[1][1] and arts[1][2]:
-            
-            todisplay = "Both " + k.lower() + "s"
-            if phase == 1:
-                todisplay += " in phase"
-            elif phase == 2:
-                todisplay += " out of phase"
-            elif phase == 3:
-                todisplay += " connected"
-            elif phase == 4:
-                todisplay += " connected, in phase"
-        return todisplay
+def articulatordisplaytext(arts, phase):
+    k = arts[0] # hand, arm, or leg
+    if arts[1][1] and not arts[1][2]:
+        todisplay = k + " " + str(1)
+    elif arts[1][2] and not arts[1][1]:
+        todisplay = k + " " + str(2)
+    elif arts[1][1] and arts[1][2]:
+        
+        todisplay = "Both " + k.lower() + "s"
+        if phase == 1:
+            todisplay += " in phase"
+        elif phase == 2:
+            todisplay += " out of phase"
+        elif phase == 3:
+            todisplay += " connected"
+        elif phase == 4:
+            todisplay += " connected, in phase"
+    return todisplay
 
 
         
