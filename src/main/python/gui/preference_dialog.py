@@ -102,7 +102,10 @@ class EntryIDElementComboBox(QComboBox):
         if self.datatype == "dateformat":
             return self.currentText().replace("YYYY", "%Y").replace("MM", "%m").replace("DD", "%d")
         elif self.datatype == "delimiter":
-            return self.currentText()[0].replace("(", "")
+            # first character is the delimiter itself, unless the delimiter is 'none' in which case
+            # we need to use the empty string, not a space (which occurs just before the '(none)' in
+            # the combobox)
+            return self.currentText()[0].replace(" ", "")
 
 
 # This tab facilitates user interaction with EntryID-related settings in the preference dialog.
@@ -207,6 +210,13 @@ class EntryIDTab(QWidget):
         # TODO implement details; see https://github.com/PhonologicalCorpusTools/SLPAA/issues/18
 
         self.delim_label = QLabel("Delimiter:")
+        # 20240325: The following check/adjustment is necessary because of a bug (see issue #294)
+        # that involved storing the 'none' delimiter as a space instead of the empty string.
+        # The next two lines (the conditional) can eventually be removed, once we are certain
+        # that everyone using the software has opened and resaved preferences at least once
+        # since this fix was implemented.
+        if self.qsettings_entryid.value('delimiter', type=str) == " ":
+            self.qsettings_entryid.setValue('delimiter', "")
         self.delim_combo = EntryIDElementComboBox(datatype="delimiter", curvalue=self.qsettings_entryid.value('delimiter', type=str), parent=self)
         self.delim_combo.currentTextChanged.connect(self.updatepreview)
         form_layout.addRow(self.delim_label, self.delim_combo)
