@@ -22,6 +22,7 @@ import logging
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
+from search.helper_functions import articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 
 
 
@@ -158,26 +159,35 @@ class SearchModel(QStandardItemModel):
     def sign_matches_target(self, sign, target_dict=None, xslots=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if XSLOT_TARGET in target_dict:
-            targetrows = target_dict[XSLOT_TARGET]
-            pass
+            if not self.sign_matches_xslot(target_dict[XSLOT_TARGET], sign):
+                return False
+            
         if SIGNLEVELINFO_TARGET in target_dict:
             if not self.sign_matches_SLI(target_dict[SIGNLEVELINFO_TARGET], sign):
                 return False
 
         if SIGNTYPEINFO_TARGET in target_dict:
-            targetrows = target_dict[SIGNTYPEINFO_TARGET]
+            if not self.sign_matches_ST(target_dict[SIGNTYPEINFO_TARGET], sign):
+                return False
 
         if ModuleTypes.MOVEMENT in target_dict:
-            if not self.sign_matches_mvmt(target_dict[ModuleTypes.MOVEMENT], sign):
+            if not self.sign_matches_mvmt(target_dict[ModuleTypes.MOVEMENT], sign, xslots):
                 return False
         if ModuleTypes.LOCATION in target_dict:
-            if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign):
+            if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign, xslots):
                 return False
         if ModuleTypes.RELATION in target_dict: 
-            pass
+            if not self.sign_matches_reln(target_dict[ModuleTypes.RELATION], sign, xslots):
+                return False
 
         return True
 
+    def sign_matches_reln(self, rows, sign, xslots):
+        return False
+    
+    def sign_matches_xslot(self, rows, sign):
+        return False
+    
     def sign_matches_SLI(self, sli_rows, sign):
         '''Returns True if the sign matches the specified rows (corresponding to SLI targets)'''
         
@@ -226,6 +236,22 @@ class SearchModel(QStandardItemModel):
                 # logging.warning("checking binary val " + val + " is " + target_vals[0])
                 if binary_vals[val] != target_vals[0]:
                     return False
+        return True
+    
+    def sign_matches_ST(self, rows, sign):
+        if sign.signtype is None:
+            sign_st = []
+        else:
+            sign_st = signtypedisplaytext(sign.signtype.specslist)
+        specs = set("")
+        for row in rows:
+            specs.update(signtypedisplaytext(self.target_module(row).specslist))
+            # TODO what if a sign type target is present but nothing is specified? i.e. len(specs) = 0
+            if len(sign_st) == 0 and len(specs) > 0:
+                return False
+            
+        if not all (s in sign_st for s in specs):
+            return False
         return True
 
     def sign_matches_mvmt(self, mvmt_rows, sign, xslots=None):
@@ -505,9 +531,7 @@ class SearchValuesItem:
                 self.paths = paths
                 todisplay.extend(self.paths)
         elif self.type == SIGNTYPEINFO_TARGET:
-            for v in module.specslist:
-                if v[1]:
-                    todisplay.append(v[0])
+            todisplay.extend(signtypedisplaytext(module.specslist))
         else:
             if self.values is not None:
                 for k, v in self.values.items():
@@ -515,53 +539,4 @@ class SearchValuesItem:
                         todisplay.append(str(k)+"="+str(v))
         
         self.displayval = todisplay
-        
-def articulatordisplaytext(arts, phase):
-    k = arts[0] # hand, arm, or leg
-    if arts[1][1] and not arts[1][2]:
-        todisplay = k + " " + str(1)
-    elif arts[1][2] and not arts[1][1]:
-        todisplay = k + " " + str(2)
-    elif arts[1][1] and arts[1][2]:
-        
-        todisplay = "Both " + k.lower() + "s"
-        if phase == 1:
-            todisplay += " in phase"
-        elif phase == 2:
-            todisplay += " out of phase"
-        elif phase == 3:
-            todisplay += " connected"
-        elif phase == 4:
-            todisplay += " connected, in phase"
-    return todisplay
-
-def phonlocsdisplaytext(phonlocs):
-    todisplay = []
-    if phonlocs.phonologicalloc:
-        if phonlocs.majorphonloc:
-            todisplay.append("Maj. phonological locn")
-        if phonlocs.minorphonloc:
-            todisplay.append("Min. phonological locn")
-        else:
-            todisplay.append("Phonological locn")
-    if phonlocs.phoneticloc:
-        todisplay.append("Phonetic locn")
-    return todisplay
-
-def loctypedisplaytext(loctype):
-    todisplay = []
-    if loctype.body:
-       todisplay.append("Body")
-    elif loctype.signingspace:
-        txt = "Signing space"
-        if loctype.bodyanchored:
-            txt += " (body anchored)"
-        elif loctype.purelyspatial:
-            txt += " (purely spatial)"
-        todisplay.append(txt)
-    return todisplay
-
-def module_matches_xslottype(module, xslots):
-    return True
-
-        
+    
