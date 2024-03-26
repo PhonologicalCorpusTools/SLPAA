@@ -122,10 +122,10 @@ class SearchModel(QStandardItemModel):
 
         if self.matchdegree == 'all':
             # Create a dictionary to store like targets together. Keys are target type, values are lists containing row numbers.
+            negative_rows = [] 
+            target_dict = defaultdict(list) 
             for row in selected_rows:
-                target_dict = defaultdict(list) 
                 target_dict[self.target_type(row)].append(row)
-                negative_rows = [] 
                 if self.is_negative(row):
                     negative_rows.append("Negative")
                 else:
@@ -155,7 +155,7 @@ class SearchModel(QStandardItemModel):
         return resultsdict
 
 
-    def sign_matches_target(self, sign, target_dict=None):
+    def sign_matches_target(self, sign, target_dict=None, xslots=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if XSLOT_TARGET in target_dict:
             targetrows = target_dict[XSLOT_TARGET]
@@ -228,12 +228,13 @@ class SearchModel(QStandardItemModel):
                     return False
         return True
 
-    def sign_matches_mvmt(self, mvmt_rows, sign):
+    def sign_matches_mvmt(self, mvmt_rows, sign, xslots=None):
+        modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values() if module_matches_xslottype(m, xslots)]
         for row in mvmt_rows:
             svi = self.target_values(row)
             if hasattr(svi, "articulators"):
                 sign_arts = set()
-                for module in sign.getmoduledict(ModuleTypes.MOVEMENT).values():
+                for module in modules:
                     sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
                 for row in mvmt_rows:
                     arts = articulatordisplaytext(svi.articulators, svi.inphase)
@@ -241,7 +242,7 @@ class SearchModel(QStandardItemModel):
                         return False
             if hasattr(svi, "paths"):
                 sign_paths = set()
-                for module in sign.getmoduledict(ModuleTypes.MOVEMENT).values():
+                for module in modules:
                     for p in module.movementtreemodel.get_checked_items():
                         sign_paths.add(p)
                 if not all(path in sign_paths for path in svi.paths):
@@ -249,22 +250,38 @@ class SearchModel(QStandardItemModel):
                     
         return True
 
-    def sign_matches_locn(self, locn_rows, sign):
+    def sign_matches_locn(self, locn_rows, sign, xslots=None):
+        modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values() if module_matches_xslottype(m, xslots)]
         for row in locn_rows:
             svi = self.target_values(row)
             if hasattr(svi, "articulators"):
-                sign_arts = set()
-                for module in sign.getmoduledict(ModuleTypes.LOCATION).values():
+                sign_arts = set("")
+                for module in modules:
                     sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
                 for row in locn_rows:
                     arts = articulatordisplaytext(svi.articulators, svi.inphase)
                     if arts not in sign_arts:
                         return False
+            if hasattr(svi, "loctype"):
+                sign_loctypes = set("")
+                for module in modules:
+                    sign_loctypes.update(loctypedisplaytext(module.locationtreemodel.locationtype))
+                for row in locn_rows:
+                    lt = loctypedisplaytext(svi.loctype)
+                    if not all(loctype in sign_loctypes for loctype in lt):
+                        return False
+            if hasattr(svi, "phonlocs"):
+                sign_phonlocs = set("")
+                for module in modules:
+                    sign_phonlocs.update(phonlocsdisplaytext(module.phonlocs))
+                for row in locn_rows:
+                    pl = phonlocsdisplaytext(svi.phonlocs)
+                    if not all(phonloc in sign_phonlocs for phonloc in pl):
+                        return False
             if hasattr(svi, "paths"):
-                sign_paths = set()
-                for module in sign.getmoduledict(ModuleTypes.LOCATION).values():
-                    for p in module.locationtreemodel.get_checked_items():
-                        sign_paths.add(p)
+                sign_paths = set("")
+                for module in modules:
+                    sign_paths.update(module.locationtreemodel.get_checked_items())
                 if not all(path in sign_paths for path in svi.paths):
                     return False
                     
@@ -451,7 +468,7 @@ class SearchValuesItem:
     def __init__(self, type, module=None, values=None): # TODO consider if module and values parameters are needed here (module is already saved in model under name)
         self.type = type 
         self.values = values
-        self.displayval = self.getdisplayval(module)
+        self.assign_attributes(module)
     
     def has_added_info(self, module):
         return module.addedinfo is not None
@@ -461,10 +478,12 @@ class SearchValuesItem:
         return str(self.displayval)
     
     # for displaying in the "value" column of the searchmodel. Returns a list.
-    def getdisplayval(self, module): # TODO consider if module can be an attribute (remove the module saved in searchmodel under name)
+    def assign_attributes(self, module): # TODO consider if module can be an attribute (remove the module saved in searchmodel under name)
+        '''Saves module attributes: e.g. parameter modules have articulators, inphase, paths attributes; 
+        location module specifically has phonlocs and loctype attributes, etc. Also assigns the list to be displayed in the "values" column of the searchmodel.'''
         todisplay = []
-        if self.type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]: # TODO parameter modules share many of these options
-            if module.articulators[1][1] or module.articulators[1][2]:
+        if self.type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]: 
+            if module.articulators[1][1] or module.articulators[1][2]: # between articulator 1 and articulator 2, at least one is True
                 self.articulators = module.articulators
                 self.inphase = module.inphase
                 todisplay.append(articulatordisplaytext(module.articulators, module.inphase))
@@ -476,6 +495,12 @@ class SearchValuesItem:
                 paths = module.movementtreemodel.get_checked_items()
             elif self.type == ModuleTypes.LOCATION:
                 paths = module.locationtreemodel.get_checked_items()
+                if not module.phonlocs.allfalse():
+                    self.phonlocs = module.phonlocs
+                    todisplay.extend(phonlocsdisplaytext(self.phonlocs))
+                if not module.locationtreemodel.locationtype.allfalse():
+                    self.loctype = module.locationtreemodel.locationtype
+                    todisplay.extend(loctypedisplaytext(self.loctype))
             if len(paths) > 0:
                 self.paths = paths
                 todisplay.extend(self.paths)
@@ -489,7 +514,7 @@ class SearchValuesItem:
                     if v not in [None, ""]:
                         todisplay.append(str(k)+"="+str(v))
         
-        return todisplay
+        self.displayval = todisplay
         
 def articulatordisplaytext(arts, phase):
     k = arts[0] # hand, arm, or leg
@@ -510,5 +535,33 @@ def articulatordisplaytext(arts, phase):
             todisplay += " connected, in phase"
     return todisplay
 
+def phonlocsdisplaytext(phonlocs):
+    todisplay = []
+    if phonlocs.phonologicalloc:
+        if phonlocs.majorphonloc:
+            todisplay.append("Maj. phonological locn")
+        if phonlocs.minorphonloc:
+            todisplay.append("Min. phonological locn")
+        else:
+            todisplay.append("Phonological locn")
+    if phonlocs.phoneticloc:
+        todisplay.append("Phonetic locn")
+    return todisplay
+
+def loctypedisplaytext(loctype):
+    todisplay = []
+    if loctype.body:
+       todisplay.append("Body")
+    elif loctype.signingspace:
+        txt = "Signing space"
+        if loctype.bodyanchored:
+            txt += " (body anchored)"
+        elif loctype.purelyspatial:
+            txt += " (purely spatial)"
+        todisplay.append(txt)
+    return todisplay
+
+def module_matches_xslottype(module, xslots):
+    return True
 
         
