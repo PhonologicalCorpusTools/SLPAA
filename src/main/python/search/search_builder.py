@@ -1,5 +1,8 @@
 import io, os, pickle
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtGui import (
+    QIcon,
+    QKeySequence
+)
 
 from PyQt5.QtWidgets import (
     QVBoxLayout,
@@ -34,6 +37,7 @@ from PyQt5.QtWidgets import (
     QAction,
     QTabWidget
 )
+from gui.decorator import check_unsaved_search_targets
 from search.results import ResultsView
 import logging
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
@@ -43,16 +47,16 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject, pyqtSlot
 from lexicon.lexicon_classes import Sign
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure
-from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, ResultsModel, SearchValuesItem
+from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
 from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, Search_SigntypeSelectorDialog
 
 class SearchWindow(QMainWindow):
 
-    def __init__(self, app_settings, corpus=None, **kwargs):
+    def __init__(self, app_settings, corpus, app_ctx, **kwargs):
         super().__init__(**kwargs)
         self.searchmodel = SearchModel()
-        self.app_ctx = self.parent().app_ctx
+        self.app_ctx = app_ctx
         self.corpus = corpus
         self.app_settings = app_settings
         self.current_sign = SearchWindowSign()
@@ -75,19 +79,26 @@ class SearchWindow(QMainWindow):
 
         file_menu = menu_bar.addMenu('File')
 
-        open_action = QAction('Load target file', self)
-        open_action.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
-        open_action.triggered.connect(self.open_target_file)
-        file_menu.addAction(open_action)
+        action_load = QAction(QIcon(self.app_ctx.icons['load16']), 'Load target file', self)
+        action_load.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_L))
+        action_load.triggered.connect(self.on_action_load)
+        file_menu.addAction(action_load)
 
-        save_action = QAction('Save target file', self)
-        save_action.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
-        save_action.triggered.connect(self.save_target_file)
-        file_menu.addAction(save_action)
+        action_save = QAction(QIcon(self.app_ctx.icons['save']), 'Save target file', self)
+        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
+        action_save.triggered.connect(self.on_action_save)
+        file_menu.addAction(action_save)
+
+        # save as
+        action_saveas = QAction(QIcon(self.app_ctx.icons['saveas']), 'Save As...', self)
+        action_saveas.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_A))
+        action_saveas.triggered.connect(self.on_action_save_as)
+        file_menu.addAction(action_saveas)
+
 
         settings_menu = menu_bar.addMenu('Settings')
 
-    def open_target_file(self):
+    def on_action_load(self):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            self.tr('Load Targets'),
                                                            self.app_settings['storage']['recent_folder'],
@@ -106,7 +117,7 @@ class SearchWindow(QMainWindow):
 
         return self.searchmodel is not None  # bool(Corpus)
 
-    def save_target_file(self):
+    def on_action_save_as(self):
         
         name = self.searchmodel.name or "New search"
         file_name, _ = QFileDialog.getSaveFileName(self,
@@ -121,6 +132,13 @@ class SearchWindow(QMainWindow):
                 self.app_settings['storage']['recent_folder'] = folder
 
             self.save_search_binary()
+
+    @check_unsaved_search_targets
+    def on_action_save(self):
+        if self.searchmodel.path:
+            self.save_search_binary()
+
+        self.unsaved_changes = False
             
     def init_ui(self):
         self.create_menu_bar()
@@ -191,7 +209,6 @@ class SearchWindow(QMainWindow):
     
     def handle_target_modified(self, target, row):
         self.searchmodel.modify_target(target, row)
-
 
 
     def save_search_binary(self):

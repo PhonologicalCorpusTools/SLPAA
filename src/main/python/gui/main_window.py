@@ -746,8 +746,8 @@ class MainWindow(QMainWindow):
         count_xslots_window.exec_()
 
     def on_action_search(self):
-        search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, parent=self)
-        search_window.show()
+        self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
+        self.search_window.show()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there

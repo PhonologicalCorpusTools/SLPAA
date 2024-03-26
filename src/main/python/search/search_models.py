@@ -116,33 +116,46 @@ class SearchModel(QStandardItemModel):
         return rows
 
     def search_corpus(self, corpus): # TODO potentially add a rows_to_skip for adding on to existing results table
-        selected_rows = self.get_selected_rows()
-        negative_rows = []        
-        # Create a dictionary to store like targets together. Keys are target type, values are lists containing row numbers.
-        target_dict = defaultdict(list) 
-        for row in selected_rows:
-            if self.is_included(row):
-                target_dict[self.target_type(row)].append(row)
-            if self.is_negative(row):
-                negative_rows.append("Negative")
-            else:
-                negative_rows.append("Positive")
-
+        selected_rows = self.get_selected_rows()       
         resultsdict = {}
+        
 
         if self.matchdegree == 'all':
+            # Create a dictionary to store like targets together. Keys are target type, values are lists containing row numbers.
+            for row in selected_rows:
+                target_dict = defaultdict(list) 
+                target_dict[self.target_type(row)].append(row)
+                negative_rows = [] 
+                if self.is_negative(row):
+                    negative_rows.append("Negative")
+                else:
+                    negative_rows.append("Positive")
             target_name = tuple(self.target_name(row) for row in selected_rows)
             matchingsigns = [] # each element is a gloss/id tuple
             for sign in corpus.signs:
-                logging.warning("working on " + sign.signlevel_information.gloss)
-                if self.sign_matches_all(target_dict, sign):
+                if self.sign_matches_target(sign, target_dict):
                     matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid])
             resultsdict[target_name] = {"corpus": corpus.name, "signs": matchingsigns, "negative": negative_rows}
+        
+        elif self.matchdegree == 'any':
+            for row in selected_rows:
+                negative_rows = [] 
+                target_dict = {self.target_type(row): [row]}
+                if self.is_negative(row):
+                    negative_rows.append("Negative")
+                else:
+                    negative_rows.append("Positive")
+                target_name = self.target_name(row)
+                matchingsigns = [] # each element is a gloss/id tuple
+                for sign in corpus.signs:
+                    if self.sign_matches_target(sign, target_dict):
+                        matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid])
+                resultsdict[target_name] = {"corpus": corpus.name, "signs": matchingsigns, "negative": negative_rows}
+
         return resultsdict
 
 
-    def sign_matches_all(self, target_dict, sign):
-        ''''''
+    def sign_matches_target(self, sign, target_dict=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if XSLOT_TARGET in target_dict:
             targetrows = target_dict[XSLOT_TARGET]
@@ -158,7 +171,8 @@ class SearchModel(QStandardItemModel):
             if not self.sign_matches_mvmt(target_dict[ModuleTypes.MOVEMENT], sign):
                 return False
         if ModuleTypes.LOCATION in target_dict:
-            pass
+            if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign):
+                return False
         if ModuleTypes.RELATION in target_dict: 
             pass
 
@@ -224,10 +238,7 @@ class SearchModel(QStandardItemModel):
                 for row in mvmt_rows:
                     arts = articulatordisplaytext(svi.articulators, svi.inphase)
                     if arts not in sign_arts:
-                        logging.warning(arts + "not in " + str(sign_arts))
                         return False
-                    else:
-                        logging.warning("found matching art: " + str(arts))
             if hasattr(svi, "paths"):
                 sign_paths = set()
                 for module in sign.getmoduledict(ModuleTypes.MOVEMENT).values():
@@ -235,11 +246,29 @@ class SearchModel(QStandardItemModel):
                         sign_paths.add(p)
                 if not all(path in sign_paths for path in svi.paths):
                     return False
-                else:
-                    logging.warning("found matching paths " + str(svi.paths))
                     
         return True
 
+    def sign_matches_locn(self, locn_rows, sign):
+        for row in locn_rows:
+            svi = self.target_values(row)
+            if hasattr(svi, "articulators"):
+                sign_arts = set()
+                for module in sign.getmoduledict(ModuleTypes.LOCATION).values():
+                    sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
+                for row in locn_rows:
+                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
+                    if arts not in sign_arts:
+                        return False
+            if hasattr(svi, "paths"):
+                sign_paths = set()
+                for module in sign.getmoduledict(ModuleTypes.LOCATION).values():
+                    for p in module.locationtreemodel.get_checked_items():
+                        sign_paths.add(p)
+                if not all(path in sign_paths for path in svi.paths):
+                    return False
+                    
+        return True
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
@@ -377,34 +406,6 @@ class SearchTargetItem(QStandardItem):
     def module(self, m):
         self._module = m
 
-class ResultsModel(QStandardItemModel):
-    def __init__(self, searchmodel, corpus, **kwargs):
-        super().__init__(**kwargs)
-
-
-        # self.headers = ["Name", "Type", "Value", "Negative?",  "X-slots"]
-        # self.setHorizontalHeaderLabels(self.headers)
-
-        # try:
-        #     index = searchmodel.index(0, 0)
-        #     print(searchmodel.data(index))
-        # except:
-        #     print("couldt")
-        # self.searchmodel = searchmodel
-        # print(self.searchmodel)
-        # index = self.searchmodel.index(0, 0)
-        # name_txt = self.searchmodel.data(index)
-        # for row in range(self.searchmodel.rowCount()):
-        #      print(row)
-            # if self.searchmodel.is_included(row):
-
-                # print(name_txt)
-                # name_txt = self.searchmodel.data(self.searchmodel.index(row, TargetHeaders.NAME))
-
-                # self.setItem(row, ResultHeaders.NAME, QStandardItem(name_txt))
-                # self.setItem(row, ResultHeaders.NEGATIVE, self.searchmodel.itemFromIndex(self.index(row, TargetHeaders.NEGATIVE)).clone())
-                # self.setItem(row, ResultHeaders.XSLOTS, self.searchmodel.itemFromIndex(self.index(row, TargetHeaders.XSLOTS)).clone())
-
 
 # This class is a serializable form of the class SearchModel, which is itself not pickleable.
 # Rather than being based on QStandardItemModel, this one uses dictionary structures to convert to
@@ -462,7 +463,7 @@ class SearchValuesItem:
     # for displaying in the "value" column of the searchmodel. Returns a list.
     def getdisplayval(self, module): # TODO consider if module can be an attribute (remove the module saved in searchmodel under name)
         todisplay = []
-        if self.type == ModuleTypes.MOVEMENT: # TODO parameter modules share many of these options
+        if self.type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]: # TODO parameter modules share many of these options
             if module.articulators[1][1] or module.articulators[1][2]:
                 self.articulators = module.articulators
                 self.inphase = module.inphase
@@ -470,7 +471,11 @@ class SearchValuesItem:
             if self.has_added_info(module):
                 pass
                 # todisplay.append("Additional info") # TODO could be more specific re type / contents of additional info
-            paths = module.movementtreemodel.get_checked_items()
+            paths = []
+            if self.type == ModuleTypes.MOVEMENT:
+                paths = module.movementtreemodel.get_checked_items()
+            elif self.type == ModuleTypes.LOCATION:
+                paths = module.locationtreemodel.get_checked_items()
             if len(paths) > 0:
                 self.paths = paths
                 todisplay.extend(self.paths)
@@ -483,6 +488,7 @@ class SearchValuesItem:
                 for k, v in self.values.items():
                     if v not in [None, ""]:
                         todisplay.append(str(k)+"="+str(v))
+        
         return todisplay
         
 def articulatordisplaytext(arts, phase):
