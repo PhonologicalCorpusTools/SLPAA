@@ -313,12 +313,8 @@ class MainWindow(QMainWindow):
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
 
-        corpusname = ""
-        if self.corpus and self.corpus.name:
-            corpusname = self.corpus.name
-        self.corpus_display = CorpusDisplay(corpusname, parent=self)
+        self.corpus_display = CorpusDisplay(parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
-        self.corpus_display.title_changed.connect(self.setCorpusName)
 
         self.corpus_scroll = QScrollArea(parent=self)
         self.corpus_scroll.setWidgetResizable(True)
@@ -350,10 +346,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_mdi)
 
         self.open_initialization_window()
-
-    def setCorpusName(self, newtitle):
-        if self.corpus is not None:
-            self.corpus.name = newtitle
 
     # TODO KV this needs an overhaul
     # GZ - missing compound sign attribute
@@ -785,7 +777,6 @@ class MainWindow(QMainWindow):
         font.setPointSize(newfontsize)
         app.setFont(font)
 
-
     def getcurrentlyused_timingfractions(self):
         fractionsinuse = []
         for sign in self.corpus.signs:
@@ -847,19 +838,17 @@ class MainWindow(QMainWindow):
     @check_unsaved_corpus
     def on_action_save(self, clicked):
         if self.corpus.path:
-            self.corpus.name = self.corpus_display.corpus_title.text()
             self.save_corpus_binary()
 
         self.unsaved_changes = False
         self.undostack.clear()
 
     def on_action_saveas(self, clicked):
-        self.corpus.name = self.corpus_display.corpus_title.text()
-        name = self.corpus.name
         file_name, _ = QFileDialog.getSaveFileName(self,
                                                    self.tr('Save Corpus'),
-                                                   os.path.join(self.app_settings['storage']['recent_folder'],
-                                                                name + '.slpaa'),  # 'corpus.slpaa'),
+                                                   self.corpus.path or os.path.join(
+                                                       self.app_settings['storage']['recent_folder'],
+                                                       '.slpaa'),
                                                    self.tr('SLP-AA Corpus (*.slpaa)'))
         if file_name:
             self.corpus.path = file_name
@@ -921,7 +910,6 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
-        self.corpus_display.corpus_title.setText(self.corpus.name)
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
