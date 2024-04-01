@@ -1,4 +1,5 @@
 import logging
+import os
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, delimiter
@@ -404,12 +405,10 @@ class Sign:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, minimumID=1, highestID=0):
+    def __init__(self, signs=None, location_definition=None, path=None, serializedcorpus=None, minimumID=1, highestID=0):
         if serializedcorpus:
-            self.name = serializedcorpus['name']
             self.signs = set([Sign(serializedsign=s) for s in serializedcorpus['signs']])
-            self.location_definition = serializedcorpus['loc defn']
-            # self.movement_definition = serializedcorpus['mvmt defn']
+            # self.location_definition = serializedcorpus['loc defn']
             self.path = serializedcorpus['path']
             self.minimumID = serializedcorpus['minimum id'] if 'minimum id' in serializedcorpus.keys() else 1
             self.highestID = serializedcorpus['highest id']
@@ -419,7 +418,6 @@ class Corpus:
                 self.confirmhighestID("load")
             self.add_missing_paths()  # Another backwards compatibility function for movement and location
         else:
-            self.name = name
             self.signs = signs if signs else set()
             self.location_definition = location_definition
             # self.movement_definition = movement_definition
@@ -452,9 +450,8 @@ class Corpus:
         if len(self) > 0:
             self.confirmhighestID("save")
         return {
-            'name': self.name,
             'signs': [s.serialize() for s in list(self.signs)],
-            'loc defn': self.location_definition,
+            # 'loc defn': self.location_definition,
             'path': self.path,
             'minimum id': self.minimumID,
             'highest id': self.highestID
@@ -515,7 +512,10 @@ class Corpus:
         return len(self.signs)
 
     def __repr__(self):
-        return '<CORPUS: ' + repr(self.name) + '>'
+        filename = "not yet saved"
+        if self.path:
+            _, filename = os.path.split(self.path)
+        return '<CORPUS: ' + repr(filename) + '>'
     
     def add_missing_paths(self):
         for sign in self.signs:
