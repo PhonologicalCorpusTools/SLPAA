@@ -21,34 +21,14 @@ from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
 
 
-class CorpusTitleEdit(QLineEdit):
-    focus_out = pyqtSignal(str)
-
-    def __init__(self, corpus_title, **kwargs):
-        super().__init__(**kwargs)
-        self.setFocusPolicy(Qt.StrongFocus)
-
-    def focusOutEvent(self, event):
-        # use focusOutEvent as the proxy for finishing editing
-        self.focus_out.emit(self.text())
-        super().focusInEvent(event)
-
-
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
-    title_changed = pyqtSignal(str)
 
-    def __init__(self, corpus_title="", **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
-
-        # self.corpus_title = QLineEdit(corpus_title, parent=self)
-        self.corpus_title = CorpusTitleEdit(corpus_title, parent=self)
-        self.corpus_title.focus_out.connect(lambda title: self.title_changed.emit(title))
-        self.corpus_title.setPlaceholderText('Untitled')
-        main_layout.addWidget(self.corpus_title)
 
         self.corpus_model = CorpusModel(parent=self)
         self.corpus_view = QListView(parent=self)
@@ -118,8 +98,6 @@ class CorpusDisplay(QWidget):
         self.corpus_view.clearSelection()
 
     def clear(self):
-        self.corpus_title.setText("")
-
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
