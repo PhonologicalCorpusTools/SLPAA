@@ -26,8 +26,7 @@ from PyQt5.QtCore import (
 
 from lexicon.lexicon_classes import SignLevelInformation
 from lexicon.module_classes import EntryID
-from gui.decorator import check_empty_gloss, check_duplicated_lemma, check_empty_glosslemmaIDgloss
-from gui.modulespecification_widgets import TreeListView
+from gui.decorator import check_duplicated_lemma, check_empty_glosslemmaIDgloss, check_duplicated_idgloss
 
 
 class SignLevelDateDisplay(QLabel):
@@ -52,7 +51,7 @@ class SignLevelDateDisplay(QLabel):
 
 # This model supplies the data for the multiple-glosses editor QListView() in the SignLevelInfoPanel
 class GlossesListModel(QStringListModel):
-    enterglosshere_label = 'Double-click to enter gloss here (cannot be empty)'
+    enterglosshere_label = 'Double-click to enter gloss here'
 
     def __init__(self, gloss_strings=None, **kwargs):
         super().__init__(**kwargs)
@@ -75,7 +74,7 @@ class GlossesListModel(QStringListModel):
     # This function returns the list of actual glosses in the model.
     # The return list does *not* include
     #   (a) entries with length 0 or consisting solely of whitespace, or
-    #   (b) the default placeholder entry 'Double-click to enter gloss here (cannot be empty)'.
+    #   (b) the default placeholder entry 'Double-click to enter gloss here'.
     # This is as opposed to stringList(), which returns *all* the items in the model, including
     # potentially empty and/or default entries.
     # The intention is that stringList() should be used by GUI elements such as the model view,
@@ -254,16 +253,15 @@ class SignLevelInfoPanel(QFrame):
     def get_value(self):
         gloss, lemma, idgloss = self.get_identifiers()
         if gloss or lemma or idgloss:
-        # if self.get_gloss():  # and self.get_lemma():
             if self.created_display.text() == "" or self.modified_display.text() == "":
                 newtime = datetime.now()
                 self.created_display.set_datetime(newtime)
                 self.modified_display.set_datetime(newtime)
             return {
                 'entryid': self.entryid_counter(),
-                'gloss': gloss,  # self.get_gloss(),
-                'lemma': lemma,  # self.lemma_edit.text(),
-                'idgloss': idgloss,  # self.idgloss_edit.text(),
+                'gloss': gloss,
+                'lemma': lemma,
+                'idgloss': idgloss,
                 'source': self.source_edit.text(),
                 'signer': self.signer_edit.text(),
                 'frequency': float(self.freq_edit.text()),
@@ -276,21 +274,23 @@ class SignLevelInfoPanel(QFrame):
                 'handdominance': self.get_handdominance()
             }
 
-    # @check_empty_gloss
-    # @check_empty_glosslemmaIDgloss
-    def get_gloss(self):
+    def get_glosses(self):
         return self.glosses_model.glosses()
 
-    @check_empty_glosslemmaIDgloss
-    def get_identifiers(self):
-        gloss = self.get_gloss()
-        lemma = self.lemma_edit.text()
-        idgloss = self.idgloss_edit.text()
-        return gloss, lemma, idgloss
+    def get_lemma(self):
+        return self.lemma_edit.text()
 
-    # @check_duplicated_lemma
-    # def get_lemma(self):
-    #     return self.self.lemma_edit.text()
+    def get_idgloss(self):
+        return self.idgloss_edit.text()
+
+    @check_empty_glosslemmaIDgloss
+    @check_duplicated_idgloss
+    @check_duplicated_lemma
+    def get_identifiers(self):
+        gloss = self.get_glosses()
+        lemma = self.get_lemma()
+        idgloss = self.get_idgloss()
+        return gloss, lemma, idgloss
 
 
 class SignlevelinfoSelectorDialog(QDialog):
@@ -338,40 +338,8 @@ class SignlevelinfoSelectorDialog(QDialog):
                 if newsignlevelinfo != oldsignlevelinfo:
                     # if anything other than the last modified date has changed, then lastmodified should be set to now
                     newsignlevelinfo.lastmodifiednow()
-                self.check_duplicate_lemma(sli)
                 self.saved_signlevelinfo.emit(newsignlevelinfo)
                 self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.signlevelinfo_widget.restore_defaults()
-
-    def check_duplicate_lemma(self, signlevelinfo_dict):
-        if not self.settings['reminder']['duplicatelemma']:
-            # user doesn't want to see warnings for duplicate lemmas
-            return
-
-        if signlevelinfo_dict is None:
-            return
-        else:
-            thislemma_lower = signlevelinfo_dict['lemma'].lower()
-            lemmasincorpus_lower = [lemma.lower() for lemma in self.mainwindow.corpus.get_sign_lemmas()]
-
-            if thislemma_lower not in lemmasincorpus_lower:
-                return
-            elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma.lower() == thislemma_lower:
-                return
-            else:
-                othersignswiththislemma = [sign for sign in self.mainwindow.corpus.signs
-                                           if thislemma_lower == sign.signlevel_information.lemma.lower()
-                                           and sign != self.mainwindow.current_sign]
-                messagetext = "This lemma is also used by the sign(s) listed below:"
-                for sign in othersignswiththislemma:
-                    glosseslist = sign.signlevel_information.gloss
-                    messagetext += "\n - gloss" + \
-                                   ("es" if len(glosseslist) > 1 else "") + \
-                                   " " + \
-                                   ", ".join(glosseslist)
-                    if sign.signlevel_information.entryid.display_string() != EntryID.nodisplay:
-                        messagetext += " / Entry ID " + sign.signlevel_information.entryid.display_string()
-                QMessageBox.warning(self, "Duplicated Lemma", messagetext)
-

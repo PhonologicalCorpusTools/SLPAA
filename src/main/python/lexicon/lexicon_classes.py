@@ -463,37 +463,8 @@ class Corpus:
     def get_sign_lemmas(self):
         return sorted([sign.signlevel_information.lemma for sign in self.signs])
 
-    # def get_previous_sign(self, gloss):
-    #     """Given a sign gloss, return the next gloss to highlight in the list.
-    #
-    #     Args:
-    #         gloss: sign
-    #
-    #     Returns:
-    #         previous_sign: sign
-    #     """
-    #     sign_glosses = self.get_sign_glosses()
-    #     current_index = sign_glosses.index(gloss)
-    #
-    #     if len(sign_glosses) == 1:
-    #         # If there is only 1 sign, return the same sign
-    #         return None
-    #
-    #     elif current_index == 0:
-    #         # Otherwise if this is the 1st sign, return the next sign in the list
-    #         previous_gloss = sign_glosses[1]
-    #     else:
-    #         # Otherwise, return the previous sign
-    #         previous_gloss = sign_glosses[current_index - 1]
-    #
-    #     return self.get_sign_by_gloss(previous_gloss)
-    #
-    # # TODO update this-- gloss is no longer a unique key for signs
-    # def get_sign_by_gloss(self, gloss):
-    #     # Every sign has a unique gloss, so this function will always return one sign
-    #     for sign in self.signs:
-    #         if sign.signlevel_information.gloss == gloss:
-    #             return sign
+    def get_sign_idglosses(self):
+        return sorted([sign.signlevel_information.idgloss for sign in self.signs])
 
     def add_sign(self, new_sign):
         self.signs.add(new_sign)

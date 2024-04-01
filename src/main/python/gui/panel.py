@@ -46,7 +46,6 @@ from PyQt5.QtGui import (
 from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
-# from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
