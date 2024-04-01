@@ -4,14 +4,16 @@
  - Kathleen Currie Hall
  - Oksana Tkachman
 ## Software
- - Brian Diep
- - Michael Fry
- - Roger Lo
- - Franklin Ma
- - Scott Mackie
- - Stanley Nam
- - Kaili Vesik
- - Grace Zhang
+ - [Brian Diep](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=brdiep113)
+ - Michael Fry ([contributions to original implementation](https://github.com/PhonologicalCorpusTools/SLP-AA-old-/commits?author=mdfry))
+ - [Roger Yu-Hsiang Lo](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=YuHsiangLo)* (see also [contributions to original implementation](https://github.com/PhonologicalCorpusTools/SLP-AA-old-/commits?author=YuHsiangLo))
+ - [Franklin Ma](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=terwo)
+ - J. Scott Mackie* ([contributions to original implementation](https://github.com/PhonologicalCorpusTools/SLP-AA-old-/commits?author=jsmackie))
+ - [Stanley Nam](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=stannam)
+ - [Kaili Vesik](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=kvesik)*
+ - [Grace Zhang](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=gracemyz)
+
+\* lead developers
 ### Diagrams
  - Sophie Cook
  - Cristina Lee
