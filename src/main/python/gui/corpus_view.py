@@ -24,11 +24,19 @@ from lexicon.lexicon_classes import Sign
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
 
-    def __init__(self, **kwargs):
+    def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
+
+        filename_layout = QHBoxLayout()
+        corpusfile_label = QLabel("Corpus file:")
+        self.corpusfile_edit = QLineEdit(corpusfilename or "not yet saved")
+        self.corpusfile_edit.setEnabled(False)
+        filename_layout.addWidget(corpusfile_label)
+        filename_layout.addWidget(self.corpusfile_edit)
+        main_layout.addLayout(filename_layout)
 
         self.corpus_model = CorpusModel(parent=self)
         self.corpus_view = QListView(parent=self)
@@ -98,6 +106,8 @@ class CorpusDisplay(QWidget):
         self.corpus_view.clearSelection()
 
     def clear(self):
+        self.corpusfile_edit.setText("not yet saved")
+
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
