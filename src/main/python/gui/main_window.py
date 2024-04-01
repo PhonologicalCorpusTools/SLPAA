@@ -313,7 +313,8 @@ class MainWindow(QMainWindow):
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
 
-        self.corpus_display = CorpusDisplay(parent=self)
+        corpusfilename = os.path.split(self.corpus.path)[1] if self.corpus else ""
+        self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
         self.corpus_display.selection_cleared.connect(self.handle_sign_selected)
 
@@ -840,6 +841,7 @@ class MainWindow(QMainWindow):
     def on_action_save(self, clicked):
         if self.corpus.path:
             self.save_corpus_binary()
+            self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
 
         self.unsaved_changes = False
         self.undostack.clear()
@@ -858,6 +860,7 @@ class MainWindow(QMainWindow):
                 self.app_settings['storage']['recent_folder'] = folder
 
             self.save_corpus_binary()
+            self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
 
             self.unsaved_changes = False
             self.undostack.clear()
@@ -910,6 +913,7 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
+        self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])  ########### TODO KV make sure first sign in sorted list is selected

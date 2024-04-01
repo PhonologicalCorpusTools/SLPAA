@@ -24,12 +24,20 @@ class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
     selection_cleared = pyqtSignal()
 
-    def __init__(self, **kwargs):
+    def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent()
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
+
+        filename_layout = QHBoxLayout()
+        corpusfile_label = QLabel("Corpus file:")
+        self.corpusfile_edit = QLineEdit(corpusfilename or "not yet saved")
+        self.corpusfile_edit.setEnabled(False)
+        filename_layout.addWidget(corpusfile_label)
+        filename_layout.addWidget(self.corpusfile_edit)
+        main_layout.addLayout(filename_layout)
 
         self.corpus_model = CorpusModel(settings=self.mainwindow.app_settings, parent=self)
         self.corpus_view = QTableView(parent=self)
@@ -174,6 +182,8 @@ class CorpusDisplay(QWidget):
         return self.corpus_view.model().rowCount()
 
     def clear(self):
+        self.corpusfile_edit.setText("not yet saved")
+
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
