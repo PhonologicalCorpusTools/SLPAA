@@ -321,7 +321,7 @@ class SignSummaryPanel(QScrollArea):
         self.moduleitems = []
         self.current_y = 0
 
-        # set the top text, either welcome or the sign gloss + ID
+        # set the top text, either welcome or the sign gloss(es) + Entry ID
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
@@ -880,12 +880,6 @@ class SignLevelMenuPanel(QScrollArea):
             self.sign.signlevel_information = signlevelinfo
         else:
             # this is a new sign
-            if signlevelinfo.gloss in self.mainwindow.corpus.get_sign_glosses():
-                QMessageBox.critical(self, 'Duplicated Gloss',
-                                     'Please use a different gloss. Duplicated glosses are not allowed.')
-                # TODO KV don't want the signlevel info to close if the gloss is rejected--
-                #  make the user choose a new one instead
-                return
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(self.sign)

@@ -59,7 +59,7 @@ def check_duplicated_idgloss(func):
     @functools.wraps(func)
     def wrapper_check_duplicated_idgloss(self, *args, **kwargs):
         thisidgloss_lower = self.get_idgloss().lower()
-        idglossesincorpus_lower = [idgloss.lower() for idgloss in self.mainwindow.corpus.get_sign_idglosses()]
+        idglossesincorpus_lower = [idgloss.lower() for idgloss in self.mainwindow.corpus.get_all_idglosses()]
 
         if not thisidgloss_lower:
             return func(self, *args, **kwargs)
@@ -94,7 +94,7 @@ def check_duplicated_lemma(func):
             return func(self, *args, **kwargs)
 
         thislemma_lower = self.get_lemma().lower()
-        lemmasincorpus_lower = [lemma.lower() for lemma in self.mainwindow.corpus.get_sign_lemmas()]
+        lemmasincorpus_lower = [lemma.lower() for lemma in self.mainwindow.corpus.get_all_lemmas()]
 
         if not thislemma_lower:
             return func(self, *args, **kwargs)

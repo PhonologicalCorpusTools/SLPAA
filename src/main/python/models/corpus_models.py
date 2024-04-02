@@ -30,25 +30,12 @@ class CorpusItem(QStandardItem):
         self.setEditable(False)
         self.setCheckable(False)
 
-    # def entryid_string(self):
-    #     numdigits = int(self.settings['display']['entryid_digits']) if self.settings else 0
-    #     entryid_string = ""
-    #     if self.isentryid:
-    #         entryid_string = str(self.texttodisplay)
-    #         entryid_string = "0"*(numdigits - len(entryid_string)) + entryid_string
-    #     return entryid_string
-
     def data(self, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
             if self.texttodisplay is not None:
-                # if self.isentryid:
-                #     if self.settings is not None:
-                #         return self.entryid_string()
-                #     else:
-                #         return str(self.texttodisplay)
                 return self.texttodisplay
             else:
-                return ""  # self.sign.signlevel_information.gloss[0]
+                return ""
         elif role == Qt.UserRole+datecreatedrole:
             return self.sign.signlevel_information.datecreated
         elif role == Qt.UserRole+datemodifiedrole:
@@ -59,7 +46,6 @@ class CorpusModel(QStandardItemModel):
     modelupdated = pyqtSignal()
 
     def __init__(self, signs=None, settings=None, **kwargs):
-    # def __init__(self, corpus=None, settings=None, **kwargs):
         super().__init__(**kwargs)
         self.signs = signs
         self.setsigns(signs)
@@ -81,8 +67,6 @@ class CorpusModel(QStandardItemModel):
             if len(glosses) == 0:
                 glosses.append("")
             for gloss in glosses:
-                # if len(gloss.strip()) > 0:
-                # entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid), isentryid=True, settings=self.settings)
                 entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid.display_string()), isentryid=True, settings=self.settings)
                 glossitem = CorpusItem(sign, gloss)
                 lemmaitem = CorpusItem(sign, sign.signlevel_information.lemma)

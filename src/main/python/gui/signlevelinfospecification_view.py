@@ -65,9 +65,10 @@ class GlossesListModel(QStringListModel):
         if gloss_strings is None:
             gloss_strings = []
         gloss_strings = [g for g in gloss_strings if len(g.strip()) > 0]
-        if len(gloss_strings) == 0:
-            gloss_strings = [self.enterglosshere_label]
-        gloss_strings += [""]
+        # if len(gloss_strings) == 0:
+        #     gloss_strings = [self.enterglosshere_label]
+        # gloss_strings += [""]
+        gloss_strings += [self.enterglosshere_label]
 
         super().setStringList(gloss_strings)
 

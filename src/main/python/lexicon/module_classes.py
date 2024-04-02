@@ -145,8 +145,8 @@ class ParameterModule:
 
 
 class EntryID:
-    nodisplay = "[No selected Entry ID elements to display]" \
-                ""
+    nodisplay = "[No selected Entry ID elements to display]"
+
     def __init__(self, counter=None, parentsign=None):
         self.parentsign = parentsign
         # all other attributes of EntryID are sourced from QSettings, sign, and/or sign-level info,
@@ -222,6 +222,9 @@ class EntryID:
     # >= check compares the displayed strings
     def __ge__(self, other):
         return not self.__lt__(other)
+
+    def __repr__(self):
+        return repr(self.display_string())
 
 
 class SignLevelInformation:

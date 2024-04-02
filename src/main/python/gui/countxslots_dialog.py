@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
 
 
 class CountXslotsDialog(QDialog):
+    headers = ["source_file", "entryid", "gloss_es", "whole_xslots", "partial_xslots", "fingerspelled"]
 
     def __init__(self, app_settings, app_ctx, **kwargs):
         super().__init__(**kwargs)
@@ -143,7 +144,7 @@ class CountXslotsDialog(QDialog):
             resultsfilepath = self.combinedresultsfilepath
             try:
                 with io.open(resultsfilepath, "w") as outfile:
-                    outfile.write(self.delim().join(["source_file", "gloss", "whole_xslots", "partial_xslots", "fingerspelled"]) + "\n")
+                    outfile.write(self.delim().join(self.headers) + "\n")
             except PermissionError:
                 return "permission error"
             except:
@@ -171,15 +172,15 @@ class CountXslotsDialog(QDialog):
     def count_record_corpus_xslots(self, corpus, corpusfilename, resultsfilepath, write_or_append):
         try:
             with io.open(resultsfilepath, write_or_append) as outfile:
-                headers = ["source_file", "gloss", "whole_xslots", "partial_xslots", "fingerspelled"]
                 if not self.combined:
-                    outfile.write(self.delim().join(headers) + "\n")
+                    outfile.write(self.delim().join(self.headers) + "\n")
                 for sign in corpus.signs:
-                    gloss = sign.signlevel_information.gloss
+                    entryidstring = sign.signlevel_information.entryid.display_string()
+                    glosses = "/".join(sign.signlevel_information.gloss)
                     whole_xslots = sign.xslotstructure.number
                     frac_xslots = sign.xslotstructure.additionalfraction
                     fingerspelled = sign.signlevel_information.fingerspelled
-                    outfile.write(self.delim().join([corpusfilename, gloss, str(whole_xslots), str(frac_xslots), str(fingerspelled)]) + "\n")
+                    outfile.write(self.delim().join([corpusfilename, entryidstring, glosses, str(whole_xslots), str(frac_xslots), str(fingerspelled)]) + "\n")
             return "success"
         except PermissionError:
             return "permission error"

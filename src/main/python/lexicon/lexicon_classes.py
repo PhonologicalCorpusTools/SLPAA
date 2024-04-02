@@ -41,10 +41,10 @@ class LocationTranscription:
 
         #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
-# TODO: need to think about duplicated signs
+
 class Sign:
     """
-    Gloss in signlevel_information is used as the unique key
+    EntryID in signlevel_information is used as the unique key
     """
     def __init__(self, signlevel_info=None, serializedsign=None):
         if signlevel_info is not None:
@@ -297,15 +297,22 @@ class Sign:
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
 
+    # technically this should not be implemented, because Sign objects are mutable
+    # TODO KV - go look at Sign.__init__() ... the Set-ification requires a hash function
     def __hash__(self):
-        return hash(self.signlevel_information.entryid.display_string())  # TODO KV how are equality/keys determined?
+        # sign hash is based on entryid counter,
+        # which is the only identifier that is both obligatory and guaranteed unique
+        return hash(self.signlevel_information.entryid.counter)
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
-    def __eq__(self, other):  # TODO KV how are equality/keys determined?
-        return isinstance(other, Sign) and self.signlevel_information.entryid == other.signlevel_information.entryid
+    def __eq__(self, other):
+        # sign equality is based on entryid counter,
+        # which is the only identifier that is both obligatory and guaranteed unique
+        return isinstance(other, Sign) and self.signlevel_information.entryid.counter == other.signlevel_information.entryid.counter
 
     def __repr__(self):
-        return '<SIGN: ' + repr(self.signlevel_information.gloss) + ' - ' + repr(self.signlevel_information.entryid) + '>'
+        glosses_string = " / ".join(self.signlevel_information.gloss)
+        return '<SIGN: ' + repr(glosses_string) + ' - ' + repr(self.signlevel_information.entryid) + '>'
 
     @property
     def signlevel_information(self):
@@ -457,14 +464,11 @@ class Corpus:
             'highest id': self.highestID
         }
 
-    def get_sign_glosses(self):
-        return sorted([sign.signlevel_information.gloss for sign in self.signs])
+    def get_all_lemmas(self):
+        return [sign.signlevel_information.lemma for sign in self.signs]
 
-    def get_sign_lemmas(self):
-        return sorted([sign.signlevel_information.lemma for sign in self.signs])
-
-    def get_sign_idglosses(self):
-        return sorted([sign.signlevel_information.idgloss for sign in self.signs])
+    def get_all_idglosses(self):
+        return [sign.signlevel_information.idgloss for sign in self.signs]
 
     def add_sign(self, new_sign):
         self.signs.add(new_sign)
