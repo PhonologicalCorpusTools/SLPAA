@@ -51,7 +51,7 @@ class SignLevelDateDisplay(QLabel):
 
 # This model supplies the data for the multiple-glosses editor QListView() in the SignLevelInfoPanel
 class GlossesListModel(QStringListModel):
-    enterglosshere_label = 'Double-click to enter gloss here'
+    enterglosshere_label = 'Double-click here to enter gloss'
 
     def __init__(self, gloss_strings=None, **kwargs):
         super().__init__(**kwargs)
@@ -75,7 +75,7 @@ class GlossesListModel(QStringListModel):
     # This function returns the list of actual glosses in the model.
     # The return list does *not* include
     #   (a) entries with length 0 or consisting solely of whitespace, or
-    #   (b) the default placeholder entry 'Double-click to enter gloss here'.
+    #   (b) the default placeholder entry 'Double-click here to enter gloss'.
     # This is as opposed to stringList(), which returns *all* the items in the model, including
     # potentially empty and/or default entries.
     # The intention is that stringList() should be used by GUI elements such as the model view,
@@ -93,12 +93,22 @@ class GlossesListView(QListView):
     def __init__(self):
         super().__init__()
 
+    def setModel(self, model):
+        super().setModel(model)
+        self.model().dataChanged.connect(self.handle_model_changed)
+
+    def handle_model_changed(self, topleft, bottomright):
+        numrows = self.model().rowCount()
+        lastindex = self.model().index(numrows - 1)
+        self.scrollTo(lastindex, QListView.EnsureVisible)
+
     def keyPressEvent(self, event):
         key = event.key()
         if key == Qt.Key_Delete or key == Qt.Key_Backspace:
             indexesofselectedrows = self.selectionModel().selectedRows()
             for itemindex in indexesofselectedrows:
-                self.model().removeRow(itemindex.row())
+                if itemindex.data() != GlossesListModel.enterglosshere_label:
+                    self.model().removeRow(itemindex.row())
 
 
 class SignLevelInfoPanel(QFrame):
