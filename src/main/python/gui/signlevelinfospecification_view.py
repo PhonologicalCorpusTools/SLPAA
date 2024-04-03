@@ -262,7 +262,8 @@ class SignLevelInfoPanel(QFrame):
         return 'R' if self.handdominance_r_radio.isChecked() else 'L'
 
     def get_value(self):
-        gloss, lemma, idgloss = self.get_identifiers()
+        identifiers = self.get_identifiers()
+        gloss, lemma, idgloss = identifiers or (None, None, None)
         if gloss or lemma or idgloss:
             if self.created_display.text() == "" or self.modified_display.text() == "":
                 newtime = datetime.now()
