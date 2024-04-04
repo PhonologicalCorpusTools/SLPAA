@@ -916,7 +916,7 @@ class MainWindow(QMainWindow):
         self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
-            self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])  ########### TODO KV make sure first sign in sorted list is selected
+            self.corpus_display.selectfirstrow()
         else:  # if loading a blank corpus
             self.signsummary_panel.mainwindow.current_sign = None  # refreshsign() checks for this
             self.signsummary_panel.refreshsign(None)
@@ -946,25 +946,6 @@ class MainWindow(QMainWindow):
             self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
             self.corpus_display.handle_selection(stashed_corpusselection)
 
-# ############### on_action_delete_sign from main branch
-#     def on_action_delete_sign(self, clicked):
-#         response = QMessageBox.question(self, 'Delete the selected sign',
-#                                         'Do you want to delete the selected sign?')
-#         if response == QMessageBox.Yes:
-#             previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
-#
-#             # delete self.current_sign.
-#             # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
-#             self.signlevel_panel.handle_delete_signlevelinfo(previous)
-#             # self.corpus.remove_sign(self.current_sign)
-#             # self.corpus_display.updated_signs(self.corpus.signs, previous)
-#
-#             self.select_sign([previous])
-#             self.handle_sign_selected(previous)
-#             # TODO KV need to also have that sign selected in the corpus view,
-#             #  as well as displaying its summary in the xslot view
-
-############### on_action_delete_sign from 105 branch
     def on_action_delete_sign(self, clicked):
         if self.current_sign:  # does the sign to delete exist?
             glosseslist = self.current_sign.signlevel_information.gloss
@@ -977,20 +958,6 @@ class MainWindow(QMainWindow):
             if response == QMessageBox.Yes:
                 self.corpus.remove_sign(self.current_sign)
                 self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
-
-# ################# select_sign from main branch
-#     # TODO KV finish implementing
-#     def select_sign(self, signstoselect):
-#         selectionmodel = self.corpus_display.corpus_view.selectionModel()
-#         indices = []
-#         for sign in signstoselect:
-#             try:
-#                 indices.append(list(self.corpus.signs).index(sign))
-#             except ValueError:
-#                 pass
-
-################# select_sign from 105 branch
-    # does not exist
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes

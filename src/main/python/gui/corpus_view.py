@@ -82,15 +82,6 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
-############## handle_selection from main branch
-    # def handle_selection(self, index):
-    #     themodel = index.model()
-    #     if themodel is not None:
-    #         index = themodel.mapToSource(index)
-    #         sign = self.corpus_model.itemFromIndex(index).sign
-    #         self.selected_sign.emit(sign)
-
-############## handle_selection from 105 branch
     def handle_selection(self, proxyindex=None):
         if proxyindex is not None and proxyindex.model() is not None:
             sourceindex = self.corpus_sortproxy.mapToSource(proxyindex)
@@ -98,26 +89,6 @@ class CorpusDisplay(QWidget):
             self.selected_sign.emit(sign)
         else:
             self.selection_cleared.emit()
-
-############## updated_signs from main branch
-    # def updated_signs(self, signs, current_sign=None):
-    #     self.corpus_model.setsigns(signs)
-    #     self.corpus_model.layoutChanged.emit()
-    #
-    #     # Reset the selection mode
-    #     try:
-    #         index = 0 if current_sign is None else list(signs).index(current_sign)
-    #         # Ref: https://www.qtcentre.org/threads/32007-SetSelection-QListView-Pyqt
-    #         # # sourcemodelindex = self.corpus_view.model().index(index, 0)
-    #         # # proxymodelindex = self.corpus_view.model().mapFromSource(sourcemodelindex)
-    #         # # self.corpus_view.selectionModel().setCurrentIndex(proxymodelindex, QItemSelectionModel.SelectCurrent)
-    #         self.corpus_view.selectionModel().setCurrentIndex(self.corpus_view.model().index(index, 0),
-    #                                                           QItemSelectionModel.SelectCurrent)
-    #
-    #     except ValueError:
-    #         self.clear()
-
-############## updated_signs from 105 branch
 
     # if deleted==True, then current_sign is the sign that was deleted and we should select the *next* one
     # but if deleted==False, then current_sign is the one that should be selected (because it was either just added or just updated)
@@ -157,8 +128,13 @@ class CorpusDisplay(QWidget):
                         proxymodelrow += 1
 
             self.corpus_view.selectRow(rowtoselect)  # row -1 (ie, no selection) if current_sign is None
-            self.corpus_view.scrollTo(selected_proxyindex or self.getproxyindex(fromproxyrowcol=(rowtoselect, 0)),
-                                      QTableView.EnsureVisible)
+            if selected_proxyindex:
+                # don't ask... there must be a delay or a sync-timing thing that I can't figure out,
+                # but for now all I can say is that calling it twice works but calling it once doesn't. sigh.
+                self.corpus_view.scrollTo(selected_proxyindex, QTableView.EnsureVisible)
+                self.corpus_view.scrollTo(selected_proxyindex, QTableView.EnsureVisible)
+            else:
+                self.corpus_view.scrollToTop()
             self.handle_selection(selected_proxyindex)
         except ValueError:
             self.clear()
@@ -179,6 +155,10 @@ class CorpusDisplay(QWidget):
 
     def getcorpusitem(self, fromsourceindex):
         return self.corpus_view.model().sourceModel().itemFromIndex(fromsourceindex)
+
+    def selectfirstrow(self):
+        if self.getrowcount() > 0:
+            self.corpus_view.selectRow(0)
 
     def getrowcount(self):
         return self.corpus_view.model().rowCount()
