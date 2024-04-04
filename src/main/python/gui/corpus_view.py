@@ -1,6 +1,7 @@
 from PyQt5.QtCore import (
     Qt,
-    pyqtSignal
+    pyqtSignal,
+    QModelIndex
 )
 
 from PyQt5.QtWidgets import (
@@ -40,14 +41,14 @@ class CorpusDisplay(QWidget):
         main_layout.addLayout(filename_layout)
 
         self.corpus_model = CorpusModel(settings=self.mainwindow.app_settings, parent=self)
-        self.corpus_view = QTableView(parent=self)
+        self.corpus_view = CorpusTableView(parent=self)
         self.corpus_view.verticalHeader().hide()
 
         self.corpus_sortproxy = CorpusSortProxyModel(parent=self)
         self.corpus_sortproxy.setSourceModel(self.corpus_model)
         self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sortnow())
         self.corpus_view.setModel(self.corpus_sortproxy)
-        self.corpus_view.clicked.connect(self.handle_selection)
+        self.corpus_view.newcurrentindex.connect(self.handle_selection)
         self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
         self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
@@ -117,6 +118,7 @@ class CorpusDisplay(QWidget):
     #         self.clear()
 
 ############## updated_signs from 105 branch
+
     # if deleted==True, then current_sign is the sign that was deleted and we should select the *next* one
     # but if deleted==False, then current_sign is the one that should be selected (because it was either just added or just updated)
     def updated_signs(self, signs, current_sign=None, deleted=False):
@@ -139,8 +141,6 @@ class CorpusDisplay(QWidget):
                 if rowtoselect not in range(self.getrowcount()):
                     rowtoselect = self.getrowcount() - 1
                 selected_proxyindex = self.getproxyindex(fromproxyrowcol=(rowtoselect, 0))
-                ########### TODO KV this works well in terms of identifying what to select,
-                # but the selected row isn't necessarily visible
             else:
                 if current_sign is not None:
                     # this whole chunk is meant to identify the row of the proxy model that should be selected
@@ -157,6 +157,8 @@ class CorpusDisplay(QWidget):
                         proxymodelrow += 1
 
             self.corpus_view.selectRow(rowtoselect)  # row -1 (ie, no selection) if current_sign is None
+            self.corpus_view.scrollTo(selected_proxyindex or self.getproxyindex(fromproxyrowcol=(rowtoselect, 0)),
+                                      QTableView.EnsureVisible)
             self.handle_selection(selected_proxyindex)
         except ValueError:
             self.clear()
@@ -191,3 +193,12 @@ class CorpusDisplay(QWidget):
     def filter_corpus_list(self):
         self.corpus_sortproxy.setFilterRegExp(self.sender().text())
         self.corpus_view.clearSelection()  # Deselects all signs in the corpus list
+
+
+class CorpusTableView(QTableView):
+    newcurrentindex = pyqtSignal(QModelIndex)
+
+    # same signal no matter how the user selects a new row
+    # (whether by clicking, using up/down arrows, or typing a character on the keyboard)
+    def currentChanged(self, current, previous):
+        self.newcurrentindex.emit(current)
