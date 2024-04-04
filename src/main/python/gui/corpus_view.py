@@ -131,6 +131,7 @@ class CorpusDisplay(QWidget):
             if selected_proxyindex:
                 # don't ask... there must be a delay or a sync-timing thing that I can't figure out,
                 # but for now all I can say is that calling it twice works but calling it once doesn't. sigh.
+                # possibly relevant: https://forum.qt.io/topic/81671/scrollto-not-working-properly
                 self.corpus_view.scrollTo(selected_proxyindex, QTableView.EnsureVisible)
                 self.corpus_view.scrollTo(selected_proxyindex, QTableView.EnsureVisible)
             else:
