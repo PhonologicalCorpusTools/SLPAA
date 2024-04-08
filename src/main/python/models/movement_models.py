@@ -1179,7 +1179,6 @@ class MovementTreeModel(QStandardItemModel):
             userspecifiedvalues = self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode, userspecifiedvalues)
 
-
     def get_checked_from_serialized_tree(self):
         checked = []
         if hasattr(self, "serializedmvmttree"):

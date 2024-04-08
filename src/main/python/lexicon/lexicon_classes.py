@@ -1,4 +1,5 @@
 import logging
+import os
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, delimiter
@@ -46,6 +47,8 @@ class Sign:
     Gloss in signlevel_information is used as the unique key
     """
     def __init__(self, signlevel_info=None, serializedsign=None):
+        if signlevel_info is not None:
+            signlevel_info.parentsign = self
         self._signlevel_information = signlevel_info
         self._signtype = None
         self._xslotstructure = XslotStructure()
@@ -64,7 +67,7 @@ class Sign:
         self.handconfigmodulenumbers = {}
 
         if serializedsign is not None:
-            self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'])
+            self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
             signtype = serializedsign['type']
             self._signtype = Signtype(signtype.specslist) if signtype is not None else None
             if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
@@ -295,10 +298,10 @@ class Sign:
         self.relationmodules = unserialized
 
     def __hash__(self):
-        return hash(self.signlevel_information.entryid)
+        return hash(self.signlevel_information.entryid.display_string())  # TODO KV how are equality/keys determined?
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
-    def __eq__(self, other):
+    def __eq__(self, other):  # TODO KV how are equality/keys determined?
         return isinstance(other, Sign) and self.signlevel_information.entryid == other.signlevel_information.entryid
 
     def __repr__(self):
@@ -311,6 +314,7 @@ class Sign:
     @signlevel_information.setter
     def signlevel_information(self, signlevelinfo):
         self._signlevel_information = signlevelinfo  # SignLevelInformation(signlevelinfo)
+        self._signlevel_information.parentsign = self
 
     @property
     def location(self):
@@ -347,73 +351,18 @@ class Sign:
     def xslotstructure(self, xslotstruct):
         self._xslotstructure = xslotstruct
 
-    def updatemodule_sharedattributes(self, current_mod, updated_mod):
-        ischanged = False
-        if current_mod.articulators != updated_mod.articulators:
-            current_mod.articulators = updated_mod.articulators
-            ischanged = True
-        if current_mod.timingintervals != updated_mod.timingintervals:
-            current_mod.timingintervals = updated_mod.timingintervals
-            ischanged = True
-        if current_mod.addedinfo != updated_mod.addedinfo:
-            current_mod.addedinfo = updated_mod.addedinfo
-            ischanged = True
-        return ischanged
-
     def updatemodule(self, existingkey, updated_module, moduletype):
         current_module = self.getmoduledict(moduletype)[existingkey]
         ischanged = False
 
-        if self.updatemodule_sharedattributes(current_module, updated_module):
-            ischanged = True
-
-        if moduletype == ModuleTypes.MOVEMENT:
-            if current_module.movementtreemodel != updated_module.movementtreemodel:
-                current_module.movementtreemodel = updated_module.movementtreemodel
+        currentmod_attrs = current_module.__dict__
+        updatedmod_attrs = updated_module.__dict__
+        for attr in currentmod_attrs:
+            if currentmod_attrs[attr] != updatedmod_attrs[attr]:
+                # TODO KV note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
+                # therefore copies (even if identical) of these classes will not be assessed as equal
+                currentmod_attrs[attr] = updatedmod_attrs[attr]
                 ischanged = True
-            if current_module.inphase != updated_module.inphase:
-                current_module.inphase = updated_module.inphase
-                ischanged = True
-        elif moduletype == ModuleTypes.LOCATION:
-            if current_module.locationtreemodel != updated_module.locationtreemodel:
-                current_module.locationtreemodel = updated_module.locationtreemodel
-                ischanged = True
-            if current_module.inphase != updated_module.inphase:
-                current_module.inphase = updated_module.inphase
-                ischanged = True
-            if current_module.phonlocs != updated_module.phonlocs:
-                current_module.phonlocs = updated_module.phonlocs
-                ischanged = True
-        elif moduletype == ModuleTypes.HANDCONFIG:
-            if current_module.handconfiguration != updated_module.handconfiguration:
-                current_module.handconfiguration = updated_module.handconfiguration
-                ischanged = True
-            if current_module.overalloptions != updated_module.overalloptions:
-                current_module.overalloptions = updated_module.overalloptions
-                ischanged = True
-        elif moduletype == ModuleTypes.RELATION:
-            if current_module.relationx != updated_module.relationx:
-                current_module.relationx = updated_module.relationx
-                ischanged = True
-            if current_module.relationy != updated_module.relationy:
-                current_module.relationy = updated_module.relationy
-                ischanged = True
-            if current_module.bodyparts_dict != updated_module.bodyparts_dict:
-                current_module.bodyparts_dict = updated_module.bodyparts_dict
-                ischanged = True
-            if current_module.contactrel != updated_module.contactrel:
-                current_module.contactrel = updated_module.contactrel
-                ischanged = True
-            if current_module.xy_crossed != updated_module.xy_crossed:
-                current_module.xy_crossed = updated_module.xy_crossed
-                ischanged = True
-            if current_module.xy_linked != updated_module.xy_linked:
-                current_module.xy_linked = updated_module.xy_linked
-                ischanged = True
-            if current_module.directions != updated_module.directions:
-                current_module.directions = updated_module.directions
-                ischanged = True
-
         if ischanged:
             self.lastmodifiednow()
 
@@ -456,46 +405,55 @@ class Sign:
 
 class Corpus:
     #TODO: need a default for location_definition
-    def __init__(self, name="", signs=None, location_definition=None, path=None, serializedcorpus=None, highestID=0):
+    def __init__(self, signs=None, location_definition=None, path=None, serializedcorpus=None, minimumID=1, highestID=0):
         if serializedcorpus:
-            self.name = serializedcorpus['name']
             self.signs = set([Sign(serializedsign=s) for s in serializedcorpus['signs']])
-            self.location_definition = serializedcorpus['loc defn']
-            # self.movement_definition = serializedcorpus['mvmt defn']
+            # self.location_definition = serializedcorpus['loc defn']
             self.path = serializedcorpus['path']
+            self.minimumID = serializedcorpus['minimum id'] if 'minimum id' in serializedcorpus.keys() else 1
             self.highestID = serializedcorpus['highest id']
-            # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+            # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty 
             # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
-            self.confirmhighestID("load")
-            self.add_missing_paths() # Another backwards compatibility function for movement and location
+            if len(self) > 0:
+                self.confirmhighestID("load")
+            self.add_missing_paths()  # Another backwards compatibility function for movement and location
         else:
-            self.name = name
             self.signs = signs if signs else set()
             self.location_definition = location_definition
             # self.movement_definition = movement_definition
             self.path = path
+            self.minimumID = minimumID
             self.highestID = highestID
 
     # check and make sure the highest ID saved is equivalent to the actual highest entry ID
     # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
     # this function should hopefully not be necessary forever, but for now I want to make sure that
     # functionality isn't affected by an incorrectly-saved value
-    def confirmhighestID(self, saveorload):
-        entryIDs = [s.signlevel_information.entryid for s in self.signs]
-        max_entryID = max(entryIDs)
+    def confirmhighestID(self, actionname):
+        entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs] or [0]
+        max_entryID = max(entryIDcounters)
         if max_entryID > self.highestID:
-            logging.warn(" upon " + saveorload + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
+            logging.warn(" upon " + actionname + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
 
+    def increaseminID(self, newmin):
+        if newmin > self.minimumID:
+            increase_amount = newmin - self.minimumID
+            self.minimumID = newmin
+            for s in self.signs:
+                s.signlevel_information.entryid.counter += increase_amount
+            self.highestID += increase_amount
+
     def serialize(self):
-        # check and make sure the highest ID saved is equivalent to the actual highest entry ID
+        # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty
         # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
-        self.confirmhighestID("save")
+        if len(self) > 0:
+            self.confirmhighestID("save")
         return {
-            'name': self.name,
             'signs': [s.serialize() for s in list(self.signs)],
-            'loc defn': self.location_definition,
+            # 'loc defn': self.location_definition,
             'path': self.path,
+            'minimum id': self.minimumID,
             'highest id': self.highestID
         }
 
@@ -528,7 +486,7 @@ class Corpus:
 
         return self.get_sign_by_gloss(previous_gloss)
 
-
+    # TODO update this-- gloss is no longer a unique key for signs
     def get_sign_by_gloss(self, gloss):
         # Every sign has a unique gloss, so this function will always return one sign
         for sign in self.signs:
@@ -537,7 +495,7 @@ class Corpus:
 
     def add_sign(self, new_sign):
         self.signs.add(new_sign)
-        self.highestID = max([new_sign.signlevel_information.entryid, self.highestID])
+        self.highestID = max(new_sign.signlevel_information.entryid.counter, self.highestID)
 
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)
@@ -552,7 +510,10 @@ class Corpus:
         return len(self.signs)
 
     def __repr__(self):
-        return '<CORPUS: ' + repr(self.name) + '>'
+        filename = "not yet saved"
+        if self.path:
+            _, filename = os.path.split(self.path)
+        return '<CORPUS: ' + repr(filename) + '>'
     
     def add_missing_paths(self):
         for sign in self.signs:
@@ -588,7 +549,7 @@ class Corpus:
                             if len(m.get_checked_from_serialized_tree()) == 0:
                                 empty_module_flag = True
                             self.add_missing_paths_helper(gloss, m, type, count, correctionsdict, verbose=False)
-                        if empty_module_flag:
+                        if empty_module_flag and module.contactrel.contact:
                             label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
                             mssg = ": Module has no bodypart selections. Is something missing?"
                             logging.warning(label + mssg)
@@ -747,4 +708,3 @@ class Corpus:
                 nodes[3].replace('Mastoid process', 'Behind ear')
                 paths_to_add.append(nodes)
         return paths_to_add
-    

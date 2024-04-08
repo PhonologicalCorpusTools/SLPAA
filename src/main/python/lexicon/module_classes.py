@@ -5,6 +5,7 @@ import logging
 
 from PyQt5.QtCore import (
     Qt,
+    QSettings
 )
 
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
@@ -143,17 +144,101 @@ class ParameterModule:
         return "TODO no Module abbreviations implemented yet"
 
 
+class EntryID:
+    def __init__(self, counter=None, parentsign=None):
+        self.parentsign = parentsign
+        # all other attributes of EntryID are sourced from QSettings, sign, and/or sign-level info,
+        # so that they're not stored twice (and therefore we don't need to update in multiple places
+        # if any of those values change)
+        self._counter = counter
+
+        # TODO - eventually add other attributes (coder, signer, source, recording info)
+        # see class EntryIDTab in preference_dialog.py
+        # and https://github.com/PhonologicalCorpusTools/SLPAA/issues/18#issuecomment-1074184453
+
+    @property
+    def counter(self):
+        return self._counter
+
+    @counter.setter
+    def counter(self, new_counter):
+        self._counter = new_counter
+
+    @property
+    def date(self):
+        if self.parentsign is not None:
+            return self.parentsign.signlevel_information.datecreated
+        else:  # this shouldn't ever actually happen, but just in case...
+            return datetime.now()
+
+    def getattributestringfromname(self, attr_name, qsettings):
+        if attr_name == 'date':
+            return "" if self.date is None else self.date.strftime(qsettings.value('entryid/date/format', type=str))
+        elif attr_name == 'counter':
+            counter_string = str(self.counter)
+            return "0" * (qsettings.value('entryid/counter/digits', type=int) - len(counter_string)) + counter_string
+        elif attr_name in dir(self):
+            # assuming we have a @property function for this attribute and it doesn't need any additional formatting
+            return getattr(self, attr_name)
+        else:
+            return ""
+
+    def display_string(self):
+        qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+
+        orders_strings = []
+        for attr in ['counter', 'date']:  # could these come from 'attr in dir(self)' instead?
+            if qsettings.value('entryid/' + attr + '/visible', type=bool):
+                orders_strings.append((qsettings.value('entryid/' + attr + '/order', type=int), self.getattributestringfromname(attr, qsettings)))
+        orders_strings.sort()
+        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or "[No selected Entry ID elements to display]"
+
+    # == check compares the displayed strings
+    def __eq__(self, other):
+        if isinstance(other, EntryID):
+            return self.display_string() == other.display_string()
+        return False
+
+    # != check compares the displayed strings
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    # < check compares the displayed strings
+    def __lt__(self, other):
+        if isinstance(other, EntryID):
+            return self.display_string() < other.display_string()
+        return False
+
+    # > check compares the displayed strings
+    def __gt__(self, other):
+        return other.__lt__(self)
+
+    # <= check compares the displayed strings
+    def __le__(self, other):
+        return not self.__gt__(other)
+
+    # >= check compares the displayed strings
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
+
 class SignLevelInformation:
-    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
+    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None, parentsign=None):
+        self._parentsign = parentsign
+
         if serializedsignlevelinfo is not None:
-            self._entryid = serializedsignlevelinfo['entryid']
+            datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            # as of 20240209, entryid has shifted from being an integer to an EntryID object
+            # but due to complications with EntryID containing a reference to its parent Sign,
+            # we still store it as only the counter value and then recreate when loading from file
+            self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
             self._gloss = serializedsignlevelinfo['gloss']
             self._lemma = serializedsignlevelinfo['lemma']
             self._source = serializedsignlevelinfo['source']
             self._signer = serializedsignlevelinfo['signer']
             self._frequency = serializedsignlevelinfo['frequency']
             self._coder = serializedsignlevelinfo['coder']
-            self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            self._datecreated = datecreated
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
             # backward compatibility for attribute added 20230412!
@@ -161,7 +246,7 @@ class SignLevelInformation:
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
         elif signlevel_info is not None:
-            self._entryid = signlevel_info['entryid']
+            self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
             self._source = signlevel_info['source']
@@ -179,25 +264,18 @@ class SignLevelInformation:
             print("TODO KV no sign level info; what to do?")
 
     def __eq__(self, other):
-        aresame = True
         if isinstance(other, SignLevelInformation):
-            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
-                aresame = False
-            if self._source != other.source or self._signer != other.signer or self._frequency != other.frequency:
-                aresame = False
-            if self._coder != other.coder or self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
-                aresame = False
-            if self._note != other.note or self._fingerspelled != other.fingerspelled or self._handdominance != other.handdominance:
-                aresame = False
-            if self._compoundsign != other.compoundsign:
-                aresame = False
-        else:
-            aresame = False
-        return aresame
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def serialize(self):
         return {
-            'entryid': self._entryid,
+            'entryid': self._entryid.counter,
             'gloss': self._gloss,
             'lemma': self._lemma,
             'source': self._source,
@@ -213,11 +291,22 @@ class SignLevelInformation:
         }
 
     @property
+    def parentsign(self):
+        return self._parentsign
+
+    @parentsign.setter
+    def parentsign(self, new_parentsign):
+        self._parentsign = new_parentsign
+        self._entryid.parentsign = new_parentsign
+
+    @property
     def entryid(self):
         return self._entryid
 
     @entryid.setter
     def entryid(self, new_entryid):
+        if new_entryid.parentsign is None:
+            new_entryid.parentsign = self.parentsign
         self._entryid = new_entryid
 
     @property
@@ -322,6 +411,9 @@ class SignLevelInformation:
         self._handdominance = new_handdominance
 
 
+# This module stores the movement information for a particular articulator/s.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected movement
+# as well as for the module overall.
 class MovementModule(ParameterModule):
     def __init__(self, movementtreemodel, articulators, timingintervals=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
@@ -454,6 +546,16 @@ class PhonLocations:
         self._majorphonloc = majorphonloc
         self._minorphonloc = minorphonloc
         self._phoneticloc = phoneticloc
+
+    def __eq__(self, other):
+        if isinstance(other, PhonLocations):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def phonologicalloc(self):
@@ -780,6 +882,16 @@ class AddedInfo:
         self._other_flag = other_flag
         self._other_note = other_note
 
+    def __eq__(self, other):
+        if isinstance(other, AddedInfo):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @property
     def iconic_flag(self):
         if not hasattr(self, '_iconic_flag'):
@@ -1064,6 +1176,11 @@ class BodypartInfo:
         return "TODO no BodypartInfo abbreviations implemented yet"
 
 
+# This module stores the location information for a particular articulator/s.
+# It offers the user different location types (on body, in signing space), location options, and
+# (for body-referenced locations) specific surfaces and/or subareas.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected location
+# as well as for the module overall.
 class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, articulators, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
         if phonlocs is None:
@@ -1117,12 +1234,9 @@ class RelationX:
 
     def __eq__(self, other):
         if isinstance(other, RelationX):
-            if self._h1 == other.h1 and self._h2 == other.h2 and self._both == other.both \
-                    and self._connected == other.connected \
-                    and self._arm1 == other.arm1 and self._arm2 == other._arm2 \
-                    and self._leg1 == other.leg1 and self._leg2 == other.leg2 \
-                    and self._other == other.other and self._othertext == other.othertext:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -1299,12 +1413,9 @@ class RelationY:
 
     def __eq__(self, other):
         if isinstance(other, RelationY):
-            if self._h2 == other.h2 and self._arm2 == other.arm2 \
-                    and self._leg1 == other.leg1 and self._leg2 == other.leg2 \
-                    and self._existingmodule == other.existingmodule and \
-                    self._linkedmoduletype == other.linkedmoduletype and self._linkedmoduleids == other.linkedmoduleids \
-                    and self._other == other.other and self._othertext == other.othertext:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -1429,7 +1540,6 @@ class RelationY:
 
 class RelationModule(ParameterModule):
 
-    # def __init__(self, relationx, relationy, hand1part, hand2part, arm1part, arm2part, leg1part, leg2part, contactrel, xy_crossed, xy_linked, directionslist, hands, timingintervals=None, addedinfo=None):
     def __init__(self, relationx, relationy, bodyparts_dict, contactrel, xy_crossed, xy_linked, directionslist, articulators, timingintervals=None, addedinfo=None):
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
@@ -1635,8 +1745,9 @@ class ContactRelation:
 
     def __eq__(self, other):
         if isinstance(other, ContactRelation):
-            if self._contact == other.contact and self._contacttype == other.contacttype and self._manner == other.manner and self._distances == other.distances:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -1700,8 +1811,9 @@ class ContactType:
 
     def __eq__(self, other):
         if isinstance(other, ContactType):
-            if self._light == other.light and self._firm == other.firm and self._other == other.other and self._othertext == other.othertext:
-                return True
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
         return False
 
     def __ne__(self, other):
@@ -1935,6 +2047,41 @@ class Distance:
             self._medium = False
 
 
+# This module stores the absolute orientation of a particular hand/s.
+# It includes specifications for palm and root directions.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for the module overall.
+class OrientationModule(ParameterModule):
+    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None):
+        self._palm = palmdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+        self._root = rootdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+
+    @property
+    def palm(self):
+        return self._palm
+
+    @palm.setter
+    def palm(self, palm):
+        self._palm = palm
+
+    @property
+    def root(self):
+        return self._root
+
+    @root.setter
+    def root(self, root):
+        self._root = root
+
+
 # This module stores the transcription of one hand's configuration.
 # It includes specifications for each slot in each field, as well as whether the forearm is involved.
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for each slot,
@@ -1979,14 +2126,7 @@ class HandConfigurationModule(ParameterModule):
 
         return predefinedname + fieldstext
 
-
-# TODO comments
-class OrientationModule(ParameterModule):
-    def __init__(self):
-        # TODO implement
-        pass
-
-
+        
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.
 class HandConfigurationHand:
@@ -1995,6 +2135,16 @@ class HandConfigurationHand:
 
     def __iter__(self):
         return chain(iter(self.field2), iter(self.field3), iter(self.field4), iter(self.field5), iter(self.field6), iter(self.field7))
+
+    def __eq__(self, other):
+        if isinstance(other, HandConfigurationHand):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def get_hand_transcription_list(self):
         return [slot.symbol for slot in self.__iter__()]
@@ -2021,6 +2171,16 @@ class HandConfigurationField:
         self._slots = slots
 
         self.set_slots()
+
+    def __eq__(self, other):
+        if isinstance(other, HandConfigurationField):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def field_number(self):
@@ -2066,6 +2226,16 @@ class HandConfigurationSlot:
         self._slot_number = slot_number
         self._symbol = symbol
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+
+    def __eq__(self, other):
+        if isinstance(other, HandConfigurationSlot):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def addedinfo(self):

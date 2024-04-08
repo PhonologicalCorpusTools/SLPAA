@@ -49,9 +49,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
-        # mainwindow & existingkey initialization now done in parent class's init()
-        # self.mainwindow = self.parent().mainwindow
-        # self.existingkey = None
         self.islinkedtopoint = False
         self.islinkedtointerval = False
 

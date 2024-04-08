@@ -51,7 +51,7 @@ class CountXslotsDialog(QDialog):
         self.choosecombinedfilebutton = QPushButton("Select results file")
         self.choosecombinedfilebutton.clicked.connect(self.handle_select_resultsfile)
         form_layout.addRow(self.choosecombinedfilelabel, self.choosecombinedfilebutton)
-        self.countxslotslabel = QLabel("4. Count x-slots for each sign in selected file(s).\nResults for each corpus will be saved in the same location as the original .slpaa file.")
+        self.countxslotslabel = QLabel("4. Count x-slots for each sign in selected file(s).\nIf reporting separately, results for each corpus will be saved in the same location as the original .slpaa file.")
         self.countxslotsbutton = QPushButton("Count x-slots")
         self.countxslotsbutton.clicked.connect(self.handle_count_xslots)
         form_layout.addRow(self.countxslotslabel, self.countxslotsbutton)

@@ -32,6 +32,7 @@ from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
 from gui.relationspecification_view import RelationSpecificationPanel
+from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 from constant import HAND, ARM, LEG
 
@@ -47,7 +48,7 @@ class ModuleSelectorDialog(QDialog):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
         self.moduletype = moduletype
-        self.includearticulatorselection = len(incl_articulators) > 0
+        self.usearticulators = len(incl_articulators) > 0
         self.linkedfrommoduleid = linkedfrommoduleid
         self.linkedfrommoduletype = linkedfrommoduletype
         self.existingkey = None
@@ -73,13 +74,13 @@ class ModuleSelectorDialog(QDialog):
         self.main_layout = QVBoxLayout()
 
         self.arts_and_addedinfo_layout = QHBoxLayout()
-        self.articulators_widget = ArticulatorSelectionPanel(available_articulators=incl_articulators,
-                                                             articulators=articulators,
-                                                             incl_articulator_subopts=incl_articulator_subopts,
-                                                             inphase=inphase,
-                                                             parent=self)
-
-        if self.includearticulatorselection:
+        self.articulators_widget = None
+        if self.usearticulators:
+            self.articulators_widget = ArticulatorSelectionPanel(available_articulators=incl_articulators,
+                                                                 articulators=articulators,
+                                                                 incl_articulator_subopts=incl_articulator_subopts,
+                                                                 inphase=inphase,
+                                                                 parent=self)
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
         self.arts_and_addedinfo_layout.addStretch()
@@ -94,11 +95,26 @@ class ModuleSelectorDialog(QDialog):
         self.handle_xslot_widget(xslotstructure, timingintervals)
 
         self.module_widget = QWidget()
-        self.assign_module_widget(moduletype, moduletoload)
-        self.main_layout.addWidget(self.module_widget)
+        if moduletype == ModuleTypes.MOVEMENT:
+            self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif moduletype == ModuleTypes.LOCATION:
+            self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif self.moduletype == ModuleTypes.RELATION:
+            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
+            if self.usexslots:
+                self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
+                self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
+                self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
+            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+        elif self.moduletype == ModuleTypes.ORIENTATION:
+            self.module_widget = OrientationSpecificationPanel(moduletoload=moduletoload, parent=self)
+        main_layout.addWidget(self.module_widget)
 
         self.handle_articulator_changed(articulators[0])
-        self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
+        if self.usearticulators:
+            self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
 
         if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
             self.associatedrelations_widget = AssociatedRelationsPanel(parent=self)
@@ -108,8 +124,10 @@ class ModuleSelectorDialog(QDialog):
 
             self.associatedrelations_widget.save_anchor.connect(self.handle_save_anchor)
             self.associatedrelations_widget.module_saved.connect(self.handle_modulesaved)
-            self.xslot_widget.selection_changed.connect(self.check_enable_saveaddrelation)
-            self.articulators_widget.articulator_group.buttonClicked.connect(self.check_enable_saveaddrelation)
+            if self.usexslots:
+                self.xslot_widget.selection_changed.connect(self.check_enable_saveaddrelation)
+            if self.usearticulators:
+                self.articulators_widget.articulator_group.buttonClicked.connect(self.check_enable_saveaddrelation)
             if self.moduletype == ModuleTypes.LOCATION:
                 self.module_widget.loctype_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
                 self.module_widget.signingspace_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
@@ -163,6 +181,19 @@ class ModuleSelectorDialog(QDialog):
 
         self.main_layout.addWidget(self.button_box)
 
+        self.setLayout(main_layout)
+        # self.setMinimumSize(QSize(500, 700))
+        # # self.setMinimumSize(modulelayout.desiredwidth(), modulelayout.desiredheight())
+        # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
+        # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # self.adjustSize()
+
+        # get first rendered widget heights and fix them.
+        if self.usearticulators:
+            self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
+        if self.usexslots:
+            self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
+
 
     def assign_module_widget(self, moduletype, moduletoload):
         if moduletype == ModuleTypes.MOVEMENT:
@@ -192,10 +223,10 @@ class ModuleSelectorDialog(QDialog):
 
     def check_enable_saveaddrelation(self):
         hastiming = self.validate_timingintervals()[0]
-        hashands = self.validate_articulators()[0]
+        hasarticulators = self.validate_articulators()[0]
         bodyloc = (
             self.module_widget.getcurrentlocationtype().usesbodylocations() if self.moduletype == ModuleTypes.LOCATION else None)
-        self.associatedrelations_widget.check_enable_saveaddrelation(hastiming, hashands, bodyloc)
+        self.associatedrelations_widget.check_enable_saveaddrelation(hastiming, hasarticulators, bodyloc)
 
     def style_seeassociatedrelations(self):
         self.associatedrelations_widget.style_seeassociatedrelations()
@@ -210,23 +241,25 @@ class ModuleSelectorDialog(QDialog):
 
     # validate timing interval(s) selection (all modules must be linked to at least one timing point or interval)
     def validate_timingintervals(self):
-        timingintervals = self.xslot_widget.gettimingintervals()
-        timingvalid = True
-        if len(timingintervals) == 0 and self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
-            timingvalid = False
-        elif self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none':
+        if self.usexslots:
+            timingintervals = self.xslot_widget.gettimingintervals()
+            timingvalid = len(timingintervals) != 0
+        else:
             # no x-slots; make the timing interval be for the whole sign
             timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
+            timingvalid = True
 
         return timingvalid, timingintervals
 
     # validate articulator selection (all modules except relation must have at least one articulator selected)
     def validate_articulators(self):
-
-        articulator, articulator_dict = self.articulators_widget.getarticulators()
-        articulatorsvalid = True
-        if self.includearticulatorselection and (articulator is None or True not in articulator_dict.values()):
-            articulatorsvalid = False
+        if self.usearticulators:
+            articulator, articulator_dict = self.articulators_widget.getarticulators()
+            articulatorsvalid = not (articulator is None or True not in articulator_dict.values())
+        else:
+            articulator = ""  # otherwise "Hand", "Arm", or "Leg"
+            articulator_dict = {1: False, 2: False}  # as if no articulators are selected
+            articulatorsvalid = True
 
         return articulatorsvalid, (articulator, articulator_dict)
 
@@ -266,14 +299,14 @@ class ModuleSelectorDialog(QDialog):
             self.validate_and_save(addanother=False, closedialog=True)
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
-            # TODO KV -- where should the "defaults" be defined?
             self.articulators_widget.clear()
             self.addedinfobutton.clear()
-            self.xslot_widget.clear()
+            if self.usexslots:
+                self.xslot_widget.clear()
             self.module_widget.clear()
 
     def validate_and_save(self, addanother=False, closedialog=False):
-        inphase = self.articulators_widget.getphase()
+        inphase = self.articulators_widget.getphase() if self.usearticulators else 0
         addedinfo = self.addedinfobutton.addedinfo
 
         # validate hand selection
@@ -305,9 +338,11 @@ class ModuleSelectorDialog(QDialog):
             # save info and then refresh screen to start next module
             savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
             self.module_saved.emit(savedmodule, self.moduletype)
-            self.articulators_widget.clear()
+            if self.usearticulators:
+                self.articulators_widget.clear()
             self.addedinfobutton.clear()
-            self.xslot_widget.clear()
+            if self.usexslots:
+                self.xslot_widget.clear()
             self.module_widget.clear()
             self.module_widget.existingkey = None
             if self.moduletype == ModuleTypes.RELATION:
@@ -444,10 +479,10 @@ class AssociatedRelationsPanel(QFrame):
         hasrelation = self.anchorhasassociatedrelations()
         self.seerelations_button.hasrelations = hasrelation
 
-    def check_enable_saveaddrelation(self, hastiming=None, hashands=None, bodyloc=None):
+    def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
         enable_addrelation = True
 
-        if hastiming is None and hashands is None and bodyloc is None:
+        if hastiming is None and hasarticulators is None and bodyloc is None:
             enable_addrelation = False
 
         # only use arguments if they have a boolean value (ie, are not None)
@@ -458,9 +493,9 @@ class AssociatedRelationsPanel(QFrame):
         if bodyloc is not None:
             # make sure the anchor is not a purely spatial location
             enable_addrelation = enable_addrelation and bodyloc
-        if hashands is not None:
+        if hasarticulators is not None:
             # make sure the anchor has a valid hand(s) selection
-            enable_addrelation = enable_addrelation and hashands
+            enable_addrelation = enable_addrelation and hasarticulators
 
         self.addrelation_button.setEnabled(enable_addrelation)
 
