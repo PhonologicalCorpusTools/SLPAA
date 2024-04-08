@@ -145,7 +145,7 @@ class MergeCorporaDialog(QDialog):
 
         glosses_seen = defaultdict(list)
         lemmas_seen = defaultdict(list)
-        # idglosses_seen = defaultdict(list)
+        idglosses_seen = defaultdict(list)
 
         for corpusfilepath in self.corpuspaths_order if self.corpuspaths_order else self.corpusfilepaths:
             self.statusdisplay.appendText("\t" + filenamefrompath(corpusfilepath), afternewline=True)
@@ -161,17 +161,14 @@ class MergeCorporaDialog(QDialog):
                     for sign in corpustoadd.signs:
                         mergedcorpus.add_sign(sign)
                         sli = sign.signlevel_information
-                        gloss = sli.gloss.lower().strip()
-                        if gloss != "":
+                        for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:
                             glosses_seen[gloss].append(corpusfilepath)
-                        # for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:
-                        #     glosses_seen[gloss].append(corpusfilepath)
                         lemma = sli.lemma.lower().strip()
                         if lemma != "":
                             lemmas_seen[lemma].append(corpusfilepath)
-                        # idgloss = sli.idgloss.lower().strip()
-                        # if idgloss != "":
-                        #     idglosses_seen[idgloss].append(corpusfilepath)
+                        idgloss = sli.idgloss.lower().strip()
+                        if idgloss != "":
+                            idglosses_seen[idgloss].append(corpusfilepath)
 
                     mergedcorpus.highestID = corpustoadd.highestID
                     self.results_lists["successful results"].append(corpusfilepath)
@@ -184,11 +181,9 @@ class MergeCorporaDialog(QDialog):
         for (lemma, corpuslist) in lemmas_seen.items():
             if len(corpuslist) > 1:
                 self.results_lists["duplicated lemmas"].append(lemma)
-        # for (idgloss, corpuslist) in idglosses_seen.items():
-        #     if len(corpuslist) > 1:
-        #         self.results_lists["duplicated ID-glosses"].append(idgloss)
-
-
+        for (idgloss, corpuslist) in idglosses_seen.items():
+            if len(corpuslist) > 1:
+                self.results_lists["duplicated ID-glosses"].append(idgloss)
 
         self.parent().save_corpus_binary(othercorpusandpath=(mergedcorpus, self.mergedfilepath))
 
