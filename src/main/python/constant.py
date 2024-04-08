@@ -1,3 +1,4 @@
+import os
 from fractions import Fraction
 
 from lexicon.location import LocationParameter, Locations
@@ -337,3 +338,7 @@ ARTICULATOR_ABBREVS = {
     ARM: "A",
     LEG: "L"
 }
+
+
+def filenamefrompath(filepath):
+    return os.path.split(filepath)[1]
