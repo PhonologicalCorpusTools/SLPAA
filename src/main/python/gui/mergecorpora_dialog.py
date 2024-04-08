@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 from PyQt5.QtWidgets import (
     QVBoxLayout,
@@ -34,7 +35,10 @@ class MergeCorporaDialog(QDialog):
             "incorrect format": [],
             "failed to load": [],
             "failed to count": [],
-            "successful results": []
+            "successful results": [],
+            "duplicated glosses": [],
+            "duplicated lemmas": [],
+            "duplicated ID-glosses": []
         }
 
         main_layout = QVBoxLayout()
@@ -131,6 +135,10 @@ class MergeCorporaDialog(QDialog):
     def load_and_merge_corpora(self):
         mergedcorpus = Corpus()
 
+        glosses_seen = defaultdict(list)
+        lemmas_seen = defaultdict(list)
+        # idglosses_seen = defaultdict(list)
+
         for corpusfilepath in self.corpuspaths_order if self.corpuspaths_order else self.corpusfilepaths:
             self.statusdisplay.appendText("\t" + filenamefrompath(corpusfilepath), afternewline=True)
 
@@ -144,10 +152,35 @@ class MergeCorporaDialog(QDialog):
                     corpustoadd.increaseminID(mergedcorpus.highestID + 1)
                     for sign in corpustoadd.signs:
                         mergedcorpus.add_sign(sign)
+                        sli = sign.signlevel_information
+                        gloss = sli.gloss.lower().strip()
+                        if gloss != "":
+                            glosses_seen[gloss].append(corpusfilepath)
+                        # for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:
+                        #     glosses_seen[gloss].append(corpusfilepath)
+                        lemma = sli.lemma.lower().strip()
+                        if lemma != "":
+                            lemmas_seen[lemma].append(corpusfilepath)
+                        # idgloss = sli.idgloss.lower().strip()
+                        # if idgloss != "":
+                        #     idglosses_seen[idgloss].append(corpusfilepath)
+
                     mergedcorpus.highestID = corpustoadd.highestID
                     self.results_lists["successful results"].append(corpusfilepath)
 
                     # self.results_lists["failed to load"].append(corpusfilepath + " (" + result + ")")
+
+        for (gloss, corpuslist) in glosses_seen.items():
+            if len(corpuslist) > 1:
+                self.results_lists["duplicated glosses"].append(gloss)
+        for (lemma, corpuslist) in lemmas_seen.items():
+            if len(corpuslist) > 1:
+                self.results_lists["duplicated lemmas"].append(lemma)
+        # for (idgloss, corpuslist) in idglosses_seen.items():
+        #     if len(corpuslist) > 1:
+        #         self.results_lists["duplicated ID-glosses"].append(idgloss)
+
+
 
         self.parent().save_corpus_binary(othercorpusandpath=(mergedcorpus, self.mergedfilepath))
 
