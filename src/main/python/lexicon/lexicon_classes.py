@@ -298,7 +298,7 @@ class Sign:
         self.relationmodules = unserialized
 
     # technically this should not be implemented, because Sign objects are mutable
-    # TODO KV - go look at Sign.__init__() ... the Set-ification requires a hash function
+    # but a Corpus is implemented as a set of Sign objects, so we need a hash function
     def __hash__(self):
         # sign hash is based on entryid counter,
         # which is the only identifier that is both obligatory and guaranteed unique
