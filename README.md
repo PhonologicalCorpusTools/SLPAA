@@ -14,6 +14,8 @@ Currently, SLP-AA is a stand-alone piece of software that can be used to give de
 
 The handshape fonts are created by <a href="http://www.cslds.org/v4/resources.php?id=1">CSLDS, CUHK</a>.
 
+See a list of our [contributors](CONTRIBUTORS.md).
+
 References:
 
 Brentari, D. (1998). A Prosodic Model of Sign Language Phonology. Cambridge, MA: MIT Press.
