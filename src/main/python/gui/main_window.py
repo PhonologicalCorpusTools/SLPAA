@@ -47,6 +47,7 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
+from gui.mergecorpora_dialog import MergeCorporaDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
 from gui.export_csv_dialog import ExportCSVDialog
@@ -54,7 +55,7 @@ from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
-from constant import SAMPLE_LOCATIONS
+from constant import SAMPLE_LOCATIONS, filenamefrompath
 from lexicon.lexicon_classes import Corpus
 from serialization_classes import renamed_load
 
@@ -174,6 +175,11 @@ class MainWindow(QMainWindow):
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
+
+        # merge corpora
+        action_merge_corpora = QAction("Merge corpora...", parent=self)
+        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
+        action_merge_corpora.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -312,8 +318,9 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
+        menu_analysis_beta.addAction(action_merge_corpora)
 
-        corpusfilename = os.path.split(self.corpus.path)[1] if self.corpus else ""
+        corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
         self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
 
@@ -747,8 +754,12 @@ class MainWindow(QMainWindow):
         location_test_window.exec_()
 
     def on_action_count_xslots(self):
-        count_xslots_window = CountXslotsDialog(self.app_settings, self.app_ctx, parent=self)
+        count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
+
+    def on_action_merge_corpora(self):
+        merge_corpora_window = MergeCorporaDialog(self.app_settings, parent=self)
+        merge_corpora_window.exec_()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
@@ -840,7 +851,7 @@ class MainWindow(QMainWindow):
     def on_action_save(self, clicked):
         if self.corpus.path:
             self.save_corpus_binary()
-            self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
+            self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
 
         self.unsaved_changes = False
         self.undostack.clear()
@@ -859,14 +870,19 @@ class MainWindow(QMainWindow):
                 self.app_settings['storage']['recent_folder'] = folder
 
             self.save_corpus_binary()
-            self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
+            self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
 
             self.unsaved_changes = False
             self.undostack.clear()
 
-    def save_corpus_binary(self):
-        with open(self.corpus.path, 'wb') as f:
-            pickle.dump(self.corpus.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
+    def save_corpus_binary(self, othercorpusandpath=None):
+        corpustosave = self.corpus
+        pathtosaveto = self.corpus.path
+        if othercorpusandpath:
+            corpustosave, pathtosaveto = othercorpusandpath
+
+        with open(pathtosaveto, 'wb') as f:
+            pickle.dump(corpustosave.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_corpus_binary(self, path):
         with open(path, 'rb') as f:
@@ -913,7 +929,7 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
-        self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
+        self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
