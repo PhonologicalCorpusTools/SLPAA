@@ -391,7 +391,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def parse_actionstate(self, parent, options):
         """
-        Parses the action state options, reletive to parent and options.options (children)
+        Parses the action state options, relative to parent and options.options (children)
         """
         if isinstance(options, str):
             # in shallow module
@@ -447,11 +447,21 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 for child in options.options:
                     if isinstance(child, str):
                         if ';' in child:
-                            # need radiobutton and lineEdit
+                            # 'Other, specify' (e.g., Eye Gaze > Action/State). Need radiobutton and lineEdit
                             rb_label, txt_line = child.split(';')
                             specify_layout = SpecifyLayout(btn_label=rb_label, text=txt_line)
-                            sub_rb = specify_layout.radio_btn
                             sub_layout.addLayout(specify_layout)
+
+                            # to reference lineEdit content
+                            if hasattr(options, 'widget_le_specify'):
+                                options.widget_le_specify[rb_label] = specify_layout.lineEdit
+                            else:
+                                options.widget_le_specify = {
+                                    rb_label: specify_layout.lineEdit
+                                }
+
+                            # to reference dynamic btn
+                            sub_rb = specify_layout.radio_btn
                         else:
                             sub_rb = SLPAARadioButton(child)
                             sub_layout.addWidget(sub_rb)
@@ -596,7 +606,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if current_module.label == 'Mouth':
             module_output['mvmt_type'] = what_selected(current_module.mvmt_type_group)
             if module_output['mvmt_type'] == 'other':
-                 module_output['mvmt_type'] = f"{module_output['mvmt_type']};{current_module.widget_le_specify.text()}"
+                module_output['mvmt_type'] = f"{module_output['mvmt_type']};{current_module.widget_le_specify.text()}"
             # 'mouth' will exceptionally have 'mvmt_type' key for 'type of mouth movement'
 
         # get choice between both, h1, h2
@@ -659,11 +669,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
             if at_bottom:
                 # at the bottom
-                if selected_btn is not None and child == selected_btn:
+                if selected_btn is not None and selected_btn in child:
                     r[selected_btn] = {}
+                    if ';' in child:
+                        r[selected_btn] = asm.widget_le_specify[selected_btn].text()
                 elif len(selected_cb) > 0:
                     for cb in selected_cb:
-                        r[cb] = {}
+                        if cb not in r:
+                            r[cb] = {}
             else:
                 res_k, res_v = self.package_action_state(child)
                 r[res_k] = res_v
@@ -856,22 +869,30 @@ def load_actionstate(saved_dict, asm, parent=None):
             child = child.label
 
         if bottom:
+            specify_flag = False  # flag for complex 'others: specify' cases
             # bottom. select a button or cb.
             if parent is None:
                 # shallow button/checkbox directly connected to the root
-                to_select = [key for key, value in saved_dict['root'].items() if len(value) == 0]
+                to_select_list = [key for key, value in saved_dict['root'].items() if len(value) == 0]
             else:
                 to_select = get_value_from_saved_dict(key_to_find=asm.label,
                                                       input_dict=saved_dict,
                                                       parent=parent.label)
-                to_select = list(to_select.keys())
-            if child in to_select:
+                to_select_list = list(to_select.keys())
+                if ';' in child:
+                    # dealing with a 'specify' item
+                    specify_flag = True
+                    child, _ = child.split(';')
+            if child in to_select_list:
                 all_cb = [cb.text() for cb in asm.as_cb_list]
-                all_btn = asm.as_btn_group.buttons()
+                all_btn = [btn.text() for btn in asm.as_btn_group.buttons()]
                 if child in all_cb:
                     checkmark_this(asm.as_cb_list, child)
                 elif child in all_btn:
                     select_this(asm.as_btn_group, child)
+                    if specify_flag:
+                        specified_value = to_select[child]
+                        asm.widget_le_specify[child].setText(specified_value)
         else:
             if get_value_from_saved_dict(child.label, saved_dict, asm.label) is not None:
                 if len(asm.as_cb_list) > 0:
@@ -926,7 +947,7 @@ def get_value_from_saved_dict(key_to_find, input_dict, parent=None):
 def what_selected(group):
     # input: SLPAAButtonGroup or list of QCheckBox objects
     # helper function to get what user input among buttons/checkboxes in the group
-    if isinstance(group,QButtonGroup):
+    if isinstance(group, QButtonGroup):
         # get selected button (exclusive)
         if group.checkedButton() is None:
             return None
