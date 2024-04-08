@@ -50,14 +50,17 @@ class MergeCorporaDialog(QDialog):
         form_layout.addRow(self.choosefileslabel, self.choosefilesbutton)
         self.chooseorderlabel = QLabel("2. Choose the order in which the corpora should be combined (this affects EntryID numbering).")
         self.chooseorderbutton = QPushButton("Select order")
+        self.chooseorderbutton.setEnabled(False)
         self.chooseorderbutton.clicked.connect(self.handle_choose_order)
         form_layout.addRow(self.chooseorderlabel, self.chooseorderbutton)
         self.choosemergedfilelabel = QLabel("3. Choose the name and location for the merged file.")
         self.choosemergedfilebutton = QPushButton("Select merged file")
+        self.choosemergedfilebutton.setEnabled(False)
         self.choosemergedfilebutton.clicked.connect(self.handle_select_mergedfile)
         form_layout.addRow(self.choosemergedfilelabel, self.choosemergedfilebutton)
         self.mergecorporalabel = QLabel("4. Merge selected .slpaa files.")
         self.mergecorporabutton = QPushButton("Merge corpora")
+        self.mergecorporabutton.setEnabled(False)
         self.mergecorporabutton.clicked.connect(self.handle_merge_corpora)
         form_layout.addRow(self.mergecorporalabel, self.mergecorporabutton)
         self.statuslabel = QLabel("5. Status of merge:")
@@ -87,6 +90,8 @@ class MergeCorporaDialog(QDialog):
             numfiles = len(file_names)
             self.statusdisplay.setText(str(numfiles) + " file" + ("" if numfiles == 1 else "s") + " selected")
         self.corpusfilepaths = file_names
+        if len(self.corpusfilepaths) > 0:
+            self.chooseorderbutton.setEnabled(True)
 
     def handle_choose_order(self):
         existingorder = []
@@ -104,6 +109,7 @@ class MergeCorporaDialog(QDialog):
     def handle_setcorpusorder(self, corpuspathslist):
         self.corpuspaths_order = corpuspathslist
         self.statusdisplay.setText("order selected")
+        self.choosemergedfilebutton.setEnabled(True)
 
     def handle_select_mergedfile(self):
         file_name, file_type = QFileDialog.getSaveFileName(self,
@@ -113,6 +119,8 @@ class MergeCorporaDialog(QDialog):
         if file_name != self.mergedfilepath:
             self.statusdisplay.setText("destination selected")
         self.mergedfilepath = file_name
+        if len(self.corpusfilepaths) > 0 and len(self.mergedfilepath) > 0:
+            self.mergecorporabutton.setEnabled(True)
 
     def handle_merge_corpora(self):
 
