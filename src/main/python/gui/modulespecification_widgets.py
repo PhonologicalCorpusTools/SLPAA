@@ -384,7 +384,7 @@ class StatusDisplay(QTextEdit):
     def __init__(self, initialtext="", **kwargs):
         super().__init__(**kwargs)
         self.setText(initialtext)
-        # self.setStyleSheet("border: 1px solid black;")
+        # self.setStyleSheet("border: 1px solid black;")  # from when this used to be a QLabel
         self.setReadOnly(True)
 
     def appendText(self, texttoappend, afternewline=False, afterspace=False):
