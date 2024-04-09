@@ -260,8 +260,6 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
             self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
             self._handdominance = signlevel_info['handdominance']
-        else:
-            print("TODO KV no sign level info; what to do?")
 
     def __eq__(self, other):
         if isinstance(other, SignLevelInformation):
