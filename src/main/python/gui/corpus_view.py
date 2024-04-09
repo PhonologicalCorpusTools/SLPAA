@@ -52,9 +52,9 @@ class CorpusDisplay(QWidget):
         self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
         self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-        # Corpus filter by gloss
+        # Corpus filter by any info in table (gloss, entry id string, lemma, id-gloss)
         self.corpus_filter_input = QLineEdit()
-        self.corpus_filter_input.setPlaceholderText('Filter by gloss')
+        self.corpus_filter_input.setPlaceholderText('Filter corpus entries')
         self.corpus_filter_input.textChanged.connect(self.filter_corpus_list)
         main_layout.addWidget(self.corpus_filter_input)
         main_layout.addWidget(self.corpus_view)

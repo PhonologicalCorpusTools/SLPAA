@@ -81,6 +81,7 @@ class CorpusSortProxyModel(QSortFilterProxyModel):
         super(CorpusSortProxyModel, self).__init__(parent)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.setFilterKeyColumn(-1)  # matches text from any column
         self.setSortRole(Qt.DisplayRole)
         self.sortorder = Qt.AscendingOrder
         self.sortcolumn = 1  # gloss
