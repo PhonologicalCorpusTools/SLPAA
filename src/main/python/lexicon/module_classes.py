@@ -141,7 +141,7 @@ class ParameterModule:
         self._timingintervals = [t for t in timingintervals]
 
     def getabbreviation(self):
-        return "TODO no Module abbreviations implemented yet"
+        return "Module abbreviations not yet implemented"
 
 
 class EntryID:
@@ -1173,7 +1173,7 @@ class BodypartInfo:
 
     def getabbreviation(self):
         # TODO KV implement
-        return "TODO no BodypartInfo abbreviations implemented yet"
+        return "Bodypart abbreviations not yet implemented"
 
 
 # This module stores the location information for a particular articulator/s.
@@ -1215,7 +1215,7 @@ class LocationModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        return "TODO no Location abbreviations implemented yet"
+        return "Location abbreviations not yet implemented"
 
 
 class RelationX:
@@ -1666,7 +1666,7 @@ class RelationModule(ParameterModule):
 
     def getabbreviation(self):
         # TODO implement
-        return "TODO no Relation abbreviations implemented yet"
+        return "Relation abbreviations not yet implemented"
 
 
 class MannerRelation:
@@ -2080,6 +2080,10 @@ class OrientationModule(ParameterModule):
     @root.setter
     def root(self, root):
         self._root = root
+
+    def getabbreviation(self):
+        # TODO implement
+        return "Orientation abbreviations not yet implemented"
 
 
 # This module stores the transcription of one hand's configuration.
