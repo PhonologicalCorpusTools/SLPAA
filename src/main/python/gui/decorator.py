@@ -42,24 +42,6 @@ def check_unsaved_change(func):
     return wrapper_check_unsaved_change
 
 
-def check_date_format(func):
-    @functools.wraps(func)
-    def wrapper_check_date_format(self, *args, **kwargs):
-        if len(self.update_edit.text().split(sep='-')) != 3:
-            QMessageBox.critical(self, 'Date Format Error',
-                                 'Please make sure your date follows the format of YYYY-MM-DD.')
-            return
-        try:
-            year, month, day = self.update_edit.text().split(sep='-')
-            date(int(year), int(month), int(day))
-        except ValueError as error:
-            QMessageBox.critical(self, 'Date Format Error', str(error))
-            return
-        else:
-            return func(self, *args, **kwargs)
-    return wrapper_check_date_format
-
-
 def check_empty_gloss(func):
     @functools.wraps(func)
     def wrapper_check_empty_gloss(self, *args, **kwargs):
@@ -103,12 +85,9 @@ def check_unsaved_corpus(func):
         #     return func(self, *args, **kwargs)
 
         if self.corpus.path is None:
-            self.corpus.name = self.corpus_display.corpus_title.text()
-            name = self.corpus.name
             file_name, _ = QFileDialog.getSaveFileName(self,
                                                        self.tr('Save Corpus'),
-                                                       os.path.join(self.app_settings['storage']['recent_folder'],
-                                                                    name + '.slpaa'),  # 'corpus.slpaa'),
+                                                       os.path.join(self.app_settings['storage']['recent_folder'], '.slpaa'),
                                                        self.tr('SLP-AA Corpus (*.slpaa)'))
             if file_name:
                 self.corpus.path = file_name

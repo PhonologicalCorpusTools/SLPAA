@@ -936,11 +936,7 @@ class SignLevelMenuPanel(QScrollArea):
         module_selector.exec_()
 
     def handle_delete_module(self, existingkey, moduletype):
-        if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype).keys():
-            print("TODO KV key error: attempting to delete a " +
-                  moduletype + " module whose key is not in the list of existing modules")
-        else:
-            self.sign.removemodule(existingkey, moduletype)
+        self.sign.removemodule(existingkey, moduletype)
         self.sign_updated.emit(self.sign)
 
     def handle_save_module(self, module_to_save, moduletype, existing_key=None):

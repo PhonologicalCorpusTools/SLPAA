@@ -419,8 +419,8 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
                 LocnOptionsNode("Armpit - contra", fx, rb, nh, None, nonhand_subareas),
                 LocnOptionsNode("Armpit - ipsi", fx, rb, nh, None, nonhand_subareas)
             ]),
-            LocnOptionsNode("Sternum/clavicle area", fx, rb, nh, None, nonhand_subareas),
-            LocnOptionsNode("Chest/breast area", fx, rb, nh, None, nonhand_subareas),
+            LocnOptionsNode("Sternum/clavicle area", fx, rb, nh, [anterior, posterior], nonhand_subareas),
+            LocnOptionsNode("Chest/breast area", fx, rb, nh, [anterior, posterior, ipsi_side, contra_side], nonhand_subareas),
         ]),
         LocnOptionsNode("Lower torso", fx, rb, nh, [anterior, posterior, ipsi_side, contra_side], nonhand_subareas, children=[
             LocnOptionsNode("Pelvis area", fx, rb, nh, None, nonhand_subareas),
@@ -434,7 +434,7 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
                 LocnOptionsNode("Buttocks - ipsi", fx, rb, nh, None, nonhand_subareas)
             ])
         ]),
-        LocnOptionsNode("Abdominal/waist area", fx, rb, nh, None, nonhand_subareas),
+        LocnOptionsNode("Abdominal/waist area", fx, rb, nh, [anterior, posterior, ipsi_side, contra_side], nonhand_subareas),
     ])
 ])
 
