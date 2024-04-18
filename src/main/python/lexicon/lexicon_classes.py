@@ -498,24 +498,19 @@ class Corpus:
                                ModuleTypes.LOCATION: {},
                                ModuleTypes.RELATION: {}}
             entryidcounter = sign.signlevel_information.entryid.counter
-            # KV - switching unique key from gloss to EntryID:  # gloss_es = sign.signlevel_information.gloss
             for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
                 moduledict = sign.getmoduledict(type)
 
                 for count, k in enumerate(moduledict):
-                    # KV - switching unique key from gloss to EntryID:  # correctionsdict[type][gloss] = {}
                     correctionsdict[type][entryidcounter] = {}
                     module = moduledict[k]
 
                     if type == ModuleTypes.MOVEMENT:
-                        # KV - switching unique key from gloss to EntryID:  # self.add_missing_paths_helper(gloss, module.movementtreemodel, type, count, correctionsdict)
                         self.add_missing_paths_helper(entryidcounter, module.movementtreemodel, type, count, correctionsdict)
                     elif type == ModuleTypes.LOCATION:
-                        # KV - switching unique key from gloss to EntryID:  # self.add_missing_paths_helper(gloss, module.locationtreemodel, type, count, correctionsdict)
                         self.add_missing_paths_helper(entryidcounter, module.locationtreemodel, type, count, correctionsdict)
                     elif type == ModuleTypes.RELATION:
                         if module.no_selections():
-                            # KV - switching unique key from gloss to EntryID:  # label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
                             label = "   EntryID counter {:<10} {:<9}".format("   " + str(entryidcounter) + " ", str(type) + str(count + 1))
                             mssg = ": Main module has no selections. Is something missing?"
                             logging.warning(label + mssg)
@@ -530,21 +525,17 @@ class Corpus:
                         for m in models:
                             if len(m.get_checked_from_serialized_tree()) == 0:
                                 empty_module_flag = True
-                            # KV - switching unique key from gloss to EntryID:  # self.add_missing_paths_helper(gloss, m, type, count, correctionsdict, verbose=False)
                             self.add_missing_paths_helper(entryidcounter, m, type, count, correctionsdict, verbose=False)
                         if empty_module_flag and module.contactrel.contact:
-                            # KV - switching unique key from gloss to EntryID:  # label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
                             label = "   EntryID counter {:<10} {:<9}".format("   " + str(entryidcounter) + " ", str(type) + str(count + 1))
                             mssg = ": Module has no bodypart selections. Is something missing?"
                             logging.warning(label + mssg)
                           
-    # KV - switching unique key from gloss to EntryID:  # def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose=True):
     def add_missing_paths_helper(self, entryidcounter, treemodel, type, count, correctionsdict, verbose=True):
         paths_missing_bc = []
         paths_not_found = []
 
         if verbose and len(treemodel.get_checked_from_serialized_tree()) == 0:
-            # KV - switching unique key from gloss to EntryID:  # label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
             label = "   EntryID counter {:<10} {:<9}".format("   " + str(entryidcounter) + " ", str(type) + str(count + 1))
             mssg = ": Module has no selections. Is something missing?"
             logging.warning(label + mssg)
@@ -558,22 +549,18 @@ class Corpus:
 
             if len(paths_to_add) == 0: 
                 paths_missing_bc.append(oldpath)
-                # KV - switching unique key from gloss to EntryID:  # label = "   " + gloss + " " + str(type) + str(count+1)
                 label = "   EntryID counter " + str(entryidcounter) + " " + str(type) + str(count+1)
                 logging.warning(label+": bad backwards compatibility for " + oldpath)
                 
             for path in paths_to_add:
                 newpath = delimiter.join(path)
-                # KV - switching unique key from gloss to EntryID:  # correctionsdict[type][gloss][newpath] = oldpath
                 correctionsdict[type][entryidcounter][newpath] = oldpath
                 newpaths.append(newpath)
-        # KV - switching unique key from gloss to EntryID:  # thisdict = correctionsdict[type][gloss]
         thisdict = correctionsdict[type][entryidcounter]
         treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
         
         if len(newpaths) != 0:
             for i in newpaths:
-                # KV - switching unique key from gloss to EntryID:  # label = "   " + gloss + " " + str(type) + str(count+1)
                 label = "   EntryID counter " + str(entryidcounter) + " " + str(type) + str(count+1)
                 logging.warning(label +": bad backwards compatibility for " + i)
                 paths_not_found.append(thisdict[i])
