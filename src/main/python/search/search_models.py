@@ -408,7 +408,7 @@ class SearchTargetItem(QStandardItem):
         self.include = include
 
     def __repr__(self):
-        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\nxslotnum: " + str(self.xslotnum) + "\ntargettype " + str(self.targettype)  
+        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\ntargettype " + str(self.targettype)  
         msg += "\nValues: " + repr(self.values)
         return msg
     

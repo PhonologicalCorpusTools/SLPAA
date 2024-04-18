@@ -549,13 +549,17 @@ class XslotLinkingPanel(QFrame):
     selection_changed = pyqtSignal(bool,  # has >= 1 point
                                    bool)  # has >= 1 interval
 
-    def __init__(self, xslotstructure, timingintervals=None, **kwargs):
+    def __init__(self, xslotstructure, timingintervals=None, partialxslots=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
         self.timingintervals = [] if timingintervals is None else timingintervals
-        xslotstruct = self.mainwindow.current_sign.xslotstructure
-        if xslotstruct is None:
+        self.partialxslots = partialxslots
+        if xslotstructure is not None:
+            self.xslotstruct = xslotstructure
+        else:
+            self.xslotstruct = self.mainwindow.current_sign.xslotstructure
+        if self.xslotstruct is None:
             print("no x-slot structure!")
 
         main_layout = QVBoxLayout()

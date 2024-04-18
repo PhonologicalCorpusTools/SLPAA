@@ -36,6 +36,14 @@ from gui.relationspecification_view import RelationSpecificationPanel
 from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
+
+
+class XslotTypes:
+    IGNORE = "ignore"
+    ABSTRACT_XSLOT = "abstract xslot"
+    ABSTRACT_WHOLE = "abstract whole"
+    CONCRETE = "concrete"
+
 class Search_SignLevelInfoSelectorDialog(QDialog):
     saved_signlevelinfo = pyqtSignal(SignLevelInformation)
 
@@ -270,9 +278,8 @@ class Search_SigntypeSelectorDialog(SigntypeSelectorDialog):
         super().__init__(signtypetoload, **kwargs)
 
 class Search_ModuleSelectorDialog(ModuleSelectorDialog):
-    def __init__(self, moduletype, xslotstructure=None, xslottype=None, xslotnum=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=..., incl_articulator_subopts=0, **kwargs):
+    def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=..., incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
-        self.xslotnum = xslotnum
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, includephase, incl_articulators, incl_articulator_subopts, **kwargs)
 
 
@@ -301,17 +308,20 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
     def handle_xslot_widget(self, xslotstructure, timingintervals):
         self.xslot_widget = None
         self.usexslots = False
-        if self.xslottype.type != "ignore":
+        partialxslots = None # if None, xslotlinkingpanel uses value saved in settings
+        if self.xslottype.type != XslotTypes.IGNORE:
             self.usexslots = True
-            
-            if self.xslottype.type == 'abstract xslot':
-                self.mainwindow.current_sign.xslotstructure = XslotStructure(1)
-            elif self.xslottype.type == 'abstract whole sign':
-                self.mainwindow.current_sign.xslotstructure = XslotStructure(1)
-            elif self.xslottype.type == 'concrete':
-                self.mainwindow.current_sign.xslotstructure = XslotStructure(self.xslottype.num)
+
+            if self.xslottype.type == XslotTypes.ABSTRACT_XSLOT:
+                xslotstructure = XslotStructure(1)
+            elif self.xslottype.type == XslotTypes.ABSTRACT_WHOLE:
+                xslotstructure = XslotStructure(1)
+                partialxslots = {}
+            elif self.xslottype.type ==  XslotTypes.CONCRETE:
+                xslotstructure = XslotStructure(self.xslottype.num, additionalfraction=self.xslottype.frac)
             self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
                                                   timingintervals=timingintervals,
+                                                  partialxslots=partialxslots,
                                                   parent=self)
             self.main_layout.addWidget(self.xslot_widget)
 
@@ -395,13 +405,25 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
     
 
 class XslotTypeItem:
-    def __init__(self, type=None, num=None):
+    def __init__(self, type=None, num=None, frac=None):
         self.type = type
         self.num = num
+        self.frac = frac
+        if self.type == XslotTypes.CONCRETE and frac==None:
+            self.frac = 0
+        else:
+            self.frac = frac
     
     def __repr__(self):
-        if self.type == "ignore":
+        if self.type in [XslotTypes.IGNORE, XslotTypes.ABSTRACT_XSLOT, XslotTypes.ABSTRACT_WHOLE]:
             return self.type
+        elif self.type == XslotTypes.CONCRETE:
+            to_ret = self.type + ": " 
+            num_to_display = str(self.num)
+            if self.frac not in [None, 0]:
+                num_to_display += " + " + str(self.frac)
+            num_to_display += " xslots"
+            return to_ret + num_to_display
         else:
             return "non implemented xslottype"
         # if t.xslottype is not None: # TODO specify exactly which target types should have an xslottype or not

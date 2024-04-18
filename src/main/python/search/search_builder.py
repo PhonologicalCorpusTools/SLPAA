@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 import io, os, pickle
 from PyQt5.QtGui import (
     QIcon,
@@ -13,7 +15,8 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QMdiArea,
     QMdiSubWindow,
-    QFormLayout,
+    QFormLayout,    
+    QSpacerItem,
     QFrame,
     QDialogButtonBox,
     QFileDialog,
@@ -49,7 +52,7 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure
 from search.search_models import SearchModel, SearchTargetItem, TargetHeaders, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
-from search.search_classes import Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, Search_SigntypeSelectorDialog
+from search.search_classes import CustomRBGrp, XslotTypes,Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, Search_SigntypeSelectorDialog
 
 class SearchWindow(QMainWindow):
 
@@ -567,37 +570,79 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
 
     def __init__(self, preexistingitem=None, **kwargs):
         super().__init__(**kwargs)
-
+        self.mainwindow = self.parent().mainwindow
         self.name_widget = NameWidget(parent=self)
         layout = QVBoxLayout()
         layout.addWidget(self.name_widget)
         self.name_widget.on_name_entered.connect(self.toggle_continue_selectable) 
-        # # TODO fix unexpected NoneType when name is entered, then concrete x slot num is entered
 
         self.xslot_type = None
 
-        self.xslot_type_button_group = QButtonGroup()
+        self.xslot_type_button_group = CustomRBGrp()
         self.ignore_xslots_rb = QRadioButton('Ignore x-slots')
+        self.ignore_xslots_rb.setProperty("name", XslotTypes.IGNORE)
         self.abstract_xslot_rb = QRadioButton('Use an abstract x-slot') 
+        self.abstract_xslot_rb.setProperty("name", XslotTypes.ABSTRACT_XSLOT)
         self.abstract_whole_sign_rb = QRadioButton('Use an abstract whole sign') 
+        self.abstract_whole_sign_rb.setProperty("name", XslotTypes.ABSTRACT_WHOLE)
         self.concrete_xslots_rb = QRadioButton('Use concrete x-slots') 
+        self.concrete_xslots_rb.setProperty("name", XslotTypes.CONCRETE)
         self.concrete_xslots_num = QLineEdit()
         self.concrete_xslots_num.setPlaceholderText("Specify number")
         self.concrete_xslots_num.textEdited.connect(self.on_xslots_num_edited)
+
+        self.partial_layout = QVBoxLayout()
+        self.partial_label = QLabel("Add a partial x-slot if necessary:")
+        self.partial_layout.addWidget(self.partial_label)
+
+        self.fraction_layout = QVBoxLayout()
+        partialxslots = self.mainwindow.app_settings['signdefaults']['partial_xslots']
+        self.avail_denoms = [Fraction(f).denominator for f in list(partialxslots.keys()) if partialxslots[f]]
+        self.fractionalpoints = []
+        for d in self.avail_denoms:
+            for mult in range(1, d):
+                self.fractionalpoints.append(Fraction(mult, d))
+        self.fractionalpoints = list(set(self.fractionalpoints))
+        self.partial_buttongroup = CustomRBGrp()
+        none_radio = QRadioButton("none")
+        none_radio.setProperty('fraction', Fraction(0))
+        self.partial_buttongroup.addButton(none_radio)
+        self.fraction_layout.addWidget(none_radio)
+        for fraction in sorted(self.fractionalpoints):
+            partial_radio = QRadioButton(str(fraction))
+            partial_radio.setProperty('fraction', fraction)
+            self.partial_buttongroup.addButton(partial_radio)
+            self.fraction_layout.addWidget(partial_radio)
+        self.partial_buttongroup.buttonClicked.connect(self.on_xslots_frac_edited)
+        if len(self.avail_denoms) == 0:
+            self.nopartials_label = QLabel("You do not have any fractional x-slot points selected in Global Settings.")
+            self.fraction_layout.addWidget(self.nopartials_label)
+
+        self.fraction_spacedlayout = QHBoxLayout()
+        self.fraction_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        self.fraction_spacedlayout.addLayout(self.fraction_layout)
+        self.partial_layout.addLayout(self.fraction_spacedlayout)
+        self.partial_spacedlayout = QHBoxLayout()
+        self.partial_spacedlayout.addSpacerItem(QSpacerItem(25, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        self.partial_spacedlayout.addLayout(self.partial_layout)
+
 
         self.xslot_type_button_group.addButton(self.ignore_xslots_rb) 
         self.xslot_type_button_group.addButton(self.abstract_xslot_rb) 
         self.xslot_type_button_group.addButton(self.abstract_whole_sign_rb) 
         self.xslot_type_button_group.addButton(self.concrete_xslots_rb)
-        self.xslot_type_button_group.buttonToggled.connect(self.on_xslot_type_clicked)
+        self.xslot_type_button_group.buttonClicked.connect(self.on_xslot_type_clicked)
 
         layout.addWidget(self.ignore_xslots_rb)
         layout.addWidget(self.abstract_xslot_rb)
         layout.addWidget(self.abstract_whole_sign_rb)
 
-        concrete_xslots_layout = QHBoxLayout()
-        concrete_xslots_layout.addWidget(self.concrete_xslots_rb)
-        concrete_xslots_layout.addWidget(self.concrete_xslots_num)
+        concrete_xslots_layout = QVBoxLayout()
+        concrete_num_layout = QHBoxLayout()
+        concrete_num_layout.addWidget(self.concrete_xslots_rb)
+        concrete_num_layout.addWidget(self.concrete_xslots_num)
+        concrete_xslots_layout.addLayout(concrete_num_layout)
+        concrete_xslots_layout.addLayout(self.partial_spacedlayout)
 
         layout.addLayout(concrete_xslots_layout)
 
@@ -620,10 +665,18 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
     def on_xslots_num_edited(self):
         self.concrete_xslots_rb.setChecked(True)
         self.toggle_continue_selectable()
+    
+    def on_xslots_frac_edited(self):
+        
+        for b in self.xslot_type_button_group.buttons():
+            b.setChecked(self.partial_buttongroup.checkedButton is None)
+        self.concrete_xslots_rb.setChecked(self.partial_buttongroup.checkedButton is not None)
 
     def on_xslot_type_clicked(self, btn):
         self.xslot_type = btn   
         self.concrete_xslots_num.setEnabled(btn == self.concrete_xslots_rb)
+        for b in self.partial_buttongroup.buttons():
+            b.setEnabled(btn == self.concrete_xslots_rb)
         self.toggle_continue_selectable()
 
     def on_continue_clicked(self):
@@ -631,45 +684,54 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         
         if (self.xslot_type == self.concrete_xslots_rb and self.concrete_xslots_num.text() == ""):
             txt = "Specify an x-slot number."
-        
         if txt:
             QMessageBox.critical(self, "Warning", txt)
         else:
             if self.xslot_type == self.ignore_xslots_rb:
-                type = "ignore"
+                type = XslotTypes.IGNORE
             elif self.xslot_type == self.abstract_xslot_rb:
-                type = "abstract xslot"
+                type = XslotTypes.ABSTRACT_XSLOT
             elif self.xslot_type == self.abstract_whole_sign_rb:
-                type = "abstract whole sign"
+                type = XslotTypes.ABSTRACT_WHOLE
+            elif self.xslot_type == self.concrete_xslots_rb:
+                type = XslotTypes.CONCRETE
             else:
-                type = "concrete"
+                logging.warning("couldn't identify xslot type")
+                logging.warning(self.xslot_type.property("name"))
             num = int(self.concrete_xslots_num.text()) if self.concrete_xslots_num.text() != "" else 1
-            toemit = XslotTypeItem(type, num)
+            if self.partial_buttongroup.checkedButton() is not None:
+                frac = self.partial_buttongroup.checkedButton().property('fraction')
+            else:
+                frac = None
+            toemit = XslotTypeItem(type, num, frac)
             self.continue_clicked.emit(self.name_widget.name, toemit)
             self.accept()
             
     def reload_item(self, it):
         self.name_widget.text_entry.setText(it.name)
-        self.xslot_type = it.xslottype
-        if it.xslottype.type == "abstract xslot":
+        
+        if it.xslottype.type == XslotTypes.ABSTRACT_XSLOT:
             btn_to_check = self.abstract_xslot_rb
-        elif it.xslottype.type == "abstract whole sign":
+        elif it.xslottype.type == XslotTypes.ABSTRACT_WHOLE:
             btn_to_check = self.abstract_whole_sign_rb
-        elif it.xslottype.type == "concrete":   
+        elif it.xslottype.type == XslotTypes.CONCRETE:   
             btn_to_check = self.concrete_xslots_rb
-            self.concrete_xslots_num.setText(it.xslottype.num)
+            self.concrete_xslots_num.setText(str(it.xslottype.num))
+            for b in self.partial_buttongroup.buttons():
+                b.setChecked(b.property('fraction') == it.xslottype.frac)
         else:
             btn_to_check = self.ignore_xslots_rb
         
         for b in self.xslot_type_button_group.buttons():
             b.setChecked(b==btn_to_check)
-
+        self.xslot_type = btn_to_check
         self.toggle_continue_selectable()
     
     def on_restore_defaults_clicked(self):
-        for b in self.buttonbox.buttons():
-            b.setEnabled(False)   
+        self.buttonbox.save_button.setEnabled(False) 
         for b in self.xslot_type_button_group.buttons():
+            b.setChecked(False)
+        for b in self.partial_buttongroup.buttons():
             b.setChecked(False)
         self.concrete_xslots_num.setText("")
         self.name_widget.text_entry.setText("")
@@ -871,7 +933,6 @@ class SaveTargetButtonBox(QWidget):
         self.save_button.clicked.connect(self.on_save_clicked)
         self.cancel_button.clicked.connect(self.on_cancel_clicked)
         self.restore_defaults_button.clicked.connect(self.on_restore_defaults_clicked)
-
 
     def on_save_clicked(self):
         self.save_clicked.emit()
