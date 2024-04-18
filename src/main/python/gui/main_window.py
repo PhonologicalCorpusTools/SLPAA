@@ -326,6 +326,7 @@ class MainWindow(QMainWindow):
         corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
         self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
+        self.corpus_display.selection_cleared.connect(self.handle_sign_selected)
 
         self.corpus_scroll = QScrollArea(parent=self)
         self.corpus_scroll.setWidgetResizable(True)
@@ -582,13 +583,11 @@ class MainWindow(QMainWindow):
             # or self.on_action_close() fails to close the program
             self.closeEvent(None)
 
-    def handle_sign_selected(self, sign):
-        selected_sign = sign
-
+    def handle_sign_selected(self, selected_sign=None):
         self.current_sign = selected_sign
-        self.action_delete_sign.setEnabled(True)
+        self.action_delete_sign.setEnabled(selected_sign is not None)
         self.signlevel_panel.sign = selected_sign
-        self.signlevel_panel.enable_module_buttons(True)
+        self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
 
     def handle_app_settings(self):
@@ -660,6 +659,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('reminder')
         self.app_settings['reminder']['overwrite'] = self.app_qsettings.value('overwrite', defaultValue=True, type=bool)
+        self.app_settings['reminder']['duplicatelemma'] = self.app_qsettings.value('duplicatelemma', defaultValue=True, type=bool)
         self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
@@ -724,6 +724,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('reminder')
         self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
+        self.app_qsettings.setValue('duplicatelemma', self.app_settings['reminder']['duplicatelemma'])
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('signdefaults')
@@ -885,7 +886,6 @@ class MainWindow(QMainWindow):
 
     def load_corpus_binary(self, path):
         with open(path, 'rb') as f:
-            # corpus = Corpus(serializedcorpus=pickle.load(f))
             corpus = Corpus(serializedcorpus=renamed_load(f))
             # in case we're loading a corpus that was originally created on a different machine / in a different folder
             corpus.path = path
@@ -931,9 +931,9 @@ class MainWindow(QMainWindow):
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
-            self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
+            self.corpus_display.selectfirstrow()
         else:  # if loading a blank corpus
-            self.signsummary_panel.mainwindow.current_sign = None # refreshsign() checks for this
+            self.signsummary_panel.mainwindow.current_sign = None  # refreshsign() checks for this
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
@@ -962,31 +962,17 @@ class MainWindow(QMainWindow):
             self.corpus_display.handle_selection(stashed_corpusselection)
 
     def on_action_delete_sign(self, clicked):
-        response = QMessageBox.question(self, 'Delete the selected sign',
-                                        'Do you want to delete the selected sign?')
-        if response == QMessageBox.Yes:
-            previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
-            
-            # delete self.current_sign.
-            # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
-            self.signlevel_panel.handle_delete_signlevelinfo(previous)
-            # self.corpus.remove_sign(self.current_sign)
-            # self.corpus_display.updated_signs(self.corpus.signs, previous)
-
-            self.select_sign([previous])
-            self.handle_sign_selected(previous)
-            # TODO KV need to also have that sign selected in the corpus view,
-            #  as well as displaying its summary in the xslot view
-
-    # TODO KV finish implementing
-    def select_sign(self, signstoselect):
-        selectionmodel = self.corpus_display.corpus_view.selectionModel()
-        indices = []
-        for sign in signstoselect:
-            try:
-                indices.append(list(self.corpus.signs).index(sign))
-            except ValueError:
-                pass
+        if self.current_sign:  # does the sign to delete exist?
+            glosseslist = self.current_sign.signlevel_information.gloss
+            question1 = "Do you want to delete the selected sign, with gloss"
+            glossesstring = ", ".join(glosseslist) or "[blank]"
+            question2 = ("es" if len(glosseslist) > 1 else "") + " " + glossesstring + "?"
+            moreinfo = "" if len(self.current_sign.signlevel_information.gloss) <= 1 else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
+            response = QMessageBox.question(self, "Delete the selected sign",
+                                            question1 + question2 + moreinfo)
+            if response == QMessageBox.Yes:
+                self.corpus.remove_sign(self.current_sign)
+                self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes

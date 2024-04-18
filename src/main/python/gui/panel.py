@@ -46,7 +46,6 @@ from PyQt5.QtGui import (
 from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
-# from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
@@ -322,11 +321,12 @@ class SignSummaryPanel(QScrollArea):
         self.moduleitems = []
         self.current_y = 0
 
-        # set the top text, either welcome or the sign gloss + ID
+        # set the top text, either welcome or the sign gloss(es) + Entry ID
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.sign.signlevel_information.entryid.display_string())
+            signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss)
+                                       + " - " + self.sign.signlevel_information.entryid.display_string())
         signleveltext.setPos(self.x_offset, self.current_y)
         self.current_y += 30
         self.scene.addItem(signleveltext)
@@ -851,7 +851,7 @@ class SignLevelMenuPanel(QScrollArea):
     @sign.setter
     def sign(self, sign):
         self._sign = sign
-        self.signgloss_label.setText("Sign: " + sign.signlevel_information.gloss if sign else "")
+        self.signgloss_label.setText("Sign: " + "/".join(sign.signlevel_information.gloss) if sign else "")
 
     def clear(self):
         self._sign = None
@@ -880,34 +880,12 @@ class SignLevelMenuPanel(QScrollArea):
             self.sign.signlevel_information = signlevelinfo
         else:
             # this is a new sign
-            if signlevelinfo.gloss in self.mainwindow.corpus.get_sign_glosses():
-                QMessageBox.critical(self, 'Duplicated Gloss',
-                                     'Please use a different gloss. Duplicated glosses are not allowed.')
-                # TODO KV don't want the signlevel info to close if the gloss is rejected--
-                #  make the user choose a new one instead
-                return
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(self.sign)
-            self.mainwindow.handle_sign_selected(self.sign)
 
         self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
-
-    def handle_delete_signlevelinfo(self, previous_selection):
-        if self.sign:  # does the sign to delete exist?
-            self.mainwindow.corpus.remove_sign(self.sign)
-            
-            # Update corpus display with the previous selection highlighted
-            if previous_selection:
-                self.sign_updated.emit(previous_selection)
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
-                self.mainwindow.handle_sign_selected(previous_selection)
-            
-            else:
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
-                self.mainwindow.handle_sign_selected(previous_selection)
-
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)

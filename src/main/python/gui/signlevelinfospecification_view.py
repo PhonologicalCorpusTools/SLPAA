@@ -13,17 +13,21 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QLabel,
+    QListView,
+    QMessageBox
 )
 
 from PyQt5.QtCore import (
     Qt,
     pyqtSignal,
     QSize,
+    QStringListModel
 )
 
 from lexicon.lexicon_classes import SignLevelInformation
 from lexicon.module_classes import EntryID
-from gui.decorator import check_empty_gloss
+from gui.decorator import check_duplicated_lemma, check_empty_glosslemmaIDgloss, check_duplicated_idgloss
+
 
 class SignLevelDateDisplay(QLabel):
     def __init__(self, thedatetime=None, **kwargs):
@@ -45,6 +49,68 @@ class SignLevelDateDisplay(QLabel):
         self.set_datetime(None)
 
 
+# This model supplies the data for the multiple-glosses editor QListView() in the SignLevelInfoPanel
+class GlossesListModel(QStringListModel):
+    enterglosshere_label = 'Double-click here to enter gloss'
+
+    def __init__(self, gloss_strings=None, **kwargs):
+        super().__init__(**kwargs)
+        self.setStringList(gloss_strings)
+        self.dataChanged.connect(lambda tl, br: self.setStringList(self.glosses()))
+
+    # Set the model's stringList to the list of glosses provided, plus:
+    #   (a) if empty, a default placeholder item, and
+    #   (b) no matter what, a final empty item that is used by the view to allow users to add items.
+    def setStringList(self, gloss_strings):
+        if gloss_strings is None:
+            gloss_strings = []
+        gloss_strings = [g for g in gloss_strings if len(g.strip()) > 0]
+        # if len(gloss_strings) == 0:
+        #     gloss_strings = [self.enterglosshere_label]
+        # gloss_strings += [""]
+        gloss_strings += [self.enterglosshere_label]
+
+        super().setStringList(gloss_strings)
+
+    # This function returns the list of actual glosses in the model.
+    # The return list does *not* include
+    #   (a) entries with length 0 or consisting solely of whitespace, or
+    #   (b) the default placeholder entry 'Double-click here to enter gloss'.
+    # This is as opposed to stringList(), which returns *all* the items in the model, including
+    # potentially empty and/or default entries.
+    # The intention is that stringList() should be used by GUI elements such as the model view,
+    # whereas glosses() should be used by data elements such as SignLevelInformation.
+    def glosses(self):
+        glosses = self.stringList()
+        return [g for g in glosses if len(g.strip()) > 0 and g != self.enterglosshere_label]
+
+    def clear(self):
+        self.setStringList(None)
+
+
+class GlossesListView(QListView):
+
+    def __init__(self):
+        super().__init__()
+
+    def setModel(self, model):
+        super().setModel(model)
+        self.model().dataChanged.connect(self.handle_model_changed)
+
+    def handle_model_changed(self, topleft, bottomright):
+        numrows = self.model().rowCount()
+        lastindex = self.model().index(numrows - 1)
+        self.scrollTo(lastindex, QListView.EnsureVisible)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_Delete or key == Qt.Key_Backspace:
+            indexesofselectedrows = self.selectionModel().selectedRows()
+            for itemindex in indexesofselectedrows:
+                if itemindex.data() != GlossesListModel.enterglosshere_label:
+                    self.model().removeRow(itemindex.row())
+
+
 class SignLevelInfoPanel(QFrame):
 
     def __init__(self, signlevelinfo, **kwargs):
@@ -64,11 +130,19 @@ class SignLevelInfoPanel(QFrame):
         entryid_label = QLabel("Entry ID:")
         self.entryid_value = QLineEdit()
         self.entryid_value.setEnabled(False)
-        gloss_label = QLabel('Gloss:')
-        self.gloss_edit = QLineEdit()
-        self.gloss_edit.setFocusPolicy(Qt.StrongFocus)
+
+        gloss_label = QLabel('Gloss(es):')
+        # as of 20231208, gloss is now a list rather than a string
+        self.glosses_view = GlossesListView()
+        self.glosses_view.setMaximumHeight(100)
+        self.glosses_model = GlossesListModel()
+        self.glosses_view.setModel(self.glosses_model)
+        self.glosses_view.setFocusPolicy(Qt.StrongFocus)
+
         lemma_label = QLabel('Lemma:')
         self.lemma_edit = QLineEdit()
+        idgloss_label = QLabel('ID-gloss:')
+        self.idgloss_edit = QLineEdit()
         source_label = QLabel('Source:')
         self.source_edit = QLineEdit()
         signer_label = QLabel('Signer:')
@@ -105,8 +179,9 @@ class SignLevelInfoPanel(QFrame):
         self.clear()
 
         main_layout.addRow(entryid_label, self.entryid_value)
-        main_layout.addRow(gloss_label, self.gloss_edit)
+        main_layout.addRow(gloss_label, self.glosses_view)
         main_layout.addRow(lemma_label, self.lemma_edit)
+        main_layout.addRow(idgloss_label, self.idgloss_edit)
         main_layout.addRow(source_label, self.source_edit)
         main_layout.addRow(signer_label, self.signer_edit)
         main_layout.addRow(freq_label, self.freq_edit)
@@ -135,15 +210,16 @@ class SignLevelInfoPanel(QFrame):
             return ""
 
     def set_starting_focus(self):
-        self.gloss_edit.setFocus()
+        self.glosses_view.setFocus()
 
     def set_value(self, signlevelinfo=None):
         if not signlevelinfo:
             signlevelinfo = self.signlevelinfo
         if self.signlevelinfo:
             self.entryid_value.setText(self.entryid_string())
-            self.gloss_edit.setText(signlevelinfo.gloss)
+            self.glosses_model.setStringList(signlevelinfo.gloss)
             self.lemma_edit.setText(signlevelinfo.lemma)
+            self.idgloss_edit.setText(signlevelinfo.idgloss)
             self.source_edit.setText(signlevelinfo.source)
             self.signer_edit.setText(signlevelinfo.signer)
             self.freq_edit.setText(str(signlevelinfo.frequency))
@@ -163,9 +239,9 @@ class SignLevelInfoPanel(QFrame):
         self.modified_display.reset()
 
     def restore_defaults(self):
-        self.gloss_edit.setPlaceholderText('Enter gloss here... (Cannot be empty)')
-        self.gloss_edit.clear()
+        self.glosses_model.clear()
         self.lemma_edit.setText("")
+        self.idgloss_edit.setText("")
         self.source_edit.setText("")
         self.signer_edit.setText("")
         self.freq_edit.setText('1.0')
@@ -186,15 +262,18 @@ class SignLevelInfoPanel(QFrame):
         return 'R' if self.handdominance_r_radio.isChecked() else 'L'
 
     def get_value(self):
-        if self.get_gloss():
+        identifiers = self.get_identifiers()
+        gloss, lemma, idgloss = identifiers or (None, None, None)
+        if gloss or lemma or idgloss:
             if self.created_display.text() == "" or self.modified_display.text() == "":
                 newtime = datetime.now()
                 self.created_display.set_datetime(newtime)
                 self.modified_display.set_datetime(newtime)
             return {
                 'entryid': self.entryid_counter(),
-                'gloss': self.get_gloss(),
-                'lemma': self.lemma_edit.text(),
+                'gloss': gloss,
+                'lemma': lemma,
+                'idgloss': idgloss,
                 'source': self.source_edit.text(),
                 'signer': self.signer_edit.text(),
                 'frequency': float(self.freq_edit.text()),
@@ -207,9 +286,23 @@ class SignLevelInfoPanel(QFrame):
                 'handdominance': self.get_handdominance()
             }
 
-    @check_empty_gloss
-    def get_gloss(self):
-        return self.gloss_edit.text()
+    def get_glosses(self):
+        return self.glosses_model.glosses()
+
+    def get_lemma(self):
+        return self.lemma_edit.text()
+
+    def get_idgloss(self):
+        return self.idgloss_edit.text()
+
+    @check_empty_glosslemmaIDgloss
+    @check_duplicated_idgloss
+    @check_duplicated_lemma
+    def get_identifiers(self):
+        gloss = self.get_glosses()
+        lemma = self.get_lemma()
+        idgloss = self.get_idgloss()
+        return gloss, lemma, idgloss
 
 
 class SignlevelinfoSelectorDialog(QDialog):
@@ -262,4 +355,3 @@ class SignlevelinfoSelectorDialog(QDialog):
 
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.signlevelinfo_widget.restore_defaults()
-            

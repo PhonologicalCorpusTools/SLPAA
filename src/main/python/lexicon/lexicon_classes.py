@@ -41,10 +41,10 @@ class LocationTranscription:
 
         #self.parts = {name: LocationHand(hand) for name, hand in location_transcription_info.items()}
 
-# TODO: need to think about duplicated signs
+
 class Sign:
     """
-    Gloss in signlevel_information is used as the unique key
+    EntryID in signlevel_information is used as the unique key
     """
     def __init__(self, signlevel_info=None, serializedsign=None):
         if signlevel_info is not None:
@@ -297,15 +297,22 @@ class Sign:
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
 
+    # technically this should not be implemented, because Sign objects are mutable
+    # but a Corpus is implemented as a set of Sign objects, so we need a hash function
     def __hash__(self):
-        return hash(self.signlevel_information.entryid.display_string())  # TODO KV how are equality/keys determined?
+        # sign hash is based on entryid counter,
+        # which is the only identifier that is both obligatory and guaranteed unique
+        return hash(self.signlevel_information.entryid.counter)
 
     # Ref: https://eng.lyft.com/hashing-and-equality-in-python-2ea8c738fb9d
-    def __eq__(self, other):  # TODO KV how are equality/keys determined?
-        return isinstance(other, Sign) and self.signlevel_information.entryid == other.signlevel_information.entryid
+    def __eq__(self, other):
+        # sign equality is based on entryid counter,
+        # which is the only identifier that is both obligatory and guaranteed unique
+        return isinstance(other, Sign) and self.signlevel_information.entryid.counter == other.signlevel_information.entryid.counter
 
     def __repr__(self):
-        return '<SIGN: ' + repr(self.signlevel_information.gloss) + ' - ' + repr(self.signlevel_information.entryid) + '>'
+        glosses_string = " / ".join(self.signlevel_information.gloss)
+        return '<SIGN: ' + repr(glosses_string) + ' - ' + repr(self.signlevel_information.entryid) + '>'
 
     @property
     def signlevel_information(self):
@@ -457,41 +464,11 @@ class Corpus:
             'highest id': self.highestID
         }
 
-    def get_sign_glosses(self):
-        return sorted([sign.signlevel_information.gloss for sign in self.signs])
+    def get_all_lemmas(self):
+        return [sign.signlevel_information.lemma for sign in self.signs]
 
-
-    def get_previous_sign(self, gloss):
-        """Given a sign gloss, return the next gloss to highlight in the list.
-
-        Args:
-            gloss: sign
-
-        Returns:
-            previous_sign: sign
-        """
-        sign_glosses = self.get_sign_glosses()
-        current_index = sign_glosses.index(gloss)
-
-        if len(sign_glosses) == 1:
-            # If there is only 1 sign, return the same sign
-            return None
-        
-        elif current_index == 0:
-            # Otherwise if this is the 1st sign, return the next sign in the list
-            previous_gloss = sign_glosses[1]
-        else:
-            # Otherwise, return the previous sign
-            previous_gloss = sign_glosses[current_index - 1]
-
-        return self.get_sign_by_gloss(previous_gloss)
-
-    # TODO update this-- gloss is no longer a unique key for signs
-    def get_sign_by_gloss(self, gloss):
-        # Every sign has a unique gloss, so this function will always return one sign
-        for sign in self.signs:
-            if sign.signlevel_information.gloss == gloss:
-                return sign
+    def get_all_idglosses(self):
+        return [sign.signlevel_information.idgloss for sign in self.signs]
 
     def add_sign(self, new_sign):
         self.signs.add(new_sign)
@@ -520,26 +497,26 @@ class Corpus:
             correctionsdict = {ModuleTypes.MOVEMENT: {},
                                ModuleTypes.LOCATION: {},
                                ModuleTypes.RELATION: {}}
-            gloss = sign.signlevel_information.gloss
+            entryidcounter = sign.signlevel_information.entryid.counter
             for type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
                 moduledict = sign.getmoduledict(type)
 
                 for count, k in enumerate(moduledict):
-                    correctionsdict[type][gloss] = {}
+                    correctionsdict[type][entryidcounter] = {}
                     module = moduledict[k]
 
                     if type == ModuleTypes.MOVEMENT:
-                        self.add_missing_paths_helper(gloss, module.movementtreemodel, type, count, correctionsdict)
+                        self.add_missing_paths_helper(entryidcounter, module.movementtreemodel, type, count, correctionsdict)
                     elif type == ModuleTypes.LOCATION:
-                        self.add_missing_paths_helper(gloss, module.locationtreemodel, type, count, correctionsdict)
+                        self.add_missing_paths_helper(entryidcounter, module.locationtreemodel, type, count, correctionsdict)
                     elif type == ModuleTypes.RELATION:
                         if module.no_selections():
-                            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+                            label = "   EntryID counter {:<10} {:<9}".format("   " + str(entryidcounter) + " ", str(type) + str(count + 1))
                             mssg = ": Main module has no selections. Is something missing?"
                             logging.warning(label + mssg)
 
                         bodyparts_dict = module.bodyparts_dict
-                        articulators,numbers = module.get_articulators_in_use()
+                        articulators, numbers = module.get_articulators_in_use()
                         models = []
                         for ctr in range(len(articulators)):
                             models.append(bodyparts_dict[articulators[ctr]][numbers[ctr]].bodyparttreemodel)
@@ -548,18 +525,18 @@ class Corpus:
                         for m in models:
                             if len(m.get_checked_from_serialized_tree()) == 0:
                                 empty_module_flag = True
-                            self.add_missing_paths_helper(gloss, m, type, count, correctionsdict, verbose=False)
+                            self.add_missing_paths_helper(entryidcounter, m, type, count, correctionsdict, verbose=False)
                         if empty_module_flag and module.contactrel.contact:
-                            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+                            label = "   EntryID counter {:<10} {:<9}".format("   " + str(entryidcounter) + " ", str(type) + str(count + 1))
                             mssg = ": Module has no bodypart selections. Is something missing?"
                             logging.warning(label + mssg)
                           
-    def add_missing_paths_helper(self, gloss, treemodel, type, count, correctionsdict, verbose=True):
+    def add_missing_paths_helper(self, entryidcounter, treemodel, type, count, correctionsdict, verbose=True):
         paths_missing_bc = []
         paths_not_found = []
 
         if verbose and len(treemodel.get_checked_from_serialized_tree()) == 0:
-            label = "{:<25} {:<9}".format("   " + gloss + " ", str(type) + str(count + 1))
+            label = "   EntryID counter {:<10} {:<9}".format("   " + str(entryidcounter) + " ", str(type) + str(count + 1))
             mssg = ": Module has no selections. Is something missing?"
             logging.warning(label + mssg)
 
@@ -572,27 +549,26 @@ class Corpus:
 
             if len(paths_to_add) == 0: 
                 paths_missing_bc.append(oldpath)
-                label = "   " + gloss + " " + str(type) + str(count+1)
+                label = "   EntryID counter " + str(entryidcounter) + " " + str(type) + str(count+1)
                 logging.warning(label+": bad backwards compatibility for " + oldpath)
                 
             for path in paths_to_add:
                 newpath = delimiter.join(path)
-                correctionsdict[type][gloss][newpath] = oldpath 
+                correctionsdict[type][entryidcounter][newpath] = oldpath
                 newpaths.append(newpath)
-        thisdict = correctionsdict[type][gloss]
+        thisdict = correctionsdict[type][entryidcounter]
         treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
         
         if len(newpaths) != 0:
             for i in newpaths:
-                label = "   " + gloss + " " + str(type) + str(count+1)
+                label = "   EntryID counter " + str(entryidcounter) + " " + str(type) + str(count+1)
                 logging.warning(label +": bad backwards compatibility for " + i)
                 paths_not_found.append(thisdict[i])
 
         for p in missing_values:
             if p not in paths_missing_bc and p not in paths_not_found:
                 treemodel.uncheck_paths(missing_values)
-    
-        
+
         return 
 
     # Converts a string representing a movement/location path into a list of nodes
