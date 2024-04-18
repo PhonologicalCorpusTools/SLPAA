@@ -434,11 +434,11 @@ class AppContext(ApplicationContext):
                 self.left: {self.nodiv: True, self.div: False},
                 self.right: {self.nodiv: True, self.div: False},
             },
-            "Overall": {
-                self.both: {self.nodiv: True, self.div: True},
-                self.left: {self.nodiv: False, self.div: False},
-                self.right: {self.nodiv: False, self.div: False},
-            },
+            # "Overall": {
+            #     self.both: {self.nodiv: True, self.div: True},
+            #     self.left: {self.nodiv: False, self.div: False},
+            #     self.right: {self.nodiv: False, self.div: False},
+            # },
             "Pelvis area": {
                 self.both: {self.nodiv: True, self.div: False},
                 self.left: {self.nodiv: False, self.div: False},
