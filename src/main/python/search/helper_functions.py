@@ -1,3 +1,6 @@
+import logging
+from search.search_classes import XslotTypes
+
 def articulatordisplaytext(arts, phase):
     k = arts[0] # hand, arm, or leg
     if arts[1][1] and not arts[1][2]:
@@ -90,7 +93,21 @@ def signtypedisplaytext(specslist):
     return disp
 
 # TODO
-def module_matches_xslottype(module, xslots):
-    return True
+def module_matches_xslottype(timingintervals, targetintervals, xslottype):
+    if xslottype == XslotTypes.IGNORE:
+        return True
+    
+    if xslottype == XslotTypes.CONCRETE:
+        return timingintervals == targetintervals
+
+    if xslottype == XslotTypes.ABSTRACT_WHOLE:
+        # logging.warning("target intervals:")
+        # logging.warning(targetintervals)
+        return True
+
+    if xslottype == XslotTypes.ABSTRACT_XSLOT:
+        return True
+
+
 
         

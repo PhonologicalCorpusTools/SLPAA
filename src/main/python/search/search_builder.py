@@ -664,19 +664,25 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         
     def on_xslots_num_edited(self):
         self.concrete_xslots_rb.setChecked(True)
+        self.xslot_type = self.xslot_type_button_group.checkedButton() 
         self.toggle_continue_selectable()
     
     def on_xslots_frac_edited(self):
-        
         for b in self.xslot_type_button_group.buttons():
-            b.setChecked(self.partial_buttongroup.checkedButton is None)
-        self.concrete_xslots_rb.setChecked(self.partial_buttongroup.checkedButton is not None)
+            b.setChecked(self.partial_buttongroup.checkedButton() is None)
+        self.concrete_xslots_rb.setChecked(self.partial_buttongroup.checkedButton() is not None)
+        self.xslot_type = self.xslot_type_button_group.checkedButton() 
 
-    def on_xslot_type_clicked(self, btn):
-        self.xslot_type = btn   
-        self.concrete_xslots_num.setEnabled(btn == self.concrete_xslots_rb)
-        for b in self.partial_buttongroup.buttons():
-            b.setEnabled(btn == self.concrete_xslots_rb)
+
+    def on_xslot_type_clicked(self):
+        if self.xslot_type_button_group.checkedButton() is not None:
+            self.xslot_type = self.xslot_type_button_group.checkedButton() 
+ 
+            self.concrete_xslots_num.setEnabled(self.xslot_type == self.concrete_xslots_rb)
+            for b in self.partial_buttongroup.buttons():
+                b.setEnabled(self.xslot_type == self.concrete_xslots_rb)
+        logging.warning("xslot type is ")
+        logging.warning(self.xslot_type)
         self.toggle_continue_selectable()
 
     def on_continue_clicked(self):
@@ -697,7 +703,6 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
                 type = XslotTypes.CONCRETE
             else:
                 logging.warning("couldn't identify xslot type")
-                logging.warning(self.xslot_type.property("name"))
             num = int(self.concrete_xslots_num.text()) if self.concrete_xslots_num.text() != "" else 1
             if self.partial_buttongroup.checkedButton() is not None:
                 frac = self.partial_buttongroup.checkedButton().property('fraction')

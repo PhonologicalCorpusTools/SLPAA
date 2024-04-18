@@ -159,7 +159,7 @@ class SearchModel(QStandardItemModel):
         return resultsdict
 
 
-    def sign_matches_target(self, sign, target_dict=None, xslots=None):
+    def sign_matches_target(self, sign, target_dict=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if XSLOT_TARGET in target_dict:
             if not self.sign_matches_xslot(target_dict[XSLOT_TARGET], sign):
@@ -174,13 +174,13 @@ class SearchModel(QStandardItemModel):
                 return False
 
         if ModuleTypes.MOVEMENT in target_dict:
-            if not self.sign_matches_mvmt(target_dict[ModuleTypes.MOVEMENT], sign, xslots):
+            if not self.sign_matches_mvmt(target_dict[ModuleTypes.MOVEMENT], sign):
                 return False
         if ModuleTypes.LOCATION in target_dict:
-            if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign, xslots):
+            if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign):
                 return False
         if ModuleTypes.RELATION in target_dict: 
-            if not self.sign_matches_reln(target_dict[ModuleTypes.RELATION], sign, xslots):
+            if not self.sign_matches_reln(target_dict[ModuleTypes.RELATION], sign):
                 return False
 
         return True
@@ -257,9 +257,11 @@ class SearchModel(QStandardItemModel):
             return False
         return True
 
-    def sign_matches_mvmt(self, mvmt_rows, sign, xslots=None):
-        modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values() if module_matches_xslottype(m, xslots)]
+    def sign_matches_mvmt(self, mvmt_rows, sign):
+        modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
         for row in mvmt_rows:
+            xslottype = self.target_xslottype(row).type
+            target_module = self.target_module(row)
             svi = self.target_values(row)
             if hasattr(svi, "articulators"):
                 sign_arts = set()
@@ -272,17 +274,20 @@ class SearchModel(QStandardItemModel):
             if hasattr(svi, "paths"):
                 sign_paths = set()
                 for module in modules:
-                    for p in module.movementtreemodel.get_checked_items():
-                        sign_paths.add(p)
+                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype):
+                        for p in module.movementtreemodel.get_checked_items():
+                            sign_paths.add(p)
                 if not all(path in sign_paths for path in svi.paths):
                     return False
                     
         return True
 
-    def sign_matches_locn(self, locn_rows, sign, xslots=None):
-        modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values() if module_matches_xslottype(m, xslots)]
+    def sign_matches_locn(self, locn_rows, sign):
+        modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
         for row in locn_rows:
             svi = self.target_values(row)
+            xslottype = self.target_xslottype(row)
+            target_module = self.target_module(row)
             if hasattr(svi, "articulators"):
                 sign_arts = set("")
                 for module in modules:
@@ -310,7 +315,8 @@ class SearchModel(QStandardItemModel):
             if hasattr(svi, "paths"):
                 sign_paths = set("")
                 for module in modules:
-                    sign_paths.update(module.locationtreemodel.get_checked_items())
+                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype):
+                        sign_paths.update(module.locationtreemodel.get_checked_items())
                 if not all(path in sign_paths for path in svi.paths):
                     return False
                     
