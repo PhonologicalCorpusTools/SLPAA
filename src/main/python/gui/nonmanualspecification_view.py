@@ -336,7 +336,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         :param parent: QRadioButton or ActiostateModel object
         """
         btn_self = asm.main_btn
-        print(f'[DEBUG] caught {btn_self.text()}. checked: {ischecked}')
 
         if ischecked:
             # toggle parent as well
