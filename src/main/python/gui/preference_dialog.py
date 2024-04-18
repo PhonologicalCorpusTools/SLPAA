@@ -58,6 +58,7 @@ class DisplayTab(QWidget):
         self.fontsize_spin.setValue(settings['display']['fontsize'])
         fontsize_layout.addWidget(self.fontsize_spin)
         main_layout.addRow(QLabel("Font size (points):"), fontsize_layout)
+        main_layout.addRow(QLabel(""), QLabel("Some changes won't take effect until SLP-AA is restarted"))
 
     def save_settings(self):
         self.settings['display']['sig_figs'] = int(self.decimal_place.value())
