@@ -1,4 +1,4 @@
-import io
+import io, os
 
 
 import copy 
@@ -117,6 +117,7 @@ class SearchModel(QStandardItemModel):
         return rows
 
     def search_corpus(self, corpus): # TODO potentially add a rows_to_skip for adding on to existing results table
+        corpusname = os.path.split(corpus.path)[1]
         selected_rows = self.get_selected_rows()       
         resultsdict = {}
         
@@ -125,8 +126,10 @@ class SearchModel(QStandardItemModel):
             # Create a dictionary to store like targets together. Keys are target type, values are lists containing row numbers.
             negative_rows = [] 
             target_dict = defaultdict(list) 
+            display_vals = []
             for row in selected_rows:
                 target_dict[self.target_type(row)].append(row)
+                display_vals.append(repr(self.target_values(row)))
                 if self.is_negative(row):
                     negative_rows.append("Negative")
                 else:
@@ -135,8 +138,8 @@ class SearchModel(QStandardItemModel):
             matchingsigns = [] # each element is a gloss/id tuple
             for sign in corpus.signs:
                 if self.sign_matches_target(sign, target_dict):
-                    matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid])
-            resultsdict[target_name] = {"corpus": corpus.name, "signs": matchingsigns, "negative": negative_rows}
+                    matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid.display_string()])
+            resultsdict[target_name] = {"corpus": corpusname, "display": display_vals,"signs": matchingsigns, "negative": negative_rows}
         
         elif self.matchdegree == 'any':
             for row in selected_rows:
@@ -150,8 +153,8 @@ class SearchModel(QStandardItemModel):
                 matchingsigns = [] # each element is a gloss/id tuple
                 for sign in corpus.signs:
                     if self.sign_matches_target(sign, target_dict):
-                        matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid])
-                resultsdict[target_name] = {"corpus": corpus.name, "signs": matchingsigns, "negative": negative_rows}
+                        matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid.display_string()])
+                resultsdict[target_name] = {"corpus": corpusname, "display": repr(self.target_values(row)), "signs": matchingsigns, "negative": negative_rows}
 
         return resultsdict
 
@@ -189,7 +192,7 @@ class SearchModel(QStandardItemModel):
         return False
     
     def sign_matches_SLI(self, sli_rows, sign):
-        '''Returns True if the sign matches the specified rows (corresponding to SLI targets)'''
+        '''Returns True if the sign matches all specified rows (corresponding to SLI targets)'''
         
         binary_vals = {
             "fingerspelled": sign.signlevel_information.fingerspelled,

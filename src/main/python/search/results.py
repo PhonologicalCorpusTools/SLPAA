@@ -46,9 +46,10 @@ import logging
 class ResultHeaders:
     CORPUS = 0
     NAME = 1
-    TYPE = 2
-    ID = 3
-    GLOSS = 4
+    VALUES = 2
+    TYPE = 3
+    ID = 4
+    GLOSS = 5
 
 class ResultsView(QWidget):
     def __init__(self, resultsdict, **kwargs):
@@ -101,7 +102,7 @@ class ResultSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)", "Result Type(s)", "Frequency"]
+        self.headers = ["Corpus", "Target Name(s)", "Target Value(s)", "Result Type(s)", "Frequency"]
         self.setHorizontalHeaderLabels(self.headers)
     
     def populate(self, resultsdict):
@@ -109,6 +110,8 @@ class ResultSummaryModel(QStandardItemModel):
             resultrow = resultsdict[targetname]
             name = QStandardItem()
             name.setData(targetname, Qt.DisplayRole)
+            values = QStandardItem()
+            values.setData(resultrow["display"], Qt.DisplayRole)
             corpus = QStandardItem()
             corpus.setData(resultrow["corpus"], Qt.DisplayRole)
             resulttypes = QStandardItem()
@@ -116,7 +119,7 @@ class ResultSummaryModel(QStandardItemModel):
             frequency = QStandardItem()
             frequency.setData(len(resultrow["signs"]), Qt.DisplayRole)
 
-            self.appendRow([corpus, name, resulttypes, frequency])
+            self.appendRow([corpus, name, values, resulttypes, frequency])
 
 
 
@@ -125,7 +128,7 @@ class IndividualSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)", "Result Type(s)", "Entry ID", "Gloss"]
+        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss"]
         self.setHorizontalHeaderLabels(self.headers)
 
     def populate(self, resultsdict):
@@ -134,6 +137,8 @@ class IndividualSummaryModel(QStandardItemModel):
             for sign in resultrow["signs"]:
                 name = QStandardItem()
                 name.setData(targetname, Qt.DisplayRole)
+                values = QStandardItem()
+                values.setData(resultrow["display"], Qt.DisplayRole)
                 corpus = QStandardItem()
                 corpus.setData(resultrow["corpus"], Qt.DisplayRole)
                 resulttypes = QStandardItem()
@@ -142,4 +147,4 @@ class IndividualSummaryModel(QStandardItemModel):
                 entryid.setData(sign[1], Qt.DisplayRole)
                 gloss = QStandardItem()
                 gloss.setData(sign[0], Qt.DisplayRole)
-                self.appendRow([corpus, name, resulttypes, entryid, gloss])
+                self.appendRow([corpus, name, values, resulttypes, entryid, gloss])

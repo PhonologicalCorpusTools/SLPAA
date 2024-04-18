@@ -478,7 +478,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
     def handle_save_signlevelinfo(self, target, signlevel_info, row=None):
         values = {}
-        values["entryid"] = signlevel_info.entryid
+        values["entryid"] = signlevel_info.entryid.display_string()
         values["gloss"] = signlevel_info.gloss
         values["lemma"] = signlevel_info.lemma
         values["source"] = signlevel_info.source
@@ -637,19 +637,16 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         else:
             if self.xslot_type == self.ignore_xslots_rb:
                 type = "ignore"
-                toemit = XslotTypeItem(type, self.concrete_xslots_num.text())
-                self.continue_clicked.emit(self.name_widget.name, toemit)
-                self.accept()
             elif self.xslot_type == self.abstract_xslot_rb:
-                QMessageBox.critical(self, "not implemented", "abstract xs not implemented")
                 type = "abstract xslot"
-                
             elif self.xslot_type == self.abstract_whole_sign_rb:
-                QMessageBox.critical(self, "not implemented", "abstract sign not impl")
                 type = "abstract whole sign"
             else:
-                QMessageBox.critical(self, "not implemented", "concrete x slots not implemeneted")
                 type = "concrete"
+            num = int(self.concrete_xslots_num.text()) if self.concrete_xslots_num.text() != "" else 1
+            toemit = XslotTypeItem(type, num)
+            self.continue_clicked.emit(self.name_widget.name, toemit)
+            self.accept()
             
     def reload_item(self, it):
         self.name_widget.text_entry.setText(it.name)

@@ -229,7 +229,8 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         if not signlevelinfo:
             signlevelinfo = self.signlevelinfo
         if self.signlevelinfo:
-            self.entryid_value.setText(signlevelinfo.entryid)
+            entryid = signlevelinfo.entryid
+            self.entryid_value.setText(entryid.display_string() if entryid.counter not in [None, ""] else "")
             self.gloss_edit.setText(signlevelinfo.gloss)
             self.lemma_edit.setText(signlevelinfo.lemma)
             self.source_edit.setText(signlevelinfo.source)
@@ -298,11 +299,20 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             QMessageBox.critical(self, "Warning", "rel not impl")
     
     def handle_xslot_widget(self, xslotstructure, timingintervals):
-        self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
-                                              timingintervals=timingintervals,
-                                              parent=self)
-
-        if self.xslottype != "ignore":
+        self.xslot_widget = None
+        self.usexslots = False
+        if self.xslottype.type != "ignore":
+            self.usexslots = True
+            
+            if self.xslottype.type == 'abstract xslot':
+                self.mainwindow.current_sign.xslotstructure = XslotStructure(1)
+            elif self.xslottype.type == 'abstract whole sign':
+                self.mainwindow.current_sign.xslotstructure = XslotStructure(1)
+            elif self.xslottype.type == 'concrete':
+                self.mainwindow.current_sign.xslotstructure = XslotStructure(self.xslottype.num)
+            self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
+                                                  timingintervals=timingintervals,
+                                                  parent=self)
             self.main_layout.addWidget(self.xslot_widget)
 
     
