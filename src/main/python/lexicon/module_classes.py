@@ -145,6 +145,8 @@ class ParameterModule:
 
 
 class EntryID:
+    nodisplay = "[No selected Entry ID elements to display]"
+
     def __init__(self, counter=None, parentsign=None):
         self.parentsign = parentsign
         # all other attributes of EntryID are sourced from QSettings, sign, and/or sign-level info,
@@ -191,7 +193,7 @@ class EntryID:
             if qsettings.value('entryid/' + attr + '/visible', type=bool):
                 orders_strings.append((qsettings.value('entryid/' + attr + '/order', type=int), self.getattributestringfromname(attr, qsettings)))
         orders_strings.sort()
-        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or "[No selected Entry ID elements to display]"
+        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or self.nodisplay
 
     # == check compares the displayed strings
     def __eq__(self, other):
@@ -221,6 +223,9 @@ class EntryID:
     def __ge__(self, other):
         return not self.__lt__(other)
 
+    def __repr__(self):
+        return repr(self.display_string())
+
 
 class SignLevelInformation:
     def __init__(self, signlevel_info=None, serializedsignlevelinfo=None, parentsign=None):
@@ -232,8 +237,11 @@ class SignLevelInformation:
             # but due to complications with EntryID containing a reference to its parent Sign,
             # we still store it as only the counter value and then recreate when loading from file
             self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
-            self._gloss = serializedsignlevelinfo['gloss']
+            # as of 20231208, gloss is now a list rather than a string
+            self._gloss = [serializedsignlevelinfo['gloss']] if isinstance(serializedsignlevelinfo['gloss'], str) else serializedsignlevelinfo['gloss']
             self._lemma = serializedsignlevelinfo['lemma']
+            # backward compatibility for attribute added 20231211
+            self._idgloss = serializedsignlevelinfo['idgloss'] if 'idgloss' in serializedsignlevelinfo.keys() else ''
             self._source = serializedsignlevelinfo['source']
             self._signer = serializedsignlevelinfo['signer']
             self._frequency = serializedsignlevelinfo['frequency']
@@ -241,7 +249,7 @@ class SignLevelInformation:
             self._datecreated = datecreated
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
-            # backward compatibility for attribute added 20230412!
+            # backward compatibility for attribute added 20230412
             self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
@@ -249,6 +257,7 @@ class SignLevelInformation:
             self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
+            self._idgloss = signlevel_info['idgloss']
             self._source = signlevel_info['source']
             self._signer = signlevel_info['signer']
             self._frequency = signlevel_info['frequency']
@@ -276,6 +285,7 @@ class SignLevelInformation:
             'entryid': self._entryid.counter,
             'gloss': self._gloss,
             'lemma': self._lemma,
+            'idgloss': self._idgloss,
             'source': self._source,
             'signer': self._signer,
             'frequency': self._frequency,
@@ -322,6 +332,16 @@ class SignLevelInformation:
     @lemma.setter
     def lemma(self, new_lemma):
         self._lemma = new_lemma
+
+    @property
+    def idgloss(self):
+        if not hasattr(self, '_idgloss'):
+            self._idgloss = ''
+        return self._idgloss
+
+    @idgloss.setter
+    def idgloss(self, new_idgloss):
+        self._idgloss = new_idgloss
 
     @property
     def fingerspelled(self):
