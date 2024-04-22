@@ -58,18 +58,18 @@ def check_empty_glosslemmaIDgloss(func):
 def check_duplicated_idgloss(func):
     @functools.wraps(func)
     def wrapper_check_duplicated_idgloss(self, *args, **kwargs):
-        thisidgloss_lower = self.get_idgloss().lower()
-        idglossesincorpus_lower = [idgloss.lower() for idgloss in self.mainwindow.corpus.get_all_idglosses()]
+        thisidgloss_lower = self.get_idgloss().lower().strip()
+        idglossesincorpus_lower = [idgloss.lower().strip() for idgloss in self.mainwindow.corpus.get_all_idglosses()]
 
         if not thisidgloss_lower:
             return func(self, *args, **kwargs)
         elif thisidgloss_lower not in idglossesincorpus_lower:
             return func(self, *args, **kwargs)
-        elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.idgloss.lower() == thisidgloss_lower:
+        elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.idgloss.lower().strip() == thisidgloss_lower:
             return func(self, *args, **kwargs)
         else:
             othersignswiththisidgloss = [sign for sign in self.mainwindow.corpus.signs
-                                         if thisidgloss_lower == sign.signlevel_information.idgloss.lower()
+                                         if thisidgloss_lower == sign.signlevel_information.idgloss.lower().strip()
                                          and sign != self.mainwindow.current_sign]
             messagetext = "This ID-gloss is also used by the sign(s) listed below:"
             for sign in othersignswiththisidgloss:
@@ -93,18 +93,18 @@ def check_duplicated_lemma(func):
             # user doesn't want to see warnings for duplicate lemmas
             return func(self, *args, **kwargs)
 
-        thislemma_lower = self.get_lemma().lower()
-        lemmasincorpus_lower = [lemma.lower() for lemma in self.mainwindow.corpus.get_all_lemmas()]
+        thislemma_lower = self.get_lemma().lower().strip()
+        lemmasincorpus_lower = [lemma.lower().strip() for lemma in self.mainwindow.corpus.get_all_lemmas()]
 
         if not thislemma_lower:
             return func(self, *args, **kwargs)
         elif thislemma_lower not in lemmasincorpus_lower:
             return func(self, *args, **kwargs)
-        elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma.lower() == thislemma_lower:
+        elif self.mainwindow.current_sign and self.mainwindow.current_sign.signlevel_information.lemma.lower().strip() == thislemma_lower:
             return func(self, *args, **kwargs)
         else:
             othersignswiththislemma = [sign for sign in self.mainwindow.corpus.signs
-                                       if thislemma_lower == sign.signlevel_information.lemma.lower()
+                                       if thislemma_lower == sign.signlevel_information.lemma.lower().strip()
                                        and sign != self.mainwindow.current_sign]
             messagetext = "This lemma is also used by the sign(s) listed below:"
             for sign in othersignswiththislemma:
