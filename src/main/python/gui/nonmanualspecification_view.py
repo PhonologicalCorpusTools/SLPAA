@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QTabWidget, QScrollArea, QRadioButton, QLineEdit
+    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle
 )
 from PyQt5.QtCore import (Qt, pyqtSignal,)
 
@@ -38,9 +38,9 @@ class SLPAAButtonGroup(RelationButtonGroup):
         if buttonslist is not None:
             [self.addButton(button) for button in buttonslist]
 
+
 class SpecifyLayout(QHBoxLayout):
     # something like " ○ Other: ________" that consists of radiobutton + lineEdit
-
     def __init__(self, btn_label, text):
         super().__init__()
         self.setAlignment(Qt.AlignLeft)
@@ -56,9 +56,6 @@ class SpecifyLayout(QHBoxLayout):
         self.lineEdit.textEdited.connect(lambda content: self.handle_txt_edit(content, self.radio_btn))
         self.addWidget(self.lineEdit)
 
-    def __str__(self):
-        return f'{self.radio_btn.text()};{self.lineEdit.text()}'
-
     def handle_txt_edit(self, content, radio_btn):
         if content == "":
             return
@@ -69,6 +66,34 @@ class SpecifyLayout(QHBoxLayout):
     def radio_button_toggled(self, checked):
         # called whenever radiobutton is toggled.
         self.lineEdit.setEnabled(checked)
+
+
+class BoldTabBarStyle(QProxyStyle):
+    def __init__(self, bold_tab_index=None):
+        super().__init__()
+        if bold_tab_index is not None:
+            self.bold_tab_index = bold_tab_index
+        else:
+            self.bold_tab_index = ['']
+
+    def drawControl(self, element, option, painter, widget=None):
+        if element == self.CE_TabBarTabLabel:
+            # Check if the current tab index is the bold one
+
+            font = painter.font()
+            if widget.tabAt(option.rect.center()) in self.bold_tab_index:
+                font.setBold(True)
+            else:
+                font.setBold(False)
+            painter.setFont(font)
+
+        super().drawControl(element, option, painter, widget)
+
+    def setBoldTabIndex(self, index):
+        if isinstance(index, int):
+            self.bold_tab_index.append(index)
+        elif isinstance(index, list):
+            self.bold_tab_index.extend(index)
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
@@ -93,6 +118,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # different major non manual tabs
         self.tab_widget = QTabWidget()             # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)  # Create and add tabs to the tab widget
+        self.tab_widget.tab_bar = self.tab_widget.tabBar() # access tab bar to set boldface
+        self.tab_widget.tab_bar.setStyle(BoldTabBarStyle())  # custom style for boldfacing
+        # test. blindly boldface whatever comes as the second tab.
+        self.tab_widget.tab_bar.style().setBoldTabIndex(1)
+        # end testing
         self.tab_widget.setMinimumHeight(700)
         self.setLayout(main_layout)
 
@@ -132,10 +162,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         """
 
         for nonman_unit in nonman_units:
-            major_tab = self.add_tab(nonman_unit)
+            major_tab = self.gen_tab_widget(nonman_unit)
             self.tab_widget.addTab(major_tab, nonman_unit.label)
 
-    def add_tab(self, nonman):
+    def gen_tab_widget(self, nonman):
         """
             Deal with the mundane hassle of adding tab gui, recursively
             Args:
@@ -162,7 +192,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.children:
             subtabs_container = QTabWidget()
             for sub_category in nonman.children:
-                sub_tab = self.add_tab(sub_category)
+                sub_tab = self.gen_tab_widget(sub_category)
                 subtabs_container.addTab(sub_tab, sub_category.label)
             tab_widget.layout.addWidget(subtabs_container)
             tab_widget.setLayout(tab_widget.layout)
