@@ -64,7 +64,7 @@ class GlossesListModel(QStringListModel):
     def setStringList(self, gloss_strings):
         if gloss_strings is None:
             gloss_strings = []
-        gloss_strings = [g for g in gloss_strings if len(g.strip()) > 0]
+        gloss_strings = [g.strip() for g in gloss_strings if len(g.strip()) > 0]
         # if len(gloss_strings) == 0:
         #     gloss_strings = [self.enterglosshere_label]
         # gloss_strings += [""]
@@ -82,7 +82,7 @@ class GlossesListModel(QStringListModel):
     # whereas glosses() should be used by data elements such as SignLevelInformation.
     def glosses(self):
         glosses = self.stringList()
-        return [g for g in glosses if len(g.strip()) > 0 and g != self.enterglosshere_label]
+        return [g.strip() for g in glosses if len(g.strip()) > 0 and g != self.enterglosshere_label]
 
     def clear(self):
         self.setStringList(None)
@@ -290,10 +290,10 @@ class SignLevelInfoPanel(QFrame):
         return self.glosses_model.glosses()
 
     def get_lemma(self):
-        return self.lemma_edit.text()
+        return self.lemma_edit.text().strip()
 
     def get_idgloss(self):
-        return self.idgloss_edit.text()
+        return self.idgloss_edit.text().strip()
 
     @check_empty_glosslemmaIDgloss
     @check_duplicated_idgloss
