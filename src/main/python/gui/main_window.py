@@ -48,6 +48,7 @@ from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaDialog
+from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
 from gui.export_csv_dialog import ExportCSVDialog
@@ -180,6 +181,11 @@ class MainWindow(QMainWindow):
         action_merge_corpora = QAction("Merge corpora...", parent=self)
         action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
         action_merge_corpora.setCheckable(False)
+
+        # export corpus in human-readable form
+        action_export_corpus = QAction("Export corpus...", parent=self)
+        action_export_corpus.triggered.connect(self.on_action_export_corpus)
+        action_export_corpus.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -319,6 +325,7 @@ class MainWindow(QMainWindow):
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
         menu_analysis_beta.addAction(action_merge_corpora)
+        menu_analysis_beta.addAction(action_export_corpus)
 
         corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
         self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
@@ -761,6 +768,10 @@ class MainWindow(QMainWindow):
     def on_action_merge_corpora(self):
         merge_corpora_window = MergeCorporaDialog(self.app_settings, parent=self)
         merge_corpora_window.exec_()
+
+    def on_action_export_corpus(self):
+        export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
+        export_corpus_window.exec_()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
