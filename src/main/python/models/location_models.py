@@ -33,9 +33,7 @@ subgroup = "subgroup"
 c = True  # checked
 u = False  # unchecked
 
-# TODO KV figure out a better way to assign what goes in the
-#  title and content of each column in the details table
-# location type (and types of surfaces, subareas, bones/joints, etc) is either nonhand or hand
+# location types (and related types of surfaces, subareas, bones/joints, etc)
 hb = "hand - bone/joint type"  # "hand"
 hs = "hand - subarea type"
 nh = "nonhand"
@@ -129,6 +127,23 @@ class LocnOptionsNode:
             for child in children:
                 self.insert_child(child)
         self.id = id
+
+    # Returns a list of the nodes traversed in the order specified.
+    # Each item in the returned list is a tuple of (node, depthintree), with root depth = 0.
+    # Traversal orders available are "preorder" and "postorder" (both depth-first).
+    # Used for sorting purposes (eg, arranging location options in right-click list when interacting with image).
+    def flatten(root, order="preorder", depth=0):
+        flattened_children = []
+        if root.children:
+            for child in root.children:
+                flattened_children.extend(child.flatten(order, depth+1))
+
+        if order == "preorder":
+            return [(root, depth)] + flattened_children
+        elif order == "postorder":
+            return flattened_children + [(root, depth)]
+        else:
+            return []
 
     @property
     def surfaces(self):
@@ -227,21 +242,62 @@ class LocnOptionsNode:
 
 # should these go into constant.py... or somewhere similar?
 locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
-    LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas),
-    LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+    LocnOptionsNode("Whole hand - contra", fx, rb, hs, hand_surfaces, hand_subareas),
+    LocnOptionsNode("Whole hand - ipsi", fx, rb, hs, hand_surfaces, hand_subareas),
+    LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas, children=[
+        LocnOptionsNode("Hand minus fingers - contra", fx, rb, hs, hand_surfaces, hand_subareas),
+        LocnOptionsNode("Hand minus fingers - ipsi", fx, rb, hs, hand_surfaces, hand_subareas),
+    ]),
+    LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas, children=[
+        LocnOptionsNode("Heel of hand - contra", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+        LocnOptionsNode("Heel of hand - ipsi", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+    ]),
     LocnOptionsNode("Fingers and thumb", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
-        LocnOptionsNode("Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+        LocnOptionsNode("Fingers and thumb - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+        LocnOptionsNode("Fingers and thumb - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints),
+        LocnOptionsNode("Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
+            LocnOptionsNode("Thumb - contra", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+            LocnOptionsNode("Thumb - ipsi", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+        ]),
         LocnOptionsNode("Fingers", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
-            LocnOptionsNode("Finger 1", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            LocnOptionsNode("Finger 2", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Fingers - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Fingers - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Finger 1", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 1 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 1 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
+            LocnOptionsNode("Finger 2", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 2 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 2 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
+            LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 3 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 3 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
+            LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 4 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 4 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
         ]),
         LocnOptionsNode("Between fingers", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], children=[
-            LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between fingers - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            LocnOptionsNode("Between fingers - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Thumb and Finger 1 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Thumb and Finger 1 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
+            LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Fingers 1 and 2 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Fingers 1 and 2 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
+            LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Fingers 2 and 3 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Fingers 2 and 3 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
+            LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Fingers 3 and 4 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Fingers 3 and 4 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
         ]),
         LocnOptionsNode("Selected fingers and thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
             LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
@@ -337,6 +393,8 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
                         LocnOptionsNode("Outer corner of eye - ipsi", fx, rb, nh, None, None)
                     ]),
                     LocnOptionsNode("Eyelid", fx, rb, nh, None, nonhand_subareas, children=[
+                        LocnOptionsNode("Eyelid - contra", fx, rb, nh, None, nonhand_subareas),
+                        LocnOptionsNode("Eyelid - ipsi", fx, rb, nh, None, nonhand_subareas),
                         LocnOptionsNode("Upper eyelid", fx, rb, nh, None, nonhand_subareas, children=[
                             LocnOptionsNode("Upper eyelid - contra", fx, rb, nh, None, nonhand_subareas),
                             LocnOptionsNode("Upper eyelid - ipsi", fx, rb, nh, None, nonhand_subareas)
@@ -380,8 +438,10 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
                     LocnOptionsNode("Upper lip", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Lower lip", fx, rb, nh, None, nonhand_subareas)
                 ]),
-                LocnOptionsNode("Corner of mouth - contra", fx, rb, nh, None, None),
-                LocnOptionsNode("Corner of mouth - ipsi", fx, rb, nh, None, None),
+                LocnOptionsNode("Corner of mouth", fx, rb, nh, None, None, children=[
+                    LocnOptionsNode("Corner of mouth - contra", fx, rb, nh, None, None),
+                    LocnOptionsNode("Corner of mouth - ipsi", fx, rb, nh, None, None),
+                ]),
                 LocnOptionsNode("Teeth", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Upper teeth", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Lower teeth", fx, rb, nh, None, nonhand_subareas)

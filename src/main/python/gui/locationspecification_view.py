@@ -46,7 +46,7 @@ from PyQt5.QtCore import (
 
 from lexicon.module_classes import delimiter, LocationModule, PhonLocations, userdefinedroles as udr
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
-    LocationType, LocationPathsProxyModel
+    LocationType, LocationPathsProxyModel, locn_options_body
 from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 
@@ -893,7 +893,7 @@ class ImageTabWidget(QTabWidget):
 class LocationAction(QAction):
     region_selected = pyqtSignal(str)
 
-    def __init__(self, elid, svgscrollarea, app_ctx, **kwargs):
+    def __init__(self, elid, svgscrollarea, app_ctx, depth=0, **kwargs):
         self.app_ctx = app_ctx
         self.dominantside = self.app_ctx.main_window.current_sign.signlevel_information.handdominance
         self.absoluteside = "R" if "Right" in elid else ("L" if "Left" in elid else "")
@@ -901,6 +901,17 @@ class LocationAction(QAction):
         super().__init__(self.name, **kwargs)
         self.svgscrollarea = svgscrollarea
         self.triggered.connect(self.handle_selection)
+        self.depth = depth
+
+    @property
+    def depth(self):
+        return self._depth
+
+    @depth.setter
+    def depth(self, new_depth):
+        self._depth = new_depth
+        leadingspaces = "  " * self.depth
+        self.setText(leadingspaces + self.name)
 
     def get_relativehand(self):
         return "ipsi" if self.dominantside == self.absoluteside else "contra"
@@ -975,12 +986,37 @@ class SVGDisplayTab(QWidget):
                 locationname_noside = locationname.replace(" - " + self.app_ctx.contraoripsi, "")
                 if locationname_noside in self.app_ctx.predefined_locations_key.keys():
                     elementname_actions.append(LocationAction(elid, self.imgscroll, self.app_ctx))
-            # TODO KV sort elementname_actions according to location tree
+            # sort elementname_actions according to position in location tree
+            elementname_actions = self.sortbylocationtree(elementname_actions)
+
             for locationaction in elementname_actions:
                 locationaction.region_selected.connect(self.region_selected.emit)
             elementids_menu = QMenu()
             elementids_menu.addActions(elementname_actions)
             elementids_menu.exec_(clickpoint.toPoint())
+
+    # Sort LocationAction items in input list, according to the order they appear in the location options tree.
+    # Also set the depths for the LocationAction items based on their corresponding depth in the tree.
+    # Returns the sorted list of LocationAction items with updated depth info.
+    def sortbylocationtree(self, locationactionslist):
+        names_depths_preorder = [(node.display_name, depth) for node, depth in locn_options_body.flatten("preorder")]
+        names_depths_dict = dict(names_depths_preorder)
+        namesonly = [name for name, depth in names_depths_preorder]
+
+        # used Method #3 at https://www.geeksforgeeks.org/python-sort-list-according-to-other-list-order/
+        sortorder_dict = {displayname: idx for idx, displayname in enumerate(namesonly)}
+        actions_list = [(action, sortorder_dict[action.name]) for action in locationactionslist]
+        actions_list.sort(key=lambda x: x[1])
+        result = [action for action, index in actions_list]
+
+        for action in result:
+            action.depth = names_depths_dict[action.name]
+        mindepth = min([action.depth for action in result])
+        if mindepth > 0:
+            for action in result:
+                action.depth -= mindepth
+
+        return result
 
     def handle_img_doubleclicked(self, mousebutton):
         # TODO KV this is a mess-- figure out a tidier way to do this
