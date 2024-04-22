@@ -96,6 +96,34 @@ class BoldTabBarStyle(QProxyStyle):
             self.bold_tab_index.extend(index)
 
 
+class NMTabWidget(QTabWidget):
+    def __init__(self):
+        super().__init__()
+        self.tab_bar = self.tabBar()
+        self.tab_bar.setStyle(BoldTabBarStyle())
+        self.currentChanged.connect(self.decide_bold_label)
+
+    def check_components(self, widget):
+        all_cb = widget.findChildren(QCheckBox)
+        all_rb = widget.findChildren(QRadioButton)
+        input_slots = all_cb + all_rb
+        for slot in input_slots:
+            # for any of radio button or check box, if it is selected, need_bold True
+            if slot.isChecked():
+                return True
+        return False
+
+    def decide_bold_label(self, index):
+        # decide which tabs need the label bolded
+        print(f'[DEBUG] Switching to Tab {index}')
+        ix = 0
+        while self.widget(ix) is not None:
+            need_bold = self.check_components(self.widget(ix))
+            if need_bold:
+                self.tab_bar.style().setBoldTabIndex(ix)
+            ix += 1
+        self.setCurrentIndex(index)
+
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
     timingintervals_inherited = pyqtSignal(list)
 
@@ -116,13 +144,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.nonman_specifications = {}
 
         # different major non manual tabs
-        self.tab_widget = QTabWidget()             # Create a tab widget
+        self.tab_widget = NMTabWidget()                   # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)  # Create and add tabs to the tab widget
-        self.tab_widget.tab_bar = self.tab_widget.tabBar() # access tab bar to set boldface
-        self.tab_widget.tab_bar.setStyle(BoldTabBarStyle())  # custom style for boldfacing
-        # test. blindly boldface whatever comes as the second tab.
-        self.tab_widget.tab_bar.style().setBoldTabIndex(1)
-        # end testing
         self.tab_widget.setMinimumHeight(700)
         self.setLayout(main_layout)
 
@@ -171,7 +194,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             Args:
                 nonman: NonManualModel
         """
-        tab_widget = QTabWidget()
+        tab_widget = NMTabWidget()
         tab_widget.layout = QVBoxLayout()
         tab_widget.layout.setAlignment(Qt.AlignTop)
 
@@ -190,7 +213,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         [tab_widget.layout.addLayout(row) for row in rows if row is not None]
 
         if nonman.children:
-            subtabs_container = QTabWidget()
+            subtabs_container = NMTabWidget()
             for sub_category in nonman.children:
                 sub_tab = self.gen_tab_widget(sub_category)
                 subtabs_container.addTab(sub_tab, sub_category.label)
