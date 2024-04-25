@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle
+    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle, QWidget
 )
 from PyQt5.QtCore import (Qt, pyqtSignal,)
 
@@ -95,6 +95,12 @@ class BoldTabBarStyle(QProxyStyle):
         elif isinstance(index, list):
             self.bold_tab_index.extend(index)
 
+class TabContentWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QVBoxLayout()
+        self.layout.setAlignment(Qt.AlignTop)
+
 
 class NMTabWidget(QTabWidget):
     def __init__(self):
@@ -107,11 +113,7 @@ class NMTabWidget(QTabWidget):
         all_cb = widget.findChildren(QCheckBox)
         all_rb = widget.findChildren(QRadioButton)
         input_slots = all_cb + all_rb
-        for slot in input_slots:
-            # for any of radio button or check box, if it is selected, need_bold True
-            if slot.isChecked():
-                return True
-        return False
+        return any(slot.isChecked() for slot in input_slots)
 
     def decide_bold_label(self, index):
         # decide which tabs need the label bolded
@@ -194,9 +196,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             Args:
                 nonman: NonManualModel
         """
-        tab_widget = NMTabWidget()
-        tab_widget.layout = QVBoxLayout()
-        tab_widget.layout.setAlignment(Qt.AlignTop)
+        tab_widget = TabContentWidget()
 
         # This section is neutral
         nonman.widget_cb_neutral = QCheckBox("This section is neutral")
