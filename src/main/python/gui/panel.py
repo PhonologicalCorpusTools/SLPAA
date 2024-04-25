@@ -770,6 +770,9 @@ class SignLevelMenuPanel(QScrollArea):
 
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
+        buttons_layout = QHBoxLayout()
+        untimed_layout = QVBoxLayout()
+        timed_layout = QVBoxLayout()
 
         self._sign = sign
         self.modulebuttons_untimed = []
@@ -820,17 +823,24 @@ class SignLevelMenuPanel(QScrollArea):
         self.modulebuttons_timed.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
-        main_layout.addWidget(self.signlevel_button)
-        for btn in self.modulebuttons_untimed:
-            main_layout.addWidget(btn)
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(line)
-        for btn in self.modulebuttons_timed:
-            main_layout.addWidget(btn)
-        self.enable_module_buttons(False)
 
+        untimed_layout.addWidget(self.signlevel_button)
+        for btn in self.modulebuttons_untimed:
+            untimed_layout.addWidget(btn)
+        untimed_layout.addStretch()
+        buttons_layout.addLayout(untimed_layout)
+
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine)
+        line.setFrameShadow(QFrame.Sunken)
+        buttons_layout.addWidget(line)
+
+        for btn in self.modulebuttons_timed:
+            timed_layout.addWidget(btn)
+        buttons_layout.addLayout(timed_layout)
+
+        self.enable_module_buttons(False)
+        main_layout.addLayout(buttons_layout)
         self.setWidget(main_frame)
 
     def enable_module_buttons(self, yesorno):
