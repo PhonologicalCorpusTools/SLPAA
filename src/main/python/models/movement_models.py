@@ -1233,18 +1233,23 @@ class MovementTreeModel(QStandardItemModel):
 
         # 20230707: "trill" is now suboption of "repetition"; previously they were at the same level
         old_trill_path = "Movement characteristics"+delimiter+"Trill"
-        for stored_dict in dicts:
-            if (old_trill_path in stored_dict):
-                # If old Trill / Trilled was selected, the new Trilled is selected and anything for single/repeated is gone.
-                if (stored_dict[old_trill_path+delimiter+"Trilled"] == Qt.Checked):
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"] = Qt.Unchecked
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Checked
-                    stored_dict.pop(old_trill_path + delimiter + "Trilled")
-                # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
-                else:
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Unchecked
-                    stored_dict.pop(old_trill_path + delimiter + "Not trilled")
-                stored_dict.pop(old_trill_path)
+        stored_dict = self.serializedmvmttree.checkstates
+        if (old_trill_path in stored_dict):
+            # If old Trill / Trilled was selected, the new Trilled is selected and anything for single/repeated is gone.
+            if (stored_dict[old_trill_path+delimiter+"Trilled"] == Qt.Checked):
+                stored_dict["Movement characteristics"+delimiter+"Repetition"] = Qt.Unchecked
+                stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Checked
+                if old_trill_path+delimiter+"Trilled" in self.serializedmvmttree.addedinfos:
+                    self.serializedmvmttree.addedinfos["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = self.serializedmvmttree.addedinfos[old_trill_path+delimiter+"Trilled"]
+                    self.serializedmvmttree.addedinfos.pop(old_trill_path + delimiter + "Trilled")
+                stored_dict.pop(old_trill_path + delimiter + "Trilled")
+            # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
+            elif (stored_dict[old_trill_path+delimiter+"Not trilled"] == Qt.Checked):
+                stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Unchecked
+                if old_trill_path+delimiter+"Not trilled" in self.serializedmvmttree.addedinfos:
+                    self.serializedmvmttree.addedinfos.pop(old_trill_path + delimiter + "Not trilled")
+                stored_dict.pop(old_trill_path + delimiter + "Not trilled")
+            stored_dict.pop(old_trill_path)
 
 
         for stored_dict in dicts:
