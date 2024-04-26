@@ -320,6 +320,11 @@ class MainWindow(QMainWindow):
         menu_analysis_beta.addAction(action_count_xslots)
         menu_analysis_beta.addAction(action_merge_corpora)
 
+        self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
+
+        self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
+        self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
+
         corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
         self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
@@ -328,11 +333,6 @@ class MainWindow(QMainWindow):
         self.corpus_scroll = QScrollArea(parent=self)
         self.corpus_scroll.setWidgetResizable(True)
         self.corpus_scroll.setWidget(self.corpus_display)
-
-        self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
-
-        self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
-        self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)

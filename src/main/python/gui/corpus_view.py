@@ -50,6 +50,7 @@ class CorpusDisplay(QWidget):
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.newcurrentindex.connect(self.handle_selection)
         self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
+        self.corpus_view.doubleClicked.connect(self.mainwindow.signlevel_panel.handle_signlevelbutton_click)
         self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         # Corpus filter by any info in table (gloss, entry id string, lemma, id-gloss)
