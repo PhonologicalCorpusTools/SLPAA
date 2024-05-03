@@ -230,7 +230,7 @@ mouth_tongue = NonManualModel(
 mouth_cheek = NonManualModel(
     label='cheek',
     action_state=ActionStateModel(options=[ActionStateModel(label='Puff'),
-                                           ActionStateModel(label='Such in'),
+                                           ActionStateModel(label='Suck in'),
                                            ],
                                   )
 

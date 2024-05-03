@@ -167,7 +167,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def greyout_all(self, state):
         # state: Bool. whether the 'all section neutral' cb checked
-        # prompted: Bool default to False. True if the user actively checked, False if programmatically called.
         need_disable = state == Qt.Checked
 
         if not need_disable:
