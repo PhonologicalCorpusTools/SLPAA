@@ -125,6 +125,7 @@ class MergeCorporaDialog(QDialog):
     def handle_merge_corpora(self):
 
         self.statusdisplay.setText("merging...")
+        self.statusdisplay.repaint()
         self.clear_results_lists()
 
         self.load_and_merge_corpora()
@@ -133,7 +134,7 @@ class MergeCorporaDialog(QDialog):
         for listname in self.results_lists.keys():
             if len(self.results_lists[listname]) > 0:
                 filenames = [filenamefrompath(fp) for fp in self.results_lists[listname]]
-                statusstrings.append(listname + ":\n\t" + ",\n\t".join(filenames))
+                statusstrings.append("\n" + listname + ":\n\t" + ",\n\t".join(filenames))
         self.statusdisplay.setText("\n".join(statusstrings))
 
     def clear_results_lists(self):
@@ -149,6 +150,7 @@ class MergeCorporaDialog(QDialog):
 
         for corpusfilepath in self.corpuspaths_order if self.corpuspaths_order else self.corpusfilepaths:
             self.statusdisplay.appendText("\t" + filenamefrompath(corpusfilepath), afternewline=True)
+            self.statusdisplay.repaint()
 
             if not corpusfilepath.endswith(".slpaa"):
                 self.results_lists["incorrect format"].append(corpusfilepath)

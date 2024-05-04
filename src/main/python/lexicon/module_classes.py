@@ -1077,8 +1077,7 @@ class Signtype:
 
     def __init__(self, specslist, addedinfo=None):
         # specslist is a list of pairs:
-        #   the first element is the full signtype property (correlated with radio buttons in selector dialog),
-        #   which is composed of the corresponding abbreviation
+        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         # TODO KV need backward compatibility for this
