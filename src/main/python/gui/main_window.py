@@ -523,17 +523,17 @@ class MainWindow(QMainWindow):
         self.action_show_sub_signlevelmenu.setChecked(True)
         self.action_show_sub_visualsummary.setChecked(True)
 
-        self.resize(QSize(2000, 1200))
+        self.resize(QSize(1800, 1040))
         self.move(0, 23)
 
-        self.sub_corpus.resize(QSize(340, 700))
-        self.sub_corpus.move(QPoint(0, 0))
+        self.sub_signlevelmenu.resize(QSize(675, 355))
+        self.sub_signlevelmenu.move(QPoint(0, 0))
 
-        self.sub_signlevelmenu.resize(QSize(320, 700))
-        self.sub_signlevelmenu.move(QPoint(340, 0))
+        self.sub_corpus.resize(QSize(675, 565))
+        self.sub_corpus.move(QPoint(0, 355))
 
-        self.sub_visualsummary.resize(QSize(1200, 900))
-        self.sub_visualsummary.move(QPoint(660, 0))
+        self.sub_visualsummary.resize(QSize(1200, 920))
+        self.sub_visualsummary.move(QPoint(675, 0))
 
     def on_subwindow_manually_closed(self, widget):
         if widget == self.corpus_scroll:
@@ -615,20 +615,20 @@ class MainWindow(QMainWindow):
         self.app_qsettings.endGroup()  # storage
 
         self.app_qsettings.beginGroup('display')
-        self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(2000, 1200))
+        self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(1800, 1040))
         self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(0, 23))
 
-        self.app_settings['display']['sub_corpus_show'] = self.app_qsettings.value('sub_corpus_show', defaultValue=True, type=bool)
-        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 0))
-        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(340, 700))
-
         self.app_settings['display']['sub_signlevelmenu_show'] = self.app_qsettings.value('sub_signlevelmenu_show', defaultValue=True, type=bool)
-        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(340, 0))
-        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(320, 700))
+        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(0, 0))
+        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(675, 355))
+
+        self.app_settings['display']['sub_corpus_show'] = self.app_qsettings.value('sub_corpus_show', defaultValue=True, type=bool)
+        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 355))
+        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(675, 565))
 
         self.app_settings['display']['sub_visualsummary_show'] = self.app_qsettings.value('sub_visualsummary_show', defaultValue=True, type=bool)
-        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(660, 0))
-        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(1200, 900))
+        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(675, 0))
+        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(1200, 920))
 
         self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2, type=int)
         self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True, type=bool)
