@@ -125,7 +125,8 @@ class NMTabWidget(QTabWidget):
         return any(slot.isChecked() for slot in input_slots)
 
     def decide_bold_label(self, index):
-        # decide which tabs need the label bolded
+        # called when tab selection updates.
+        # it decides which tabs need the label bolded
         print(f'[DEBUG] Switching to Tab {index}')
         idx = 0
         while self.widget(idx) is not None:
@@ -155,7 +156,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         # different major non manual tabs
         self.tab_widget = NMTabWidget()                   # Create a tab widget
-        self.create_major_tabs(nonmanual_root.children)  # Create and add tabs to the tab widget
+        self.create_major_tabs(nonmanual_root.children)   # Create and add tabs to the tab widget
         self.tab_widget.setMinimumHeight(700)
         self.setLayout(main_layout)
 
@@ -815,6 +816,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # all neutral
         if all_neutral_flag:
             self.widget_cb_neutral.setChecked(True)
+
+        # loading per se done.
+        # now programmatically move tab to 'target' and then to the first tab, in order to invoke the tab bold behaviour
+        target = self.tab_widget.count() - 1     # where to? to the last tab
+        self.tab_widget.setCurrentIndex(target)
+        self.tab_widget.repaint()
+        self.tab_widget.setCurrentIndex(0)  # back to the first
 
     def handle_btn_toggled(self, _, ischecked, parent):
         """
