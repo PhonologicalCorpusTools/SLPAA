@@ -166,7 +166,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.existingkey = moduletoload.uniqueid
 
     def greyout_all(self, state):
-        # state: Bool. whether the 'all section neutral' cb checked
+        # state: bool. whether the 'all section neutral' cb checked
         need_disable = state == Qt.Checked
 
         if not need_disable:
@@ -177,6 +177,26 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         this_neutral_cbs = [w for w in self.tab_widget.findChildren(QCheckBox) if 'This section' in w.text()]
         for cb in this_neutral_cbs:
             cb.setChecked(need_disable)
+
+    def greyout_row3(self, toggled, current_tab):
+        # toggled: bool. whether the 'static' (contra 'dynamic') radio button selected
+        # current_tab: str. in which tab the static radio button selected?
+        # selecting 'static' -> greyout movement characteristics i.e., row3
+
+        enable_row3 = not toggled  # enable row 3 when static is 'unselected'
+
+        tab = self.nonman_specifications[current_tab]
+        target_groups = [tab.repetition_group, tab.directionality_group] + tab.additional_char_rb_group  # groups in row3
+
+        target_rbs = []  # container for all target radio buttons included in row3's buttongroups
+        for g in target_groups:
+            target_rbs += g.buttons()
+
+        for rb in target_rbs:
+            # iterate over each radio button in row3 and set enable/disable
+            rb.setEnabled(enable_row3)
+
+        return
 
     def create_major_tabs(self, nonman_units):
         """
@@ -272,6 +292,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         row.addWidget(sd_rb_groupbox)
 
+        nonman.widget_rb_static.toggled.connect(lambda toggled: self.greyout_row3(toggled, nonman.label))
+
+
         # special case: 'mouth' requires 'Type of mouth movement' which is contained in .subparts
         if nonman.label == 'Mouth':
             mvmt_type_box = QGroupBox("Type of mouth movement")
@@ -322,9 +345,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             nonman.subpart_group.buttonToggled.connect(lambda rb, ischecked:
                                                        self.handle_onepart_btn_toggled(rb, ischecked, nonman))
 
-            nonman.rb_onepart_one = SLPAARadioButton("H1")
-            nonman.rb_onepart_two = SLPAARadioButton("H2")
-            onepart_list = [nonman.rb_onepart_one, nonman.rb_onepart_two]
+            rb_onepart_one = SLPAARadioButton("H1")
+            rb_onepart_two = SLPAARadioButton("H2")
+            onepart_list = [rb_onepart_one, rb_onepart_two]
 
             nonman.onepart_group = SLPAAButtonGroup(onepart_list)  # radiobutton group for H1 and H2
 
@@ -557,12 +580,12 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         repetition_group = QGroupBox("Repetition")
         repetition_group_layout = QVBoxLayout()
         repetition_group_layout.setAlignment(Qt.AlignTop)
-        nonman.widget_rb_rep_single = SLPAARadioButton("Single")
-        nonman.widget_rb_rep_rep = SLPAARadioButton("Repeated")
-        nonman.widget_rb_rep_trill = SLPAARadioButton("Trilled")
-        rep_list = [nonman.widget_rb_rep_single, nonman.widget_rb_rep_rep, nonman.widget_rb_rep_trill]
+        widget_rb_rep_single = SLPAARadioButton("Single")
+        widget_rb_rep_rep = SLPAARadioButton("Repeated")
+        widget_rb_rep_trill = SLPAARadioButton("Trilled")
+        rep_list = [widget_rb_rep_single, widget_rb_rep_rep, widget_rb_rep_trill]
 
-        nonman.rep_group = SLPAAButtonGroup(rep_list)
+        nonman.repetition_group = SLPAAButtonGroup(rep_list)
 
         [repetition_group_layout.addWidget(widget) for widget in rep_list]
         repetition_group.setLayout(repetition_group_layout)
@@ -679,7 +702,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             return module_output
 
         # this time, repetition and directionality
-        module_output['repetition'] = what_selected(current_module.rep_group)
+        module_output['repetition'] = what_selected(current_module.repetition_group)
         module_output['directionality'] = what_selected(current_module.directionality_group)
 
         # additional mvmt characteristics
@@ -863,7 +886,7 @@ def load_specifications(values_toload, load_destination):
 
     # repetition
     try:
-        select_this(btn_group=load_destination.rep_group,
+        select_this(btn_group=load_destination.repetition_group,
                     btn_txt=values_toload['repetition'])
     except AttributeError:
         pass
