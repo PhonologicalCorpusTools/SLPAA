@@ -74,7 +74,7 @@ class BoldTabBarStyle(QProxyStyle):
         if bold_tab_index is not None:
             self.bold_tab_index = bold_tab_index
         else:
-            self.bold_tab_index = ['']
+            self.bold_tab_index = []
 
     def drawControl(self, element, option, painter, widget=None):
         if element == self.CE_TabBarTabLabel:
@@ -89,9 +89,18 @@ class BoldTabBarStyle(QProxyStyle):
 
         super().drawControl(element, option, painter, widget)
 
-    def setBoldTabIndex(self, index):
+    def setBoldTabIndex(self, index, need_bold=True):
         if isinstance(index, int):
-            self.bold_tab_index.append(index)
+            if need_bold:
+                # need bold tab label, so indicate this by adding index to the list
+                self.bold_tab_index.append(index)
+                self.bold_tab_index = list(set(self.bold_tab_index))
+                return
+            try:
+                self.bold_tab_index.remove(index)
+            except ValueError:  # index at hand not in bold_tab_index list but ok
+                pass
+
         elif isinstance(index, list):
             self.bold_tab_index.extend(index)
 
@@ -118,12 +127,11 @@ class NMTabWidget(QTabWidget):
     def decide_bold_label(self, index):
         # decide which tabs need the label bolded
         print(f'[DEBUG] Switching to Tab {index}')
-        ix = 0
-        while self.widget(ix) is not None:
-            need_bold = self.check_components(self.widget(ix))
-            if need_bold:
-                self.tab_bar.style().setBoldTabIndex(ix)
-            ix += 1
+        idx = 0
+        while self.widget(idx) is not None:
+            need_bold = self.check_components(self.widget(idx))
+            self.tab_bar.style().setBoldTabIndex(idx, need_bold)
+            idx += 1
         self.setCurrentIndex(index)
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
