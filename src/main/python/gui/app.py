@@ -68,25 +68,6 @@ class AppContext(ApplicationContext):
             'body_hands_back': self.get_resource('default_location_images/body_hands_back.png')
         }
 
-    # TODO KV eventually delete once we've figured out what we're doing with vector/raster images & qualities
-    @cached_property
-    def temp_test_images(self):
-        return {
-            'layers_posterR.svg': self.get_resource('temp_test_images/layers_posterR.svg'),
-            'layers_posterR_min.svg': self.get_resource('temp_test_images/layers_posterR_min.svg'),
-            'Layers_PosterR-01.png': self.get_resource('temp_test_images/Layers_PosterR-01.png'),
-            'shading_A4p.png': self.get_resource('temp_test_images/shading_A4p.png'),
-            'shading_A4p_min-01.svg': self.get_resource('temp_test_images/shading_A4p_min-01.svg'),
-            'shading_letter.png': self.get_resource('temp_test_images/shading_letter.png'),
-            'shading_letter.svg': self.get_resource('temp_test_images/shading_letter.svg'),
-            'shading_letter_min.svg': self.get_resource('temp_test_images/shading_letter_min.svg'),
-            'shading_poster.png': self.get_resource('temp_test_images/shading_poster.png'),
-            'shading_poster.svg': self.get_resource('temp_test_images/shading_poster.svg'),
-            'shading_poster_min.svg': self.get_resource('temp_test_images/shading_poster_min.svg'),
-            'symmetry_sample.png': self.get_resource('temp_test_images/symmetry_sample.png'),
-            'symmetry_sample.svg': self.get_resource('temp_test_images/symmetry_sample.svg')
-        }
-
     @cached_property
     def hand_illustrations(self):
         return {

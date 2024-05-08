@@ -50,7 +50,6 @@ from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaDialog
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
-from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
@@ -166,11 +165,6 @@ class MainWindow(QMainWindow):
         action_define_location.setStatusTip('Open define location window')
         action_define_location.triggered.connect(self.on_action_define_location)
         action_define_location.setCheckable(False)
-
-        # TODO KV test vector graphics for locations
-        action_test_location_graphics = QAction('Test location graphics...', parent=self)
-        action_test_location_graphics.triggered.connect(self.on_action_test_location_graphics)
-        action_test_location_graphics.setCheckable(False)
 
         # count x-slots
         action_count_xslots = QAction("Count x-slots...", parent=self)
@@ -320,7 +314,6 @@ class MainWindow(QMainWindow):
 
         menu_location = main_menu.addMenu('&Location')
         menu_location.addAction(action_define_location)
-        menu_location.addAction(action_test_location_graphics)
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
@@ -756,10 +749,6 @@ class MainWindow(QMainWindow):
                                                  parent=self)
         location_definer.saved_locations.connect(self.save_new_locations)
         location_definer.exec_()
-
-    def on_action_test_location_graphics(self):
-        location_test_window = LocationGraphicsTestDialog(self.app_settings, self.app_ctx, parent=self)
-        location_test_window.exec_()
 
     def on_action_count_xslots(self):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
