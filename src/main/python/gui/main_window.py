@@ -312,8 +312,12 @@ class MainWindow(QMainWindow):
         menu_edit.addAction(action_export_subwindow_config)
         menu_edit.addAction(action_import_subwindow_config)
 
-        menu_location = main_menu.addMenu('&Location')
-        menu_location.addAction(action_define_location)
+        # this menu/item is for an older way of interacting & defining Locations
+        # I've kept the content & relevant classes for now, but just commented out the access
+        # TODO consider at some point whether we want to trash the relevant classes
+        # or if there's some code in there worth saving/reusing in an updated location definition UI
+        # menu_location = main_menu.addMenu('&Location')
+        # menu_location.addAction(action_define_location)
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
