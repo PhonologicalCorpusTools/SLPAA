@@ -738,6 +738,7 @@ class AppContext(ApplicationContext):
     #         # TODO KV check
     #     }
 
+
     @cached_property
     def hand_illustrations(self):
         return {

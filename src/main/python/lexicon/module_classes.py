@@ -11,7 +11,7 @@ from PyQt5.QtCore import (
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
-delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
+treepathdelimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
 
 class ModuleTypes:
@@ -47,17 +47,21 @@ userdefinedroles = UserDefinedRoles({
         #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
     'pathdisplayrole': 1,
         # pathdisplayrole:
-        # TODO KV description
+        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
+        # the full path (node names, separated by delimiters) of the model Item in question,
+        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
     'mutuallyexclusiverole': 2,
         # mutuallyexclusiverole:
         # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
         # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,  # currently unused; can repurpose if needed
+    # 'unusedrole': 3,
         # unusedrole:
-        # TODO KV description
+        # currently unused; can repurpose if needed
     'lastingrouprole': 4,
         # lastingrouprole:
-        # TODO KV description
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
+        # in its subgroup, which affects how it is painted in the movement tree
+        # (eg, whether the item will be followed by a horizontal line)
     'finalsubgrouprole': 5,
         # finalsubgrouprole:
         # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
@@ -73,7 +77,7 @@ userdefinedroles = UserDefinedRoles({
         # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
     'timestamprole': 8,
         # timestamprole:
-        # TODO KV description
+        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
     'isuserspecifiablerole': 9,
         # isuserspecifiablerole:
         # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
@@ -535,7 +539,7 @@ class MovementModule(ParameterModule):
             if selected:
                 # logging.warn(text)
                 # logging.warn(id)
-                pathelements = text.split(delimiter)
+                pathelements = text.split(treepathdelimiter)
                 # thisentrytext = ""
                 # firstonedone = False
                 # morethanone = False
@@ -1077,8 +1081,7 @@ class Signtype:
 
     def __init__(self, specslist, addedinfo=None):
         # specslist is a list of pairs:
-        #   the first element is the full signtype property (correlated with radio buttons in selector dialog),
-        #   which is composed of the corresponding abbreviation
+        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         # TODO KV need backward compatibility for this

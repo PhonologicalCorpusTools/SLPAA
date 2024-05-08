@@ -2,7 +2,7 @@ import logging
 import os
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, delimiter
+from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -10,6 +10,7 @@ from models.location_models import LocationTreeModel, BodypartTreeModel
 from constant import HAND, ARM, LEG
 
 NULL = '\u2205'
+glossesdelimiter = " / "
 
 
 def empty_copy(obj):
@@ -311,7 +312,7 @@ class Sign:
         return isinstance(other, Sign) and self.signlevel_information.entryid.counter == other.signlevel_information.entryid.counter
 
     def __repr__(self):
-        glosses_string = " / ".join(self.signlevel_information.gloss)
+        glosses_string = glossesdelimiter.join(self.signlevel_information.gloss)
         return '<SIGN: ' + repr(glosses_string) + ' - ' + repr(self.signlevel_information.entryid) + '>'
 
     @property
@@ -553,7 +554,7 @@ class Corpus:
                 logging.warning(label+": bad backwards compatibility for " + oldpath)
                 
             for path in paths_to_add:
-                newpath = delimiter.join(path)
+                newpath = treepathdelimiter.join(path)
                 correctionsdict[type][entryidcounter][newpath] = oldpath
                 newpaths.append(newpath)
         thisdict = correctionsdict[type][entryidcounter]
@@ -576,7 +577,7 @@ class Corpus:
         nodes = []
         curr = ""
         for c in item:
-            if (c is not delimiter):
+            if (c is not treepathdelimiter):
                 curr = curr + c
             else:
                 nodes.append(curr)
