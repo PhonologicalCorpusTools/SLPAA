@@ -38,9 +38,10 @@ from constant import HAND, ARM, LEG
 
 
 class ModuleSelectorDialog(QDialog):
-    # the second param for module_saved is from ModuleTypes.xxxx TODO KV and will typically be None,
-    # UNLESS the module being saved is of a different type than the primary module selector dialog
-    # (ie, an associated relation module spawned from a movement or location module dialog)
+    # The second param for module_saved is from ModuleTypes.xxxx and will often be of
+    # the same type that this module selector dialog is for.
+    # HOWEVER, it's possible that the module being saved is of a different type than the primary module selector dialog
+    # (ie, an associated relation module spawned from a movement or location module dialog).
     module_saved = pyqtSignal(ParameterModule, str)
     module_deleted = pyqtSignal()
 
