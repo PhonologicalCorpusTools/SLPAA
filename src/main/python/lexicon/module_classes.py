@@ -47,17 +47,21 @@ userdefinedroles = UserDefinedRoles({
         #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
     'pathdisplayrole': 1,
         # pathdisplayrole:
-        # TODO KV description
+        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
+        # the full path (node names, separated by delimiters) of the model Item in question,
+        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
     'mutuallyexclusiverole': 2,
         # mutuallyexclusiverole:
         # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
         # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,  # currently unused; can repurpose if needed
+    # 'unusedrole': 3,
         # unusedrole:
-        # TODO KV description
+        # currently unused; can repurpose if needed
     'lastingrouprole': 4,
         # lastingrouprole:
-        # TODO KV description
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
+        # in its subgroup, which affects how it is painted in the movement tree
+        # (eg, whether the item will be followed by a horizontal line)
     'finalsubgrouprole': 5,
         # finalsubgrouprole:
         # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
@@ -73,7 +77,7 @@ userdefinedroles = UserDefinedRoles({
         # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
     'timestamprole': 8,
         # timestamprole:
-        # TODO KV description
+        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
     'isuserspecifiablerole': 9,
         # isuserspecifiablerole:
         # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
