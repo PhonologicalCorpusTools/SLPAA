@@ -11,7 +11,7 @@ from PyQt5.QtCore import (
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
-delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
+treepathdelimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
 
 class ModuleTypes:
@@ -535,7 +535,7 @@ class MovementModule(ParameterModule):
             if selected:
                 # logging.warn(text)
                 # logging.warn(id)
-                pathelements = text.split(delimiter)
+                pathelements = text.split(treepathdelimiter)
                 # thisentrytext = ""
                 # firstonedone = False
                 # morethanone = False

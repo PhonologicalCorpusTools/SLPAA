@@ -18,7 +18,7 @@ from PyQt5.QtCore import (
 from gui.modulespecification_widgets import AddedInfoPushButton
 from gui.locationspecification_view import LocationOptionsSelectionPanel
 from models.location_models import BodypartTreeModel
-from lexicon.module_classes import AddedInfo, delimiter, BodypartInfo
+from lexicon.module_classes import AddedInfo, treepathdelimiter, BodypartInfo
 from constant import HAND, ARM, LEG
 from serialization_classes import LocationTreeSerializable
 import logging
