@@ -38,7 +38,7 @@ from PyQt5.QtGui import (
     QPixmap
 )
 
-from lexicon.module_classes import delimiter, LocationModule, PhonLocations, userdefinedroles as udr
+from lexicon.module_classes import treepathdelimiter, LocationModule, PhonLocations, userdefinedroles as udr
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
@@ -63,7 +63,7 @@ class LocnTreeSearchComboBox(QComboBox):
             if self.currentText():
                 itemstoselect = gettreeitemsinpath(self.parent().treemodel,
                                                    self.currentText(),
-                                                   delim=delimiter)
+                                                   delim=treepathdelimiter)
                 for item in itemstoselect:
                     if item.checkState() == Qt.Unchecked:
                         item.setCheckState(Qt.PartiallyChecked)
@@ -88,9 +88,9 @@ class LocnTreeSearchComboBox(QComboBox):
                     elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() \
                             and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
                         foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
+                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
                             self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
                         else:
                             self.setEditText(completionoption)
                         self.lastcompletedentry = self.currentText()
@@ -103,9 +103,9 @@ class LocnTreeSearchComboBox(QComboBox):
                     completionoption = self.completer().currentCompletion()
                     if completionoption.lower().startswith(self.lasttextentry.lower()):
                         foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
+                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
                             self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
                         else:
                             self.setEditText(completionoption)
                         self.lastcompletedentry = self.currentText()
