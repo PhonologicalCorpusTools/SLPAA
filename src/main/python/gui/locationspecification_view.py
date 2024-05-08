@@ -160,52 +160,6 @@ class LocationGraphicsView(QGraphicsView):
             self.scale(factor, factor)
 
 
-class LocationSvgView(QGraphicsView):
-
-    def __init__(self, parent=None, viewer_size=600, specificpath=""):
-        super().__init__(parent=parent)
-
-        self.viewer_size = viewer_size
-
-        self._scene = QGraphicsScene(parent=self)
-
-        self.svg = QWebEngineView()
-        # self.svg.urlChanged.connect(self.shownewurl)
-
-        # dir_path = os.path.dirname(os.path.realpath(__file__))
-        # print("dir_path", dir_path)
-        # cwd = os.getcwd()
-        # print("cwd", cwd)
-
-        imageurl = QUrl.fromLocalFile(specificpath)
-        self.svg.load(imageurl)
-        self.svg.show()
-        self._scene.addWidget(self.svg)
-        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
-
-        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
-        self.setScene(self._scene)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-    #     self.fitInView()
-    #
-    # def fitInView(self, scale=True):
-    #     rect = QRectF(self._photo.pixmap().rect())
-    #     if not rect.isNull():
-    #         self.setSceneRect(rect)
-    #         unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-    #         self.scale(1 / unity.width(), 1 / unity.height())
-    #         scenerect = self.transform().mapRect(rect)
-    #         factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
-    #         self.factor = factor
-    #         # viewrect = self.viewport().rect()
-    #         # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
-    #         self.scale(factor, factor)
-
-    # TODO KV probably don't need this after all
-    def shownewurl(self, newurl):
-        self.svg.show()
-
-
 class LocationTableView(QTableView):
     def __init__(self, locationtreeitem=None, **kwargs):
         super().__init__(**kwargs)
