@@ -170,7 +170,7 @@ class LocnTreeSearchComboBox(QComboBox):
 
 
 class LocationTableView(QTableView):
-    def __init__(self, locationtreeitem=None, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # set the table model
@@ -340,7 +340,7 @@ class LocationOptionsSelectionPanel(QFrame):
         selection_layout = QHBoxLayout()
 
         if self.showimagetabs:
-            self.imagetabwidget = ImageTabWidget(treemodel=self.treemodel, parent=self)
+            self.imagetabwidget = ImageTabWidget(parent=self)
             self.imagetabwidget.region_selected.connect(self.handle_region_selected)
             selection_layout.addWidget(self.imagetabwidget)
 
@@ -384,7 +384,7 @@ class LocationOptionsSelectionPanel(QFrame):
             locationname = selectedtreeitem.text()
             loc, relside = location_and_relativeside(locationname)
             newimagepath = self.mainwindow.app_ctx.predefined_locations_yellow[loc][self.get_absolutehand(relside)][self.mainwindow.app_ctx.nodiv]
-            self.imagetabwidget.currentWidget().imgscroll.handle_image_changed(newimagepath)
+            self.imagetabwidget.handle_image_changed(newimagepath, loc)
         else:  # 0 or >1 rows selected; the image is cleared
             self.imagetabwidget.currentWidget().clear()
 
@@ -883,7 +883,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 class ImageTabWidget(QTabWidget):
     region_selected = pyqtSignal(str)
 
-    def __init__(self, treemodel, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
@@ -893,20 +893,35 @@ class ImageTabWidget(QTabWidget):
                                                  self.handle_linkbutton_toggled(ischecked, self.fronttab))
         self.fronttab.region_selected.connect(self.region_selected.emit)
         self.addTab(self.fronttab, "Front")
+
         self.backtab = SVGDisplayTab(self.mainwindow.app_ctx, 'back')
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.backtab.linkbutton_toggled.connect(lambda ischecked:
                                                 self.handle_linkbutton_toggled(ischecked, self.backtab))
-        # TODO handle backtab.region_selected signal
+        self.backtab.region_selected.connect(self.region_selected.emit)
         self.addTab(self.backtab, "Back")
-        self.sidetab = SVGDisplayTab(self.mainwindow.app_ctx, 'side')
-        self.sidetab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
-        self.sidetab.linkbutton_toggled.connect(lambda ischecked:
-                                                self.handle_linkbutton_toggled(ischecked, self.sidetab))
-        # TODO handle sidetab.region_selected signal
-        self.addTab(self.sidetab, "Side")
 
-        self.alltabs = [self.fronttab, self.backtab, self.sidetab]
+        # do we actually need a side tab? so far all regions are viewable from either front or back;
+        # none are depicted from a side view
+        # self.sidetab = SVGDisplayTab(self.mainwindow.app_ctx, 'side')
+        # self.sidetab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
+        # self.sidetab.linkbutton_toggled.connect(lambda ischecked:
+        #                                         self.handle_linkbutton_toggled(ischecked, self.sidetab))
+        # self.sidetab.region_selected.connect(self.region_selected.emit)
+        # self.addTab(self.sidetab, "Side")
+
+        self.alltabs = [self.fronttab, self.backtab]  # , self.sidetab]
+
+    def handle_image_changed(self, newimagepath, loc):
+        relevanttab = self.backtab if self.isbackview(loc) else self.fronttab
+        self.setCurrentWidget(relevanttab)
+        relevanttab.imgscroll.handle_image_changed(newimagepath)
+
+    def isbackview(self, loc):
+        for backname in ["back of head", "behind ear", "buttocks"]:
+            if backname in loc.lower():
+                return True
+        return False
 
     def handle_zoomfactor_changed(self, scale):
         if True in [tab.link_button.isChecked() for tab in self.alltabs]:
@@ -999,6 +1014,10 @@ class SVGDisplayTab(QWidget):
         main_layout.addLayout(img_layout)
 
         zoom_layout = QVBoxLayout()
+        zoom_label = QLabel("Zoom")
+        zoom_layout.addWidget(zoom_label)
+        zoom_layout.setAlignment(zoom_label, Qt.AlignHCenter)
+
         self.zoom_slider = QSlider(Qt.Vertical, parent=self)
         self.zoom_slider.setMinimum(1)
         self.zoom_slider.setMaximum(9)
@@ -1044,6 +1063,9 @@ class SVGDisplayTab(QWidget):
     # Also set the depths for the LocationAction items based on their corresponding depth in the tree.
     # Returns the sorted list of LocationAction items with updated depth info.
     def sortbylocationtree(self, locationactionslist):
+        if not locationactionslist:  # if it's empty, don't bother doing all the work below
+            return locationactionslist
+
         names_depths_preorder = [(node.display_name, depth) for node, depth in locn_options_body.flatten("preorder")]
         names_depths_dict = dict(names_depths_preorder)
         namesonly = [name for name, depth in names_depths_preorder]
@@ -1206,7 +1228,6 @@ class SVGGraphicsScene(QGraphicsScene):
         mousebutton = event.button()
         scenepoint = QPointF(event.scenePos().x(), event.scenePos().y())
         screenpoint = QPointF(event.screenPos().x(), event.screenPos().y())
-        # TODO KV why is this sometimes missing general ("both-sided") locations? seems to depend on the side that's R-clicked.
         items = self.items(scenepoint)
         clickedids = [it.elementId().strip("0") for it in items if it.elementId() != ""]
         self.img_clicked.emit(screenpoint, clickedids, mousebutton)
