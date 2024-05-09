@@ -18,6 +18,14 @@
       .cls-4, .cls-5 {
         stroke-width: 0.75px;
       }
+
+      .cls-100 {
+        stroke: none;
+      }
+
+      .cls-100 {
+        fill: none;
+      }
     </style>
   </defs>
   <g id="Back_of_Head" data-name="Back of head">
