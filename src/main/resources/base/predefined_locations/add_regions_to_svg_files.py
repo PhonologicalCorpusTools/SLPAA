@@ -35,7 +35,7 @@ def replace(frontorback, srcfilenames, srcfolder, destfolder):
 
 
 def isbackview(svg_filename):
-    for backname in ["Back_of_Head", "Behind_Ears", "Buttocks"]:
+    for backname in ["Back_of_Head", "Behind_Ear", "Buttocks"]:
         if backname in svg_filename:
             return True
     return False
