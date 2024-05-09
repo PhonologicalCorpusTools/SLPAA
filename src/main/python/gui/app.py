@@ -106,7 +106,7 @@ class AppContext(ApplicationContext):
                     if predef_locs[locname][side][hasdiv]:
                         resource_string = self.get_resource('predefined_locations/' +
                                                              colour +
-                                                             '_HL_withregions_renamed/' +
+                                                             '_20240508version/' +
                                                              self.fnamestr_by_predef_locns_descr(locname, side) +
                                                              '-' +
                                                              colour +
@@ -196,8 +196,8 @@ class AppContext(ApplicationContext):
             },
             "Buttocks": {
                 self.both: {self.nodiv: True, self.div: False},
-                self.left: {self.nodiv: False, self.div: False},
-                self.right: {self.nodiv: False, self.div: False},
+                self.left: {self.nodiv: True, self.div: False},
+                self.right: {self.nodiv: True, self.div: False},
             },
             "Cheek": {
                 self.both: {self.nodiv: True, self.div: False},

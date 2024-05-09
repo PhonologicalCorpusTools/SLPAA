@@ -7,7 +7,7 @@ curfile_to_locationtext = {
     "Above_Forehead-Hairline": "Above forehead (hairline)",
     "Ankles": "Ankle",
     # "Ankle": "Ankle",
-    "Back_of_Head": "Back of head",
+    "Back_of_head": "Back of head",
     "Behind_Ears": "Behind ear",
     "Behind_Ear": "Behind ear",
     "Below_Nose-Philtrum": "Below nose / philtrum",
@@ -135,7 +135,7 @@ curfile_to_locationtext = {
 
 
 def main():
-    for destfolder in ["green_HL_withregions_renamed", "yellow_HL_withregions_renamed", "violet_HL_withregions_renamed"]:
+    for destfolder in ["green_20240508version", "yellow_20240508version", "violet_20240508version"]:
         srcfolder = destfolder.replace("_renamed", "")
         if not os.path.exists(destfolder):
             os.mkdir(destfolder)
