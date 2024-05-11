@@ -250,7 +250,7 @@ facial_eyelids = NonManualModel(
     label='Eyelids',
     subparts={'specifier': 'side',
               'opposite action': False},
-    action_state=ActionStateModel(options=['Wide open', #  [gray out if ‘one side’ is checked]
+    action_state=ActionStateModel(options=['Wide open',
                                            'Open',
                                            'Narrow',
                                            'Close',

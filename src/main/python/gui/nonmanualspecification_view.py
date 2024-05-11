@@ -193,8 +193,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # selecting 'static' -> greyout movement characteristics i.e., row3
 
         enable_row3 = not toggled  # enable row 3 when static is 'unselected'
-
         tab = self.nonman_specifications[current_tab]
+
+        if not any([hasattr(tab, 'repetition_group'),
+                    hasattr(tab, 'directionality_group'),
+                    hasattr(tab, 'additional_char_rb_group')]):
+            # if there is no row3, nothing to grey out.
+            return
+
         target_groups = [tab.repetition_group, tab.directionality_group] + tab.additional_char_rb_group  # groups in row3
 
         target_rbs = []  # container for all target radio buttons included in row3's buttongroups
@@ -204,7 +210,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         for rb in target_rbs:
             # iterate over each radio button in row3 and set enable/disable
             rb.setEnabled(enable_row3)
-
         return
 
     def create_major_tabs(self, nonman_units):
