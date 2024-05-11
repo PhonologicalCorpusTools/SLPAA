@@ -6,8 +6,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle, QWidget
+    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle, QWidget, QLabel
 )
+from PyQt5.QtGui import QIntValidator
 from PyQt5.QtCore import (Qt, pyqtSignal,)
 
 from lexicon.module_classes import NonManualModule
@@ -43,7 +44,7 @@ class SpecifyLayout(QHBoxLayout):
     # something like " ○ Other: ________" that consists of radiobutton + lineEdit
     def __init__(self, btn_label, text):
         super().__init__()
-        self.setAlignment(Qt.AlignLeft)
+        self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # radio button
         self.radio_btn = SLPAARadioButton(btn_label)
         self.radio_btn.toggled.connect(self.radio_button_toggled)
@@ -66,6 +67,52 @@ class SpecifyLayout(QHBoxLayout):
     def radio_button_toggled(self, checked):
         # called whenever radiobutton is toggled.
         self.lineEdit.setEnabled(checked)
+
+
+class RepetitionLayout(QVBoxLayout):
+    # something like the below. (I know this will only be used once, but it seemed complicated for my monkey brain.)
+    # ○ Repeated  (radio button)
+    #   specify total # ______ (lineEdit)
+    #   [ ] This # is minimum (checkbox)
+
+    def __init__(self):
+        super().__init__()
+        self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+
+        # radio button
+        self.repeated_btn = SLPAARadioButton("Repeated")
+        self.repeated_btn.toggled.connect(self.toggle_repeated)
+        self.addWidget(self.repeated_btn)
+
+        # fixed indentation for the 'specify...' lineEdit and the 'minimum' checkbox
+        self.indented_layout = QVBoxLayout()
+        self.indented_layout.setContentsMargins(40, 0, 0, 0)
+
+        # specify... lineEdit
+        n_of_cycles_layout = QHBoxLayout()
+        n_cycle_label = QLabel("Specify total number of cycles:")
+        self.n_cycle_input = QLineEdit()
+        self.n_cycle_input.setValidator(QIntValidator(2, 9))
+        n_of_cycles_layout.addWidget(n_cycle_label)
+        n_of_cycles_layout.addWidget(self.n_cycle_input)
+        self.indented_layout.addLayout(n_of_cycles_layout)
+
+        # 'This number is a minimum' checkbox
+        self.minimum_checkbox = QCheckBox("This number is a minimum")
+        self.indented_layout.addWidget(self.minimum_checkbox)
+
+        # indented layout to main layout
+        self.addLayout(self.indented_layout)
+
+        self.toggle_repeated(False)  # when initializing, sub options of repeated should be greyed out
+
+    def toggle_repeated(self, checked):
+        # enable sub options of 'repeated' button when 'repeated' selected.
+        # sub options: specify the number of cycles and check if this number of minimum
+        self.n_cycle_input.setEnabled(checked)
+        self.minimum_checkbox.setEnabled(checked)
+        return
+
 
 
 class BoldTabBarStyle(QProxyStyle):
@@ -590,13 +637,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         repetition_group_layout = QVBoxLayout()
         repetition_group_layout.setAlignment(Qt.AlignTop)
         widget_rb_rep_single = SLPAARadioButton("Single")
-        widget_rb_rep_rep = SLPAARadioButton("Repeated")
+        widget_rb_rep_rep = RepetitionLayout()
         widget_rb_rep_trill = SLPAARadioButton("Trilled")
-        rep_list = [widget_rb_rep_single, widget_rb_rep_rep, widget_rb_rep_trill]
+        rep_btn_list = [widget_rb_rep_single, widget_rb_rep_rep.repeated_btn, widget_rb_rep_trill]
 
-        nonman.repetition_group = SLPAAButtonGroup(rep_list)
+        nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
 
-        [repetition_group_layout.addWidget(widget) for widget in rep_list]
+        repetition_group_layout.addWidget(widget_rb_rep_single)
+        repetition_group_layout.addLayout(widget_rb_rep_rep)
+        repetition_group_layout.addWidget(widget_rb_rep_trill)
+
         repetition_group.setLayout(repetition_group_layout)
 
         # Directionality group
