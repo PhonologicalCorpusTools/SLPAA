@@ -11,7 +11,7 @@ from PyQt5.QtCore import (
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
-delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
+treepathdelimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
 
 class ModuleTypes:
@@ -47,17 +47,21 @@ userdefinedroles = UserDefinedRoles({
         #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
     'pathdisplayrole': 1,
         # pathdisplayrole:
-        # TODO KV description
+        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
+        # the full path (node names, separated by delimiters) of the model Item in question,
+        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
     'mutuallyexclusiverole': 2,
         # mutuallyexclusiverole:
         # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
         # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,  # currently unused; can repurpose if needed
+    # 'unusedrole': 3,
         # unusedrole:
-        # TODO KV description
+        # currently unused; can repurpose if needed
     'lastingrouprole': 4,
         # lastingrouprole:
-        # TODO KV description
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
+        # in its subgroup, which affects how it is painted in the movement tree
+        # (eg, whether the item will be followed by a horizontal line)
     'finalsubgrouprole': 5,
         # finalsubgrouprole:
         # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
@@ -73,7 +77,7 @@ userdefinedroles = UserDefinedRoles({
         # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
     'timestamprole': 8,
         # timestamprole:
-        # TODO KV description
+        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
     'isuserspecifiablerole': 9,
         # isuserspecifiablerole:
         # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
@@ -141,10 +145,12 @@ class ParameterModule:
         self._timingintervals = [t for t in timingintervals]
 
     def getabbreviation(self):
-        return "TODO no Module abbreviations implemented yet"
+        return "Module abbreviations not yet implemented"
 
 
 class EntryID:
+    nodisplay = "[No selected Entry ID elements to display]"
+
     def __init__(self, counter=None, parentsign=None):
         self.parentsign = parentsign
         # all other attributes of EntryID are sourced from QSettings, sign, and/or sign-level info,
@@ -191,7 +197,7 @@ class EntryID:
             if qsettings.value('entryid/' + attr + '/visible', type=bool):
                 orders_strings.append((qsettings.value('entryid/' + attr + '/order', type=int), self.getattributestringfromname(attr, qsettings)))
         orders_strings.sort()
-        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or "[No selected Entry ID elements to display]"
+        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or self.nodisplay
 
     # == check compares the displayed strings
     def __eq__(self, other):
@@ -221,6 +227,9 @@ class EntryID:
     def __ge__(self, other):
         return not self.__lt__(other)
 
+    def __repr__(self):
+        return repr(self.display_string())
+
 
 class SignLevelInformation:
     def __init__(self, signlevel_info=None, serializedsignlevelinfo=None, parentsign=None):
@@ -232,8 +241,11 @@ class SignLevelInformation:
             # but due to complications with EntryID containing a reference to its parent Sign,
             # we still store it as only the counter value and then recreate when loading from file
             self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
-            self._gloss = serializedsignlevelinfo['gloss']
+            # as of 20231208, gloss is now a list rather than a string
+            self._gloss = [serializedsignlevelinfo['gloss']] if isinstance(serializedsignlevelinfo['gloss'], str) else serializedsignlevelinfo['gloss']
             self._lemma = serializedsignlevelinfo['lemma']
+            # backward compatibility for attribute added 20231211
+            self._idgloss = serializedsignlevelinfo['idgloss'] if 'idgloss' in serializedsignlevelinfo.keys() else ''
             self._source = serializedsignlevelinfo['source']
             self._signer = serializedsignlevelinfo['signer']
             self._frequency = serializedsignlevelinfo['frequency']
@@ -241,7 +253,7 @@ class SignLevelInformation:
             self._datecreated = datecreated
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
-            # backward compatibility for attribute added 20230412!
+            # backward compatibility for attribute added 20230412
             self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
@@ -249,6 +261,7 @@ class SignLevelInformation:
             self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
+            self._idgloss = signlevel_info['idgloss']
             self._source = signlevel_info['source']
             self._signer = signlevel_info['signer']
             self._frequency = signlevel_info['frequency']
@@ -260,8 +273,6 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
             self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
             self._handdominance = signlevel_info['handdominance']
-        else:
-            print("TODO KV no sign level info; what to do?")
 
     def __eq__(self, other):
         if isinstance(other, SignLevelInformation):
@@ -278,6 +289,7 @@ class SignLevelInformation:
             'entryid': self._entryid.counter,
             'gloss': self._gloss,
             'lemma': self._lemma,
+            'idgloss': self._idgloss,
             'source': self._source,
             'signer': self._signer,
             'frequency': self._frequency,
@@ -324,6 +336,16 @@ class SignLevelInformation:
     @lemma.setter
     def lemma(self, new_lemma):
         self._lemma = new_lemma
+
+    @property
+    def idgloss(self):
+        if not hasattr(self, '_idgloss'):
+            self._idgloss = ''
+        return self._idgloss
+
+    @idgloss.setter
+    def idgloss(self, new_idgloss):
+        self._idgloss = new_idgloss
 
     @property
     def fingerspelled(self):
@@ -517,7 +539,7 @@ class MovementModule(ParameterModule):
             if selected:
                 # logging.warn(text)
                 # logging.warn(id)
-                pathelements = text.split(delimiter)
+                pathelements = text.split(treepathdelimiter)
                 # thisentrytext = ""
                 # firstonedone = False
                 # morethanone = False
@@ -1059,8 +1081,7 @@ class Signtype:
 
     def __init__(self, specslist, addedinfo=None):
         # specslist is a list of pairs:
-        #   the first element is the full signtype property (correlated with radio buttons in selector dialog),
-        #   which is composed of the corresponding abbreviation
+        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         # TODO KV need backward compatibility for this
@@ -1173,7 +1194,7 @@ class BodypartInfo:
 
     def getabbreviation(self):
         # TODO KV implement
-        return "TODO no BodypartInfo abbreviations implemented yet"
+        return "Bodypart abbreviations not yet implemented"
 
 
 # This module stores the location information for a particular articulator/s.
@@ -1215,7 +1236,7 @@ class LocationModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        return "TODO no Location abbreviations implemented yet"
+        return "Location abbreviations not yet implemented"
 
 
 class RelationX:
@@ -1666,7 +1687,7 @@ class RelationModule(ParameterModule):
 
     def getabbreviation(self):
         # TODO implement
-        return "TODO no Relation abbreviations implemented yet"
+        return "Relation abbreviations not yet implemented"
 
 
 class MannerRelation:
@@ -2080,6 +2101,10 @@ class OrientationModule(ParameterModule):
     @root.setter
     def root(self, root):
         self._root = root
+
+    def getabbreviation(self):
+        # TODO implement
+        return "Orientation abbreviations not yet implemented"
 
 
 # This module stores the transcription of one hand's configuration.

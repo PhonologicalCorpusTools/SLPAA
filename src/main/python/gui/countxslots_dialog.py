@@ -1,4 +1,5 @@
 import io
+import os
 
 from PyQt5.QtWidgets import (
     QVBoxLayout,
@@ -12,10 +13,14 @@ from PyQt5.QtWidgets import (
     QFileDialog
 )
 
+from constant import filenamefrompath
+from gui.modulespecification_widgets import StatusDisplay
+
 
 class CountXslotsDialog(QDialog):
+    headers = ["source_file", "entryid", "gloss_es", "whole_xslots", "partial_xslots", "fingerspelled"]
 
-    def __init__(self, app_settings, app_ctx, **kwargs):
+    def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
         self.app_settings = app_settings
         self.corpusfilepaths = []
@@ -130,7 +135,7 @@ class CountXslotsDialog(QDialog):
         statusstrings = []
         for listname in self.results_lists.keys():
             if len(self.results_lists[listname]) > 0:
-                filenames = [self.getfilenamefrompath(fp) for fp in self.results_lists[listname]]
+                filenames = [filenamefrompath(fp) for fp in self.results_lists[listname]]
                 statusstrings.append(listname + ":\n\t" + ",\n\t".join(filenames))
         self.statusdisplay.setText("\n".join(statusstrings))
 
@@ -143,7 +148,7 @@ class CountXslotsDialog(QDialog):
             resultsfilepath = self.combinedresultsfilepath
             try:
                 with io.open(resultsfilepath, "w") as outfile:
-                    outfile.write(self.delim().join(["source_file", "gloss", "whole_xslots", "partial_xslots", "fingerspelled"]) + "\n")
+                    outfile.write(self.delim().join(self.headers) + "\n")
             except PermissionError:
                 return "permission error"
             except:
@@ -153,6 +158,7 @@ class CountXslotsDialog(QDialog):
             w_or_a = "w"
 
         for corpusfilepath in self.corpusfilepaths:
+            self.statusdisplay.appendText("\t" + filenamefrompath(corpusfilepath), afternewline=True)
             if not corpusfilepath.endswith(".slpaa"):
                 self.results_lists["incorrect format"].append(corpusfilepath)
             else:
@@ -162,7 +168,7 @@ class CountXslotsDialog(QDialog):
                 else:
                     if not self.combined:
                         resultsfilepath = corpusfilepath.replace(".slpaa", "_xslotcounts." + self.outputformat)
-                    result = self.count_record_corpus_xslots(corpus, self.getfilenamefrompath(corpusfilepath), resultsfilepath, w_or_a)
+                    result = self.count_record_corpus_xslots(corpus, filenamefrompath(corpusfilepath), resultsfilepath, w_or_a)
                     if result == "success":
                         self.results_lists["successful results"].append(corpusfilepath)
                     else:
@@ -171,24 +177,20 @@ class CountXslotsDialog(QDialog):
     def count_record_corpus_xslots(self, corpus, corpusfilename, resultsfilepath, write_or_append):
         try:
             with io.open(resultsfilepath, write_or_append) as outfile:
-                headers = ["source_file", "gloss", "whole_xslots", "partial_xslots", "fingerspelled"]
                 if not self.combined:
-                    outfile.write(self.delim().join(headers) + "\n")
+                    outfile.write(self.delim().join(self.headers) + "\n")
                 for sign in corpus.signs:
-                    gloss = sign.signlevel_information.gloss
+                    entryidstring = sign.signlevel_information.entryid.display_string()
+                    glosses = "/".join(sign.signlevel_information.gloss)
                     whole_xslots = sign.xslotstructure.number
                     frac_xslots = sign.xslotstructure.additionalfraction
                     fingerspelled = sign.signlevel_information.fingerspelled
-                    outfile.write(self.delim().join([corpusfilename, gloss, str(whole_xslots), str(frac_xslots), str(fingerspelled)]) + "\n")
+                    outfile.write(self.delim().join([corpusfilename, entryidstring, glosses, str(whole_xslots), str(frac_xslots), str(fingerspelled)]) + "\n")
             return "success"
         except PermissionError:
             return "permission error"
         except:
             return "unspecified error"
-
-    def getfilenamefrompath(self, filepath):
-        afterlastslash = filepath.rfind("/") + 1
-        return filepath[afterlastslash:]
 
     def handle_buttonbox_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -196,11 +198,3 @@ class CountXslotsDialog(QDialog):
         if standard == QDialogButtonBox.Close:
             # close dialog
             self.accept()
-
-
-class StatusDisplay(QLabel):
-    def __init__(self, initialtext="", **kwargs):
-        super().__init__(**kwargs)
-        self.setText(initialtext)
-        self.setStyleSheet("border: 1px solid black;")
-

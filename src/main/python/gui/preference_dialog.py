@@ -58,6 +58,7 @@ class DisplayTab(QWidget):
         self.fontsize_spin.setValue(settings['display']['fontsize'])
         fontsize_layout.addWidget(self.fontsize_spin)
         main_layout.addRow(QLabel("Font size (points):"), fontsize_layout)
+        main_layout.addRow(QLabel(""), QLabel("Some changes won't take effect until SLP-AA is restarted"))
 
     def save_settings(self):
         self.settings['display']['sig_figs'] = int(self.decimal_place.value())
@@ -317,10 +318,15 @@ class ReminderTab(QWidget):
 
         self.overwrite_reminder = QCheckBox(parent=self)
         self.overwrite_reminder.setChecked(settings['reminder']['overwrite'])
-        main_layout.addRow(QLabel('Always ask before overwriting a sign:'), self.overwrite_reminder)
+        main_layout.addRow(QLabel("Always ask before overwriting a sign:"), self.overwrite_reminder)
+
+        self.duplicatelemma_reminder = QCheckBox(parent=self)
+        self.duplicatelemma_reminder.setChecked(settings['reminder']['duplicatelemma'])
+        main_layout.addRow(QLabel("Always show warning when a new lemma duplicates an existing one:"), self.duplicatelemma_reminder)
 
     def save_settings(self):
         self.settings['reminder']['overwrite'] = self.overwrite_reminder.isChecked()
+        self.settings['reminder']['duplicatelemma'] = self.duplicatelemma_reminder.isChecked()
 
 
 # This tab facilitates user interaction with sign-related settings in the preference dialog.

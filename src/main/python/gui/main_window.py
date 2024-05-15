@@ -48,14 +48,15 @@ from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
+from gui.mergecorpora_dialog import MergeCorporaDialog
+from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
-from gui.locationgraphicstest_dialog import LocationGraphicsTestDialog
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
-from constant import SAMPLE_LOCATIONS
+from constant import SAMPLE_LOCATIONS, filenamefrompath
 from lexicon.lexicon_classes import Corpus
 from serialization_classes import renamed_load
 
@@ -166,15 +167,20 @@ class MainWindow(QMainWindow):
         action_define_location.triggered.connect(self.on_action_define_location)
         action_define_location.setCheckable(False)
 
-        # TODO KV test vector graphics for locations
-        action_test_location_graphics = QAction('Test location graphics...', parent=self)
-        action_test_location_graphics.triggered.connect(self.on_action_test_location_graphics)
-        action_test_location_graphics.setCheckable(False)
-
         # count x-slots
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
+
+        # merge corpora
+        action_merge_corpora = QAction("Merge corpora...", parent=self)
+        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
+        action_merge_corpora.setCheckable(False)
+
+        # export corpus in human-readable form
+        action_export_corpus = QAction("Export corpus...", parent=self)
+        action_export_corpus.triggered.connect(self.on_action_export_corpus)
+        action_export_corpus.setCheckable(False)
 
         # search
         action_search = QAction("Search", parent=self)
@@ -313,26 +319,32 @@ class MainWindow(QMainWindow):
         menu_edit.addAction(action_export_subwindow_config)
         menu_edit.addAction(action_import_subwindow_config)
 
-        menu_location = main_menu.addMenu('&Location')
-        menu_location.addAction(action_define_location)
-        menu_location.addAction(action_test_location_graphics)
+        # this menu/item is for an older way of interacting & defining Locations
+        # I've kept the content & relevant classes for now, but just commented out the access
+        # TODO consider at some point whether we want to trash the relevant classes
+        # or if there's some code in there worth saving/reusing in an updated location definition UI
+        # menu_location = main_menu.addMenu('&Location')
+        # menu_location.addAction(action_define_location)
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
         menu_analysis_beta.addAction(action_search)
-
-        corpusfilename = os.path.split(self.corpus.path)[1] if self.corpus else ""
-        self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
-        self.corpus_display.selected_sign.connect(self.handle_sign_selected)
-
-        self.corpus_scroll = QScrollArea(parent=self)
-        self.corpus_scroll.setWidgetResizable(True)
-        self.corpus_scroll.setWidget(self.corpus_display)
+        menu_analysis_beta.addAction(action_merge_corpora)
+        menu_analysis_beta.addAction(action_export_corpus)
 
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
         self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
+
+        corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
+        self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
+        self.corpus_display.selected_sign.connect(self.handle_sign_selected)
+        self.corpus_display.selection_cleared.connect(self.handle_sign_selected)
+
+        self.corpus_scroll = QScrollArea(parent=self)
+        self.corpus_scroll.setWidgetResizable(True)
+        self.corpus_scroll.setWidget(self.corpus_display)
 
         self.main_mdi = QMdiArea(parent=self)
         self.main_mdi.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -516,17 +528,17 @@ class MainWindow(QMainWindow):
         self.action_show_sub_signlevelmenu.setChecked(True)
         self.action_show_sub_visualsummary.setChecked(True)
 
-        self.resize(QSize(2000, 1200))
+        self.resize(QSize(1800, 1040))
         self.move(0, 23)
 
-        self.sub_corpus.resize(QSize(340, 700))
-        self.sub_corpus.move(QPoint(0, 0))
+        self.sub_signlevelmenu.resize(QSize(675, 355))
+        self.sub_signlevelmenu.move(QPoint(0, 0))
 
-        self.sub_signlevelmenu.resize(QSize(320, 700))
-        self.sub_signlevelmenu.move(QPoint(340, 0))
+        self.sub_corpus.resize(QSize(675, 565))
+        self.sub_corpus.move(QPoint(0, 355))
 
-        self.sub_visualsummary.resize(QSize(1200, 900))
-        self.sub_visualsummary.move(QPoint(660, 0))
+        self.sub_visualsummary.resize(QSize(1200, 920))
+        self.sub_visualsummary.move(QPoint(675, 0))
 
     def on_subwindow_manually_closed(self, widget):
         if widget == self.corpus_scroll:
@@ -580,13 +592,11 @@ class MainWindow(QMainWindow):
             # or self.on_action_close() fails to close the program
             self.closeEvent(None)
 
-    def handle_sign_selected(self, sign):
-        selected_sign = sign
-
+    def handle_sign_selected(self, selected_sign=None):
         self.current_sign = selected_sign
-        self.action_delete_sign.setEnabled(True)
+        self.action_delete_sign.setEnabled(selected_sign is not None)
         self.signlevel_panel.sign = selected_sign
-        self.signlevel_panel.enable_module_buttons(True)
+        self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
 
     def handle_app_settings(self):
@@ -615,20 +625,20 @@ class MainWindow(QMainWindow):
         self.app_qsettings.endGroup()  # storage
 
         self.app_qsettings.beginGroup('display')
-        self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(2000, 1200))
+        self.app_settings['display']['size'] = self.app_qsettings.value('size', defaultValue=QSize(1800, 1040))
         self.app_settings['display']['position'] = self.app_qsettings.value('position', defaultValue=QPoint(0, 23))
 
-        self.app_settings['display']['sub_corpus_show'] = self.app_qsettings.value('sub_corpus_show', defaultValue=True, type=bool)
-        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 0))
-        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(340, 700))
-
         self.app_settings['display']['sub_signlevelmenu_show'] = self.app_qsettings.value('sub_signlevelmenu_show', defaultValue=True, type=bool)
-        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(340, 0))
-        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(320, 700))
+        self.app_settings['display']['sub_signlevelmenu_pos'] = self.app_qsettings.value('sub_signlevelmenu_pos', defaultValue=QPoint(0, 0))
+        self.app_settings['display']['sub_signlevelmenu_size'] = self.app_qsettings.value('sub_signlevelmenu_size', defaultValue=QSize(675, 355))
+
+        self.app_settings['display']['sub_corpus_show'] = self.app_qsettings.value('sub_corpus_show', defaultValue=True, type=bool)
+        self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 355))
+        self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(675, 565))
 
         self.app_settings['display']['sub_visualsummary_show'] = self.app_qsettings.value('sub_visualsummary_show', defaultValue=True, type=bool)
-        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(660, 0))
-        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(1200, 900))
+        self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(675, 0))
+        self.app_settings['display']['sub_visualsummary_size'] = self.app_qsettings.value('sub_visualsummary_size', defaultValue=QSize(1200, 920))
 
         self.app_settings['display']['sig_figs'] = self.app_qsettings.value('sig_figs', defaultValue=2, type=int)
         self.app_settings['display']['tooltips'] = self.app_qsettings.value('tooltips', defaultValue=True, type=bool)
@@ -663,6 +673,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('reminder')
         self.app_settings['reminder']['overwrite'] = self.app_qsettings.value('overwrite', defaultValue=True, type=bool)
+        self.app_settings['reminder']['duplicatelemma'] = self.app_qsettings.value('duplicatelemma', defaultValue=True, type=bool)
         self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
@@ -727,6 +738,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('reminder')
         self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
+        self.app_qsettings.setValue('duplicatelemma', self.app_settings['reminder']['duplicatelemma'])
         self.app_qsettings.endGroup()
 
         self.app_qsettings.beginGroup('signdefaults')
@@ -755,13 +767,17 @@ class MainWindow(QMainWindow):
         location_definer.saved_locations.connect(self.save_new_locations)
         location_definer.exec_()
 
-    def on_action_test_location_graphics(self):
-        location_test_window = LocationGraphicsTestDialog(self.app_settings, self.app_ctx, parent=self)
-        location_test_window.exec_()
-
     def on_action_count_xslots(self):
-        count_xslots_window = CountXslotsDialog(self.app_settings, self.app_ctx, parent=self)
+        count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
+
+    def on_action_merge_corpora(self):
+        merge_corpora_window = MergeCorporaDialog(self.app_settings, parent=self)
+        merge_corpora_window.exec_()
+
+    def on_action_export_corpus(self):
+        export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
+        export_corpus_window.exec_()
 
     def on_action_search(self):
         self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
@@ -857,7 +873,7 @@ class MainWindow(QMainWindow):
     def on_action_save(self, clicked):
         if self.corpus.path:
             self.save_corpus_binary()
-            self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
+            self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
 
         self.unsaved_changes = False
         self.undostack.clear()
@@ -876,18 +892,22 @@ class MainWindow(QMainWindow):
                 self.app_settings['storage']['recent_folder'] = folder
 
             self.save_corpus_binary()
-            self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
+            self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
 
             self.unsaved_changes = False
             self.undostack.clear()
 
-    def save_corpus_binary(self):
-        with open(self.corpus.path, 'wb') as f:
-            pickle.dump(self.corpus.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
+    def save_corpus_binary(self, othercorpusandpath=None):
+        corpustosave = self.corpus
+        pathtosaveto = self.corpus.path
+        if othercorpusandpath:
+            corpustosave, pathtosaveto = othercorpusandpath
+
+        with open(pathtosaveto, 'wb') as f:
+            pickle.dump(corpustosave.serialize(), f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_corpus_binary(self, path):
         with open(path, 'rb') as f:
-            # corpus = Corpus(serializedcorpus=pickle.load(f))
             corpus = Corpus(serializedcorpus=renamed_load(f))
             # in case we're loading a corpus that was originally created on a different machine / in a different folder
             corpus.path = path
@@ -930,12 +950,12 @@ class MainWindow(QMainWindow):
             self.app_settings['storage']['recent_folder'] = folder
 
         self.corpus = self.load_corpus_binary(file_name)
-        self.corpus_display.corpusfile_edit.setText(os.path.split(self.corpus.path)[1])
+        self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
-            self.corpus_display.selected_sign.emit((list(self.corpus.signs))[0])
+            self.corpus_display.selectfirstrow()
         else:  # if loading a blank corpus
-            self.signsummary_panel.mainwindow.current_sign = None # refreshsign() checks for this
+            self.signsummary_panel.mainwindow.current_sign = None  # refreshsign() checks for this
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
@@ -964,31 +984,17 @@ class MainWindow(QMainWindow):
             self.corpus_display.handle_selection(stashed_corpusselection)
 
     def on_action_delete_sign(self, clicked):
-        response = QMessageBox.question(self, 'Delete the selected sign',
-                                        'Do you want to delete the selected sign?')
-        if response == QMessageBox.Yes:
-            previous = self.corpus.get_previous_sign(self.current_sign.signlevel_information.gloss)
-            
-            # delete self.current_sign.
-            # unintuitive but the argument 'previous' is needed for moving highlight after deleting the sign
-            self.signlevel_panel.handle_delete_signlevelinfo(previous)
-            # self.corpus.remove_sign(self.current_sign)
-            # self.corpus_display.updated_signs(self.corpus.signs, previous)
-
-            self.select_sign([previous])
-            self.handle_sign_selected(previous)
-            # TODO KV need to also have that sign selected in the corpus view,
-            #  as well as displaying its summary in the xslot view
-
-    # TODO KV finish implementing
-    def select_sign(self, signstoselect):
-        selectionmodel = self.corpus_display.corpus_view.selectionModel()
-        indices = []
-        for sign in signstoselect:
-            try:
-                indices.append(list(self.corpus.signs).index(sign))
-            except ValueError:
-                pass
+        if self.current_sign:  # does the sign to delete exist?
+            glosseslist = self.current_sign.signlevel_information.gloss
+            question1 = "Do you want to delete the selected sign, with gloss"
+            glossesstring = ", ".join(glosseslist) or "[blank]"
+            question2 = ("es" if len(glosseslist) > 1 else "") + " " + glossesstring + "?"
+            moreinfo = "" if len(self.current_sign.signlevel_information.gloss) <= 1 else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
+            response = QMessageBox.question(self, "Delete the selected sign",
+                                            question1 + question2 + moreinfo)
+            if response == QMessageBox.Yes:
+                self.corpus.remove_sign(self.current_sign)
+                self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes

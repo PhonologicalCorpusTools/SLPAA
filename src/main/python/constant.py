@@ -1,3 +1,4 @@
+import os
 from fractions import Fraction
 
 from lexicon.location import LocationParameter, Locations
@@ -338,6 +339,14 @@ ARTICULATOR_ABBREVS = {
     LEG: "L"
 }
 
+
 SIGNLEVELINFO_TARGET = "sign level info"
 XSLOT_TARGET = "xslot"
 SIGNTYPEINFO_TARGET = "sign type info"
+
+def filenamefrompath(filepath):
+    return os.path.split(filepath)[1]
+
+
+def filenamefrompath(filepath):
+    return os.path.split(filepath)[1]

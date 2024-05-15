@@ -14,7 +14,7 @@ from PyQt5.Qt import (
 )
 import logging
 
-from lexicon.module_classes import LocationType, userdefinedroles as udr, delimiter, AddedInfo
+from lexicon.module_classes import LocationType, userdefinedroles as udr, treepathdelimiter, AddedInfo
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
 from constant import HAND, ARM, LEG
 
@@ -518,12 +518,12 @@ class LocationTreeModel(QStandardItemModel):
         dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
 
         # As of 20230631, entries with "other hand>whole hand" will be moved to "other hand" with surfaces and subareas preserved
-        if ("Other hand"+delimiter+"Whole hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand"+delimiter+"Whole hand"] == Qt.Checked):
+        if ("Other hand"+treepathdelimiter+ "Whole hand" in self.serializedlocntree.checkstates):
+            if (self.serializedlocntree.checkstates["Other hand" + treepathdelimiter + "Whole hand"] == Qt.Checked):
                 for stored_dict in dicts:
-                    stored_dict["Whole hand"] = stored_dict["Other hand"+delimiter+"Whole hand"] 
+                    stored_dict["Whole hand"] = stored_dict["Other hand" + treepathdelimiter + "Whole hand"]
             for stored_dict in dicts:
-                stored_dict.pop("Other hand"+delimiter+"Whole hand")
+                stored_dict.pop("Other hand" + treepathdelimiter + "Whole hand")
         # As of 20230918, rename "Other hand" back to "Whole hand"
         if ("Other hand" in self.serializedlocntree.checkstates):
             if (self.serializedlocntree.checkstates["Other hand"] == Qt.Checked):
@@ -726,7 +726,7 @@ class LocationTreeModel(QStandardItemModel):
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole+udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole+udr.finalsubgrouprole)
-                    self.populate(thistreenode, structure=child, pathsofar=pathsofar + label + delimiter)
+                    self.populate(thistreenode, structure=child, pathsofar=pathsofar + label + treepathdelimiter)
                     parentnode.appendRow([thistreenode])
 
     @property
@@ -804,7 +804,7 @@ class BodypartTreeModel(LocationTreeModel):
         if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
             for val in hand_children:
                 for stored_dict in dicts:
-                    stored_dict["Whole hand"+delimiter+val] = stored_dict[val] 
+                    stored_dict["Whole hand" + treepathdelimiter + val] = stored_dict[val]
                     stored_dict.pop(val)
 
 
