@@ -128,13 +128,13 @@ class IndividualSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss"]
+        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss", "Lemma", "ID Gloss"]
         self.setHorizontalHeaderLabels(self.headers)
 
     def populate(self, resultsdict):
         for targetname in resultsdict:
             resultrow = resultsdict[targetname]
-            for sign in resultrow["signs"]:
+            for sli in resultrow["signs"]: # signlevelinformation objects
                 name = QStandardItem()
                 name.setData(targetname, Qt.DisplayRole)
                 values = QStandardItem()
@@ -144,7 +144,11 @@ class IndividualSummaryModel(QStandardItemModel):
                 resulttypes = QStandardItem()
                 resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
                 entryid = QStandardItem()
-                entryid.setData(sign[1], Qt.DisplayRole)
+                entryid.setData(sli.entryid.display_string(), Qt.DisplayRole)
                 gloss = QStandardItem()
-                gloss.setData(sign[0], Qt.DisplayRole)
-                self.appendRow([corpus, name, values, resulttypes, entryid, gloss])
+                gloss.setData(sli.gloss, Qt.DisplayRole)
+                lemma = QStandardItem()
+                lemma.setData(sli.lemma, Qt.DisplayRole)
+                idgloss = QStandardItem()
+                idgloss.setData(sli.idgloss, Qt.DisplayRole)
+                self.appendRow([corpus, name, values, resulttypes, entryid, gloss, lemma, idgloss])

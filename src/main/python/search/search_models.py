@@ -135,10 +135,10 @@ class SearchModel(QStandardItemModel):
                 else:
                     negative_rows.append("Positive")
             target_name = tuple(self.target_name(row) for row in selected_rows)
-            matchingsigns = [] # each element is a gloss/id tuple
+            matchingsigns = []
             for sign in corpus.signs:
                 if self.sign_matches_target(sign, target_dict):
-                    matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid.display_string()])
+                    matchingsigns.append(sign.signlevel_information)
             resultsdict[target_name] = {"corpus": corpusname, "display": display_vals,"signs": matchingsigns, "negative": negative_rows}
         
         elif self.matchdegree == 'any':
@@ -153,7 +153,7 @@ class SearchModel(QStandardItemModel):
                 matchingsigns = [] # each element is a gloss/id tuple
                 for sign in corpus.signs:
                     if self.sign_matches_target(sign, target_dict):
-                        matchingsigns.append([sign.signlevel_information.gloss, sign.signlevel_information.entryid.display_string()])
+                        matchingsigns.append(sign.signlevel_information)
                 resultsdict[target_name] = {"corpus": corpusname, "display": repr(self.target_values(row)), "signs": matchingsigns, "negative": negative_rows}
 
         return resultsdict
