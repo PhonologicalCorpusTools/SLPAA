@@ -681,8 +681,6 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
             self.concrete_xslots_num.setEnabled(self.xslot_type == self.concrete_xslots_rb)
             for b in self.partial_buttongroup.buttons():
                 b.setEnabled(self.xslot_type == self.concrete_xslots_rb)
-        logging.warning("xslot type is ")
-        logging.warning(self.xslot_type)
         self.toggle_continue_selectable()
 
     def on_continue_clicked(self):

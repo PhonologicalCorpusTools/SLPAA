@@ -1,5 +1,6 @@
-import logging
+import logging, fractions
 from search.search_classes import XslotTypes
+from lexicon.module_classes import TimingInterval, TimingPoint
 
 def articulatordisplaytext(arts, phase):
     k = arts[0] # hand, arm, or leg
@@ -93,7 +94,8 @@ def signtypedisplaytext(specslist):
     return disp
 
 # TODO
-def module_matches_xslottype(timingintervals, targetintervals, xslottype):
+def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslotstructure):
+    # logging.warning(timingintervals)
     if xslottype == XslotTypes.IGNORE:
         return True
     
@@ -101,9 +103,29 @@ def module_matches_xslottype(timingintervals, targetintervals, xslottype):
         return timingintervals == targetintervals
 
     if xslottype == XslotTypes.ABSTRACT_WHOLE:
-        # logging.warning("target intervals:")
-        # logging.warning(targetintervals)
-        return True
+        targetint = targetintervals[0] # only one selection is possible: either startpt, endpt, or whole sign.
+        if targetint.iswholesign() and timingintervals[0].iswholesign():
+            return True
+        # match if occurring during start of sign
+        elif targetint.ispoint() and targetint.startpoint == TimingPoint(1, 0):
+            for t in timingintervals:
+                if t.startpoint == TimingPoint(1, 0) or t.startpoint == TimingPoint(0, 0):
+                    return True
+            return False
+        # match if occurring during end of sign
+        elif targetint.ispoint() and targetint.startpoint == TimingPoint(1, 1):
+            # xslotstructure's additionalfraction is 0 if there are no additionalfractions, but the TimingPoint object will have fraction 1
+            frac = 1 if xslotstructure.additionalfraction == 0 else xslotstructure.additionalfraction
+            # xslotstructure's number is the number of whole xslots, but the TimingPoint object also couts partial xslots
+            num = xslotstructure.number if frac == 1 else xslotstructure.number + 1
+            endpoint = TimingPoint(num, frac)
+            for t in timingintervals:
+                if t.endpoint == endpoint or t.endpoint == TimingPoint(0, 1):
+                    return True
+            return False
+        else:
+            return False
+
 
     if xslottype == XslotTypes.ABSTRACT_XSLOT:
         return True
