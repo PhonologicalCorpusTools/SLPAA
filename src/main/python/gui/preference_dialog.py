@@ -24,6 +24,7 @@ from PyQt5.QtCore import pyqtSignal, QSettings
 
 from constant import FRACTION_CHAR
 from fractions import Fraction
+from gui.helper_widget import OptionSwitch
 
 
 # This tab facilitates user interaction with display-related settings in the preference dialog.
@@ -491,8 +492,14 @@ class LocationTab(QWidget):
                 break
         main_layout.addRow(QLabel("Default location type:"), self.locationtype_layout)
 
+        self.locnimgclickorder_switch = OptionSwitch("Large to small", "Small to large")
+        self.locnimgclickorder_switch.setwhichbuttonselected(self.settings['location']['clickorder'])
+        main_layout.addRow(QLabel("L-clicking on image iterates over locations from:"),
+                           self.locnimgclickorder_switch)
+
     def save_settings(self):
         self.settings['location']['loctype'] = self.locationtype_group.checkedButton().property('loctype')
+        self.settings['location']['clickorder'] = self.locnimgclickorder_switch.getwhichbuttonselected()
 
 
 # This is the global settings dialog that users access via the Settings menu.
