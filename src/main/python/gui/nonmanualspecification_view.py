@@ -87,21 +87,23 @@ class RepetitionLayout(QVBoxLayout):
 
         # fixed indentation for the 'specify...' lineEdit and the 'minimum' checkbox
         self.indented_layout = QVBoxLayout()
-        self.indented_layout.setContentsMargins(40, 0, 0, 0)
+        self.indented_layout.setContentsMargins(15, 0, 0, 0)
 
         # specify... lineEdit
         n_of_cycles_layout = QHBoxLayout()
         n_cycle_label = QLabel("Specify total number of cycles:")
         self.n_cycle_input = QLineEdit()
         self.n_cycle_input.setValidator(QIntValidator(2, 9))
-        n_of_cycles_layout.setFixedHeight(n_of_cycles_layout.sizeHint().height())
+
+        self.n_cycle_input.setFixedHeight(self.n_cycle_input.sizeHint().height())
+        n_cycle_label.setFixedHeight(self.n_cycle_input.sizeHint().height())
+
         n_of_cycles_layout.addWidget(n_cycle_label)
         n_of_cycles_layout.addWidget(self.n_cycle_input)
         self.indented_layout.addLayout(n_of_cycles_layout)
 
         # 'This number is a minimum' checkbox
         self.minimum_checkbox = QCheckBox("This number is a minimum")
-        self.minimum_checkbox.setFixedHeight(self.minimum_checkbox.sizeHint().height())
         self.indented_layout.addWidget(self.minimum_checkbox)
 
         # indented layout to main layout
@@ -684,17 +686,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         additional_char_group.setLayout(additional_char_group_layout)
 
+        # groups that constitute the third row
+        groups = [repetition_group, directionality_group, additional_char_group]
+
         # set fixed height. fixed b/c more space for action/state
-        row3_height = additional_char_group.sizeHint().height()
-        repetition_group.setFixedHeight(row3_height)
-        directionality_group.setFixedHeight(row3_height)  # fixed for space to action/state
-        additional_char_group.setFixedHeight(row3_height)
+        row3_height = max([group.sizeHint().height() for group in groups])
+        [group.setFixedHeight(row3_height) for group in groups]
 
-        # Adding all the groupboxes to form the row
-        row.addWidget(repetition_group)
-        row.addWidget(directionality_group)
-        row.addWidget(additional_char_group)
-
+        [row.addWidget(group) for group in groups]  # Adding all the groupboxes to form the row
         return row
 
     def gen_add_move_char(self, specs):
