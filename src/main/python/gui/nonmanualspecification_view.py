@@ -82,6 +82,7 @@ class RepetitionLayout(QVBoxLayout):
         # radio button
         self.repeated_btn = SLPAARadioButton("Repeated")
         self.repeated_btn.toggled.connect(self.toggle_repeated)
+        self.repeated_btn.setFixedHeight(self.repeated_btn.sizeHint().height())
         self.addWidget(self.repeated_btn)
 
         # fixed indentation for the 'specify...' lineEdit and the 'minimum' checkbox
@@ -93,12 +94,14 @@ class RepetitionLayout(QVBoxLayout):
         n_cycle_label = QLabel("Specify total number of cycles:")
         self.n_cycle_input = QLineEdit()
         self.n_cycle_input.setValidator(QIntValidator(2, 9))
+        n_of_cycles_layout.setFixedHeight(n_of_cycles_layout.sizeHint().height())
         n_of_cycles_layout.addWidget(n_cycle_label)
         n_of_cycles_layout.addWidget(self.n_cycle_input)
         self.indented_layout.addLayout(n_of_cycles_layout)
 
         # 'This number is a minimum' checkbox
         self.minimum_checkbox = QCheckBox("This number is a minimum")
+        self.minimum_checkbox.setFixedHeight(self.minimum_checkbox.sizeHint().height())
         self.indented_layout.addWidget(self.minimum_checkbox)
 
         # indented layout to main layout
