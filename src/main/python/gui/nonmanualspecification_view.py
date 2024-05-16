@@ -6,9 +6,8 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle, QWidget, QLabel
+    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle, QWidget, QLabel, QDoubleSpinBox
 )
-from PyQt5.QtGui import QIntValidator
 from PyQt5.QtCore import (Qt, pyqtSignal,)
 
 from lexicon.module_classes import NonManualModule
@@ -89,11 +88,15 @@ class RepetitionLayout(QVBoxLayout):
         self.indented_layout = QVBoxLayout()
         self.indented_layout.setContentsMargins(15, 0, 0, 0)
 
-        # specify... lineEdit
+        # specify... spinner
         n_of_cycles_layout = QHBoxLayout()
         n_cycle_label = QLabel("Specify total number of cycles:")
-        self.n_cycle_input = QLineEdit()
-        self.n_cycle_input.setValidator(QIntValidator(2, 9))
+        self.n_cycle_input = QDoubleSpinBox()
+        self.n_cycle_input.setRange(0.5, 100.0)
+        self.n_cycle_input.setSingleStep(0.5)  # accept half as valid input
+        self.n_cycle_input.setDecimals(1)      # show one decimal place after the demal point
+
+        self.n_cycle_input.setValue(1.0)  # default value = 1
 
         self.n_cycle_input.setFixedHeight(self.n_cycle_input.sizeHint().height())
         n_cycle_label.setFixedHeight(self.n_cycle_input.sizeHint().height())
