@@ -128,7 +128,18 @@ def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslots
 
 
     if xslottype == XslotTypes.ABSTRACT_XSLOT:
-        return True
+        for targetint in targetintervals:
+            if targetint.ispoint():
+                for t in timingintervals:
+                    if targetint.startpoint.fractionalpart == t.startpoint.fractionalpart:
+                        return True
+            else:
+                for t in timingintervals:
+                    if targetint.startpoint.fractionalpart == t.startpoint.fractionalpart and targetint.endpoint.fractionalpart == t.endpoint.fractionalpart:
+                        return True
+
+            
+        return False
 
 
 

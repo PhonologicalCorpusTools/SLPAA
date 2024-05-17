@@ -1561,7 +1561,7 @@ class MovementTreeModel(QStandardItemModel):
         checked_values = []
         for row in range(self.rowCount(parent_index)):
             index = self.index(row, 0, parent_index)
-            if index.data(Qt.CheckStateRole) == Qt.Checked:
+            if index.data(Qt.CheckStateRole) != Qt.Unchecked:
                 checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
             checked_values.extend(self.get_checked_items(index))
         return checked_values
