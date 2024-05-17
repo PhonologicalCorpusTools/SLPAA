@@ -650,14 +650,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         repetition_group_layout = QVBoxLayout()
         repetition_group_layout.setAlignment(Qt.AlignTop)
         widget_rb_rep_single = SLPAARadioButton("Single")
-        widget_rb_rep_rep = RepetitionLayout()
+        nonman.layout_repetition = RepetitionLayout()
         widget_rb_rep_trill = SLPAARadioButton("Trilled")
-        rep_btn_list = [widget_rb_rep_single, widget_rb_rep_rep.repeated_btn, widget_rb_rep_trill]
+        rep_btn_list = [widget_rb_rep_single, nonman.layout_repetition.repeated_btn, widget_rb_rep_trill]
 
         nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
 
         repetition_group_layout.addWidget(widget_rb_rep_single)
-        repetition_group_layout.addLayout(widget_rb_rep_rep)
+        repetition_group_layout.addLayout(nonman.layout_repetition)
         repetition_group_layout.addWidget(widget_rb_rep_trill)
 
         repetition_group.setLayout(repetition_group_layout)
@@ -772,6 +772,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         # this time, repetition and directionality
         module_output['repetition'] = what_selected(current_module.repetition_group)
+        if module_output['repetition'] == 'Repeated':
+            # if 'Repeated btn is selected, go one step further and save the number of cycles and whether it is minimum
+            module_output['repetition'] = {'type': 'Repeated',
+                                           'n_repeats': current_module.layout_repetition.n_cycle_input.value(),
+                                           'minimum': current_module.layout_repetition.minimum_checkbox.isChecked()}
         module_output['directionality'] = what_selected(current_module.directionality_group)
 
         # additional mvmt characteristics
@@ -962,8 +967,20 @@ def load_specifications(values_toload, load_destination):
 
     # repetition
     try:
+        if isinstance(values_toload['repetition'], dict):
+            # selected repetition > repeated
+            rep_rb_label = values_toload['repetition']['type']
+            load_destination.layout_repetition.n_cycle_input.setValue(values_toload['repetition']['n_repeats'])
+            load_destination.layout_repetition.minimum_checkbox.setChecked(values_toload['repetition']['minimum'])
+        elif isinstance(values_toload['repetition'], str):
+            rep_rb_label = values_toload['repetition']
+        else:
+            # nothing selected in the repetition group
+            raise AttributeError
+
         select_this(btn_group=load_destination.repetition_group,
-                    btn_txt=values_toload['repetition'])
+                    btn_txt=rep_rb_label)
+
     except AttributeError:
         pass
 
