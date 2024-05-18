@@ -5,12 +5,13 @@ import logging
 
 from PyQt5.QtCore import (
     Qt,
+    QSettings
 )
 
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
-delimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
+treepathdelimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
 
 class ModuleTypes:
@@ -46,17 +47,21 @@ userdefinedroles = UserDefinedRoles({
         #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
     'pathdisplayrole': 1,
         # pathdisplayrole:
-        # TODO KV description
+        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
+        # the full path (node names, separated by delimiters) of the model Item in question,
+        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
     'mutuallyexclusiverole': 2,
         # mutuallyexclusiverole:
         # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
         # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,  # currently unused; can repurpose if needed
+    # 'unusedrole': 3,
         # unusedrole:
-        # TODO KV description
+        # currently unused; can repurpose if needed
     'lastingrouprole': 4,
         # lastingrouprole:
-        # TODO KV description
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
+        # in its subgroup, which affects how it is painted in the movement tree
+        # (eg, whether the item will be followed by a horizontal line)
     'finalsubgrouprole': 5,
         # finalsubgrouprole:
         # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
@@ -72,7 +77,7 @@ userdefinedroles = UserDefinedRoles({
         # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
     'timestamprole': 8,
         # timestamprole:
-        # TODO KV description
+        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
     'isuserspecifiablerole': 9,
         # isuserspecifiablerole:
         # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
@@ -140,30 +145,123 @@ class ParameterModule:
         self._timingintervals = [t for t in timingintervals]
 
     def getabbreviation(self):
-        return "TODO no Module abbreviations implemented yet"
+        return "Module abbreviations not yet implemented"
+
+
+class EntryID:
+    nodisplay = "[No selected Entry ID elements to display]"
+
+    def __init__(self, counter=None, parentsign=None):
+        self.parentsign = parentsign
+        # all other attributes of EntryID are sourced from QSettings, sign, and/or sign-level info,
+        # so that they're not stored twice (and therefore we don't need to update in multiple places
+        # if any of those values change)
+        self._counter = counter
+
+        # TODO - eventually add other attributes (coder, signer, source, recording info)
+        # see class EntryIDTab in preference_dialog.py
+        # and https://github.com/PhonologicalCorpusTools/SLPAA/issues/18#issuecomment-1074184453
+
+    @property
+    def counter(self):
+        return self._counter
+
+    @counter.setter
+    def counter(self, new_counter):
+        self._counter = new_counter
+
+    @property
+    def date(self):
+        if self.parentsign is not None:
+            return self.parentsign.signlevel_information.datecreated
+        else:  # this shouldn't ever actually happen, but just in case...
+            return datetime.now()
+
+    def getattributestringfromname(self, attr_name, qsettings):
+        if attr_name == 'date':
+            return "" if self.date is None else self.date.strftime(qsettings.value('entryid/date/format', type=str))
+        elif attr_name == 'counter':
+            counter_string = str(self.counter)
+            return "0" * (qsettings.value('entryid/counter/digits', type=int) - len(counter_string)) + counter_string
+        elif attr_name in dir(self):
+            # assuming we have a @property function for this attribute and it doesn't need any additional formatting
+            return getattr(self, attr_name)
+        else:
+            return ""
+
+    def display_string(self):
+        qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+
+        orders_strings = []
+        for attr in ['counter', 'date']:  # could these come from 'attr in dir(self)' instead?
+            if qsettings.value('entryid/' + attr + '/visible', type=bool):
+                orders_strings.append((qsettings.value('entryid/' + attr + '/order', type=int), self.getattributestringfromname(attr, qsettings)))
+        orders_strings.sort()
+        return qsettings.value('entryid/delimiter', type=str).join([string for (order, string) in orders_strings]) or self.nodisplay
+
+    # == check compares the displayed strings
+    def __eq__(self, other):
+        if isinstance(other, EntryID):
+            return self.display_string() == other.display_string()
+        return False
+
+    # != check compares the displayed strings
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    # < check compares the displayed strings
+    def __lt__(self, other):
+        if isinstance(other, EntryID):
+            return self.display_string() < other.display_string()
+        return False
+
+    # > check compares the displayed strings
+    def __gt__(self, other):
+        return other.__lt__(self)
+
+    # <= check compares the displayed strings
+    def __le__(self, other):
+        return not self.__gt__(other)
+
+    # >= check compares the displayed strings
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
+    def __repr__(self):
+        return repr(self.display_string())
 
 
 class SignLevelInformation:
-    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None):
+    def __init__(self, signlevel_info=None, serializedsignlevelinfo=None, parentsign=None):
+        self._parentsign = parentsign
+
         if serializedsignlevelinfo is not None:
-            self._entryid = serializedsignlevelinfo['entryid']
-            self._gloss = serializedsignlevelinfo['gloss']
+            datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            # as of 20240209, entryid has shifted from being an integer to an EntryID object
+            # but due to complications with EntryID containing a reference to its parent Sign,
+            # we still store it as only the counter value and then recreate when loading from file
+            self._entryid = EntryID(counter=serializedsignlevelinfo['entryid'], parentsign=self.parentsign)
+            # as of 20231208, gloss is now a list rather than a string
+            self._gloss = [serializedsignlevelinfo['gloss']] if isinstance(serializedsignlevelinfo['gloss'], str) else serializedsignlevelinfo['gloss']
             self._lemma = serializedsignlevelinfo['lemma']
+            # backward compatibility for attribute added 20231211
+            self._idgloss = serializedsignlevelinfo['idgloss'] if 'idgloss' in serializedsignlevelinfo.keys() else ''
             self._source = serializedsignlevelinfo['source']
             self._signer = serializedsignlevelinfo['signer']
             self._frequency = serializedsignlevelinfo['frequency']
             self._coder = serializedsignlevelinfo['coder']
-            self._datecreated = datetime.fromtimestamp(serializedsignlevelinfo['date created'])
+            self._datecreated = datecreated
             self._datelastmodified = datetime.fromtimestamp(serializedsignlevelinfo['date last modified'])
             self._note = serializedsignlevelinfo['note']
-            # backward compatibility for attribute added 20230412!
+            # backward compatibility for attribute added 20230412
             self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
         elif signlevel_info is not None:
-            self._entryid = signlevel_info['entryid']
+            self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
             self._lemma = signlevel_info['lemma']
+            self._idgloss = signlevel_info['idgloss']
             self._source = signlevel_info['source']
             self._signer = signlevel_info['signer']
             self._frequency = signlevel_info['frequency']
@@ -175,31 +273,23 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
             self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
             self._handdominance = signlevel_info['handdominance']
-        else:
-            print("TODO KV no sign level info; what to do?")
 
     def __eq__(self, other):
-        aresame = True
         if isinstance(other, SignLevelInformation):
-            if self._entryid != other.entryid or self._gloss != other.gloss or self._lemma != other.lemma:
-                aresame = False
-            if self._source != other.source or self._signer != other.signer or self._frequency != other.frequency:
-                aresame = False
-            if self._coder != other.coder or self._datecreated != other.datecreated or self._datelastmodified != other.datelastmodified:
-                aresame = False
-            if self._note != other.note or self._fingerspelled != other.fingerspelled or self._handdominance != other.handdominance:
-                aresame = False
-            if self._compoundsign != other.compoundsign:
-                aresame = False
-        else:
-            aresame = False
-        return aresame
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def serialize(self):
         return {
-            'entryid': self._entryid,
+            'entryid': self._entryid.counter,
             'gloss': self._gloss,
             'lemma': self._lemma,
+            'idgloss': self._idgloss,
             'source': self._source,
             'signer': self._signer,
             'frequency': self._frequency,
@@ -213,11 +303,22 @@ class SignLevelInformation:
         }
 
     @property
+    def parentsign(self):
+        return self._parentsign
+
+    @parentsign.setter
+    def parentsign(self, new_parentsign):
+        self._parentsign = new_parentsign
+        self._entryid.parentsign = new_parentsign
+
+    @property
     def entryid(self):
         return self._entryid
 
     @entryid.setter
     def entryid(self, new_entryid):
+        if new_entryid.parentsign is None:
+            new_entryid.parentsign = self.parentsign
         self._entryid = new_entryid
 
     @property
@@ -235,6 +336,16 @@ class SignLevelInformation:
     @lemma.setter
     def lemma(self, new_lemma):
         self._lemma = new_lemma
+
+    @property
+    def idgloss(self):
+        if not hasattr(self, '_idgloss'):
+            self._idgloss = ''
+        return self._idgloss
+
+    @idgloss.setter
+    def idgloss(self, new_idgloss):
+        self._idgloss = new_idgloss
 
     @property
     def fingerspelled(self):
@@ -322,6 +433,9 @@ class SignLevelInformation:
         self._handdominance = new_handdominance
 
 
+# This module stores the movement information for a particular articulator/s.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected movement
+# as well as for the module overall.
 class MovementModule(ParameterModule):
     def __init__(self, movementtreemodel, articulators, timingintervals=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
@@ -425,7 +539,7 @@ class MovementModule(ParameterModule):
             if selected:
                 # logging.warn(text)
                 # logging.warn(id)
-                pathelements = text.split(delimiter)
+                pathelements = text.split(treepathdelimiter)
                 # thisentrytext = ""
                 # firstonedone = False
                 # morethanone = False
@@ -967,8 +1081,7 @@ class Signtype:
 
     def __init__(self, specslist, addedinfo=None):
         # specslist is a list of pairs:
-        #   the first element is the full signtype property (correlated with radio buttons in selector dialog),
-        #   which is composed of the corresponding abbreviation
+        #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         # TODO KV need backward compatibility for this
@@ -1081,9 +1194,14 @@ class BodypartInfo:
 
     def getabbreviation(self):
         # TODO KV implement
-        return "TODO no BodypartInfo abbreviations implemented yet"
+        return "Bodypart abbreviations not yet implemented"
 
 
+# This module stores the location information for a particular articulator/s.
+# It offers the user different location types (on body, in signing space), location options, and
+# (for body-referenced locations) specific surfaces and/or subareas.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected location
+# as well as for the module overall.
 class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, articulators, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
         if phonlocs is None:
@@ -1118,7 +1236,7 @@ class LocationModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        return "TODO no Location abbreviations implemented yet"
+        return "Location abbreviations not yet implemented"
 
 
 class RelationX:
@@ -1443,7 +1561,6 @@ class RelationY:
 
 class RelationModule(ParameterModule):
 
-    # def __init__(self, relationx, relationy, hand1part, hand2part, arm1part, arm2part, leg1part, leg2part, contactrel, xy_crossed, xy_linked, directionslist, hands, timingintervals=None, addedinfo=None):
     def __init__(self, relationx, relationy, bodyparts_dict, contactrel, xy_crossed, xy_linked, directionslist, articulators, timingintervals=None, addedinfo=None):
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
@@ -1570,7 +1687,7 @@ class RelationModule(ParameterModule):
 
     def getabbreviation(self):
         # TODO implement
-        return "TODO no Relation abbreviations implemented yet"
+        return "Relation abbreviations not yet implemented"
 
 
 class MannerRelation:
@@ -1951,6 +2068,45 @@ class Distance:
             self._medium = False
 
 
+# This module stores the absolute orientation of a particular hand/s.
+# It includes specifications for palm and root directions.
+# It also stores "Added Info" (estimated, uncertain, etc) characteristics for the module overall.
+class OrientationModule(ParameterModule):
+    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None):
+        self._palm = palmdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+        self._root = rootdirs_list or [
+            Direction(axis=Direction.HORIZONTAL),
+            Direction(axis=Direction.VERTICAL),
+            Direction(axis=Direction.SAGITTAL)
+        ]
+
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+
+    @property
+    def palm(self):
+        return self._palm
+
+    @palm.setter
+    def palm(self, palm):
+        self._palm = palm
+
+    @property
+    def root(self):
+        return self._root
+
+    @root.setter
+    def root(self, root):
+        self._root = root
+
+    def getabbreviation(self):
+        # TODO implement
+        return "Orientation abbreviations not yet implemented"
+
+
 # This module stores the transcription of one hand's configuration.
 # It includes specifications for each slot in each field, as well as whether the forearm is involved.
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for each slot,
@@ -1995,39 +2151,6 @@ class HandConfigurationModule(ParameterModule):
 
         return predefinedname + fieldstext
 
-
-# TODO comments
-class OrientationModule(ParameterModule):
-    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None, inphase=None):
-        self._palm = palmdirs_list or [
-            Direction(axis=Direction.HORIZONTAL),
-            Direction(axis=Direction.VERTICAL),
-            Direction(axis=Direction.SAGITTAL)
-        ]
-        self._root = rootdirs_list or [
-            Direction(axis=Direction.HORIZONTAL),
-            Direction(axis=Direction.VERTICAL),
-            Direction(axis=Direction.SAGITTAL)
-        ]
-        
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
-
-    @property
-    def palm(self):
-        return self._palm
-    
-    @palm.setter
-    def palm(self, palm):
-        self._palm = palm
-        
-    @property
-    def root(self):
-        return self._root
-    
-    @root.setter
-    def root(self, root):
-        self._root = root
-        
         
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.

@@ -1,5 +1,7 @@
 #!/bin/sh
-# run this shell script to create a DMG distribution of the executable on a mac.
+# first create an .app executable for Mac and then run this shell script
+# to create a DMG distribution.
+# prerequisite: create SLPAA.app in ./dist/
 
 # Create a folder 'dmg' under dist and use it to prepare the DMG.
 mkdir -p dist/dmg
@@ -10,6 +12,7 @@ cp -r "dist/SLPAA.app" dist/dmg
 # If the DMG already exists, delete it.
 test -f "dist/SLPAA.dmg" && rm "dist/SLPAA.dmg"
 
+# the following is the main command. if it does not work, reinstall create-dmg using Homebrew
 create-dmg \
   --volname "Sign Language Phonetic Annotator Analyzer" \
   --volicon "src/main/icons/mac/icon.icns" \
@@ -21,4 +24,3 @@ create-dmg \
   --app-drop-link 425 120 \
   "dist/SLPAA.dmg" \
   "dist/dmg/"
-  

@@ -16,7 +16,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QComboBox,
     QListView,
-    QStyledItemDelegate
+    QStyledItemDelegate,
+    QTextEdit
 )
 
 from lexicon.module_classes import AddedInfo
@@ -377,3 +378,16 @@ class TreePathsListItemDelegate(QStyledItemDelegate):
         option.font.setBold(hasaddedinfo)
 
         super().initStyleOption(option, index)
+
+
+class StatusDisplay(QTextEdit):
+    def __init__(self, initialtext="", **kwargs):
+        super().__init__(**kwargs)
+        self.setText(initialtext)
+        # self.setStyleSheet("border: 1px solid black;")  # from when this used to be a QLabel
+        self.setReadOnly(True)
+
+    def appendText(self, texttoappend, afternewline=False, afterspace=False):
+        curtext = self.toPlainText()
+        separator = "\n" if afternewline else (" " if afterspace else "")
+        self.setPlainText(curtext + separator + texttoappend)

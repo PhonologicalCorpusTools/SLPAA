@@ -21,7 +21,7 @@ from PyQt5.QtCore import (
     QEvent,
 )
 
-from lexicon.module_classes import delimiter, userdefinedroles as udr, MovementModule
+from lexicon.module_classes import treepathdelimiter, userdefinedroles as udr, MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel
 from serialization_classes import MovementTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
@@ -46,7 +46,7 @@ class MvmtTreeSearchComboBox(QComboBox):
                 self.parent().treedisplay.collapseAll()
                 itemstoselect = gettreeitemsinpath(self.parent().treemodel,
                                                    self.currentText(),
-                                                   delim=delimiter)
+                                                   delim=treepathdelimiter)
                 for item in itemstoselect:
                     if item.checkState() == Qt.Unchecked:
                         item.setCheckState(Qt.PartiallyChecked)
@@ -70,9 +70,9 @@ class MvmtTreeSearchComboBox(QComboBox):
                         foundcurrententry = True
                     elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
                         foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
+                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
                             self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
                         else:
                             self.setEditText(completionoption)
                         self.lastcompletedentry = self.currentText()
@@ -85,9 +85,9 @@ class MvmtTreeSearchComboBox(QComboBox):
                     completionoption = self.completer().currentCompletion()
                     if completionoption.lower().startswith(self.lasttextentry.lower()):
                         foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
+                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
                             self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
                         else:
                             self.setEditText(completionoption)
                         self.lastcompletedentry = self.currentText()
