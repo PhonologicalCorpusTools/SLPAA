@@ -967,7 +967,10 @@ def load_specifications(values_toload, load_destination):
 
     # repetition
     try:
-        if isinstance(values_toload['repetition'], dict):
+        if values_toload['repetition'] is None:
+            # repetition not specified. need to bypass btn selection process so raising an error
+            raise AttributeError
+        elif isinstance(values_toload['repetition'], dict):
             # selected repetition > repeated
             rep_rb_label = values_toload['repetition']['type']
             load_destination.layout_repetition.n_cycle_input.setValue(values_toload['repetition']['n_repeats'])
@@ -975,13 +978,13 @@ def load_specifications(values_toload, load_destination):
         elif isinstance(values_toload['repetition'], str):
             rep_rb_label = values_toload['repetition']
         else:
-            # nothing selected in the repetition group
+            print("[DEBUG] Trying to load unexpected 'repetition' type")
             raise AttributeError
 
         select_this(btn_group=load_destination.repetition_group,
                     btn_txt=rep_rb_label)
 
-    except AttributeError:
+    except (AttributeError, KeyError):
         pass
 
     # directionality
