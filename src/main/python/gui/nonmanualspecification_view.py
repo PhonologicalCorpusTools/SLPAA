@@ -182,7 +182,6 @@ class NMTabWidget(QTabWidget):
     def decide_bold_label(self, index):
         # called when tab selection updates.
         # it decides which tabs need the label bolded
-        print(f'[DEBUG] Switching to Tab {index}')
         idx = 0
         while self.widget(idx) is not None:
             need_bold = self.check_components(self.widget(idx))
@@ -978,7 +977,7 @@ def load_specifications(values_toload, load_destination):
         elif isinstance(values_toload['repetition'], str):
             rep_rb_label = values_toload['repetition']
         else:
-            print("[DEBUG] Trying to load unexpected 'repetition' type")
+            print(f"[WARNING] Trying to load unexpected 'repetition' type for {load_destination.label}")
             raise AttributeError
 
         select_this(btn_group=load_destination.repetition_group,
