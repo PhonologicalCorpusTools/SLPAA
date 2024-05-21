@@ -2188,6 +2188,14 @@ class HandConfigurationHand:
         ]
 
 
+class NonManualModule(ParameterModule):
+    def __init__(self, nonman_specs, articulators, timingintervals=None, addedinfo=None):
+        self._nonmanual = nonman_specs
+
+        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        pass
+
+
 # This class consists of 34 slots; each instance of a HandConfigurationField corresponds to a certain subset
 # of slots. The slots store the transcription info for one field in a hand configuration.
 class HandConfigurationField:
