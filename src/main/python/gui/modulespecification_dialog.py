@@ -33,6 +33,7 @@ from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
 from gui.relationspecification_view import RelationSpecificationPanel
 from gui.orientationspecification_view import OrientationSpecificationPanel
+from gui.nonmanualspecification_view import NonManualSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 from constant import HAND, ARM, LEG
 
@@ -185,8 +186,11 @@ class ModuleSelectorDialog(QDialog):
                 self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
                 self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
             self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+        elif self.moduletype == ModuleTypes.NONMANUAL:
+            self.module_widget = NonManualSpecificationPanel(moduletoload=moduletoload, parent=self)
         elif self.moduletype == ModuleTypes.ORIENTATION:
             self.module_widget = OrientationSpecificationPanel(moduletoload=moduletoload, parent=self)
+
         
     def handle_xslot_widget(self, xslotstructure, timingintervals):
         self.xslot_widget = None

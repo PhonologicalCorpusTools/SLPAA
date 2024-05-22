@@ -66,6 +66,8 @@ class Sign:
         self.orientationmodulenumbers = {}
         self.handconfigmodules = {}
         self.handconfigmodulenumbers = {}
+        self.nonmanualmodules = {}
+        self.nonmanualmodulenumbers = {}
 
         if serializedsign is not None:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
@@ -86,6 +88,9 @@ class Sign:
             self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
             self.handconfigmodules = serializedsign['cfg modules']
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
+            self.nonmanualmodules = serializedsign['nonman modules']
+            self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
+                if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.NONMANUAL)
 
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
@@ -107,6 +112,8 @@ class Sign:
             return self.relationmodules
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodules
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodules
         else:
             return {}
 
@@ -121,6 +128,8 @@ class Sign:
             return self.relationmodulenumbers
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodulenumbers
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodulenumbers
         else:
             return {}
 
@@ -138,6 +147,8 @@ class Sign:
             'rel module numbers': self.relationmodulenumbers,
             'ori modules': self.orientationmodules,
             'ori module numbers': self.orientationmodulenumbers,
+            'nonman modules': self.nonmanualmodules,
+            'nonman module numbers': self.nonmanualmodulenumbers,
             'cfg modules': self.handconfigmodules,
             'cfg module numbers': self.handconfigmodulenumbers,
         }
