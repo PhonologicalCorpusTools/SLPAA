@@ -340,5 +340,13 @@ ARTICULATOR_ABBREVS = {
 }
 
 
+SIGNLEVELINFO_TARGET = "sign level info"
+XSLOT_TARGET = "xslot"
+SIGNTYPEINFO_TARGET = "sign type info"
+
+def filenamefrompath(filepath):
+    return os.path.split(filepath)[1]
+
+
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

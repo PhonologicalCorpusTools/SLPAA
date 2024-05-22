@@ -10,7 +10,8 @@ from PyQt5.QtCore import (
 
 from PyQt5.Qt import (
     QStandardItem,
-    QStandardItemModel
+    QStandardItemModel,
+    QModelIndex,
 )
 
 # TODO seems weird to be referencing a GUI element in this class...??
@@ -1219,8 +1220,6 @@ class MovementTreeModel(QStandardItemModel):
         else:
             return {}
 
-                
-    # TODO gz - update
     def backwardcompatibility(self):
         hadtoaddusv = False
         userspecifiedvalues = {}
@@ -1558,6 +1557,14 @@ class MovementTreeModel(QStandardItemModel):
                     parentnode.appendRow([thistreenode, editablepart])
 
 
+    def get_checked_items(self, parent_index=QModelIndex()):
+        checked_values = []
+        for row in range(self.rowCount(parent_index)):
+            index = self.index(row, 0, parent_index)
+            if index.data(Qt.CheckStateRole) != Qt.Unchecked:
+                checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
+            checked_values.extend(self.get_checked_items(index))
+        return checked_values
 
     @property
     def listmodel(self):
