@@ -281,7 +281,8 @@ class ModuleSelectorDialog(QDialog):
             self.validate_and_save(addanother=False, closedialog=True)
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
-            self.articulators_widget.clear()
+            if self.usearticulators:
+                self.articulators_widget.clear()
             self.addedinfobutton.clear()
             if self.usexslots:
                 self.xslot_widget.clear()
