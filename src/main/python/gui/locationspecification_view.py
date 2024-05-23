@@ -1064,7 +1064,7 @@ class SVGDisplayTab(QWidget):
         img_layout = QVBoxLayout()
 
         self.imgscroll = SVGDisplayScroll(self.defaultimagepath, self.app_ctx)
-        self.imgscroll.zoomfactor_changed.connect(lambda scale: self.zoomfactor_changed.emit(scale))
+        self.imgscroll.zoomfactor_changed.connect(self.zoomfactor_changed.emit)
         img_layout.addWidget(self.imgscroll)
         self.imgscroll.img_clicked.connect(self.handle_img_clicked)
         # self.imgscroll.img_doubleclicked.connect(self.handle_img_doubleclicked)
@@ -1087,7 +1087,7 @@ class SVGDisplayTab(QWidget):
 
         self.link_button = QPushButton("Link")
         self.link_button.setCheckable(True)
-        self.link_button.toggled.connect(lambda ischecked: self.linkbutton_toggled.emit(ischecked))
+        self.link_button.toggled.connect(self.linkbutton_toggled.emit)
         zoom_layout.addWidget(self.link_button)
         zoom_layout.setAlignment(self.link_button, Qt.AlignHCenter)
 

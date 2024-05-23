@@ -560,7 +560,7 @@ class LocationTreeModel(QStandardItemModel):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
         self._multiple_selection_allowed = False
-        self.itemChanged.connect(lambda item: self.updateCheckState(item))
+        self.itemChanged.connect(self.updateCheckState)
         self._locationtype = LocationType()
         self.checked=[]
 
