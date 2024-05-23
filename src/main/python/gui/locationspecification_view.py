@@ -344,7 +344,6 @@ class LocationOptionsSelectionPanel(QFrame):
         if self.showimagetabs:
             self.imagetabwidget = ImageTabWidget(treemodelreference=self, parent=self)
             self.imagetabwidget.region_selected.connect(self.handle_region_selected)
-            self.imagetabwidget.image_changed_to_unselected.connect(self.handle_clearlisthighlights)
             selection_layout.addWidget(self.imagetabwidget)
 
         list_layout = self.create_list_layout()
@@ -355,7 +354,10 @@ class LocationOptionsSelectionPanel(QFrame):
     def handle_clearlisthighlights(self):
         self.pathslistview.selectionModel().clearSelection()
 
-    def handle_region_selected(self, regionname):
+    def handle_region_selected(self, regionname, imageonly):
+        if imageonly:
+            return  # don't do any of the checking/selecting below
+
         # select that item, which also adds it to the visible location paths list
         matchingtreeitems = self.treemodel.findItems(regionname, Qt.MatchRecursive)
         for treeitem in matchingtreeitems:
@@ -895,8 +897,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
 
 class ImageTabWidget(QTabWidget):
-    region_selected = pyqtSignal(str)
-    image_changed_to_unselected = pyqtSignal()
+    region_selected = pyqtSignal(str, bool)  # name of region, image only (vs also adding to selected paths list)
 
     def __init__(self, treemodelreference, **kwargs):
         super().__init__(**kwargs)
@@ -907,18 +908,14 @@ class ImageTabWidget(QTabWidget):
         self.fronttab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.fronttab.linkbutton_toggled.connect(lambda ischecked:
                                                  self.handle_linkbutton_toggled(ischecked, self.fronttab))
-        # self.fronttab.region_selected.connect(self.region_selected.emit)
         self.fronttab.region_selected.connect(self.handle_region_selected)
-        self.fronttab.image_changed_to_unselected.connect(self.image_changed_to_unselected.emit)
         self.addTab(self.fronttab, "Front")
 
         self.backtab = SVGDisplayTab(treemodelreference, 'back', parent=self)
         self.backtab.zoomfactor_changed.connect(self.handle_zoomfactor_changed)
         self.backtab.linkbutton_toggled.connect(lambda ischecked:
                                                 self.handle_linkbutton_toggled(ischecked, self.backtab))
-        # self.backtab.region_selected.connect(self.region_selected.emit)
         self.backtab.region_selected.connect(self.handle_region_selected)
-        self.backtab.image_changed_to_unselected.connect(self.image_changed_to_unselected.emit)
         self.addTab(self.backtab, "Back")
 
         # do we actually need a side tab? so far all regions are viewable from either front or back;
@@ -932,18 +929,16 @@ class ImageTabWidget(QTabWidget):
 
         self.alltabs = [self.fronttab, self.backtab]  # , self.sidetab]
 
-    def handle_region_selected(self, regionname):
+    def handle_region_selected(self, regionname, imageonly):
         relevanttab = self.backtab if isbackview(regionname) else self.fronttab
         relevanttab.current_image_region = regionname
-        print("    current_image_region set to", regionname, "in ImageTabWidget.handle_region_selected()")
-        self.region_selected.emit(regionname)
+        self.region_selected.emit(regionname, imageonly)
 
     def handle_image_changed(self, newimagepath, loc, divisions=None):
         relevanttab = self.backtab if isbackview(loc) else self.fronttab
         self.setCurrentWidget(relevanttab)
         relevanttab.imgscroll.handle_image_changed(newimagepath)
         relevanttab.current_image_region = loc
-        print("    current_image_region set to", loc, "in ImageTabWidget.handle_image_changed()")
         if divisions is not None:
             relevanttab.current_image_divisions = divisions
 
@@ -982,7 +977,7 @@ def isbackview(loc):
 
 
 class LocationAction(QAction):
-    region_selected = pyqtSignal(str)
+    region_selected = pyqtSignal(str, bool)  # name of region, image only (vs also adding to selected paths list)
 
     def __init__(self, elid, app_ctx, depth=0, **kwargs):  # svgscrollarea,
         self.app_ctx = app_ctx
@@ -1007,10 +1002,10 @@ class LocationAction(QAction):
     # def get_relativehand(self):
     #     return "ipsi" if self.dominantside == self.absoluteside else "contra"
 
-    def handle_selection(self):
+    def handle_selection(self, imageonly=False):
         # selectedside = self.absoluteside or self.app_ctx.both
         # location = self.name.replace(" - contra", "").replace(" - ipsi", "")
-        self.region_selected.emit(self.name)
+        self.region_selected.emit(self.name, imageonly)
         # self.getnewimage(selectedside, location)
 
     # def getnewimage(self, selectedside, location):
@@ -1052,8 +1047,7 @@ def get_absolutehand(dominantside, relativeside):
 class SVGDisplayTab(QWidget):
     zoomfactor_changed = pyqtSignal(int)
     linkbutton_toggled = pyqtSignal(bool)
-    region_selected = pyqtSignal(str)
-    image_changed_to_unselected = pyqtSignal()
+    region_selected = pyqtSignal(str, bool)  # name of region, image only (vs also adding to selected paths list)
 
     def __init__(self, treemodelreference, frontbackside='front', **kwargs):
         super().__init__(**kwargs)
@@ -1064,7 +1058,6 @@ class SVGDisplayTab(QWidget):
         self.app_settings = mainwindow.app_settings
         self.treemodelreference = treemodelreference
         self.current_image_region = "all"
-        print("    current_image_region set to", 'all', "in SVGDisplayTab.__init__()")
         self.current_image_divisions = False
 
         main_layout = QHBoxLayout()
@@ -1106,11 +1099,10 @@ class SVGDisplayTab(QWidget):
     def clear(self):
         self.imgscroll.handle_image_changed(self.defaultimagepath)
         self.current_image_region = "all"
-        print("    current_image_region set to", 'all', "in SVGDisplayTab.clear()")
         self.current_image_divisions = False
 
-    def handle_region_selected(self, locationname):
-        self.region_selected.emit(locationname)
+    def handle_region_selected(self, locationname, imageonly):
+        self.region_selected.emit(locationname, imageonly)
         locationname_noside = locationname.replace(" - contra", "").replace(" - ipsi", "")
 
         # just assume yellow for now
@@ -1119,9 +1111,9 @@ class SVGDisplayTab(QWidget):
         absoluteside = get_absolutehand(self.dominanthand, relativeside)
         divisions = self.app_ctx.div if self.current_image_divisions else self.app_ctx.nodiv
         newimagepath = self.app_ctx.predefined_locations_bycolour(colour)[locationname_noside][absoluteside][divisions]
-        # newimagepath = newimagepath.replace("-" + colour, "_with_Divisions" + "-" + colour)
-        if newimagepath != "":
-            self.imgscroll.handle_image_changed(newimagepath)
+        if not newimagepath:
+            newimagepath = self.app_ctx.predefined_locations_bycolour(colour)[locationname_noside][absoluteside][self.app_ctx.nodiv]
+        self.imgscroll.handle_image_changed(newimagepath)
 
     def handle_img_clicked(self, clickpoint, listofids, mousebutton):
         listofids = list(set(listofids))
@@ -1147,7 +1139,6 @@ class SVGDisplayTab(QWidget):
             elementids_menu.exec_(clickpoint.toPoint())
 
         elif mousebutton == Qt.LeftButton:
-            print("left button clicked")
             order = self.app_settings['location']['clickorder']
 
             if order == 1:  # large to small
@@ -1159,15 +1150,23 @@ class SVGDisplayTab(QWidget):
                     nextaction = elementname_actions_preorder[0]
 
             else:  # small to large
-                if self.current_image_region in menunames_postorder:  # start from where we are
-                    curidx = menunames_postorder.index(self.current_image_region)
-                    nextidx = (curidx + 1) % len(menunames_postorder)
-                    nextaction = elementname_actions_postorder[nextidx]
+                if self.current_image_region in menunames_preorder:  # start from where we are
+                    curidx = menunames_preorder.index(self.current_image_region)
+                    nextidx = (curidx - 1) % len(menunames_preorder)
+                    nextaction = elementname_actions_preorder[nextidx]
                 else:  # restart cycling through
-                    nextaction = elementname_actions_postorder[0]
+                    nextaction = elementname_actions_preorder[-1]
+
+
+                # if self.current_image_region in menunames_postorder:  # start from where we are
+                #     curidx = menunames_postorder.index(self.current_image_region)
+                #     nextidx = (curidx + 1) % len(menunames_postorder)
+                #     nextaction = elementname_actions_postorder[nextidx]
+                # else:  # restart cycling through
+                #     nextaction = elementname_actions_postorder[0]
 
             # simulate triggering selection of this menu item
-            nextaction.handle_selection()
+            nextaction.handle_selection(imageonly=True)
 
     # Sort LocationAction items in input list, according to their position in the location options tree.
     # The tree can be traversed either preorder (top-down) or postorder (bottom-up).
@@ -1200,7 +1199,7 @@ class SVGDisplayTab(QWidget):
         if key == Qt.Key_D:
             self.toggledivisions()
         elif key == Qt.Key_S:
-            self.region_selected.emit(self.current_image_region)
+            self.region_selected.emit(self.current_image_region, False)
 
     # toggle divisions (if available)
     def toggledivisions(self):
@@ -1212,7 +1211,7 @@ class SVGDisplayTab(QWidget):
             self.imgscroll.handle_image_changed(newimagepath)
             self.current_image_divisions = False
         else:
-            locationtext = self.current_image_region
+            locationtext = self.current_image_region.replace(" - ipsi", "").replace(" - contra", "")
             _, imagefile = os.path.split(imagepath)
             side = self.app_ctx.right if 'Right' in imagefile else (self.app_ctx.left if 'Left' in imagefile else self.app_ctx.both)
             # just assume yellow for now
