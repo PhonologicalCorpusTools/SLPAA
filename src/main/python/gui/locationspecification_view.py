@@ -1040,44 +1040,29 @@ class SVGDisplayTab(QWidget):
                 elementname_actions.append(locact)
 
         # sort elementname_actions according to position in location tree
-        elementname_actions_preorder = self.sortbylocationtree(elementname_actions, order="preorder")
-        elementname_actions_postorder = self.sortbylocationtree(elementname_actions, order="postorder")
-        menunames_preorder = [locact.name for locact in elementname_actions_preorder]
-        menunames_postorder = [locact.name for locact in elementname_actions_postorder]
+        elementname_actions = self.sortbylocationtree(elementname_actions, order="preorder")
+        menunames = [locact.name for locact in elementname_actions]
 
         if mousebutton == Qt.RightButton:
             elementids_menu = QMenu()
-            elementids_menu.addActions(elementname_actions_preorder)
+            elementids_menu.addActions(elementname_actions)
             elementids_menu.exec_(clickpoint.toPoint())
 
         elif mousebutton == Qt.LeftButton:
             order = self.app_settings['location']['clickorder']
 
-            if order == 1:  # large to small
-                if self.current_image_region in menunames_preorder:  # start from where we are
-                    curidx = menunames_preorder.index(self.current_image_region)
-                    nextidx = (curidx + 1) % len(menunames_preorder)
-                    nextaction = elementname_actions_preorder[nextidx]
-                else:  # restart cycling through
-                    nextaction = elementname_actions_preorder[0]
+            if self.current_image_region in menunames:
+                # start from where we are
+                curidx = menunames.index(self.current_image_region)
+                indexchange = 1 if order == 1 else -1
+                nextidx = (curidx + indexchange) % len(menunames)
+            else:
+                # restart cycling through
+                nextidx = 0 if order == 1 else -1
 
-            else:  # small to large
-                if self.current_image_region in menunames_preorder:  # start from where we are
-                    curidx = menunames_preorder.index(self.current_image_region)
-                    nextidx = (curidx - 1) % len(menunames_preorder)
-                    nextaction = elementname_actions_preorder[nextidx]
-                else:  # restart cycling through
-                    nextaction = elementname_actions_preorder[-1]
+            nextaction = elementname_actions[nextidx]
 
-
-                # if self.current_image_region in menunames_postorder:  # start from where we are
-                #     curidx = menunames_postorder.index(self.current_image_region)
-                #     nextidx = (curidx + 1) % len(menunames_postorder)
-                #     nextaction = elementname_actions_postorder[nextidx]
-                # else:  # restart cycling through
-                #     nextaction = elementname_actions_postorder[0]
-
-            # simulate triggering selection of this menu item
+            # simulate triggering selection of this menu item (but without adding it to the selected list)
             nextaction.handle_selection(imageonly=True)
 
     # Sort LocationAction items in input list, according to their position in the location options tree.
