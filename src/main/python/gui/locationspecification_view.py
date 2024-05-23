@@ -125,51 +125,6 @@ class LocnTreeSearchComboBox(QComboBox):
             super().keyPressEvent(event)
 
 
-# <<<<<<< HEAD
-# =======
-# class LocationGraphicsView(QGraphicsView):
-#
-#     def __init__(self, app_ctx, frontorback='front', parent=None, viewer_size=400, specificpath=""):
-#         super().__init__(parent=parent)
-#
-#         self.viewer_size = viewer_size
-#
-#         self._scene = QGraphicsScene(parent=self)
-#         imagepath = app_ctx.default_location_images['body_hands_' + frontorback]
-#         if specificpath != "":
-#             imagepath = specificpath
-#
-#         # if specificpath.endswith('.svg'):
-#         #     self._photo = LocationSvgView()
-#         #     self._photo.load(QUrl(imagepath))
-#         #     self._scene.addWidget(self._photo)
-#         #     self.show()
-#         # else:
-#         self._pixmap = QPixmap(imagepath)
-#         self._photo = QGraphicsPixmapItem(self._pixmap)
-#         self._scene.addItem(self._photo)
-#         # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
-#
-#         # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
-#         self.setScene(self._scene)
-#         self.setDragMode(QGraphicsView.ScrollHandDrag)
-#         self.fitInView()
-#
-#     def fitInView(self, scale=True):
-#         rect = QRectF(self._photo.pixmap().rect())
-#         if not rect.isNull():
-#             self.setSceneRect(rect)
-#             unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-#             self.scale(1 / unity.width(), 1 / unity.height())
-#             scenerect = self.transform().mapRect(rect)
-#             factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
-#             self.factor = factor
-#             # viewrect = self.viewport().rect()
-#             # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
-#             self.scale(factor, factor)
-# >>>>>>> main
-
-
 class LocationTableView(QTableView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -368,16 +323,6 @@ class LocationOptionsSelectionPanel(QFrame):
         for listitem in matchinglistitems:
             proxymodelindex = self.listproxymodel.mapFromSource(self.listmodel.indexFromItem(listitem))
             self.pathslistview.selectionModel().select(proxymodelindex, QItemSelectionModel.ClearAndSelect)
-    #
-    # def get_absolutehand(self, relativeside):
-    #     if relativeside == "both/all":
-    #         return relativeside
-    #     elif relativeside == "ipsi":
-    #         return self.dominanthand
-    #     elif self.dominanthand == "R":
-    #         return "L"
-    #     else:
-    #         return "R"
 
     def update_image(self):
         if not self.treemodel.locationtype.usesbodylocations():
@@ -419,10 +364,6 @@ class LocationOptionsSelectionPanel(QFrame):
         self.pathslistview.setMinimumWidth(300)
         self.pathslistview.installEventFilter(self)
         self.pathslistview.selectionModel().selectionChanged.connect(self.handle_selection_changed)
-        # self.pathslistview.selectionModel().selectionChanged.connect(self.update_detailstable)
-        # TODO KV this could happen either because user clicked it OR because it was progarmmatically updated when a new
-        #  region was selected via interaction with the image-- how to decide whether or not to include divisions?
-        # self.pathslistview.selectionModel().selectionChanged.connect(self.handle_selection_changed)
 
         list_layout.addWidget(self.pathslistview)
 
@@ -435,8 +376,6 @@ class LocationOptionsSelectionPanel(QFrame):
         self.sortcombo.addItems(
             ["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
-        # self.sortcombo.completer().setCompletionMode(QCompleter.PopupCompletion)
-        # self.sortcombo.currentTextChanged.connect(self.listproxymodel.sort(self.sortcombo.currentText()))
         self.sortcombo.currentTextChanged.connect(self.sort)
         buttons_layout.addWidget(self.sortcombo)
         buttons_layout.addStretch()
@@ -460,7 +399,6 @@ class LocationOptionsSelectionPanel(QFrame):
     def handle_selection_changed(self, selected=None, deselected=None):
         self.update_detailstable()
         self.update_image()
-
     
     def set_multiple_selection_from_content(self, multsel):
         self.multiple_selection_cb.setChecked(multsel)
@@ -475,8 +413,7 @@ class LocationOptionsSelectionPanel(QFrame):
 
     def sort(self):
         self.listproxymodel.updatesorttype(self.sortcombo.currentText())
-        
-    
+
     def reset_sort(self):
         """Reset sort option to default."""
         self.sortcombo.setCurrentIndex(0)
@@ -704,18 +641,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
 
-    # def update_detailstable(self):  # , selected, deselected):
-    #     selectedindexes = self.pathslistview.selectionModel().selectedIndexes()
-    #     if len(selectedindexes) == 1:  # the details pane reflects the (single) selection
-    #         itemindex = selectedindexes[0]
-    #         listitemindex = self.pathslistview.model().mapToSource(itemindex)
-    #         selectedlistitem = self.pathslistview.model().sourceModel().itemFromIndex(listitemindex)
-    #         self.detailstableview.setModel(selectedlistitem.treeitem.detailstable)
-    #     else:  # 0 or >1 rows selected; the details pane is blank
-    #         self.detailstableview.setModel(LocationTreeItem().detailstable)
-    #
-    #     self.detailstableview.horizontalHeader().resizeSections(QHeaderView.Stretch)
-
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
@@ -743,7 +668,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         enablecomboboxandlistview = anyexceptpurelyspatial
         enabledetailstable = self.getcurrentlocationtype().usesbodylocations()
 
-        # self.locationoptionsselectionpanel.locationselectionwidget.setlocationtype(self.getcurrentlocationtype(), treemodel=self.getcurrenttreemodel())
         self.locationoptionsselectionpanel.enableImageTabs(enableimagetabs)
         self.locationoptionsselectionpanel.combobox.setEnabled(enablecomboboxandlistview)
         self.locationoptionsselectionpanel.pathslistview.setEnabled(enablecomboboxandlistview)
@@ -782,7 +706,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             # TODO KV return true??
         elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
             proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
-            # proxyindex = self.pathslistview.selectedIndexes()[0]
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 
@@ -979,13 +902,12 @@ def isbackview(loc):
 class LocationAction(QAction):
     region_selected = pyqtSignal(str, bool)  # name of region, image only (vs also adding to selected paths list)
 
-    def __init__(self, elid, app_ctx, depth=0, **kwargs):  # svgscrollarea,
+    def __init__(self, elid, app_ctx, depth=0, **kwargs):
         self.app_ctx = app_ctx
         self.dominantside = self.app_ctx.main_window.current_sign.signlevel_information.handdominance
         self.absoluteside = "R" if "Right" in elid else ("L" if "Left" in elid else "")
         self.name = self.app_ctx.predef_locns_descr_byfilename(elid).replace(self.app_ctx.contraoripsi, get_relativehand(self.dominantside, self.absoluteside))
         super().__init__(self.name, **kwargs)
-        # self.svgscrollarea = svgscrollarea
         self.triggered.connect(self.handle_selection)
         self.depth = depth
 
@@ -999,17 +921,8 @@ class LocationAction(QAction):
         leadingspaces = "  " * self.depth
         self.setText(leadingspaces + self.name)
 
-    # def get_relativehand(self):
-    #     return "ipsi" if self.dominantside == self.absoluteside else "contra"
-
     def handle_selection(self, imageonly=False):
-        # selectedside = self.absoluteside or self.app_ctx.both
-        # location = self.name.replace(" - contra", "").replace(" - ipsi", "")
         self.region_selected.emit(self.name, imageonly)
-        # self.getnewimage(selectedside, location)
-
-    # def getnewimage(self, selectedside, location):
-    #     self.svgscrollarea.handle_image_changed(self.app_ctx.predefined_locations_yellow[location][selectedside][self.app_ctx.nodiv])
 
 
 def location_and_relativeside(locationname):
@@ -1067,7 +980,6 @@ class SVGDisplayTab(QWidget):
         self.imgscroll.zoomfactor_changed.connect(self.zoomfactor_changed.emit)
         img_layout.addWidget(self.imgscroll)
         self.imgscroll.img_clicked.connect(self.handle_img_clicked)
-        # self.imgscroll.img_doubleclicked.connect(self.handle_img_doubleclicked)
         self.imgscroll.key_released.connect(self.handle_key_released)
         main_layout.addLayout(img_layout)
 
@@ -1125,7 +1037,7 @@ class SVGDisplayTab(QWidget):
             if locationname_noside in self.app_ctx.predefined_locations_key.keys():
                 locact = LocationAction(listofids[idx], self.app_ctx)
                 locact.region_selected.connect(self.handle_region_selected)
-                elementname_actions.append(locact)  # self.imgscroll,
+                elementname_actions.append(locact)
 
         # sort elementname_actions according to position in location tree
         elementname_actions_preorder = self.sortbylocationtree(elementname_actions, order="preorder")
@@ -1221,36 +1133,6 @@ class SVGDisplayTab(QWidget):
                 self.imgscroll.handle_image_changed(newimagepath)
                 self.current_image_divisions = True
 
-    # def handle_img_doubleclicked(self, mousebutton):
-    #     # TODO KV this is a mess-- figure out a tidier way to do this
-    #     if mousebutton == Qt.LeftButton:
-    #         imagepath = self.imgscroll.imagepath
-    #         if "_with_Divisions" in imagepath:
-    #             # switch to no divisions
-    #             newimagepath = imagepath.replace("_with_Divisions", "")
-    #             self.imgscroll.handle_image_changed(newimagepath)
-    #             self.current_image_divisions = False
-    #         else:
-    #             _, imagefile = os.path.split(imagepath)
-    #             side = self.app_ctx.right if 'Right' in imagefile else (self.app_ctx.left if 'Left' in imagefile else self.app_ctx.both)
-    #             colour = "yellow" if "yellow" in imagefile else ("green" if "green" in imagefile else "violet")
-    #             locationtext = self.app_ctx.predef_locns_descr_byfilename(imagefile.replace(".svg", "")).replace("-" + colour, "").replace(" - " + self.app_ctx.contraoripsi, "")
-    #             if colour == "yellow":
-    #                 newimagepath = self.app_ctx.predefined_locations_yellow[locationtext][side][self.app_ctx.div]
-    #             elif colour == "green":
-    #                 newimagepath = self.app_ctx.predefined_locations_green[locationtext][side][self.app_ctx.div]
-    #             elif colour == "violet":
-    #                 newimagepath = self.app_ctx.predefined_locations_violet[locationtext][side][self.app_ctx.div]
-    #             newimagepath = newimagepath.replace("-" + colour, "_with_Divisions" + "-" + colour)
-    #             # newimagepath = self.app_ctx.predefined_locations_bycolour(colour)[locationtext][side][self.app_ctx.div]
-    #             if newimagepath != "":
-    #             # if self.app_ctx.predefined_locations_key[locationtext][side][self.app_ctx.div]:
-    #                 # then there is a version of this image with divisions to switch to
-    #                 # newimagepath =
-    #                 # newimagepath = imagepath.replace("-" + colour, "_with_Divisions" + "-" + colour)
-    #                 self.imgscroll.handle_image_changed(newimagepath)
-    #                 self.current_image_divisions = True
-
     def force_zoom(self, scale):
         self.blockSignals(True)
         self.zoom_slider.blockSignals(True)
@@ -1267,7 +1149,6 @@ class SVGDisplayTab(QWidget):
 
 class SVGDisplayScroll(QScrollArea):
     img_clicked = pyqtSignal(QPointF, list, int)
-    # img_doubleclicked = pyqtSignal(int)
     key_released = pyqtSignal(int)
     zoomfactor_changed = pyqtSignal(int)
     factor_from_scale = {
@@ -1295,7 +1176,6 @@ class SVGDisplayScroll(QScrollArea):
         self.gatherelementids(self.imagepath)
         self.scn = SVGGraphicsScene([], app_ctx, parent=self)
         self.scn.img_clicked.connect(self.img_clicked.emit)
-        # self.scn.img_doubleclicked.connect(self.img_doubleclicked.emit)
         self.scn.key_released.connect(self.key_released.emit)
         self.scn.img_changed.connect(self.handle_image_changed)
 
@@ -1351,7 +1231,6 @@ class SVGDisplayScroll(QScrollArea):
 
 class SVGGraphicsScene(QGraphicsScene):
     img_clicked = pyqtSignal(QPointF, list, int)
-    # img_doubleclicked = pyqtSignal(int)
     img_changed = pyqtSignal(str)
     key_released = pyqtSignal(int)
 
@@ -1360,10 +1239,6 @@ class SVGGraphicsScene(QGraphicsScene):
         self.app_ctx = app_ctx
         for it in svgitems:
             self.addItem(it)
-
-    # def mouseDoubleClickEvent(self, event):
-    #     mousebutton = event.button()
-    #     self.img_doubleclicked.emit(mousebutton)
 
     def mouseReleaseEvent(self, event):
         mousebutton = event.button()
