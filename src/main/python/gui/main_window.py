@@ -51,6 +51,7 @@ from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaDialog
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
+from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
@@ -693,6 +694,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
+        self.app_settings['location']['clickorder'] = self.app_qsettings.value('clickorder', defaultValue=1, type=int)
         self.app_qsettings.endGroup()  # location
 
     def check_storage(self):
@@ -756,6 +758,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_qsettings.setValue('loctype', self.app_settings['location']['loctype'])
+        self.app_qsettings.setValue('clickorder', self.app_settings['location']['clickorder'])
         self.app_qsettings.endGroup()  # location
 
     def on_action_define_location(self):
