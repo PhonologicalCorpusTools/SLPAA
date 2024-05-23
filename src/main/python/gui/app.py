@@ -105,12 +105,12 @@ class AppContext(ApplicationContext):
                 for hasdiv in predef_locs[locname][side].keys():
                     if predef_locs[locname][side][hasdiv]:
                         resource_string = self.get_resource('predefined_locations/' +
-                                                             colour +
-                                                             '_20240508version/' +
-                                                             self.fnamestr_by_predef_locns_descr(locname, side) +
-                                                             '-' +
-                                                             colour +
-                                                             '.svg')
+                                                            colour +
+                                                            '_20240508version/' +
+                                                            self.fnamestr_by_predef_locns_descr(locname, side) +
+                                                            ("_with_Divisions" if hasdiv == self.div else "") +                                                             '-' +
+                                                            colour +
+                                                            '.svg')
                         predef_locs[locname][side][hasdiv] = resource_string
                     else:
                         predef_locs[locname][side][hasdiv] = ""
