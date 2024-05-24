@@ -1,6 +1,7 @@
 from PyQt5.QtCore import (
     pyqtSignal,
-    Qt
+    Qt,
+    QItemSelectionModel
 )
 
 from PyQt5.QtWidgets import (
@@ -359,7 +360,10 @@ class TreeListView(QListView):
                 selectedlistitems.append(listitem)
             for listitem in selectedlistitems:
                 listitem.unselectpath()
-            # self.model().dataChanged.emit()
+
+            # select/highlight the item that gets focus after the deletion(s) are done
+            currentitemindex = self.selectionModel().currentIndex()
+            self.selectionModel().select(currentitemindex, QItemSelectionModel.ClearAndSelect)
 
 
 # this class ensures that the items in the selected-paths list (for Location and Movement module dialogs, eg)
