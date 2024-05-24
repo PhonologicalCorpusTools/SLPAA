@@ -133,8 +133,11 @@ class BoldTabBarStyle(QProxyStyle):
 
     def drawControl(self, element, option, painter, widget=None):
         if element == self.CE_TabBarTabLabel:
-            # Check if the current tab index is the bold one
+            # TODO Stanley: the solution here is temporary. need to come up with a better solution to cropped tab label.
+            option.rect.setWidth(option.rect.width() + 15)  # Increase tab bar text box's width by 15 pixels
+            painter.save()
 
+            # Check if the current tab index is the bold one
             font = painter.font()
             if widget.tabAt(option.rect.center()) in self.bold_tab_index:
                 font.setBold(True)
@@ -143,6 +146,13 @@ class BoldTabBarStyle(QProxyStyle):
             painter.setFont(font)
 
         super().drawControl(element, option, painter, widget)
+
+    def sizeFromContents(self, contents_type, option, size, widget=None):
+        if contents_type == self.CT_TabBarTab:
+            size = super().sizeFromContents(contents_type, option, size, widget)
+            size.setWidth(size.width() + 15)  # Increase the rectangle width by 15 pixels
+            return size
+        return super().sizeFromContents(contents_type, option, size, widget)
 
     def setBoldTabIndex(self, index, need_bold=True):
         if isinstance(index, int):
