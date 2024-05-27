@@ -94,13 +94,39 @@ def signtypedisplaytext(specslist):
     return disp
 
 # TODO
-def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslotstructure):
+def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslotstructure, matchtype):
+    logging.warning(targetintervals)
     # logging.warning(timingintervals)
     if xslottype == XslotTypes.IGNORE:
         return True
     
     if xslottype == XslotTypes.CONCRETE:
-        return timingintervals == targetintervals
+        if matchtype == 'exact':
+            if timingintervals == targetintervals:
+                return True
+            # else:
+            #     collapsetimingintervals(timingintervals)
+            # else:
+            #     targets = list(targetintervals)
+            #     timings = list(timingintervals)
+            #     leftmost = timings[0].startpoint
+            #     rightmost = timings[0].endpoint
+            #     for timing in timings:
+            #         if timing.ispoint():
+            #             if timing in targets:
+            #                 timings.remove(timing)
+            #                 targets.remove(timing)
+
+                        
+            #         elif t.startpoint == rightmost:
+            #             rightmost = t.endpoint
+
+                    
+
+
+        elif matchtype == 'minimal':
+            return timingintervals == targetintervals
+
 
     if xslottype == XslotTypes.ABSTRACT_WHOLE:
         targetint = targetintervals[0] # only one selection is possible: either startpt, endpt, or whole sign.
@@ -137,10 +163,35 @@ def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslots
                 for t in timingintervals:
                     if targetint.startpoint.fractionalpart == t.startpoint.fractionalpart and targetint.endpoint.fractionalpart == t.endpoint.fractionalpart:
                         return True
-
             
         return False
 
+def collapsetimingintervals(timingintervals):
+    timings = list(timingintervals)
+    
+    collapsed = set()
+    while len(timings) > 0:
+        leftmost = timings[0].startpoint
+        rightmost = timings[0].endpoint
+        for timing in timings:
+            if timing.ispoint():
+                collapsed.add(timing)
+                timings.remove(timing)
+            else:
+                
+                if timing.endpoint == leftmost:
+                    leftmost = timing.startpoint
+                elif timing.startpoint == rightmost:
+                    rightmost = timing.endpoint
+                timings.remove(timing)
+                logging.warning(collapsed)
+                    
+        collapsed.add((leftmost, rightmost))
+        
+    
+    return collapsed
+
+        
 
 
         

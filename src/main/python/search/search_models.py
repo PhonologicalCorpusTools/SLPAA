@@ -274,7 +274,7 @@ class SearchModel(QStandardItemModel):
             if hasattr(svi, "paths"):
                 sign_paths = set()
                 for module in modules:
-                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure):
+                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
                         for p in module.movementtreemodel.get_checked_items():
                             sign_paths.add(p)
                 if not all(path in sign_paths for path in svi.paths):
@@ -315,7 +315,7 @@ class SearchModel(QStandardItemModel):
             if hasattr(svi, "paths"):
                 sign_paths = set("")
                 for module in modules:
-                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure):
+                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
                         sign_paths.update(module.locationtreemodel.get_checked_items())
                 if not all(path in sign_paths for path in svi.paths):
                     return False

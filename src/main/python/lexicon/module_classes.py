@@ -865,6 +865,16 @@ class TimingInterval:
             elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint) or (other.startpoint <= self.startpoint and other.endpoint > self.startpoint):
                 return True
         return False
+    
+    
+    def includesinterval(self, other):
+        if isinstance(other, TimingInterval):
+            if self.iswholesign() or other.iswholesign():
+                return True
+            elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint):
+                return True
+        return False
+
 
     def iswholesign(self):
         return self.startpoint == TimingPoint(0, 0) and self.endpoint == TimingPoint(0, 1)
