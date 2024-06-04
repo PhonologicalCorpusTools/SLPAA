@@ -122,7 +122,6 @@ class RepetitionLayout(QVBoxLayout):
         return
 
 
-
 class BoldTabBarStyle(QProxyStyle):
     def __init__(self, bold_tab_index=None):
         super().__init__()
@@ -133,8 +132,9 @@ class BoldTabBarStyle(QProxyStyle):
 
     def drawControl(self, element, option, painter, widget=None):
         if element == self.CE_TabBarTabLabel:
-            # Check if the current tab index is the bold one
+            painter.save()
 
+            # Check if the current tab index is the bold one
             font = painter.font()
             if widget.tabAt(option.rect.center()) in self.bold_tab_index:
                 font.setBold(True)
@@ -143,6 +143,13 @@ class BoldTabBarStyle(QProxyStyle):
             painter.setFont(font)
 
         super().drawControl(element, option, painter, widget)
+
+    def sizeFromContents(self, contents_type, option, size, widget=None):
+        if contents_type == self.CT_TabBarTab:
+            size = super().sizeFromContents(contents_type, option, size, widget)
+            size.setWidth(int(size.width() * 1.15))  # Increase the rectangle width by 20%
+            return size
+        return super().sizeFromContents(contents_type, option, size, widget)
 
     def setBoldTabIndex(self, index, need_bold=True):
         if isinstance(index, int):
@@ -158,6 +165,7 @@ class BoldTabBarStyle(QProxyStyle):
 
         elif isinstance(index, list):
             self.bold_tab_index.extend(index)
+
 
 class TabContentWidget(QWidget):
     def __init__(self):
@@ -188,6 +196,7 @@ class NMTabWidget(QTabWidget):
             self.tab_bar.style().setBoldTabIndex(idx, need_bold)
             idx += 1
         self.setCurrentIndex(index)
+
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
     timingintervals_inherited = pyqtSignal(list)
