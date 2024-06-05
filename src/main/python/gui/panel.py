@@ -6,6 +6,7 @@ from PyQt5.QtCore import (
     QRectF,
     QPoint,
     pyqtSignal,
+    QSettings
 )
 
 from PyQt5.QtWidgets import (
@@ -45,13 +46,13 @@ from PyQt5.QtGui import (
 from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
-# from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
-from lexicon.lexicon_classes import Sign
+from lexicon.lexicon_classes import Sign, glossesdelimiter
 from gui.modulespecification_dialog import ModuleSelectorDialog
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
+
 
 
 # TODO KV there are two classes with this name-- are they exactly the same?
@@ -321,11 +322,12 @@ class SignSummaryPanel(QScrollArea):
         self.moduleitems = []
         self.current_y = 0
 
-        # set the top text, either welcome or the sign gloss + ID
+        # set the top text, either welcome or the sign gloss(es) + Entry ID
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText(self.sign.signlevel_information.gloss + " - " + self.entryid_string())
+            signleveltext.setPlainText(glossesdelimiter.join(self.sign.signlevel_information.gloss)
+                                       + " - " + self.sign.signlevel_information.entryid.display_string())
         signleveltext.setPos(self.x_offset, self.current_y)
         self.current_y += 30
         self.scene.addItem(signleveltext)
@@ -339,14 +341,6 @@ class SignSummaryPanel(QScrollArea):
         self.addhand(2)
         self.addnonhand()
         self.addgridlines()
-
-    def entryid_string(self, entryid_int=None):
-        numdigits = int(self.settings['display']['entryid_digits'])
-        if entryid_int is None:
-            entryid_int = self.sign.signlevel_information.entryid
-        entryid_string = str(entryid_int)
-        entryid_string = "0" * (numdigits - len(entryid_string)) + entryid_string
-        return entryid_string
 
     def addsigntype(self):
         if self.sign.signtype is not None:
@@ -777,6 +771,9 @@ class SignLevelMenuPanel(QScrollArea):
 
         main_layout = QVBoxLayout()
         main_frame.setLayout(main_layout)
+        buttons_layout = QHBoxLayout()
+        untimed_layout = QVBoxLayout()
+        timed_layout = QVBoxLayout()
 
         self._sign = sign
         self.modulebuttons_untimed = []
@@ -813,7 +810,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.orientation_button = QPushButton("Add orientation module")
         self.orientation_button.setProperty("existingmodule", False)
-        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.ORIENTATION))
+        self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.ORIENTATION))
         self.modulebuttons_timed.append(self.orientation_button)
 
         self.handshape_button = QPushButton("Add hand configuration module")
@@ -827,17 +824,24 @@ class SignLevelMenuPanel(QScrollArea):
         self.modulebuttons_timed.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
-        main_layout.addWidget(self.signlevel_button)
-        for btn in self.modulebuttons_untimed:
-            main_layout.addWidget(btn)
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(line)
-        for btn in self.modulebuttons_timed:
-            main_layout.addWidget(btn)
-        self.enable_module_buttons(False)
 
+        untimed_layout.addWidget(self.signlevel_button)
+        for btn in self.modulebuttons_untimed:
+            untimed_layout.addWidget(btn)
+        untimed_layout.addStretch()
+        buttons_layout.addLayout(untimed_layout)
+
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine)
+        line.setFrameShadow(QFrame.Sunken)
+        buttons_layout.addWidget(line)
+
+        for btn in self.modulebuttons_timed:
+            timed_layout.addWidget(btn)
+        buttons_layout.addLayout(timed_layout)
+
+        self.enable_module_buttons(False)
+        main_layout.addLayout(buttons_layout)
         self.setWidget(main_frame)
 
     def enable_module_buttons(self, yesorno):
@@ -858,7 +862,7 @@ class SignLevelMenuPanel(QScrollArea):
     @sign.setter
     def sign(self, sign):
         self._sign = sign
-        self.signgloss_label.setText("Sign: " + sign.signlevel_information.gloss if sign else "")
+        self.signgloss_label.setText("Sign: " + glossesdelimiter.join(sign.signlevel_information.gloss) if sign else "")
 
     def clear(self):
         self._sign = None
@@ -887,34 +891,12 @@ class SignLevelMenuPanel(QScrollArea):
             self.sign.signlevel_information = signlevelinfo
         else:
             # this is a new sign
-            if signlevelinfo.gloss in self.mainwindow.corpus.get_sign_glosses():
-                QMessageBox.critical(self, 'Duplicated Gloss',
-                                     'Please use a different gloss. Duplicated glosses are not allowed.')
-                # TODO KV don't want the signlevel info to close if the gloss is rejected--
-                #  make the user choose a new one instead
-                return
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(self.sign)
-            self.mainwindow.handle_sign_selected(self.sign)
 
         self.sign_updated.emit(self.sign)
         self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
-
-    def handle_delete_signlevelinfo(self, previous_selection):
-        if self.sign:  # does the sign to delete exist?
-            self.mainwindow.corpus.remove_sign(self.sign)
-            
-            # Update corpus display with the previous selection highlighted
-            if previous_selection:
-                self.sign_updated.emit(previous_selection)
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
-                self.mainwindow.handle_sign_selected(previous_selection)
-            
-            else:
-                self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, previous_selection)
-                self.mainwindow.handle_sign_selected(previous_selection)
-
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
@@ -943,11 +925,7 @@ class SignLevelMenuPanel(QScrollArea):
         module_selector.exec_()
 
     def handle_delete_module(self, existingkey, moduletype):
-        if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype).keys():
-            print("TODO KV key error: attempting to delete a " +
-                  moduletype + " module whose key is not in the list of existing modules")
-        else:
-            self.sign.removemodule(existingkey, moduletype)
+        self.sign.removemodule(existingkey, moduletype)
         self.sign_updated.emit(self.sign)
 
     def handle_save_module(self, module_to_save, moduletype, existing_key=None):

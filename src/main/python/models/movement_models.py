@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (
     QMessageBox
 )
 
-from lexicon.module_classes import userdefinedroles as udr, delimiter, AddedInfo
+from lexicon.module_classes import userdefinedroles as udr, treepathdelimiter, AddedInfo
 
 # for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"
@@ -1081,7 +1081,7 @@ class MovementListItem(QStandardItem):
 
             if self.treeitem.data(Qt.UserRole+udr.isuserspecifiablerole):
                 currentlistdisplay = self.data(Qt.DisplayRole)
-                newlistdisplay = re.sub(" \[.*\]$", "", currentlistdisplay)
+                newlistdisplay = re.sub(r" \[.*\]$", "", currentlistdisplay)
                 if value != "":
                     newlistdisplay += " [" + value + "]"
                 self.setData(newlistdisplay, Qt.DisplayRole)
@@ -1178,7 +1178,6 @@ class MovementTreeModel(QStandardItemModel):
             userspecifiedvalues = self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode, userspecifiedvalues)
 
-
     def get_checked_from_serialized_tree(self):
         checked = []
         if hasattr(self, "serializedmvmttree"):
@@ -1233,19 +1232,24 @@ class MovementTreeModel(QStandardItemModel):
         dicts = self.serializedmvmttree.checkstates, self.serializedmvmttree.addedinfos  # self.numvals, self.stringvals,
 
         # 20230707: "trill" is now suboption of "repetition"; previously they were at the same level
-        old_trill_path = "Movement characteristics"+delimiter+"Trill"
-        for stored_dict in dicts:
-            if (old_trill_path in stored_dict):
-                # If old Trill / Trilled was selected, the new Trilled is selected and anything for single/repeated is gone.
-                if (stored_dict[old_trill_path+delimiter+"Trilled"] == Qt.Checked):
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"] = Qt.Unchecked
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Checked
-                    stored_dict.pop(old_trill_path + delimiter + "Trilled")
-                # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
-                else:
-                    stored_dict["Movement characteristics"+delimiter+"Repetition"+delimiter+"Trilled"] = Qt.Unchecked
-                    stored_dict.pop(old_trill_path + delimiter + "Not trilled")
-                stored_dict.pop(old_trill_path)
+        old_trill_path = "Movement characteristics" + treepathdelimiter + "Trill"
+        stored_dict = self.serializedmvmttree.checkstates
+        if (old_trill_path in stored_dict):
+            # If old Trill / Trilled was selected, the new Trilled is selected and anything for single/repeated is gone.
+            if (stored_dict[old_trill_path + treepathdelimiter + "Trilled"] == Qt.Checked):
+                stored_dict["Movement characteristics" + treepathdelimiter + "Repetition"] = Qt.Unchecked
+                stored_dict["Movement characteristics" + treepathdelimiter + "Repetition" + treepathdelimiter + "Trilled"] = Qt.Checked
+                if old_trill_path+treepathdelimiter+ "Trilled" in self.serializedmvmttree.addedinfos:
+                    self.serializedmvmttree.addedinfos["Movement characteristics" + treepathdelimiter + "Repetition" + treepathdelimiter + "Trilled"] = self.serializedmvmttree.addedinfos[old_trill_path + treepathdelimiter + "Trilled"]
+                    self.serializedmvmttree.addedinfos.pop(old_trill_path + treepathdelimiter + "Trilled")
+                stored_dict.pop(old_trill_path + treepathdelimiter + "Trilled")
+            # If old Trill / Not trilled was selected, the new Trilled is not selected and anything for single/repeated stays.
+            elif (stored_dict[old_trill_path + treepathdelimiter + "Not trilled"] == Qt.Checked):
+                stored_dict["Movement characteristics" + treepathdelimiter + "Repetition" + treepathdelimiter + "Trilled"] = Qt.Unchecked
+                if old_trill_path+treepathdelimiter+ "Not trilled" in self.serializedmvmttree.addedinfos:
+                    self.serializedmvmttree.addedinfos.pop(old_trill_path + treepathdelimiter + "Not trilled")
+                stored_dict.pop(old_trill_path + treepathdelimiter + "Not trilled")
+            stored_dict.pop(old_trill_path)
 
 
         for stored_dict in dicts:
@@ -1280,20 +1284,20 @@ class MovementTreeModel(QStandardItemModel):
                         keystoremove.append(k)
 
                     elif "This number is a minimum" in k:
-                        pairstoadd[k.replace(delimiter + "#" + delimiter, delimiter)] = stored_dict[k]
+                        pairstoadd[k.replace(treepathdelimiter + "#" + treepathdelimiter, treepathdelimiter)] = stored_dict[k]
                         keystoremove.append(k)
 
-                    elif (specifytotalcycles_str + delimiter in k or numberofreps_str + delimiter in k):
+                    elif (specifytotalcycles_str + treepathdelimiter in k or numberofreps_str + treepathdelimiter in k):
                         # then we're looking at the item that stores info about the specified number of repetitions
                         newkey = k.replace(numberofreps_str, specifytotalcycles_str)
-                        newkey = newkey[:newkey.index(specifytotalcycles_str+delimiter) + len(specifytotalcycles_str)]
+                        newkey = newkey[:newkey.index(specifytotalcycles_str + treepathdelimiter) + len(specifytotalcycles_str)]
                         remainingtext = ""
                         if specifytotalcycles_str in k:
-                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(specifytotalcycles_str + delimiter):]
+                            remainingtext = k[k.index(specifytotalcycles_str + treepathdelimiter) + len(specifytotalcycles_str + treepathdelimiter):]
                         elif numberofreps_str in k:
-                            remainingtext = k[k.index(specifytotalcycles_str + delimiter) + len(numberofreps_str + delimiter):]
+                            remainingtext = k[k.index(specifytotalcycles_str + treepathdelimiter) + len(numberofreps_str + treepathdelimiter):]
 
-                        if len(remainingtext) > 0 and delimiter not in remainingtext and remainingtext != "#":
+                        if len(remainingtext) > 0 and treepathdelimiter not in remainingtext and remainingtext != "#":
                             numcycles = remainingtext
                             userspecifiedvalues[newkey] = numcycles
 
@@ -1549,7 +1553,7 @@ class MovementTreeModel(QStandardItemModel):
                         if idx + 1 == numentriesatthislevel:
                             thistreenode.setData(True, role=Qt.UserRole + udr.lastingrouprole)
                             thistreenode.setData(isfinalsubgroup, role=Qt.UserRole + udr.finalsubgrouprole)
-                    self.populate(thistreenode, structure=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence)
+                    self.populate(thistreenode, structure=child, pathsofar=pathsofar + label + treepathdelimiter, idsequence=idsequence)
                     # self.populate(thistreenode, structure=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence.append(node_id))
                     parentnode.appendRow([thistreenode, editablepart])
 

@@ -1069,9 +1069,9 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         main_layout = QHBoxLayout()
 
         self.panel = HandTranscriptionPanel(self.mainwindow.app_ctx.predefined)
-        self.panel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)  # QSizePolicy.MinimumExpanding,
+        self.panel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding) 
         self.illustration = HandIllustrationPanel(self.mainwindow.app_ctx, parent=self)
-        self.illustration.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)  # QSizePolicy.MinimumExpanding,
+        self.illustration.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)  # (QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.panel.config.slot_on_focus.connect(self.panel.update_details_label)
         self.panel.config.slot_num_on_focus.connect(self.illustration.update_hand_illustration)
         self.panel.config.slot_leave.connect(self.panel.update_details_label)
