@@ -127,7 +127,7 @@ mouth_opening = NonManualModel(
                                            ])
 )
 mouth_lips = NonManualModel(
-    label='lips',
+    label='Lips',
     visibility=False,
     action_state=ActionStateModel(options=[ActionStateModel(label='Openness',
                                                             options=['Wide open',
@@ -185,7 +185,7 @@ mouth_lips = NonManualModel(
 
 )
 mouth_tongue = NonManualModel(
-    label='tongue',
+    label='Tongue',
     action_state=ActionStateModel(options=[ActionStateModel(label='Protrude',
                                                             options=[ActionStateModel(label='Part of tongue',
                                                                                       options=['tip only',
@@ -228,7 +228,7 @@ mouth_tongue = NonManualModel(
                                            ])
 )
 mouth_cheek = NonManualModel(
-    label='cheek',
+    label='Cheek',
     action_state=ActionStateModel(options=[ActionStateModel(label='Puff'),
                                            ActionStateModel(label='Suck in'),
                                            ],
