@@ -237,6 +237,77 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.setvalues(moduletoload)
             self.existingkey = moduletoload.uniqueid
 
+    def greyout_by_static(self, toggled, current_tab):
+        # static btn should enable/disable
+        # 1. row3
+        # 2. mouth > teeth > action/state > clatter
+        # 3. mouth > lips > action/state > vibrate
+        # 4. mouth > tongue > action/state > protrude > direction > circular
+        # 5. air > breath
+        # 6. eyegaze > distance
+        def brute_greyout(action_state, target_label, enable):
+            # find the target to enable/disable in the scope of radiobuttons and checkboxes
+            scope = action_state.as_cb_list + action_state.as_btn_group.buttons()
+            target = [unit for unit in scope if unit.text() == target_label]
+            if len(target) != 0:
+                # if target found, either enable or disable and return
+                target[0].setEnabled(enable)
+                return 0
+            else:
+                # if target not found, go one level deeper
+                for child in action_state.options:
+                    if isinstance(child, str):
+                        # at the lowest level. just continue.
+                        continue
+                    r = brute_greyout(child, target_label, enable)
+                    if r is not None:
+                        # if target has already got enabled or disabled, return
+                        return 0
+
+        tab = self.nonman_specifications[current_tab]
+
+        self.greyout_row3(toggled, current_tab)  # do 1
+
+        if current_tab == 'Teeth':       # do 2
+            enable_clatter = not toggled
+            # 'clatter' is one of the action/state buttons
+            brute_greyout(tab.action_state, 'Clatter', enable_clatter)
+
+        elif current_tab == 'Lips':      # do 3
+            enable_vibrate = not toggled
+            # 'vibrate' is one of the action/state checkboxes
+            brute_greyout(tab.action_state, 'Vibrate', enable_vibrate)
+
+        elif current_tab == 'Tongue':    # do 4
+            enable_circular = not toggled
+            # 'Circular' is one of the action/state checkboxes. tricky to locate (Protrude > Direction > Circular)
+            brute_greyout(tab.action_state, 'Circular', enable_circular)
+
+        elif current_tab == 'Air':
+            enable_breath = not toggled
+            # 'Breath' is a group of buttons
+            children = tab.action_state.options
+            for child in children:
+                if not isinstance(child, str):
+                    if child.label == 'Breath':  # found breath
+                        child.main_btn.setEnabled(enable_breath)  # disable it
+                        [sub_btn.setEnabled(enable_breath) for sub_btn in child.as_btn_group.buttons()]  # and its children
+                        break
+
+        elif current_tab == 'Eye gaze':  # do 6
+            enable_distance = toggled
+            target_group = tab.distance_group
+            self.greyout_group(target_group, enable_distance)
+
+    def greyout_group(self, target_group, enable):
+        # greyout or un-greyout a group of radio buttons and checkboxes
+        # target_group: the group to disable or enable
+        # enable: Bool. if True, enable; if False, grey out
+        target_rbs = target_group.buttons()  # container for all target radio buttons included in row3's buttongroups
+        for rb in target_rbs:
+            # iterate over each radio button in row3 and set enable/disable
+            rb.setEnabled(enable)
+
     def greyout_all(self, state):
         # state: bool. whether the 'all section neutral' cb checked
         need_disable = state == Qt.Checked
@@ -265,14 +336,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             return
 
         target_groups = [tab.repetition_group, tab.directionality_group] + tab.additional_char_rb_group  # groups in row3
-
-        target_rbs = []  # container for all target radio buttons included in row3's buttongroups
         for g in target_groups:
-            target_rbs += g.buttons()
-
-        for rb in target_rbs:
-            # iterate over each radio button in row3 and set enable/disable
-            rb.setEnabled(enable_row3)
+            self.greyout_group(g, enable_row3)
         return
 
     def create_major_tabs(self, nonman_units):
@@ -324,7 +389,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
     def greyout_children(self, state, itself, child_tab):
         # called when 'this section is neutral' checkbox state changes
         # have all children widgets disabled when checked / enabled when unchecked
-        # itself: clicked checkbox itself
+        # itself: clicked checkbox itself, whose children should be greyed out. not to be confused with self.
         need_disable = state == Qt.Checked
 
         # unchecking any 'this section is neutral' means NOT 'all sections are neutral'
@@ -369,7 +434,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         row.addWidget(sd_rb_groupbox)
 
-        nonman.widget_rb_static.toggled.connect(lambda toggled: self.greyout_row3(toggled, nonman.label))
+        nonman.widget_rb_static.toggled.connect(lambda toggled: self.greyout_by_static(toggled, nonman.label))
 
 
         # special case: 'mouth' requires 'Type of mouth movement' which is contained in .subparts
@@ -641,6 +706,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         """
         Build the third row of the NonMan specification window
         Currently for "Mvmt characteristics"
+        and additionally "Distance" (should only apply to Eye gaze)
         Args:
             nonman: NonManualModel
 
@@ -699,6 +765,27 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         # groups that constitute the third row
         groups = [repetition_group, directionality_group, additional_char_group]
+
+        # Special case: Eye gaze needs 'Distance' as the 4th column of row #3.
+        if nonman.label == 'Eye gaze':
+            # Distance
+            distance_group = QGroupBox("Distance")
+            distance_layout = QVBoxLayout()
+            distance_layout.setAlignment(Qt.AlignTop)
+            nonman.widget_rb_eyegazedistance_distant = SLPAARadioButton("Distant")
+            nonman.widget_rb_eyegazedistance_normal = SLPAARadioButton("Normal")
+            nonman.widget_rb_eyegazedistance_proximal = SLPAARadioButton("Proximal")
+            distance_list = [nonman.widget_rb_eyegazedistance_distant,
+                             nonman.widget_rb_eyegazedistance_normal,
+                             nonman.widget_rb_eyegazedistance_proximal]
+
+            nonman.distance_group = SLPAAButtonGroup(distance_list)
+
+            [distance_layout.addWidget(widget) for widget in distance_list]
+            distance_group.setLayout(distance_layout)
+
+            # And add distance to 'groups' that constitute the third row
+            groups.append(distance_group)
 
         # set fixed height. fixed b/c more space for action/state
         row3_height = max([group.sizeHint().height() for group in groups])
@@ -778,13 +865,15 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 module_output['children'][child.label] = self.get_nonman_specs(child, parent=current_module)
             return module_output
 
-        # this time, repetition and directionality
+        # this time, repetition
         module_output['repetition'] = what_selected(current_module.repetition_group)
         if module_output['repetition'] == 'Repeated':
             # if 'Repeated btn is selected, go one step further and save the number of cycles and whether it is minimum
             module_output['repetition'] = {'type': 'Repeated',
                                            'n_repeats': current_module.layout_repetition.n_cycle_input.value(),
                                            'minimum': current_module.layout_repetition.minimum_checkbox.isChecked()}
+
+        # ... and directionality
         module_output['directionality'] = what_selected(current_module.directionality_group)
 
         # additional mvmt characteristics
@@ -793,6 +882,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         addit_keys = ['size', 'speed', 'force', 'tension']
         for k, v in zip(addit_keys, addit_mvmt_chars):
             module_output[k] = v
+
+        # optionally, Distance. Distance is only available for eyegaze
+        try:
+            distance_selection = what_selected(current_module.distance_group)
+            module_output['distance'] = distance_selection
+        except AttributeError:  # most cases (i.e., except for eyegaze) raise AttributeError
+            pass
 
         # finally, action/state
         as_dict = {}  # usr selections parsed as Dictionary. to be passed as module_output['action_state']
@@ -854,7 +950,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.setvalues(self._clean_nonman)
 
     def setvalues(self, moduletoload):
-        # called when loading previously saved specifications (e.g., by clicking on an xslot)
+        # called when loading previously saved specifications (e.g., by clicking an xslot on the summary window)
         # set template values by moduletoload (previously saved values)
         toload_dict = moduletoload
 
@@ -925,6 +1021,7 @@ def deselect_rb_group(rb_group):
 
 
 def load_specifications(values_toload, load_destination):
+    # load previous specification and show the selection on the template. called by setvalues
     # values_toload: saved user selections to load
     # load_destination: major modules like 'shoulder' 'facial expressions'...
 
@@ -971,6 +1068,13 @@ def load_specifications(values_toload, load_destination):
                     btn_txt=mvmt_type)
 
     except KeyError:
+        pass
+
+    # special case: 'eye gaze' distance
+    try:
+        select_this(btn_group=load_destination.distance_group,
+                    btn_txt=values_toload['distance'])
+    except AttributeError:
         pass
 
     # repetition
