@@ -85,12 +85,11 @@ class SpecifyLayout(QHBoxLayout):
 
 
 class RepetitionLayout(QVBoxLayout):
-    # something like the below. (I know this will only be used once, but it seemed complicated for my monkey brain.)
-    # ○ Repeated  (radio button)
-    #   specify total # ______ (lineEdit)
-    #   [ ] This # is minimum (checkbox)
-
     def __init__(self, static_dynamic_group):
+        # something like the below.
+        # ○ Repeated  (radio button)
+        #   specify total # ______ (lineEdit)
+        #   [ ] This # is minimum (checkbox)
         super().__init__()
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
 
@@ -106,7 +105,7 @@ class RepetitionLayout(QVBoxLayout):
 
         # specify... spinner
         n_of_cycles_layout = QHBoxLayout()
-        n_cycle_label = QLabel("Specify total number of cycles:")
+        self.n_cycle_label = QLabel("Specify total number of cycles:")
         self.n_cycle_input = QDoubleSpinBox()
         self.n_cycle_input.setRange(0.5, 100.0)
         self.n_cycle_input.setSingleStep(0.5)  # accept half as valid input
@@ -115,9 +114,9 @@ class RepetitionLayout(QVBoxLayout):
         self.n_cycle_input.setValue(1.0)  # default value = 1
 
         self.n_cycle_input.setFixedHeight(self.n_cycle_input.sizeHint().height())
-        n_cycle_label.setFixedHeight(self.n_cycle_input.sizeHint().height())
+        self.n_cycle_label.setFixedHeight(self.n_cycle_input.sizeHint().height())
 
-        n_of_cycles_layout.addWidget(n_cycle_label)
+        n_of_cycles_layout.addWidget(self.n_cycle_label)
         n_of_cycles_layout.addWidget(self.n_cycle_input)
         self.indented_layout.addLayout(n_of_cycles_layout)
 
@@ -134,6 +133,7 @@ class RepetitionLayout(QVBoxLayout):
         # enable sub options of 'repeated' button when 'repeated' selected.
         # sub options: specify the number of cycles and check if this number of minimum
         self.n_cycle_input.setEnabled(checked)
+        self.n_cycle_label.setEnabled(checked)
         self.minimum_checkbox.setEnabled(checked)
         return
 
