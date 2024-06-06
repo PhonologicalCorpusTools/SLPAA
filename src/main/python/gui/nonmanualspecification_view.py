@@ -370,6 +370,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         target_groups = [tab.repetition_group, tab.directionality_group] + tab.additional_char_rb_group  # groups in row3
         for g in target_groups:
             self.greyout_group(g, enable_row3)
+
+        # repetition > repeated > cycles and  minimum are a special case
+        rep_layout = tab.layout_repetition
+        rep_btn_checked = rep_layout.repeated_btn.isChecked()
+        if enable_row3:
+            rep_layout.toggle_repeated(rep_btn_checked)
+        else:
+            rep_layout.toggle_repeated(False)
         return
 
     def brute_greyout(self, action_state, target_label, enable):
