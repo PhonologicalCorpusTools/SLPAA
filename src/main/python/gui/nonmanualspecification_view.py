@@ -600,10 +600,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # H1 or H2 under One {specifier} selected.
             # make sure to have parent selected
             nonman.rb_subpart_one.setChecked(True)
-        elif 'One' in rb.text() and not ischecked:
-            # deselecting One should deselect its children.
-            for btn in nonman.onepart_group.buttons():
-                deselect_rb_group(btn.group())
+        elif 'One' in rb.text():
+            if nonman.label == 'Eyebrows':
+                # enable/disable 'Furrow' if dealing with Eyebrows
+                self.brute_greyout(nonman.action_state, 'Furrow', not ischecked)
+            if not ischecked:
+                # deselecting One should deselect its children
+                for btn in nonman.onepart_group.buttons():
+                    deselect_rb_group(btn.group())
 
     def handle_mid_rb_toggled(self, ischecked, asm, parent):
         """
