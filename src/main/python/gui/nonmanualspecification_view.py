@@ -31,6 +31,22 @@ class SLPAARadioButton(RelationRadioButton):
         super().setChecked(checked)
 
 
+class MvmtCharRadioButton(SLPAARadioButton):
+    def __init__(self, text, static_dynamic, **kwargs):
+        # buttons for repetition, direction, ... groups (the third row of the spec window)
+        # subclassing SLPAARadioButton for on_toggled() that enable/disable its 'static' button.
+        super().__init__(text, **kwargs)
+
+        self.static_btn = [btn for btn in static_dynamic.buttons() if btn.text() == 'Static'][0]
+        self.dynamic_btn = [btn for btn in static_dynamic.buttons() if btn.text() == 'Dynamic'][0]
+
+        self.toggled.connect(self.on_toggled)
+
+    def on_toggled(self, checked):
+        if checked:
+            self.dynamic_btn.setChecked(checked)
+
+
 class SLPAAButtonGroup(RelationButtonGroup):
     def __init__(self, buttonslist=None):
         # buttonslist: list of QRadioButton to be included as a group
@@ -74,12 +90,12 @@ class RepetitionLayout(QVBoxLayout):
     #   specify total # ______ (lineEdit)
     #   [ ] This # is minimum (checkbox)
 
-    def __init__(self):
+    def __init__(self, static_dynamic_group):
         super().__init__()
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
 
         # radio button
-        self.repeated_btn = SLPAARadioButton("Repeated")
+        self.repeated_btn = MvmtCharRadioButton("Repeated", static_dynamic_group)
         self.repeated_btn.toggled.connect(self.toggle_repeated)
         self.repeated_btn.setFixedHeight(self.repeated_btn.sizeHint().height())
         self.addWidget(self.repeated_btn)
@@ -723,9 +739,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         repetition_group = QGroupBox("Repetition")
         repetition_group_layout = QVBoxLayout()
         repetition_group_layout.setAlignment(Qt.AlignTop)
-        widget_rb_rep_single = SLPAARadioButton("Single")
-        nonman.layout_repetition = RepetitionLayout()
-        widget_rb_rep_trill = SLPAARadioButton("Trilled")
+        widget_rb_rep_single = MvmtCharRadioButton("Single", nonman.static_dynamic_group)
+        nonman.layout_repetition = RepetitionLayout(static_dynamic_group=nonman.static_dynamic_group)
+        widget_rb_rep_trill = MvmtCharRadioButton("Trilled", nonman.static_dynamic_group)
         rep_btn_list = [widget_rb_rep_single, nonman.layout_repetition.repeated_btn, widget_rb_rep_trill]
 
         nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
@@ -740,8 +756,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         directionality_group = QGroupBox("Directionality")
         directionality_group_layout = QVBoxLayout()
         directionality_group_layout.setAlignment(Qt.AlignTop)
-        nonman.widget_rb_direction_uni = SLPAARadioButton("Unidirectional")
-        nonman.widget_rb_direction_bi = SLPAARadioButton("Bidirectional")
+        nonman.widget_rb_direction_uni = MvmtCharRadioButton(text="Unidirectional",
+                                                             static_dynamic=nonman.static_dynamic_group)
+        nonman.widget_rb_direction_bi = MvmtCharRadioButton(text="Bidirectional",
+                                                            static_dynamic=nonman.static_dynamic_group)
         directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
 
         nonman.directionality_group = SLPAAButtonGroup(directionality_list)
@@ -757,7 +775,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                                  'Speed': ['Fast', 'Slow'],
                                  'Force': ['Strong', 'Weak'],
                                  'Tension': ['Tense', 'Lax']}
-        additional_subgroups, additional_rb_groups = self.gen_add_move_char(additional_char_specs)
+        additional_subgroups, additional_rb_groups = self.gen_add_move_char(additional_char_specs, nonman)
         [additional_char_group_layout.addWidget(widget) for widget in additional_subgroups]
         nonman.additional_char_rb_group = additional_rb_groups
 
@@ -772,9 +790,9 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             distance_group = QGroupBox("Distance")
             distance_layout = QVBoxLayout()
             distance_layout.setAlignment(Qt.AlignTop)
-            nonman.widget_rb_eyegazedistance_distant = SLPAARadioButton("Distant")
-            nonman.widget_rb_eyegazedistance_normal = SLPAARadioButton("Normal")
-            nonman.widget_rb_eyegazedistance_proximal = SLPAARadioButton("Proximal")
+            nonman.widget_rb_eyegazedistance_distant = MvmtCharRadioButton("Distant", nonman.static_dynamic_group)
+            nonman.widget_rb_eyegazedistance_normal = MvmtCharRadioButton("Normal", nonman.static_dynamic_group)
+            nonman.widget_rb_eyegazedistance_proximal = MvmtCharRadioButton("Proximal", nonman.static_dynamic_group)
             distance_list = [nonman.widget_rb_eyegazedistance_distant,
                              nonman.widget_rb_eyegazedistance_normal,
                              nonman.widget_rb_eyegazedistance_proximal]
@@ -794,7 +812,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         [row.addWidget(group) for group in groups]  # Adding all the groupboxes to form the row
         return row
 
-    def gen_add_move_char(self, specs):
+    def gen_add_move_char(self, specs, nonman):
         groupboxes = []
         groups = []
 
@@ -806,7 +824,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             levels.insert(1, 'Normal')
 
             for level in levels:
-                rb_to_add = SLPAARadioButton(level)
+                rb_to_add = MvmtCharRadioButton(text=level,
+                                                static_dynamic=nonman.static_dynamic_group)
                 buttongroup.addButton(rb_to_add)
                 groupbox_layout.addWidget(rb_to_add)
 
