@@ -47,13 +47,13 @@ from models.location_models import LocationTreeItem, LocationTableModel, Locatio
 from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 
-default_neutral_twohanded = ["Horizontal axis" + delimiter + "Central", 
-                             "Vertical axis" + delimiter + "Mid",
-                             "Sagittal axis" + delimiter + "In front" + delimiter + "Med."]
+default_neutral_twohanded = ["Horizontal axis" + treepathdelimiter + "Central", 
+                             "Vertical axis" + treepathdelimiter + "Mid",
+                             "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med."]
 
-default_neutral_onehanded = ["Horizontal axis" + delimiter + "Ipsi", 
-                             "Vertical axis" + delimiter + "Mid",
-                             "Sagittal axis" + delimiter + "In front" + delimiter + "Med."]
+default_neutral_onehanded = ["Horizontal axis" + treepathdelimiter + "Ipsi", 
+                             "Vertical axis" + treepathdelimiter + "Mid",
+                             "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med."]
 
 
 class LocnTreeSearchComboBox(QComboBox):
@@ -699,13 +699,11 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             self.signingspacespatial_radio.setEnabled(True)
             self.signingspacespatial_radio.setChecked(True)
             
-
-            
             self.default_neutral_check()
             
-    # Returns False if any changes are made.
     def default_neutral_check(self): 
         treemodel = self.getcurrenttreemodel()
+        treemodel.defaultneutralselected = True
         if treemodel.defaultneutrallist is None:
             # The default neutral changes depending on whether the sign type is 1h or 2h
             specslist = []
@@ -719,35 +717,32 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         curr_selections = self.locationoptionsselectionpanel.get_listed_paths()
         if (len(curr_selections) != 0 and sorted(curr_selections) != sorted(default_list)):
             msg_box = QMessageBox()
-            msg_box.setText("Do you want to: \n1:  Revert to the general 'default neutral' locations, or\n2:  Keep the current manual specifications, but label them as 'default neutral' for this instance of the location module only")
-            revert_option = msg_box.addButton('Revert to default neutral locations', QMessageBox.YesRole)
-            keep_option = msg_box.addButton("Keep for this instance only", QMessageBox.NoRole)
+            msg_box.setText("Do you want to: \n1:  Revert to the general 'default neutral' locations or\n2:  Keep the current manual specifications, but label them as 'default neutral' for this instance of the location module only?")
+            revert_option = msg_box.addButton('1. Revert to default neutral locations', QMessageBox.YesRole)
+            keep_option = msg_box.addButton("2. Keep for this instance only", QMessageBox.NoRole)
             msg_box.addButton('Cancel', QMessageBox.RejectRole)
             msg_box.exec_()
 
             if msg_box.clickedButton() == revert_option:
                 self.recreate_treeandlistmodels()
                 treemodel = self.getcurrenttreemodel()
+                treemodel.defaultneutralselected = True
+                treemodel.defaultneutrallist = default_list
                 self.locationoptionsselectionpanel.treemodel = treemodel
                 treemodel.addcheckedvalues(treemodel.invisibleRootItem(), default_list)
-                treemodel.defaultneutralselected = True
                 self.locationoptionsselectionpanel.refresh_listproxies()
 
             elif msg_box.clickedButton() == keep_option:
                 treemodel.defaultneutrallist = curr_selections
-                self.locationoptionsselectionpanel.treemodel = treemodel
+                # self.locationoptionsselectionpanel.treemodel = treemodel
             
             else: # Cancel, so uncheck button
                 treemodel.defaultneutralselected = False
                 self.defaultneutral_cb.setChecked(False)
-            return False
         elif sorted(curr_selections) == sorted(default_list):
-            return True
+            return 
         else: 
             treemodel.addcheckedvalues(treemodel.invisibleRootItem(), default_list)
-            return False
-        
-        
 
     def handle_toggle_locationtype(self, btn):
         if btn is not None and btn.isChecked():
