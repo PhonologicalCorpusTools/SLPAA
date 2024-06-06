@@ -261,24 +261,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # 4. mouth > tongue > action/state > protrude > direction > circular
         # 5. air > breath
         # 6. eyegaze > distance
-        def brute_greyout(action_state, target_label, enable):
-            # find the target to enable/disable in the scope of radiobuttons and checkboxes
-            scope = action_state.as_cb_list + action_state.as_btn_group.buttons()
-            target = [unit for unit in scope if unit.text() == target_label]
-            if len(target) != 0:
-                # if target found, either enable or disable and return
-                target[0].setEnabled(enable)
-                return 0
-            else:
-                # if target not found, go one level deeper
-                for child in action_state.options:
-                    if isinstance(child, str):
-                        # at the lowest level. just continue.
-                        continue
-                    r = brute_greyout(child, target_label, enable)
-                    if r is not None:
-                        # if target has already got enabled or disabled, return
-                        return 0
+        # 7. lower static/dynamic and lower row3, in case it has embedded tabs
 
         tab = self.nonman_specifications[current_tab]
 
@@ -287,21 +270,21 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if current_tab == 'Teeth':       # do 2
             enable_clatter = not toggled
             # 'clatter' is one of the action/state buttons
-            brute_greyout(tab.action_state, 'Clatter', enable_clatter)
+            self.brute_greyout(tab.action_state, 'Clatter', enable_clatter)
 
         elif current_tab == 'Lips':      # do 3
             enable_vibrate = not toggled
             # 'vibrate' is one of the action/state checkboxes
-            brute_greyout(tab.action_state, 'Vibrate', enable_vibrate)
+            self.brute_greyout(tab.action_state, 'Vibrate', enable_vibrate)
 
         elif current_tab == 'Tongue':    # do 4
             enable_circular = not toggled
             # 'Circular' is one of the action/state checkboxes. tricky to locate (Protrude > Direction > Circular)
-            brute_greyout(tab.action_state, 'Circular', enable_circular)
+            self.brute_greyout(tab.action_state, 'Circular', enable_circular)
 
-        elif current_tab == 'Air':
+        elif current_tab == 'Air':       # do 5
             enable_breath = not toggled
-            # 'Breath' is a group of buttons
+            # 'Breath' is a hierarchy of buttons
             children = tab.action_state.options
             for child in children:
                 if not isinstance(child, str):
@@ -314,6 +297,39 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             enable_distance = toggled
             target_group = tab.distance_group
             self.greyout_group(target_group, enable_distance)
+
+        if tab.children is not None:  # do 7 because tab has child tabs
+            self.greyout_embedded_tabs(toggled, tab.children)
+
+    def greyout_by_dynamic(self, toggled, current_tab):
+        # dynamic btn should enable/disable
+        # 1. lower static/dynamic and lower row3, incase it has embedded tabs
+        # 2. air > hold breath (disable)
+
+        tab = self.nonman_specifications[current_tab]
+
+        if tab.children is not None:  # do 1
+            self.greyout_embedded_tabs(toggled, tab.children)
+
+        if current_tab == 'Air':  # do 2
+            enable_holdb = not toggled  # hold breadth Bool opposite to toggled
+            # 'Hold Breath' is one of the action/state buttons
+            self.brute_greyout(tab.action_state, 'Hold breath', enable_holdb)
+
+    def greyout_embedded_tabs(self, toggled, children):
+        # for complex tabs (tab embedding), higher and lower dynamic/static should be exclusive
+        # this function enables/disables lower dynamic/static buttons.
+        # Also, high static/dynamic greys out lower row3
+
+        enable_child = not toggled
+
+        for sub_tab in children:
+            # disable/enable lower static and dynamic
+            btn_group_to_disable = sub_tab.static_dynamic_group
+            [btn.setEnabled(enable_child) for btn in btn_group_to_disable.buttons()]
+
+            # grey out lower row #3
+            self.greyout_row3(toggled=toggled, current_tab=sub_tab.label)
 
     def greyout_group(self, target_group, enable):
         # greyout or un-greyout a group of radio buttons and checkboxes
@@ -355,6 +371,25 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         for g in target_groups:
             self.greyout_group(g, enable_row3)
         return
+
+    def brute_greyout(self, action_state, target_label, enable):
+        # find the target to enable/disable in the scope of radiobuttons and checkboxes
+        scope = action_state.as_cb_list + action_state.as_btn_group.buttons()
+        target = [unit for unit in scope if unit.text() == target_label]
+        if len(target) != 0:
+            # if target found, either enable or disable and return
+            target[0].setEnabled(enable)
+            return 0
+        else:
+            # if target not found, go one level deeper
+            for child in action_state.options:
+                if isinstance(child, str):
+                    # at the lowest level. just continue.
+                    continue
+                r = self.brute_greyout(child, target_label, enable)
+                if r is not None:
+                    # if target has already got enabled or disabled, return
+                    return 0
 
     def create_major_tabs(self, nonman_units):
         """
@@ -451,6 +486,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         row.addWidget(sd_rb_groupbox)
 
         nonman.widget_rb_static.toggled.connect(lambda toggled: self.greyout_by_static(toggled, nonman.label))
+        nonman.widget_rb_dynamic.toggled.connect(lambda toggled: self.greyout_by_dynamic(toggled, nonman.label))
 
 
         # special case: 'mouth' requires 'Type of mouth movement' which is contained in .subparts
