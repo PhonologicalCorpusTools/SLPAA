@@ -1,4 +1,4 @@
-# requirements.txt for crating executable.
+# requirements.txt for creating an executable.
 # should be identical to requirements.txt except for PyInstaller
 altgraph==0.17.3
 docopt==0.6.2
