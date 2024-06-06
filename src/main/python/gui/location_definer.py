@@ -318,9 +318,12 @@ class LocationDefinerPage(QWidget):
             self.location_viewer.setTransform(trans_matrix)
 
     def set_image(self):
+        # It changes images in 'Define location'
         file_name, file_type = QFileDialog.getOpenFileName(self, self.tr('Open Image'),
                                                            self.app_settings['storage']['recent_folder'],
                                                            self.tr('Image Files (*.png *.jpg *.bmp)'))
+        if file_name == '':  # if no image selected, do not change current photo
+            return
         _, basename = os.path.split(file_name)
 
         self.image_base = basename
@@ -469,10 +472,10 @@ class LocationDefinerTabWidget(QTabWidget):
         self.addTab(QWidget(), QIcon(self.app_ctx.icons['plus']), 'Add location')
 
         # hide close button for the '' tab. The location of the close button is OS-dependent.
-        if os.name == 'nt':  # For Windows, buttons appear on the right
-            self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.RightSide).hide()
-        elif os.name == 'posix':  # For Linux and macOS, they are on the left
-            self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.LeftSide).hide()
+        #if os.name == 'nt':  # For Windows, buttons appear on the right
+        #    self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.RightSide).hide()
+        #elif os.name == 'posix':  # For Linux and macOS, they are on the left
+        #    self.tabbar.tabButton(self.tabbar.count()-1, QTabBar.LeftSide).hide()
 
     def add_location_tab(self, index):
         self.number_pages += 1
@@ -522,11 +525,13 @@ class LocationDefinerTabWidget(QTabWidget):
     def close_handler(self, index):
         widget = self.widget(index)
 
-        if widget:
+        if isinstance(widget, LocationDefinerPage):   # clicked Ⓧ on a location tab
             if not widget.default and widget.image_path:
                 os.remove(widget.image_path)
 
             widget.deleteLater()
+        else:                                         # Ⓧ on the 'Add Location' tab
+            return
 
         self.removeTab(index)
 

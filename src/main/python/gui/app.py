@@ -1,3 +1,7 @@
+import errno
+import sys
+from os import getcwd
+from os.path import join, exists, realpath, dirname
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
 from .main_window import MainWindow
 
@@ -13,6 +17,28 @@ class AppContext(ApplicationContext):
     @cached_property
     def main_window(self):
         return MainWindow(self)
+
+    def get_resource(self, relative_path):
+        """
+        Translate relative path to absolute path.
+
+        If frozen, refer to the MEIPASS directory;
+        If running from source, src/main/resources/base, followed by the rel path.
+        Raise FileNotFoundError if abs path cannot be decided
+        """
+        if hasattr(sys, 'frozen'):  # running as executable
+            resource_dir = join(sys._MEIPASS, 'resources')  # cf. 'datas' parameter in .spec
+        else:                       # running from source
+            parent_dir = dirname(getcwd())
+            resource_dir = join(parent_dir, 'resources', 'base')
+            # workaround
+            if relative_path == 'Icon.ico':
+                resource_dir = join(parent_dir, 'icons')
+
+        resource_path = join(resource_dir, relative_path)
+        if exists(resource_path):
+            return realpath(resource_path)
+        raise FileNotFoundError(errno.ENOENT, 'Could not locate resource', relative_path)
 
     @cached_property
     def icons(self):
@@ -40,25 +66,6 @@ class AppContext(ApplicationContext):
             'weak_hand': self.get_resource('default_location_images/weak_hand.jpg'),
             'body_hands_front': self.get_resource('default_location_images/body_hands_front.png'),
             'body_hands_back': self.get_resource('default_location_images/body_hands_back.png')
-        }
-
-    # TODO KV eventually delete once we've figured out what we're doing with vector/raster images & qualities
-    @cached_property
-    def temp_test_images(self):
-        return {
-            'layers_posterR.svg': self.get_resource('temp_test_images/layers_posterR.svg'),
-            'layers_posterR_min.svg': self.get_resource('temp_test_images/layers_posterR_min.svg'),
-            'Layers_PosterR-01.png': self.get_resource('temp_test_images/Layers_PosterR-01.png'),
-            'shading_A4p.png': self.get_resource('temp_test_images/shading_A4p.png'),
-            'shading_A4p_min-01.svg': self.get_resource('temp_test_images/shading_A4p_min-01.svg'),
-            'shading_letter.png': self.get_resource('temp_test_images/shading_letter.png'),
-            'shading_letter.svg': self.get_resource('temp_test_images/shading_letter.svg'),
-            'shading_letter_min.svg': self.get_resource('temp_test_images/shading_letter_min.svg'),
-            'shading_poster.png': self.get_resource('temp_test_images/shading_poster.png'),
-            'shading_poster.svg': self.get_resource('temp_test_images/shading_poster.svg'),
-            'shading_poster_min.svg': self.get_resource('temp_test_images/shading_poster_min.svg'),
-            'symmetry_sample.png': self.get_resource('temp_test_images/symmetry_sample.png'),
-            'symmetry_sample.svg': self.get_resource('temp_test_images/symmetry_sample.svg')
         }
 
     @cached_property
@@ -118,6 +125,7 @@ class AppContext(ApplicationContext):
             '5': self.get_resource('predefined/5.png'),
             'bent-5': self.get_resource('predefined/bent-5.png'),
             'bent-midfinger-5': self.get_resource('predefined/bent-midfinger-5.png'),
+            'clawed-5': self.get_resource('predefined/clawed-5.png'),
             'clawed-extended-5': self.get_resource('predefined/clawed-extended-5.png'),
             'contracted-5': self.get_resource('predefined/contracted-5.png'),
             'relaxed-contracted-5': self.get_resource('predefined/relaxed-contracted-5.png'),
@@ -198,6 +206,7 @@ class AppContext(ApplicationContext):
             'L': self.get_resource('predefined/L.png'),
             'bent-L': self.get_resource('predefined/bent-L.png'),
             'bent-thumb-L': self.get_resource('predefined/bent-thumb-L.png'),
+            'clawed-L': self.get_resource('predefined/clawed-L.png'),
             'clawed-extended-L': self.get_resource('predefined/clawed-extended-L.png'),
             'contracted-L': self.get_resource('predefined/contracted-L.png'),
             'double-contracted-L': self.get_resource('predefined/double-contracted-L.png'),

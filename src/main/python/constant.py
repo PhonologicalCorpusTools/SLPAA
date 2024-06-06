@@ -1,3 +1,4 @@
+import os
 from fractions import Fraction
 
 from lexicon.location import LocationParameter, Locations
@@ -6,7 +7,7 @@ from lexicon.predefined_handshape import (
     Handshape1, HandshapeBent1, HandshapeCrooked1,
     Handshape3, HandshapeClawed3, HandshapeContracted3,
     Handshape4, HandshapeBent4, HandshapeClawed4, HandshapeCrooked4, HandshapeSlanted4,
-    Handshape5, HandshapeBent5, HandshapeBentMidfinger5, HandshapeClawedExtended5, HandshapeContracted5, HandshapeRelaxedContracted5, HandshapeCrooked5, HandshapeCrookedSlanted5, HandshapeModified5, HandshapeSlanted5,
+    Handshape5, HandshapeBent5, HandshapeBentMidfinger5, HandshapeClawed5, HandshapeClawedExtended5, HandshapeContracted5, HandshapeRelaxedContracted5, HandshapeCrooked5, HandshapeCrookedSlanted5, HandshapeModified5, HandshapeSlanted5,
     Handshape8, HandshapeCovered8, HandshapeExtended8, HandshapeOpen8,
     HandshapeA, HandshapeClosedAIndex, HandshapeExtendedA, HandshapeAIndex, HandshapeModifiedA, HandshapeOpenA,
     HandshapeB1, HandshapeBentB, HandshapeBentExtendedB, HandshapeClawedExtendedB, HandshapeContractedB, HandshapeExtendedB, HandshapeSlantedExtendedB,
@@ -18,7 +19,7 @@ from lexicon.predefined_handshape import (
     HandshapeG, HandshapeClosedModifiedG, HandshapeClosedDoubleModifiedG, HandshapeDoubleModifiedG, HandshapeModifiedG,
     HandshapeI, HandshapeBentI, HandshapeBentCombinedIPlus1, HandshapeClawedI, HandshapeCombinedIPlus1, HandshapeCombinedILY, HandshapeCombinedIPlusA, HandshapeFlatCombinedIPlus1,
     HandshapeK, HandshapeExtendedK,
-    HandshapeL, HandshapeBentL, HandshapeBentThumbL, HandshapeClawedExtendedL, HandshapeContractedL, HandshapeDoubleContractedL, HandshapeCrookedL,
+    HandshapeL, HandshapeBentL, HandshapeBentThumbL, HandshapeClawedL, HandshapeClawedExtendedL, HandshapeContractedL, HandshapeDoubleContractedL, HandshapeCrookedL,
     HandshapeM, HandshapeFlatM,
     HandshapeMiddleFinger,
     HandshapeN,
@@ -175,6 +176,7 @@ PREDEFINED_MAP = {
     '5': Handshape5(),
     'bent-5': HandshapeBent5(),
     'bent-midfinger-5': HandshapeBentMidfinger5(),
+    'clawed-5': HandshapeClawed5(),
     'clawed-extended-5': HandshapeClawedExtended5(),
     'contracted-5': HandshapeContracted5(),
     'relaxed-contracted-5': HandshapeRelaxedContracted5(),
@@ -255,6 +257,7 @@ PREDEFINED_MAP = {
     'L': HandshapeL(),
     'bent-L': HandshapeBentL(),
     'bent-thumb-L': HandshapeBentThumbL(),
+    'clawed-L': HandshapeClawedL(),
     'clawed-extended-L': HandshapeClawedExtendedL(),
     'contracted-L': HandshapeContractedL(),
     'double-contracted-L': HandshapeDoubleContractedL(),
@@ -335,3 +338,7 @@ ARTICULATOR_ABBREVS = {
     ARM: "A",
     LEG: "L"
 }
+
+
+def filenamefrompath(filepath):
+    return os.path.split(filepath)[1]
