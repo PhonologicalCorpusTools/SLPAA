@@ -38,7 +38,7 @@ from PyQt5.QtGui import (
     QPixmap
 )
 
-from lexicon.module_classes import delimiter, LocationModule, PhonLocations, userdefinedroles as udr
+from lexicon.module_classes import treepathdelimiter, LocationModule, PhonLocations, userdefinedroles as udr
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
@@ -63,7 +63,7 @@ class LocnTreeSearchComboBox(QComboBox):
             if self.currentText():
                 itemstoselect = gettreeitemsinpath(self.parent().treemodel,
                                                    self.currentText(),
-                                                   delim=delimiter)
+                                                   delim=treepathdelimiter)
                 for item in itemstoselect:
                     if item.checkState() == Qt.Unchecked:
                         item.setCheckState(Qt.PartiallyChecked)
@@ -88,9 +88,9 @@ class LocnTreeSearchComboBox(QComboBox):
                     elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() \
                             and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
                         foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
+                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
                             self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
                         else:
                             self.setEditText(completionoption)
                         self.lastcompletedentry = self.currentText()
@@ -103,9 +103,9 @@ class LocnTreeSearchComboBox(QComboBox):
                     completionoption = self.completer().currentCompletion()
                     if completionoption.lower().startswith(self.lasttextentry.lower()):
                         foundnextentry = True
-                        if delimiter in completionoption[len(self.lasttextentry):]:
+                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
                             self.setEditText(
-                                completionoption[:completionoption.index(delimiter, len(self.lasttextentry)) + 1])
+                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
                         else:
                             self.setEditText(completionoption)
                         self.lastcompletedentry = self.currentText()
@@ -158,52 +158,6 @@ class LocationGraphicsView(QGraphicsView):
             # viewrect = self.viewport().rect()
             # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
             self.scale(factor, factor)
-
-
-class LocationSvgView(QGraphicsView):
-
-    def __init__(self, parent=None, viewer_size=600, specificpath=""):
-        super().__init__(parent=parent)
-
-        self.viewer_size = viewer_size
-
-        self._scene = QGraphicsScene(parent=self)
-
-        self.svg = QWebEngineView()
-        # self.svg.urlChanged.connect(self.shownewurl)
-
-        # dir_path = os.path.dirname(os.path.realpath(__file__))
-        # print("dir_path", dir_path)
-        # cwd = os.getcwd()
-        # print("cwd", cwd)
-
-        imageurl = QUrl.fromLocalFile(specificpath)
-        self.svg.load(imageurl)
-        self.svg.show()
-        self._scene.addWidget(self.svg)
-        # self._photo.setPixmap(QPixmap("gui/upper_body.jpg"))
-
-        # self._scene.addPixmap(QPixmap("./body_hands_front.png"))
-        self.setScene(self._scene)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-    #     self.fitInView()
-    #
-    # def fitInView(self, scale=True):
-    #     rect = QRectF(self._photo.pixmap().rect())
-    #     if not rect.isNull():
-    #         self.setSceneRect(rect)
-    #         unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-    #         self.scale(1 / unity.width(), 1 / unity.height())
-    #         scenerect = self.transform().mapRect(rect)
-    #         factor = min(self.viewer_size / scenerect.width(), self.viewer_size / scenerect.height())
-    #         self.factor = factor
-    #         # viewrect = self.viewport().rect()
-    #         # factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
-    #         self.scale(factor, factor)
-
-    # TODO KV probably don't need this after all
-    def shownewurl(self, newurl):
-        self.svg.show()
 
 
 class LocationTableView(QTableView):

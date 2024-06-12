@@ -49,9 +49,10 @@ from gui.helper_widget import CollapsibleSection, ToggleSwitch
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
-from lexicon.lexicon_classes import Sign
+from lexicon.lexicon_classes import Sign, glossesdelimiter
 from gui.modulespecification_dialog import ModuleSelectorDialog
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
+
 
 
 # TODO KV there are two classes with this name-- are they exactly the same?
@@ -325,7 +326,7 @@ class SignSummaryPanel(QScrollArea):
         signleveltext = QGraphicsTextItem()
         signleveltext.setPlainText("Welcome! Add a new sign to get started.")
         if self.sign is not None:
-            signleveltext.setPlainText(" / ".join(self.sign.signlevel_information.gloss)
+            signleveltext.setPlainText(glossesdelimiter.join(self.sign.signlevel_information.gloss)
                                        + " - " + self.sign.signlevel_information.entryid.display_string())
         signleveltext.setPos(self.x_offset, self.current_y)
         self.current_y += 30
@@ -861,7 +862,7 @@ class SignLevelMenuPanel(QScrollArea):
     @sign.setter
     def sign(self, sign):
         self._sign = sign
-        self.signgloss_label.setText("Sign: " + "/".join(sign.signlevel_information.gloss) if sign else "")
+        self.signgloss_label.setText("Sign: " + glossesdelimiter.join(sign.signlevel_information.gloss) if sign else "")
 
     def clear(self):
         self._sign = None
