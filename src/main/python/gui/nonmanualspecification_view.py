@@ -949,15 +949,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             except AttributeError:  # when no subpart spec exists, such as 'body', 'head', etc.
                 pass
 
-        module_output['children'] = None
-
-        # case of embedded module like 'facial expression'
-        if current_module.children is not None:
-            module_output['children'] = {}
-            for child in current_module.children:
-                module_output['children'][child.label] = self.get_nonman_specs(child, parent=current_module)
-            return module_output
-
         # this time, repetition
         module_output['repetition'] = what_selected(current_module.repetition_group)
         if module_output['repetition'] == 'Repeated':
@@ -967,7 +958,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                                            'minimum': current_module.layout_repetition.minimum_checkbox.isChecked()}
 
         # ... and directionality
-        module_output['directionality'] = what_selected(current_module.directionality_group)
+        try:
+            module_output['directionality'] = what_selected(current_module.directionality_group)
+        except AttributeError:  # for a tab like 'mouth' and 'facial expression' that have a tab embedding
+            pass
 
         # additional mvmt characteristics
         addit_mvmt_chars = [what_selected(selection) for selection in current_module.additional_char_rb_group]
@@ -982,6 +976,15 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             module_output['distance'] = distance_selection
         except AttributeError:  # most cases (i.e., except for eyegaze) raise AttributeError
             pass
+
+        module_output['children'] = None
+
+        # case of embedded module like 'facial expression'
+        if current_module.children is not None:
+            module_output['children'] = {}
+            for child in current_module.children:
+                module_output['children'][child.label] = self.get_nonman_specs(child, parent=current_module)
+            return module_output
 
         # finally, action/state
         as_dict = {}  # usr selections parsed as Dictionary. to be passed as module_output['action_state']
@@ -1196,7 +1199,7 @@ def load_specifications(values_toload, load_destination):
     try:
         select_this(btn_group=load_destination.directionality_group,
                     btn_txt=values_toload['directionality'])
-    except AttributeError:
+    except (AttributeError, KeyError):
         pass
 
     # additional movement characteristics (size, speed, force, tenstion)
@@ -1204,7 +1207,7 @@ def load_specifications(values_toload, load_destination):
         for btn_group, btn_txt in zip(load_destination.additional_char_rb_group, ['size', 'speed', 'force', 'tension']):
             select_this(btn_group=btn_group,
                         btn_txt=values_toload[btn_txt])
-    except AttributeError:
+    except (AttributeError, KeyError):
         pass
 
     # action state
