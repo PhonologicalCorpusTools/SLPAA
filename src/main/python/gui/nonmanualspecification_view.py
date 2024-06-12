@@ -236,7 +236,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # different major non manual tabs
         self.tab_widget = NMTabWidget()                   # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)   # Create and add tabs to the tab widget
-        self.tab_widget.setMinimumHeight(700)
+        self.tab_widget.setMinimumHeight(1200)
         self.setLayout(main_layout)
 
         scroll_area = QScrollArea(self)
@@ -262,6 +262,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # 5. air > breath
         # 6. eyegaze > distance
         # 7. lower static/dynamic and lower row3, in case it has embedded tabs
+        # 8. higher static/dynamic (and optionally higher repetition/mvmt) if it has a parent
 
         tab = self.nonman_specifications[current_tab]
 
@@ -299,37 +300,44 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.greyout_group(target_group, enable_distance)
 
         if tab.children is not None:  # do 7 because tab has child tabs
-            self.greyout_embedded_tabs(toggled, tab.children)
+            self.greyout_related_tabs(toggled, tab.children)
+
+        if tab.parent is not None:  # do 8 because tab has a parent
+            self.greyout_related_tabs(toggled, [tab.parent])
 
     def greyout_by_dynamic(self, toggled, current_tab):
         # dynamic btn should enable/disable
         # 1. lower static/dynamic and lower row3, incase it has embedded tabs
-        # 2. air > hold breath (disable)
+        # 2. higher static/dynamic and higher row3, if it has a parent tab
+        # 3. air > hold breath (disable)
 
         tab = self.nonman_specifications[current_tab]
 
         if tab.children is not None:  # do 1
-            self.greyout_embedded_tabs(toggled, tab.children)
+            self.greyout_related_tabs(toggled, tab.children)
 
-        if current_tab == 'Air':  # do 2
+        if tab.parent is not None:
+            self.greyout_related_tabs(toggled, [tab.parent])
+
+        if current_tab == 'Air':  # do 3
             enable_holdb = not toggled  # hold breadth Bool opposite to toggled
             # 'Hold Breath' is one of the action/state buttons
             self.brute_greyout(tab.action_state, 'Hold breath', enable_holdb)
 
-    def greyout_embedded_tabs(self, toggled, children):
+    def greyout_related_tabs(self, toggled, relative):
         # for complex tabs (tab embedding), higher and lower dynamic/static should be exclusive
         # this function enables/disables lower dynamic/static buttons.
         # Also, high static/dynamic greys out lower row3
 
-        enable_child = not toggled
+        enable_others = not toggled
 
-        for sub_tab in children:
-            # disable/enable lower static and dynamic
-            btn_group_to_disable = sub_tab.static_dynamic_group
-            [btn.setEnabled(enable_child) for btn in btn_group_to_disable.buttons()]
+        for another_tab in relative:
+            # disable/enable lower/higher static and dynamic
+            btn_group_to_disable = another_tab.static_dynamic_group
+            [btn.setEnabled(enable_others) for btn in btn_group_to_disable.buttons()]
 
-            # grey out lower row #3
-            self.greyout_row3(toggled=toggled, current_tab=sub_tab.label)
+            # grey out lower/higher row #3
+            self.greyout_row3(toggled=toggled, current_tab=another_tab.label)
 
     def greyout_group(self, target_group, enable):
         # greyout or un-greyout a group of radio buttons and checkboxes
@@ -361,14 +369,21 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         enable_row3 = not toggled  # enable row 3 when static is 'unselected'
         tab = self.nonman_specifications[current_tab]
 
-        if not any([hasattr(tab, 'repetition_group'),
-                    hasattr(tab, 'directionality_group'),
-                    hasattr(tab, 'additional_char_rb_group')]):
+        if len(tab.row3_groups) == 0:
             # if there is no row3, nothing to grey out.
             return
 
-        target_groups = [tab.repetition_group, tab.directionality_group] + tab.additional_char_rb_group  # groups in row3
-        for g in target_groups:
+        target_btngroups = []  # groups in row3
+        row3_btngroups = ['repetition_group', 'directionality_group', 'additional_char_rb_group', 'distance_group']
+        for btngroup in row3_btngroups:
+            btngroup_in_tab = getattr(tab, btngroup, None)
+            if btngroup_in_tab is not None:
+                if isinstance(btngroup_in_tab, list):
+                    target_btngroups.extend(btngroup_in_tab)
+                else:
+                    target_btngroups.append(btngroup_in_tab)
+
+        for g in target_btngroups:
             self.greyout_group(g, enable_row3)
 
         # repetition > repeated > cycles and  minimum are a special case
@@ -410,13 +425,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             major_tab = self.gen_tab_widget(nonman_unit)
             self.tab_widget.addTab(major_tab, nonman_unit.label)
 
-    def gen_tab_widget(self, nonman):
+    def gen_tab_widget(self, nonman, parent=None):
         """
             Deal with the mundane hassle of adding tab gui, recursively
             Args:
                 nonman: NonManualModel
         """
         tab_widget = TabContentWidget()
+
+        # specify parent (only relevant for embedded tabs)
+        nonman.parent = parent
 
         # This section is neutral
         nonman.widget_cb_neutral = QCheckBox("This section is neutral")
@@ -435,14 +453,11 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.children:
             subtabs_container = NMTabWidget()
             for sub_category in nonman.children:
-                sub_tab = self.gen_tab_widget(sub_category)
+                sub_tab = self.gen_tab_widget(sub_category, parent=nonman)
                 subtabs_container.addTab(sub_tab, sub_category.label)
             tab_widget.layout.addWidget(subtabs_container)
-            tab_widget.setLayout(tab_widget.layout)
-            return tab_widget
 
         tab_widget.setLayout(tab_widget.layout)
-
         return tab_widget
 
     def greyout_children(self, state, itself, child_tab):
@@ -665,6 +680,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         scrollable = QScrollArea()
         scrollable.setWidget(action_state_groupbox)
         scrollable.setWidgetResizable(True)
+        #scrollable.setMinimumHeight(150)
         row.addWidget(scrollable)
 
         return row
@@ -777,63 +793,73 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         Returns:
             QHBoxLayout
         """
-        if nonman.action_state is None:  # Currently, if action state is unspecified 3rd row is also nonexistent
-            return None
+        required = ['Repetition', 'Directionality', 'Additional']  # by default the 3rd row consists of three units
+
+        if nonman.action_state is None:
+            # If action state is unspecified, remove directionality. 'repetition' and 'additional' still needed
+            required.remove('Directionality')
+
+        if nonman.label == 'Eye gaze':  # Special case: Eye gaze needs 'Distance' as the 4th column of row #3.
+            required.append('Distance')
 
         row = QHBoxLayout()
         row.setAlignment(Qt.AlignTop)
 
-        # Repetition group
-        repetition_group = QGroupBox("Repetition")
-        repetition_group_layout = QVBoxLayout()
-        repetition_group_layout.setAlignment(Qt.AlignTop)
-        widget_rb_rep_single = MvmtCharRadioButton("Single", nonman.static_dynamic_group)
-        nonman.layout_repetition = RepetitionLayout(static_dynamic_group=nonman.static_dynamic_group)
-        widget_rb_rep_trill = MvmtCharRadioButton("Trilled", nonman.static_dynamic_group)
-        rep_btn_list = [widget_rb_rep_single, nonman.layout_repetition.repeated_btn, widget_rb_rep_trill]
+        nonman.row3_groups = []  # groups that constitute the third row
 
-        nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
+        if 'Repetition' in required:
+            # Repetition group
+            repetition_group = QGroupBox("Repetition")
+            repetition_group_layout = QVBoxLayout()
+            repetition_group_layout.setAlignment(Qt.AlignTop)
+            widget_rb_rep_single = MvmtCharRadioButton("Single", nonman.static_dynamic_group)
+            nonman.layout_repetition = RepetitionLayout(static_dynamic_group=nonman.static_dynamic_group)
+            widget_rb_rep_trill = MvmtCharRadioButton("Trilled", nonman.static_dynamic_group)
+            rep_btn_list = [widget_rb_rep_single, nonman.layout_repetition.repeated_btn, widget_rb_rep_trill]
 
-        repetition_group_layout.addWidget(widget_rb_rep_single)
-        repetition_group_layout.addLayout(nonman.layout_repetition)
-        repetition_group_layout.addWidget(widget_rb_rep_trill)
+            nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
 
-        repetition_group.setLayout(repetition_group_layout)
+            repetition_group_layout.addWidget(widget_rb_rep_single)
+            repetition_group_layout.addLayout(nonman.layout_repetition)
+            repetition_group_layout.addWidget(widget_rb_rep_trill)
 
-        # Directionality group
-        directionality_group = QGroupBox("Directionality")
-        directionality_group_layout = QVBoxLayout()
-        directionality_group_layout.setAlignment(Qt.AlignTop)
-        nonman.widget_rb_direction_uni = MvmtCharRadioButton(text="Unidirectional",
-                                                             static_dynamic=nonman.static_dynamic_group)
-        nonman.widget_rb_direction_bi = MvmtCharRadioButton(text="Bidirectional",
-                                                            static_dynamic=nonman.static_dynamic_group)
-        directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
+            repetition_group.setLayout(repetition_group_layout)
+            nonman.row3_groups.append(repetition_group)
 
-        nonman.directionality_group = SLPAAButtonGroup(directionality_list)
+        if 'Directionality' in required:
+            # Directionality group
+            directionality_group = QGroupBox("Directionality")
+            directionality_group_layout = QVBoxLayout()
+            directionality_group_layout.setAlignment(Qt.AlignTop)
+            nonman.widget_rb_direction_uni = MvmtCharRadioButton(text="Unidirectional",
+                                                                 static_dynamic=nonman.static_dynamic_group)
+            nonman.widget_rb_direction_bi = MvmtCharRadioButton(text="Bidirectional",
+                                                                static_dynamic=nonman.static_dynamic_group)
+            directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
 
-        [directionality_group_layout.addWidget(widget) for widget in directionality_list]
-        directionality_group.setLayout(directionality_group_layout)
+            nonman.directionality_group = SLPAAButtonGroup(directionality_list)
 
-        # Additional movement characteristics group -- contains Size Speed Force Tension
-        additional_char_group = QGroupBox("Additional mvmt characteristics")
-        additional_char_group_layout = QHBoxLayout()
-        additional_char_group_layout.setAlignment(Qt.AlignTop)
-        additional_char_specs = {'Size': ['Big', 'Small'],
-                                 'Speed': ['Fast', 'Slow'],
-                                 'Force': ['Strong', 'Weak'],
-                                 'Tension': ['Tense', 'Lax']}
-        additional_subgroups, additional_rb_groups = self.gen_add_move_char(additional_char_specs, nonman)
-        [additional_char_group_layout.addWidget(widget) for widget in additional_subgroups]
-        nonman.additional_char_rb_group = additional_rb_groups
+            [directionality_group_layout.addWidget(widget) for widget in directionality_list]
+            directionality_group.setLayout(directionality_group_layout)
+            nonman.row3_groups.append(directionality_group)
 
-        additional_char_group.setLayout(additional_char_group_layout)
+        if 'Additional' in required:
+            # Additional movement characteristics group -- contains Size Speed Force Tension
+            additional_char_group = QGroupBox("Additional mvmt characteristics")
+            additional_char_group_layout = QHBoxLayout()
+            additional_char_group_layout.setAlignment(Qt.AlignTop)
+            additional_char_specs = {'Size': ['Big', 'Small'],
+                                     'Speed': ['Fast', 'Slow'],
+                                     'Force': ['Strong', 'Weak'],
+                                     'Tension': ['Tense', 'Lax']}
+            additional_subgroups, additional_rb_groups = self.gen_add_move_char(additional_char_specs, nonman)
+            [additional_char_group_layout.addWidget(widget) for widget in additional_subgroups]
+            nonman.additional_char_rb_group = additional_rb_groups
 
-        # groups that constitute the third row
-        groups = [repetition_group, directionality_group, additional_char_group]
+            additional_char_group.setLayout(additional_char_group_layout)
+            nonman.row3_groups.append(additional_char_group)
 
-        # Special case: Eye gaze needs 'Distance' as the 4th column of row #3.
-        if nonman.label == 'Eye gaze':
+        if 'Distance' in required:
             # Distance
             distance_group = QGroupBox("Distance")
             distance_layout = QVBoxLayout()
@@ -851,13 +877,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             distance_group.setLayout(distance_layout)
 
             # And add distance to 'groups' that constitute the third row
-            groups.append(distance_group)
+            nonman.row3_groups.append(distance_group)
 
         # set fixed height. fixed b/c more space for action/state
-        row3_height = max([group.sizeHint().height() for group in groups])
-        [group.setFixedHeight(row3_height) for group in groups]
+        row3_height = max([group.sizeHint().height() for group in nonman.row3_groups])
+        [group.setFixedHeight(row3_height) for group in nonman.row3_groups]
 
-        [row.addWidget(group) for group in groups]  # Adding all the groupboxes to form the row
+        [row.addWidget(group) for group in nonman.row3_groups]  # Adding all the groupboxes to form the row
         return row
 
     def gen_add_move_char(self, specs, nonman):
