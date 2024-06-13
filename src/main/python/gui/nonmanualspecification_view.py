@@ -158,7 +158,13 @@ class BoldTabBarStyle(QProxyStyle):
                 font.setBold(False)
             painter.setFont(font)
 
-        super().drawControl(element, option, painter, widget)
+            super().drawControl(element, option, painter, widget)
+            painter.restore()  # call painter.restore() as painter.save() called in the beginning of the conditional
+
+        else:
+            # for others, just pass to super()
+            super().drawControl(element, option, painter, widget)
+
 
     def sizeFromContents(self, contents_type, option, size, widget=None):
         if contents_type == self.CT_TabBarTab:
@@ -510,7 +516,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         nonman.widget_rb_static.toggled.connect(lambda toggled: self.greyout_by_static(toggled, nonman.label))
         nonman.widget_rb_dynamic.toggled.connect(lambda toggled: self.greyout_by_dynamic(toggled, nonman.label))
-
 
         # special case: 'mouth' requires 'Type of mouth movement' which is contained in .subparts
         if nonman.label == 'Mouth':
