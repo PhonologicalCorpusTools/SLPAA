@@ -370,7 +370,10 @@ facexp = NonManualModel(
     label='Facial Expression',
     children=[facial_eyebrows,
               facial_eyelids,
-              facial_nose]
+              facial_nose],
+    subparts=[  # 'subparts' only nominally. instead used for components that go in row#1. esp. 'general description'
+        'Description; Specify'
+    ]
 )
 mouth = NonManualModel(
     label='Mouth',

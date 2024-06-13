@@ -545,6 +545,34 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             self.nonman_specifications[nonman.label] = nonman
             return row
 
+        # special case: 'facial expression' requires 'Type of mouth movement' which is contained in .subparts
+        if nonman.label == 'Facial Expression':
+            description_box = QGroupBox("General description")
+            description_box_layout = QVBoxLayout()
+            description_box.setAlignment(Qt.AlignTop)
+            nonman.description_group = SLPAAButtonGroup()
+            for type in nonman.subparts:
+                if ';' in type:
+                    type, txt_line = type.split(';')
+                    specify_layout = SpecifyLayout(btn_label=type,
+                                                   text=txt_line)
+                    rb_to_add = specify_layout.radio_btn
+                    nonman.widget_le_specify = specify_layout.lineEdit
+                    description_box_layout.addLayout(specify_layout)
+                else:
+                    rb_to_add = SLPAARadioButton(type)
+                    description_box_layout.addWidget(rb_to_add)
+                nonman.description_group.addButton(rb_to_add)
+            description_box.setLayout(description_box_layout)
+            row1_height = description_box.sizeHint().height()
+            description_box.setFixedHeight(row1_height)
+            sd_rb_groupbox.setFixedHeight(row1_height)
+            row.addWidget(description_box)
+            row.setStretchFactor(sd_rb_groupbox, 1)
+            row.setStretchFactor(description_box, 1)
+            self.nonman_specifications[nonman.label] = nonman
+            return row
+
         # subparts group
         if nonman.subparts is not None:
             subpart_specs = nonman.subparts
@@ -938,12 +966,17 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         module_output['static_dynamic'] = what_selected(current_module.static_dynamic_group)
 
-        # special case: 'mouth' has 'type of mouth movement' (others have 'subparts')
+        # special cases: 'mouth' has 'type of mouth movement' and 'faceexp' has 'description' (others have 'subparts')
         if current_module.label == 'Mouth':
             module_output['mvmt_type'] = what_selected(current_module.mvmt_type_group)
             if module_output['mvmt_type'] == 'other':
                 module_output['mvmt_type'] = f"{module_output['mvmt_type']};{current_module.widget_le_specify.text()}"
             # 'mouth' will exceptionally have 'mvmt_type' key for 'type of mouth movement'
+        elif current_module.label == 'Facial Expression':
+            module_output['description'] = what_selected(current_module.description_group)
+            if module_output['description'] == 'Description':
+                module_output['description'] = f"{module_output['description']};{current_module.widget_le_specify.text()}"
+            # 'faceexp' will exceptionally have 'description' key for 'general descriptions'
 
         # get choice between both, h1, h2
         else:
@@ -1176,6 +1209,21 @@ def load_specifications(values_toload, load_destination):
         select_this(btn_group=load_destination.distance_group,
                     btn_txt=values_toload['distance'])
     except AttributeError:
+        pass
+
+    # special case: 'facial expression' description
+    try:
+        description = values_toload['description']
+        if description is None:
+            raise KeyError
+        if ';' in description:
+            # dealing with a line edit
+            description, content = description.split(';')
+            load_destination.widget_le_specify.setText(content)
+        select_this(btn_group=load_destination.description_group,
+                    btn_txt=description)
+
+    except KeyError:
         pass
 
     # repetition
