@@ -47,7 +47,8 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
-from gui.mergecorpora_dialog import MergeCorporaDialog
+# from gui.mergecorpora_dialog import MergeCorporaDialog
+from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.export_csv_dialog import ExportCSVDialog
@@ -194,6 +195,13 @@ class MainWindow(QMainWindow):
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
+        # merge corpora into this one
+        action_merge_corpora = QAction("Merge corpora...", parent=self)
+        action_merge_corpora.setStatusTip("Merge two or more corpora")
+        action_merge_corpora.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_M))
+        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
+        action_merge_corpora.setCheckable(False)
+
         # close
         action_close = QAction('Close', parent=self)
         action_close.setStatusTip('Close the application')
@@ -201,9 +209,9 @@ class MainWindow(QMainWindow):
         action_close.triggered.connect(self.on_action_close)
         action_close.setCheckable(False)
 
-        # output handshape transcription to csv
-        action_export_handshape_transcription_csv = QAction('Export handshape transcription as CSV...', parent=self)
-        action_export_handshape_transcription_csv.triggered.connect(self.on_action_export_handshape_transcription_csv)
+        # TODO this needs an overhaul - output handshape transcription to csv
+        # action_export_handshape_transcription_csv = QAction('Export handshape transcription as CSV...', parent=self)
+        # action_export_handshape_transcription_csv.triggered.connect(self.on_action_export_handshape_transcription_csv)
 
         # new sign
         action_new_sign = QAction(QIcon(self.app_ctx.icons['plus']), 'New sign', parent=self)
@@ -288,9 +296,11 @@ class MainWindow(QMainWindow):
         menu_file = main_menu.addMenu('&File')
         menu_file.addAction(action_new_corpus)
         menu_file.addAction(action_load_corpus)
+        menu_file.addAction(action_merge_corpora)
         menu_file.addSeparator()
-        menu_file.addAction(action_export_handshape_transcription_csv)
-        menu_file.addSeparator()
+        # TODO this needs an overhaul
+        # menu_file.addAction(action_export_handshape_transcription_csv)
+        # menu_file.addSeparator()
         menu_file.addAction(action_close)
         menu_file.addAction(action_save)
         menu_file.addAction(action_saveas)
@@ -759,8 +769,10 @@ class MainWindow(QMainWindow):
         count_xslots_window.exec_()
 
     def on_action_merge_corpora(self):
-        merge_corpora_window = MergeCorporaDialog(self.app_settings, parent=self)
-        merge_corpora_window.exec_()
+        merge_corpora_wizard = MergeCorporaWizard(self.app_settings, parent=self)
+        merge_corpora_wizard.show()
+        # merge_corpora_window = MergeCorporaDialog(self.app_settings, parent=self)
+        # merge_corpora_window.exec_()
 
     def on_action_export_corpus(self):
         export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
@@ -931,8 +943,25 @@ class MainWindow(QMainWindow):
         folder, _ = os.path.split(file_name)
         if folder:
             self.app_settings['storage']['recent_folder'] = folder
+        #
+        # self.corpus = self.load_corpus_binary(file_name)
+        # self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
+        # self.corpus_display.updated_signs(self.corpus.signs)
+        # if len(self.corpus.signs) > 0:
+        #     self.corpus_display.selectfirstrow()
+        # else:  # if loading a blank corpus
+        #     self.signsummary_panel.mainwindow.current_sign = None  # refreshsign() checks for this
+        #     self.signsummary_panel.refreshsign(None)
+        #     self.signlevel_panel.clear()
+        #     self.signlevel_panel.enable_module_buttons(False)
+        self.load_corpus_info(file_name)
 
-        self.corpus = self.load_corpus_binary(file_name)
+        self.unsaved_changes = False
+
+        return self.corpus is not None
+
+    def load_corpus_info(self, corpuspath):
+        self.corpus = self.load_corpus_binary(corpuspath)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
@@ -942,10 +971,6 @@ class MainWindow(QMainWindow):
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
-
-        self.unsaved_changes = False
-
-        return self.corpus is not None
 
     def on_action_close(self, clicked):
         self.close()
