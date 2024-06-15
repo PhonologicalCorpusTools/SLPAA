@@ -54,10 +54,15 @@ class CorpusDisplay(QWidget):
         self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         # Corpus filter by any info in table (gloss, entry id string, lemma, id-gloss)
+        filter_layout = QHBoxLayout()
         self.corpus_filter_input = QLineEdit()
-        self.corpus_filter_input.setPlaceholderText('Filter corpus entries')
+        self.corpus_filter_input.setPlaceholderText("Filter corpus entries")
         self.corpus_filter_input.textChanged.connect(self.filter_corpus_list)
-        main_layout.addWidget(self.corpus_filter_input)
+        filter_layout.addWidget(self.corpus_filter_input)
+        self.numentries_label = QLabel("0 of 0 shown")
+        filter_layout.addWidget(self.numentries_label)
+        main_layout.addLayout(filter_layout)
+
         main_layout.addWidget(self.corpus_view)
 
         sort_layout = QHBoxLayout()
@@ -141,6 +146,8 @@ class CorpusDisplay(QWidget):
         except ValueError:
             self.clear()
 
+        self.update_numentries_label()
+
     def getproxyindex(self, fromproxyrowcol=None, fromsourceindex=None):
         if fromproxyrowcol:
             return self.corpus_view.model().index(fromproxyrowcol[0], fromproxyrowcol[1])
@@ -175,7 +182,12 @@ class CorpusDisplay(QWidget):
     def filter_corpus_list(self):
         self.corpus_sortproxy.setFilterRegExp(self.sender().text())
         self.corpus_view.clearSelection()  # Deselects all signs in the corpus list
+        self.update_numentries_label()
 
+    def update_numentries_label(self):
+        filteredentries = self.getrowcount()
+        totalentries = self.corpus_model.rowCount()
+        self.numentries_label.setText(str(filteredentries) + " of " + str(totalentries) + " shown")
 
 class CorpusTableView(QTableView):
     newcurrentindex = pyqtSignal(QModelIndex)
