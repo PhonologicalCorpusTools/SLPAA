@@ -3,7 +3,7 @@
  - Yurika Aonuki
  - Kathleen Currie Hall
  - Oksana Tkachman
-## Software
+## [Software](https://github.com/PhonologicalCorpusTools/SLPAA/graphs/contributors)
  - [Brian Diep](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=brdiep113)
  - Michael Fry ([contributions to original implementation](https://github.com/PhonologicalCorpusTools/SLP-AA-old-/commits?author=mdfry))
  - [Roger Yu-Hsiang Lo](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=YuHsiangLo)* (see also [contributions to original implementation](https://github.com/PhonologicalCorpusTools/SLP-AA-old-/commits?author=YuHsiangLo))
