@@ -934,23 +934,14 @@ class MainWindow(QMainWindow):
         folder, _ = os.path.split(file_name)
         if folder:
             self.app_settings['storage']['recent_folder'] = folder
-        #
-        # self.corpus = self.load_corpus_binary(file_name)
-        # self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
-        # self.corpus_display.updated_signs(self.corpus.signs)
-        # if len(self.corpus.signs) > 0:
-        #     self.corpus_display.selectfirstrow()
-        # else:  # if loading a blank corpus
-        #     self.signsummary_panel.mainwindow.current_sign = None  # refreshsign() checks for this
-        #     self.signsummary_panel.refreshsign(None)
-        #     self.signlevel_panel.clear()
-        #     self.signlevel_panel.enable_module_buttons(False)
+
         self.load_corpus_info(file_name)
 
         self.unsaved_changes = False
 
         return self.corpus is not None
 
+    # load corpus info from given path
     def load_corpus_info(self, corpuspath):
         self.corpus = self.load_corpus_binary(corpuspath)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
