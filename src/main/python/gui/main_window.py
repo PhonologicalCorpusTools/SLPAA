@@ -1035,7 +1035,7 @@ class MinCounterDialog(QDialog):
         warning_explanation = "Most users in most cases will leave this at the default value of 1. You might choose to set it to a different"
         warning_explanation += "\nvalue if you have a particular numbering system that you would like to use for signs in this corpus."
         warning_explanation += "\n\nNote that this value cannot be changed after signs have been added to the corpus;"
-        warning_explanation += "\nhowever, it will be adjusted automatically if merging two corpora with overlapping numbering."
+        warning_explanation += "\nhowever, it can be adjusted automatically if merging two corpora with overlapping numbering."
         note_label = QLabel(warning_explanation)
         main_layout.addWidget(note_label)
 
