@@ -47,7 +47,6 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
-# from gui.mergecorpora_dialog import MergeCorporaDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
@@ -172,11 +171,6 @@ class MainWindow(QMainWindow):
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
 
-        # merge corpora
-        action_merge_corpora = QAction("Merge corpora...", parent=self)
-        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
-        action_merge_corpora.setCheckable(False)
-
         # export corpus in human-readable form
         action_export_corpus = QAction("Export corpus...", parent=self)
         action_export_corpus.triggered.connect(self.on_action_export_corpus)
@@ -195,7 +189,7 @@ class MainWindow(QMainWindow):
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
-        # merge corpora into this one
+        # merge corpora into this one or into a new separate file
         action_merge_corpora = QAction("Merge corpora...", parent=self)
         action_merge_corpora.setStatusTip("Merge two or more corpora")
         action_merge_corpora.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_M))
@@ -331,7 +325,6 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
-        menu_analysis_beta.addAction(action_merge_corpora)
         menu_analysis_beta.addAction(action_export_corpus)
 
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
@@ -771,8 +764,6 @@ class MainWindow(QMainWindow):
     def on_action_merge_corpora(self):
         merge_corpora_wizard = MergeCorporaWizard(self.app_settings, parent=self)
         merge_corpora_wizard.show()
-        # merge_corpora_window = MergeCorporaDialog(self.app_settings, parent=self)
-        # merge_corpora_window.exec_()
 
     def on_action_export_corpus(self):
         export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
