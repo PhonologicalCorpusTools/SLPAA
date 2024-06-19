@@ -523,18 +523,24 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             mvmt_type_box_layout = QVBoxLayout()
             mvmt_type_box.setAlignment(Qt.AlignTop)
             nonman.mvmt_type_group = SLPAAButtonGroup()
-            for type in nonman.subparts:
-                if ';' in type:
-                    type, txt_line = type.split(';')
-                    specify_layout = SpecifyLayout(btn_label=type,
-                                                   text=txt_line)
-                    rb_to_add = specify_layout.radio_btn
-                    nonman.widget_le_specify = specify_layout.lineEdit
-                    mvmt_type_box_layout.addLayout(specify_layout)
+            for m_type in nonman.subparts:
+                # since all options have the 'specify' line edit, just assume btn + lineEdit
+                rb_label, txt_line = m_type.split(';')
+                specify_layout = SpecifyLayout(btn_label=rb_label,
+                                               text=txt_line)
+
+                # first, add btn layout
+                nonman.mvmt_type_group.addButton(specify_layout.radio_btn)
+
+                # then, deal with the line edit part
+                if hasattr(nonman, 'widget_le_specify'):
+                    nonman.widget_le_specify[rb_label] = specify_layout.lineEdit
                 else:
-                    rb_to_add = SLPAARadioButton(type)
-                    mvmt_type_box_layout.addWidget(rb_to_add)
-                nonman.mvmt_type_group.addButton(rb_to_add)
+                    nonman.widget_le_specify = {rb_label: specify_layout.lineEdit}
+
+                # add the whole (rb + le) layout
+                mvmt_type_box_layout.addLayout(specify_layout)
+
             mvmt_type_box.setLayout(mvmt_type_box_layout)
             row1_height = mvmt_type_box.sizeHint().height()
             mvmt_type_box.setFixedHeight(row1_height)
@@ -966,17 +972,18 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         module_output['static_dynamic'] = what_selected(current_module.static_dynamic_group)
 
-        # special cases: 'mouth' has 'type of mouth movement' and 'faceexp' has 'description' (others have 'subparts')
+        # special cases: 'mouth' has 'type of mouth movement' and 'faceexp' has 'description' in place of 'subparts'
         if current_module.label == 'Mouth':
-            module_output['mvmt_type'] = what_selected(current_module.mvmt_type_group)
-            if module_output['mvmt_type'] == 'other':
-                module_output['mvmt_type'] = f"{module_output['mvmt_type']};{current_module.widget_le_specify.text()}"
             # 'mouth' will exceptionally have 'mvmt_type' key for 'type of mouth movement'
+            rb_label = what_selected(current_module.mvmt_type_group)
+            if rb_label is not None:
+                module_output['mvmt_type'] = f"{rb_label};{current_module.widget_le_specify[rb_label].text()}"
+
         elif current_module.label == 'Facial Expression':
+            # 'faceexp' will exceptionally have 'description' key for 'general descriptions'
             module_output['description'] = what_selected(current_module.description_group)
             if module_output['description'] == 'Description':
                 module_output['description'] = f"{module_output['description']};{current_module.widget_le_specify.text()}"
-            # 'faceexp' will exceptionally have 'description' key for 'general descriptions'
 
         # get choice between both, h1, h2
         else:
@@ -1194,10 +1201,8 @@ def load_specifications(values_toload, load_destination):
         mvmt_type = values_toload['mvmt_type']
         if mvmt_type is None:
             raise KeyError
-        if ';' in mvmt_type:
-            # selected 'other' and specified
-            mvmt_type, content = mvmt_type.split(';')
-            load_destination.widget_le_specify.setText(content)
+        mvmt_type, content = mvmt_type.split(';')
+        load_destination.widget_le_specify[mvmt_type].setText(content)
         select_this(btn_group=load_destination.mvmt_type_group,
                     btn_txt=mvmt_type)
 

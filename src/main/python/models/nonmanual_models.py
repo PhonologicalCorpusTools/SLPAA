@@ -343,7 +343,8 @@ eyegaze = NonManualModel(
     distance=False,
     action_state=ActionStateModel(options=[ActionStateModel(label='Absolute direction',
                                                             options=[ActionStateModel(label='Horizontal',
-                                                                                      options=['Toward H1', 'Toward H2']),
+                                                                                      options=['Toward H1 side',
+                                                                                               'Toward H2 side']),
                                                                      ActionStateModel(label='Vertical',
                                                                                       options=['Up', 'Down']),
                                                                      ActionStateModel(label='Sagittal',
@@ -384,9 +385,9 @@ mouth = NonManualModel(
               mouth_tongue,
               mouth_cheek],
     subparts=[   # 'subparts' only nominally. it is actually for 'Type of mouth movement'
-        'mouthing / mouth picture [i.e., taken from spoken language]',
-        'mouth gesture [i.e., inherent to the sign language]',
-        'emotional',
+        'mouthing / mouth picture [i.e., taken from spoken language]; Specify',
+        'mouth gesture [i.e., inherent to the sign language]; Specify',
+        'emotional; Specify',
         'other; Specify'
     ]
 )
