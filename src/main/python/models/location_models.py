@@ -15,7 +15,7 @@ import logging
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, treepathdelimiter, AddedInfo
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, CONTRA, IPSI
 
 
 # radio button vs checkbox
@@ -840,15 +840,15 @@ class BodypartTreeModel(LocationTreeModel):
 
             if self.forrelationmodule:
                 structure.children = [child for child in structure.children 
-                                      if "ipsi" not in child.display_name and "contra" not in child.display_name]
+                                      if IPSI not in child.display_name and CONTRA not in child.display_name]
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
     def backwardcompatibility(self):
         dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
 
         hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
-                         "Finger 1", "Finger 2","Finger 3","Finger 4", 
-                         "Between Thumb and Finger 1","Between Fingers 1 and 2", "Between Fingers 2 and 3","Between Fingers 3 and 4"]
+                         "Finger 1", "Finger 2", "Finger 3", "Finger 4",
+                         "Between Thumb and Finger 1", "Between Fingers 1 and 2", "Between Fingers 2 and 3", "Between Fingers 3 and 4"]
         if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
             for val in hand_children:
                 for stored_dict in dicts:

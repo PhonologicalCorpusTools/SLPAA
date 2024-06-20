@@ -14,8 +14,6 @@ class AppContext(ApplicationContext):
     div = "with_Divisions"
     nodiv = "no divisions"
     contraoripsi = "contra/ipsi"
-    contra = "contra"
-    ipsi = "ipsi"
 
     def __init__(self):
         super().__init__()
@@ -107,7 +105,7 @@ class AppContext(ApplicationContext):
                     if predef_locs[locname][side][hasdiv]:
                         resource_string = self.get_resource('predefined_locations/' +
                                                             colour +
-                                                            '_20240508version/' +  # TODO KV pare down the fodlers (and get rid of this dated version?)
+                                                            '_20240508version/' +  # TODO KV pare down the folders (and get rid of this dated version?)
                                                             self.fnamestr_by_predef_locns_descr(locname, side) +
                                                             ("_with_Divisions" if hasdiv == self.div else "") + '-' +
                                                             colour +

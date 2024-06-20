@@ -1,5 +1,6 @@
-import io, re, os
-from collections import defaultdict
+import io
+import re
+import os
 
 from PyQt5.QtWidgets import (
     QTableView,
@@ -32,7 +33,6 @@ from PyQt5.QtWidgets import (
     QPlainTextEdit,
     QMenu,
     QAction,
-    QListView
 )
 
 from PyQt5.QtSvg import QSvgRenderer, QGraphicsSvgItem
@@ -45,11 +45,12 @@ from PyQt5.QtCore import (
     QPointF
 )
 
-from lexicon.module_classes import treepathdelimiter, LocationModule, PhonLocations, userdefinedroles as udr
+from lexicon.module_classes import treepathdelimiter, LocationModule, PhonLocations
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel, locn_options_body
 from serialization_classes import LocationTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
+from constant import CONTRA, IPSI
 
 
 class LocnTreeSearchComboBox(QComboBox):
@@ -926,14 +927,12 @@ class LocationAction(QAction):
 
 
 def location_and_relativeside(locationname):
-    # TODO KV consider using var names from appcontext??
-    loc = locationname.replace(" - contra", "").replace(" - ipsi", "")
-    side = "contra" if "contra" in locationname else ("ipsi" if "ipsi" in locationname else "both/all")
+    loc = locationname.replace(" - " + CONTRA, "").replace(" - " + IPSI, "")
+    side = CONTRA if CONTRA in locationname else (IPSI if IPSI in locationname else "both/all")
     return loc, side
 
 
 def location_and_absoluteside(locationname, dominantside):
-    # TODO KV consider using var names from appcontext??
     loc, relside = location_and_relativeside(locationname)
     absside = get_absolutehand(dominantside, relside)
     return loc, absside
@@ -943,13 +942,13 @@ def get_relativehand(dominantside, absoluteside):
     if absoluteside in ["both/all", ""]:
         return "both/all"
     else:
-        return "ipsi" if dominantside == absoluteside else "contra"
+        return IPSI if dominantside == absoluteside else CONTRA
 
 
 def get_absolutehand(dominantside, relativeside):
     if relativeside in ["both/all", ""]:
         return "both/all"
-    elif relativeside == "ipsi":
+    elif relativeside == IPSI:
         return dominantside
     elif dominantside == "R":
         return "L"
@@ -1015,11 +1014,11 @@ class SVGDisplayTab(QWidget):
 
     def handle_region_selected(self, locationname, imageonly):
         self.region_selected.emit(locationname, imageonly)
-        locationname_noside = locationname.replace(" - contra", "").replace(" - ipsi", "")
+        locationname_noside = locationname.replace(" - " + CONTRA, "").replace(" - " + IPSI, "")
 
         # just assume yellow for now
         colour = "yellow"  # if "yellow" in imagefile else ("green" if "green" in imagefile else "violet")
-        relativeside = "ipsi" if "ipsi" in locationname else ("contra" if "contra" in locationname else "")
+        relativeside = IPSI if IPSI in locationname else (CONTRA if CONTRA in locationname else "")
         absoluteside = get_absolutehand(self.dominanthand, relativeside)
         divisions = self.app_ctx.div if self.current_image_divisions else self.app_ctx.nodiv
         newimagepath = self.app_ctx.predefined_locations_bycolour(colour)[locationname_noside][absoluteside][divisions]
@@ -1108,7 +1107,7 @@ class SVGDisplayTab(QWidget):
             self.imgscroll.handle_image_changed(newimagepath)
             self.current_image_divisions = False
         else:
-            locationtext = self.current_image_region.replace(" - ipsi", "").replace(" - contra", "")
+            locationtext = self.current_image_region.replace(" - " + IPSI, "").replace(" - " + CONTRA, "")
             _, imagefile = os.path.split(imagepath)
             side = self.app_ctx.right if 'Right' in imagefile else (self.app_ctx.left if 'Left' in imagefile else self.app_ctx.both)
             # just assume yellow for now
