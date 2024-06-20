@@ -68,6 +68,7 @@ class AppContext(ApplicationContext):
             'undo': self.get_resource('icons/undo.png')
         }
 
+    # TODO KV make sure these old images are saved somewhere but then removed from the current codebase in git
     # @cached_property
     # def default_location_images(self):
     #     return {
@@ -106,9 +107,9 @@ class AppContext(ApplicationContext):
                     if predef_locs[locname][side][hasdiv]:
                         resource_string = self.get_resource('predefined_locations/' +
                                                             colour +
-                                                            '_20240508version/' +
+                                                            '_20240508version/' +  # TODO KV pare down the fodlers (and get rid of this dated version?)
                                                             self.fnamestr_by_predef_locns_descr(locname, side) +
-                                                            ("_with_Divisions" if hasdiv == self.div else "") +                                                             '-' +
+                                                            ("_with_Divisions" if hasdiv == self.div else "") + '-' +
                                                             colour +
                                                             '.svg')
                         predef_locs[locname][side][hasdiv] = resource_string
@@ -389,6 +390,12 @@ class AppContext(ApplicationContext):
                 self.left: {self.nodiv: False, self.div: False},
                 self.right: {self.nodiv: False, self.div: False},
             },
+            # the "Lower teeth" image is currently not available and shows "Teeth" in violet instead, as a placeholder for default yellow
+            "Lower teeth": {
+                self.both: {self.nodiv: True, self.div: False},
+                self.left: {self.nodiv: False, self.div: False},
+                self.right: {self.nodiv: False, self.div: False},
+            },
             "Lower torso": {
                 self.both: {self.nodiv: True, self.div: True},
                 self.left: {self.nodiv: False, self.div: False},
@@ -444,6 +451,18 @@ class AppContext(ApplicationContext):
                 self.left: {self.nodiv: False, self.div: False},
                 self.right: {self.nodiv: False, self.div: False},
             },
+            # the "Selected fingers and thumb" image(s) are currently not available and shows "Whole hand" in violet instead, as a placeholder for default yellow
+            "Selected fingers and thumb": {
+                self.both: {self.nodiv: True, self.div: False},
+                self.left: {self.nodiv: True, self.div: False},
+                self.right: {self.nodiv: True, self.div: False},
+            },
+            # the "Selected fingers" image(s) are currently not available and shows "Whole hand" in violet instead, as a placeholder for default yellow
+            "Selected fingers": {
+                self.both: {self.nodiv: True, self.div: False},
+                self.left: {self.nodiv: True, self.div: False},
+                self.right: {self.nodiv: True, self.div: False},
+            },
             "Septum": {
                 self.both: {self.nodiv: True, self.div: False},
                 self.left: {self.nodiv: False, self.div: False},
@@ -483,6 +502,12 @@ class AppContext(ApplicationContext):
                 self.both: {self.nodiv: True, self.div: False},
                 self.left: {self.nodiv: True, self.div: False},
                 self.right: {self.nodiv: True, self.div: False},
+            },
+            # the "Tongue" image is currently not available and shows "Mouth" in violet instead, as a placeholder for default yellow
+            "Tongue": {
+                self.both: {self.nodiv: True, self.div: False},
+                self.left: {self.nodiv: False, self.div: False},
+                self.right: {self.nodiv: False, self.div: False},
             },
             "Top of head": {
                 self.both: {self.nodiv: True, self.div: False},
@@ -524,6 +549,12 @@ class AppContext(ApplicationContext):
                 self.left: {self.nodiv: False, self.div: False},
                 self.right: {self.nodiv: False, self.div: False},
             },
+            # the "Upper teeth" image is currently not available and shows "Teeth" in violet instead, as a placeholder for default yellow
+            "Upper teeth": {
+                self.both: {self.nodiv: True, self.div: False},
+                self.left: {self.nodiv: False, self.div: False},
+                self.right: {self.nodiv: False, self.div: False},
+            },
             "Upper torso": {
                 self.both: {self.nodiv: True, self.div: True},
                 self.left: {self.nodiv: False, self.div: False},
@@ -561,183 +592,6 @@ class AppContext(ApplicationContext):
             pass  # we don't have to do anything to the string
 
         return filename_string
-
-    # @cached_property
-    # def predefined_locations_description_byfilename(self):
-    #     return {
-    #         "Abdominal-Waist_Area": "Abdominal/waist area",
-    #         "Above_Forehead-Hairline": "Above Forehead (hairline)",
-    #         "Ankles": "Ankles",
-    #         "Right_Ankle":  "Ankle - " + self.contraoripsi,
-    #         "Left_Ankle": "Ankle - " + self.contraoripsi,
-    #         "Armpits": "Armpits",
-    #         "Right_Armpit": "Armpit - " + self.contraoripsi,
-    #         "Left_Armpit": "Armpit - " + self.contraoripsi,
-    #         "Arms": "Arms",
-    #         "Right_Arm": "Arm - " + self.contraoripsi,
-    #         "Left_Arm": "Arm - " + self.contraoripsi,
-    #         "Below_Nose-Philtrum": "Below nose / philtrum",
-    #         "Between_Eyebrows": "Between eyebrows",
-    #         "Between_Fingers_1_and_2": "Between Fingers 1 and 2",
-    #         "Right_Between_Fingers_1_and_2": "Between Fingers 1 and 2 - " + self.contraoripsi,
-    #         "Left_Between_Fingers_1_and_2": "Between Fingers 1 and 2 - " + self.contraoripsi,
-    #         "Between_Fingers_2_and_3": "Between Fingers 2 and 3",
-    #         "Right_Between_Fingers_2_and_3": "Between Fingers 2 and 3 - " + self.contraoripsi,
-    #         "Left_Between_Fingers_2_and_3": "Between Fingers 2 and 3 - " + self.contraoripsi,
-    #         "Between_Fingers_3_and_4": "Between Fingers 3 and 4",
-    #         "Right_Between_Fingers_3_and_4": "Between Fingers 3 and 4 - " + self.contraoripsi,
-    #         "Left_Between_Fingers_3_and_4": "Between Fingers 3 and 4 - " + self.contraoripsi,
-    #         "Between_Fingers": "Between fingers",
-    #         "Right_Between_Fingers": "Between fingers - " + self.contraoripsi,
-    #         "Left_Between_Fingers": "Between fingers - " + self.contraoripsi,
-    #         "Between_Thumb_and_Finger_1": "Between Thumb and Finger 1",
-    #         "Right_Between_Thumb_and_Finger_1": "Between Thumb and Finger 1 - " + self.contraoripsi,
-    #         "Left_Between_Thumb_and_Finger_1": "Between Thumb and Finger 1 - " + self.contraoripsi,
-    #         "Biceps": "Biceps",
-    #         "Left_Bicep": "Biceps - " + self.contraoripsi,
-    #         "Right_Bicep": "Biceps - " + self.contraoripsi,
-    #         "Cheek_and_Nose": "Cheek/nose",
-    #         "Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear",
-    #         "Left_Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear - " + self.contraoripsi,
-    #         "Right_Cheekbone_in_Front_of_Ear": "Cheekbone in front of ear - " + self.contraoripsi,
-    #         "Cheekbone_under_Eye": "Cheekbone under eye",
-    #         "Right_Cheekbone_under_Eye": "Cheekbone under eye - " + self.contraoripsi,
-    #         "Left_Cheekbone_under_Eye": "Cheekbone under eye - " + self.contraoripsi,
-    #         "Cheeks": "Cheeks",
-    #         "Left_Cheek": "Cheek - " + self.contraoripsi,
-    #         "Right_Cheek": "Cheek - " + self.contraoripsi,
-    #         "Chest-Breast_Area": "Chest/breast area",
-    #         "Chin": "Chin",
-    #         "Corners_of_Mouth": "Corner of mouth",
-    #         "Left_Corner_of_Mouth": "Corner of mouth - " + self.contraoripsi,
-    #         "Right_Corner_of_Mouth": "Corner of mouth - " + self.contraoripsi,
-    #         "Earlobes": "Earlobes",
-    #         "Right_Earlobe": "Earlobe - " + self.contraoripsi,
-    #         "Left_Earlobe": "Earlobe - " + self.contraoripsi,
-    #         "Ears": "Ears",
-    #         "Right_Ear": "Ear - " + self.contraoripsi,
-    #         "Left_Ear": "Ear - " + self.contraoripsi,
-    #         "Elbows": "Elbows",
-    #         "Right_Elbow": "Elbow - " + self.contraoripsi,
-    #         "Left_Elbow": "Elbow - " + self.contraoripsi,
-    #         "Eye_Region": "Eye region",
-    #         "Eyebrows": "Eyebrows",
-    #         "Right_Eyebrow": "Eyebrow - " + self.contraoripsi,
-    #         "Left_Eyebrow": "Eyebrow - " + self.contraoripsi,
-    #         "Eyelids": "Eyelids",
-    #         "Right_Eyelids": "Eyelids - " + self.contraoripsi,
-    #         "Left_Eyelids": "Eyelids - " + self.contraoripsi,
-    #         "Eyes": "Eyes",
-    #         "Right_Eye": "Eye - " + self.contraoripsi,
-    #         "Left_Eye": "Eye - " + self.contraoripsi,
-    #         "Face": "Face",
-    #         "Feet": "Feet",
-    #         "Right_Foot": "Foot - " + self.contraoripsi,
-    #         "Left_Foot": "Foot - " + self.contraoripsi,
-    #         "Forearms": "Forearms",
-    #         "Right_Forearm": "Forearm - " + self.contraoripsi,
-    #         "Left_Forearm": "Forearm - " + self.contraoripsi,
-    #         "Finger_1": "Finger 1",
-    #         "Right_Finger_1": "Finger 1 - " + self.contraoripsi,
-    #         "Left_Finger_1": "Finger 1 - " + self.contraoripsi,
-    #         "Finger_2": "Finger 2",
-    #         "Right_Finger_2": "Finger 2 - " + self.contraoripsi,
-    #         "Left_Finger_2": "Finger 2 - " + self.contraoripsi,
-    #         "Finger_3": "Finger 3",
-    #         "Right_Finger_3": "Finger 3 - " + self.contraoripsi,
-    #         "Left_Finger_3": "Finger 3 - " + self.contraoripsi,
-    #         "Finger_4": "Finger 4",
-    #         "Right_Finger_4": "Finger 4 - " + self.contraoripsi,
-    #         "Left_Finger_4": "Finger 4 - " + self.contraoripsi,
-    #         "Fingers_and_Thumbs": "Fingers and thumbs",
-    #         "Right_Fingers_and_Thumb": "Fingers and thumb - " + self.contraoripsi,
-    #         "Left_Fingers_and_Thumb": "Fingers and thumb - " + self.contraoripsi,
-    #         "Fingers": "Fingers",
-    #         "Right_Fingers": "Fingers - " + self.contraoripsi,
-    #         "Left_Fingers": "Fingers - " + self.contraoripsi,
-    #         "Forearms": "Forearms",
-    #         "Right_Forearm": "Forearm - " + self.contraoripsi,
-    #         "Left_Forearm": "Forearm - " + self.contraoripsi,
-    #         "Forehead_Region": "Forehead region",
-    #         "Forehead": "Forehead",
-    #         "Groin": "Groin",
-    #         "Hands_minus_Fingers": "Hands minus fingers",
-    #         "Right_Hand_minus_Fingers": "Hand minus Fingers - " + self.contraoripsi,
-    #         "Left_Hand_minus_Fingers": "Hand minus Fingers - " + self.contraoripsi,
-    #         "Hands": "Hands",
-    #         "Right_Hand": "Hand - " + self.contraoripsi,
-    #         "Left_Hand": "Hand - " + self.contraoripsi,
-    #         "Heels_of_Hands": "Heels of hands",
-    #         "Right_Heel_of_Hands": "Heel of hand - " + self.contraoripsi,
-    #         "Left_Heel_of_Hands": "Heel of hand - " + self.contraoripsi,
-    #         "Hips": "Hip",
-    #         "Right_Hip": "Hip - " + self.contraoripsi,
-    #         "Left_Hip": "Hip - " + self.contraoripsi,
-    #         "Jaws": "Jaws",
-    #         "Right_Jaw": "Jaw - " + self.contraoripsi,
-    #         "Left_Jaw": "Jaw - " + self.contraoripsi,
-    #         "Knees": "Knees",
-    #         "Right_Knee": "Knee - " + self.contraoripsi,
-    #         "Left_Knee": "Knee - " + self.contraoripsi,
-    #         "Legs_and_Feet": "Legs and feet",
-    #         "Right_Leg_and_Foot": "Leg and foot - " + self.contraoripsi,
-    #         "Left_Leg_and_Foot": "Leg and foot - " + self.contraoripsi,
-    #         "Lips": "Lips",
-    #         "Lower_Eyelids": "Lower eyelids",
-    #         "Right_Lower_Eyelid": "Lower eyelid - " + self.contraoripsi,
-    #         "Left_Lower_Eyelid": "Lower eyelid - " + self.contraoripsi,
-    #         "Mouth": "Mouth",
-    #         "Outer_Corners_of_Eyes": "Outer corners of eyes",
-    #         "Outer_Corner_of_Left_Eye": "Outer corner of eye - " + self.contraoripsi,
-    #         "Outer_Corner_of_Right_Eye": "Outer corner of eye - " + self.contraoripsi,
-    #         "Nostrils": "Nostrils",
-    #         "Nose": "Nose",
-    #         "Nose_Root": "Nose root",
-    #         "Nose_Ridge": "Nose ridge",
-    #         "Nose_Tip": "Nose tip",
-    #         "Right_Nostril": "Nostril - " + self.contraoripsi,
-    #         "Left_Nostril": "Nostril - " + self.contraoripsi,
-    #         "Pelvis_Area": "Pelvis area",
-    #         "Shoulders": "Shoulders",
-    #         "Right_Shoulder": "Shoulder - " + self.contraoripsi,
-    #         "Left_Shoulder": "Shoulder - " + self.contraoripsi,
-    #         "Sides_of_Face": "Sides of face",
-    #         "Right_Side_of_Face": "Side of face - " + self.contraoripsi,
-    #         "Left_Side_of_Face": "Side of face - " + self.contraoripsi,
-    #         "Temple": "Temple",
-    #         "Right_Temple": "Temple - " + self.contraoripsi,
-    #         "Left_Temple": "Temple - " + self.contraoripsi,
-    #         "Thumbs": "Thumbs",
-    #         "Right_Thumb": "Thumb - " + self.contraoripsi,
-    #         "Left_Thumb": "Thumb - " + self.contraoripsi,
-    #         "Upper_Arms_above_Bicep": "Upper arms above bicep",
-    #         "Right_Upper_Arm_above_Bicep": "Upper arm above bicep - " + self.contraoripsi,
-    #         "Left_Upper_Arm_above_Bicep": "Upper arm above bicep - " + self.contraoripsi,
-    #         "Upper_Eyelids": "Upper eyelids",
-    #         "Right_Upper_Eyelid": "Upper eyelids - " + self.contraoripsi,
-    #         "Left_Upper_Eyelid": "Upper eyelids - " + self.contraoripsi,
-    #         "Upper_Legs": "Upper legs",
-    #         "Right_Upper_Leg": "Upper leg - " + self.contraoripsi,
-    #         "Left_Upper_Leg": "Upper leg - " + self.contraoripsi,
-    #         "Upper_Lip": "Upper lip",
-    #         "Upper_Torso": "Upper torso",
-    #         "Wrists": "Wrists",
-    #         "Right_Wrist": "Wrist - " + self.contraoripsi,
-    #         "Left_Wrist": "Wrist - " + self.contraoripsi,
-    #         "Septum-Nostril_Area": "Septum/nostril area",
-    #         "Septum": "Septum",
-    #         "Sternum-Clavicle_Area": "Sternum/clavicle area",
-    #         "Teeth": "Teeth",
-    #         "Top_of_Head": "Top of head",
-    #         "Torso": "Torso",
-    #         "Underchin": "Under chin",
-    #         "Upper_Arms": "Upper arms",
-    #         "Right_Upper_Arm": "Upper arm - " + self.contraoripsi,
-    #         "Left_Upper_Arm": "Upper arm - " + self.contraoripsi,
-    #         "Upper_Torso": "Upper torso",
-    #         # TODO KV check
-    #     }
-
 
     @cached_property
     def hand_illustrations(self):
