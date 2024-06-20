@@ -38,6 +38,8 @@ class CorpusDisplay(QWidget):
         self.corpusfile_edit.setEnabled(False)
         filename_layout.addWidget(corpusfile_label)
         filename_layout.addWidget(self.corpusfile_edit)
+        self.numentries_label = QLabel("0 total signs")
+        filename_layout.addWidget(self.numentries_label)
         main_layout.addLayout(filename_layout)
 
         self.corpus_model = CorpusModel(settings=self.mainwindow.app_settings, parent=self)
@@ -59,8 +61,8 @@ class CorpusDisplay(QWidget):
         self.corpus_filter_input.setPlaceholderText("Filter corpus entries")
         self.corpus_filter_input.textChanged.connect(self.filter_corpus_list)
         filter_layout.addWidget(self.corpus_filter_input)
-        self.numentries_label = QLabel("0 of 0 shown")
-        filter_layout.addWidget(self.numentries_label)
+        self.numlines_label = QLabel("0 of 0 lines shown")
+        filter_layout.addWidget(self.numlines_label)
         main_layout.addLayout(filter_layout)
 
         main_layout.addWidget(self.corpus_view)
@@ -146,7 +148,7 @@ class CorpusDisplay(QWidget):
         except ValueError:
             self.clear()
 
-        self.update_numentries_label()
+        self.update_summarylabels()
 
     def getproxyindex(self, fromproxyrowcol=None, fromsourceindex=None):
         if fromproxyrowcol:
@@ -178,16 +180,19 @@ class CorpusDisplay(QWidget):
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
+        self.update_summarylabels()
 
     def filter_corpus_list(self):
         self.corpus_sortproxy.setFilterRegExp(self.sender().text())
         self.corpus_view.clearSelection()  # Deselects all signs in the corpus list
-        self.update_numentries_label()
+        self.update_summarylabels()
 
-    def update_numentries_label(self):
-        filteredentries = self.getrowcount()
-        totalentries = self.corpus_model.rowCount()
-        self.numentries_label.setText(str(filteredentries) + " of " + str(totalentries) + " shown")
+    def update_summarylabels(self):
+        totalsigns = len(self.mainwindow.corpus.signs)
+        self.numentries_label.setText(str(totalsigns) + " signs")
+        filteredlines = self.getrowcount()
+        totallines = self.corpus_model.rowCount()
+        self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " lines shown")
 
 class CorpusTableView(QTableView):
     newcurrentindex = pyqtSignal(QModelIndex)
