@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QSpacerItem,
     QSizePolicy,
-    QSpinBox
+    QSpinBox,
+    QMessageBox
 )
 
 from PyQt5.QtCore import (
@@ -130,11 +131,22 @@ class XslotSelectorDialog(QDialog):
             self.reject()
 
         elif standard == QDialogButtonBox.Save:
-            newxslotstructure = self.xslot_widget.getxslots()
+            self.validate_and_save()
+            
+        elif standard == QDialogButtonBox.RestoreDefaults:
+            self.xslot_widget.setxslots(XslotStructure())
+
+    def validate_and_save(self):
+        messagestring = ""
+        newxslotstructure = self.xslot_widget.getxslots()
+        if newxslotstructure.number == 0 and newxslotstructure.additionalfraction == 0:
+            messagestring = "Number of xslots cannot be zero. If you want to turn off xslots, go to Settings -> Preferences -> Sign."
+        if messagestring != "":
+            QMessageBox.critical(self, "Warning", messagestring)
+
+        else:
+            # save info and then close dialog
             self.saved_xslots.emit(newxslotstructure)
             if self.mainwindow.current_sign is not None and newxslotstructure != self.xslotstruct:
                 self.mainwindow.current_sign.lastmodifiednow()
             self.accept()
-
-        elif standard == QDialogButtonBox.RestoreDefaults:
-            self.xslot_widget.setxslots(XslotStructure())

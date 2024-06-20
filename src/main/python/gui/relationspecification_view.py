@@ -476,8 +476,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         return xandy_layout
 
-    # create layout for initiating selection of body parts involved in the X-Y relation
-    def create_bodyparts_box(self):
+    # resets all selected bodyparts to fresh BodyPartModels with no selected elements
+    def clear_bodyparts_dict(self):
         self.bodyparts_dict = {
             HAND: {
                 1: BodypartInfo(bodyparttype=HAND, bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND)),
@@ -492,6 +492,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                 2: BodypartInfo(bodyparttype=LEG, bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG))
             }
         }
+
+    # create layout for initiating selection of body parts involved in the X-Y relation
+    def create_bodyparts_box(self):
+        self.clear_bodyparts_dict()
 
         bodyparts_box = QGroupBox("Body parts")
         box_layout = QVBoxLayout()
@@ -1161,13 +1165,32 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     # clear and enable all GUI elements for direction selection
     def clear_direction_buttons(self):
-        for cb in [self.dirhor_cb, self.dirver_cb, self.dirsag_cb]:
+        for cb in [self.crossed_cb, self.linked_cb, self.dirhor_cb, self.dirver_cb, self.dirsag_cb]:
             cb.setChecked(False)
         for grp in [self.dirhor_group, self.dirver_group, self.dirsag_group]:
             self.clear_group_buttons(grp)
 
         for grpbox in [self.dirhor_box, self.dirver_box, self.dirsag_box]:
             grpbox.setEnabled(True)
+
+    # clear and enable all GUI elements for contact specification
+    def clear_contact_options(self):
+        self.contact_other_text.clear()
+        self.clear_group_buttons(self.contact_group)
+
+    # clear and disable (reset) all selected body parts and relevant GUI elements
+    def clear_bodyparts(self):
+        # clear actual selected content
+        self.clear_bodyparts_dict()
+        self.handpart_button.hascontent = False
+        self.armpart_button.hascontent = False
+        self.legpart_button.hascontent = False
+
+        # reset body part selection buttons
+        self.check_enable_handpartbutton()
+        self.check_enable_armpartbutton()
+        self.check_enable_legpartbutton()
+
 
     # clear and enable all GUI elements for relation module specification
     def clear(self):
@@ -1176,7 +1199,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.clear_direction_buttons()
         self.clear_distance_buttons()
         self.clear_group_buttons(self.manner_group)
-        self.clear_group_buttons(self.contact_group)
+        self.clear_contact_options()
+        self.clear_bodyparts()
 
     def desiredwidth(self):
         return 500
