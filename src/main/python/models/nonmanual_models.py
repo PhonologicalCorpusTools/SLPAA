@@ -385,8 +385,8 @@ mouth = NonManualModel(
               mouth_tongue,
               mouth_cheek],
     subparts=[   # 'subparts' only nominally. it is actually for 'Type of mouth movement'
-        'mouthing / mouth picture [i.e., taken from spoken language]; Specify',
-        'mouth gesture [i.e., inherent to the sign language]; Specify',
+        'mouthing / mouth picture \n[i.e., taken from spoken language]; Specify',
+        'mouth gesture \n[i.e., inherent to the sign language]; Specify',
         'emotional; Specify',
         'other; Specify'
     ]
