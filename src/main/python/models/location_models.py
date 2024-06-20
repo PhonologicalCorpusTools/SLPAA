@@ -240,19 +240,6 @@ class LocnOptionsNode:
     def insert_child(self, node):
         self.children.append(node)
 
-    # def find_child_nodes_by_name(self, displayname, matchcase=True, substring=False, recursive=True):
-    #     searchname = displayname if matchcase else displayname.lower()
-    #     matches = []
-    #
-    #     for childnode in self.children:
-    #         nodename = childnode.display_name if matchcase else childnode.display_name.lower()
-    #         ismatch = (searchname in nodename) if substring else (searchname == nodename)
-    #         if ismatch:
-    #             matches.append(childnode)
-    #         if recursive:
-    #             childmatches = childnode.find_child_nodes_by_name(displayname, matchcase, substring, recursive)
-    #             matches.extend(childmatches)
-    #     return matches
 
 # should these go into constant.py... or somewhere similar?
 locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
