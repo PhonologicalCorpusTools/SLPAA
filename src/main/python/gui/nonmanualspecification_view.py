@@ -557,22 +557,19 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             description_box_layout = QVBoxLayout()
             description_box.setAlignment(Qt.AlignTop)
             nonman.description_group = SLPAAButtonGroup()
-            for type in nonman.subparts:
-                if ';' in type:
-                    type, txt_line = type.split(';')
-                    specify_layout = SpecifyLayout(btn_label=type,
+            for mm_type in nonman.subparts:
+                if ';' in mm_type:
+                    mm_type, txt_line = mm_type.split(';')
+                    specify_layout = SpecifyLayout(btn_label=mm_type,
                                                    text=txt_line)
                     rb_to_add = specify_layout.radio_btn
                     nonman.widget_le_specify = specify_layout.lineEdit
                     description_box_layout.addLayout(specify_layout)
                 else:
-                    rb_to_add = SLPAARadioButton(type)
+                    rb_to_add = SLPAARadioButton(mm_type)
                     description_box_layout.addWidget(rb_to_add)
                 nonman.description_group.addButton(rb_to_add)
             description_box.setLayout(description_box_layout)
-            row1_height = description_box.sizeHint().height()
-            description_box.setFixedHeight(row1_height)
-            sd_rb_groupbox.setFixedHeight(row1_height)
             row.addWidget(description_box)
             row.setStretchFactor(sd_rb_groupbox, 1)
             row.setStretchFactor(description_box, 1)
