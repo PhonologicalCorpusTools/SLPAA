@@ -158,7 +158,7 @@ class CountXslotsDialog(QDialog):
             w_or_a = "w"
 
         for corpusfilepath in self.corpusfilepaths:
-            self.statusdisplay.appendText("\t" + filenamefrompath(corpusfilepath), afternewline=True)
+            self.statusdisplay.appendText("\t" + filenamefrompath(corpusfilepath), joinwithnewline=True)
             if not corpusfilepath.endswith(".slpaa"):
                 self.results_lists["incorrect format"].append(corpusfilepath)
             else:
