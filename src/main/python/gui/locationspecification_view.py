@@ -1059,10 +1059,10 @@ class SVGDisplayTab(QWidget):
                 # restart cycling through
                 nextidx = 0 if order == 1 else -1
 
-            nextaction = elementname_actions[nextidx]
-
-            # simulate triggering selection of this menu item (but without adding it to the selected list)
-            nextaction.handle_selection(imageonly=True)
+            if elementname_actions:  # might be empty if there's no location regions in the spot where the user clicked
+                nextaction = elementname_actions[nextidx]
+                # simulate triggering selection of this menu item (but without adding it to the selected list)
+                nextaction.handle_selection(imageonly=True)
 
     # Sort LocationAction items in input list, according to their position in the location options tree.
     # The tree can be traversed either preorder (top-down) or postorder (bottom-up).
