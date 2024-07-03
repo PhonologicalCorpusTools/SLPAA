@@ -105,7 +105,7 @@ class AppContext(ApplicationContext):
                     if predef_locs[locname][side][hasdiv]:
                         resource_string = self.get_resource('predefined_locations/' +
                                                             colour +
-                                                            '_20240508version/' +  # TODO KV pare down the folders (and get rid of this dated version?)
+                                                            '_20240703version/' +  # TODO KV pare down the folders (and get rid of this dated version?)
                                                             self.fnamestr_by_predef_locns_descr(locname, side) +
                                                             ("_with_Divisions" if hasdiv == self.div else "") + '-' +
                                                             colour +
@@ -449,17 +449,17 @@ class AppContext(ApplicationContext):
                 self.left: {self.nodiv: False, self.div: False},
                 self.right: {self.nodiv: False, self.div: False},
             },
-            # the "Selected fingers and thumb" image(s) are currently not available and shows "Whole hand" in violet instead, as a placeholder for default yellow
+            # the "Selected fingers and thumb" image(s) are currently not available and shows "Fingers and thumb" in violet instead, as a placeholder for default yellow
             "Selected fingers and thumb": {
                 self.both: {self.nodiv: True, self.div: False},
-                self.left: {self.nodiv: True, self.div: False},
-                self.right: {self.nodiv: True, self.div: False},
+                self.left: {self.nodiv: False, self.div: False},
+                self.right: {self.nodiv: False, self.div: False},
             },
-            # the "Selected fingers" image(s) are currently not available and shows "Whole hand" in violet instead, as a placeholder for default yellow
+            # the "Selected fingers" image(s) are currently not available and shows "Fingers" in violet instead, as a placeholder for default yellow
             "Selected fingers": {
                 self.both: {self.nodiv: True, self.div: False},
-                self.left: {self.nodiv: True, self.div: False},
-                self.right: {self.nodiv: True, self.div: False},
+                self.left: {self.nodiv: False, self.div: False},
+                self.right: {self.nodiv: False, self.div: False},
             },
             "Septum": {
                 self.both: {self.nodiv: True, self.div: False},
