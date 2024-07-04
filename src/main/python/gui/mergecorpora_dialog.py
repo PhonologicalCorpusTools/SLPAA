@@ -36,6 +36,7 @@ class MergeCorporaWizard(QWizard):
         self.corpusfilepaths = []
         self.corporatomerge = []
         self.mergedfilepath = ""
+        self.mergesuccessful = False
         self.mergeintoexisting = False
         self.makenewIDs_ifnoconflict = None
         self.makenewIDs_ifconflict = None
@@ -64,9 +65,11 @@ class MergeCorporaWizard(QWizard):
 
     # when the user clicks the "Finish" button, open the newly-merged corpus if applicable
     def onFinish(self, checked):
-        if self.field("openmergedcorpus") and os.path.exists(self.mergedfilepath):
+        if self.field("openmergedcorpus") and os.path.exists(self.mergedfilepath) and self.mergesuccessful:
             # if "Open new merged file ..." on MergeCorporaWizardPage is checked
-            # AND there is actually a newly-merged corpus to open
+            # and the merged path exists
+            #   (but this might be because the user was going to overwrite a previously existing file)
+            # and the merge was successful
             self.mainwindow.load_corpus_info(self.mergedfilepath)
 
     # this logic allows all pages to be followed in the order in which they were added,
@@ -214,6 +217,7 @@ class MergeCorporaWizard(QWizard):
                         results_lists["duplicated lemmas"].append(lemma)
 
                 self.parent().save_corpus_binary(othercorpusandpath=(mergedcorpus, self.mergedfilepath))
+                self.mergesuccessful = True
         return results_lists
 
     # return a list of IDglosses that are duplicated in the corpora to be merged
