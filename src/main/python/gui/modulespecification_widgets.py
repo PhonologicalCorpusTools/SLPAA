@@ -20,7 +20,11 @@ from PyQt5.QtWidgets import (
     QTextEdit
 )
 
-from lexicon.module_classes import AddedInfo
+from PyQt5.QtGui import (
+    QStandardItem,
+)
+
+from lexicon.module_classes import AddedInfo, treepathdelimiter
 
 
 class ModuleSpecificationPanel(QFrame):
@@ -391,3 +395,61 @@ class StatusDisplay(QTextEdit):
         curtext = self.toPlainText()
         separator = "\n" if afternewline else (" " if afterspace else "")
         self.setPlainText(curtext + separator + texttoappend)
+
+
+class TreeSearchComboBox(QComboBox):
+    item_selected = pyqtSignal(QStandardItem)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+
+        if key == Qt.Key_Right:
+
+            if self.currentText():
+                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
+                                                   self.currentText(),
+                                                   delim=treepathdelimiter)
+                if itemstoselect:
+                    for item in itemstoselect:
+                        if item.checkState() == Qt.Unchecked:
+                            item.setCheckState(Qt.PartiallyChecked)
+
+                    targetitem = itemstoselect[-1]
+                    targetitem.setCheckState(Qt.Checked)
+                    self.item_selected.emit(targetitem)
+                    self.setCurrentIndex(-1)
+
+        super().keyPressEvent(event)
+
+
+def gettreeitemsinpath(treemodel, pathstring, delim="/"):
+    pathlist = pathstring.split(delim)
+    pathitemslists = []
+    for level in pathlist:
+        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
+    validpathsoftreeitems = findvaliditemspaths(pathitemslists)
+    return validpathsoftreeitems[0] if len(validpathsoftreeitems) > 0 else []
+
+
+def findvaliditemspaths(pathitemslists):
+    validpaths = []
+    if len(pathitemslists) > 1:  # the path is longer than 1 level
+        for lastitem in pathitemslists[-1]:
+            for secondlastitem in pathitemslists[-2]:
+                if lastitem.parent() == secondlastitem:
+                    higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
+                    for higherpath in higherpaths:
+                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
+                            validpaths.append(higherpath + [lastitem])
+    elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
+        for lastitem in pathitemslists[0]:
+            validpaths.append([lastitem])
+    else:
+        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
+        # but just in case...
+        validpaths = []
+
+    return validpaths

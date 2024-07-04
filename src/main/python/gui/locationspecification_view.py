@@ -23,11 +23,8 @@ from PyQt5.QtWidgets import (
     QFrame
 )
 
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-
 from PyQt5.QtCore import (
     QRectF,
-    QUrl,
     Qt,
     QEvent,
     pyqtSignal,
@@ -38,84 +35,12 @@ from PyQt5.QtGui import (
     QPixmap
 )
 
-from lexicon.module_classes import treepathdelimiter, LocationModule, PhonLocations, userdefinedroles as udr
+from lexicon.module_classes import LocationModule, PhonLocations
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
 from serialization_classes import LocationTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
-
-
-class LocnTreeSearchComboBox(QComboBox):
-    item_selected = pyqtSignal(LocationTreeItem)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.refreshed = True
-        self.lasttextentry = ""
-        self.lastcompletedentry = ""
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        modifiers = event.modifiers()
-
-        if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
-
-            if self.currentText():
-                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
-                                                   self.currentText(),
-                                                   delim=treepathdelimiter)
-                for item in itemstoselect:
-                    if item.checkState() == Qt.Unchecked:
-                        item.setCheckState(Qt.PartiallyChecked)
-                itemstoselect[-1].setCheckState(Qt.Checked)
-                self.item_selected.emit(itemstoselect[-1])
-                self.setCurrentIndex(-1)
-
-        if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
-            if self.refreshed:
-                self.lasttextentry = self.currentText()
-                self.refreshed = False
-
-            if self.lastcompletedentry:
-                # cycle to first line of next entry that starts with the last-entered text
-                foundcurrententry = False
-                foundnextentry = False
-                i = 0
-                while self.completer().setCurrentRow(i) and not foundnextentry:
-                    completionoption = self.completer().currentCompletion()
-                    if completionoption.lower().startswith(self.lastcompletedentry.lower()):
-                        foundcurrententry = True
-                    elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() \
-                            and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
-                        foundnextentry = True
-                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
-                            self.setEditText(
-                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
-                        else:
-                            self.setEditText(completionoption)
-                        self.lastcompletedentry = self.currentText()
-                    i += 1
-            else:
-                # cycle to first line of first entry that starts with the last-entered text
-                foundnextentry = False
-                i = 0
-                while self.completer().setCurrentRow(i) and not foundnextentry:
-                    completionoption = self.completer().currentCompletion()
-                    if completionoption.lower().startswith(self.lasttextentry.lower()):
-                        foundnextentry = True
-                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
-                            self.setEditText(
-                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
-                        else:
-                            self.setEditText(completionoption)
-                        self.lastcompletedentry = self.currentText()
-                    i += 1
-
-        else:
-            self.refreshed = True
-            self.lasttextentry = ""
-            self.lastcompletedentry = ""
-            super().keyPressEvent(event)
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, \
+    TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
 
 
 class LocationGraphicsView(QGraphicsView):
@@ -168,36 +93,6 @@ class LocationTableView(QTableView):
         locntablemodel = LocationTableModel(parent=self)
         self.setModel(locntablemodel)
         self.horizontalHeader().resizeSections(QHeaderView.Stretch)
-
-
-def gettreeitemsinpath(treemodel, pathstring, delim="/"):
-    pathlist = pathstring.split(delim)
-    pathitemslists = []
-    for level in pathlist:
-        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
-    validpathsoftreeitems = findvaliditemspaths(pathitemslists)
-    return validpathsoftreeitems[0]
-
-
-def findvaliditemspaths(pathitemslists): 
-    validpaths = []
-    if len(pathitemslists) > 1:  # the path is longer than 1 level
-        for lastitem in pathitemslists[-1]:
-            for secondlastitem in pathitemslists[-2]:
-                if lastitem.parent() == secondlastitem:
-                    higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
-                    for higherpath in higherpaths:
-                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
-                            validpaths.append(higherpath + [lastitem])
-    elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
-        for lastitem in pathitemslists[0]:
-            validpaths.append([lastitem])
-    else:
-        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
-        # but just in case...
-        validpaths = []
-
-    return validpaths
 
 
 class LocationOptionsSelectionPanel(QFrame):
@@ -307,7 +202,7 @@ class LocationOptionsSelectionPanel(QFrame):
 
         search_layout.addWidget(QLabel("Enter tree node"))
 
-        self.combobox = LocnTreeSearchComboBox(parent=self)
+        self.combobox = TreeSearchComboBox(parent=self)
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
@@ -374,8 +269,6 @@ class LocationOptionsSelectionPanel(QFrame):
         self.sortcombo.addItems(
             ["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
-        # self.sortcombo.completer().setCompletionMode(QCompleter.PopupCompletion)
-        # self.sortcombo.currentTextChanged.connect(self.listproxymodel.sort(self.sortcombo.currentText()))
         self.sortcombo.currentTextChanged.connect(self.sort)
         buttons_layout.addWidget(self.sortcombo)
         buttons_layout.addStretch()
