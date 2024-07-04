@@ -147,11 +147,11 @@ class MergeCorporaWizard(QWizard):
             "successful results": [],
             "duplicated glosses": [],
             "duplicated lemmas": [],
+            "duplicated ID-glosses": []
         }
 
         glosses_seen = defaultdict(list)
         lemmas_seen = defaultdict(list)
-        duplicated_IDglosses = {}
 
         # check file formats
         validfilenames = [fname for fname in self.corpusfilepaths if fname.endswith(".slpaa")]
@@ -166,12 +166,14 @@ class MergeCorporaWizard(QWizard):
             # give up and cancel the merge
             results_lists["conflicting Entry IDs"].append("merge canceled due to conflicting EntryIDs")
         else:
-            duplicated_IDglosses = {k:0 for k in self.checkforoverlap_IDglosses()}
+            duplicated_IDglosses = self.checkforoverlap_IDglosses()
+            dupl_IDglosses_counters = {k:0 for k in duplicated_IDglosses}
             if len(duplicated_IDglosses) > 0:
-                firstduplicate = list(duplicated_IDglosses.keys())[0]
+                results_lists["duplicated ID-glosses"] = duplicated_IDglosses
+                firstduplicate = duplicated_IDglosses[0]
                 response = QMessageBox.question(self, "Duplicated ID-glosses",
                                                 "The corpora you selected have one or more overlapping ID-glosses (" +
-                                                ", ".join(duplicated_IDglosses.keys()) + "), which are not permitted. " +
+                                                ", ".join(duplicated_IDglosses) + "), which are not permitted. " +
                                                 "Click 'OK' to proceed with the merge and append numerals to the " +
                                                 "duplicated ID-glosses (e.g. " + firstduplicate + "1, " + firstduplicate + "2) " +
                                                 "or 'Cancel' to exit this wizard and edit the ID-glosses yourself before trying again.",
@@ -179,44 +181,44 @@ class MergeCorporaWizard(QWizard):
                 if response == QMessageBox.Cancel:
                     # also cancel out of the whole merge wizard
                     self.button(QWizard.CancelButton).click()
-                    return
+                    return results_lists
                 # else: continue on with the merge, but make sure to tag the duplicated ID-glosses
 
-                # go ahead with the merge, either making new EntryIDs or keeping the existing ones as per user specification
-                # and tagging any duplicated ID-glosses, if applicable
-                for idx, corpustoadd in enumerate(self.corporatomerge):
-                    corpuspath = validfilenames[idx]
-                    if corpustoadd is None:
-                        pass
-                        results_lists["failed to load"].append(corpuspath)
-                    else:
+            # go ahead with the merge, either making new EntryIDs or keeping the existing ones as per user specification
+            # and tagging any duplicated ID-glosses, if applicable
+            for idx, corpustoadd in enumerate(self.corporatomerge):
+                corpuspath = validfilenames[idx]
+                if corpustoadd is None:
+                    pass
+                    results_lists["failed to load"].append(corpuspath)
+                else:
+                    if self.makenewIDs_ifnoconflict or self.makenewIDs_ifconflict:
+                        next_entryID = mergedcorpus.highestID
+                    for sign in corpustoadd.signs:
+                        sli = sign.signlevel_information
                         if self.makenewIDs_ifnoconflict or self.makenewIDs_ifconflict:
-                            next_entryID = mergedcorpus.highestID
-                        for sign in corpustoadd.signs:
-                            sli = sign.signlevel_information
-                            if self.makenewIDs_ifnoconflict or self.makenewIDs_ifconflict:
-                                next_entryID += 1
-                                sli.entryid.counter = next_entryID
-                            # else: use existing Entry ID (so, nothing to change)
-                            # tag duplicatd ID-gloss with index, if applicable
-                            if sli.idgloss in duplicated_IDglosses.keys():
-                                duplicated_IDglosses[sli.idgloss] += 1
-                                sli.idgloss += str(duplicated_IDglosses[sli.idgloss])
+                            next_entryID += 1
+                            sli.entryid.counter = next_entryID
+                        # else: use existing Entry ID (so, nothing to change)
+                        # tag duplicatd ID-gloss with index, if applicable
+                        if sli.idgloss in dupl_IDglosses_counters.keys():
+                            dupl_IDglosses_counters[sli.idgloss] += 1
+                            sli.idgloss += str(dupl_IDglosses_counters[sli.idgloss])
 
-                            mergedcorpus.add_sign(sign)
-                            for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:
-                                glosses_seen[gloss].append(corpuspath)
-                            lemma = sli.lemma.lower().strip()
-                            if lemma != "":
-                                lemmas_seen[lemma].append(corpuspath)
-                        mergedcorpus.confirmhighestID("merge")
-                        results_lists["successful results"].append(corpuspath)
+                        mergedcorpus.add_sign(sign)
+                        for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:
+                            glosses_seen[gloss].append(corpuspath)
+                        lemma = sli.lemma.lower().strip()
+                        if lemma != "":
+                            lemmas_seen[lemma].append(corpuspath)
+                    mergedcorpus.confirmhighestID("merge")
+                    results_lists["successful results"].append(corpuspath)
 
                 for (gloss, corpuslist) in glosses_seen.items():
-                    if len(corpuslist) > 1:
+                    if len(corpuslist) > 1 and gloss not in results_lists["duplicated glosses"]:
                         results_lists["duplicated glosses"].append(gloss)
                 for (lemma, corpuslist) in lemmas_seen.items():
-                    if len(corpuslist) > 1:
+                    if len(corpuslist) > 1 and lemma not in results_lists["duplicated lemmas"]:
                         results_lists["duplicated lemmas"].append(lemma)
 
                 self.parent().save_corpus_binary(othercorpusandpath=(mergedcorpus, self.mergedfilepath))
@@ -228,7 +230,7 @@ class MergeCorporaWizard(QWizard):
         idglosses_in_merge = [sign.signlevel_information.idgloss.lower().strip() for corpus in self.corporatomerge for sign in corpus.signs]
         seen = set()
         dupes = []
-        for idgloss in idglosses_in_merge:
+        for idgloss in [idgloss for idgloss in idglosses_in_merge if idgloss != ""]:
             if idgloss in seen:
                 dupes.append(idgloss)
             else:
@@ -438,7 +440,7 @@ class MergeCorporaWizardPage(QWizardPage):
         statuslayout.addWidget(self.statusdisplay)
         pagelayout.addLayout(statuslayout)
 
-        self.openmergedfilecb = QCheckBox("Open new merged file")
+        self.openmergedfilecb = QCheckBox("Open new merged file when this dialog box is closed")
         self.openmergedfilecb.toggled.connect(self.openmergedcorpus.emit)
         pagelayout.addWidget(self.openmergedfilecb)
 
