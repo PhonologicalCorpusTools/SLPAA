@@ -39,7 +39,6 @@ class MergeCorporaWizard(QWizard):
         self.mergeintoexisting = False
         self.makenewIDs_ifnoconflict = None
         self.makenewIDs_ifconflict = None
-        self.openmergedcorpus = False
 
         fileselection_page = FilesSelectionWizardPage(self.app_settings)
         fileselection_page.corpusfilesselected.connect(self.handle_corpusfilesselected)
@@ -57,7 +56,6 @@ class MergeCorporaWizard(QWizard):
 
         self.mergecorpora_page = MergeCorporaWizardPage()
         self.mergecorpora_page.mergecorpora.connect(self.handle_merge_corpora)
-        self.mergecorpora_page.openmergedcorpus.connect(self.handle_open_mergedcorpus)
         self.mergecorpora_pageid = self.addPage(self.mergecorpora_page)
 
         self.setWindowTitle("Merge Corpora")
@@ -66,7 +64,9 @@ class MergeCorporaWizard(QWizard):
 
     # when the user clicks the "Finish" button, open the newly-merged corpus if applicable
     def onFinish(self, checked):
-        if self.openmergedcorpus:
+        if self.field("openmergedcorpus") and os.path.exists(self.mergedfilepath):
+            # if "Open new merged file ..." on MergeCorporaWizardPage is checked
+            # AND there is actually a newly-merged corpus to open
             self.mainwindow.load_corpus_info(self.mergedfilepath)
 
     # this logic allows all pages to be followed in the order in which they were added,
@@ -92,14 +92,6 @@ class MergeCorporaWizard(QWizard):
 
     def handle_mergedfileselected(self, filepath):
         self.mergedfilepath = filepath
-
-    # openmergedcorpus attribute is set to True iff the user wants to open the new corpus when it's ready
-    #   AND the merged file exists
-    def handle_open_mergedcorpus(self, openmergedfile):
-        # make sure that
-        #   (a) the user actually wanted to open the new corpus once it's merged, and
-        #   (b) there even is a new corpus, because maybe it was canceled due to EntryID conflict
-        self.openmergedcorpus = openmergedfile and os.path.exists(self.mergedfilepath)
 
     # ensure the appropriate corpora to merge are selected
     #   (make sure current corpus is either not selected, or not selected twice, as applicable)
@@ -418,7 +410,6 @@ class MergedNameLocationWizardPage(QWizardPage):
 # it also shows a status display and offers the user an option to open the newly-merged corpus upon exiting the wizard
 class MergeCorporaWizardPage(QWizardPage):
     mergecorpora = pyqtSignal()
-    openmergedcorpus = pyqtSignal(bool)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -441,7 +432,7 @@ class MergeCorporaWizardPage(QWizardPage):
         pagelayout.addLayout(statuslayout)
 
         self.openmergedfilecb = QCheckBox("Open new merged file when this dialog box is closed")
-        self.openmergedfilecb.toggled.connect(self.openmergedcorpus.emit)
+        self.registerField("openmergedcorpus", self.openmergedfilecb)
         pagelayout.addWidget(self.openmergedfilecb)
 
         self.setLayout(pagelayout)
