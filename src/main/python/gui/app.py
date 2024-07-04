@@ -80,9 +80,9 @@ class AppContext(ApplicationContext):
     @cached_property
     def default_location_images(self):
         return {
-            'back': self.get_resource('predefined_locations/Back_View.svg'),
-            'front': self.get_resource('predefined_locations/Front_View.svg'),
-            'side': self.get_resource('predefined_locations/Side_View.svg')
+            'back': self.get_resource('predefined_locations/defaultviews_20240703version/Back_View.svg'),
+            'front': self.get_resource('predefined_locations/defaultviews_20240703version/Front_View.svg'),
+            'side': self.get_resource('predefined_locations/defaultviews_20240703version/Side_View.svg')
         }
 
     @cached_property
