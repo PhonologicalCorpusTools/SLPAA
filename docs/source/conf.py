@@ -43,7 +43,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'sphinx_rtd_theme',
+    # 'sphinx_rtd_theme',
     # 'numpydoc',
     # 'corpustools.sphinx.ipatexescape'
 ]
