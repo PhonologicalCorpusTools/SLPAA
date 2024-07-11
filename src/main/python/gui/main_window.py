@@ -55,7 +55,8 @@ from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
-from constant import SAMPLE_LOCATIONS, filenamefrompath
+from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from lexicon.module_classes import treepathdelimiter, LocationType
 from lexicon.lexicon_classes import Corpus
 from serialization_classes import renamed_load
 
@@ -680,6 +681,14 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
+        self.app_settings['location']['default_loctype_1h'] = self.app_qsettings.value('default_loctype_1h', defaultValue="purely spatial")
+        self.app_settings['location']['default_loctype_2h'] = self.app_qsettings.value('default_loctype_2h', defaultValue='purely spatial')
+        self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h', 
+                                                                                   defaultValue=DEFAULT_LOC_1H,
+                                                                                    type=str)
+        self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h', 
+                                                                                   defaultValue=DEFAULT_LOC_2H,
+                                                                                    type=str)
         self.app_qsettings.endGroup()  # location
 
     def check_storage(self):

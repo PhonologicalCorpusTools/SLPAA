@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QLayout,
+    QSizePolicy,
     QFormLayout,
     QTabWidget,
     QSpinBox,
@@ -17,13 +18,17 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QMessageBox,
     QPushButton,
-    QComboBox
+    QComboBox,
+    QSpacerItem
 )
 
-from PyQt5.QtCore import pyqtSignal, QSettings
+from PyQt5.QtCore import Qt, pyqtSignal, QSettings
 
-from constant import FRACTION_CHAR
+from constant import FRACTION_CHAR, HAND, ARM, LEG, DEFAULT_LOC_2H, DEFAULT_LOC_1H
 from fractions import Fraction
+from lexicon.module_classes import treepathdelimiter
+from gui.locationspecification_view import LocationOptionsSelectionPanel, LocationType
+from models.location_models import LocationTreeModel
 
 
 # This tab facilitates user interaction with display-related settings in the preference dialog.
@@ -491,9 +496,168 @@ class LocationTab(QWidget):
                 break
         main_layout.addRow(QLabel('Default location type:'), self.locationtype_layout)
 
+        self.defaultneutral_layout = QVBoxLayout()
+        self.defaultneutral_1h_button = QPushButton("Change default neutral one-handed location")
+        self.defaultneutral_2h_button = QPushButton("Change default neutral two-handed location")
+        self.defaultneutral_layout.addWidget(self.defaultneutral_1h_button)
+        self.defaultneutral_layout.addWidget(self.defaultneutral_2h_button)
+        self.defaultneutral_1h_button.clicked.connect(lambda: self.change_default_neutral(1))
+        self.defaultneutral_2h_button.clicked.connect(lambda: self.change_default_neutral(2))
+        main_layout.addRow(QLabel('Default neutral location:'), self.defaultneutral_layout)
+    
+    def change_default_neutral(self, numhands):
+        self.locationselector = DefaultNeutralDialog(numhands, parent=self)
+        self.locationselector.exec_()
+        
+
     def save_settings(self):
         self.settings['location']['loctype'] = self.locationtype_group.checkedButton().property('loctype')
 
+class DefaultNeutralDialog(QDialog):
+
+    def __init__(self, numhands, **kwargs):
+        super().__init__(**kwargs)
+        self.mainlayout = QVBoxLayout()
+        self.numhands = numhands
+        self.get_current_defaults()
+        
+        self.setLayout(self.mainlayout)
+
+        self.loctypelayout = QHBoxLayout()
+        self.loctypelabel = QLabel("Signing space: ")
+        self.loctypelayout.addWidget(self.loctypelabel)
+
+        self.loctype_group = QButtonGroup(parent=self)
+        self.loctype_group.buttonClicked.connect(self.on_loctype_selected)
+        self.bodyanchored_rb = QRadioButton("body-anchored")
+        self.purelyspatial_rb = QRadioButton("purely spatial")
+        self.loctype_group.addButton(self.bodyanchored_rb)
+        self.loctype_group.addButton(self.purelyspatial_rb)
+        for b in self.loctype_group.buttons():
+            b.setChecked(b.text() == self.loctype)
+
+        self.loctypelayout.addWidget(self.bodyanchored_rb)
+        self.loctypelayout.addWidget(self.purelyspatial_rb)
+
+        self.mainlayout.addLayout(self.loctypelayout)
+
+        self.recreate_treeandlistmodels()
+
+        self.locationoptionsselectionpanel = LocationOptionsSelectionPanel(treemodeltoload=self.currenttreemodel, displayvisualwidget=False, parent=self)
+        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(self.bodyanchored_rb.isChecked())
+        self.enablelocationtools()
+        self.mainlayout.addWidget(self.locationoptionsselectionpanel)        
+        
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.clicked.connect(self.handle_button_click)
+
+        self.mainlayout.addWidget(self.button_box)
+
+    def recreate_treeandlistmodels(self):
+        self.treemodel_body = LocationTreeModel()
+        self.treemodel_body.locationtype = LocationType(body=True)
+        self.treemodel_body.populate(self.treemodel_body.invisibleRootItem())
+        self.treemodel_spatial = LocationTreeModel()
+        self.treemodel_spatial.locationtype = LocationType(signingspace=True, purelyspatial=True)
+        self.treemodel_spatial.populate(self.treemodel_spatial.invisibleRootItem())
+
+        self.listmodel_body = self.treemodel_body.listmodel
+        self.listmodel_spatial = self.treemodel_spatial.listmodel
+
+        self.currenttreemodel = self.treemodel_spatial
+        if self.bodyanchored_rb.isChecked():
+            self.currenttreemodel = self.treemodel_body
+        self.currenttreemodel.addcheckedvalues(self.currenttreemodel.invisibleRootItem(), self.locs)
+    
+    def get_current_defaults(self):
+        if self.numhands == 1:
+            self.loctype = self.parent().settings['location']['default_loctype_1h']
+            self.locs = self.parent().settings['location']['default_loc_1h']
+
+        else:
+            self.loctype = self.parent().settings['location']['default_loctype_2h']
+            self.locs = self.parent().settings['location']['default_loc_2h']
+    
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Cancel:
+            self.reject()
+
+        elif standard == QDialogButtonBox.Save:
+            self.validate_and_save()
+
+        elif standard == QDialogButtonBox.RestoreDefaults:
+            self.restore_defaults()
+
+    def validate_and_save(self):
+        messagestring = ""
+        paths = self.locationoptionsselectionpanel.get_listed_paths()
+        if len(paths) == 0:
+            messagestring += "Default neutral location cannot be empty."
+
+        if messagestring != "":
+            # refuse to save without valid module selections
+            # warn user that there's missing and/or invalid info and don't let them save
+            QMessageBox.critical(self, "Warning", messagestring)
+        else:
+            # save info and then close dialog
+            if self.numhands == 1:
+                self.parent().settings['location']['default_loc_1h'] = paths
+                self.parent().settings['location']['default_loctype_1h'] = self.loctype
+            elif self.numhands == 2:
+                self.parent().settings['location']['default_loc_2h'] = paths
+                self.parent().settings['location']['default_loctype_2h'] = self.loctype
+            self.accept()
+        
+    def restore_defaults(self):
+        hands = "one-handed" if self.numhands == 1 else "two-handed"
+        result = QMessageBox.warning(self,
+                                         "Restore",
+                                         "Are you sure you want to restore the definition of the " + hands +  " default neutral location to the original system setting?",
+                                         QMessageBox.Ok | QMessageBox.Cancel,
+                                         QMessageBox.Cancel)
+        if result == QMessageBox.Ok:
+            if self.numhands == 1:
+                self.parent().settings['location']['default_loc_1h'] = DEFAULT_LOC_1H
+                self.parent().settings['location']['default_loctype_1h'] = "purely spatial"
+            else:
+                self.parent().settings['location']['default_loc_2h'] = DEFAULT_LOC_2H
+                self.parent().settings['location']['default_loctype_2h'] = "purely spatial"
+            self.purelyspatial_rb.setChecked(True)
+            self.get_current_defaults()
+            self.recreate_treeandlistmodels()
+            self.enablelocationtools()
+
+
+
+    def on_loctype_selected(self, btn):
+        if btn == self.bodyanchored_rb:
+            self.loctype = "body-anchored"
+        elif btn == self.purelyspatial_rb:
+            self.loctype = "purely spatial"
+        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(btn != self.purelyspatial_rb)
+        self.enablelocationtools()
+
+    def enablelocationtools(self):
+        # self.refresh_listproxies()
+        if self.loctype == "body-anchored":
+            self.locationoptionsselectionpanel.treemodel = self.treemodel_body
+        elif self.loctype == "purely spatial":
+            self.locationoptionsselectionpanel.treemodel = self.treemodel_spatial
+        self.locationoptionsselectionpanel.refresh_listproxies()
+
+        
+        # use current locationtype (from buttons) to determine whether/how things get enabled
+        isbodyanchored = self.loctype == "body-anchored"
+        # self.locationoptionsselectionpanel.locationselectionwidget.setlocationtype(self.getcurrentlocationtype(), treemodel=self.getcurrenttreemodel())
+        self.locationoptionsselectionpanel.enableImageTabs(isbodyanchored)
+        self.locationoptionsselectionpanel.combobox.setEnabled(True)
+        self.locationoptionsselectionpanel.pathslistview.setEnabled(True)
+        self.locationoptionsselectionpanel.update_detailstable(None, None)
+        self.locationoptionsselectionpanel.detailstableview.setEnabled(isbodyanchored)
+        
+    
 
 # This is the global settings dialog that users access via the Settings menu.
 class PreferenceDialog(QDialog):
@@ -504,7 +668,6 @@ class PreferenceDialog(QDialog):
 
     def __init__(self, settings, timingfracsinuse, **kwargs):
         super().__init__(**kwargs)
-
         self.settings = settings
         self.timingfractions_inuse = timingfracsinuse
 

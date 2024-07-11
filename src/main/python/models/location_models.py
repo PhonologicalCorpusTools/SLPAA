@@ -507,13 +507,9 @@ class LocationTreeModel(QStandardItemModel):
             else:
                 self._multiple_selection_allowed = False
             if hasattr(serializedlocntree, "defaultneutralselected"):
-                
                 self.defaultneutralselected = serializedlocntree.defaultneutralselected
                 self.defaultneutrallist = serializedlocntree.defaultneutrallist
 
-            else:
-                self.defaultneutralselected = False
-                self.defaultneutrallist = None
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
             makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
