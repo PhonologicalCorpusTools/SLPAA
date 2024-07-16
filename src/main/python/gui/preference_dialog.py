@@ -503,7 +503,10 @@ class LocationTab(QWidget):
         self.defaultneutral_layout.addWidget(self.defaultneutral_2h_button)
         self.defaultneutral_1h_button.clicked.connect(lambda: self.change_default_neutral(1))
         self.defaultneutral_2h_button.clicked.connect(lambda: self.change_default_neutral(2))
-        main_layout.addRow(QLabel('Default neutral location:'), self.defaultneutral_layout)
+        self.autocheck_neutral_cb = QCheckBox("Automatically select 'This location is neutral' when 'Apply neutral settings' button is pressed")
+        self.autocheck_neutral_cb.setChecked(self.settings['location']['autocheck_neutral'])
+        self.defaultneutral_layout.addWidget(self.autocheck_neutral_cb)
+        main_layout.addRow(QLabel('Default neutral location:'), self.defaultneutral_layout)        
     
     def change_default_neutral(self, numhands):
         self.locationselector = DefaultNeutralDialog(numhands, parent=self)
@@ -512,6 +515,7 @@ class LocationTab(QWidget):
 
     def save_settings(self):
         self.settings['location']['loctype'] = self.locationtype_group.checkedButton().property('loctype')
+        self.settings['location']['autocheck_neutral'] = self.autocheck_neutral_cb.isChecked()
 
 class DefaultNeutralDialog(QDialog):
 

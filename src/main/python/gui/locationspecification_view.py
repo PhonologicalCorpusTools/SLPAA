@@ -690,6 +690,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
     def handle_toggle_neutral_pb(self):
         
+        
         is_spatial = self.default_neutral_loctype() == "purely spatial"
 
         # self.signingspacespatial_radio.setEnabled(is_spatial)
@@ -699,15 +700,19 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         self.recreate_treeandlistmodels()
         treemodel = self.getcurrenttreemodel()
-        treemodel.defaultneutralselected = True
-        if treemodel.defaultneutrallist is None:
-            # The default neutral changes depending on whether the sign type is 1h or 2h
-            if self.is_onehanded_sign():
-                treemodel.defaultneutrallist = self.mainwindow.app_settings['location']['default_loc_1h']
-            else: # if unspecified, choose twohanded values
-                treemodel.defaultneutrallist = self.mainwindow.app_settings['location']['default_loc_2h']
+        neutrallist = []
+        # The default neutral changes depending on whether the sign type is 1h or 2h
+        if self.is_onehanded_sign():
+            neutrallist = self.mainwindow.app_settings['location']['default_loc_1h']
+        else: # if unspecified, choose twohanded values
+            neutrallist = self.mainwindow.app_settings['location']['default_loc_2h']
 
-        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), treemodel.defaultneutrallist)
+        if self.mainwindow.app_settings['location']['autocheck_neutral']:
+            self.markneutral_cb.setChecked(True)
+            treemodel.defaultneutralselected = True 
+            treemodel.defaultneutrallist = neutrallist
+
+        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), neutrallist)
         self.enablelocationtools()
     
     def handle_toggle_neutral_cb(self, btn):
