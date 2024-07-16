@@ -470,21 +470,12 @@ class PhonLocSelection(QWidget):
         self.phonological_cb.setChecked(True)
     
     def set_phonloc_buttons_from_content(self, phonlocs):
-        self.clear_phonlocs_buttons()
         self.majorphonloc_cb.setChecked(phonlocs.majorphonloc)
         self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
         self.phonological_cb.setChecked(phonlocs.phonologicalloc)
         self.phonetic_cb.setChecked(phonlocs.phoneticloc)
         self.majorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
         self.minorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
-    
-    def clear_phonlocs_buttons(self):
-        self.majorphonloc_cb.setChecked(False)
-        self.minorphonloc_cb.setChecked(False)
-        self.phonological_cb.setChecked(False)
-        self.phonetic_cb.setChecked(False)
-        self.majorphonloc_cb.setEnabled(True)
-        self.minorphonloc_cb.setEnabled(True)
         
     def getcurrentphonlocs(self):
         phonlocs = PhonLocations(
@@ -516,5 +507,13 @@ class PhonLocSelection(QWidget):
         self.phonetic_cb = QCheckBox("Phonetic")
         phonloc_layout.addWidget(self.phonetic_cb)
         phonloc_layout.addStretch()
-        self.setLayout(phonloc_layout) 
+        self.setLayout(phonloc_layout)
+
+        # Set default state
+        self.majorphonloc_cb.setEnabled(False)
+        self.minorphonloc_cb.setEnabled(False)
+        self.majorphonloc_cb.setChecked(False)
+        self.minorphonloc_cb.setChecked(False)
+        self.phonological_cb.setChecked(False)
+        self.phonetic_cb.setChecked(False)
 
