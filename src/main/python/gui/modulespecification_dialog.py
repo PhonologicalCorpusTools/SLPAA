@@ -34,8 +34,7 @@ from gui.handconfigspecification_view import HandConfigSpecificationPanel
 from gui.relationspecification_view import RelationSpecificationPanel
 from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
-from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
-from gui.phonloc_widget import PhonLocSelection
+from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector, PhonLocSelection
 from constant import HAND, ARM, LEG
 
 
@@ -89,11 +88,11 @@ class ModuleSelectorDialog(QDialog):
                                                                  parent=self)
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
-        self.arts_and_addedinfo_layout.addStretch()
         self.phonloc_selection= PhonLocSelection(); 
         if phonlocstoload is not None:
             self.phonloc_selection.set_phonloc_buttons_from_content(phonlocstoload)
         self.arts_and_addedinfo_layout.addWidget(self.phonloc_selection)
+        self.arts_and_addedinfo_layout.addStretch()
         self.addedinfobutton = AddedInfoPushButton("Module notes")
         self.addedinfobutton.addedinfo = addedinfo
         self.arts_and_addedinfo_layout.addWidget(self.addedinfobutton)

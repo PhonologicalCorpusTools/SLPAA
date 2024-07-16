@@ -22,7 +22,6 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QWidget,
     QSpacerItem,
-    QSizePolicy,
     QFrame,
     QScrollArea,
     QMenu,
@@ -403,15 +402,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         )
         return locationtype
 
-    # def getcurrentphonlocs(self):
-    #     phonlocs = PhonLocations(
-    #         phonologicalloc=self.phonological_cb.isChecked(),
-    #         majorphonloc=self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
-    #         minorphonloc=self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
-    #         phoneticloc=self.phonetic_cb.isChecked()
-    #     )
-    #     return phonlocs
-
     def create_loctype_layout(self):
         loctype_layout = QHBoxLayout()
 
@@ -504,6 +494,18 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
 
+    def update_detailstable(self, selected, deselected):
+        selectedindexes = self.pathslistview.selectionModel().selectedIndexes()
+        if len(selectedindexes) == 1:  # the details pane reflects the (single) selection
+            itemindex = selectedindexes[0]
+            listitemindex = self.pathslistview.model().mapToSource(itemindex)
+            selectedlistitem = self.pathslistview.model().sourceModel().itemFromIndex(listitemindex)
+            self.detailstableview.setModel(selectedlistitem.treeitem.detailstable)
+        else:  # 0 or >1 rows selected; the details pane is blank
+            self.detailstableview.setModel(LocationTreeItem().detailstable)
+
+        self.detailstableview.horizontalHeader().resizeSections(QHeaderView.Stretch)
+
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
@@ -576,21 +578,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
-
-    # def set_phonloc_buttons_from_content(self, phonlocs):
-    #     self.clear_phonlocs_buttons()
-    #     self.majorphonloc_cb.setChecked(phonlocs.majorphonloc)
-    #     self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
-    #     self.phonological_cb.setChecked(phonlocs.phonologicalloc)
-    #     self.phonetic_cb.setChecked(phonlocs.phoneticloc)
-
-    # def clear_phonlocs_buttons(self):
-    #     self.majorphonloc_cb.setChecked(False)
-    #     self.minorphonloc_cb.setChecked(False)
-    #     self.phonological_cb.setChecked(False)
-    #     self.phonetic_cb.setChecked(False)
-    #     self.majorphonloc_cb.setEnabled(True)
-    #     self.minorphonloc_cb.setEnabled(True)
 
     def clear(self):
         """Restore GUI to the defaults."""

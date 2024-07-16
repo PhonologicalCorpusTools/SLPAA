@@ -19,6 +19,9 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QListView,
     QStyledItemDelegate,
+    QSpacerItem,
+    QSizePolicy,
+    QGridLayout,
     QTextEdit
 )
 
@@ -401,7 +404,6 @@ class StatusDisplay(QTextEdit):
         separator = "" if curtext == "" else ("\n" if joinwithnewline else (" " if joinwithspace else ""))
         self.setPlainText(curtext + separator + texttoappend)
 
-
 class TreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(QStandardItem)
 
@@ -473,6 +475,8 @@ class PhonLocSelection(QWidget):
         self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
         self.phonological_cb.setChecked(phonlocs.phonologicalloc)
         self.phonetic_cb.setChecked(phonlocs.phoneticloc)
+        self.majorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
+        self.minorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
     
     def clear_phonlocs_buttons(self):
         self.majorphonloc_cb.setChecked(False)
@@ -494,30 +498,23 @@ class PhonLocSelection(QWidget):
 
     def __init__(self): 
         super().__init__() 
-        phonological_layout = QVBoxLayout()
+        phonloc_layout  = QVBoxLayout()
         self.phonological_cb = QCheckBox("Phonological")
         self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
-        phonological_layout.addWidget(self.phonological_cb)
-        phonological_sublayout = QHBoxLayout()
+        phonloc_layout.addWidget(self.phonological_cb)
+
         self.majorphonloc_cb = QCheckBox("Major")
         self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
         self.minorphonloc_cb = QCheckBox("Minor")
         self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        phonological_sublayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        phonological_sublayout.addWidget(self.majorphonloc_cb)
-        phonological_sublayout.addWidget(self.minorphonloc_cb)
-        phonological_sublayout.addStretch()
-        phonological_layout.addLayout(phonological_sublayout)
+        phonological_sublayout = QGridLayout()
+        phonological_sublayout.addWidget(self.majorphonloc_cb, 0,1)
+        phonological_sublayout.addWidget(self.minorphonloc_cb, 1,1)
+        phonological_sublayout.addItem(QSpacerItem(25,0), 0,0)
+        phonloc_layout.addLayout(phonological_sublayout)
 
-        phonetic_layout = QVBoxLayout()
         self.phonetic_cb = QCheckBox("Phonetic")
-        phonetic_layout.addWidget(self.phonetic_cb)
-        phonetic_layout.addStretch()
-
-        layout= QHBoxLayout()
-        self.setLayout(layout) 
-        layout.addLayout(phonological_layout)
-        layout.addLayout(phonetic_layout)
-        layout.addStretch()
-
+        phonloc_layout.addWidget(self.phonetic_cb)
+        phonloc_layout.addStretch()
+        self.setLayout(phonloc_layout) 
 
