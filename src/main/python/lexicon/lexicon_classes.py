@@ -83,7 +83,7 @@ class Sign:
             self.locationmodulenumbers = serializedsign['loc module numbers'] if 'loc module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.LOCATION)
             self.orientationmodules = serializedsign['ori modules']
             self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
-            self.handconfigmodules = serializedsign['cfg modules']
+            self.unserializehandconfigmodules(serializedsign['cfg modules'])
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
             self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
             self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
@@ -322,6 +322,21 @@ class Sign:
                                              phonlocs=phonlocs, addedinfo=addedinfo)
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
+
+
+    def unserializehandconfigmodules(self, serialized_hcfgmodules):
+        for k in serialized_hcfgmodules.keys():
+            serialmodule = serialized_hcfgmodules[k]
+            # Needed for backwards compatibility
+            serialmodule.phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
+        self.handconfigmodules = serialized_hcfgmodules
+
+    def unserializenonmanualmodules(self, serialized_nonmanualmodules):
+        for k in serialized_nonmanualmodules.keys():
+            serialmodule = serialized_nonmanualmodules[k]
+            # Needed for backwards compatibility
+            serialmodule.phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
+        self.handconfigmodules = serialized_nonmanualmodules
 
     # technically this should not be implemented, because Sign objects are mutable
     # but a Corpus is implemented as a set of Sign objects, so we need a hash function

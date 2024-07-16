@@ -1098,7 +1098,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
                                        overalloptions=overalloptions,
                                        articulators=articulators,
                                        timingintervals=timingintervals,
-                                       phonlocs =phonlocs,
+                                       phonlocs=phonlocs,
                                        addedinfo=addedinfo)
         if self.existingkey is not None:
             hcfg.uniqueid = self.existingkey

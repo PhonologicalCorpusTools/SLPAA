@@ -99,9 +99,7 @@ class ParameterModule:
 
     def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._articulators = articulators
-        if phonlocs is None:
-            phonlocs = PhonLocations()
-        self._phonlocs = phonlocs
+        self._phonlocs = phonlocs if phonlocs is not None else PhonLocations()
         self._timingintervals = []
         if timingintervals is not None:
             self.timingintervals = timingintervals
@@ -1235,14 +1233,6 @@ class LocationModule(ParameterModule):
     def locationtreemodel(self, locationtreemodel):
         self._locationtreemodel = locationtreemodel
 
-    # @property
-    # def phonlocs(self):
-    #     return self._phonlocs
-
-    # @phonlocs.setter
-    # def phonlocs(self, phonlocs):
-    #     self._phonlocs = phonlocs
-
     @property
     def inphase(self):
         return self._inphase
@@ -1594,7 +1584,7 @@ class RelationModule(ParameterModule):
             Direction(axis=Direction.VERTICAL),
             Direction(axis=Direction.SAGITTAL),
         ]
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=None, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property
     def relationx(self):
@@ -2131,7 +2121,8 @@ class HandConfigurationModule(ParameterModule):
     def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=None, addedinfo=addedinfo)
+        print(phonlocs)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property
     def handconfiguration(self):
@@ -2205,10 +2196,9 @@ class HandConfigurationHand:
 
 
 class NonManualModule(ParameterModule):
-    def __init__(self, nonman_specs, articulators, timingintervals=None, addedinfo=None):
+    def __init__(self, nonman_specs, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._nonmanual = nonman_specs
-
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
         pass
 
 
