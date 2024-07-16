@@ -97,8 +97,11 @@ userdefinedroles = UserDefinedRoles({
 # common ancestor for (eg) HandshapeModule, MovementModule, etc
 class ParameterModule:
 
-    def __init__(self, articulators, timingintervals=None, addedinfo=None):
+    def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._articulators = articulators
+        if phonlocs is None:
+            phonlocs = PhonLocations()
+        self._phonlocs = phonlocs
         self._timingintervals = []
         if timingintervals is not None:
             self.timingintervals = timingintervals
@@ -127,6 +130,14 @@ class ParameterModule:
     @articulators.setter
     def articulators(self, articulators):
         self._articulators = articulators
+    
+    @property
+    def phonlocs(self):
+        return self._phonlocs
+
+    @phonlocs.setter
+    def phonlocs(self, phonlocs):
+        self._phonlocs = phonlocs
 
     @property
     def uniqueid(self):
@@ -443,10 +454,10 @@ class SignLevelInformation:
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected movement
 # as well as for the module overall.
 class MovementModule(ParameterModule):
-    def __init__(self, movementtreemodel, articulators, timingintervals=None, addedinfo=None, inphase=0):
+    def __init__(self, movementtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase    # TODO KV is "inphase" actually the best name for this attribute?
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property
     def movementtreemodel(self):
@@ -1211,13 +1222,10 @@ class BodypartInfo:
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected location
 # as well as for the module overall.
 class LocationModule(ParameterModule):
-    def __init__(self, locationtreemodel, articulators, timingintervals=None, addedinfo=None, phonlocs=None, inphase=0):
-        if phonlocs is None:
-            phonlocs = PhonLocations()
+    def __init__(self, locationtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._locationtreemodel = locationtreemodel
         self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
-        self._phonlocs = phonlocs
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property
     def locationtreemodel(self):
@@ -1227,13 +1235,13 @@ class LocationModule(ParameterModule):
     def locationtreemodel(self, locationtreemodel):
         self._locationtreemodel = locationtreemodel
 
-    @property
-    def phonlocs(self):
-        return self._phonlocs
+    # @property
+    # def phonlocs(self):
+    #     return self._phonlocs
 
-    @phonlocs.setter
-    def phonlocs(self, phonlocs):
-        self._phonlocs = phonlocs
+    # @phonlocs.setter
+    # def phonlocs(self, phonlocs):
+    #     self._phonlocs = phonlocs
 
     @property
     def inphase(self):
@@ -1569,7 +1577,7 @@ class RelationY:
 
 class RelationModule(ParameterModule):
 
-    def __init__(self, relationx, relationy, bodyparts_dict, contactrel, xy_crossed, xy_linked, directionslist, articulators, timingintervals=None, addedinfo=None):
+    def __init__(self, relationx, relationy, bodyparts_dict, contactrel, xy_crossed, xy_linked, directionslist, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
         self._bodyparts_dict = {}
@@ -1586,7 +1594,7 @@ class RelationModule(ParameterModule):
             Direction(axis=Direction.VERTICAL),
             Direction(axis=Direction.SAGITTAL),
         ]
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=None, addedinfo=addedinfo)
 
     @property
     def relationx(self):
@@ -2080,7 +2088,7 @@ class Distance:
 # It includes specifications for palm and root directions.
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for the module overall.
 class OrientationModule(ParameterModule):
-    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, addedinfo=None):
+    def __init__(self, palmdirs_list, rootdirs_list, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._palm = palmdirs_list or [
             Direction(axis=Direction.HORIZONTAL),
             Direction(axis=Direction.VERTICAL),
@@ -2092,7 +2100,7 @@ class OrientationModule(ParameterModule):
             Direction(axis=Direction.SAGITTAL)
         ]
 
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property
     def palm(self):
@@ -2120,10 +2128,10 @@ class OrientationModule(ParameterModule):
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for each slot,
 # forearm, and the hand config overall.
 class HandConfigurationModule(ParameterModule):
-    def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, addedinfo=None):
+    def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
-        super().__init__(articulators, timingintervals=timingintervals, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=None, addedinfo=addedinfo)
 
     @property
     def handconfiguration(self):

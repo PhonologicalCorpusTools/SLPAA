@@ -97,7 +97,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.check_enable_allsubmenus()
 
     # return a Relation Module composed of the currently-specified data in the GUI
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
 
         relmod = RelationModule(relationx=self.getcurrentx(),
                                 relationy=self.getcurrenty(),
@@ -108,6 +108,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                 directionslist=self.getcurrentdirections(),
                                 articulators=articulators,
                                 timingintervals=timingintervals,
+                                phonlocs=phonlocs,
                                 addedinfo=addedinfo,
                                 )
         if self.existingkey is not None:

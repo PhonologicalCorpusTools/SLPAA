@@ -2,7 +2,7 @@ import logging
 import os
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
+from lexicon.module_classes import PhonLocations, SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -166,8 +166,14 @@ class Sign:
             articulators = serialmodule.articulators
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
+<<<<<<< HEAD
             addedinfo = serialmodule.addedinfo
             unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+=======
+            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
+            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
+>>>>>>> c6c266e6 (moved component to parent, updated loading and saving modules)
             unserialized[k].uniqueid = k
         self.movementmodules = unserialized
 
@@ -183,9 +189,15 @@ class Sign:
             serialmodule = serialized_locnmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
+<<<<<<< HEAD
             addedinfo = serialmodule.addedinfo
             phonlocs = serialmodule.phonlocs
             inphase = serialmodule.inphase
+=======
+            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
+            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
+>>>>>>> c6c266e6 (moved component to parent, updated loading and saving modules)
 
             serialtree = serialmodule.locationtree
 
@@ -238,12 +250,12 @@ class Sign:
                     }
                 }
                 # relation module should not have contact or manner or distance specified
-                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, addedinfo=addedinfo)
+                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
                 self.addmodule(convertedrelationmodule, ModuleTypes.RELATION)
 
             else:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
-                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
+                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase=inphase)
                 unserialized[k].uniqueid = k
         self.locationmodules = unserialized
 
@@ -259,7 +271,12 @@ class Sign:
             serialmodule = serialized_relmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
+<<<<<<< HEAD
             addedinfo = serialmodule.addedinfo
+=======
+            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()
+            phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
+>>>>>>> c6c266e6 (moved component to parent, updated loading and saving modules)
             relationx = serialmodule.relationx
             relationy = serialmodule.relationy
             bodyparts_dict = {
@@ -302,7 +319,7 @@ class Sign:
             unserialized[k] = RelationModule(relationx, relationy, bodyparts_dict, contactrel,
                                              xy_crossed, xy_linked, directionslist=directions,
                                              articulators=articulators, timingintervals=timingintervals,
-                                             addedinfo=addedinfo)
+                                             phonlocs=phonlocs, addedinfo=addedinfo)
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
 

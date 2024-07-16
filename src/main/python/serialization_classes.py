@@ -18,6 +18,7 @@ class ParameterModuleSerializable:
         self._articulators = parammod.articulators
         self.timingintervals = parammod.timingintervals
         self._addedinfo = parammod.addedinfo
+        self.phonlocs = parammod.phonlocs
 
     @property
     def addedinfo(self):
