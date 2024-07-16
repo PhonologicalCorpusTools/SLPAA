@@ -20,7 +20,6 @@ from PyQt5.QtWidgets import (
     QListView,
     QStyledItemDelegate,
     QSpacerItem,
-    QSizePolicy,
     QGridLayout,
     QTextEdit
 )

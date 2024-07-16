@@ -38,7 +38,7 @@ from PyQt5.QtCore import (
     QPointF
 )
 
-from lexicon.module_classes import treepathdelimiter, LocationModule, PhonLocations, userdefinedroles as udr
+from lexicon.module_classes import LocationModule
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel, locn_options_body
 from serialization_classes import LocationTreeSerializable
