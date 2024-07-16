@@ -330,13 +330,11 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.recreate_treeandlistmodels()
 
         loctypetoload = None
-        # phonlocstoload = None
         treemodeltoload = None
 
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.existingkey = moduletoload.uniqueid
             loctypetoload = moduletoload.locationtreemodel.locationtype
-            # phonlocstoload = moduletoload.phonlocs
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
             treemodeltoload = LocationTreeModel(LocationTreeSerializable(moduletoload.locationtreemodel))
@@ -353,7 +351,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         # set buttons and treemodel according to the existing module being loaded (if applicable)
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.set_loctype_buttons_from_content(loctypetoload)
-            # self.set_phonloc_buttons_from_content(phonlocstoload)
             self.setcurrenttreemodel(treemodeltoload)
         else:
             self.clear_loctype_buttons_to_default()
