@@ -45,7 +45,7 @@ from PyQt5.QtGui import (
 # from gui.hand_configuration import ConfigGlobal, Config
 from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
-from gui.helper_widget import CollapsibleSection, ToggleSwitch
+from gui.helper_widget import ToggleSwitch
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
