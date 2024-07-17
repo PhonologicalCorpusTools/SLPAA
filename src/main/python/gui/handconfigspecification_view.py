@@ -791,7 +791,7 @@ class ConfigHand(QWidget):
         self.preview_clearbtn_layout = QHBoxLayout()  # layout for predefined image, predefined label, and clear btn
         self.predefined_image = QLabel()
         self.predefined_image.setToolTip('Predefined handshape image matching the current transcription')
-        self.predefined_image.setFixedSize(50, 50)
+        self.predefined_image.setFixedSize(100, 100)
         handshape_image = QPixmap(self.predefined_ctx['empty'])
         self.predefined_image.setPixmap(
             handshape_image.scaled(self.predefined_image.width(), self.predefined_image.height(), Qt.KeepAspectRatio)
