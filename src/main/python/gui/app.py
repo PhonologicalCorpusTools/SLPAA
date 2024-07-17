@@ -80,9 +80,9 @@ class AppContext(ApplicationContext):
     @cached_property
     def default_location_images(self):
         return {
-            'back': self.get_resource('predefined_locations/defaultviews_20240703version/Back_View.svg'),
-            'front': self.get_resource('predefined_locations/defaultviews_20240703version/Front_View.svg'),
-            'side': self.get_resource('predefined_locations/defaultviews_20240703version/Side_View.svg')
+            'back': self.get_resource('predefined_locations/defaultviews_20240703/Back_View.svg'),
+            'front': self.get_resource('predefined_locations/defaultviews_20240703/Front_View.svg'),
+            'side': self.get_resource('predefined_locations/defaultviews_20240703/Side_View.svg')
         }
 
     @cached_property
@@ -105,7 +105,7 @@ class AppContext(ApplicationContext):
                     if predef_locs[locname][side][hasdiv]:
                         resource_string = self.get_resource('predefined_locations/' +
                                                             colour +
-                                                            '_20240703version/' +  # TODO KV pare down the folders (and get rid of this dated version?)
+                                                            '_20240703/' +
                                                             self.fnamestr_by_predef_locns_descr(locname, side) +
                                                             ("_with_Divisions" if hasdiv == self.div else "") + '-' +
                                                             colour +
