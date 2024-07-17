@@ -873,7 +873,7 @@ class SVGDisplayTab(QWidget):
         img_layout.addWidget(self.imgscroll)
         self.imgscroll.img_clicked.connect(self.handle_img_clicked)
         self.imgscroll.key_released.connect(self.handle_key_released)
-        self.imgscroll.setToolTip("L-click to cycle through regions; R-click for menu; D to toggle divisons; S to select region")
+        self.imgscroll.setToolTip("L-click to cycle through regions; R-click for menu; D key to toggle divisons; S key to select region")
         main_layout.addLayout(img_layout)
 
         zoom_layout = QVBoxLayout()
