@@ -31,6 +31,7 @@ class MergeCorporaWizard(QWizard):
 
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
+        self.setOption(QWizard.IndependentPages, True)
         self.app_settings = app_settings
         self.mainwindow = self.parent()
         self.corpusfilepaths = []
