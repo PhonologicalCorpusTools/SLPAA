@@ -379,7 +379,7 @@ class Sign:
         for attr in currentmod_attrs:
             if attr in updatedmod_attrs and currentmod_attrs[attr] != updatedmod_attrs[attr]:
                 # TODO note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
-                # therefore copies (even if identical) of these classes will not be assessed as equal
+                #   therefore copies (even if identical) of these classes will not be assessed as equal
                 currentmod_attrs[attr] = updatedmod_attrs[attr]
                 ischanged = True
         if ischanged:
