@@ -39,7 +39,7 @@ from PyQt5.QtCore import (
     QPointF
 )
 
-
+from lexicon.module_classes import LocationModule, PhonLocations
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel, locn_options_body
 from serialization_classes import LocationTreeSerializable
