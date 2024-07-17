@@ -761,7 +761,8 @@ class MainWindow(QMainWindow):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
 
-    def on_action_merge_corpora(self):
+    @check_unsaved_change
+    def on_action_merge_corpora(self, clicked):
         merge_corpora_wizard = MergeCorporaWizard(self.app_settings, parent=self)
         merge_corpora_wizard.show()
 
