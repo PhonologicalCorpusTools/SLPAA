@@ -61,7 +61,7 @@ class CorpusDisplay(QWidget):
         self.corpus_filter_input.setPlaceholderText("Filter corpus entries")
         self.corpus_filter_input.textChanged.connect(self.filter_corpus_list)
         filter_layout.addWidget(self.corpus_filter_input)
-        self.numlines_label = QLabel("0 of 0 lines shown")
+        self.numlines_label = QLabel("0 of 0 glosses shown")
         filter_layout.addWidget(self.numlines_label)
         main_layout.addLayout(filter_layout)
 
@@ -192,7 +192,7 @@ class CorpusDisplay(QWidget):
         self.numentries_label.setText(str(totalsigns) + " signs")
         filteredlines = self.getrowcount()
         totallines = self.corpus_model.rowCount()
-        self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " lines shown")
+        self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " glosses shown")
 
 class CorpusTableView(QTableView):
     newcurrentindex = pyqtSignal(QModelIndex)

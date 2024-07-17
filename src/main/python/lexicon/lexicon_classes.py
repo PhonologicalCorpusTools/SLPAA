@@ -377,8 +377,8 @@ class Sign:
         currentmod_attrs = current_module.__dict__
         updatedmod_attrs = updated_module.__dict__
         for attr in currentmod_attrs:
-            if currentmod_attrs[attr] != updatedmod_attrs[attr]:
-                # TODO KV note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
+            if attr in updatedmod_attrs and currentmod_attrs[attr] != updatedmod_attrs[attr]:
+                # TODO note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
                 # therefore copies (even if identical) of these classes will not be assessed as equal
                 currentmod_attrs[attr] = updatedmod_attrs[attr]
                 ischanged = True
