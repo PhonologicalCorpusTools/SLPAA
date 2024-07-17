@@ -60,6 +60,7 @@ class MergeCorporaWizard(QWizard):
         self.button(QWizard.FinishButton).clicked.connect(self.onFinish)
 
     def clear_statusdisplay(self):
+        self.mergecorpora_page.mergeattempted = False
         self.mergecorpora_page.statusdisplay.clear()
 
     # when the user clicks the "Finish" button, open the newly-merged corpus if applicable
@@ -272,8 +273,6 @@ class FilesSelectionWizardPage(QWizardPage):
 # wizard page that asks the user to decide what to do with Entry IDs in case the ones from the various merging corpora
 # (a) don't conflict or (b) do conflict
 class EntryIDStrategyWizardPage(QWizardPage):
-    newIDs_ifnoconflict = pyqtSignal(bool)
-    newIDs_ifconflict = pyqtSignal(bool)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
