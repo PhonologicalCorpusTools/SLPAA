@@ -937,8 +937,6 @@ class MainWindow(QMainWindow):
 
         self.load_corpus_info(file_name)
 
-        self.unsaved_changes = False
-
         return self.corpus is not None
 
     # load corpus info from given path
@@ -953,6 +951,8 @@ class MainWindow(QMainWindow):
             self.signsummary_panel.refreshsign(None)
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
+
+        self.unsaved_changes = False
 
     def on_action_close(self, clicked):
         self.close()
@@ -984,6 +984,7 @@ class MainWindow(QMainWindow):
                                             question1 + question2 + moreinfo)
             if response == QMessageBox.Yes:
                 self.corpus.remove_sign(self.current_sign)
+                self.unsaved_changes = True
                 self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
 
     def flag_and_refresh(self, sign=None):
