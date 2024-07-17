@@ -123,10 +123,17 @@ class MergeCorporaWizard(QWizard):
 
         # check if EntryIDs overlap at all
         entryIDs_overlap = self.checkforoverlap_entryIDs()
-        if entryIDs_overlap and not self.field("conflict_newIDs"):
-            # give up and cancel the merge
+
+        if entryIDs_overlap and self.field("conflict_cancel"):
+            # there is overlap, and the user said to cancel the merge in the case of overlap
+            # so, give up and cancel the merge
             results_lists["conflicting Entry IDs"].append("merge canceled due to conflicting EntryIDs")
+            return results_lists
         else:
+            # go ahead with the merge, whether with new IDs or not (as specified by user)
+            makenewIDs = (entryIDs_overlap and self.field("conflict_newIDs")) or self.field("noconflict_newIDs")
+
+            # check for duplicated IDglosses
             duplicated_IDglosses = self.checkforoverlap_IDglosses()
             dupl_IDglosses_counters = {k:0 for k in duplicated_IDglosses}
             if len(duplicated_IDglosses) > 0:
@@ -153,7 +160,6 @@ class MergeCorporaWizard(QWizard):
                     pass
                     results_lists["failed to load"].append(corpuspath)
                 else:
-                    makenewIDs = self.field("noconflict_newIDs") or self.field("conflict_newIDs")
                     if makenewIDs:
                         next_entryID = mergedcorpus.highestID
                     for sign in corpustoadd.signs:
