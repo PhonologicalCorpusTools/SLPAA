@@ -17,4 +17,6 @@ dist/*
 !dist/SLPAA-win64*.zip
 !dist/SLPAA-macos*.zip
 
-src/main/resources/base/predefined_locations/change_filename_colours.py
+src/main/resources/base/predefined_locations/svg_utility_scripts/
+src/main/resources/base/predefined_locations/*_20240508version_noplaceholders/
+
