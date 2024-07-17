@@ -20,6 +20,7 @@ from gui.modulespecification_widgets import ModuleSpecificationPanel
 class SLPAARadioButton(RelationRadioButton):
     def __init__(self, text, **kwargs):
         super().__init__(text, **kwargs)
+        self.setMinimumHeight(15)
 
     def setChecked(self, checked):
         # override RelationRadioButton's setChecked() method to deal with programmatically unselected btns.
@@ -60,8 +61,11 @@ class SpecifyLayout(QHBoxLayout):
     def __init__(self, btn_label, text):
         super().__init__()
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+
         # radio button
         self.radio_btn = SLPAARadioButton(btn_label)
+        if '\n' in btn_label:
+            self.radio_btn.setMinimumHeight(30)
         self.radio_btn.toggled.connect(self.radio_button_toggled)
         self.addWidget(self.radio_btn)
 
@@ -242,7 +246,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # different major non manual tabs
         self.tab_widget = NMTabWidget()                   # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)   # Create and add tabs to the tab widget
-        self.tab_widget.setMinimumHeight(1200)
         self.setLayout(main_layout)
 
         scroll_area = QScrollArea(self)
@@ -449,18 +452,45 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                                                                                           nonman.widget_cb_neutral,
                                                                                           tab_widget))
 
-        row_1 = self.build_row1(nonman)  # [ static / dynamic ] [ Sub-parts ]
-        row_2 = self.build_row2(nonman)  # action / state
-        row_3 = self.build_row3(nonman)  # mvmt characteristics
+        # row 1: [ static / dynamic ] [ Sub-parts ]
+        row_1 = self.build_row1(nonman)
+        container_row_1 = QWidget()
+        container_row_1.setLayout(row_1)
+        scrollable_row1 = QScrollArea()
+        scrollable_row1.setWidget(container_row_1)
+        scrollable_row1.setWidgetResizable(True)
+        scrollable_row1.setMaximumHeight(150)
+        tab_widget.layout.addWidget(scrollable_row1)
 
-        rows = [row_1, row_2, row_3]
-        [tab_widget.layout.addLayout(row) for row in rows if row is not None]
+        # row 2: action / state
+        row_2 = self.build_row2(nonman)
+        tab_widget.layout.addWidget(row_2)
+
+        # row 3: mvmt characteristics
+        row_3 = self.build_row3(nonman)
+        container_row_3 = QWidget()
+        container_row_3.setLayout(row_3)
+        tab_widget.layout.addWidget(container_row_3)
+
+        # gui debug (draw borders for checking sizes)
+        #if container_row_1 is not None:
+        #    container_row_1.setStyleSheet("border: 2px solid blue;")
+        #if row_2 is not None:
+        #    row_2.setStyleSheet("border: 2px solid red;")
+        #if container_row_3 is not None:
+        #    container_row_3.setStyleSheet("border: 2px solid black;")
 
         if nonman.children:
             subtabs_container = NMTabWidget()
             for sub_category in nonman.children:
-                sub_tab = self.gen_tab_widget(sub_category, parent=nonman)
-                subtabs_container.addTab(sub_tab, sub_category.label)
+                sub_tab = self.gen_tab_widget(sub_category, parent=nonman)  # create sub_tab content
+
+                # create container for sub_tab (scrollable)
+                scrollable_sub_tab = QScrollArea()
+                scrollable_sub_tab.setMinimumHeight(200)
+                scrollable_sub_tab.setWidgetResizable(True)
+                scrollable_sub_tab.setWidget(sub_tab)
+                subtabs_container.addTab(scrollable_sub_tab, sub_category.label)
             tab_widget.layout.addWidget(subtabs_container)
 
         tab_widget.setLayout(tab_widget.layout)
@@ -699,9 +729,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.action_state is None:
             return None
 
-        row = QHBoxLayout()
-        row.setAlignment(Qt.AlignTop)
-
         # Action / state group
 
         action_state_groupbox = QGroupBox("Action / state")  # static/dynamic radio buttons group
@@ -716,10 +743,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         scrollable = QScrollArea()
         scrollable.setWidget(action_state_groupbox)
         scrollable.setWidgetResizable(True)
-        #scrollable.setMinimumHeight(150)
-        row.addWidget(scrollable)
-
-        return row
+        scrollable.setMinimumHeight(100)
+        return scrollable
 
     def parse_actionstate(self, parent, options):
         """
@@ -805,7 +830,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                     else:
                         self.parse_actionstate(parent=options, options=child)
                         sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
-                        sub_spacedlayout.setStretchFactor(options.widget_grouplayout_actionstate, 1)
+                        #sub_spacedlayout.setStretchFactor(options.widget_grouplayout_actionstate, 1)
                 main_layout.addLayout(sub_spacedlayout)
             parent.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
