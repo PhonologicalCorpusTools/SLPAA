@@ -1,9 +1,0 @@
-
-      .cls-100 {
-        stroke: none;
-      }
-
-      .cls-100 {
-        fill: none;
-      }
-    </style>
