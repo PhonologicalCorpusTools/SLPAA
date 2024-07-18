@@ -49,6 +49,7 @@ class AppContext(ApplicationContext):
             'delete': self.get_resource('icons/delete.png'),
             'load': self.get_resource('icons/load.png'),
             'load16': self.get_resource('icons/load16.png'),
+            'load_blue': self.get_resource('icons/load_blue.png'),
             'paste': self.get_resource('icons/paste.png'),
             'plus': self.get_resource('icons/plus.png'),
             'save': self.get_resource('icons/disk.png'),

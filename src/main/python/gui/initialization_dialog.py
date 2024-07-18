@@ -41,7 +41,7 @@ class InitializationDialog(QDialog):
 
         load_sample_button = QToolButton(parent=self)
         load_sample_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-        load_sample_button.setIcon(QIcon(app_ctx.icons['load']))
+        load_sample_button.setIcon(QIcon(app_ctx.icons['load_blue']))
         load_sample_button.setIconSize(QSize(32, 32))
         load_sample_button.setText('Load sample')
         load_sample_button.clicked.connect(lambda clicked: self.load_corpus(load_func, clicked, sample=True))
@@ -54,7 +54,7 @@ class InitializationDialog(QDialog):
         separate_line1 = QFrame()
         separate_line1.setFrameShape(QFrame.HLine)
         separate_line1.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(separate_line1, 1, 0, 1, 2)
+        main_layout.addWidget(separate_line1, 1, 0, 1, 3)
 
         # Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         buttons = QDialogButtonBox.Close
