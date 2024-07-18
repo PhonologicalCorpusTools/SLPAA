@@ -391,9 +391,9 @@ class StatusDisplay(QTextEdit):
         # self.setStyleSheet("border: 1px solid black;")  # from when this used to be a QLabel
         self.setReadOnly(True)
 
-    def appendText(self, texttoappend, afternewline=False, afterspace=False):
+    def appendText(self, texttoappend, joinwithnewline=False, joinwithspace=False):
         curtext = self.toPlainText()
-        separator = "\n" if afternewline else (" " if afterspace else "")
+        separator = "" if curtext == "" else ("\n" if joinwithnewline else (" " if joinwithspace else ""))
         self.setPlainText(curtext + separator + texttoappend)
 
 
