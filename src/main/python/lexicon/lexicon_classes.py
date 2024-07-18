@@ -452,7 +452,8 @@ class Corpus:
         entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs] or [0]
         max_entryID = max(entryIDcounters)
         if max_entryID > self.highestID:
-            logging.warn(" upon " + actionname + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
+            if actionname != "merge":
+                logging.warn(" upon " + actionname + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
 
     def increaseminID(self, newmin):
