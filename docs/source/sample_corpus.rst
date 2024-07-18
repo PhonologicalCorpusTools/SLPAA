@@ -4,6 +4,11 @@
 About the Sample Corpus
 ************************
 
+.. todo::
+   - migrate the information about sign identifiers to its own section and cross-reference
+   - migrate the references to the master references section
+   - add cross-references to the various documentation parts about specific modules (e.g. the movement module when referred to in the description of a particular entry)
+
 .. _background_sample_corpus:
 
 1. Background on the Sample Corpus
