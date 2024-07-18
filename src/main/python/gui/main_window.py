@@ -189,6 +189,12 @@ class MainWindow(QMainWindow):
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
+        # load sample corpus
+        action_load_sample = QAction(QIcon(self.app_ctx.icons['load_blue']), "Load sample...", parent=self)
+        action_load_sample.setStatusTip("Load the sample corpus file")
+        action_load_sample.triggered.connect(lambda clicked: self.on_action_load_corpus(clicked, sample=True))
+        action_load_sample.setCheckable(False)
+
         # merge corpora into this one or into a new separate file
         action_merge_corpora = QAction("Merge corpora...", parent=self)
         action_merge_corpora.setStatusTip("Merge two or more corpora")
@@ -290,6 +296,7 @@ class MainWindow(QMainWindow):
         menu_file = main_menu.addMenu('&File')
         menu_file.addAction(action_new_corpus)
         menu_file.addAction(action_load_corpus)
+        menu_file.addAction(action_load_sample)
         menu_file.addAction(action_merge_corpora)
         menu_file.addSeparator()
         # TODO this needs an overhaul
@@ -924,17 +931,23 @@ class MainWindow(QMainWindow):
         mincounter_dialog.exec_()
 
     @check_unsaved_change
-    def on_action_load_corpus(self, clicked):
-        file_name, file_type = QFileDialog.getOpenFileName(self,
-                                                           self.tr('Open Corpus'),
-                                                           self.app_settings['storage']['recent_folder'],
-                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
-        if not file_name:
-            # the user cancelled out of the dialog
-            return False
-        folder, _ = os.path.split(file_name)
-        if folder:
-            self.app_settings['storage']['recent_folder'] = folder
+    def on_action_load_corpus(self, clicked, sample=False):
+        if not sample:
+            # load a .slpaa file from local storage
+            file_name, file_type = QFileDialog.getOpenFileName(self,
+                                                               self.tr('Open Corpus'),
+                                                               self.app_settings['storage']['recent_folder'],
+                                                               self.tr('SLP-AA Corpus (*.slpaa)'))
+            if not file_name:
+                # the user cancelled out of the dialog
+                return False
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.app_settings['storage']['recent_folder'] = folder
+        else:
+            # load sample corpus
+            file_name = self.app_ctx.sample_corpus['path']
+
 
         self.load_corpus_info(file_name)
 
