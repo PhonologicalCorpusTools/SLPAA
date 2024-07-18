@@ -91,7 +91,7 @@ RED
 
 
 UNDERSTAND
-  * based on the following sign from the *Canadian Dictionary of ASL* (Bailey & Dolby 2002):
+ * based on the following sign from the *Canadian Dictionary of ASL* (Bailey & Dolby 2002):
 
   .. image:: images/UNDERSTAND_CD-ASL_entry.png
       :width: 750
