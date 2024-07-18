@@ -272,3 +272,9 @@ class AppContext(ApplicationContext):
 
             'open-palm': self.get_resource('predefined/open-palm.png')
         }
+    @cached_property
+    def sample_corpus(self):
+        return {
+            'path': self.get_resource('corpora/SLPAA_sample_corpus.slpaa')
+        }
+

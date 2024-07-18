@@ -920,17 +920,23 @@ class MainWindow(QMainWindow):
         mincounter_dialog.exec_()
 
     @check_unsaved_change
-    def on_action_load_corpus(self, clicked):
-        file_name, file_type = QFileDialog.getOpenFileName(self,
-                                                           self.tr('Open Corpus'),
-                                                           self.app_settings['storage']['recent_folder'],
-                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
-        if not file_name:
-            # the user cancelled out of the dialog
-            return False
-        folder, _ = os.path.split(file_name)
-        if folder:
-            self.app_settings['storage']['recent_folder'] = folder
+    def on_action_load_corpus(self, clicked, sample=False):
+        if not sample:
+            # load a .slpaa file from local storage
+            file_name, file_type = QFileDialog.getOpenFileName(self,
+                                                               self.tr('Open Corpus'),
+                                                               self.app_settings['storage']['recent_folder'],
+                                                               self.tr('SLP-AA Corpus (*.slpaa)'))
+            if not file_name:
+                # the user cancelled out of the dialog
+                return False
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.app_settings['storage']['recent_folder'] = folder
+        else:
+            # load sample corpus
+            file_name = self.app_ctx.sample_corpus['path']
+
 
         self.corpus = self.load_corpus_binary(file_name)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))

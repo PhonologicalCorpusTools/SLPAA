@@ -39,8 +39,17 @@ class InitializationDialog(QDialog):
         load_corpus_button.setText('Load corpus')
         load_corpus_button.clicked.connect(lambda clicked: self.load_corpus(load_func, clicked))
 
+        load_sample_button = QToolButton(parent=self)
+        load_sample_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        load_sample_button.setIcon(QIcon(app_ctx.icons['load']))
+        load_sample_button.setIconSize(QSize(32, 32))
+        load_sample_button.setText('Load sample')
+        load_sample_button.clicked.connect(lambda clicked: self.load_corpus(load_func, clicked, sample=True))
+
         main_layout.addWidget(blank_corpus_button, 0, 0, 1, 1)
         main_layout.addWidget(load_corpus_button, 0, 1, 1, 1)
+        main_layout.addWidget(load_sample_button, 0, 2, 1, 1)
+
 
         separate_line1 = QFrame()
         separate_line1.setFrameShape(QFrame.HLine)
@@ -52,7 +61,7 @@ class InitializationDialog(QDialog):
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.button_box.clicked.connect(self.handle_button_click)
 
-        main_layout.addWidget(self.button_box, 2, 0, 1, 2)
+        main_layout.addWidget(self.button_box, 2, 1, 1, 2)
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -64,9 +73,10 @@ class InitializationDialog(QDialog):
         blank_func(clicked)
         self.accept()
 
-    def load_corpus(self, load_func, clicked):
+    def load_corpus(self, load_func, clicked, sample=False):
         # clicked: checked or not, so always false
-        response = load_func(clicked)
+        # sample: bool. whether loading the sample corpus. default to False and let user load local .slpaa file
+        response = load_func(clicked, sample=sample)
         if response:
             self.accept()
 
