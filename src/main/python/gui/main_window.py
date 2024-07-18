@@ -194,6 +194,12 @@ class MainWindow(QMainWindow):
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
+        # load sample corpus
+        action_load_sample = QAction(QIcon(self.app_ctx.icons['load16']), "Load sample...", parent=self)
+        action_load_sample.setStatusTip("Load the sample corpus file")
+        action_load_sample.triggered.connect(lambda clicked: self.on_action_load_corpus(clicked, sample=True))
+        action_load_sample.setCheckable(False)
+
         # close
         action_close = QAction('Close', parent=self)
         action_close.setStatusTip('Close the application')
@@ -288,6 +294,7 @@ class MainWindow(QMainWindow):
         menu_file = main_menu.addMenu('&File')
         menu_file.addAction(action_new_corpus)
         menu_file.addAction(action_load_corpus)
+        menu_file.addAction(action_load_sample)
         menu_file.addSeparator()
         menu_file.addAction(action_export_handshape_transcription_csv)
         menu_file.addSeparator()
