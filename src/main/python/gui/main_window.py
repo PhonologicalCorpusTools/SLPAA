@@ -865,6 +865,10 @@ class MainWindow(QMainWindow):
 
     @check_unsaved_corpus
     def on_action_save(self, clicked):
+        if self.corpus.path == self.app_ctx.sample_corpus['path']:
+            # if the user tries to 'save' the example corpus, do 'save as' instead.
+            self.on_action_saveas(clicked=False)
+
         if self.corpus.path:
             self.save_corpus_binary()
             self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
@@ -873,6 +877,9 @@ class MainWindow(QMainWindow):
         self.undostack.clear()
 
     def on_action_saveas(self, clicked):
+        if self.corpus.path == self.app_ctx.sample_corpus['path']:
+            self.corpus.path = os.path.expanduser("~")  # if saving the example corpus, hid the real path to the example
+
         file_name, _ = QFileDialog.getSaveFileName(self,
                                                    self.tr('Save Corpus'),
                                                    self.corpus.path or os.path.join(
