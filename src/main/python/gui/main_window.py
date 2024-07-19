@@ -865,9 +865,10 @@ class MainWindow(QMainWindow):
 
     @check_unsaved_corpus
     def on_action_save(self, clicked):
-        if self.corpus.path == self.app_ctx.sample_corpus['path']:
+        if self.corpus.path in [self.app_ctx.sample_corpus['path'], os.path.expanduser("~")]:
             # if the user tries to 'save' the example corpus, do 'save as' instead.
             self.on_action_saveas(clicked=False)
+            return
 
         if self.corpus.path:
             self.save_corpus_binary()
