@@ -1,0 +1,133 @@
+Hanshape Name,slot2,slot3,slot4,slot5,slot6,slot7,slot8,slot9,slot10,slot11,slot12,slot13,slot14,slot15,slot16,slot17,slot18,slot19,slot20,slot21,slot22,slot23,slot24,slot25,slot26,slot27,slot28,slot29,slot30,slot31,slot32,slot33,slot34
+1,O,=,i,i,fr,d,∅,/,b,m,-,2,-,-,1,E,E,E,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+3,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,{,2,E,E,E,<,3,F,F,E,=,4,F,F,E
+4,O,=,i,i,u,d,∅,/,fr,M,-,-,3,-,1,E,E,E,{,2,E,E,E,{,3,E,E,E,{,4,E,E,E
+5,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,{,2,E,E,E,{,3,E,E,E,{,4,E,E,E
+8,O,{,i,i,fr,d,∅,/,fr,d,-,2,-,-,1,E,E,E,{,2,i,i,E,<,3,i,E,E,{,4,E,E,E
+A,U,=,E,E,fr,d,∅,/,r,p,1,-,-,-,1,F,F,F,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+B1,O,=,i,i,fr,d,∅,/,fr,M,-,-,3,-,1,E,E,E,=,2,E,E,E,=,3,E,E,E,=,4,E,E,E
+B2,U,=,E,i,u,p,∅,/,r,M,1,-,-,-,1,E,E,E,=,2,E,E,E,=,3,E,E,E,=,4,E,E,E
+C,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,=,2,E,i,i,=,3,E,i,i,=,4,E,i,i
+D,O,{,i,i,t,d,∅,/,t,d,-,2,-,-,1,E,E,E,<,2,i,i,i,=,3,F,F,F,=,4,F,F,F
+E,O,<,F,i,b,d,∅,/,t,d,1,2,3,-,1,i,F,F,=,2,i,F,F,=,3,i,F,F,=,4,i,F,F
+F,O,{,i,i,t,d,∅,/,t,d,1,-,-,-,1,i,i,i,{,2,i,E,E,{,3,E,E,E,{,4,E,E,E
+G,U,=,E,E,fr,p,∅,/,r,p,1,-,-,-,1,F,E,E,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+I,O,=,i,i,fr,d,∅,/,b,m,1,-,-,-,1,F,F,E,=,2,F,F,E,=,3,F,F,E,=,4,E,E,E
+K,O,=,E,E,fr,d,∅,/,r,p,-,2,-,-,1,E,E,E,<,2,F,E,E,=,3,F,F,E,=,4,F,F,E
+L,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+M,O ,=,F,i,fr,d,∅,/,r,p,-,-,-,4,1,F,i,i,=,2,F,i,i,=,3,F,i,i,=,4,F,F,E
+N,O,=,i,i,fr ,d,∅,/,r,p,-,-,3 ,-,1,F,i,i,=,2,F,i,i,<,3,F,F,E,=,4,F,F,E
+O,O,{,i,i,t,d,∅,/,t,d,1,2,- ,-,1,i,i,i,=,2,i,i,i,=,3,i,i,i,=,4,i,i,i
+R,O,= ,i,i,fr,d,∅,/,b,m,-,-,3,-,1,E,E,E,x,2,E,i,i,<,3,F,F,E,=,4,F,F,E
+S,O,=,i,i,fr,d,∅,/,b,m,-,2,-,-,1,F,F,F,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+Standard Base Handshape ,U, <,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,E,E,=,2,i,E,E,=,3,i,E,E,=,4,i,E,E
+T,O ,=,i,E,fr,d,∅,/,r,p,-,2,-,-,1,i,F,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+U,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,E,E,E,=,2,E,E,E,<,3,i,i,i,=,4,i,i,i
+V,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,E,E,E,{,2,E,E,E,<,3,i,i,i,=,4,i,i,i
+W,O,{,i,i,fr,d,∅,/,fr,d,-,-,-,4,1,E,E,E,{,2,E,E,E,{,3,E,E,E,<,4,i,i,i
+X,O,=,i,i,fr,d,∅,/,b,m,-,2,-,-,1,E,F,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+Y,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,F,E,=,2,F,F,E,=,3,F,F,E,<,4,E,E,E
+Adducted F,O,{,i,i,t,d,∅,/,t,d,1,-,-,-,1,i,i,i,=,2,i,E,E,=,3,E,E,E,=,4,E,E,E
+bent-1 ,O,=,i,i,fr,d,∅,/,b,m,-,2,-,-,1,F,E,E,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+bent -4,O,=,i,i,b,d,∅,/,fr,p,-,-,3,-,1,F,E,E,{,2,F,E,E,{,3,F,E,E,{,4,F,E,E
+bent-5,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,{,2,F,E,E,{,3,F,E,E,{,4,F,E,E
+bent-midfinger-5,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,{,2,F,E,E,{,3,i,E,E,{,4,E,E,E
+Bent-B ,O,=,i,i,b,d,∅,/,fr,p,-,-,-,4,1,F,E,E,=,2,F,E,E,=,3,F,E,E,=,4,F,E,E
+Partially Bent D,O,{,i,i,t,d,∅,/,t,d,-,2,-,-,1,i,E,E,=,2,i,i,i,=,3,F,F,F,=,4,F,F,F
+bent-I,O,=,i,i,fr,d,∅,/,b,m,1,-,-,-,1,F,F,E,=,2,F,F,E,=,3,F,F,E,=,4,F,E,E
+bent-L,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+bent-thumb-L,L,<,i,F,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+bent-R,O,=,i,i,fr,d,∅,/,b,m,-,-,3,-,1,F,E,E,x,2,F,i,i,<,3,F,F,E,=,4,F,F,E
+bent-U,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,F,E,E,=,2,F,E,E,=,3,i,i,i,=,4,i,i,i
+bent-V,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,F,E,E,{,2,F,E,E,=,3,i,i,i,=,4,i,i,i
+bent-combined I+1,O,=,i,i,fr,d,∅,/,b,m,-,2,-,-,1,F,E,E,=,2,F,F,E,=,3,F,F,E,=,4,F,E,E
+bent-extended-B,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,=,2,F,E,E,=,3,F,E,E,=,4,F,E,E
+bent-extended-u,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,=,2,F,E,E,=,3,F,F,E,=,4,F,F,E
+bent-extended-V,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,{,2,F,E,E,=,3,F,F,E,=,4,F,F,E
+clawed-3,L,{,i,F,-,-,∅,/,-,-,-,-,-,-,1,E,F,i,{,2,E,F,i,<,3,F,F,E,=,4,F,F,E
+clawed -4,O,=,i,i,u,d,∅,/,fr,M,-,-,3,-,1,E,F,i,{,2,E,F,i,{,3,E,F,i,{,4,E,F,i
+clawed-C,O,{,i,F,-,-,∅,/,-,-,-,-,-,-,1,E,F,i,=,2,E,F,i,=,3,E,F,i,=,4,E,F,i
+clawed-F,O,{,i,i,t,d,∅,/,t,d,1,-,-,-,1,i,i,i,{,2,E,F,i,{,3,E,F,i,{,4,E,F,i
+clawed-I,O,=,i,i,fr,d,∅,/,b,m,1,-,-,-,1,F,F,E,=,2,F,F,E,=,3,F,F,E,=,4,E,F,i
+clawed-U,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,E,F,i,=,2,E,F,i,<,3,i,i,i,=,4,i,i,i
+clawed-V,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,E,F,i,{,2,E,F,i,<,3,i,i,i,=,4,i,i,i
+clawed-W,O,{,i,i,fr,d,∅,/,fr,d,-,-,-,4,1,E,F,i,{,2,E,F,i,{,3,E,F,i,<,4,i,i,i
+clawed-extended-5,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,F,i,{,2,E,F,i,{,3,E,F,i,{,4,E,F,i
+clawed-extended-B,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,F,i,=,2,E,F,i,=,3,E,F,i,=,4,E,F,i
+clawed-extended-L,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,F,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+clawed-extended-V,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,F,i,{,2,E,F,i,<,3,F,F,E,=,4,F,F,E
+clawed-spread-C,O,{,i,F,-,-,∅,/,-,-,-,-,-,-,1,E,F,i,{,2,E,F,i,{,3,E,F,i,{,4,E,F,i
+closed-A-index,U,=,E,E,fr,d,∅,/,r,m,1,-,-,-,1,i,F,i,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+closed-V,O,=,i,i,fr,d,∅,/,b,m,-,-,3,-,1,i,F,F,{,2,i,F,F,<,3,F,F,E,=,4,F,F,E
+closed-W,O,{,i,i,fr,d,∅,/,fr,d,-,-,-,4,1,E,E,E,=,2,E,E,E,=,3,E,E,E,=,4,i,i,i
+closed-X,O,=,E,E,t,d,∅,/,t,d,1,-,-,-,1,E,F,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+Closed-bent-D,O,{,E,E,t,d,∅,/,t,d,-,2,-,-,1,F,E,E,=,2,i,i,i,=,3,F,F,F,=,4,F,F,F
+closed-G,O,{,E,E,fr,d,∅,/,fr,d,1,-,-,-,1,F,E,E,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+closed-double-modified-G,O,{,E,E,fr,d,∅,/,fr,d,1,2,-,-,1,F,E,E,=,2,F,E,E,=,3,F,F,F,=,4,F,F,F
+combined-I+1,O,=,i,i,fr,d,∅,/,b,m,-,2,-,-,1,E,E,E,<,2,F,F,E,=,3,F,F,E,=,4,E,E,E
+combined-ILY,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,<,2,F,F,E,=,3,F,F,E,=,4,E,E,E
+combined-I+A,U,=,E,E,fr,d,∅,/,r,p,1,-,-,-,1,F,F,E,=,2,F,F,E,=,3,F,F,E,=,4,E,E,E
+combined-Y+U,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,=,2,E,E,E,<,3,F,F,E,<,4,E,E,E
+combined-Y+middle,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,F,F,=,2,E,E,E,<,3,i,F,E,<,4,E,E,E
+contracted- 3,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,E,E,{,2,i,E,E,<,3,F,F,E,=,4,F,F,E
+contracted-5,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,E,E,{,2,i,E,E,{,3,i,E,E,{,4,i,E,E
+relaxed-contracted- 5,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,i,E,<,2,i,i,E,<,3,i,i,E,<,4,i,i,E
+Contracted B ,O,=,E,E,u,d,∅,/,fr,m,-,2,-,-,1,i,E,E,=,2,i,E,E,=,3,i,E,E,=,4,i,E,E
+contracted-C,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,E,E,=,2,i,E,E,=,3,i,E,E,=,4,i,E,E
+contracted-L,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,E,E,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+double-contracted-L,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,E,E,=,2,i,E,E,<,3,F,F,F,=,4,F,F,F
+contracted-U,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,i,E,E,=,2,i,E,E,<,3,i,i,i,=,4,i,i,i
+contracted-U-index ,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,E,F ,E,=,2,E,E,E,<,3,i,i,i,=,4,i,i,i
+covered-8 ,O,{,i,F,fr,d,∅,/,b,d,-,2,-,-,1,E,E,E,{,2,i,i,F,<,3,i,E,E,{,4,E,E,E
+covered-F ,O,{,i,F,fr,d,∅,/,b,d,1,-,-,-,1,F,F,i,{,2,i,E,E,{,3,E,E,E,{,4,E,E,E
+covered-O ,O,=,i,E,fr,d,∅,/,b,d,-,-,3,-,1,i,i,i,=,2,i,i,i,=,3,i,i,i,=,4,i,i,i
+covered-T,O,=,E,E,t,d,∅,/,fr,m,1,-,-,-,1,i,F,F,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+covered-W,O,{,i,i,fr,d,∅,/,b,d,-,-,-,4,1,E,E,E,{,2,E,E,E,{,3,E,E,E,<,4,i,i,i
+crooked-1,O,=,i,i,fr,d,∅,/,b,m,-,2,-,-,1,E,i,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+crooked -4,O,=,i,i,u,d,∅,/,fr,M,-,-,3,-,1,E,i,i,{,2,E,i,i,{,3,E,i,i,{,4,E,i,i
+crooked-5,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,{,2,E,i,i,{,3,E,i,i,{,4,E,i,i
+crooked-L,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+crooked-U ,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,E,i,i,=,2,E,i,i,<,3,i,i,i,=,4,i,i,i
+crooked-W ,O,{,i,i,fr,d,∅,/,fr,d,-,-,-,4,1,E,i,i,{,2,E,i,i,{,3,E,i,i,<,4,i,i,i
+crooked-V,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,E,i,i,{,2,E,i,i,<,3,i,i,i,=,4,i,i,i
+crooked-extended-V,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,{,2,E,i,i,<,3,F,F,E,=,4,F,F,E
+crooked- slanted- 5,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,{,2,i,i,i,{,3,F,i,i,{,4,F,F,i
+extended-8,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,{,2,i,i,E,<,3,i,E,E,{,4,E,E,E
+extended-A,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,F,F,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+extended-B,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,=,2,E,E,E,=,3,E,E,E,=,4,E,E,E
+Extended-C,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,=,2,E,i,i,=,3,E,i,i,=,4,E,i,i
+extended-K,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,<,2,F,E,E,=,3,F,F,E,=,4,F,F,E
+extended-R,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,x,2,E,i,i,<,3,F,F,E,=,4,F,F,E
+extended-U ,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,=,2,E,E,E,<,3,F,F,E,=,4,F,F,E
+flat-C ,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,=,2,F,E,E,=,3,F,E,E,=,4,F,E,E
+flat-F,O,{,E,E,fr,d,∅,/,fr,d,1,-,-,-,1,F,E,E,{,2,i,E,E,{,3,E,E,E,{,4,E,E,E
+flat-M,O,=,F,i,fr,d,∅,/,r,p,-,-,-,4,1,F,E,E,=,2,F,E,E,=,3,F,E,E,=,4,F,F,E
+flat-O,O,{,E,E,fr,d,∅,/,fr,d,1,2,-,-,1,F,E,E,=,2,F,E,E,=,3,F,E,E,=,4,F,E,E
+flat-clawed F,O,{,E,E,fr,d,∅,/,fr,d,1,-,-,-,1,F,E,E,{,2,E,F,i,{,3,E,F,i,{,4,E,F,i
+flat-combined-I+1,O,{,E,E,fr,d,∅,/,fr,d,,2,3,-,1,E,E,E,<,2,F,E,E,=,3,F,E,E,=,4,E,E,E
+flat-open-F,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,{,2,E,E,E,{,3,E,E,E,{,4,E,E,E
+A-index ,U,<,E,E,-,-,∅,/,-,-,-,-,-,-,1,i,F,i,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+C-index,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+double-C-index,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,<,2,i,i,i,<,3,F,F,F,=,4,F,F,F
+O-index,O,{,i,i,t,d,∅,/,t,d,1,-,-,-,1,i,i,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+Middle finger,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,i,F,F,<,2,i,E,E,<,3,i,F,F,=,4,i,F,F
+modified-5,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,{,2,E,E,E,{,3,E,E,E,{,4,E,E,E
+Modified A,U,=,E,E,fr,d,∅,/,r,p,1,-,-,-,1,F,F,E,=,2,F,F,E,=,3,F,F,E,=,4,F,F,E
+Modified D ,O,{,i,i,t,d,∅,/,t,d,-,2,3,-,1,E,E,E,<,2,i,i,i,=,3,i,i,i,=,4,i,i,i
+double-modified-G,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,=,2,F,E,E,=,3,F,F,F,=,4,F,F,F
+modified-g,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,E,E,=,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+modified-O,O,{,E,E,fr,d,∅,/,t,d,1,2,-,-,1,F,i,i,=,2,F,i,i,=,3,F,i,i,=,4,F,i,i
+offset-F ,O,{,E,E,fr,p,∅,/,r,m,1,-,-,-,1,i,i,i,{,2,i,E,E,{,3,E,E,E,{,4,E,E,E
+offset-O,O,{,E,E,fr,p,∅,/,r,d,1,-,-,-,1,F,i,i,=,2,F,i,i,=,3,F,i,i,=,4,F,i,i
+open-8,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,{,2,F,E,E,<,3,i,E,E,{,4,E,E,E
+Open-A ,U,<,E,E,-,-,∅,/,-,-,-,-,-,-,1,F,i,i,=,2,F,i,i,=,3,F,i,i,=,4,F,i,i
+open-E,O,<,F,i,-,-,∅,/,-,-,-,-,-,-,1,E,F,F,=,2,E,F,F,=,3,E,F,F,=,4,E,F,F
+open-F,O,{,i,i,-,-,∅,/,-,-,-,-,-,-,1,i,i,i,{,2,i,E,E,{,3,E,E,E,{,4,E,E,E
+open-O-index,O,{,i,i,-,-,∅,/,-,-,-,-,-,-,1,i,i,i,<,2,F,F,F,=,3,F,F,F,=,4,F,F,F
+slanted -4,O,=,i,i,u,d,∅,/,fr,M,-,-,3,-,1,E,E,E,{,2,i,E,E,{,3,i,E,E,{,4,F,E,E
+slanted-5,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,{,2,i,E,E,{,3,i,E,E,{,4,F,E,E
+slanted-F,O,{,i,i,t,d,∅,/,t,d,1,-,-,-,1,i,i,i,{,2,i,E,E,{,3,i,E,E,{,4,F,E,E
+slanted-V,O,{,i,i,fr,d,∅,/,b,d,-,-,3,-,1,i,E,E,{,2,F,E,E,=,3,i,i,i,=,4,i,i,i
+slanted- Extended B,L,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,E,E,x-,2,i,E,E,x-,3,i,E,E,x-,4,i,E,E
+Spread C ,O,{,E,E,-,-,∅,/,-,-,-,-,-,-,1,E,i,i,{,2,E,i,i,{,3,E,i,i,{,4,E,i,i
+spread-open-O,O,{,i,i,-,-,∅,/,-,-,-,-,-,-,1,i,i,i,{,2,i,i,i,{,3,i,i,i,{,4,i,i,i
