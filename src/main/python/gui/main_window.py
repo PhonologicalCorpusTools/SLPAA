@@ -684,11 +684,9 @@ class MainWindow(QMainWindow):
         self.app_settings['location']['default_loctype_1h'] = self.app_qsettings.value('default_loctype_1h', defaultValue="purely spatial", type=str)
         self.app_settings['location']['default_loctype_2h'] = self.app_qsettings.value('default_loctype_2h', defaultValue='purely spatial', type=str)
         self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h', 
-                                                                                   defaultValue=DEFAULT_LOC_1H,
-                                                                                    type=str)
+                                                                                   DEFAULT_LOC_1H)
         self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h', 
-                                                                                   defaultValue=DEFAULT_LOC_2H,
-                                                                                    type=str)
+                                                                                   DEFAULT_LOC_2H)
         self.app_settings['location']['autocheck_neutral'] = self.app_qsettings.value('autocheck_neutral', defaultValue=True, type=bool)
         self.app_qsettings.endGroup()  # location
 

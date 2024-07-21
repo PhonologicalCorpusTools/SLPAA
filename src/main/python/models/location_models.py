@@ -566,7 +566,7 @@ class LocationTreeModel(QStandardItemModel):
     If this function is being used for backwards compatibility (paths_dict is not None),
      then remove from paths_to_add once found
     '''
-    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
+    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None, include_details=False):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
@@ -584,8 +584,11 @@ class LocationTreeModel(QStandardItemModel):
                                 treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
                             if oldtext in self.serializedlocntree.detailstables.keys():
                                 treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+                        elif include_details: 
+                            # expect paths_to_add to be a dict. keys are paths, values are detailstables
+                            treechild.detailstable.updatefromserialtable(paths_to_add[pathtext])
 
-                    self.addcheckedvalues(treechild, paths_to_add, paths_dict)
+                    self.addcheckedvalues(treechild, paths_to_add, paths_dict, include_details)
 
     # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
     def setvaluesfromserializedtree(self, treenode):

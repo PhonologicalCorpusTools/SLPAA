@@ -341,12 +341,12 @@ ARTICULATOR_ABBREVS = {
 }
 
 treepathdelimiter = ">" # define here or in module_classes?
-DEFAULT_LOC_1H = ["Horizontal axis" + treepathdelimiter + "Ipsi", 
-                "Vertical axis" + treepathdelimiter + "Mid",
-                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med."]
-DEFAULT_LOC_2H = ["Horizontal axis" + treepathdelimiter + "Central", 
-                "Vertical axis" + treepathdelimiter + "Mid",
-                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med."]
+DEFAULT_LOC_1H = {"Horizontal axis" + treepathdelimiter + "Ipsi": None, 
+                "Vertical axis" + treepathdelimiter + "Mid": None,
+                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
+DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None, 
+                "Vertical axis" + treepathdelimiter + "Mid": None,
+                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

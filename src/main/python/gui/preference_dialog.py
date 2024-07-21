@@ -26,9 +26,10 @@ from PyQt5.QtCore import Qt, pyqtSignal, QSettings
 
 from constant import FRACTION_CHAR, HAND, ARM, LEG, DEFAULT_LOC_2H, DEFAULT_LOC_1H
 from fractions import Fraction
-from lexicon.module_classes import treepathdelimiter
+from lexicon.module_classes import treepathdelimiter, LocationModule
 from gui.locationspecification_view import LocationOptionsSelectionPanel, LocationType
 from models.location_models import LocationTreeModel
+from serialization_classes import LocationTableSerializable
 
 
 # This tab facilitates user interaction with display-related settings in the preference dialog.
@@ -546,9 +547,11 @@ class DefaultNeutralDialog(QDialog):
         self.mainlayout.addLayout(self.loctypelayout)
 
         self.recreate_treeandlistmodels()
-
+        
         self.locationoptionsselectionpanel = LocationOptionsSelectionPanel(treemodeltoload=self.currenttreemodel, displayvisualwidget=False, parent=self)
-        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(self.bodyanchored_rb.isChecked())
+        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(False)
+        self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(self.loctype == "body-anchored")
+        
         self.enablelocationtools()
         self.mainlayout.addWidget(self.locationoptionsselectionpanel)        
         
@@ -560,6 +563,7 @@ class DefaultNeutralDialog(QDialog):
 
     def recreate_treeandlistmodels(self):
         self.treemodel_body = LocationTreeModel()
+        self.treemodel_body.multiple_selection_allowed = True
         self.treemodel_body.locationtype = LocationType(body=True)
         self.treemodel_body.populate(self.treemodel_body.invisibleRootItem())
         self.treemodel_spatial = LocationTreeModel()
@@ -572,7 +576,8 @@ class DefaultNeutralDialog(QDialog):
         self.currenttreemodel = self.treemodel_spatial
         if self.bodyanchored_rb.isChecked():
             self.currenttreemodel = self.treemodel_body
-        self.currenttreemodel.addcheckedvalues(self.currenttreemodel.invisibleRootItem(), self.locs)
+        
+        self.currenttreemodel.addcheckedvalues(self.currenttreemodel.invisibleRootItem(), self.locs, include_details=True)
     
     def get_current_defaults(self):
         if self.numhands == 1:
@@ -593,10 +598,11 @@ class DefaultNeutralDialog(QDialog):
 
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.restore_defaults()
+    
 
     def validate_and_save(self):
         messagestring = ""
-        paths = self.locationoptionsselectionpanel.get_listed_paths()
+        paths = self.locationoptionsselectionpanel.get_listed_paths(include_details=True)
         if len(paths) == 0:
             messagestring += "Default neutral location cannot be empty."
 
@@ -632,26 +638,26 @@ class DefaultNeutralDialog(QDialog):
             self.get_current_defaults()
             self.recreate_treeandlistmodels()
             self.enablelocationtools()
-
-
+            self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(False)
+            self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(False)
 
     def on_loctype_selected(self, btn):
         if btn == self.bodyanchored_rb:
             self.loctype = "body-anchored"
         elif btn == self.purelyspatial_rb:
             self.loctype = "purely spatial"
-        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(btn != self.purelyspatial_rb)
         self.enablelocationtools()
 
     def enablelocationtools(self):
         # self.refresh_listproxies()
         if self.loctype == "body-anchored":
             self.locationoptionsselectionpanel.treemodel = self.treemodel_body
+            self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(True)
         elif self.loctype == "purely spatial":
             self.locationoptionsselectionpanel.treemodel = self.treemodel_spatial
+            self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(False)
         self.locationoptionsselectionpanel.refresh_listproxies()
 
-        
         # use current locationtype (from buttons) to determine whether/how things get enabled
         isbodyanchored = self.loctype == "body-anchored"
         # self.locationoptionsselectionpanel.locationselectionwidget.setlocationtype(self.getcurrentlocationtype(), treemodel=self.getcurrenttreemodel())

@@ -44,7 +44,7 @@ from PyQt5.QtGui import (
 from lexicon.module_classes import treepathdelimiter, LocationModule, PhonLocations, userdefinedroles as udr
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel
-from serialization_classes import LocationTreeSerializable
+from serialization_classes import LocationTreeSerializable, LocationTableSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
 
 class LocnTreeSearchComboBox(QComboBox):
@@ -239,19 +239,31 @@ class LocationOptionsSelectionPanel(QFrame):
             self.multiple_selection_cb.setChecked(self.treemodel.multiple_selection_allowed)
 
         self.setLayout(main_layout)
-
     
-    def get_listed_paths(self, include_subareas=False):
+    def get_listed_paths(self, include_details=False):
+        # if include_details is True, returns a dict: keys are path strings, values are detailstables
+        # otherwise returns a list of path strings
         proxyModel = self.listproxymodel
         sourceModel = self.listmodel
-        
-        paths = [] 
 
-        for row in range(proxyModel.rowCount()):
-            sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
-            path = sourceModel.data(sourceIndex, Qt.DisplayRole)
-            paths.append(path)
-        
+        if include_details:
+            paths = {}
+            for row in range(proxyModel.rowCount()):
+                sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
+                
+                path = sourceModel.data(sourceIndex, Qt.DisplayRole)
+                selectedlistitem = sourceModel.itemFromIndex(sourceIndex)
+                detailstable = LocationTableSerializable(selectedlistitem.treeitem.detailstable)
+                paths.update({path: detailstable})
+            
+        else:
+            paths = [] 
+            for row in range(proxyModel.rowCount()):
+                sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
+                
+                path = sourceModel.data(sourceIndex, Qt.DisplayRole)
+                paths.append(path)
+            
         return paths
     
     def enableImageTabs(self, enable):
@@ -711,15 +723,17 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             self.markneutral_cb.setChecked(True)
             treemodel.defaultneutralselected = True 
             treemodel.defaultneutrallist = neutrallist
-
-        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), neutrallist)
+        if not is_spatial and len(neutrallist) > 1:
+            treemodel.multiple_selection_allowed = True
+            self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(True)
+        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), neutrallist, include_details=True)
         self.enablelocationtools()
     
     def handle_toggle_neutral_cb(self, btn):
         treemodel = self.getcurrenttreemodel()
         treemodel.defaultneutralselected = btn
         if btn:
-            treemodel.defaultneutrallist = self.locationoptionsselectionpanel.get_listed_paths()
+            treemodel.defaultneutrallist = self.locationoptionsselectionpanel.get_listed_paths(include_details=True)
         else:
             treemodel.defaultneutrallist = None
         
