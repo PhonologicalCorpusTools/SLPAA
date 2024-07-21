@@ -469,39 +469,48 @@ class PhonLocSelection(QWidget):
         self.phonological_cb.setChecked(True)
     
     def set_phonloc_buttons_from_content(self, phonlocs):
-        self.majorphonloc_cb.setChecked(phonlocs.majorphonloc)
-        self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
         self.phonological_cb.setChecked(phonlocs.phonologicalloc)
         self.phonetic_cb.setChecked(phonlocs.phoneticloc)
-        self.majorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
-        self.minorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
+
+        if (hasattr(self, "majorphonloc_cb") and hasattr(self, "minorphonloc_cb")):
+            self.majorphonloc_cb.setChecked(phonlocs.majorphonloc)
+            self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
+            self.majorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
+            self.minorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
         
     def getcurrentphonlocs(self):
         phonlocs = PhonLocations(
             phonologicalloc=self.phonological_cb.isChecked(),
-            majorphonloc=self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
-            minorphonloc=self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
+            majorphonloc= hasattr(self, "majorphonloc_cb") and  self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
+            minorphonloc= hasattr(self, "minorphonloc_cb") and self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
             phoneticloc=self.phonetic_cb.isChecked()
         )
         return phonlocs
 
 
-    def __init__(self): 
+    def __init__(self, isLocationModule=False): 
         super().__init__() 
         phonloc_layout  = QVBoxLayout()
         self.phonological_cb = QCheckBox("Phonological")
-        self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
         phonloc_layout.addWidget(self.phonological_cb)
 
-        self.majorphonloc_cb = QCheckBox("Major")
-        self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        self.minorphonloc_cb = QCheckBox("Minor")
-        self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        phonological_sublayout = QGridLayout()
-        phonological_sublayout.addWidget(self.majorphonloc_cb, 0,1)
-        phonological_sublayout.addWidget(self.minorphonloc_cb, 1,1)
-        phonological_sublayout.addItem(QSpacerItem(25,0), 0,0)
-        phonloc_layout.addLayout(phonological_sublayout)
+        if (isLocationModule):
+            phonological_sublayout = QGridLayout()
+            self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
+            self.majorphonloc_cb = QCheckBox("Major")
+            self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
+            self.minorphonloc_cb = QCheckBox("Minor")
+            self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
+            phonological_sublayout.addWidget(self.majorphonloc_cb, 0,1)
+            phonological_sublayout.addWidget(self.minorphonloc_cb, 1,1)
+            phonological_sublayout.addItem(QSpacerItem(25,0), 0,0)
+            
+            self.majorphonloc_cb.setEnabled(False)
+            self.minorphonloc_cb.setEnabled(False)
+            self.majorphonloc_cb.setChecked(False)
+            self.minorphonloc_cb.setChecked(False)
+            phonloc_layout.addLayout(phonological_sublayout)
+
 
         self.phonetic_cb = QCheckBox("Phonetic")
         phonloc_layout.addWidget(self.phonetic_cb)
@@ -509,10 +518,6 @@ class PhonLocSelection(QWidget):
         self.setLayout(phonloc_layout)
 
         # Set default state
-        self.majorphonloc_cb.setEnabled(False)
-        self.minorphonloc_cb.setEnabled(False)
-        self.majorphonloc_cb.setChecked(False)
-        self.minorphonloc_cb.setChecked(False)
         self.phonological_cb.setChecked(False)
         self.phonetic_cb.setChecked(False)
 
