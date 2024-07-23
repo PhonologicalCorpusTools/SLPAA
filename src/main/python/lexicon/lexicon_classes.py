@@ -71,10 +71,7 @@ class Sign:
 
         if serializedsign is not None:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
-            signtype = serializedsign['type']
-            self._signtype = Signtype(signtype.specslist) if signtype is not None else None
-            if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
-                self._signtype.addedinfo = serializedsign['type'].addedinfo
+            self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
             self.unserializemovementmodules(serializedsign['mov modules'])
@@ -169,7 +166,7 @@ class Sign:
             articulators = serialmodule.articulators
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo
             unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
             unserialized[k].uniqueid = k
         self.movementmodules = unserialized
@@ -186,9 +183,9 @@ class Sign:
             serialmodule = serialized_locnmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo
             phonlocs = serialmodule.phonlocs
-            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
+            inphase = serialmodule.inphase
 
             serialtree = serialmodule.locationtree
 
@@ -262,7 +259,7 @@ class Sign:
             serialmodule = serialized_relmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()
+            addedinfo = serialmodule.addedinfo
             relationx = serialmodule.relationx
             relationy = serialmodule.relationy
             bodyparts_dict = {
