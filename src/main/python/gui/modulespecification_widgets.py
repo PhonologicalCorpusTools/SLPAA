@@ -481,7 +481,7 @@ class PhonLocSelection(QWidget):
     def getcurrentphonlocs(self):
         phonlocs = PhonLocations(
             phonologicalloc=self.phonological_cb.isChecked(),
-            majorphonloc= hasattr(self, "majorphonloc_cb") and  self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
+            majorphonloc= hasattr(self, "majorphonloc_cb") and self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
             minorphonloc= hasattr(self, "minorphonloc_cb") and self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
             phoneticloc=self.phonetic_cb.isChecked()
         )

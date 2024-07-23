@@ -88,7 +88,7 @@ class ModuleSelectorDialog(QDialog):
                                                                  parent=self)
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
-        self.phonloc_selection= PhonLocSelection(moduletype == ModuleTypes.LOCATION); 
+        self.phonloc_selection= PhonLocSelection(moduletype == ModuleTypes.LOCATION)
         if phonlocstoload is not None:
             self.phonloc_selection.set_phonloc_buttons_from_content(phonlocstoload)
         self.arts_and_addedinfo_layout.addWidget(self.phonloc_selection)

@@ -491,7 +491,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
 
-    def update_detailstable(self, selected, deselected):
+    def update_detailstable(self):
         selectedindexes = self.pathslistview.selectionModel().selectedIndexes()
         if len(selectedindexes) == 1:  # the details pane reflects the (single) selection
             itemindex = selectedindexes[0]

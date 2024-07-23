@@ -99,7 +99,7 @@ class ParameterModule:
 
     def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._articulators = articulators
-        self._phonlocs = phonlocs if phonlocs is not None else PhonLocations()
+        self._phonlocs = phonlocs
         self._timingintervals = []
         if timingintervals is not None:
             self.timingintervals = timingintervals
@@ -131,7 +131,9 @@ class ParameterModule:
     
     @property
     def phonlocs(self):
-        return self._phonlocs
+        if not hasattr(self, '_phonlocs'):
+            self.phonlocs = PhonLocations()
+        return self._phonlocs 
 
     @phonlocs.setter
     def phonlocs(self, phonlocs):
@@ -2121,7 +2123,6 @@ class HandConfigurationModule(ParameterModule):
     def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
-        print(phonlocs)
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property

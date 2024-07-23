@@ -2,7 +2,7 @@ import logging
 import os
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import PhonLocations, SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
+from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -83,9 +83,9 @@ class Sign:
             self.locationmodulenumbers = serializedsign['loc module numbers'] if 'loc module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.LOCATION)
             self.orientationmodules = serializedsign['ori modules']
             self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
-            self.unserializehandconfigmodules(serializedsign['cfg modules'])
+            self.handconfigmodules = serializedsign['cfg modules']
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
-            self.unserializenonmanualmodules(serializedsign['nonman modules']  if 'nonman modules' in serializedsign else {})
+            self.nonmanualmodules = serializedsign['nonman modules']  if 'nonman modules' in serializedsign else {}
             self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
                 if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.NONMANUAL)
 
@@ -166,14 +166,9 @@ class Sign:
             articulators = serialmodule.articulators
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
-<<<<<<< HEAD
             addedinfo = serialmodule.addedinfo
-            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
-=======
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-            phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
+            phonlocs = serialmodule.phonlocs
             unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
->>>>>>> c6c266e6 (moved component to parent, updated loading and saving modules)
             unserialized[k].uniqueid = k
         self.movementmodules = unserialized
 
@@ -189,15 +184,9 @@ class Sign:
             serialmodule = serialized_locnmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-<<<<<<< HEAD
             addedinfo = serialmodule.addedinfo
             phonlocs = serialmodule.phonlocs
             inphase = serialmodule.inphase
-=======
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-            phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
-            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
->>>>>>> c6c266e6 (moved component to parent, updated loading and saving modules)
 
             serialtree = serialmodule.locationtree
 
@@ -271,12 +260,8 @@ class Sign:
             serialmodule = serialized_relmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-<<<<<<< HEAD
             addedinfo = serialmodule.addedinfo
-=======
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()
-            phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
->>>>>>> c6c266e6 (moved component to parent, updated loading and saving modules)
+            phonlocs = serialmodule.phonlocs
             relationx = serialmodule.relationx
             relationy = serialmodule.relationy
             bodyparts_dict = {
@@ -322,21 +307,6 @@ class Sign:
                                              phonlocs=phonlocs, addedinfo=addedinfo)
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
-
-
-    def unserializehandconfigmodules(self, serialized_hcfgmodules):
-        for k in serialized_hcfgmodules.keys():
-            serialmodule = serialized_hcfgmodules[k]
-            # Needed for backwards compatibility
-            serialmodule.phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
-        self.handconfigmodules = serialized_hcfgmodules
-
-    def unserializenonmanualmodules(self, serialized_nonmanualmodules):
-        for k in serialized_nonmanualmodules.keys():
-            serialmodule = serialized_nonmanualmodules[k]
-            # Needed for backwards compatibility
-            serialmodule.phonlocs = serialmodule.phonlocs if hasattr(serialmodule, 'phonlocs') else PhonLocations()
-        self.nonmanualmodules = serialized_nonmanualmodules
 
     # technically this should not be implemented, because Sign objects are mutable
     # but a Corpus is implemented as a set of Sign objects, so we need a hash function

@@ -7,7 +7,7 @@ from PyQt5.QtCore import (
     Qt
 )
 
-from lexicon.module_classes import userdefinedroles as udr, AddedInfo
+from lexicon.module_classes import PhonLocations, userdefinedroles as udr, AddedInfo
 from models.movement_models import fx
 from constant import HAND
 import logging
@@ -18,7 +18,18 @@ class ParameterModuleSerializable:
         self._articulators = parammod.articulators
         self.timingintervals = parammod.timingintervals
         self._addedinfo = parammod.addedinfo
-        self.phonlocs = parammod.phonlocs
+        self._phonlocs = parammod.phonlocs
+
+    @property
+    def phonlocs(self):
+        if not hasattr(self, '_phonlocs'):
+            # for backward compatibility with pre-20240723 parameter modules
+            self._phonlocs = PhonLocations()
+        return self._phonlocs
+
+    @phonlocs.setter
+    def phonlocs(self, phonlocs):
+        self._phonlocs = phonlocs
 
     @property
     def addedinfo(self):
