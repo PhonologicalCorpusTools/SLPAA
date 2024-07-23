@@ -47,7 +47,7 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
-from gui.mergecorpora_dialog import MergeCorporaDialog
+from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.signtypespecification_view import Signtype
@@ -172,11 +172,6 @@ class MainWindow(QMainWindow):
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
 
-        # merge corpora
-        action_merge_corpora = QAction("Merge corpora...", parent=self)
-        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
-        action_merge_corpora.setCheckable(False)
-
         # export corpus in human-readable form
         action_export_corpus = QAction("Export corpus...", parent=self)
         action_export_corpus.triggered.connect(self.on_action_export_corpus)
@@ -195,6 +190,19 @@ class MainWindow(QMainWindow):
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
+        # load sample corpus
+        action_load_sample = QAction(QIcon(self.app_ctx.icons['load_blue']), "Load sample...", parent=self)
+        action_load_sample.setStatusTip("Load the sample corpus file")
+        action_load_sample.triggered.connect(lambda clicked: self.on_action_load_corpus(clicked, sample=True))
+        action_load_sample.setCheckable(False)
+
+        # merge corpora into this one or into a new separate file
+        action_merge_corpora = QAction("Merge corpora...", parent=self)
+        action_merge_corpora.setStatusTip("Merge two or more corpora")
+        action_merge_corpora.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_M))
+        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
+        action_merge_corpora.setCheckable(False)
+
         # close
         action_close = QAction('Close', parent=self)
         action_close.setStatusTip('Close the application')
@@ -202,9 +210,9 @@ class MainWindow(QMainWindow):
         action_close.triggered.connect(self.on_action_close)
         action_close.setCheckable(False)
 
-        # output handshape transcription to csv
-        action_export_handshape_transcription_csv = QAction('Export handshape transcription as CSV...', parent=self)
-        action_export_handshape_transcription_csv.triggered.connect(self.on_action_export_handshape_transcription_csv)
+        # TODO this needs an overhaul - output handshape transcription to csv
+        # action_export_handshape_transcription_csv = QAction('Export handshape transcription as CSV...', parent=self)
+        # action_export_handshape_transcription_csv.triggered.connect(self.on_action_export_handshape_transcription_csv)
 
         # new sign
         action_new_sign = QAction(QIcon(self.app_ctx.icons['plus']), 'New sign', parent=self)
@@ -289,9 +297,12 @@ class MainWindow(QMainWindow):
         menu_file = main_menu.addMenu('&File')
         menu_file.addAction(action_new_corpus)
         menu_file.addAction(action_load_corpus)
+        menu_file.addAction(action_load_sample)
+        menu_file.addAction(action_merge_corpora)
         menu_file.addSeparator()
-        menu_file.addAction(action_export_handshape_transcription_csv)
-        menu_file.addSeparator()
+        # TODO this needs an overhaul
+        # menu_file.addAction(action_export_handshape_transcription_csv)
+        # menu_file.addSeparator()
         menu_file.addAction(action_close)
         menu_file.addAction(action_save)
         menu_file.addAction(action_saveas)
@@ -322,7 +333,6 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
-        menu_analysis_beta.addAction(action_merge_corpora)
         menu_analysis_beta.addAction(action_export_corpus)
 
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
@@ -761,9 +771,10 @@ class MainWindow(QMainWindow):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
 
-    def on_action_merge_corpora(self):
-        merge_corpora_window = MergeCorporaDialog(self.app_settings, parent=self)
-        merge_corpora_window.exec_()
+    @check_unsaved_change
+    def on_action_merge_corpora(self, clicked):
+        merge_corpora_wizard = MergeCorporaWizard(self.app_settings, parent=self)
+        merge_corpora_wizard.show()
 
     def on_action_export_corpus(self):
         export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
@@ -857,6 +868,11 @@ class MainWindow(QMainWindow):
 
     @check_unsaved_corpus
     def on_action_save(self, clicked):
+        if self.corpus.path in [self.app_ctx.sample_corpus['path'], os.path.expanduser("~")]:
+            # if the user tries to 'save' the example corpus, do 'save as' instead.
+            self.on_action_saveas(clicked=False)
+            return
+
         if self.corpus.path:
             self.save_corpus_binary()
             self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
@@ -865,6 +881,9 @@ class MainWindow(QMainWindow):
         self.undostack.clear()
 
     def on_action_saveas(self, clicked):
+        if self.corpus.path == self.app_ctx.sample_corpus['path']:
+            self.corpus.path = os.path.expanduser("~")  # if saving the example corpus, hid the real path to the example
+
         file_name, _ = QFileDialog.getSaveFileName(self,
                                                    self.tr('Save Corpus'),
                                                    self.corpus.path or os.path.join(
@@ -923,19 +942,31 @@ class MainWindow(QMainWindow):
         mincounter_dialog.exec_()
 
     @check_unsaved_change
-    def on_action_load_corpus(self, clicked):
-        file_name, file_type = QFileDialog.getOpenFileName(self,
-                                                           self.tr('Open Corpus'),
-                                                           self.app_settings['storage']['recent_folder'],
-                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
-        if not file_name:
-            # the user cancelled out of the dialog
-            return False
-        folder, _ = os.path.split(file_name)
-        if folder:
-            self.app_settings['storage']['recent_folder'] = folder
+    def on_action_load_corpus(self, clicked, sample=False):
+        if not sample:
+            # load a .slpaa file from local storage
+            file_name, file_type = QFileDialog.getOpenFileName(self,
+                                                               self.tr('Open Corpus'),
+                                                               self.app_settings['storage']['recent_folder'],
+                                                               self.tr('SLP-AA Corpus (*.slpaa)'))
+            if not file_name:
+                # the user cancelled out of the dialog
+                return False
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.app_settings['storage']['recent_folder'] = folder
+        else:
+            # load sample corpus
+            file_name = self.app_ctx.sample_corpus['path']
 
-        self.corpus = self.load_corpus_binary(file_name)
+
+        self.load_corpus_info(file_name)
+
+        return self.corpus is not None
+
+    # load corpus info from given path
+    def load_corpus_info(self, corpuspath):
+        self.corpus = self.load_corpus_binary(corpuspath)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(self.corpus.signs)
         if len(self.corpus.signs) > 0:
@@ -947,8 +978,6 @@ class MainWindow(QMainWindow):
             self.signlevel_panel.enable_module_buttons(False)
 
         self.unsaved_changes = False
-
-        return self.corpus is not None
 
     def on_action_close(self, clicked):
         self.close()
@@ -980,6 +1009,7 @@ class MainWindow(QMainWindow):
                                             question1 + question2 + moreinfo)
             if response == QMessageBox.Yes:
                 self.corpus.remove_sign(self.current_sign)
+                self.unsaved_changes = True
                 self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
 
     def flag_and_refresh(self, sign=None):
@@ -1013,7 +1043,7 @@ class MinCounterDialog(QDialog):
         warning_explanation = "Most users in most cases will leave this at the default value of 1. You might choose to set it to a different"
         warning_explanation += "\nvalue if you have a particular numbering system that you would like to use for signs in this corpus."
         warning_explanation += "\n\nNote that this value cannot be changed after signs have been added to the corpus;"
-        warning_explanation += "\nhowever, it will be adjusted automatically if merging two corpora with overlapping numbering."
+        warning_explanation += "\nhowever, it can be adjusted automatically if merging two corpora with overlapping numbering."
         note_label = QLabel(warning_explanation)
         main_layout.addWidget(note_label)
 
