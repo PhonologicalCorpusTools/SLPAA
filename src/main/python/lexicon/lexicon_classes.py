@@ -432,7 +432,6 @@ class Corpus:
             self.minimumID = serializedcorpus['minimum id'] if 'minimum id' in serializedcorpus.keys() else 1
             self.highestID = serializedcorpus['highest id']
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty 
-            # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             if len(self) > 0:
                 self.confirmhighestID("load")
             self.add_missing_paths()  # Another backwards compatibility function for movement and location
@@ -445,15 +444,10 @@ class Corpus:
             self.highestID = highestID
 
     # check and make sure the highest ID saved is equivalent to the actual highest entry ID
-    # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
-    # this function should hopefully not be necessary forever, but for now I want to make sure that
-    # functionality isn't affected by an incorrectly-saved value
     def confirmhighestID(self, actionname):
         entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs] or [0]
         max_entryID = max(entryIDcounters)
         if max_entryID > self.highestID:
-            if actionname != "merge":
-                logging.warn(" upon " + actionname + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
 
     def increaseminID(self, newmin):
@@ -466,7 +460,6 @@ class Corpus:
 
     def serialize(self):
         # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty
-        # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
         if len(self) > 0:
             self.confirmhighestID("save")
         return {
