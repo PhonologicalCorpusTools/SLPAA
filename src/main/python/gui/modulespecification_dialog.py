@@ -35,7 +35,7 @@ from gui.relationspecification_view import RelationSpecificationPanel
 from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, FROZEN, VERSION
 
 
 class ModuleSelectorDialog(QDialog):
@@ -154,23 +154,35 @@ class ModuleSelectorDialog(QDialog):
         #   "Save and Add Another" button, to allow the user to continue adding new instances.
         # On the other hand, if we're editing an existing instance of a module, then instead we want a
         #   "Delete" button, in case the user wants to delete the instance rather than editing it.
-        buttons = None
-        applytext = ""
-        discardtext = "Delete"
-        if new_instance:
-            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-            applytext = "Save and close"
-        else:
-            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Discard | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-            applytext = "Save"
 
-        self.button_box = QDialogButtonBox(buttons, parent=self)
+        # initialize button_box
+        self.button_box = QDialogButtonBox(parent=self)
+
+        # buttons to be added to buttons_box. existing instance as the default
+        buttons = [
+            QDialogButtonBox.RestoreDefaults,
+            QDialogButtonBox.Help,
+            QDialogButtonBox.Discard,
+            QDialogButtonBox.Apply,
+            QDialogButtonBox.Cancel
+            ]
+        applytext = "Save"
+
+        # ... and minimal changes if new_instance
         if new_instance:
-            self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
-        else:
-            self.button_box.button(QDialogButtonBox.Discard).setText(discardtext)
-        self.button_box.button(QDialogButtonBox.Apply).setDefault(True)
+            buttons[2] = QDialogButtonBox.Save
+            applytext += " and close"
+
+        [self.button_box.addButton(btn) for btn in buttons]  # populate self.button_box
+        self.button_box.button(QDialogButtonBox.Apply).setDefault(True)  # set 'apply' as default
+
+        # change button text
         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
+
+        if self.button_box.button(QDialogButtonBox.Discard):
+            self.button_box.button(QDialogButtonBox.Discard).setText("Delete")
+        else:
+            self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
 
         # TODO KV keep? from orig locationdefinerdialog:
         #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
@@ -242,6 +254,8 @@ class ModuleSelectorDialog(QDialog):
 
         if standard == QDialogButtonBox.Cancel:
             self.reject()
+        elif standard == QDialogButtonBox.Help:
+            self.show_help()  # when 'help' button clicked
 
         elif standard == QDialogButtonBox.Discard:
             deletethemodule = True
@@ -333,6 +347,24 @@ class ModuleSelectorDialog(QDialog):
 
         return savedmodule
 
+    def show_help(self):
+        import webbrowser
+        # activate when the user clicks 'help' btn. launch the web browser and open a relevant readthedocs page
+
+        # generate the url to land
+        base_url = 'https://slp-aa.readthedocs.io/en/'
+        version = 'latest/' if not FROZEN else "v{}.{}.{}/".format(*VERSION)
+        help_map = {
+            # help_map is a dictionary of moduletype (key) and its help page (value)
+            'movement': 'movement_module.html',
+            'location': 'location_module.html',
+            'handconfig': 'hand_configuration_module.html',
+            'relation': 'relation_module.html',
+            'orientation': 'orientation_module.html',
+            'nonmanual': 'nonmanual_module.html',
+        }
+        help_url = f'{base_url}{version}{help_map[self.moduletype]}'
+        webbrowser.open(help_url)
 
 class AssociatedRelationsDialog(QDialog):
     module_saved = pyqtSignal(ParameterModule, str)
