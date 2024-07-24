@@ -1,3 +1,4 @@
+import sys
 import os
 from fractions import Fraction
 
@@ -33,6 +34,10 @@ from lexicon.predefined_handshape import (
     HandshapeX, HandshapeClosedX,
     HandshapeY, HandshapeCombinedYAndMiddle, HandshapeCombinedYAndU
 )
+
+# system info
+FROZEN = hasattr(sys, 'frozen')
+VERSION = (0, 0, 0)  # (major, minor, patch)
 
 # symbols
 X_IN_BOX = '\u2327'
