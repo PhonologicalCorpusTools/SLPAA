@@ -27,6 +27,7 @@ from PyQt5.QtCore import (
 from lexicon.lexicon_classes import SignLevelInformation
 from lexicon.module_classes import EntryID
 from gui.decorator import check_duplicated_lemma, check_empty_glosslemmaIDgloss, check_duplicated_idgloss
+from gui.link_help import show_help
 
 
 class SignLevelDateDisplay(QLabel):
@@ -322,7 +323,7 @@ class SignlevelinfoSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Help | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
 
@@ -339,6 +340,9 @@ class SignlevelinfoSelectorDialog(QDialog):
 
         if standard == QDialogButtonBox.Cancel:
             self.reject()
+
+        elif standard == QDialogButtonBox.Help:
+            show_help("signlevel")
 
         elif standard == QDialogButtonBox.Save:
             sli = self.signlevelinfo_widget.get_value()

@@ -35,7 +35,8 @@ from gui.relationspecification_view import RelationSpecificationPanel
 from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
-from constant import HAND, ARM, LEG, FROZEN, VERSION
+from gui.link_help import show_help
+from constant import HAND, ARM, LEG
 
 
 class ModuleSelectorDialog(QDialog):
@@ -255,7 +256,7 @@ class ModuleSelectorDialog(QDialog):
         if standard == QDialogButtonBox.Cancel:
             self.reject()
         elif standard == QDialogButtonBox.Help:
-            self.show_help()  # when 'help' button clicked
+            show_help(self.moduletype)  # when 'help' button clicked
 
         elif standard == QDialogButtonBox.Discard:
             deletethemodule = True
