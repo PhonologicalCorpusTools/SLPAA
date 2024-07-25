@@ -349,6 +349,9 @@ class SignLevelInformation:
 
     @property
     def fingerspelled(self):
+        if not hasattr(self, '_fingerspelled'):
+            # backward compatibility for attribute added 20230412!
+            self._fingerspelled = False  # default value
         return self._fingerspelled
 
     @fingerspelled.setter
@@ -357,6 +360,9 @@ class SignLevelInformation:
 
     @property
     def compoundsign(self):
+        if not hasattr(self, '_compoundsign'):
+            # backward compatibility for attribute added 20230503!
+            self._compoundsign = False  # default value
         return self._compoundsign
     
     @compoundsign.setter
@@ -1084,11 +1090,13 @@ class Signtype:
         #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
-        # TODO KV need backward compatibility for this
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
 
     @property
     def addedinfo(self):
+        if not hasattr(self, '_addedinfo'):
+            # for backward compatibility
+            self._addedinfo = AddedInfo()
         return self._addedinfo
 
     @addedinfo.setter

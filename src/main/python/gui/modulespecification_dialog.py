@@ -26,7 +26,7 @@ from PyQt5.QtCore import (
 )
 
 from gui.xslot_graphics import XslotLinkScene
-from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes
+from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, LocationModule, MovementModule
 from models.relation_models import ModuleLinkingListModel
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
@@ -70,7 +70,7 @@ class ModuleSelectorDialog(QDialog):
             if moduletoload.articulators is not None:
                 articulators = moduletoload.articulators
             new_instance = False
-            if hasattr(moduletoload, '_inphase'):
+            if isinstance(moduletoload, LocationModule) or isinstance(moduletoload, MovementModule):
                 inphase = moduletoload.inphase
 
         main_layout = QVBoxLayout()

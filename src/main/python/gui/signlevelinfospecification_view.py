@@ -227,10 +227,8 @@ class SignLevelInfoPanel(QFrame):
             self.created_display.set_datetime(signlevelinfo.datecreated)
             self.modified_display.set_datetime(signlevelinfo.datelastmodified)
             self.note_edit.setPlainText(signlevelinfo.note if signlevelinfo.note is not None else "")
-            # backward compatibility for attribute added 20230412!
-            self.fingerspelled_cb.setChecked(hasattr(signlevelinfo, '_fingerspelled') and signlevelinfo.fingerspelled)
-            # backward compatibility for attribute added 20230503!
-            self.compoundsign_cb.setChecked(hasattr(signlevelinfo, '_compoundsign') and signlevelinfo.compoundsign)
+            self.fingerspelled_cb.setChecked(signlevelinfo.fingerspelled)
+            self.compoundsign_cb.setChecked(signlevelinfo.compoundsign)
             self.set_handdominance(signlevelinfo.handdominance)
 
     def clear(self):

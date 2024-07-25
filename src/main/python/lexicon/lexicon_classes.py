@@ -71,10 +71,7 @@ class Sign:
 
         if serializedsign is not None:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
-            signtype = serializedsign['type']
-            self._signtype = Signtype(signtype.specslist) if signtype is not None else None
-            if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
-                self._signtype.addedinfo = serializedsign['type'].addedinfo
+            self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
             self.unserializemovementmodules(serializedsign['mov modules'])
@@ -169,7 +166,7 @@ class Sign:
             articulators = serialmodule.articulators
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo
             unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
             unserialized[k].uniqueid = k
         self.movementmodules = unserialized
@@ -186,9 +183,9 @@ class Sign:
             serialmodule = serialized_locnmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo
             phonlocs = serialmodule.phonlocs
-            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
+            inphase = serialmodule.inphase
 
             serialtree = serialmodule.locationtree
 
@@ -262,7 +259,7 @@ class Sign:
             serialmodule = serialized_relmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()
+            addedinfo = serialmodule.addedinfo
             relationx = serialmodule.relationx
             relationy = serialmodule.relationy
             bodyparts_dict = {
@@ -432,7 +429,6 @@ class Corpus:
             self.minimumID = serializedcorpus['minimum id'] if 'minimum id' in serializedcorpus.keys() else 1
             self.highestID = serializedcorpus['highest id']
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty 
-            # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             if len(self) > 0:
                 self.confirmhighestID("load")
             self.add_missing_paths()  # Another backwards compatibility function for movement and location
@@ -445,15 +441,10 @@ class Corpus:
             self.highestID = highestID
 
     # check and make sure the highest ID saved is equivalent to the actual highest entry ID
-    # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
-    # this function should hopefully not be necessary forever, but for now I want to make sure that
-    # functionality isn't affected by an incorrectly-saved value
     def confirmhighestID(self, actionname):
         entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs] or [0]
         max_entryID = max(entryIDcounters)
         if max_entryID > self.highestID:
-            if actionname != "merge":
-                logging.warn(" upon " + actionname + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
 
     def increaseminID(self, newmin):
@@ -466,7 +457,6 @@ class Corpus:
 
     def serialize(self):
         # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty
-        # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
         if len(self) > 0:
             self.confirmhighestID("save")
         return {
