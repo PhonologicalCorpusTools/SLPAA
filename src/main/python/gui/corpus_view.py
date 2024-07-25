@@ -17,13 +17,21 @@ from PyQt5.QtWidgets import (
     QButtonGroup
 )
 
+from PyQt5.QtCore import (
+    QEvent,
+)
+
+
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
+from gui.modulespecification_widgets import SignEntryContextMenu
 
 
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
     selection_cleared = pyqtSignal()
+    action_selected = pyqtSignal(str,  # "copy", "edit" (sign-level info), or "delete"
+                                 Sign)
 
     def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
@@ -54,6 +62,7 @@ class CorpusDisplay(QWidget):
         self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
         self.corpus_view.doubleClicked.connect(self.mainwindow.signlevel_panel.handle_signlevelbutton_click)
         self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.corpus_view.installEventFilter(self)
 
         # Corpus filter by any info in table (gloss, entry id string, lemma, id-gloss)
         filter_layout = QHBoxLayout()
@@ -149,6 +158,18 @@ class CorpusDisplay(QWidget):
             self.clear()
 
         self.update_summarylabels()
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.ContextMenu and source == self.corpus_view:
+                proxyindex = self.corpus_view.currentIndex()
+                sourceindex = self.getsourceindex((proxyindex.row(), proxyindex.column()))
+                sign = self.getcorpusitem(sourceindex).sign
+
+                menu = SignEntryContextMenu()
+                menu.action_selected.connect(lambda action_str: self.action_selected.emit(action_str, sign))
+                menu.exec_(event.globalPos())
+
+        return super().eventFilter(source, event)
 
     def getproxyindex(self, fromproxyrowcol=None, fromsourceindex=None):
         if fromproxyrowcol:

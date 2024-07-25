@@ -88,6 +88,8 @@ class MainWindow(QMainWindow):
         self.undostack = QUndoStack(parent=self)
         self.unsaved_changes = False  # a flag that tracks any unsaved changes.
 
+        self.clipboard = None
+
         self.predefined_handshape_dialog = None
 
         # system-defaults
@@ -343,6 +345,7 @@ class MainWindow(QMainWindow):
         self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
         self.corpus_display.selection_cleared.connect(self.handle_sign_selected)
+        self.corpus_display.action_selected.connect(self.handle_signaction_selected)
 
         self.corpus_scroll = QScrollArea(parent=self)
         self.corpus_scroll.setWidgetResizable(True)
@@ -600,6 +603,20 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.sign = selected_sign
         self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
+
+    # action_str = "copy", "edit" (sign-level info), or "delete"
+    def handle_signaction_selected(self, action_str, sign):
+        print("sign selected for R-click", sign)
+
+        if action_str == "edit":
+            print("edit sign!")
+            self.signlevel_panel.handle_signlevelbutton_click()
+        elif action_str == "delete":
+            print("delete sign!")
+            self.on_action_delete_sign()
+        elif action_str == "copy":
+            print("copy sign!")
+
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -995,7 +1012,13 @@ class MainWindow(QMainWindow):
             self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
             self.corpus_display.handle_selection(stashed_corpusselection)
 
-    def on_action_delete_sign(self, clicked):
+    def on_action_copy_sign(self):
+        # TODO implement
+        if self.current_sign:
+            signtocopy = self.current_sign
+            self.clipboard = signtocopy
+
+    def on_action_delete_sign(self, clicked=None):
         if self.current_sign:  # does the sign to delete exist?
             glosseslist = self.current_sign.signlevel_information.gloss
             question1 = "Do you want to delete the selected sign, with gloss"
