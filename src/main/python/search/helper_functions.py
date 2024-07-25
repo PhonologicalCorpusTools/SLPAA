@@ -54,7 +54,7 @@ def signtypedisplaytext(specslist):
     if 'Unspecified' in specs:
         disp.append('Unspecified')
     if '1h' in specs:
-        oneh = []
+        oneh = ['1h']
         for s in ['1h.moves', '1h.no mvmt']:
             if s in specs:
                 oneh.append(s)
@@ -64,7 +64,7 @@ def signtypedisplaytext(specslist):
             disp.append('1h')
 
     if '2h' in specs:
-        twoh = []
+        twoh = ['2h']
         for s in ['same HCs', 'different HCs', 'maintain contact', 'contact not maintained', 'bilaterally symmetric', 'not bilaterally symmetric', 'neither moves']:
             if ('2h.' + s) in specs:
                 twoh.append('2h.' + s)
