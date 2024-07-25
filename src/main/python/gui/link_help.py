@@ -13,7 +13,7 @@ help_map = {
     'nonmanual': 'nonmanual_module',
     'signlevel': 'sign_level_info',
     'signtype': 'sign_type',
-    'xslot': 'timing.html'
+    'xslot': 'timing'
 }
 
 
