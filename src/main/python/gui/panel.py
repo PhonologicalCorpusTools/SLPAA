@@ -758,6 +758,7 @@ class SignSummaryPanel(QScrollArea):
 
 class SignLevelMenuPanel(QScrollArea):
     sign_updated = pyqtSignal(Sign)
+    corpus_updated = pyqtSignal(Sign)
 
     def __init__(self, sign, mainwindow, **kwargs):
         super().__init__(**kwargs)
@@ -894,7 +895,7 @@ class SignLevelMenuPanel(QScrollArea):
             self.mainwindow.corpus.add_sign(self.sign)
 
         self.sign_updated.emit(self.sign)
-        self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
+        self.corpus_updated.emit(self.sign)
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)

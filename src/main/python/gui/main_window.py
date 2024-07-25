@@ -57,7 +57,7 @@ from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS, filenamefrompath
-from lexicon.lexicon_classes import Corpus
+from lexicon.lexicon_classes import Corpus, Sign
 from serialization_classes import renamed_load
 
 
@@ -341,6 +341,7 @@ class MainWindow(QMainWindow):
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
         self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
+        self.signlevel_panel.corpus_updated.connect(lambda sign: self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign))
 
         corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
         self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
@@ -606,17 +607,33 @@ class MainWindow(QMainWindow):
         self.signsummary_panel.refreshsign(self.current_sign)
 
     # action_str = "copy", "edit" (sign-level info), or "delete"
-    def handle_signaction_selected(self, action_str, sign):
-        print("sign selected for R-click", sign)
+    def handle_signaction_selected(self, action_str):
+        selectedsign = self.current_sign or None
+        clipboardsign = self.clipboard if isinstance(self.clipboard, Sign) else None
+
+        print("sign selected for R-click", selectedsign)
 
         if action_str == "edit":
-            print("edit sign!")
-            self.signlevel_panel.handle_signlevelbutton_click()
+            if selectedsign is None:
+                print("no sign to edit :(")
+            else:
+                print("edit sign!")
+                self.signlevel_panel.handle_signlevelbutton_click()
         elif action_str == "delete":
-            print("delete sign!")
-            self.on_action_delete_sign()
+            if selectedsign is None:
+                print("no sign to delete :(")
+            else:
+                print("delete sign!")
+                self.on_action_delete_sign()
         elif action_str == "copy":
-            print("copy sign!")
+            if selectedsign is None:
+                print("no sign to copy :(")
+            else:
+                print("copy sign!")
+                self.on_action_copy()
+        elif action_str == "paste":
+            print("paste sign from clipboard!", clipboardsign)
+            self.on_action_paste()
 
 
     def handle_app_settings(self):
@@ -935,13 +952,28 @@ class MainWindow(QMainWindow):
             corpus.path = path
             return corpus
 
-    def on_action_copy(self, clicked):
-        pass
-        # TODO: implement
+    def on_action_copy(self, clicked=None):
+        if self.corpus_display.corpus_view.hasFocus():
+            print("corpus view has focus; copying sign")
+            self.clipboard = self.current_sign or None
 
-    def on_action_paste(self, clicked):
-        pass
-        # TODO: implement
+        # TODO: implement for other objects (not just Signs)
+
+    def on_action_paste(self, clicked=None):
+        if self.corpus_display.corpus_view.hasFocus():
+            print("corpus view has focus; checking if clipboard contains a Sign")
+            if isinstance(self.clipboard, Sign):
+                print("yes, it's a sign. pasting!")
+                if self.clipboard in self.corpus:
+                    print("sign already in corpus; no action taken")
+                else:
+                    print("sign not yet in corpus; adding")
+                    self.corpus.add_sign(self.clipboard)
+                    self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=self.clipboard)
+            else:
+                print("nope, not a sign (or None); not pasting!")
+
+        # TODO: implement for other objects (not just Signs)
 
     @check_unsaved_change
     def on_action_new_corpus(self, clicked):
@@ -985,7 +1017,7 @@ class MainWindow(QMainWindow):
     def load_corpus_info(self, corpuspath):
         self.corpus = self.load_corpus_binary(corpuspath)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
-        self.corpus_display.updated_signs(self.corpus.signs)
+        self.corpus_display.updated_signs(signs=self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selectfirstrow()
         else:  # if loading a blank corpus
@@ -1014,12 +1046,6 @@ class MainWindow(QMainWindow):
         if dialogresult == QDialog.Rejected:
             self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
             self.corpus_display.handle_selection(stashed_corpusselection)
-
-    def on_action_copy_sign(self):
-        # TODO implement
-        if self.current_sign:
-            signtocopy = self.current_sign
-            self.clipboard = signtocopy
 
     def on_action_delete_sign(self, clicked=None):
         if self.current_sign:  # does the sign to delete exist?

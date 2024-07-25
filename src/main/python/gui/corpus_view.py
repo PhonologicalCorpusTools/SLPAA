@@ -30,8 +30,7 @@ from gui.modulespecification_widgets import SignEntryContextMenu
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
     selection_cleared = pyqtSignal()
-    action_selected = pyqtSignal(str,  # "copy", "edit" (sign-level info), or "delete"
-                                 Sign)
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
 
     def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
@@ -163,10 +162,13 @@ class CorpusDisplay(QWidget):
         if event.type() == QEvent.ContextMenu and source == self.corpus_view:
                 proxyindex = self.corpus_view.currentIndex()
                 sourceindex = self.getsourceindex((proxyindex.row(), proxyindex.column()))
-                sign = self.getcorpusitem(sourceindex).sign
+                corpusitem = self.getcorpusitem(sourceindex)
+                selectedsign = corpusitem.sign if corpusitem is not None else None
+                clipboardsign = self.mainwindow.clipboard if isinstance(self.mainwindow.clipboard, Sign) else None
 
-                menu = SignEntryContextMenu()
-                menu.action_selected.connect(lambda action_str: self.action_selected.emit(action_str, sign))
+                menu = SignEntryContextMenu(has_selectedsign=selectedsign,
+                                            has_clipboardsign=clipboardsign)
+                menu.action_selected.connect(self.action_selected.emit)
                 menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
