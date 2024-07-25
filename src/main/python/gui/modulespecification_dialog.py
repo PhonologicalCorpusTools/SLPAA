@@ -383,7 +383,7 @@ class AssociatedRelationsDialog(QDialog):
                                                includephase=0,
                                                incl_articulators=[],
                                                parent=self)
-        module_selector.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
+        module_selector.module_saved.connect(self.module_saved.emit)
         # module_selector.module_deleted.connect(lambda: self.handle_moduledeleted(relmod.uniqueid))
         module_selector.module_deleted.connect(lambda: self.mainwindow.signlevel_panel.handle_delete_module(
             existingkey=relmod.uniqueid, moduletype=ModuleTypes.RELATION))
@@ -476,7 +476,7 @@ class AssociatedRelationsPanel(QFrame):
 
     def handle_see_relationmodules(self):
         associatedrelations_dialog = AssociatedRelationsDialog(anchormodule=self.anchormodule, parent=self)
-        associatedrelations_dialog.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
+        associatedrelations_dialog.module_saved.connect(self.module_saved.emit)
         associatedrelations_dialog.exec_()
         self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
 
@@ -493,7 +493,7 @@ class AssociatedRelationsPanel(QFrame):
                                                    includephase=0,
                                                    incl_articulators=[],
                                                    parent=self)
-            module_selector.module_saved.connect(lambda moduletosave, savedtype: self.module_saved.emit(moduletosave, savedtype))
+            module_selector.module_saved.connect(self.module_saved.emit)
             module_selector.exec_()
 
 
@@ -558,7 +558,7 @@ class XslotLinkingPanel(QFrame):
         main_layout.addWidget(self.link_intro_label)
 
         self.xslotlinkscene = XslotLinkScene(timingintervals=self.timingintervals, parentwidget=self)
-        self.xslotlinkscene.selection_changed.connect(lambda haspoint, hasinterval: self.selection_changed.emit(haspoint, hasinterval))
+        self.xslotlinkscene.selection_changed.connect(self.selection_changed.emit)
         self.xslotlinkview = QGraphicsView(self.xslotlinkscene)
         self.xslotlinkview.setFixedHeight(self.xslotlinkscene.scene_height + 50)
         # self.xslotlinkview.setFixedSize(self.xslotlinkscene.scene_width+100, self.xslotlinkscene.scene_height+50)

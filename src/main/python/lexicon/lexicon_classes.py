@@ -648,6 +648,14 @@ class Corpus:
                 elif nodes[1] == 'Selected fingers and Thumb':
                     nodes[1] = 'Selected fingers and thumb'
                     nodes.insert(1, 'Fingers and thumb')
+                # Issue 85: New hand layers
+                # don't need any special insertion code for "Whole hand - contra" or "Whole hand - ipsi" because they are leaf nodes
+                # same for  "Hand minus fingers - contra" and "Hand minus fingers - ipsi"
+                # same for  "Heel of hand - contra" and "Heel of hand - ipsi"
+                # same for  "Fingers and thumb - contra" and "Fingers and thumb - ipsi"
+                # same for  "Thumb - contra" and "Thumb - ipsi"
+                # same for  "Fingers - contra" and "Fingers - ipsi" as well as for each of Finger 1, 2, 3, 4 - contra/ipsi
+                # same for  "Between fingers - contra" and "Between fingers - ipsi" as well as for each of Between thumb & finger 1/1&2/2&3/3&4 ipsi/contra
                 paths_to_add.append(nodes)
             # Issue 162: leg and feet changes
             elif nodes[0] == 'Legs and feet':
@@ -681,7 +689,11 @@ class Corpus:
                 elif length > 3 and nodes[3] in ['Upper eyelid', 'Lower eyelid']:
                     nodes.insert(4, 'Eyelid')
                 elif nodes[-1] == 'Septum':
-                    nodes.insert(length-2, 'Septum/nostril area')
+                    nodes.insert(length-2, 'Septum / nostril area')
+                # Issue 85: New face layers
+                elif length > 3 and nodes[3] in ['Corner of mouth - contra', 'Corner of mouth - ipsi']:
+                    nodes.insert(3, 'Corner of mouth')
+                # don't need any special insertion code for "Eyelid - contra" or "Eyelid - ipsi" because they are leaf nodes
                 paths_to_add.append(nodes)
             elif length > 2 and nodes[1] == 'Ear':
                 nodes[3].replace('Mastoid process', 'Behind ear')

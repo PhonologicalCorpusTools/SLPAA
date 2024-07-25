@@ -737,7 +737,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.existingmod_listview.setModel(self.existingmodule_listmodel)
         self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
         self.existingmod_listview.setSelectionMode(QAbstractItemView.MultiSelection)
-        self.existingmod_listview.clicked.connect(lambda index: self.handle_existingmod_clicked(index))
+        self.existingmod_listview.clicked.connect(self.handle_existingmod_clicked)
         self.y_other_radio = RelationRadioButton("Other")
         self.y_other_text = QLineEdit()
         self.y_other_text.setPlaceholderText("Specify")
