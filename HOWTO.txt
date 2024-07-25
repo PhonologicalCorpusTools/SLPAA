@@ -1,0 +1,24 @@
+Prerequisites:
+
+pip install pymupdf
+
+get a copy of the Canadian ASL dictionary, call it 'dictionary.pdf' and put it in the docs/ folder
+
+Access to Google Drive and Google Colab (if you have a gmail address this should be enough)
+
+
+To generate data for fine-tuning the T5 model:
+
+Step 1: Extract dictionary text
+run parse_pdf.py
+This outputs a file called 'dictionary_text_extraction.txt'
+
+Step 2: Extract glosses and descriptions
+run parse_text.py
+This parses the file from the previous step, to extract the gloss and description from each dictionary entry. It also searches each entry for any mention of a predefined hand shape, and outputs a file called 'description_to_handshape.csv' You can use this file to fine-tune the T5 model. Upload this file to your google drive.
+
+Step 3: Set up your drive
+Upload the file T5_transcriber.ipynb to your drive, and open it in Google Colab. File paths in google drive use a generic prefix '/content/drive/MyDrive/' but you will need to create a subfolder in your drive called 'SLPA', with subfolders 'results' and 'logs' (or otherwise modify the path names in the script).
+
+Step 4: Train and evaluate the model
+Run all cells in the notebook. It takes a few minutes to install everything and setup the model, then 3-4 hours to train the model. Don't let your computer fall asleep during this time!
