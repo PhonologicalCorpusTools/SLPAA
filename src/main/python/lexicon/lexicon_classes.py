@@ -2,7 +2,7 @@ import logging
 import os
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
+from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -85,7 +85,7 @@ class Sign:
             self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
             self.handconfigmodules = serializedsign['cfg modules']
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
-            self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
+            self.nonmanualmodules = serializedsign['nonman modules']  if 'nonman modules' in serializedsign else {}
             self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
                 if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.NONMANUAL)
 
@@ -167,7 +167,8 @@ class Sign:
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
             addedinfo = serialmodule.addedinfo
-            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+            phonlocs = serialmodule.phonlocs
+            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
             unserialized[k].uniqueid = k
         self.movementmodules = unserialized
 
@@ -238,12 +239,12 @@ class Sign:
                     }
                 }
                 # relation module should not have contact or manner or distance specified
-                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, addedinfo=addedinfo)
+                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
                 self.addmodule(convertedrelationmodule, ModuleTypes.RELATION)
 
             else:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
-                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
+                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase=inphase)
                 unserialized[k].uniqueid = k
         self.locationmodules = unserialized
 
@@ -260,6 +261,7 @@ class Sign:
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
             addedinfo = serialmodule.addedinfo
+            phonlocs = serialmodule.phonlocs
             relationx = serialmodule.relationx
             relationy = serialmodule.relationy
             bodyparts_dict = {
@@ -302,7 +304,7 @@ class Sign:
             unserialized[k] = RelationModule(relationx, relationy, bodyparts_dict, contactrel,
                                              xy_crossed, xy_linked, directionslist=directions,
                                              articulators=articulators, timingintervals=timingintervals,
-                                             addedinfo=addedinfo)
+                                             phonlocs=phonlocs, addedinfo=addedinfo)
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
 

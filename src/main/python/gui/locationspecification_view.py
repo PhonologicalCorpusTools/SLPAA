@@ -22,7 +22,6 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QWidget,
     QSpacerItem,
-    QSizePolicy,
     QFrame,
     QScrollArea,
     QMenu,
@@ -39,7 +38,7 @@ from PyQt5.QtCore import (
     QPointF
 )
 
-from lexicon.module_classes import LocationModule, PhonLocations
+from lexicon.module_classes import LocationModule
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel, locn_options_body
 from serialization_classes import LocationTreeSerializable
@@ -331,21 +330,19 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.recreate_treeandlistmodels()
 
         loctypetoload = None
-        phonlocstoload = None
         treemodeltoload = None
 
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.existingkey = moduletoload.uniqueid
             loctypetoload = moduletoload.locationtreemodel.locationtype
-            phonlocstoload = moduletoload.phonlocs
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
             treemodeltoload = LocationTreeModel(LocationTreeSerializable(moduletoload.locationtreemodel))
 
         # create layout with buttons for location type (body, signing space, etc)
         # and for phonological locations (phonological, phonetic, etc)
-        loctype_phonloc_layout = self.create_loctype_phonloc_layout()
-        main_layout.addLayout(loctype_phonloc_layout)
+        loctype_layout = self.create_loctype_layout()
+        main_layout.addLayout(loctype_layout)
 
         # create panel containing search box, visual location selection (if applicable), list of selected options, and details table
         self.locationoptionsselectionpanel = LocationOptionsSelectionPanel(treemodeltoload=treemodeltoload, displayvisualwidget=showimagetabs, parent=self)
@@ -354,7 +351,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         # set buttons and treemodel according to the existing module being loaded (if applicable)
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.set_loctype_buttons_from_content(loctypetoload)
-            self.set_phonloc_buttons_from_content(phonlocstoload)
             self.setcurrenttreemodel(treemodeltoload)
         else:
             self.clear_loctype_buttons_to_default()
@@ -403,19 +399,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         )
         return locationtype
 
-    def getcurrentphonlocs(self):
-        phonlocs = PhonLocations(
-            phonologicalloc=self.phonological_cb.isChecked(),
-            majorphonloc=self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
-            minorphonloc=self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
-            phoneticloc=self.phonetic_cb.isChecked()
-        )
-        return phonlocs
+    def create_loctype_layout(self):
+        loctype_layout = QHBoxLayout()
 
-    def create_loctype_phonloc_layout(self):
-        loctype_phonloc_layout = QHBoxLayout()
-
-        loctype_phonloc_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
+        loctype_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
 
         body_layout = QHBoxLayout()
         self.body_radio = QRadioButton("Body")
@@ -424,7 +411,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         body_layout.addSpacerItem(QSpacerItem(60, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
         body_box = QGroupBox()
         body_box.setLayout(body_layout)
-        loctype_phonloc_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
+        loctype_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
 
         signingspace_layout = QHBoxLayout()
 
@@ -440,8 +427,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         signingspace_layout.addWidget(self.signingspacespatial_radio)
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
-        loctype_phonloc_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
-        loctype_phonloc_layout.addStretch()
+        loctype_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
+        loctype_layout.addStretch()
 
         self.loctype_subgroup = QButtonGroup()
         self.loctype_subgroup.addButton(self.body_radio)
@@ -454,31 +441,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.signingspace_subgroup.buttonToggled.connect(lambda btn, wastoggled:
                                                          self.handle_toggle_signingspacetype(self.signingspace_subgroup.checkedButton()))
 
-        phonological_layout = QVBoxLayout()
-        self.phonological_cb = QCheckBox("Phonological location")
-        self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
-        phonological_layout.addWidget(self.phonological_cb)
-        phonological_sublayout = QHBoxLayout()
-        self.majorphonloc_cb = QCheckBox("Major")
-        self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        self.minorphonloc_cb = QCheckBox("Minor")
-        self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
-        phonological_sublayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        phonological_sublayout.addWidget(self.majorphonloc_cb)
-        phonological_sublayout.addWidget(self.minorphonloc_cb)
-        phonological_sublayout.addStretch()
-        phonological_layout.addLayout(phonological_sublayout)
-
-        phonetic_layout = QVBoxLayout()
-        self.phonetic_cb = QCheckBox("Phonetic location")
-        phonetic_layout.addWidget(self.phonetic_cb)
-        phonetic_layout.addStretch()
-
-        loctype_phonloc_layout.addLayout(phonological_layout)
-        loctype_phonloc_layout.addLayout(phonetic_layout)
-        loctype_phonloc_layout.addStretch()
-
-        return loctype_phonloc_layout
+        return loctype_layout
 
     def getcurrenttreemodel(self):
         if self.getcurrentlocationtype().usesbodylocations():
@@ -523,17 +486,22 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         # ensure the first item in the selected locations list (if any) is selected/highlighted
         self.locationoptionsselectionpanel.pathslistview.setindex(-1)
 
-    def check_phonologicalloc_cb(self, checked):
-        self.phonological_cb.setChecked(True)
-
-    def enable_majorminorphonological_cbs(self, checked):
-        self.majorphonloc_cb.setEnabled(checked)
-        self.minorphonloc_cb.setEnabled(checked)
-
     def selectlistitem(self, locationtreeitem):
         listmodelindex = self.getcurrentlistmodel().indexFromItem(locationtreeitem.listitem)
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
+
+    def update_detailstable(self):
+        selectedindexes = self.pathslistview.selectionModel().selectedIndexes()
+        if len(selectedindexes) == 1:  # the details pane reflects the (single) selection
+            itemindex = selectedindexes[0]
+            listitemindex = self.pathslistview.model().mapToSource(itemindex)
+            selectedlistitem = self.pathslistview.model().sourceModel().itemFromIndex(listitemindex)
+            self.detailstableview.setModel(selectedlistitem.treeitem.detailstable)
+        else:  # 0 or >1 rows selected; the details pane is blank
+            self.detailstableview.setModel(LocationTreeItem().detailstable)
+
+        self.detailstableview.horizontalHeader().resizeSections(QHeaderView.Stretch)
 
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
@@ -568,8 +536,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.locationoptionsselectionpanel.update_detailstable()
         self.locationoptionsselectionpanel.detailstableview.setEnabled(enabledetailstable)
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
-        phonlocs = self.getcurrentphonlocs()
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
+        # phonlocs = self.getcurrentphonlocs()
         locmod = LocationModule(self.getcurrenttreemodel(),
                                 articulators=articulators,
                                 timingintervals=timingintervals,
@@ -607,21 +575,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
-
-    def set_phonloc_buttons_from_content(self, phonlocs):
-        self.clear_phonlocs_buttons()
-        self.majorphonloc_cb.setChecked(phonlocs.majorphonloc)
-        self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
-        self.phonological_cb.setChecked(phonlocs.phonologicalloc)
-        self.phonetic_cb.setChecked(phonlocs.phoneticloc)
-
-    def clear_phonlocs_buttons(self):
-        self.majorphonloc_cb.setChecked(False)
-        self.minorphonloc_cb.setChecked(False)
-        self.phonological_cb.setChecked(False)
-        self.phonetic_cb.setChecked(False)
-        self.majorphonloc_cb.setEnabled(True)
-        self.minorphonloc_cb.setEnabled(True)
 
     def clear(self):
         """Restore GUI to the defaults."""
