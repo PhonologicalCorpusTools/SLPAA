@@ -348,24 +348,6 @@ class ModuleSelectorDialog(QDialog):
 
         return savedmodule
 
-    def show_help(self):
-        import webbrowser
-        # activate when the user clicks 'help' btn. launch the web browser and open a relevant readthedocs page
-
-        # generate the url to land
-        base_url = 'https://slp-aa.readthedocs.io/en/'
-        version = 'latest/' if not FROZEN else "v{}.{}.{}/".format(*VERSION)
-        help_map = {
-            # help_map is a dictionary of moduletype (key) and its help page (value)
-            'movement': 'movement_module.html',
-            'location': 'location_module.html',
-            'handconfig': 'hand_configuration_module.html',
-            'relation': 'relation_module.html',
-            'orientation': 'orientation_module.html',
-            'nonmanual': 'nonmanual_module.html',
-        }
-        help_url = f'{base_url}{version}{help_map[self.moduletype]}'
-        webbrowser.open(help_url)
 
 class AssociatedRelationsDialog(QDialog):
     module_saved = pyqtSignal(ParameterModule, str)

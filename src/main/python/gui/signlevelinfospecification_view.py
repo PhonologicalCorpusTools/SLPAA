@@ -342,7 +342,7 @@ class SignlevelinfoSelectorDialog(QDialog):
             self.reject()
 
         elif standard == QDialogButtonBox.Help:
-            show_help("signlevel")
+            show_help('signlevel')
 
         elif standard == QDialogButtonBox.Save:
             sli = self.signlevelinfo_widget.get_value()
