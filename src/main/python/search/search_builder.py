@@ -194,7 +194,7 @@ class SearchWindow(QMainWindow):
             self.searchmodel.matchdegree = self.search_params_view.match_degree
 
             resultsdict = self.searchmodel.search_corpus(self.corpus)
-            self.results_view = ResultsView(resultsdict)
+            self.results_view = ResultsView(resultsdict, mainwindow=self)
             self.results_view.show()
         
 

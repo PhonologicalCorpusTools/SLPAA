@@ -41,6 +41,8 @@ from PyQt5.Qt import (
     QVBoxLayout,
     QDialog
 )
+from gui.panel import SignLevelMenuPanel, SignSummaryPanel
+
 import logging
 
 class ResultHeaders:
@@ -50,12 +52,16 @@ class ResultHeaders:
     TYPE = 3
     ID = 4
     GLOSS = 5
+    LEMMA = 6
+    IDGLOSS = 7
 
 class ResultsView(QWidget):
-    def __init__(self, resultsdict, **kwargs):
+    def __init__(self, resultsdict, mainwindow, **kwargs):
         super().__init__(**kwargs)
         self.setWindowTitle("Search Results")
         self.resultsdict = resultsdict
+        self.mainwindow = mainwindow
+        self.corpus = self.mainwindow.corpus
 
         # Create a tab widget
         main_layout = QVBoxLayout()
@@ -68,6 +74,7 @@ class ResultsView(QWidget):
         self.summarymodel.populate(self.resultsdict)
         self.summary_table_view.setModel(self.summarymodel)
         self.summary_table_view.setItemDelegate(self.listdelegate)
+        self.summary_table_view.setEditTriggers(QTableView.NoEditTriggers)
         summarylayout = QVBoxLayout()
         summarylayout.addWidget(self.summary_table_view)
         self.summarytab.setLayout(summarylayout)
@@ -78,6 +85,9 @@ class ResultsView(QWidget):
         self.individualmodel.populate(self.resultsdict)
         self.individual_table_view.setModel(self.individualmodel)
         self.individual_table_view.setItemDelegate(self.listdelegate)
+        self.individual_table_view.doubleClicked.connect(self.handle_result_doubleclicked)
+        self.individual_table_view.setEditTriggers(QTableView.NoEditTriggers) # disable edit via clicking table
+ 
         individuallayout = QVBoxLayout()
         individuallayout.addWidget(self.individual_table_view)
         self.individualtab.setLayout(individuallayout)
@@ -88,6 +98,17 @@ class ResultsView(QWidget):
         self.showMaximized()
         main_layout.addWidget(self.tab_widget)
         self.setLayout(main_layout)
+    
+    def handle_result_doubleclicked(self, index):
+        entryid = self.individualmodel.get_entry_id_from_row(index.row())
+        # logging.warning(self.corpus.signs)
+        # QMessageBox.critical(self, "double clicked", str(entryid))
+        # for s in self.corpus.signs:
+        #     thissign = s
+        #     break
+        # self.signsummary_panel = SignSummaryPanel(mainwindow=self.mainwindow, sign=thissign, parent=self)
+        # self.signsummary_panel.refreshsign(thissign)
+        # self.signsummary_panel.show()
 
 class ListDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
@@ -121,15 +142,15 @@ class ResultSummaryModel(QStandardItemModel):
 
             self.appendRow([corpus, name, values, resulttypes, frequency])
 
-
-
-
 class IndividualSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss", "Lemma", "ID Gloss"]
         self.setHorizontalHeaderLabels(self.headers)
+    
+    def get_entry_id_from_row(self, row):
+        return self.index(row, ResultHeaders.ID).data(Qt.DisplayRole)
 
     def populate(self, resultsdict):
         for targetname in resultsdict:
