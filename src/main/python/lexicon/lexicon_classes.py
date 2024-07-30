@@ -2,7 +2,7 @@ import logging
 import os
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
+from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -66,13 +66,12 @@ class Sign:
         self.orientationmodulenumbers = {}
         self.handconfigmodules = {}
         self.handconfigmodulenumbers = {}
+        self.nonmanualmodules = {}
+        self.nonmanualmodulenumbers = {}
 
         if serializedsign is not None:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
-            signtype = serializedsign['type']
-            self._signtype = Signtype(signtype.specslist) if signtype is not None else None
-            if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
-                self._signtype.addedinfo = serializedsign['type'].addedinfo
+            self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
             self.unserializemovementmodules(serializedsign['mov modules'])
@@ -86,6 +85,9 @@ class Sign:
             self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
             self.handconfigmodules = serializedsign['cfg modules']
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
+            self.nonmanualmodules = serializedsign['nonman modules']  if 'nonman modules' in serializedsign else {}
+            self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
+                if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.NONMANUAL)
 
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
@@ -107,6 +109,8 @@ class Sign:
             return self.relationmodules
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodules
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodules
         else:
             return {}
 
@@ -121,6 +125,8 @@ class Sign:
             return self.relationmodulenumbers
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodulenumbers
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodulenumbers
         else:
             return {}
 
@@ -138,6 +144,8 @@ class Sign:
             'rel module numbers': self.relationmodulenumbers,
             'ori modules': self.orientationmodules,
             'ori module numbers': self.orientationmodulenumbers,
+            'nonman modules': self.nonmanualmodules,
+            'nonman module numbers': self.nonmanualmodulenumbers,
             'cfg modules': self.handconfigmodules,
             'cfg module numbers': self.handconfigmodulenumbers,
         }
@@ -158,8 +166,9 @@ class Sign:
             articulators = serialmodule.articulators
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+            addedinfo = serialmodule.addedinfo
+            phonlocs = serialmodule.phonlocs
+            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
             unserialized[k].uniqueid = k
         self.movementmodules = unserialized
 
@@ -175,9 +184,9 @@ class Sign:
             serialmodule = serialized_locnmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo
             phonlocs = serialmodule.phonlocs
-            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
+            inphase = serialmodule.inphase
 
             serialtree = serialmodule.locationtree
 
@@ -230,12 +239,12 @@ class Sign:
                     }
                 }
                 # relation module should not have contact or manner or distance specified
-                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, addedinfo=addedinfo)
+                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
                 self.addmodule(convertedrelationmodule, ModuleTypes.RELATION)
 
             else:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
-                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
+                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase=inphase)
                 unserialized[k].uniqueid = k
         self.locationmodules = unserialized
 
@@ -251,7 +260,8 @@ class Sign:
             serialmodule = serialized_relmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()
+            addedinfo = serialmodule.addedinfo
+            phonlocs = serialmodule.phonlocs
             relationx = serialmodule.relationx
             relationy = serialmodule.relationy
             bodyparts_dict = {
@@ -294,7 +304,7 @@ class Sign:
             unserialized[k] = RelationModule(relationx, relationy, bodyparts_dict, contactrel,
                                              xy_crossed, xy_linked, directionslist=directions,
                                              articulators=articulators, timingintervals=timingintervals,
-                                             addedinfo=addedinfo)
+                                             phonlocs=phonlocs, addedinfo=addedinfo)
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
 
@@ -366,9 +376,9 @@ class Sign:
         currentmod_attrs = current_module.__dict__
         updatedmod_attrs = updated_module.__dict__
         for attr in currentmod_attrs:
-            if currentmod_attrs[attr] != updatedmod_attrs[attr]:
-                # TODO KV note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
-                # therefore copies (even if identical) of these classes will not be assessed as equal
+            if attr in updatedmod_attrs and currentmod_attrs[attr] != updatedmod_attrs[attr]:
+                # TODO note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
+                #   therefore copies (even if identical) of these classes will not be assessed as equal
                 currentmod_attrs[attr] = updatedmod_attrs[attr]
                 ischanged = True
         if ischanged:
@@ -421,7 +431,6 @@ class Corpus:
             self.minimumID = serializedcorpus['minimum id'] if 'minimum id' in serializedcorpus.keys() else 1
             self.highestID = serializedcorpus['highest id']
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty 
-            # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             if len(self) > 0:
                 self.confirmhighestID("load")
             self.add_missing_paths()  # Another backwards compatibility function for movement and location
@@ -434,14 +443,10 @@ class Corpus:
             self.highestID = highestID
 
     # check and make sure the highest ID saved is equivalent to the actual highest entry ID
-    # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
-    # this function should hopefully not be necessary forever, but for now I want to make sure that
-    # functionality isn't affected by an incorrectly-saved value
     def confirmhighestID(self, actionname):
         entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs] or [0]
         max_entryID = max(entryIDcounters)
         if max_entryID > self.highestID:
-            logging.warn(" upon " + actionname + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
 
     def increaseminID(self, newmin):
@@ -454,7 +459,6 @@ class Corpus:
 
     def serialize(self):
         # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty
-        # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
         if len(self) > 0:
             self.confirmhighestID("save")
         return {
@@ -647,6 +651,14 @@ class Corpus:
                 elif nodes[1] == 'Selected fingers and Thumb':
                     nodes[1] = 'Selected fingers and thumb'
                     nodes.insert(1, 'Fingers and thumb')
+                # Issue 85: New hand layers
+                # don't need any special insertion code for "Whole hand - contra" or "Whole hand - ipsi" because they are leaf nodes
+                # same for  "Hand minus fingers - contra" and "Hand minus fingers - ipsi"
+                # same for  "Heel of hand - contra" and "Heel of hand - ipsi"
+                # same for  "Fingers and thumb - contra" and "Fingers and thumb - ipsi"
+                # same for  "Thumb - contra" and "Thumb - ipsi"
+                # same for  "Fingers - contra" and "Fingers - ipsi" as well as for each of Finger 1, 2, 3, 4 - contra/ipsi
+                # same for  "Between fingers - contra" and "Between fingers - ipsi" as well as for each of Between thumb & finger 1/1&2/2&3/3&4 ipsi/contra
                 paths_to_add.append(nodes)
             # Issue 162: leg and feet changes
             elif nodes[0] == 'Legs and feet':
@@ -680,7 +692,11 @@ class Corpus:
                 elif length > 3 and nodes[3] in ['Upper eyelid', 'Lower eyelid']:
                     nodes.insert(4, 'Eyelid')
                 elif nodes[-1] == 'Septum':
-                    nodes.insert(length-2, 'Septum/nostril area')
+                    nodes.insert(length-2, 'Septum / nostril area')
+                # Issue 85: New face layers
+                elif length > 3 and nodes[3] in ['Corner of mouth - contra', 'Corner of mouth - ipsi']:
+                    nodes.insert(3, 'Corner of mouth')
+                # don't need any special insertion code for "Eyelid - contra" or "Eyelid - ipsi" because they are leaf nodes
                 paths_to_add.append(nodes)
             elif length > 2 and nodes[1] == 'Ear':
                 nodes[3].replace('Mastoid process', 'Behind ear')

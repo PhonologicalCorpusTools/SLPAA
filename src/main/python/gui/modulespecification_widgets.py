@@ -1,6 +1,7 @@
 from PyQt5.QtCore import (
     pyqtSignal,
-    Qt
+    Qt,
+    QItemSelectionModel
 )
 
 from PyQt5.QtWidgets import (
@@ -9,6 +10,7 @@ from PyQt5.QtWidgets import (
     QWidgetAction,
     QLineEdit,
     QFrame,
+    QVBoxLayout,
     QHBoxLayout,
     QMenu,
     QCheckBox,
@@ -17,10 +19,16 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QListView,
     QStyledItemDelegate,
+    QSpacerItem,
+    QGridLayout,
     QTextEdit
 )
 
-from lexicon.module_classes import AddedInfo
+from PyQt5.QtGui import (
+    QStandardItem,
+)
+
+from lexicon.module_classes import AddedInfo, treepathdelimiter, PhonLocations
 
 
 class ModuleSpecificationPanel(QFrame):
@@ -30,7 +38,7 @@ class ModuleSpecificationPanel(QFrame):
         self.mainwindow = self.parent().mainwindow
         self.existingkey = None
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         pass
 
     def handle_articulator_changed(self, articulator):
@@ -359,7 +367,10 @@ class TreeListView(QListView):
                 selectedlistitems.append(listitem)
             for listitem in selectedlistitems:
                 listitem.unselectpath()
-            # self.model().dataChanged.emit()
+
+            # select/highlight the item that gets focus after the deletion(s) are done
+            currentitemindex = self.selectionModel().currentIndex()
+            self.selectionModel().select(currentitemindex, QItemSelectionModel.ClearAndSelect)
 
 
 # this class ensures that the items in the selected-paths list (for Location and Movement module dialogs, eg)
@@ -387,7 +398,126 @@ class StatusDisplay(QTextEdit):
         # self.setStyleSheet("border: 1px solid black;")  # from when this used to be a QLabel
         self.setReadOnly(True)
 
-    def appendText(self, texttoappend, afternewline=False, afterspace=False):
+    def appendText(self, texttoappend, joinwithnewline=False, joinwithspace=False):
         curtext = self.toPlainText()
-        separator = "\n" if afternewline else (" " if afterspace else "")
+        separator = "" if curtext == "" else ("\n" if joinwithnewline else (" " if joinwithspace else ""))
         self.setPlainText(curtext + separator + texttoappend)
+
+class TreeSearchComboBox(QComboBox):
+    item_selected = pyqtSignal(QStandardItem)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+
+        if key == Qt.Key_Right:
+
+            if self.currentText():
+                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
+                                                   self.currentText(),
+                                                   delim=treepathdelimiter)
+                if itemstoselect:
+                    for item in itemstoselect:
+                        if item.checkState() == Qt.Unchecked:
+                            item.setCheckState(Qt.PartiallyChecked)
+
+                    targetitem = itemstoselect[-1]
+                    targetitem.setCheckState(Qt.Checked)
+                    self.item_selected.emit(targetitem)
+                    self.setCurrentIndex(-1)
+
+        super().keyPressEvent(event)
+
+
+def gettreeitemsinpath(treemodel, pathstring, delim="/"):
+    pathlist = pathstring.split(delim)
+    pathitemslists = []
+    for level in pathlist:
+        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
+    validpathsoftreeitems = findvaliditemspaths(pathitemslists)
+    return validpathsoftreeitems[0] if len(validpathsoftreeitems) > 0 else []
+
+
+def findvaliditemspaths(pathitemslists):
+    validpaths = []
+    if len(pathitemslists) > 1:  # the path is longer than 1 level
+        for lastitem in pathitemslists[-1]:
+            for secondlastitem in pathitemslists[-2]:
+                if lastitem.parent() == secondlastitem:
+                    higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
+                    for higherpath in higherpaths:
+                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
+                            validpaths.append(higherpath + [lastitem])
+    elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
+        for lastitem in pathitemslists[0]:
+            validpaths.append([lastitem])
+    else:
+        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
+        # but just in case...
+        validpaths = []
+
+    return validpaths
+
+class PhonLocSelection(QWidget): 
+    def enable_majorminorphonological_cbs(self, checked):
+        self.majorphonloc_cb.setEnabled(checked)
+        self.minorphonloc_cb.setEnabled(checked)
+
+    def check_phonologicalloc_cb(self, checked):
+        self.phonological_cb.setChecked(True)
+    
+    def set_phonloc_buttons_from_content(self, phonlocs):
+        self.phonological_cb.setChecked(phonlocs.phonologicalloc)
+        self.phonetic_cb.setChecked(phonlocs.phoneticloc)
+
+        if (hasattr(self, "majorphonloc_cb") and hasattr(self, "minorphonloc_cb")):
+            self.majorphonloc_cb.setChecked(phonlocs.majorphonloc)
+            self.minorphonloc_cb.setChecked(phonlocs.minorphonloc)
+            self.majorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
+            self.minorphonloc_cb.setEnabled(phonlocs.phonologicalloc)
+        
+    def getcurrentphonlocs(self):
+        phonlocs = PhonLocations(
+            phonologicalloc=self.phonological_cb.isChecked(),
+            majorphonloc= hasattr(self, "majorphonloc_cb") and self.majorphonloc_cb.isEnabled() and self.majorphonloc_cb.isChecked(),
+            minorphonloc= hasattr(self, "minorphonloc_cb") and self.minorphonloc_cb.isEnabled() and self.minorphonloc_cb.isChecked(),
+            phoneticloc=self.phonetic_cb.isChecked()
+        )
+        return phonlocs
+
+
+    def __init__(self, isLocationModule=False): 
+        super().__init__() 
+        phonloc_layout  = QVBoxLayout()
+        self.phonological_cb = QCheckBox("Phonological")
+        phonloc_layout.addWidget(self.phonological_cb)
+
+        if (isLocationModule):
+            phonological_sublayout = QGridLayout()
+            self.phonological_cb.toggled.connect(self.enable_majorminorphonological_cbs)
+            self.majorphonloc_cb = QCheckBox("Major")
+            self.majorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
+            self.minorphonloc_cb = QCheckBox("Minor")
+            self.minorphonloc_cb.toggled.connect(self.check_phonologicalloc_cb)
+            phonological_sublayout.addWidget(self.majorphonloc_cb, 0,1)
+            phonological_sublayout.addWidget(self.minorphonloc_cb, 1,1)
+            phonological_sublayout.addItem(QSpacerItem(25,0), 0,0)
+            
+            self.majorphonloc_cb.setEnabled(False)
+            self.minorphonloc_cb.setEnabled(False)
+            self.majorphonloc_cb.setChecked(False)
+            self.minorphonloc_cb.setChecked(False)
+            phonloc_layout.addLayout(phonological_sublayout)
+
+
+        self.phonetic_cb = QCheckBox("Phonetic")
+        phonloc_layout.addWidget(self.phonetic_cb)
+        phonloc_layout.addStretch()
+        self.setLayout(phonloc_layout)
+
+        # Set default state
+        self.phonological_cb.setChecked(False)
+        self.phonetic_cb.setChecked(False)
+

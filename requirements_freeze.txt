@@ -1,0 +1,16 @@
+# requirements.txt for creating an executable.
+# should be identical to requirements.txt except for PyInstaller
+altgraph==0.17.3
+docopt==0.6.2
+fbs==1.1.9
+future==0.18.2
+macholib==1.16.2
+num2words==0.5.12
+pefile==2022.5.30
+PyInstaller~=4.10
+PyQt5==5.15.7
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.11.0
+PyQtWebEngine==5.15.6
+PyQtWebEngine-Qt5==5.15.2
+pywin32-ctypes==0.2.0

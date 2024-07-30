@@ -340,6 +340,10 @@ ARTICULATOR_ABBREVS = {
     LEG: "L"
 }
 
+CONTRA = "contra"
+IPSI = "ipsi"
+
+
 treepathdelimiter = ">" # define here or in module_classes?
 DEFAULT_LOC_1H = {"Horizontal axis" + treepathdelimiter + "Ipsi": None, 
                 "Vertical axis" + treepathdelimiter + "Mid": None,

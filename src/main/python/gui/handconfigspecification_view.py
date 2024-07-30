@@ -1090,7 +1090,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
         self.mainwindow.undostack.push(undo_command)
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         configdict = self.panel.config.get_value()
         handconfiguration = configdict['hand']
         overalloptions = {k: v for (k, v) in configdict.items() if k != 'hand'}
@@ -1098,6 +1098,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
                                        overalloptions=overalloptions,
                                        articulators=articulators,
                                        timingintervals=timingintervals,
+                                       phonlocs=phonlocs,
                                        addedinfo=addedinfo)
         if self.existingkey is not None:
             hcfg.uniqueid = self.existingkey

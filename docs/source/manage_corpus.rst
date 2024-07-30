@@ -10,7 +10,7 @@ Managing a corpus
 Adding signs to an existing corpus
 ``````````````````````````````````
 To add new signs to an existing corpus, go to "Menu" and select "Load corpus...". This allows you to search your
-computer. Only files with the extension ".corpus" are available for selection. Click on a corpus that you would like to
+computer. Only files with the extension ".slpaa" are available for selection. Click on a corpus that you would like to
 work on, and click "Open".
 
 Alternatively, if you start transcribing a new sign without loading a corpus beforehand, you will get a warning message
