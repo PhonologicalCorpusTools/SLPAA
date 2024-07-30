@@ -203,6 +203,7 @@ def findvaliditemspaths(pathitemslists):
 
 
 class LocationOptionsSelectionPanel(QFrame):
+    default_neutral_reqd = pyqtSignal()
     def __init__(self, treemodeltoload=None, displayvisualwidget=True, **kwargs):
         super().__init__(**kwargs)
         # When the default neutral selection in settings inherits this class, there is no mainwindow.
@@ -345,6 +346,9 @@ class LocationOptionsSelectionPanel(QFrame):
         listmodelindex = self.listmodel.indexFromItem(locationtreeitem.listitem)
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
+        if locationtreeitem.text() == "Default neutral space" and self.mainwindow.app_settings['location']['autocheck_neutral_on_locn_selected']:
+            self.default_neutral_reqd.emit()
+
 
     def create_selection_layout(self):
         selection_layout = QHBoxLayout()
@@ -472,6 +476,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         # create panel containing search box, visual location selection (if applicable), list of selected options, and details table
         self.locationoptionsselectionpanel = LocationOptionsSelectionPanel(treemodeltoload=treemodeltoload, displayvisualwidget=showimagetabs, parent=self)
+        self.locationoptionsselectionpanel.default_neutral_reqd.connect(self.check_markneutral_cb)
         main_layout.addWidget(self.locationoptionsselectionpanel)
 
         # set buttons and treemodel according to the existing module being loaded (if applicable)
@@ -569,6 +574,11 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.markneutral_cb = QCheckBox("This location is 'neutral'")
         self.markneutral_cb.clicked.connect(self.handle_toggle_neutral_cb)
         signingspace_layout.addWidget(self.markneutral_cb, 1, 3)
+
+        self.neutral_info_pb = QPushButton("Info")
+        self.neutral_info_pb.clicked.connect(self.show_neutral_info)
+        signingspace_layout.addWidget(self.neutral_info_pb, 2, 3)
+
         
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
@@ -700,8 +710,16 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(btn != self.signingspacespatial_radio)
         self.enablelocationtools()  # TODO should this be inside the if?
 
+    def show_neutral_info(self):
+        message = "Go to Settings>Preferences>Location to view or change the current default neutral location settings. "\
+            "Default neutral locations for one-handed and two-handed sign types are specified separately. "\
+            "Sign type is specified in 'Sign type information' and is not dependent on the articulator specified at the top of the Location module. \n\n"\
+            "Any set of locations can be marked as neutral by checking the 'This location is neutral' box, even if it differs from the default set in Settings>Preferences>Location. "\
+            "You can also designate a neutral space by adding 'Default neutral space' to the location list under the 'Signing space - purely spatial' location type."
+        QMessageBox.information(self, "Info", message)
+
+
     def handle_toggle_neutral_pb(self):
-        
         
         is_spatial = self.default_neutral_loctype() == "purely spatial"
 
@@ -736,6 +754,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             treemodel.defaultneutrallist = self.locationoptionsselectionpanel.get_listed_paths(include_details=True)
         else:
             treemodel.defaultneutrallist = None
+    
+    def check_markneutral_cb(self):
+        self.markneutral_cb.setChecked(True)
+        self.handle_toggle_neutral_cb(True)
         
     
     def is_onehanded_sign(self):

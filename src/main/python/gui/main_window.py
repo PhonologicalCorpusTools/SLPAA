@@ -688,6 +688,7 @@ class MainWindow(QMainWindow):
         self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h', 
                                                                                    DEFAULT_LOC_2H)
         self.app_settings['location']['autocheck_neutral'] = self.app_qsettings.value('autocheck_neutral', defaultValue=True, type=bool)
+        self.app_settings['location']['autocheck_neutral_on_locn_selected'] = self.app_qsettings.value('autocheck_neutral_on_locn_selected', defaultValue=True, type=bool)
         self.app_qsettings.endGroup()  # location
 
     def check_storage(self):
