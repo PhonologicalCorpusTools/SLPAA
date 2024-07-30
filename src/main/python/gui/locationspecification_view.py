@@ -559,7 +559,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             "Sign type is specified in 'Sign type information' and is not dependent on the articulator specified at the top of the Location module. \n\n"\
             "Any set of locations can be marked as neutral by checking the 'This location is neutral' box, even if it differs from the default set in Settings>Preferences>Location. "\
             "You can also designate a neutral space by adding 'Default neutral space' to the location list under the 'Signing space - purely spatial' location type."
-        QMessageBox.information(self, "Info", message)
+        QMessageBox.information(self, "Neutral locations", message)
 
 
     def handle_toggle_neutral_pb(self):
