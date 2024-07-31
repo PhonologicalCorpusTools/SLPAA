@@ -13,7 +13,8 @@ help_map = {
     # help_map is a dictionary of functionality (key) and the corresponding help page (value)
     'movement': 'movement_module',
     'location': 'location_module',
-    'handconfig': 'hand_configuration_module',
+    'handconfig': 'hand_configuration_module',   # coming from the 'Help' btn in the hand configuration dialog
+    'predefined_handshapes': 'predefined_handshapes',  # coming from the btn below 'load predefined handshape' inside hc
     'relation': 'relation_module',
     'orientation': 'orientation_module',
     'nonmanual': 'nonmanual_module',
