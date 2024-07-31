@@ -64,16 +64,13 @@ class LocationOptionsSelectionPanel(QFrame):
     default_neutral_reqd = pyqtSignal()
     def __init__(self, treemodeltoload=None, displayvisualwidget=True, **kwargs):
         super().__init__(**kwargs)
-        # When the default neutral selection in settings inherits this class, there is no mainwindow.
-        if hasattr(self.parent(), "mainwindow"):
-            self.mainwindow = self.parent().mainwindow
-            self.app_ctx = self.mainwindow.app_ctx
-        else:
-            self.mainwindow = None
+        self.mainwindow = self.parent().mainwindow
+        
+        self.app_ctx = self.mainwindow.app_ctx
+        self.dominanthand = self.mainwindow.current_sign.signlevel_information.handdominance
         
         self.showimagetabs = displayvisualwidget
-        self.dominanthand = self.mainwindow.current_sign.signlevel_information.handdominance
-
+        
         main_layout = QVBoxLayout()
 
         self._treemodel = None
@@ -554,10 +551,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.enablelocationtools()  # TODO should this be inside the if?
 
     def show_neutral_info(self):
-        message = "Go to Settings>Preferences>Location to view or change the current default neutral location settings. "\
+        message = "Go to Preferences>Location to view or change the current default neutral location settings. "\
             "Default neutral locations for one-handed and two-handed sign types are specified separately. "\
             "Sign type is specified in 'Sign type information' and is not dependent on the articulator specified at the top of the Location module. \n\n"\
-            "Any set of locations can be marked as neutral by checking the 'This location is neutral' box, even if it differs from the default set in Settings>Preferences>Location. "\
+            "Any set of locations can be marked as neutral by checking the 'This location is neutral' box, even if it differs from the default set in Preferences>Location. "\
             "You can also designate a neutral space by adding 'Default neutral space' to the location list under the 'Signing space - purely spatial' location type."
         QMessageBox.information(self, "Neutral locations", message)
 
@@ -694,9 +691,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def clear(self):
         """Restore GUI to the defaults."""
         self.clear_loctype_buttons_to_default()
-        self.clear_phonlocs_buttons()
         self.recreate_treeandlistmodels()
-        self.applyneutral_pb.setChecked(False)
         
         # Reset selections
         self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(False)
@@ -740,6 +735,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
                 defaultloctype.purelyspatial = True
             elif loctype_setting == 'signingspace_body':
                 defaultloctype.bodyanchored = True
+        self.markneutral_cb.setChecked(False)
         self.set_loctype_buttons_from_content(defaultloctype)
 
     def set_loctype_buttons_from_content(self, loctype):
@@ -775,7 +771,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.loctype_subgroup.blockSignals(False)
         self.signingspace_subgroup.blockSignals(False)
 
-        self.markneutral_cb.setChecked(self.locationoptionsselectionpanel.treemodel.defaultneutralselected)
+        self.markneutral_cb.setChecked(self.getcurrenttreemodel().defaultneutralselected)
 
 
     def clearlist(self, button):

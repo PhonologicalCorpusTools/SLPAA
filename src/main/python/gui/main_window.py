@@ -765,6 +765,12 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('location')
         self.app_qsettings.setValue('loctype', self.app_settings['location']['loctype'])
         self.app_qsettings.setValue('clickorder', self.app_settings['location']['clickorder'])
+        self.app_qsettings.setValue('default_loctype_1h', self.app_settings['location']['default_loctype_1h'])
+        self.app_qsettings.setValue('default_loctype_2h', self.app_settings['location']['default_loctype_2h'])
+        self.app_qsettings.setValue('default_loc_1h', self.app_settings['location']['default_loc_1h'])
+        self.app_qsettings.setValue('default_loc_2h', self.app_settings['location']['default_loc_2h'])
+        self.app_qsettings.setValue('autocheck_neutral', self.app_settings['location']['autocheck_neutral'])
+        self.app_qsettings.setValue('autocheck_neutral_on_locn_selected', self.app_settings['location']['autocheck_neutral_on_locn_selected'])
         self.app_qsettings.endGroup()  # location
 
     def on_action_define_location(self):

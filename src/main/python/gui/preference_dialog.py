@@ -466,7 +466,7 @@ class LocationTab(QWidget):
     def __init__(self, settings, **kwargs):
         super().__init__(**kwargs)
         self.settings = settings
-
+        self.mainwindow = self.parent().mainwindow
         main_layout = QFormLayout()
         self.setLayout(main_layout)
 
@@ -536,6 +536,7 @@ class DefaultNeutralDialog(QDialog):
 
     def __init__(self, numhands, **kwargs):
         super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
         self.mainlayout = QVBoxLayout()
         self.numhands = numhands
         self.get_current_defaults()
@@ -562,7 +563,7 @@ class DefaultNeutralDialog(QDialog):
 
         self.recreate_treeandlistmodels()
         
-        self.locationoptionsselectionpanel = LocationOptionsSelectionPanel(treemodeltoload=self.currenttreemodel, displayvisualwidget=False, parent=self)
+        self.locationoptionsselectionpanel = LocationOptionsSelectionPanel(treemodeltoload=self.currenttreemodel, displayvisualwidget=True, parent=self)
         self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(False)
         self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(self.loctype == "body-anchored")
         
@@ -678,10 +679,8 @@ class DefaultNeutralDialog(QDialog):
         self.locationoptionsselectionpanel.enableImageTabs(isbodyanchored)
         self.locationoptionsselectionpanel.combobox.setEnabled(True)
         self.locationoptionsselectionpanel.pathslistview.setEnabled(True)
-        self.locationoptionsselectionpanel.update_detailstable(None, None)
+        self.locationoptionsselectionpanel.update_detailstable()
         self.locationoptionsselectionpanel.detailstableview.setEnabled(isbodyanchored)
-        
-            
 
 
 # This is the global settings dialog that users access via the Settings menu.
@@ -695,6 +694,7 @@ class PreferenceDialog(QDialog):
         super().__init__(**kwargs)
         self.settings = settings
         self.timingfractions_inuse = timingfracsinuse
+        self.mainwindow = self.parent()
 
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
