@@ -50,6 +50,7 @@ from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
+from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
@@ -168,14 +169,9 @@ class MainWindow(QMainWindow):
         action_define_location.setCheckable(False)
 
         # count x-slots
-        action_count_xslots = QAction("Count x-slots...", parent=self)
+        action_count_xslots = QAction("Count x-slots", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
-
-        # export corpus in human-readable form
-        action_export_corpus = QAction("Export corpus...", parent=self)
-        action_export_corpus.triggered.connect(self.on_action_export_corpus)
-        action_export_corpus.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -202,6 +198,11 @@ class MainWindow(QMainWindow):
         action_merge_corpora.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_M))
         action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
         action_merge_corpora.setCheckable(False)
+
+        # export corpus in human-readable form
+        action_export_corpus = QAction("Export corpus (beta)", parent=self)
+        action_export_corpus.triggered.connect(self.on_action_export_corpus)
+        action_export_corpus.setCheckable(False)
 
         # close
         action_close = QAction('Close', parent=self)
@@ -319,6 +320,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(action_load_corpus)
         menu_file.addAction(action_load_sample)
         menu_file.addAction(action_merge_corpora)
+        menu_file.addAction(action_export_corpus)
         menu_file.addSeparator()
         # TODO this needs an overhaul
         # menu_file.addAction(action_export_handshape_transcription_csv)
@@ -353,7 +355,6 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
-        menu_analysis_beta.addAction(action_export_corpus)
 
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
         menu_help.addAction(action_help_main)
@@ -716,6 +717,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
+        self.app_settings['location']['clickorder'] = self.app_qsettings.value('clickorder', defaultValue=1, type=int)
         self.app_qsettings.endGroup()  # location
 
     def check_storage(self):
@@ -779,6 +781,7 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_qsettings.setValue('loctype', self.app_settings['location']['loctype'])
+        self.app_qsettings.setValue('clickorder', self.app_settings['location']['clickorder'])
         self.app_qsettings.endGroup()  # location
 
     def on_action_define_location(self):

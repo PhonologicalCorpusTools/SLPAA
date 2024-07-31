@@ -473,7 +473,6 @@ class SigntypeSelectorDialog(QDialog):
     def __init__(self, signtypetoload, **kwargs):
         super().__init__(**kwargs)
 
-        # TODO KV delete self.app_settings = app_settings
         self.mainwindow = self.parent().mainwindow
         self.settings = self.mainwindow.app_settings
 

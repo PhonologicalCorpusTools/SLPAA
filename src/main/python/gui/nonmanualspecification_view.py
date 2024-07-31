@@ -1072,12 +1072,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 r[res_k] = res_v
         return asm.label, r
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         # package the user input and deliver
         nonman_mod = NonManualModule(nonman_specs=self.wrapper_get_nonman_specs(),
                                      articulators=articulators,
                                      timingintervals=timingintervals,
-                                     addedinfo=addedinfo,)
+                                     phonlocs=phonlocs,
+                                     addedinfo=addedinfo)
         if self.existingkey is not None:
             nonman_mod.uniqueid = self.existingkey
         else:

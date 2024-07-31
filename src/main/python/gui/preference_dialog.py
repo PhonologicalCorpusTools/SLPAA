@@ -24,6 +24,7 @@ from PyQt5.QtCore import pyqtSignal, QSettings
 from gui.link_help import show_help
 from constant import FRACTION_CHAR
 from fractions import Fraction
+from gui.helper_widget import OptionSwitch
 
 
 # This tab facilitates user interaction with display-related settings in the preference dialog.
@@ -343,11 +344,11 @@ class SignDefaultsTab(QWidget):
 
         self.handdominance_layout = QHBoxLayout()
         self.handdominance_group = QButtonGroup(parent=self)
-        self.handdominance_l_radio = QRadioButton('Left')
+        self.handdominance_l_radio = QRadioButton("Left")
         self.handdominance_l_radio.setProperty('hand', 'L')
         self.handdominance_group.addButton(self.handdominance_l_radio)
         self.handdominance_layout.addWidget(self.handdominance_l_radio)
-        self.handdominance_r_radio = QRadioButton('Right')
+        self.handdominance_r_radio = QRadioButton("Right")
         self.handdominance_r_radio.setProperty('hand', 'R')
         self.handdominance_group.addButton(self.handdominance_r_radio)
         self.handdominance_layout.addWidget(self.handdominance_r_radio)
@@ -359,19 +360,19 @@ class SignDefaultsTab(QWidget):
 
         self.signtype_layout = QHBoxLayout()
         self.signtype_group = QButtonGroup(parent=self)
-        self.signtype_none_radio = QRadioButton('None')
+        self.signtype_none_radio = QRadioButton("None")
         self.signtype_none_radio.setProperty('signtype', 'none')
         self.signtype_group.addButton(self.signtype_none_radio)
         self.signtype_layout.addWidget(self.signtype_none_radio)
-        self.signtype_unspec_radio = QRadioButton('Unspecified')
+        self.signtype_unspec_radio = QRadioButton("Unspecified")
         self.signtype_unspec_radio.setProperty('signtype', 'unspec')
         self.signtype_group.addButton(self.signtype_unspec_radio)
         self.signtype_layout.addWidget(self.signtype_unspec_radio)
-        self.signtype_one_radio = QRadioButton('1 hand')
+        self.signtype_one_radio = QRadioButton("1 hand")
         self.signtype_one_radio.setProperty('signtype', '1hand')
         self.signtype_group.addButton(self.signtype_one_radio)
         self.signtype_layout.addWidget(self.signtype_one_radio)
-        self.signtype_two_radio = QRadioButton('2 hands')
+        self.signtype_two_radio = QRadioButton("2 hands")
         self.signtype_two_radio.setProperty('signtype', '2hand')
         self.signtype_group.addButton(self.signtype_two_radio)
         self.signtype_layout.addWidget(self.signtype_two_radio)
@@ -406,7 +407,7 @@ class SignDefaultsTab(QWidget):
         quarter = Fraction(1, 4)
         third = Fraction(1, 3)
         half = Fraction(1, 2)
-        self.partialxslots_label = QLabel('X-slot points to include:')
+        self.partialxslots_label = QLabel("X-slot points to include:")
         self.partialxslots_quarters_checkbox = QCheckBox("quarters (" + FRACTION_CHAR[quarter] + "n)")
         self.partialxslots_quarters_checkbox.setProperty('partialxslot', str(quarter))
         self.partialxslots_group.addButton(self.partialxslots_quarters_checkbox)
@@ -465,19 +466,19 @@ class LocationTab(QWidget):
 
         self.locationtype_layout = QVBoxLayout()
         self.locationtype_group = QButtonGroup(parent=self)
-        self.loctype_body_radio = QRadioButton('Body')
+        self.loctype_body_radio = QRadioButton("Body")
         self.loctype_body_radio.setProperty('loctype', 'body')
         self.locationtype_group.addButton(self.loctype_body_radio)
         self.locationtype_layout.addWidget(self.loctype_body_radio)
-        self.loctype_signingspace_radio = QRadioButton('Signing space')
+        self.loctype_signingspace_radio = QRadioButton("Signing space")
         self.loctype_signingspace_radio.setProperty('loctype', 'signingspace')
         self.locationtype_group.addButton(self.loctype_signingspace_radio)
         self.locationtype_layout.addWidget(self.loctype_signingspace_radio)
-        self.loctype_signingspacebody_radio = QRadioButton('Signing space (body-anchored)')
+        self.loctype_signingspacebody_radio = QRadioButton("Signing space (body-anchored)")
         self.loctype_signingspacebody_radio.setProperty('loctype', 'signingspace_body')
         self.locationtype_group.addButton(self.loctype_signingspacebody_radio)
         self.locationtype_layout.addWidget(self.loctype_signingspacebody_radio)
-        self.loctype_signingspacespatial_radio = QRadioButton('Signing space (purely spatial)')
+        self.loctype_signingspacespatial_radio = QRadioButton("Signing space (purely spatial)")
         self.loctype_signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
         self.locationtype_group.addButton(self.loctype_signingspacespatial_radio)
         self.locationtype_layout.addWidget(self.loctype_signingspacespatial_radio)
@@ -489,10 +490,16 @@ class LocationTab(QWidget):
             if self.settings['location']['loctype'] == button.property('loctype'):
                 button.setChecked(True)
                 break
-        main_layout.addRow(QLabel('Default location type:'), self.locationtype_layout)
+        main_layout.addRow(QLabel("Default location type:"), self.locationtype_layout)
+
+        self.locnimgclickorder_switch = OptionSwitch("Large to small", "Small to large")
+        self.locnimgclickorder_switch.setwhichbuttonselected(self.settings['location']['clickorder'])
+        main_layout.addRow(QLabel("L-clicking on image iterates over locations from:"),
+                           self.locnimgclickorder_switch)
 
     def save_settings(self):
         self.settings['location']['loctype'] = self.locationtype_group.checkedButton().property('loctype')
+        self.settings['location']['clickorder'] = self.locnimgclickorder_switch.getwhichbuttonselected()
 
 
 # This is the global settings dialog that users access via the Settings menu.

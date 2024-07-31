@@ -208,10 +208,11 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         movmod = MovementModule(self.treemodel,
                                 articulators=articulators,
                                 timingintervals=timingintervals,
+                                phonlocs=phonlocs,
                                 addedinfo=addedinfo,
                                 inphase=inphase)
         if self.existingkey is not None:

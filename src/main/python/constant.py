@@ -344,6 +344,9 @@ ARTICULATOR_ABBREVS = {
     LEG: "L"
 }
 
+CONTRA = "contra"
+IPSI = "ipsi"
+
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]
