@@ -57,7 +57,7 @@ from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS, filenamefrompath
-from lexicon.lexicon_classes import Corpus, Sign
+from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 
 
@@ -630,11 +630,7 @@ class MainWindow(QMainWindow):
                 print("no signs to delete :(")
             else:
                 print("delete signs!")
-                for sign in selectedsigns:
-                    # focus on this sign
-                    self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign)
-                    # delete the sign
-                    self.on_action_delete_sign()
+                self.on_action_delete_sign(signs=selectedsigns)
         elif action_str == "copy":
             if not selectedsigns:
                 print("no signs to copy :(")
@@ -644,7 +640,6 @@ class MainWindow(QMainWindow):
         elif action_str == "paste":
             print("paste signs from clipboard!")
             self.on_action_paste(listfromclipboard=clipboardsigns)
-
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -1073,20 +1068,30 @@ class MainWindow(QMainWindow):
             self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
             self.corpus_display.handle_selection(stashed_corpusselection)
 
-    def on_action_delete_sign(self, clicked=None):
-        # TODO need to check for multiple selections
-        if self.current_sign:  # does the sign to delete exist?
-            glosseslist = self.current_sign.signlevel_information.gloss
-            question1 = "Do you want to delete the selected sign, with gloss"
-            glossesstring = ", ".join(glosseslist) or "[blank]"
-            question2 = ("es" if len(glosseslist) > 1 else "") + " " + glossesstring + "?"
-            moreinfo = "" if len(self.current_sign.signlevel_information.gloss) <= 1 else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
-            response = QMessageBox.question(self, "Delete the selected sign",
-                                            question1 + question2 + moreinfo)
-            if response == QMessageBox.Yes:
-                self.corpus.remove_sign(self.current_sign)
-                self.unsaved_changes = True
-                self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
+    # optionally provide a list of Signs to delete
+    # if signs argument is not used, then the function deletes the signs currently selected in the corpus view
+    def on_action_delete_sign(self, clicked=None, signs=None):
+        if signs is None:
+            signs = self.corpus_display.getselectedsigns()
+
+        glossesstrings = [glossesdelimiter.join(sign.signlevel_information.gloss) or "[blank]" for sign in signs]
+        glossesstrings = "\n".join(glossesstrings)
+
+        question1 = "Do you want to delete the selected sign"
+        question2 = "s" if len(signs) > 1 else ""
+        question3 = ", with the following gloss"
+        question4 = "es?" if (len(signs) > 1 or glossesdelimiter in glossesstrings) else "?"
+        moreinfo = "" if glossesdelimiter not in glossesstrings else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
+        response = QMessageBox.question(self, "Delete the selected sign" + question2,
+                                        question1+question2+question3+question4+"\n"+glossesstrings+moreinfo)
+        if response == QMessageBox.Yes:
+            for sign in signs:
+                self.delete_one_sign(trash_sign=sign)
+
+    def delete_one_sign(self, trash_sign):
+        self.corpus.remove_sign(trash_sign)
+        self.unsaved_changes = True
+        self.corpus_display.updated_signs(self.corpus.signs, current_sign=trash_sign, deleted=True)
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes

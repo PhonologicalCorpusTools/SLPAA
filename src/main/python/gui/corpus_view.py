@@ -59,6 +59,7 @@ class CorpusDisplay(QWidget):
         self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sortnow())
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.newcurrentindex.connect(self.handle_selection)
+        self.corpus_view.noselection.connect(self.handle_selection)
         self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
         self.corpus_view.doubleClicked.connect(self.mainwindow.signlevel_panel.handle_signlevelbutton_click)
         self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -163,41 +164,30 @@ class CorpusDisplay(QWidget):
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.ContextMenu and source == self.corpus_view:
-            onlyone = False
-            if onlyone:
-                # only one at a time
-                proxyindex = self.corpus_view.currentIndex()
-                sourceindex = self.getsourceindex((proxyindex.row(), proxyindex.column()))
-                corpusitem = self.getcorpusitem(sourceindex)
-                selectedsigns = [corpusitem.sign] if corpusitem is not None else []
-                if isinstance(self.mainwindow.clipboard, Sign):
-                    clipboardsigns = [self.mainwindow.clipboard]
-                elif self.mainwindow.clipboard is None:
-                    clipboardsigns = []
-                elif isinstance(self.mainwindow.clipboard, list):
-                    clipboardsigns = self.mainwindow.clipboard
+            # right-click menu in the corpus view means we're focusing on Sign objects
+            selectedsigns = self.getselectedsigns()
 
-            else:
-                # can deal with multiple at once
-                proxyindices = self.corpus_view.selectedIndexes()
-                sourceindices = [self.getsourceindex((proxyindex.row(), proxyindex.column())) for proxyindex in proxyindices]
-                corpusitems = [self.getcorpusitem(sourceindex) for sourceindex in sourceindices]
-                selectedsigns = list(set([corpusitem.sign for corpusitem in corpusitems if corpusitem is not None]))
-
-                clipboard = self.mainwindow.clipboard
-                clipboardsigns = []
-                if isinstance(clipboard, Sign):
-                    clipboardsigns.append(clipboard)
-                elif isinstance(clipboard, list):
-                    for copieditem in clipboard:
-                        if isinstance(copieditem, Sign):
-                            clipboardsigns.append(copieditem)
+            clipboard = self.mainwindow.clipboard
+            clipboardsigns = []
+            if isinstance(clipboard, Sign):
+                clipboardsigns.append(clipboard)
+            elif isinstance(clipboard, list):
+                for copieditem in clipboard:
+                    if isinstance(copieditem, Sign):
+                        clipboardsigns.append(copieditem)
 
             menu = SignEntryContextMenu(selectedsigns, clipboardsigns)
             menu.action_selected.connect(self.action_selected.emit)
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
+
+    def getselectedsigns(self):
+        proxyindices = self.corpus_view.selectedIndexes()
+        sourceindices = [self.getsourceindex((proxyindex.row(), proxyindex.column())) for proxyindex in proxyindices]
+        corpusitems = [self.getcorpusitem(sourceindex) for sourceindex in sourceindices]
+        selectedsigns = list(set([corpusitem.sign for corpusitem in corpusitems if corpusitem is not None]))
+        return selectedsigns
 
     def getproxyindex(self, fromproxyrowcol=None, fromsourceindex=None):
         if fromproxyrowcol:
@@ -245,8 +235,16 @@ class CorpusDisplay(QWidget):
 
 class CorpusTableView(QTableView):
     newcurrentindex = pyqtSignal(QModelIndex)
+    noselection = pyqtSignal()
 
     # same signal no matter how the user selects a new row
     # (whether by clicking, using up/down arrows, or typing a character on the keyboard)
     def currentChanged(self, current, previous):
         self.newcurrentindex.emit(current)
+
+    def selectionChanged(self, selected, deselected):
+        if len(self.selectedIndexes()) == 0:
+            self.noselection.emit()
+
+        super().selectionChanged(selected, deselected)
+
