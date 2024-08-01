@@ -482,7 +482,7 @@ class Corpus:
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)
 
-    def signinfoexistsincorpus1(self, sign, allof):
+    def signinfoexistsincorpus(self, sign, allof):
         thissign_glosses = sign.signlevel_information.gloss
         thissign_lemma = sign.signlevel_information.lemma
         thissign_idgloss = sign.signlevel_information.idgloss
@@ -498,6 +498,7 @@ class Corpus:
             return lemmaexists and idglossexists and glossesexist
         else:  # anyof
             return lemmaexists or idglossexists or glossesexist
+
     def __contains__(self, item):
         return item in self.signs
 

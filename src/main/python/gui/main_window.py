@@ -961,7 +961,7 @@ class MainWindow(QMainWindow):
                 if isinstance(itemtopaste, Sign):
                     serialized = itemtopaste.serialize()
                     signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
-                    if self.corpus.signinfoexistsincorpus1(signtopaste, allof=False):
+                    if self.corpus.signinfoexistsincorpus(signtopaste, allof=False):
                         # sign info already in corpus
                         signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
                         self.current_sign = None
