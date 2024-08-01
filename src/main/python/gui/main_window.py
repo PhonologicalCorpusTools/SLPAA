@@ -230,7 +230,7 @@ class MainWindow(QMainWindow):
         self.action_delete_sign.setCheckable(False)
 
         # preferences
-        action_edit_preference = QAction('Preferences...', parent=self)
+        action_edit_preference = QAction('Preferences', parent=self)
         action_edit_preference.setStatusTip('Open preference window')
         action_edit_preference.triggered.connect(self.on_action_edit_preference)
         action_edit_preference.setCheckable(False)
