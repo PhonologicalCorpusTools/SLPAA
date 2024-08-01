@@ -231,29 +231,33 @@ class AddedInfoContextMenu(QMenu):
 
 
 class SignEntryContextMenu(QMenu):
-    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
+    action_selected = pyqtSignal(str, list, list)  # "copy", "edit" (sign-level info), or "delete"
+    # selectedsigns, clipboardsigns TODO
 
-    def __init__(self, has_selectedsign=False, has_clipboardsign=False):
+    def __init__(self, selectedsigns, clipboardsigns):
         super().__init__()
 
-        self.copy_action = QAction("Copy Sign")
-        self.copy_action.setEnabled(bool(has_selectedsign))
-        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
+        has_selectedsigns = selectedsigns != []
+        has_clipboardsigns = clipboardsigns != []
+
+        self.copy_action = QAction("Copy Sign(s)")
+        self.copy_action.setEnabled(has_selectedsigns)
+        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy", selectedsigns, clipboardsigns))
         self.addAction(self.copy_action)
 
-        self.paste_action = QAction("Paste Sign")
-        self.paste_action.setEnabled(bool(has_clipboardsign))
-        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
+        self.paste_action = QAction("Paste Sign(s)")
+        self.paste_action.setEnabled(has_clipboardsigns)
+        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste", selectedsigns, clipboardsigns))
         self.addAction(self.paste_action)
 
-        self.edit_action = QAction("Edit Sign-level Info")
-        self.edit_action.setEnabled(bool(has_selectedsign))
-        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
+        self.edit_action = QAction("Edit Sign-level Info(s)")
+        self.edit_action.setEnabled(has_selectedsigns)
+        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit", selectedsigns, clipboardsigns))
         self.addAction(self.edit_action)
 
-        self.delete_action = QAction("Delete Sign")
-        self.delete_action.setEnabled(bool(has_selectedsign))
-        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
+        self.delete_action = QAction("Delete Sign(s)")
+        self.delete_action.setEnabled(has_selectedsigns)
+        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete", selectedsigns, clipboardsigns))
         self.addAction(self.delete_action)
 
 

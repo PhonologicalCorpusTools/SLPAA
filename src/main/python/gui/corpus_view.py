@@ -30,7 +30,8 @@ from gui.modulespecification_widgets import SignEntryContextMenu
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
     selection_cleared = pyqtSignal()
-    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
+    action_selected = pyqtSignal(str, list, list)  # "copy", "edit" (sign-level info), or "delete"
+    # selectedsigns, clipboardsigns TODO
 
     def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
@@ -98,10 +99,12 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
-    def handle_selection(self, proxyindex=None):
+    def handle_selection(self, proxyindex=None, sign=None):
         if proxyindex is not None and proxyindex.model() is not None:
             sourceindex = self.corpus_sortproxy.mapToSource(proxyindex)
             sign = self.corpus_model.itemFromIndex(sourceindex).sign
+            self.selected_sign.emit(sign)
+        elif sign is not None:
             self.selected_sign.emit(sign)
         else:
             self.selection_cleared.emit()
@@ -160,16 +163,39 @@ class CorpusDisplay(QWidget):
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.ContextMenu and source == self.corpus_view:
+            onlyone = False
+            if onlyone:
+                # only one at a time
                 proxyindex = self.corpus_view.currentIndex()
                 sourceindex = self.getsourceindex((proxyindex.row(), proxyindex.column()))
                 corpusitem = self.getcorpusitem(sourceindex)
-                selectedsign = corpusitem.sign if corpusitem is not None else None
-                clipboardsign = self.mainwindow.clipboard if isinstance(self.mainwindow.clipboard, Sign) else None
+                selectedsigns = [corpusitem.sign] if corpusitem is not None else []
+                if isinstance(self.mainwindow.clipboard, Sign):
+                    clipboardsigns = [self.mainwindow.clipboard]
+                elif self.mainwindow.clipboard is None:
+                    clipboardsigns = []
+                elif isinstance(self.mainwindow.clipboard, list):
+                    clipboardsigns = self.mainwindow.clipboard
 
-                menu = SignEntryContextMenu(has_selectedsign=selectedsign,
-                                            has_clipboardsign=clipboardsign)
-                menu.action_selected.connect(self.action_selected.emit)
-                menu.exec_(event.globalPos())
+            else:
+                # can deal with multiple at once
+                proxyindices = self.corpus_view.selectedIndexes()
+                sourceindices = [self.getsourceindex((proxyindex.row(), proxyindex.column())) for proxyindex in proxyindices]
+                corpusitems = [self.getcorpusitem(sourceindex) for sourceindex in sourceindices]
+                selectedsigns = list(set([corpusitem.sign for corpusitem in corpusitems if corpusitem is not None]))
+
+                clipboard = self.mainwindow.clipboard
+                clipboardsigns = []
+                if isinstance(clipboard, Sign):
+                    clipboardsigns.append(clipboard)
+                elif isinstance(clipboard, list):
+                    for copieditem in clipboard:
+                        if isinstance(copieditem, Sign):
+                            clipboardsigns.append(copieditem)
+
+            menu = SignEntryContextMenu(selectedsigns, clipboardsigns)
+            menu.action_selected.connect(self.action_selected.emit)
+            menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
 

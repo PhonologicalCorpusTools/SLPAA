@@ -607,33 +607,43 @@ class MainWindow(QMainWindow):
         self.signsummary_panel.refreshsign(self.current_sign)
 
     # action_str = "copy", "edit" (sign-level info), or "delete"
-    def handle_signaction_selected(self, action_str):
-        selectedsign = self.current_sign or None
-        clipboardsign = self.clipboard if isinstance(self.clipboard, Sign) else None
+    def handle_signaction_selected(self, action_str, selectedsigns, clipboardsigns):
 
-        print("sign selected for R-click", selectedsign)
+        # selectedsign = self.current_sign or None
+        # clipboardsign = self.clipboard if isinstance(self.clipboard, Sign) else None
+
+        print("signs selected for R-click", selectedsigns)
+        print("signs on clipboard", clipboardsigns)
 
         if action_str == "edit":
-            if selectedsign is None:
-                print("no sign to edit :(")
+            if not selectedsigns:
+                print("no signs to edit :(")
             else:
-                print("edit sign!")
-                self.signlevel_panel.handle_signlevelbutton_click()
+                print("edit signs!")
+                for sign in selectedsigns:
+                    # focus on this sign
+                    self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign)
+                    # edit the sign-level info
+                    self.signlevel_panel.handle_signlevelbutton_click()
         elif action_str == "delete":
-            if selectedsign is None:
-                print("no sign to delete :(")
+            if not selectedsigns:
+                print("no signs to delete :(")
             else:
-                print("delete sign!")
-                self.on_action_delete_sign()
+                print("delete signs!")
+                for sign in selectedsigns:
+                    # focus on this sign
+                    self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign)
+                    # delete the sign
+                    self.on_action_delete_sign()
         elif action_str == "copy":
-            if selectedsign is None:
-                print("no sign to copy :(")
+            if not selectedsigns:
+                print("no signs to copy :(")
             else:
-                print("copy sign!")
-                self.on_action_copy()
+                print("copy signs!")
+                self.on_action_copy(forclipboard=selectedsigns)
         elif action_str == "paste":
-            print("paste sign from clipboard!", clipboardsign)
-            self.on_action_paste()
+            print("paste signs from clipboard!")
+            self.on_action_paste(listfromclipboard=clipboardsigns)
 
 
     def handle_app_settings(self):
@@ -952,26 +962,42 @@ class MainWindow(QMainWindow):
             corpus.path = path
             return corpus
 
-    def on_action_copy(self, clicked=None):
+    def on_action_copy(self, clicked=None, forclipboard=None):
+        # TODO need to check for multiple selections
         if self.corpus_display.corpus_view.hasFocus():
-            print("corpus view has focus; copying sign")
-            self.clipboard = self.current_sign or None
+            print("corpus view has focus; copying signs")
+            self.clipboard = forclipboard
 
         # TODO: implement for other objects (not just Signs)
 
-    def on_action_paste(self, clicked=None):
+    def on_action_paste(self, clicked=None, listfromclipboard=None):
+        if listfromclipboard is None:
+            listfromclipboard = []
+
         if self.corpus_display.corpus_view.hasFocus():
-            print("corpus view has focus; checking if clipboard contains a Sign")
-            if isinstance(self.clipboard, Sign):
-                print("yes, it's a sign. pasting!")
-                if self.clipboard in self.corpus:
-                    print("sign already in corpus; no action taken")
+            # focus is on the Corpus View, so we need to check if the clipboard contains any Sign objects
+            print("corpus view has focus; checking if clipboard contains any Sign objects")
+            for itemtopaste in listfromclipboard:
+                if isinstance(itemtopaste, Sign):
+                    print("yes, it's a sign. pasting!")
+                    serialized = itemtopaste.serialize()
+                    signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
+                    # if itemtopaste in self.corpus:
+                    if self.corpus.signinfoexistsincorpus1(signtopaste, allof=False):
+                        print("sign info already in corpus")
+                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                        self.current_sign = None
+                        self.signlevel_panel.sign = signtopaste
+                        # open the sign level info dialog; it is already able to deal with duplication of existing glosses/lemmas/idglosses
+                        self.signlevel_panel.handle_signlevelbutton_click()
+                    else:
+                        print("sign not yet in corpus; adding")
+                        # set new entryID counter
+                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                        self.corpus.add_sign(signtopaste)
+                        self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
                 else:
-                    print("sign not yet in corpus; adding")
-                    self.corpus.add_sign(self.clipboard)
-                    self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=self.clipboard)
-            else:
-                print("nope, not a sign (or None); not pasting!")
+                    print("nope, not a sign (or None); not pasting!")
 
         # TODO: implement for other objects (not just Signs)
 
@@ -1048,6 +1074,7 @@ class MainWindow(QMainWindow):
             self.corpus_display.handle_selection(stashed_corpusselection)
 
     def on_action_delete_sign(self, clicked=None):
+        # TODO need to check for multiple selections
         if self.current_sign:  # does the sign to delete exist?
             glosseslist = self.current_sign.signlevel_information.gloss
             question1 = "Do you want to delete the selected sign, with gloss"

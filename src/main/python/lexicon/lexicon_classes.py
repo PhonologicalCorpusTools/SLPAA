@@ -150,7 +150,6 @@ class Sign:
             'cfg module numbers': self.handconfigmodulenumbers,
         }
 
-    # TODO KV - can the un/serialization methods below be combined into generic ones that can be used for all model-based modules?
 
     def serializemovementmodules(self):
         serialized = {}
@@ -467,6 +466,9 @@ class Corpus:
             'highest id': self.highestID
         }
 
+    def get_all_glosses(self):
+        return [gloss for sign in self.signs for gloss in sign.signlevel_information.gloss]
+
     def get_all_lemmas(self):
         return [sign.signlevel_information.lemma for sign in self.signs]
 
@@ -480,6 +482,22 @@ class Corpus:
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)
 
+    def signinfoexistsincorpus1(self, sign, allof):
+        thissign_glosses = sign.signlevel_information.gloss
+        thissign_lemma = sign.signlevel_information.lemma
+        thissign_idgloss = sign.signlevel_information.idgloss
+
+        lemmaexists = thissign_lemma in self.get_all_lemmas()
+        idglossexists = thissign_idgloss in self.get_all_idglosses()
+        if allof:
+            glossesexist = False not in [(gloss in self.get_all_glosses()) for gloss in thissign_glosses]
+        else:  # anyof
+            glossesexist = True in [(gloss in self.get_all_glosses()) for gloss in thissign_glosses]
+
+        if allof:
+            return lemmaexists and idglossexists and glossesexist
+        else:  # anyof
+            return lemmaexists or idglossexists or glossesexist
     def __contains__(self, item):
         return item in self.signs
 
@@ -494,6 +512,7 @@ class Corpus:
         if self.path:
             _, filename = os.path.split(self.path)
         return '<CORPUS: ' + repr(filename) + '>'
+
     
     def add_missing_paths(self):
         for sign in self.signs:

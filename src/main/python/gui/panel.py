@@ -885,7 +885,7 @@ class SignLevelMenuPanel(QScrollArea):
         return dialogresult
 
     def handle_save_signlevelinfo(self, signlevelinfo):
-        if self.sign:
+        if self.sign and (self.sign in self.mainwindow.corpus.signs):
             # an existing sign is highlighted; update it
             self.sign.signlevel_information = signlevelinfo
         else:
