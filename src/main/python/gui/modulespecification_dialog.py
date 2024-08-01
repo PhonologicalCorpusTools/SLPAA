@@ -34,7 +34,7 @@ from gui.handconfigspecification_view import HandConfigSpecificationPanel
 from gui.relationspecification_view import RelationSpecificationPanel
 from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
-from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
+from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector, PhonLocSelection
 from constant import HAND, ARM, LEG
 
 
@@ -57,6 +57,7 @@ class ModuleSelectorDialog(QDialog):
 
         timingintervals = []
         addedinfo = AddedInfo()
+        phonlocstoload = None
         new_instance = True
         articulators = (None, {1: None, 2: None})
         inphase = 0
@@ -67,11 +68,13 @@ class ModuleSelectorDialog(QDialog):
             self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
             addedinfo = deepcopy(moduletoload.addedinfo)
+            phonlocstoload = moduletoload.phonlocs
             if moduletoload.articulators is not None:
                 articulators = moduletoload.articulators
             new_instance = False
             if isinstance(moduletoload, LocationModule) or isinstance(moduletoload, MovementModule):
                 inphase = moduletoload.inphase
+               
 
         main_layout = QVBoxLayout()
 
@@ -85,6 +88,10 @@ class ModuleSelectorDialog(QDialog):
                                                                  parent=self)
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
+        self.phonloc_selection= PhonLocSelection(moduletype == ModuleTypes.LOCATION)
+        if phonlocstoload is not None:
+            self.phonloc_selection.set_phonloc_buttons_from_content(phonlocstoload)
+        self.arts_and_addedinfo_layout.addWidget(self.phonloc_selection)
         self.arts_and_addedinfo_layout.addStretch()
         self.addedinfobutton = AddedInfoPushButton("Module notes")
         self.addedinfobutton.addedinfo = addedinfo
@@ -283,6 +290,7 @@ class ModuleSelectorDialog(QDialog):
     def validate_and_save(self, addanother=False, closedialog=False):
         inphase = self.articulators_widget.getphase() if self.usearticulators else 0
         addedinfo = self.addedinfobutton.addedinfo
+        phonlocs = self.phonloc_selection.getcurrentphonlocs()
 
         # validate hand selection
         articulatorsvalid, articulators = self.validate_articulators()
@@ -311,7 +319,7 @@ class ModuleSelectorDialog(QDialog):
             QMessageBox.critical(self, "Warning", messagestring)
         elif addanother:
             # save info and then refresh screen to start next module
-            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
             self.module_saved.emit(savedmodule, self.moduletype)
             if self.usearticulators:
                 self.articulators_widget.clear()
@@ -324,7 +332,7 @@ class ModuleSelectorDialog(QDialog):
                 self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         elif not addanother:
             # save info
-            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
             self.module_saved.emit(savedmodule, self.moduletype)
             if closedialog:
                 # close dialog if caller requests it (but if we're only saving so, eg,
