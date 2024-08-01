@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
         # paste
         action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
         action_paste.setStatusTip('Paste the copied sign(s)')
-        action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
+        action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_V))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
 
