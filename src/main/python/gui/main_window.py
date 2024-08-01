@@ -150,7 +150,7 @@ class MainWindow(QMainWindow):
         action_redo.setCheckable(False)
 
         # edit
-        action_edit_signs = QAction('Edit sign(s)', parent=self)
+        action_edit_signs = QAction('Edit sign-level info(s)', parent=self)
         action_edit_signs.setStatusTip('Edit sign-level info for the selected sign(s)')
         action_edit_signs.triggered.connect(self.on_action_edit_signs)
         action_edit_signs.setCheckable(False)
@@ -317,9 +317,9 @@ class MainWindow(QMainWindow):
         menu_file.addSeparator()
         menu_file.addAction(action_new_sign)
         menu_file.addAction(self.action_delete_sign)
+        menu_file.addAction(action_edit_signs)
 
         menu_edit = main_menu.addMenu('&Edit')
-        menu_edit.addAction(action_edit_signs)
         menu_edit.addAction(action_copy)
         menu_edit.addAction(action_paste)
 
