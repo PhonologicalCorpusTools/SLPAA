@@ -47,6 +47,7 @@ from PyQt5.QtGui import (
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from gui.countxslots_dialog import CountXslotsDialog
+from gui.compare_signs import CompareSignsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
@@ -171,6 +172,11 @@ class MainWindow(QMainWindow):
         action_count_xslots = QAction("Count x-slots", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
+
+        # compare signs
+        action_compare_signs = QAction("Compare signs", parent=self)
+        action_compare_signs.triggered.connect(self.on_action_compare_signs)
+        action_compare_signs.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -334,6 +340,7 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
+        menu_analysis_beta.addAction(action_compare_signs)
 
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
@@ -770,6 +777,10 @@ class MainWindow(QMainWindow):
     def on_action_count_xslots(self):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
+
+    def on_action_compare_signs(self):
+        compare_signs_window = CompareSignsDialog(parent=self)
+        compare_signs_window.exec_()
 
     @check_unsaved_change
     def on_action_merge_corpora(self, clicked):
