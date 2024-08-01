@@ -149,16 +149,22 @@ class MainWindow(QMainWindow):
         action_redo.triggered.connect(lambda: self.undostack.redo())
         action_redo.setCheckable(False)
 
+        # edit
+        action_edit_signs = QAction('Edit sign(s)', parent=self)
+        action_edit_signs.setStatusTip('Edit sign-level info for the selected sign(s)')
+        action_edit_signs.triggered.connect(self.on_action_edit_signs)
+        action_edit_signs.setCheckable(False)
+
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
-        action_copy.setStatusTip('Copy the current sign')
+        action_copy.setStatusTip('Copy the selected sign(s)')
         action_copy.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
         action_copy.triggered.connect(self.on_action_copy)
         action_copy.setCheckable(False)
 
         # paste
         action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
-        action_paste.setStatusTip('Paste the copied sign')
+        action_paste.setStatusTip('Paste the copied sign(s)')
         action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
@@ -224,11 +230,11 @@ class MainWindow(QMainWindow):
         action_new_sign.setCheckable(False)
 
         # delete sign
-        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign', parent=self)
+        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign(s)', parent=self)
         self.action_delete_sign.setEnabled(False)
-        self.action_delete_sign.setStatusTip('Delete the selected sign')
+        self.action_delete_sign.setStatusTip('Delete the selected sign(s)')
         self.action_delete_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Delete))
-        self.action_delete_sign.triggered.connect(self.on_action_delete_sign)
+        self.action_delete_sign.triggered.connect(self.on_action_delete_signs)
         self.action_delete_sign.setCheckable(False)
 
         # preferences
@@ -313,6 +319,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(self.action_delete_sign)
 
         menu_edit = main_menu.addMenu('&Edit')
+        menu_edit.addAction(action_edit_signs)
         menu_edit.addAction(action_copy)
         menu_edit.addAction(action_paste)
 
@@ -606,40 +613,18 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
 
-    # action_str = "copy", "edit" (sign-level info), or "delete"
-    def handle_signaction_selected(self, action_str, selectedsigns, clipboardsigns):
-
-        # selectedsign = self.current_sign or None
-        # clipboardsign = self.clipboard if isinstance(self.clipboard, Sign) else None
-
-        print("signs selected for R-click", selectedsigns)
-        print("signs on clipboard", clipboardsigns)
+    # action_str indicates the type of action selected fom the Corpus View R-click menu:
+    #   "copy", "paste", "edit" (sign-level info), or "delete"
+    def handle_signaction_selected(self, action_str):
 
         if action_str == "edit":
-            if not selectedsigns:
-                print("no signs to edit :(")
-            else:
-                print("edit signs!")
-                for sign in selectedsigns:
-                    # focus on this sign
-                    self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign)
-                    # edit the sign-level info
-                    self.signlevel_panel.handle_signlevelbutton_click()
+            self.on_action_edit_signs()
         elif action_str == "delete":
-            if not selectedsigns:
-                print("no signs to delete :(")
-            else:
-                print("delete signs!")
-                self.on_action_delete_sign(signs=selectedsigns)
+            self.on_action_delete_signs()
         elif action_str == "copy":
-            if not selectedsigns:
-                print("no signs to copy :(")
-            else:
-                print("copy signs!")
-                self.on_action_copy(forclipboard=selectedsigns)
+            self.on_action_copy()
         elif action_str == "paste":
-            print("paste signs from clipboard!")
-            self.on_action_paste(listfromclipboard=clipboardsigns)
+            self.on_action_paste()
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -957,44 +942,41 @@ class MainWindow(QMainWindow):
             corpus.path = path
             return corpus
 
-    def on_action_copy(self, clicked=None, forclipboard=None):
-        # TODO need to check for multiple selections
+    # copies the items currently selected in whichever panel has focus
+    #   (corpus view has focus --> copy signs)
+    #   TODO (visual summary has focus --> copy modules)
+    def on_action_copy(self, clicked=None):
         if self.corpus_display.corpus_view.hasFocus():
-            print("corpus view has focus; copying signs")
-            self.clipboard = forclipboard
+            self.clipboard = self.corpus_display.getselectedsigns()
+        else:
+            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            pass
 
-        # TODO: implement for other objects (not just Signs)
-
-    def on_action_paste(self, clicked=None, listfromclipboard=None):
-        if listfromclipboard is None:
-            listfromclipboard = []
+    def on_action_paste(self, clicked=None):
+        listfromclipboard = self.clipboard if isinstance(self.clipboard, list) else [self.clipboard]
 
         if self.corpus_display.corpus_view.hasFocus():
             # focus is on the Corpus View, so we need to check if the clipboard contains any Sign objects
-            print("corpus view has focus; checking if clipboard contains any Sign objects")
             for itemtopaste in listfromclipboard:
                 if isinstance(itemtopaste, Sign):
-                    print("yes, it's a sign. pasting!")
                     serialized = itemtopaste.serialize()
                     signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
-                    # if itemtopaste in self.corpus:
                     if self.corpus.signinfoexistsincorpus1(signtopaste, allof=False):
-                        print("sign info already in corpus")
+                        # sign info already in corpus
                         signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
                         self.current_sign = None
                         self.signlevel_panel.sign = signtopaste
-                        # open the sign level info dialog; it is already able to deal with duplication of existing glosses/lemmas/idglosses
+                        # open the sign level info dialog
+                        #   it is already able to deal with duplication of existing lemmas & idglosses
                         self.signlevel_panel.handle_signlevelbutton_click()
-                    else:
-                        print("sign not yet in corpus; adding")
+                    else:  # sign not yet in corpus; adding
                         # set new entryID counter
                         signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
                         self.corpus.add_sign(signtopaste)
                         self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
-                else:
-                    print("nope, not a sign (or None); not pasting!")
-
-        # TODO: implement for other objects (not just Signs)
+        else:
+            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            pass
 
     @check_unsaved_change
     def on_action_new_corpus(self, clicked):
@@ -1068,9 +1050,21 @@ class MainWindow(QMainWindow):
             self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
             self.corpus_display.handle_selection(stashed_corpusselection)
 
+    # optionally provide a list of Signs to edit
+    # if signs argument is not used, then the function edits the signs currently selected in the corpus view
+    def on_action_edit_signs(self, clicked=None, signs=None):
+        if signs is None:
+            signs = self.corpus_display.getselectedsigns()
+
+        for sign in signs:
+            # focus on this sign
+            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign)
+            # edit the sign-level info
+            self.signlevel_panel.handle_signlevelbutton_click()
+
     # optionally provide a list of Signs to delete
     # if signs argument is not used, then the function deletes the signs currently selected in the corpus view
-    def on_action_delete_sign(self, clicked=None, signs=None):
+    def on_action_delete_signs(self, clicked=None, signs=None):
         if signs is None:
             signs = self.corpus_display.getselectedsigns()
 

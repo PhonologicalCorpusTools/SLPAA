@@ -231,8 +231,7 @@ class AddedInfoContextMenu(QMenu):
 
 
 class SignEntryContextMenu(QMenu):
-    action_selected = pyqtSignal(str, list, list)  # "copy", "edit" (sign-level info), or "delete"
-    # selectedsigns, clipboardsigns TODO
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
 
     def __init__(self, selectedsigns, clipboardsigns):
         super().__init__()
@@ -242,22 +241,22 @@ class SignEntryContextMenu(QMenu):
 
         self.copy_action = QAction("Copy Sign(s)")
         self.copy_action.setEnabled(has_selectedsigns)
-        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy", selectedsigns, clipboardsigns))
+        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
         self.addAction(self.copy_action)
 
         self.paste_action = QAction("Paste Sign(s)")
         self.paste_action.setEnabled(has_clipboardsigns)
-        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste", selectedsigns, clipboardsigns))
+        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
         self.addAction(self.paste_action)
 
         self.edit_action = QAction("Edit Sign-level Info(s)")
         self.edit_action.setEnabled(has_selectedsigns)
-        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit", selectedsigns, clipboardsigns))
+        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
         self.addAction(self.edit_action)
 
         self.delete_action = QAction("Delete Sign(s)")
         self.delete_action.setEnabled(has_selectedsigns)
-        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete", selectedsigns, clipboardsigns))
+        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
         self.addAction(self.delete_action)
 
 

@@ -30,8 +30,7 @@ from gui.modulespecification_widgets import SignEntryContextMenu
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
     selection_cleared = pyqtSignal()
-    action_selected = pyqtSignal(str, list, list)  # "copy", "edit" (sign-level info), or "delete"
-    # selectedsigns, clipboardsigns TODO
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
 
     def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
