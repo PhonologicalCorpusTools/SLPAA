@@ -466,12 +466,16 @@ class Corpus:
             'highest id': self.highestID
         }
 
+    # return a flat list of all the glosses used in this corpus
+    #   (does not provide any info about which glosses may or may not be associated with the same sign)
     def get_all_glosses(self):
         return [gloss for sign in self.signs for gloss in sign.signlevel_information.gloss]
 
+    # return a list of all the lemmas used in this corpus
     def get_all_lemmas(self):
         return [sign.signlevel_information.lemma for sign in self.signs]
 
+    # return a list of all the ID-glosses used in this corpus
     def get_all_idglosses(self):
         return [sign.signlevel_information.idgloss for sign in self.signs]
 
@@ -482,6 +486,9 @@ class Corpus:
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)
 
+    # return True iff the given sign's gloss(es), lemma, and/or idgloss are already used by other sign/s in this corpus
+    #   sign = the sign whose info to check for (type: Sign)
+    #   allof = must find ALL of the given sign's info? or ANY? (type: bool)
     def signinfoexistsincorpus(self, sign, allof):
         thissign_glosses = sign.signlevel_information.gloss
         thissign_lemma = sign.signlevel_information.lemma
@@ -514,7 +521,6 @@ class Corpus:
             _, filename = os.path.split(self.path)
         return '<CORPUS: ' + repr(filename) + '>'
 
-    
     def add_missing_paths(self):
         for sign in self.signs:
             correctionsdict = {ModuleTypes.MOVEMENT: {},

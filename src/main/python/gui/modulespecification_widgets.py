@@ -87,6 +87,8 @@ class SpecifyBodypartPushButton(QPushButton):
         self.updateStyle()
 
 
+# Styled QPushButton whose text is bolded iff the associated AddedInfo object's _hascontent attribute is true
+# clicking this type of button spawns an AddedInfoContextMenu
 class AddedInfoPushButton(QPushButton):
 
     def __init__(self, title, **kwargs):
@@ -131,7 +133,8 @@ class AddedInfoPushButton(QPushButton):
     def clear(self):
         self.addedinfo = AddedInfo()
 
-
+# menu allowing user to specify whether the relevant object/module/etc is
+#   uncertain, estimated, not specified, variable, etc (and add notes for each)
 class AddedInfoContextMenu(QMenu):
     info_added = pyqtSignal(AddedInfo)
 
@@ -230,14 +233,14 @@ class AddedInfoContextMenu(QMenu):
         self.info_added.emit(self.addedinfo)
 
 
+# menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
 class SignEntryContextMenu(QMenu):
     action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
 
-    def __init__(self, selectedsigns, clipboardsigns):
+    # individual menu items are enabled/disabled based on whether any signs are currently selected
+    #   and/or whether there are any signs on the clipboard
+    def __init__(self, has_selectedsigns, has_clipboardsigns):
         super().__init__()
-
-        has_selectedsigns = selectedsigns != []
-        has_clipboardsigns = clipboardsigns != []
 
         self.copy_action = QAction("Copy Sign(s)")
         self.copy_action.setEnabled(has_selectedsigns)

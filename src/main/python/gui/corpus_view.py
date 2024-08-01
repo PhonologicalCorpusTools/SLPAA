@@ -175,12 +175,13 @@ class CorpusDisplay(QWidget):
                     if isinstance(copieditem, Sign):
                         clipboardsigns.append(copieditem)
 
-            menu = SignEntryContextMenu(selectedsigns, clipboardsigns)
+            menu = SignEntryContextMenu(selectedsigns != [], clipboardsigns != [])
             menu.action_selected.connect(self.action_selected.emit)
             menu.exec_(event.globalPos())
 
         return super().eventFilter(source, event)
 
+    # returns a list of Sign objects (could be empty) that are currently selected in the corpus display
     def getselectedsigns(self):
         proxyindices = self.corpus_view.selectedIndexes()
         sourceindices = [self.getsourceindex((proxyindex.row(), proxyindex.column())) for proxyindex in proxyindices]
