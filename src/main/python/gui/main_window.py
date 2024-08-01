@@ -186,7 +186,7 @@ class MainWindow(QMainWindow):
         action_load_corpus.setCheckable(False)
 
         # load sample corpus
-        action_load_sample = QAction(QIcon(self.app_ctx.icons['load_blue']), "Load sample...", parent=self)
+        action_load_sample = QAction(QIcon(self.app_ctx.icons['load_blue']), "Load sample", parent=self)
         action_load_sample.setStatusTip("Load the sample corpus file")
         action_load_sample.triggered.connect(lambda clicked: self.on_action_load_corpus(clicked, sample=True))
         action_load_sample.setCheckable(False)
