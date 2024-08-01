@@ -179,7 +179,7 @@ class CorpusDisplay(QWidget):
             menu.action_selected.connect(self.action_selected.emit)
             menu.exec_(event.globalPos())
 
-        elif event.type() == QEvent.KeyPress and event.key() in [Qt.Key_Enter, Qt.Key_Return] and source == self.corpus_view:
+        elif event.type() == QEvent.KeyPress and event.key() == Qt.Key_Return and source == self.corpus_view:
             self.action_selected.emit("edit")
 
         return super().eventFilter(source, event)
