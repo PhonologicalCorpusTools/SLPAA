@@ -290,9 +290,6 @@ class MainWindow(QMainWindow):
         action_show_version.setStatusTip('Show which version of SLPAA I am working with')
         action_show_version.triggered.connect(self.on_action_show_version)
 
-        # Ensure these actions are not overwritten or affected by other variables
-        print("Actions created for Help menu")
-
         toolbar.addAction(action_new_sign)
         toolbar.addAction(self.action_delete_sign)
         toolbar.addSeparator()
