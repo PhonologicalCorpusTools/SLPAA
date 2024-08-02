@@ -375,7 +375,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.set_loctype_buttons_from_content(loctypetoload)
             self.setcurrenttreemodel(treemodeltoload)
-            self.applyneutral_pb.setChecked(treemodeltoload.defaultneutralselected)
+            self.markneutral_cb.setChecked(treemodeltoload.defaultneutralselected)
         else:
             self.clear_loctype_buttons_to_default()
 
@@ -455,12 +455,13 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         self.markneutral_cb = QCheckBox("This location is 'neutral'")
         self.markneutral_cb.clicked.connect(self.handle_toggle_neutral_cb)
-        signingspace_layout.addWidget(self.markneutral_cb, 1, 3)
-
         self.neutral_info_pb = QPushButton("Info")
         self.neutral_info_pb.clicked.connect(self.show_neutral_info)
-        signingspace_layout.addWidget(self.neutral_info_pb, 2, 3)
+        neutral_sublayout = QHBoxLayout()
+        neutral_sublayout.addWidget(self.markneutral_cb)
+        neutral_sublayout.addWidget(self.neutral_info_pb)
 
+        signingspace_layout.addLayout(neutral_sublayout, 1, 3)
         
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
@@ -556,7 +557,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             "Sign type is specified in 'Sign type information' and is not dependent on the articulator specified at the top of the Location module. \n\n"\
             "Any set of locations can be marked as neutral by checking the 'This location is neutral' box, even if it differs from the default set in Preferences>Location. "\
             "You can also designate a neutral space by adding 'Default neutral space' to the location list under the 'Signing space - purely spatial' location type."
-        QMessageBox.information(self, "Neutral locations", message)
+        QMessageBox.about(self, "Neutral locations", message)
 
 
     def handle_toggle_neutral_pb(self):
