@@ -21,7 +21,7 @@ help_map = {
     'signlevel': 'sign_level_info',
     'signtype': 'sign_type',
     'xslot': 'timing',  # for sign timing and xslots
-    'preferences': 'setting_preferences',  # coming from preferences dialog
+    'preferences': 'global_settings',  # coming from preferences dialog
 }
 
 
