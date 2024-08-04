@@ -274,19 +274,19 @@ class MainWindow(QMainWindow):
         action_default_view.setCheckable(False)
 
         # help > help (open readthedoc's main page)
-        action_help_main = QAction("Help...", parent=self)
+        action_help_main = QAction("Help", parent=self)
         action_help_main.setStatusTip('Open SLPAA documentations')
         action_help_main.triggered.connect(self.on_action_help_main)
 
         # help > about
         # NB: on MacOS the location of this menu is overriden by the OS.
         # So that "About" will NOT be under 'help' but the leftmost menu.
-        action_help_about = QAction("About...", parent=self)
-        action_help_about.setStatusTip('Show which version of SLPAA I am working with')
+        action_help_about = QAction("About", parent=self)
+        action_help_about.setStatusTip('More information about SLPAA')
         action_help_about.triggered.connect(self.on_action_help_about)
 
         # help > show version number
-        action_show_version = QAction("Show version number...", parent=self)
+        action_show_version = QAction("Show version number", parent=self)
         action_show_version.setStatusTip('Show which version of SLPAA I am working with')
         action_show_version.triggered.connect(self.on_action_show_version)
 
