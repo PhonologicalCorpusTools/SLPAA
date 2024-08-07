@@ -707,6 +707,7 @@ class LocationType:
             self._bodyanchored = False
             self._body = False
 
+
     def usesbodylocations(self):
         return self._body or self._bodyanchored
 
@@ -1425,7 +1426,6 @@ class RelationX:
     @othertext.setter
     def othertext(self, othertext):
         self._othertext = othertext
-
 
 class RelationY:
 
