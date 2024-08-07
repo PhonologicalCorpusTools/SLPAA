@@ -490,23 +490,30 @@ class Corpus:
 
     # return True iff the given sign's gloss(es), lemma, and/or idgloss are already used by other sign/s in this corpus
     #   sign = the sign whose info to check for (type: Sign)
-    #   allof = must find ALL of the given sign's info? or ANY? (type: bool)
+    #   allof = a bool that determines whether the search must find ALL of the given sign's info (True), or ANY (False)
     def signinfoexistsincorpus(self, sign, allof):
-        thissign_glosses = sign.signlevel_information.gloss
-        thissign_lemma = sign.signlevel_information.lemma
-        thissign_idgloss = sign.signlevel_information.idgloss
-
-        lemmaexists = thissign_lemma in self.get_all_lemmas()
-        idglossexists = thissign_idgloss in self.get_all_idglosses()
-        if allof:
-            glossesexist = False not in [(gloss in self.get_all_glosses()) for gloss in thissign_glosses]
-        else:  # anyof
-            glossesexist = True in [(gloss in self.get_all_glosses()) for gloss in thissign_glosses]
+        glossesexist, lemmaexists, idglossexists = self.getsigninfoduplicatedincorpus(sign, allof)
 
         if allof:
             return lemmaexists and idglossexists and glossesexist
         else:  # anyof
             return lemmaexists or idglossexists or glossesexist
+
+    def getsigninfoduplicatedincorpus(self, sign, allof):
+        thissign_glosses = sign.signlevel_information.gloss
+        thissign_lemma = sign.signlevel_information.lemma
+        thissign_idgloss = sign.signlevel_information.idgloss
+
+        lemmaexists = thissign_lemma.lower() in [lemma.lower() for lemma in self.get_all_lemmas()]
+        idglossexists = thissign_idgloss.lower() in [idgloss.lower() for idgloss in self.get_all_idglosses()]
+        all_glosses_lower = [gloss.lower() for gloss in self.get_all_glosses()]
+        glossmatches = [(gloss.lower() in all_glosses_lower) for gloss in thissign_glosses]
+        if allof:
+            glossesexist = False not in glossmatches
+        else:  # anyof
+            glossesexist = True in glossmatches
+
+        return glossesexist, lemmaexists, idglossexists
 
     def __contains__(self, item):
         return item in self.signs

@@ -35,7 +35,10 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QFrame,
     QDialogButtonBox,
-    QApplication
+    QApplication,
+    QRadioButton,
+    QButtonGroup,
+    QSpacerItem
 )
 
 from PyQt5.QtGui import (
@@ -109,7 +112,7 @@ class MainWindow(QMainWindow):
         self.today = date.today()
 
         # app title
-        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
+        self.setWindowTitle("Sign Language Phonetic Annotator and Analyzer")
 
         # toolbar
         toolbar = QToolBar('Main toolbar', parent=self)
@@ -957,26 +960,72 @@ class MainWindow(QMainWindow):
 
         if self.corpus_display.corpus_view.hasFocus():
             # focus is on the Corpus View, so we need to check if the clipboard contains any Sign objects
-            for itemtopaste in listfromclipboard:
-                if isinstance(itemtopaste, Sign):
-                    serialized = itemtopaste.serialize()
-                    signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
-                    if self.corpus.signinfoexistsincorpus(signtopaste, allof=False):
-                        # sign info already in corpus
-                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
-                        self.current_sign = None
-                        self.signlevel_panel.sign = signtopaste
-                        # open the sign level info dialog
-                        #   it is already able to deal with duplication of existing lemmas & idglosses
-                        self.signlevel_panel.handle_signlevelbutton_click()
-                    else:  # sign not yet in corpus; adding
-                        # set new entryID counter
-                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
-                        self.corpus.add_sign(signtopaste)
-                        self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+            signstopaste = [itemtopaste for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
+            duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
+            duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
+
+            if len(duplicatedinfostrings) > 0:
+                duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
+                duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
+                result = duplicateinfodialog.exec_()
+                if result == QDialog.Accepted:
+                    # open SLIs or not, as selected by user
+                    for signtopaste in signstopaste:
+                        serialized = signtopaste.serialize()
+                        signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
+                        glossesduplicated, lemmaduplicated, idglossduplicated = self.corpus.getsigninfoduplicatedincorpus(signtopaste, allof=False)
+                        if (
+                                (glossesduplicated and self.edit_SLI["gloss"] == "edit")
+                                or (lemmaduplicated and self.edit_SLI["lemma"] == "edit")
+                                or (idglossduplicated and self.edit_SLI["idgloss"] == "edit")
+                        ):
+                            # user wants to view/edit at least one of the duplicated infos; open SLI dialog
+                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                            self.current_sign = None
+                            self.signlevel_panel.sign = signtopaste
+                            # SLI dialog is already able to deal with duplication of existing lemmas & idglosses
+                            self.signlevel_panel.handle_signlevelbutton_click()
+                        elif (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
+                            # user doesn't want to view/edit anything, but did request that duplicated ID-glosses be tagged to differentiate
+                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                            signtopaste.signlevel_information.idgloss += "1"  # super lazy; doesn't consider numerical value of any previously-existing indices
+                            self.corpus.add_sign(signtopaste)
+                            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+                        else:
+                            # sign not yet in corpus; adding
+                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                            self.corpus.add_sign(signtopaste)
+                            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+
+                # elif result == QDialog.Rejected:
+                    # do not paste signs
+
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs)
             pass
+
+    def handle_edit_SLI(self, edit_glosses, edit_lemmas, edit_idglosses):
+        self.edit_SLI = {
+            "gloss": edit_glosses,
+            "lemma": edit_lemmas,
+            "idgloss": edit_idglosses
+        }
+
+    def getduplicatedinfostrings(self, signs, duplicatedinfoflags):
+        duplicatedinfostrings = []
+        for idx, sign in enumerate(signs):
+            if True in duplicatedinfoflags[idx]:
+                duplicatedinfos = []
+                if duplicatedinfoflags[idx][0]:
+                    duplicatedinfos.append("gloss(es)")
+                if duplicatedinfoflags[idx][1]:
+                    duplicatedinfos.append("lemma")
+                if duplicatedinfoflags[idx][2]:
+                    duplicatedinfos.append("ID-gloss")
+                duplicatedinfostring = glossesdelimiter.join(sign.signlevel_information.gloss) + "\n"
+                duplicatedinfostring += "   " + ", ".join(duplicatedinfos)
+                duplicatedinfostrings.append(duplicatedinfostring)
+        return duplicatedinfostrings
 
     @check_unsaved_change
     def on_action_new_corpus(self, clicked):
@@ -1099,11 +1148,122 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
 
+class PastingDuplicateInfoDialog(QDialog):
+    edit_SLI = pyqtSignal(str, str, str)
+    def __init__(self, duplicatedinfoflags, duplicatedinfostrings, **kwargs):
+        super().__init__(**kwargs)
+
+        gloss_flags, lemma_flags, idgloss_flags = zip(*duplicatedinfoflags)
+        self.dup_gloss = True in gloss_flags
+        self.dup_lemma = True in lemma_flags
+        self.dup_idgloss = True in idgloss_flags
+
+        self.setWindowTitle("Duplicated info")
+        main_layout = QVBoxLayout()
+
+        intro_label = QLabel("One or more of the signs you are pasting duplicates identifying information already existing in this corpus:\n" + "\n".join(duplicatedinfostrings))
+
+        glosses_label = QLabel("For signs with duplicated glosses, do you want to:")
+        glosses_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        glosses_edit_rb.setProperty("edit_SLI", "edit")
+        glosses_leave_rb = QRadioButton("leave them as they are")
+        glosses_leave_rb.setProperty("edit_SLI", "leave")
+        self.glosses_btngrp = QButtonGroup()
+        self.glosses_btngrp.addButton(glosses_edit_rb)
+        self.glosses_btngrp.addButton(glosses_leave_rb)
+        glosses_widget = self.get_grouped_widget(glosses_label, [glosses_edit_rb, glosses_leave_rb])
+
+        lemmas_label = QLabel("For signs with duplicated lemmas, do you want to:")
+        lemmas_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        lemmas_edit_rb.setProperty("edit_SLI", "edit")
+        lemmas_leave_rb = QRadioButton("leave them as they are")
+        lemmas_leave_rb.setProperty("edit_SLI", "leave")
+        self.lemmas_btngrp = QButtonGroup()
+        self.lemmas_btngrp.addButton(lemmas_edit_rb)
+        self.lemmas_btngrp.addButton(lemmas_leave_rb)
+        lemmas_widget = self.get_grouped_widget(lemmas_label, [lemmas_edit_rb, lemmas_leave_rb])
+
+        idglosses_label = QLabel("For signs with duplicated ID-glosses, do you want to:")
+        idglosses_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        idglosses_edit_rb.setProperty("edit_SLI", "edit")
+        idglosses_tag_rb = QRadioButton("tag the pasted sign's ID-gloss with an index numeral (e.g. IDGLOSS1)")
+        idglosses_tag_rb.setProperty("edit_SLI", "tag")
+        self.idglosses_btngrp = QButtonGroup()
+        self.idglosses_btngrp.addButton(idglosses_edit_rb)
+        self.idglosses_btngrp.addButton(idglosses_tag_rb)
+        idglosses_widget = self.get_grouped_widget(idglosses_label, [idglosses_edit_rb, idglosses_tag_rb])
+
+        main_layout.addWidget(intro_label)
+
+        if self.dup_gloss:
+            main_layout.addWidget(glosses_widget)
+        if self.dup_lemma:
+            main_layout.addWidget(lemmas_widget)
+        if self.dup_idgloss:
+            main_layout.addWidget(idglosses_widget)
+
+        buttons = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.OKbutton = self.button_box.button(QDialogButtonBox.Ok)
+        self.OKbutton.setEnabled(False)
+        for btngrp in [self.glosses_btngrp, self.lemmas_btngrp, self.idglosses_btngrp]:
+            btngrp.buttonToggled.connect(lambda a0, a1: self.OKbutton.setEnabled(self.validate()))
+        self.button_box.clicked.connect(self.handle_button_click)
+        main_layout.addWidget(self.button_box)
+
+        self.setLayout(main_layout)
+
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Cancel:
+            self.reject()
+        elif standard == QDialogButtonBox.Ok:
+            if self.validate():
+                glossbutton = self.glosses_btngrp.checkedButton()
+                lemmabutton = self.lemmas_btngrp.checkedButton()
+                idglossbutton = self.idglosses_btngrp.checkedButton()
+                self.edit_SLI.emit(
+                    glossbutton.property("edit_SLI") if glossbutton else "none",
+                    lemmabutton.property("edit_SLI") if lemmabutton else "none",
+                    idglossbutton.property("edit_SLI") if idglossbutton else "none"
+                )
+                self.accept()
+            else:
+                # do nothing-- selections not yet filled in
+                pass
+
+    def validate(self):
+        if self.dup_gloss and self.glosses_btngrp.checkedButton() is None:
+            return False
+        if self.dup_lemma and self.lemmas_btngrp.checkedButton() is None:
+            return False
+        if self.dup_idgloss and self.idglosses_btngrp.checkedButton() is None:
+            return False
+        return True
+
+    def get_grouped_widget(self, label, buttonslist):
+        widget = QWidget()
+        layout = QVBoxLayout()
+
+        layout.addWidget(label)
+        for button in buttonslist:
+            layout.addLayout(self.get_indented_layout(button))
+
+        widget.setLayout(layout)
+        return widget
+
+    def get_indented_layout(self, widget):
+        layout = QHBoxLayout()
+        layout.addSpacerItem(QSpacerItem(20, 0))
+        layout.addWidget(widget)
+        return layout
+
+
 class MinCounterDialog(QDialog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
+        self.setWindowTitle("Sign Language Phonetic Annotator and Analyzer")
         main_layout = QVBoxLayout()
 
         counter_layout = QHBoxLayout()
