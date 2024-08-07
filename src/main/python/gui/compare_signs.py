@@ -2,19 +2,19 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, 
     QLabel, QHBoxLayout, QPushButton
 import json
 
+from lexicon.lexicon_classes import Sign
 
 class CompareSignsDialog(QDialog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        corpus_list = self.parent().corpus.serialize()['signs']  # don't need meta-data and only 'signs' part
-        # following the logic in export corpus that dumps and reloads
-        thestring = json.dumps(corpus_list, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
-        corpus_list = json.loads(thestring)
+        self.corpus = self.parent().corpus
+        self.signs = self.corpus.signs  # don't need meta-data and only 'signs' part
+        idgloss_list = self.corpus.get_all_idglosses()
 
-        self.corpus = {}
 
         # example
+        """
         self.corpus = {
 
             "JUSTIFY": {
@@ -56,15 +56,15 @@ class CompareSignsDialog(QDialog):
                 "Hand Configuration": {"H1.Config1": "Right extended B", "H2.Config1": "Right extended B"}
             }
         }
-
+        """
 
         layout = QVBoxLayout()
 
         # Dropdown menus for selecting signs
         self.sign1_dropdown = QComboBox()
         self.sign2_dropdown = QComboBox()
-        self.sign1_dropdown.addItems(self.corpus.keys())
-        self.sign2_dropdown.addItems(self.corpus.keys())
+        self.sign1_dropdown.addItems(idgloss_list)
+        self.sign2_dropdown.addItems(idgloss_list)
 
         self.sign1_dropdown.currentIndexChanged.connect(self.update_trees)
         self.sign2_dropdown.currentIndexChanged.connect(self.update_trees)
@@ -119,11 +119,31 @@ class CompareSignsDialog(QDialog):
                 QTreeWidgetItem(parent, [value])
 
     def update_trees(self):
-        sign1 = self.sign1_dropdown.currentText()
-        sign2 = self.sign2_dropdown.currentText()
+        # update the dialog visual as dropdown selections
+        label_sign1 = self.sign1_dropdown.currentText()
+        label_sign2 = self.sign2_dropdown.currentText()
 
-        self.tree1.setHeaderLabel(f"Sign 1: {sign1}")
-        self.tree2.setHeaderLabel(f"Sign 2: {sign2}")
+        self.tree1.setHeaderLabel(f"Sign 1: {label_sign1}")
+        self.tree2.setHeaderLabel(f"Sign 2: {label_sign2}")
 
-        self.populate_tree(self.tree1, self.corpus[sign1])
-        self.populate_tree(self.tree2, self.corpus[sign2])
+        sign1, sign2 = self.find_target_signs(label_sign1, label_sign2) # identify signs to compare
+        self.compare_signs(sign1, sign2)
+
+    def find_target_signs(self, label1: str, label2: str):
+        # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
+        sign1, sign2 = False, False  # sign1 and sign2 declared as bool but eventually Sign instances
+        for sign in self.signs:
+            if all([sign1, sign2]):  # both sign1 and sign2 identified, stop iterating over corpus
+                break
+
+            if not sign1 and sign.signlevel_information.idgloss == label1:
+                # if sign1 is not identified and the current sign in the corpus has the same lemma as sign1
+                sign1 = sign
+            if not sign2 and sign.signlevel_information.idgloss == label2:
+                sign2 = sign
+        return sign1, sign2
+
+    def compare_signs(self, sign1: Sign, sign2: Sign):
+        #modules =
+
+        pass
