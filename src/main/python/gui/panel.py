@@ -885,11 +885,17 @@ class SignLevelMenuPanel(QScrollArea):
         return dialogresult
 
     def handle_save_signlevelinfo(self, signlevelinfo):
-        if self.sign and (self.sign in self.mainwindow.corpus.signs):
-            # an existing sign is highlighted; update it
+        if self.sign:
+            # We have a fully formed sign; update its sign-level info.
             self.sign.signlevel_information = signlevelinfo
+
+            if self.sign not in self.mainwindow.corpus.signs:
+                # But, if it's not already in the corpus that means it's a sign that's about to
+                #   be copied and we're just confirming the SLI. In this case, it needs to
+                #   be added to the corpus.
+                self.mainwindow.corpus.add_sign(self.sign)
         else:
-            # this is a new sign
+            # this is a brand new sign
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(self.sign)
