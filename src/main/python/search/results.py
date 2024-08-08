@@ -98,17 +98,32 @@ class ResultsView(QWidget):
         self.showMaximized()
         main_layout.addWidget(self.tab_widget)
         self.setLayout(main_layout)
+
+        self.popupresults = []
     
     def handle_result_doubleclicked(self, index):
         entryid = self.individualmodel.get_entry_id_from_row(index.row())
-        # logging.warning(self.corpus.signs)
-        # QMessageBox.critical(self, "double clicked", str(entryid))
-        # for s in self.corpus.signs:
-        #     thissign = s
-        #     break
-        # self.signsummary_panel = SignSummaryPanel(mainwindow=self.mainwindow, sign=thissign, parent=self)
-        # self.signsummary_panel.refreshsign(thissign)
-        # self.signsummary_panel.show()
+        for s in self.corpus.signs:
+            if s.signlevel_information.entryid == entryid:
+                thissign = s
+                thisgloss = s.signlevel_information.idgloss
+                break
+
+        self.mainwindow.current_sign = None
+        signsummary_panel = SignSummaryPanel(mainwindow=self.mainwindow, sign=thissign, parent=self)
+        signsummary_panel.mainwindow.current_sign = thissign  # refreshsign() checks for this
+        signsummary_panel.refreshsign(thissign)
+
+        layout = QHBoxLayout()
+        layout.addWidget(signsummary_panel)
+        resultpopup = QWidget(parent=self)
+        resultpopup.setLayout(layout)
+        resultpopup.setWindowFlags(Qt.Window)
+        resultpopup.setWindowTitle(f"Search Result: {thisgloss}")
+        resultpopup.setAttribute(Qt.WA_DeleteOnClose) 
+        resultpopup.show()
+        
+        
 
 class ListDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
@@ -150,7 +165,7 @@ class IndividualSummaryModel(QStandardItemModel):
         self.setHorizontalHeaderLabels(self.headers)
     
     def get_entry_id_from_row(self, row):
-        return self.index(row, ResultHeaders.ID).data(Qt.DisplayRole)
+        return self.index(row, ResultHeaders.ID).data(Qt.UserRole)
 
     def populate(self, resultsdict):
         for targetname in resultsdict:
@@ -165,6 +180,7 @@ class IndividualSummaryModel(QStandardItemModel):
                 resulttypes = QStandardItem()
                 resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
                 entryid = QStandardItem()
+                entryid.setData(sli.entryid, Qt.UserRole)
                 entryid.setData(sli.entryid.display_string(), Qt.DisplayRole)
                 gloss = QStandardItem()
                 gloss.setData(sli.gloss, Qt.DisplayRole)
