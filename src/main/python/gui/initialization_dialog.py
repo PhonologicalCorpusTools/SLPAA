@@ -20,7 +20,7 @@ class InitializationDialog(QDialog):
     def __init__(self, app_ctx, blank_func, load_func, preferred_coder_name, **kwargs):
         super().__init__(**kwargs)
 
-        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
+        self.setWindowTitle("Sign Language Phonetic Annotator and Analyzer")
 
         main_layout = QGridLayout()
         self.setLayout(main_layout)

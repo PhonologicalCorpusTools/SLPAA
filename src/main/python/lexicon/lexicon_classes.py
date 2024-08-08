@@ -150,7 +150,6 @@ class Sign:
             'cfg module numbers': self.handconfigmodulenumbers,
         }
 
-    # TODO KV - can the un/serialization methods below be combined into generic ones that can be used for all model-based modules?
 
     def serializemovementmodules(self):
         serialized = {}
@@ -469,9 +468,16 @@ class Corpus:
             'highest id': self.highestID
         }
 
+    # return a flat list of all the glosses used in this corpus
+    #   (does not provide any info about which glosses may or may not be associated with the same sign)
+    def get_all_glosses(self):
+        return [gloss for sign in self.signs for gloss in sign.signlevel_information.gloss]
+
+    # return a list of all the lemmas used in this corpus
     def get_all_lemmas(self):
         return [sign.signlevel_information.lemma for sign in self.signs]
 
+    # return a list of all the ID-glosses used in this corpus
     def get_all_idglosses(self):
         return [sign.signlevel_information.idgloss for sign in self.signs]
 
@@ -481,6 +487,33 @@ class Corpus:
 
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)
+
+    # return True iff the given sign's gloss(es), lemma, and/or idgloss are already used by other sign/s in this corpus
+    #   sign = the sign whose info to check for (type: Sign)
+    #   allof = a bool that determines whether the search must find ALL of the given sign's info (True), or ANY (False)
+    def signinfoexistsincorpus(self, sign, allof):
+        glossesexist, lemmaexists, idglossexists = self.getsigninfoduplicatedincorpus(sign, allof)
+
+        if allof:
+            return lemmaexists and idglossexists and glossesexist
+        else:  # anyof
+            return lemmaexists or idglossexists or glossesexist
+
+    def getsigninfoduplicatedincorpus(self, sign, allof):
+        thissign_glosses = sign.signlevel_information.gloss
+        thissign_lemma = sign.signlevel_information.lemma
+        thissign_idgloss = sign.signlevel_information.idgloss
+
+        lemmaexists = thissign_lemma.lower() in [lemma.lower() for lemma in self.get_all_lemmas()]
+        idglossexists = thissign_idgloss.lower() in [idgloss.lower() for idgloss in self.get_all_idglosses()]
+        all_glosses_lower = [gloss.lower() for gloss in self.get_all_glosses()]
+        glossmatches = [(gloss.lower() in all_glosses_lower) for gloss in thissign_glosses]
+        if allof:
+            glossesexist = False not in glossmatches
+        else:  # anyof
+            glossesexist = True in glossmatches
+
+        return glossesexist, lemmaexists, idglossexists
 
     def __contains__(self, item):
         return item in self.signs
@@ -496,7 +529,7 @@ class Corpus:
         if self.path:
             _, filename = os.path.split(self.path)
         return '<CORPUS: ' + repr(filename) + '>'
-    
+
     def add_missing_paths(self):
         for sign in self.signs:
             correctionsdict = {ModuleTypes.MOVEMENT: {},

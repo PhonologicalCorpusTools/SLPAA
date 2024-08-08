@@ -35,7 +35,10 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QFrame,
     QDialogButtonBox,
-    QApplication
+    QApplication,
+    QRadioButton,
+    QButtonGroup,
+    QSpacerItem
 )
 
 from PyQt5.QtGui import (
@@ -59,7 +62,7 @@ from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
 from lexicon.module_classes import treepathdelimiter, LocationType
-from lexicon.lexicon_classes import Corpus
+from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 
 
@@ -91,6 +94,8 @@ class MainWindow(QMainWindow):
         self.undostack = QUndoStack(parent=self)
         self.unsaved_changes = False  # a flag that tracks any unsaved changes.
 
+        self.clipboard = None
+
         self.predefined_handshape_dialog = None
 
         # system-defaults
@@ -109,7 +114,7 @@ class MainWindow(QMainWindow):
         self.today = date.today()
 
         # app title
-        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
+        self.setWindowTitle("Sign Language Phonetic Annotator and Analyzer")
 
         # toolbar
         toolbar = QToolBar('Main toolbar', parent=self)
@@ -149,17 +154,23 @@ class MainWindow(QMainWindow):
         action_redo.triggered.connect(lambda: self.undostack.redo())
         action_redo.setCheckable(False)
 
+        # edit
+        action_edit_signs = QAction('Edit sign-level info(s)', parent=self)
+        action_edit_signs.setStatusTip('Edit sign-level info for the selected sign(s)')
+        action_edit_signs.triggered.connect(self.on_action_edit_signs)
+        action_edit_signs.setCheckable(False)
+
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
-        action_copy.setStatusTip('Copy the current sign')
+        action_copy.setStatusTip('Copy the selected sign(s)')
         action_copy.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
         action_copy.triggered.connect(self.on_action_copy)
         action_copy.setCheckable(False)
 
         # paste
         action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
-        action_paste.setStatusTip('Paste the copied sign')
-        action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_P))
+        action_paste.setStatusTip('Paste the copied sign(s)')
+        action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_V))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
 
@@ -224,11 +235,11 @@ class MainWindow(QMainWindow):
         action_new_sign.setCheckable(False)
 
         # delete sign
-        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign', parent=self)
+        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign(s)', parent=self)
         self.action_delete_sign.setEnabled(False)
-        self.action_delete_sign.setStatusTip('Delete the selected sign')
+        self.action_delete_sign.setStatusTip('Delete the selected sign(s)')
         self.action_delete_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Delete))
-        self.action_delete_sign.triggered.connect(self.on_action_delete_sign)
+        self.action_delete_sign.triggered.connect(self.on_action_delete_signs)
         self.action_delete_sign.setCheckable(False)
 
         # preferences
@@ -329,6 +340,7 @@ class MainWindow(QMainWindow):
         menu_file.addSeparator()
         menu_file.addAction(action_new_sign)
         menu_file.addAction(self.action_delete_sign)
+        menu_file.addAction(action_edit_signs)
 
         menu_edit = main_menu.addMenu('&Edit')
         menu_edit.addAction(action_copy)
@@ -363,11 +375,13 @@ class MainWindow(QMainWindow):
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
         self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
+        self.signlevel_panel.corpus_updated.connect(lambda sign: self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign))
 
         corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
         self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
         self.corpus_display.selection_cleared.connect(self.handle_sign_selected)
+        self.corpus_display.action_selected.connect(self.handle_signaction_selected)
 
         self.corpus_scroll = QScrollArea(parent=self)
         self.corpus_scroll.setWidgetResizable(True)
@@ -625,6 +639,19 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.sign = selected_sign
         self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
+
+    # action_str indicates the type of action selected fom the Corpus View R-click menu:
+    #   "copy", "paste", "edit" (sign-level info), or "delete"
+    def handle_signaction_selected(self, action_str):
+
+        if action_str == "edit":
+            self.on_action_edit_signs()
+        elif action_str == "delete":
+            self.on_action_delete_signs()
+        elif action_str == "copy":
+            self.on_action_copy()
+        elif action_str == "paste":
+            self.on_action_paste()
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -956,13 +983,96 @@ class MainWindow(QMainWindow):
             corpus.path = path
             return corpus
 
-    def on_action_copy(self, clicked):
-        pass
-        # TODO: implement
+    # copies the items currently selected in whichever panel has focus
+    #   (corpus view has focus --> copy signs)
+    #   TODO (visual summary has focus --> copy modules)
+    def on_action_copy(self, clicked=None):
+        if self.corpus_display.corpus_view.hasFocus():
+            self.clipboard = self.corpus_display.getselectedsigns()
+        else:
+            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            pass
 
-    def on_action_paste(self, clicked):
-        pass
-        # TODO: implement
+    def on_action_paste(self, clicked=None):
+        listfromclipboard = self.clipboard if isinstance(self.clipboard, list) else [self.clipboard]
+
+        if self.corpus_display.corpus_view.hasFocus():
+            # focus is on the Corpus View, so we need to check if the clipboard contains any Sign objects
+            signstopaste = [itemtopaste for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
+            duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
+            duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
+
+            result = None
+            if len(duplicatedinfostrings) > 0:
+                duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
+                duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
+                result = duplicateinfodialog.exec_()
+
+            if result == QDialog.Rejected:
+                # user canceled; do not paste signs
+                pass
+            else:
+                # either there were no duplicates, or there were and the user has decided what to do about it
+                for signtopaste in signstopaste:
+                    serialized = signtopaste.serialize()
+                    signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
+                    if result == QDialog.Accepted:
+                        # open SLIs or not, as selected by user
+                        glossesduplicated, lemmaduplicated, idglossduplicated = self.corpus.getsigninfoduplicatedincorpus(signtopaste, allof=False)
+                        if (
+                                (glossesduplicated and self.edit_SLI["gloss"] == "edit")
+                                or (lemmaduplicated and self.edit_SLI["lemma"] == "edit")
+                                or (idglossduplicated and self.edit_SLI["idgloss"] == "edit")
+                        ):
+                            # user wants to view/edit at least one of the duplicated infos; open SLI dialog
+                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                            self.current_sign = None
+                            self.signlevel_panel.sign = signtopaste
+                            # SLI dialog is already able to deal with duplication of existing lemmas & idglosses
+                            self.signlevel_panel.handle_signlevelbutton_click()
+                        elif (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
+                            # user doesn't want to view/edit anything, but did request that duplicated ID-glosses be tagged to differentiate
+                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                            signtopaste.signlevel_information.idgloss += "1"  # super lazy; doesn't consider numerical value of any previously-existing indices
+                            self.corpus.add_sign(signtopaste)
+                            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+                        else:
+                            # sign not yet in corpus; adding
+                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                            self.corpus.add_sign(signtopaste)
+                            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+                    else:
+                        # there were no duplicates; just paste everything
+                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                        self.corpus.add_sign(signtopaste)
+                        self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+
+        else:
+            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            pass
+
+    def handle_edit_SLI(self, edit_glosses, edit_lemmas, edit_idglosses):
+        self.edit_SLI = {
+            "gloss": edit_glosses,
+            "lemma": edit_lemmas,
+            "idgloss": edit_idglosses
+        }
+
+    def getduplicatedinfostrings(self, signs, duplicatedinfoflags):
+        duplicatedinfostrings = []
+        for idx, sign in enumerate(signs):
+            if True in duplicatedinfoflags[idx]:
+                duplicatedinfos = []
+                if duplicatedinfoflags[idx][0]:
+                    duplicatedinfos.append("gloss(es)")
+                if duplicatedinfoflags[idx][1]:
+                    duplicatedinfos.append("lemma")
+                if duplicatedinfoflags[idx][2]:
+                    duplicatedinfos.append("ID-gloss")
+                duplicatedinfostring = glossesdelimiter.join(sign.signlevel_information.gloss) + "\n"
+                duplicatedinfostring += "   " + ", ".join(duplicatedinfos)
+                duplicatedinfostrings.append(duplicatedinfostring)
+        return duplicatedinfostrings
 
     @check_unsaved_change
     def on_action_new_corpus(self, clicked):
@@ -1006,7 +1116,7 @@ class MainWindow(QMainWindow):
     def load_corpus_info(self, corpuspath):
         self.corpus = self.load_corpus_binary(corpuspath)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
-        self.corpus_display.updated_signs(self.corpus.signs)
+        self.corpus_display.updated_signs(signs=self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selectfirstrow()
         else:  # if loading a blank corpus
@@ -1036,19 +1146,42 @@ class MainWindow(QMainWindow):
             self.corpus_display.corpus_view.setCurrentIndex(stashed_corpusselection)
             self.corpus_display.handle_selection(stashed_corpusselection)
 
-    def on_action_delete_sign(self, clicked):
-        if self.current_sign:  # does the sign to delete exist?
-            glosseslist = self.current_sign.signlevel_information.gloss
-            question1 = "Do you want to delete the selected sign, with gloss"
-            glossesstring = ", ".join(glosseslist) or "[blank]"
-            question2 = ("es" if len(glosseslist) > 1 else "") + " " + glossesstring + "?"
-            moreinfo = "" if len(self.current_sign.signlevel_information.gloss) <= 1 else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
-            response = QMessageBox.question(self, "Delete the selected sign",
-                                            question1 + question2 + moreinfo)
-            if response == QMessageBox.Yes:
-                self.corpus.remove_sign(self.current_sign)
-                self.unsaved_changes = True
-                self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
+    # optionally provide a list of Signs to edit
+    # if signs argument is not used, then the function edits the signs currently selected in the corpus view
+    def on_action_edit_signs(self, clicked=None, signs=None):
+        if signs is None:
+            signs = self.corpus_display.getselectedsigns()
+
+        for sign in signs:
+            # focus on this sign
+            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign)
+            # edit the sign-level info
+            self.signlevel_panel.handle_signlevelbutton_click()
+
+    # optionally provide a list of Signs to delete
+    # if signs argument is not used, then the function deletes the signs currently selected in the corpus view
+    def on_action_delete_signs(self, clicked=None, signs=None):
+        if signs is None:
+            signs = self.corpus_display.getselectedsigns()
+
+        glossesstrings = [glossesdelimiter.join(sign.signlevel_information.gloss) or "[blank]" for sign in signs]
+        glossesstrings = "\n".join(glossesstrings)
+
+        question1 = "Do you want to delete the selected sign"
+        question2 = "s" if len(signs) > 1 else ""
+        question3 = ", with the following gloss"
+        question4 = "es?" if (len(signs) > 1 or glossesdelimiter in glossesstrings) else "?"
+        moreinfo = "" if glossesdelimiter not in glossesstrings else "\n\n" + "(To delete just a gloss but not the whole sign, use the Sign Level Information dialog.)"
+        response = QMessageBox.question(self, "Delete the selected sign" + question2,
+                                        question1+question2+question3+question4+"\n"+glossesstrings+moreinfo)
+        if response == QMessageBox.Yes:
+            for sign in signs:
+                self.delete_one_sign(trash_sign=sign)
+
+    def delete_one_sign(self, trash_sign):
+        self.corpus.remove_sign(trash_sign)
+        self.unsaved_changes = True
+        self.corpus_display.updated_signs(self.corpus.signs, current_sign=trash_sign, deleted=True)
 
     def on_action_help_main(self):
         show_help('main')
@@ -1071,11 +1204,122 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
 
+class PastingDuplicateInfoDialog(QDialog):
+    edit_SLI = pyqtSignal(str, str, str)
+    def __init__(self, duplicatedinfoflags, duplicatedinfostrings, **kwargs):
+        super().__init__(**kwargs)
+
+        gloss_flags, lemma_flags, idgloss_flags = zip(*duplicatedinfoflags)
+        self.dup_gloss = True in gloss_flags
+        self.dup_lemma = True in lemma_flags
+        self.dup_idgloss = True in idgloss_flags
+
+        self.setWindowTitle("Duplicated info")
+        main_layout = QVBoxLayout()
+
+        intro_label = QLabel("One or more of the signs you are pasting duplicates identifying information already existing in this corpus:\n" + "\n".join(duplicatedinfostrings))
+
+        glosses_label = QLabel("For signs with duplicated glosses, do you want to:")
+        glosses_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        glosses_edit_rb.setProperty("edit_SLI", "edit")
+        glosses_leave_rb = QRadioButton("leave them as they are")
+        glosses_leave_rb.setProperty("edit_SLI", "leave")
+        self.glosses_btngrp = QButtonGroup()
+        self.glosses_btngrp.addButton(glosses_edit_rb)
+        self.glosses_btngrp.addButton(glosses_leave_rb)
+        glosses_widget = self.get_grouped_widget(glosses_label, [glosses_edit_rb, glosses_leave_rb])
+
+        lemmas_label = QLabel("For signs with duplicated lemmas, do you want to:")
+        lemmas_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        lemmas_edit_rb.setProperty("edit_SLI", "edit")
+        lemmas_leave_rb = QRadioButton("leave them as they are")
+        lemmas_leave_rb.setProperty("edit_SLI", "leave")
+        self.lemmas_btngrp = QButtonGroup()
+        self.lemmas_btngrp.addButton(lemmas_edit_rb)
+        self.lemmas_btngrp.addButton(lemmas_leave_rb)
+        lemmas_widget = self.get_grouped_widget(lemmas_label, [lemmas_edit_rb, lemmas_leave_rb])
+
+        idglosses_label = QLabel("For signs with duplicated ID-glosses, do you want to:")
+        idglosses_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        idglosses_edit_rb.setProperty("edit_SLI", "edit")
+        idglosses_tag_rb = QRadioButton("tag the pasted sign's ID-gloss with an index numeral (e.g. IDGLOSS1)")
+        idglosses_tag_rb.setProperty("edit_SLI", "tag")
+        self.idglosses_btngrp = QButtonGroup()
+        self.idglosses_btngrp.addButton(idglosses_edit_rb)
+        self.idglosses_btngrp.addButton(idglosses_tag_rb)
+        idglosses_widget = self.get_grouped_widget(idglosses_label, [idglosses_edit_rb, idglosses_tag_rb])
+
+        main_layout.addWidget(intro_label)
+
+        if self.dup_gloss:
+            main_layout.addWidget(glosses_widget)
+        if self.dup_lemma:
+            main_layout.addWidget(lemmas_widget)
+        if self.dup_idgloss:
+            main_layout.addWidget(idglosses_widget)
+
+        buttons = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.OKbutton = self.button_box.button(QDialogButtonBox.Ok)
+        self.OKbutton.setEnabled(False)
+        for btngrp in [self.glosses_btngrp, self.lemmas_btngrp, self.idglosses_btngrp]:
+            btngrp.buttonToggled.connect(lambda a0, a1: self.OKbutton.setEnabled(self.validate()))
+        self.button_box.clicked.connect(self.handle_button_click)
+        main_layout.addWidget(self.button_box)
+
+        self.setLayout(main_layout)
+
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Cancel:
+            self.reject()
+        elif standard == QDialogButtonBox.Ok:
+            if self.validate():
+                glossbutton = self.glosses_btngrp.checkedButton()
+                lemmabutton = self.lemmas_btngrp.checkedButton()
+                idglossbutton = self.idglosses_btngrp.checkedButton()
+                self.edit_SLI.emit(
+                    glossbutton.property("edit_SLI") if glossbutton else "none",
+                    lemmabutton.property("edit_SLI") if lemmabutton else "none",
+                    idglossbutton.property("edit_SLI") if idglossbutton else "none"
+                )
+                self.accept()
+            else:
+                # do nothing-- selections not yet filled in
+                pass
+
+    def validate(self):
+        if self.dup_gloss and self.glosses_btngrp.checkedButton() is None:
+            return False
+        if self.dup_lemma and self.lemmas_btngrp.checkedButton() is None:
+            return False
+        if self.dup_idgloss and self.idglosses_btngrp.checkedButton() is None:
+            return False
+        return True
+
+    def get_grouped_widget(self, label, buttonslist):
+        widget = QWidget()
+        layout = QVBoxLayout()
+
+        layout.addWidget(label)
+        for button in buttonslist:
+            layout.addLayout(self.get_indented_layout(button))
+
+        widget.setLayout(layout)
+        return widget
+
+    def get_indented_layout(self, widget):
+        layout = QHBoxLayout()
+        layout.addSpacerItem(QSpacerItem(20, 0))
+        layout.addWidget(widget)
+        return layout
+
+
 class MinCounterDialog(QDialog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.setWindowTitle('Sign Language Phonetic Annotator and Analyzer')
+        self.setWindowTitle("Sign Language Phonetic Annotator and Analyzer")
         main_layout = QVBoxLayout()
 
         counter_layout = QHBoxLayout()
