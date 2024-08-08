@@ -605,8 +605,9 @@ class Corpus:
 
         for p in missing_values:
             if p not in paths_missing_bc and p not in paths_not_found:
-                treemodel.uncheck_paths(missing_values)
-
+                treemodel.uncheck_paths_from_serialized_tree(missing_values)
+    
+        
         return 
 
     # Converts a string representing a movement/location path into a list of nodes

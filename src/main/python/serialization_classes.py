@@ -180,6 +180,8 @@ class LocationTreeSerializable:
         self.detailstables = {}
         self.addedinfos = {}
         self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
+        self.defaultneutralselected = locntreemodel.defaultneutralselected
+        self.defaultneutrallist = locntreemodel.defaultneutrallist
 
         self.collectdatafromLocationTreeModel(treenode)
         
