@@ -57,7 +57,8 @@ from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
-from constant import SAMPLE_LOCATIONS, filenamefrompath
+from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from lexicon.module_classes import treepathdelimiter, LocationType
 from lexicon.lexicon_classes import Corpus
 from serialization_classes import renamed_load
 
@@ -187,7 +188,7 @@ class MainWindow(QMainWindow):
         action_load_corpus.setCheckable(False)
 
         # load sample corpus
-        action_load_sample = QAction(QIcon(self.app_ctx.icons['load_blue']), "Load sample...", parent=self)
+        action_load_sample = QAction(QIcon(self.app_ctx.icons['load_blue']), "Load sample", parent=self)
         action_load_sample.setStatusTip("Load the sample corpus file")
         action_load_sample.triggered.connect(lambda clicked: self.on_action_load_corpus(clicked, sample=True))
         action_load_sample.setCheckable(False)
@@ -231,7 +232,7 @@ class MainWindow(QMainWindow):
         self.action_delete_sign.setCheckable(False)
 
         # preferences
-        action_edit_preference = QAction('Preferences...', parent=self)
+        action_edit_preference = QAction('Preferences', parent=self)
         action_edit_preference.setStatusTip('Open preference window')
         action_edit_preference.triggered.connect(self.on_action_edit_preference)
         action_edit_preference.setCheckable(False)
@@ -714,6 +715,14 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
+        self.app_settings['location']['default_loctype_1h'] = self.app_qsettings.value('default_loctype_1h', defaultValue="purely spatial", type=str)
+        self.app_settings['location']['default_loctype_2h'] = self.app_qsettings.value('default_loctype_2h', defaultValue='purely spatial', type=str)
+        self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h', 
+                                                                                   DEFAULT_LOC_1H)
+        self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h', 
+                                                                                   DEFAULT_LOC_2H)
+        self.app_settings['location']['autocheck_neutral'] = self.app_qsettings.value('autocheck_neutral', defaultValue=True, type=bool)
+        self.app_settings['location']['autocheck_neutral_on_locn_selected'] = self.app_qsettings.value('autocheck_neutral_on_locn_selected', defaultValue=True, type=bool)
         self.app_settings['location']['clickorder'] = self.app_qsettings.value('clickorder', defaultValue=1, type=int)
         self.app_qsettings.endGroup()  # location
 
@@ -779,6 +788,12 @@ class MainWindow(QMainWindow):
         self.app_qsettings.beginGroup('location')
         self.app_qsettings.setValue('loctype', self.app_settings['location']['loctype'])
         self.app_qsettings.setValue('clickorder', self.app_settings['location']['clickorder'])
+        self.app_qsettings.setValue('default_loctype_1h', self.app_settings['location']['default_loctype_1h'])
+        self.app_qsettings.setValue('default_loctype_2h', self.app_settings['location']['default_loctype_2h'])
+        self.app_qsettings.setValue('default_loc_1h', self.app_settings['location']['default_loc_1h'])
+        self.app_qsettings.setValue('default_loc_2h', self.app_settings['location']['default_loc_2h'])
+        self.app_qsettings.setValue('autocheck_neutral', self.app_settings['location']['autocheck_neutral'])
+        self.app_qsettings.setValue('autocheck_neutral_on_locn_selected', self.app_settings['location']['autocheck_neutral_on_locn_selected'])
         self.app_qsettings.endGroup()  # location
 
     def on_action_define_location(self):

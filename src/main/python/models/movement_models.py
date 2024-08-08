@@ -1310,7 +1310,7 @@ class MovementTreeModel(QStandardItemModel):
 
         return userspecifiedvalues
 
-    def uncheck_paths(self, paths_to_uncheck):
+    def uncheck_paths_from_serialized_tree(self, paths_to_uncheck):
         for path in paths_to_uncheck:
             try:
                 self.serializedmvmttree.checkstates[path] = Qt.Unchecked

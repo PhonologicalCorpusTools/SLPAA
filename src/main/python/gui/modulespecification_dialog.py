@@ -331,6 +331,8 @@ class ModuleSelectorDialog(QDialog):
         if messagestring != "":
             # warn user that there's missing and/or invalid info and don't let them save
             QMessageBox.critical(self, "Warning", messagestring)
+        elif messagestring == "" and modulevalid == False:
+            return savedmodule 
         elif addanother:
             # save info and then refresh screen to start next module
             savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)

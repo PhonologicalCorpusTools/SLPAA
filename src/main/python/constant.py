@@ -2,6 +2,7 @@ import sys
 import os
 from fractions import Fraction
 
+
 from lexicon.location import LocationParameter, Locations
 from lexicon.predefined_handshape import (
     HandshapeBase, HandshapeEmpty,
@@ -347,6 +348,14 @@ ARTICULATOR_ABBREVS = {
 CONTRA = "contra"
 IPSI = "ipsi"
 
+
+treepathdelimiter = ">" # define here or in module_classes?
+DEFAULT_LOC_1H = {"Horizontal axis" + treepathdelimiter + "Ipsi": None, 
+                "Vertical axis" + treepathdelimiter + "Mid": None,
+                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
+DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None, 
+                "Vertical axis" + treepathdelimiter + "Mid": None,
+                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

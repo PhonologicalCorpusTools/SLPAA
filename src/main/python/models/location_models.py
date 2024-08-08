@@ -551,15 +551,20 @@ class LocationTreeModel(QStandardItemModel):
         self._locationtype = LocationType()
         self.checked=[]
 
+        self.defaultneutralselected = False
+        self.defaultneutrallist = None
+
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
             self.locationtype = self.serializedlocntree.locationtype
-            try:
+            if hasattr(serializedlocntree, "multiple_selection_allowed"):
                 self._multiple_selection_allowed = serializedlocntree.multiple_selection_allowed
-            except:
-                # logging.warn("multiple selection attribute not present in serialized location tree")
+            else:
                 self._multiple_selection_allowed = False
-            # 
+            if hasattr(serializedlocntree, "defaultneutralselected"):
+                self.defaultneutralselected = serializedlocntree.defaultneutralselected
+                self.defaultneutrallist = serializedlocntree.defaultneutrallist
+
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
             makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
@@ -606,7 +611,7 @@ class LocationTreeModel(QStandardItemModel):
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
-    def uncheck_paths(self, paths_to_uncheck):
+    def uncheck_paths_from_serialized_tree(self, paths_to_uncheck):
         for path in paths_to_uncheck:
             try:
                 self.serializedlocntree.checkstates[path] = Qt.Unchecked
@@ -616,9 +621,10 @@ class LocationTreeModel(QStandardItemModel):
                 print("Could not uncheck old path.")
     
     '''
-    Removes from paths_to_add once found
+    If this function is being used for backwards compatibility (paths_dict is not None),
+     then remove from paths_to_add once found
     '''
-    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
+    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None, include_details=False):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
@@ -627,14 +633,20 @@ class LocationTreeModel(QStandardItemModel):
 
                     if pathtext in paths_to_add:
                         treechild.setCheckState(Qt.Checked)
-                        oldtext = paths_dict[pathtext]
-                        paths_to_add.remove(pathtext)
-                        if oldtext in self.serializedlocntree.addedinfos:
-                            treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
-                        if oldtext in self.serializedlocntree.detailstables.keys():
-                            treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+                        if pathtext not in self.checked:
+                            self.checked.append(pathtext)
+                        if paths_dict is not None:
+                            paths_to_add.remove(pathtext) 
+                            oldtext = paths_dict[pathtext]
+                            if oldtext in self.serializedlocntree.addedinfos:
+                                treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
+                            if oldtext in self.serializedlocntree.detailstables.keys():
+                                treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+                        elif include_details: 
+                            # expect paths_to_add to be a dict. keys are paths, values are detailstables
+                            treechild.detailstable.updatefromserialtable(paths_to_add[pathtext])
 
-                    self.addcheckedvalues(treechild, paths_to_add, paths_dict)
+                    self.addcheckedvalues(treechild, paths_to_add, paths_dict, include_details)
 
     # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
     def setvaluesfromserializedtree(self, treenode):
@@ -678,7 +690,7 @@ class LocationTreeModel(QStandardItemModel):
                 
         return differences
                 
-
+    
 
 
 
@@ -712,8 +724,7 @@ class LocationTreeModel(QStandardItemModel):
 
     @multiple_selection_allowed.setter
     def multiple_selection_allowed(self, is_allowed):
-        self._multiple_selection_allowed = is_allowed
-    
+        self._multiple_selection_allowed = is_allowed    
     
     def updateCheckState(self, item):
         thestate = item.checkState()
