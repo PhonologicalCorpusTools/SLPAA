@@ -964,15 +964,22 @@ class MainWindow(QMainWindow):
             duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
             duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
 
+            result = None
             if len(duplicatedinfostrings) > 0:
                 duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
                 duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
                 result = duplicateinfodialog.exec_()
-                if result == QDialog.Accepted:
-                    # open SLIs or not, as selected by user
-                    for signtopaste in signstopaste:
-                        serialized = signtopaste.serialize()
-                        signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
+
+            if result == QDialog.Rejected:
+                # user canceled; do not paste signs
+                pass
+            else:
+                # either there were no duplicates, or there were and the user has decided what to do about it
+                for signtopaste in signstopaste:
+                    serialized = signtopaste.serialize()
+                    signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
+                    if result == QDialog.Accepted:
+                        # open SLIs or not, as selected by user
                         glossesduplicated, lemmaduplicated, idglossduplicated = self.corpus.getsigninfoduplicatedincorpus(signtopaste, allof=False)
                         if (
                                 (glossesduplicated and self.edit_SLI["gloss"] == "edit")
@@ -996,9 +1003,11 @@ class MainWindow(QMainWindow):
                             signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
                             self.corpus.add_sign(signtopaste)
                             self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
-
-                # elif result == QDialog.Rejected:
-                    # do not paste signs
+                    else:
+                        # there were no duplicates; just paste everything
+                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                        self.corpus.add_sign(signtopaste)
+                        self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
 
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs)
