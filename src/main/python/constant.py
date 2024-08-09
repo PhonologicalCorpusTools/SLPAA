@@ -1,5 +1,7 @@
+import sys
 import os
 from fractions import Fraction
+
 
 from lexicon.location import LocationParameter, Locations
 from lexicon.predefined_handshape import (
@@ -33,6 +35,10 @@ from lexicon.predefined_handshape import (
     HandshapeX, HandshapeClosedX,
     HandshapeY, HandshapeCombinedYAndMiddle, HandshapeCombinedYAndU
 )
+
+# system info
+FROZEN = hasattr(sys, 'frozen')
+VERSION = (0, 0, 0)  # (major, minor, patch)
 
 # symbols
 X_IN_BOX = '\u2327'
@@ -339,6 +345,17 @@ ARTICULATOR_ABBREVS = {
     LEG: "L"
 }
 
+CONTRA = "contra"
+IPSI = "ipsi"
+
+
+treepathdelimiter = ">" # define here or in module_classes?
+DEFAULT_LOC_1H = {"Horizontal axis" + treepathdelimiter + "Ipsi": None, 
+                "Vertical axis" + treepathdelimiter + "Mid": None,
+                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
+DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None, 
+                "Vertical axis" + treepathdelimiter + "Mid": None,
+                "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

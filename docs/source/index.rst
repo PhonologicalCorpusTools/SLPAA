@@ -23,6 +23,7 @@ Contents:
    setting_preferences.rst
    terminology.rst
    transcription_process.rst
+   sample_corpus.rst
    orientation_module.rst
    movement_module.rst
    location_module.rst

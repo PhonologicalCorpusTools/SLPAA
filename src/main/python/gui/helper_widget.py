@@ -231,6 +231,12 @@ class OptionSwitch(QWidget):
             2: self.right_btn.isChecked()
         }
 
+    def getwhichbuttonselected(self):
+        return 1 if self.left_btn.isChecked() else (2 if self.right_btn.isChecked() else 0)
+
+    def setwhichbuttonselected(self, buttonnum):
+        self.setvalue({k: buttonnum == k for k in [1, 2]})
+
     def setvalue(self, valuesdict):
         self.left_btn.setChecked(valuesdict[1])
         self.right_btn.setChecked(valuesdict[2])

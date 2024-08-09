@@ -24,6 +24,7 @@ from PyQt5.QtCore import (
 )
 
 from gui.modulespecification_dialog import AddedInfoPushButton
+from gui.link_help import show_help
 from lexicon.module_classes import Signtype
 
 
@@ -472,7 +473,6 @@ class SigntypeSelectorDialog(QDialog):
     def __init__(self, signtypetoload, **kwargs):
         super().__init__(**kwargs)
 
-        # TODO KV delete self.app_settings = app_settings
         self.mainwindow = self.parent().mainwindow
         self.settings = self.mainwindow.app_settings
 
@@ -488,7 +488,7 @@ class SigntypeSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Help | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.button_box.button(QDialogButtonBox.RestoreDefaults).setAutoDefault(False)
@@ -521,6 +521,9 @@ class SigntypeSelectorDialog(QDialog):
             #     self.accept()
 
             self.reject()
+
+        elif standard == QDialogButtonBox.Help:
+            show_help('signtype')
 
         #     elif standard == QDialogButtonBox.RestoreDefaults:
         #         self.movement_tab.remove_all_pages()

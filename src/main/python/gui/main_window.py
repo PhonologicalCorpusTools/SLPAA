@@ -50,12 +50,15 @@ from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
+from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
+from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
-from constant import SAMPLE_LOCATIONS, filenamefrompath
+from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from lexicon.module_classes import treepathdelimiter, LocationType
 from lexicon.lexicon_classes import Corpus
 from serialization_classes import renamed_load
 
@@ -167,14 +170,9 @@ class MainWindow(QMainWindow):
         action_define_location.setCheckable(False)
 
         # count x-slots
-        action_count_xslots = QAction("Count x-slots...", parent=self)
+        action_count_xslots = QAction("Count x-slots", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
-
-        # export corpus in human-readable form
-        action_export_corpus = QAction("Export corpus...", parent=self)
-        action_export_corpus.triggered.connect(self.on_action_export_corpus)
-        action_export_corpus.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -189,12 +187,23 @@ class MainWindow(QMainWindow):
         action_load_corpus.triggered.connect(self.on_action_load_corpus)
         action_load_corpus.setCheckable(False)
 
+        # load sample corpus
+        action_load_sample = QAction(QIcon(self.app_ctx.icons['load_blue']), "Load sample", parent=self)
+        action_load_sample.setStatusTip("Load the sample corpus file")
+        action_load_sample.triggered.connect(lambda clicked: self.on_action_load_corpus(clicked, sample=True))
+        action_load_sample.setCheckable(False)
+
         # merge corpora into this one or into a new separate file
         action_merge_corpora = QAction("Merge corpora...", parent=self)
         action_merge_corpora.setStatusTip("Merge two or more corpora")
         action_merge_corpora.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_M))
         action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
         action_merge_corpora.setCheckable(False)
+
+        # export corpus in human-readable form
+        action_export_corpus = QAction("Export corpus (beta)", parent=self)
+        action_export_corpus.triggered.connect(self.on_action_export_corpus)
+        action_export_corpus.setCheckable(False)
 
         # close
         action_close = QAction('Close', parent=self)
@@ -223,7 +232,7 @@ class MainWindow(QMainWindow):
         self.action_delete_sign.setCheckable(False)
 
         # preferences
-        action_edit_preference = QAction('Preferences...', parent=self)
+        action_edit_preference = QAction('Preferences', parent=self)
         action_edit_preference.setStatusTip('Open preference window')
         action_edit_preference.triggered.connect(self.on_action_edit_preference)
         action_edit_preference.setCheckable(False)
@@ -265,6 +274,23 @@ class MainWindow(QMainWindow):
         action_default_view.triggered.connect(self.on_action_default_view)
         action_default_view.setCheckable(False)
 
+        # help > help (open readthedoc's main page)
+        action_help_main = QAction("Help", parent=self)
+        action_help_main.setStatusTip('Open SLPAA documentations')
+        action_help_main.triggered.connect(self.on_action_help_main)
+
+        # help > about
+        # NB: on MacOS the location of this menu is overriden by the OS.
+        # So that "About" will NOT be under 'help' but the leftmost menu.
+        action_help_about = QAction("About", parent=self)
+        action_help_about.setStatusTip('More information about SLPAA')
+        action_help_about.triggered.connect(self.on_action_help_about)
+
+        # help > show version number
+        action_show_version = QAction("Show version number", parent=self)
+        action_show_version.setStatusTip('Show which version of SLPAA I am working with')
+        action_show_version.triggered.connect(self.on_action_show_version)
+
         toolbar.addAction(action_new_sign)
         toolbar.addAction(self.action_delete_sign)
         toolbar.addSeparator()
@@ -290,7 +316,9 @@ class MainWindow(QMainWindow):
         menu_file = main_menu.addMenu('&File')
         menu_file.addAction(action_new_corpus)
         menu_file.addAction(action_load_corpus)
+        menu_file.addAction(action_load_sample)
         menu_file.addAction(action_merge_corpora)
+        menu_file.addAction(action_export_corpus)
         menu_file.addSeparator()
         # TODO this needs an overhaul
         # menu_file.addAction(action_export_handshape_transcription_csv)
@@ -325,7 +353,11 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
-        menu_analysis_beta.addAction(action_export_corpus)
+
+        menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
+        menu_help.addAction(action_help_main)
+        menu_help.addAction(action_help_about)
+        menu_help.addAction(action_show_version)
 
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
@@ -683,6 +715,15 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
+        self.app_settings['location']['default_loctype_1h'] = self.app_qsettings.value('default_loctype_1h', defaultValue="purely spatial", type=str)
+        self.app_settings['location']['default_loctype_2h'] = self.app_qsettings.value('default_loctype_2h', defaultValue='purely spatial', type=str)
+        self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h', 
+                                                                                   DEFAULT_LOC_1H)
+        self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h', 
+                                                                                   DEFAULT_LOC_2H)
+        self.app_settings['location']['autocheck_neutral'] = self.app_qsettings.value('autocheck_neutral', defaultValue=True, type=bool)
+        self.app_settings['location']['autocheck_neutral_on_locn_selected'] = self.app_qsettings.value('autocheck_neutral_on_locn_selected', defaultValue=True, type=bool)
+        self.app_settings['location']['clickorder'] = self.app_qsettings.value('clickorder', defaultValue=1, type=int)
         self.app_qsettings.endGroup()  # location
 
     def check_storage(self):
@@ -746,6 +787,13 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('location')
         self.app_qsettings.setValue('loctype', self.app_settings['location']['loctype'])
+        self.app_qsettings.setValue('clickorder', self.app_settings['location']['clickorder'])
+        self.app_qsettings.setValue('default_loctype_1h', self.app_settings['location']['default_loctype_1h'])
+        self.app_qsettings.setValue('default_loctype_2h', self.app_settings['location']['default_loctype_2h'])
+        self.app_qsettings.setValue('default_loc_1h', self.app_settings['location']['default_loc_1h'])
+        self.app_qsettings.setValue('default_loc_2h', self.app_settings['location']['default_loc_2h'])
+        self.app_qsettings.setValue('autocheck_neutral', self.app_settings['location']['autocheck_neutral'])
+        self.app_qsettings.setValue('autocheck_neutral_on_locn_selected', self.app_settings['location']['autocheck_neutral_on_locn_selected'])
         self.app_qsettings.endGroup()  # location
 
     def on_action_define_location(self):
@@ -858,6 +906,11 @@ class MainWindow(QMainWindow):
 
     @check_unsaved_corpus
     def on_action_save(self, clicked):
+        if self.corpus.path in [self.app_ctx.sample_corpus['path'], os.path.expanduser("~")]:
+            # if the user tries to 'save' the example corpus, do 'save as' instead.
+            self.on_action_saveas(clicked=False)
+            return
+
         if self.corpus.path:
             self.save_corpus_binary()
             self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
@@ -866,6 +919,9 @@ class MainWindow(QMainWindow):
         self.undostack.clear()
 
     def on_action_saveas(self, clicked):
+        if self.corpus.path == self.app_ctx.sample_corpus['path']:
+            self.corpus.path = os.path.expanduser("~")  # if saving the example corpus, hid the real path to the example
+
         file_name, _ = QFileDialog.getSaveFileName(self,
                                                    self.tr('Save Corpus'),
                                                    self.corpus.path or os.path.join(
@@ -924,17 +980,23 @@ class MainWindow(QMainWindow):
         mincounter_dialog.exec_()
 
     @check_unsaved_change
-    def on_action_load_corpus(self, clicked):
-        file_name, file_type = QFileDialog.getOpenFileName(self,
-                                                           self.tr('Open Corpus'),
-                                                           self.app_settings['storage']['recent_folder'],
-                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
-        if not file_name:
-            # the user cancelled out of the dialog
-            return False
-        folder, _ = os.path.split(file_name)
-        if folder:
-            self.app_settings['storage']['recent_folder'] = folder
+    def on_action_load_corpus(self, clicked, sample=False):
+        if not sample:
+            # load a .slpaa file from local storage
+            file_name, file_type = QFileDialog.getOpenFileName(self,
+                                                               self.tr('Open Corpus'),
+                                                               self.app_settings['storage']['recent_folder'],
+                                                               self.tr('SLP-AA Corpus (*.slpaa)'))
+            if not file_name:
+                # the user cancelled out of the dialog
+                return False
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.app_settings['storage']['recent_folder'] = folder
+        else:
+            # load sample corpus
+            file_name = self.app_ctx.sample_corpus['path']
+
 
         self.load_corpus_info(file_name)
 
@@ -987,6 +1049,15 @@ class MainWindow(QMainWindow):
                 self.corpus.remove_sign(self.current_sign)
                 self.unsaved_changes = True
                 self.corpus_display.updated_signs(self.corpus.signs, current_sign=self.current_sign, deleted=True)
+
+    def on_action_help_main(self):
+        show_help('main')
+
+    def on_action_help_about(self):
+        show_help('about')
+
+    def on_action_show_version(self):
+        show_version()
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes

@@ -27,6 +27,7 @@ from PyQt5.QtCore import (
 from lexicon.lexicon_classes import SignLevelInformation
 from lexicon.module_classes import EntryID
 from gui.decorator import check_duplicated_lemma, check_empty_glosslemmaIDgloss, check_duplicated_idgloss
+from gui.link_help import show_help
 
 
 class SignLevelDateDisplay(QLabel):
@@ -227,10 +228,8 @@ class SignLevelInfoPanel(QFrame):
             self.created_display.set_datetime(signlevelinfo.datecreated)
             self.modified_display.set_datetime(signlevelinfo.datelastmodified)
             self.note_edit.setPlainText(signlevelinfo.note if signlevelinfo.note is not None else "")
-            # backward compatibility for attribute added 20230412!
-            self.fingerspelled_cb.setChecked(hasattr(signlevelinfo, '_fingerspelled') and signlevelinfo.fingerspelled)
-            # backward compatibility for attribute added 20230503!
-            self.compoundsign_cb.setChecked(hasattr(signlevelinfo, '_compoundsign') and signlevelinfo.compoundsign)
+            self.fingerspelled_cb.setChecked(signlevelinfo.fingerspelled)
+            self.compoundsign_cb.setChecked(signlevelinfo.compoundsign)
             self.set_handdominance(signlevelinfo.handdominance)
 
     def clear(self):
@@ -324,7 +323,7 @@ class SignlevelinfoSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Help | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
 
@@ -341,6 +340,9 @@ class SignlevelinfoSelectorDialog(QDialog):
 
         if standard == QDialogButtonBox.Cancel:
             self.reject()
+
+        elif standard == QDialogButtonBox.Help:
+            show_help('signlevel')
 
         elif standard == QDialogButtonBox.Save:
             sli = self.signlevelinfo_widget.get_value()

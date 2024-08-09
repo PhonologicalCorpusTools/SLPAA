@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
 )
 
 from lexicon.module_classes import userdefinedroles as udr, treepathdelimiter, AddedInfo
+from constant import CONTRA, IPSI
 
 # for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"
@@ -173,8 +174,8 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                     MvmtOptionsNode("Absolute", fx, rb, children=[
                         MvmtOptionsNode("Horizontal", fx, cb, "Hor", children=[
                             MvmtOptionsNode(subgroup, button_type=0, children=[
-                                MvmtOptionsNode("Ipsilateral", fx, rb, "ipsi"),  # TODO KV or toward H1
-                                MvmtOptionsNode("Contralateral", fx, rb, "contra"),  # TODO KV or toward H2
+                                MvmtOptionsNode("Ipsilateral", fx, rb, IPSI),  # TODO KV or toward H1
+                                MvmtOptionsNode("Contralateral", fx, rb, CONTRA),  # TODO KV or toward H2
                             ]),
                         ]),
                         MvmtOptionsNode("Vertical", fx, cb, "Ver", children=[
@@ -765,8 +766,8 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                     MvmtOptionsNode("Different location", fx, rb, "diff. loc", children=[  # Choose up to one from each column as needed
                         MvmtOptionsNode("Horizontal", fx, cb, "Hor", children=[
                             # MvmtOptionsNode(subgroup, button_type=2, children=[
-                            MvmtOptionsNode("Ipsilateral", fx, rb, "ipsi"),  # TODO KV default ipsi/contra; can choose right/left in settings
-                            MvmtOptionsNode("Contralateral", fx, rb, "contra")
+                            MvmtOptionsNode("Ipsilateral", fx, rb, IPSI),  # TODO KV default ipsi/contra; can choose right/left in settings
+                            MvmtOptionsNode("Contralateral", fx, rb, CONTRA)
                             # ]
                         ]),
                         MvmtOptionsNode("Vertical", fx, cb, "Ver", children=[
@@ -1309,7 +1310,7 @@ class MovementTreeModel(QStandardItemModel):
 
         return userspecifiedvalues
 
-    def uncheck_paths(self, paths_to_uncheck):
+    def uncheck_paths_from_serialized_tree(self, paths_to_uncheck):
         for path in paths_to_uncheck:
             try:
                 self.serializedmvmttree.checkstates[path] = Qt.Unchecked

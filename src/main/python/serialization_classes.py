@@ -7,7 +7,7 @@ from PyQt5.QtCore import (
     Qt
 )
 
-from lexicon.module_classes import userdefinedroles as udr
+from lexicon.module_classes import PhonLocations, userdefinedroles as udr, AddedInfo
 from models.movement_models import fx
 from constant import HAND
 import logging
@@ -17,7 +17,30 @@ class ParameterModuleSerializable:
     def __init__(self, parammod):
         self._articulators = parammod.articulators
         self.timingintervals = parammod.timingintervals
-        self.addedinfo = parammod.addedinfo
+        self._addedinfo = parammod.addedinfo
+        self._phonlocs = parammod.phonlocs
+
+    @property
+    def phonlocs(self):
+        if not hasattr(self, '_phonlocs'):
+            # for backward compatibility with pre-20240723 parameter modules
+            self._phonlocs = PhonLocations()
+        return self._phonlocs
+
+    @phonlocs.setter
+    def phonlocs(self, phonlocs):
+        self._phonlocs = phonlocs
+
+    @property
+    def addedinfo(self):
+        if not hasattr(self, '_addedinfo'):
+            # for backward compatibility with pre-20230208 parameter modules
+            self._addedinfo = AddedInfo()
+        return self._addedinfo
+
+    @addedinfo.setter
+    def addedinfo(self, addedinfo):
+        self._addedinfo = addedinfo
 
     @property
     def articulators(self):
@@ -44,9 +67,20 @@ class LocationModuleSerializable(ParameterModuleSerializable):
         super().__init__(locnmodule)
 
         # creates a full serializable copy of the location module, eg for saving to disk
-        self.inphase = locnmodule.inphase
+        self._inphase = locnmodule.inphase
         self.phonlocs = locnmodule.phonlocs
         self.locationtree = LocationTreeSerializable(locnmodule.locationtreemodel)
+
+    @property
+    def inphase(self):
+        if not hasattr(self, '_inphase'):
+            # for backward compatibility with pre-20230410 location modules
+            self._inphase = 0
+        return self._inphase
+
+    @inphase.setter
+    def inphase(self, inphase):
+        self._inphase = inphase
 
 
 # This class is a serializable form of the class RelationModule, which is itself not pickleable.
@@ -80,8 +114,19 @@ class MovementModuleSerializable(ParameterModuleSerializable):
         super().__init__(mvmtmodule)
 
         # creates a full serializable copy of the movement module, eg for saving to disk
-        self.inphase = mvmtmodule.inphase
+        self._inphase = mvmtmodule.inphase
         self.movementtree = MovementTreeSerializable(mvmtmodule.movementtreemodel)
+
+    @property
+    def inphase(self):
+        if (not hasattr(self, '_inphase')) or (self._inphase is None):
+            # for backward compatibility with pre-20230410 movement modules
+            self._inphase = 0
+        return self._inphase
+
+    @inphase.setter
+    def inphase(self, inphase):
+        self._inphase = inphase
 
 
 # This class is a serializable form of the class MovementTreeModel, which is itself not pickleable.
@@ -135,6 +180,8 @@ class LocationTreeSerializable:
         self.detailstables = {}
         self.addedinfos = {}
         self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
+        self.defaultneutralselected = locntreemodel.defaultneutralselected
+        self.defaultneutrallist = locntreemodel.defaultneutrallist
 
         self.collectdatafromLocationTreeModel(treenode)
         
