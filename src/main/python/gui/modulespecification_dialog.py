@@ -55,6 +55,7 @@ class ModuleSelectorDialog(QDialog):
         self.linkedfrommoduleid = linkedfrommoduleid
         self.linkedfrommoduletype = linkedfrommoduletype
         self.existingkey = None
+        self.defaultHandArticulator = None
 
         timingintervals = []
         addedinfo = AddedInfo()
@@ -65,6 +66,15 @@ class ModuleSelectorDialog(QDialog):
         if isinstance(incl_articulators, str):
             incl_articulators = [incl_articulators]
 
+        if HAND in incl_articulators and self.parent().sign.signtype:
+            # set default articulators
+            handSelection = self.parent().sign.signtype.specslist[0][0]
+            if "1h" in handSelection:
+                articulators = (HAND, {1: True, 2: False})
+                self.defaultHandArticulator = "1h"
+            elif "2h" in handSelection:
+                articulators = (HAND, {1: True, 2: True})
+                self.defaultHandArticulator = "2h"
         if moduletoload is not None:
             self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
@@ -72,13 +82,6 @@ class ModuleSelectorDialog(QDialog):
             phonlocstoload = moduletoload.phonlocs
             if moduletoload.articulators is not None:
                 articulators = moduletoload.articulators
-        elif HAND in incl_articulators:
-            # set default articulators
-            handSelection = self.parent().sign.signtype.specslist[0][0]
-            if "1h" in handSelection:
-                articulators = (HAND, {1: True, 2: False})
-            elif "2h" in handSelection:
-                articulators = (HAND, {1: True, 2: True})
             
             new_instance = False
             if isinstance(moduletoload, LocationModule) or isinstance(moduletoload, MovementModule):
@@ -313,9 +316,21 @@ class ModuleSelectorDialog(QDialog):
         inphase = self.articulators_widget.getphase() if self.usearticulators else 0
         addedinfo = self.addedinfobutton.addedinfo
         phonlocs = self.phonloc_selection.getcurrentphonlocs()
+        savedmodule = None
 
         # validate hand selection
         articulatorsvalid, articulators = self.validate_articulators()
+        # if the default is "1h" and we have both hands selected...
+        if articulators[0] == HAND and self.defaultHandArticulator == "1h" and articulators[1][1] and articulators[1][2]:
+            msgBox = QMessageBox()
+            msgBox.setWindowTitle("Articulator Setting Conflict")
+            msgBox.setText("The sign type for this sign is 1-handed. Are you sure this module should apply to both hands?")
+            no_btn = msgBox.addButton("Return to editing", QMessageBox.ButtonRole.NoRole)
+            msgBox.addButton("Continue", QMessageBox.ButtonRole.YesRole)
+            msgBox.setIcon(QMessageBox.Icon.Warning)
+            msgBox.exec_()
+            if msgBox.clickedButton() == no_btn:
+                return savedmodule
 
         # validate timing interval(s) selection
         timingvalid, timingintervals = self.validate_timingintervals()
@@ -324,18 +339,18 @@ class ModuleSelectorDialog(QDialog):
         modulevalid, modulemessage = self.module_widget.validity_check()
 
         messagestring = ""
-        if not (articulatorsvalid and timingvalid):
+        if not articulatorsvalid:
             # refuse to save without articulator & timing info
-            messagestring += "Missing"
-            messagestring += " articulator selection" if not articulatorsvalid else ""
-            messagestring += " and" if not (articulatorsvalid or timingvalid) else ""
-            messagestring += " timing selection" if not timingvalid else ""
+            messagestring += "Missing articulator selection"
+        if not timingvalid:
+            messagestring+= "Missing timing selection" if articulatorsvalid else " and timing selection"
+        if len(messagestring) > 0 :
             messagestring += ". "
+
         if not modulevalid:
             # refuse to save without valid module selections
             messagestring += modulemessage
 
-        savedmodule = None
         if messagestring != "":
             # warn user that there's missing and/or invalid info and don't let them save
             QMessageBox.critical(self, "Warning", messagestring)
@@ -704,9 +719,18 @@ class ArticulatorSelectionPanel(QFrame):
         self.articulator1_radio.setText(articulator + " 1")
         self.articulator2_radio.setText(articulator + " 2")
         self.botharts_radio.setText("Both " + articulator.lower() + "s")
+        checkedButton = self.articulator_group.checkedButton()
+        if checkedButton:
+            self.articulator_group.setExclusive(False) # this is needed to uncheck all radio buttons
+            checkedButton.setChecked(False)
+            self.articulator_group.setExclusive(True)
+            if checkedButton == self.botharts_radio:
+                for btn in self.botharts_group.buttons():
+                    btn.setChecked(False)
+                    btn.setEnabled(False)
 
-    def handle_articulatorgroup_toggled(self, btn, ischecked):
-        selectedbutton = self.articulator_group.checkedButton()
+
+    def handle_articulatorgroup_toggled(self, selectedbutton, ischecked):
         if selectedbutton == self.botharts_radio:
             # enable sub options
             for btn in self.botharts_group.buttons():
