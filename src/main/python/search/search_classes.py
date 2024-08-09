@@ -303,7 +303,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         elif moduletype == ModuleTypes.HANDCONFIG:
             QMessageBox.critical(self, "Warning", "hand config not impl")
         elif self.moduletype == ModuleTypes.RELATION:
-            QMessageBox.critical(self, "Warning", "rel not impl")
+            self.module_widget = Search_RelationSpecPanel(moduletoload=moduletoload, parent=self)
     
     def handle_xslot_widget(self, xslotstructure, timingintervals):
         self.xslot_widget = None
@@ -343,7 +343,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             self.module_widget.clear()
 
     def validate_and_save(self, addanother=False, closedialog=False):
-        inphase = self.articulators_widget.getphase()
+        inphase = self.articulators_widget.getphase() if self.usearticulators else 0
         addedinfo = self.addedinfobutton.addedinfo
         # validate hand selection
         articulatorsvalid, articulators = self.validate_articulators()
@@ -402,6 +402,12 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
 class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
+        self.y_existingmod_radio.clicked.connect(self.on_module_link)
+    
+    def on_module_link(self):
+        QMessageBox.critical(self, "Not implemented", "searching for connected modules not yet implemented")
+
+
     
 
 class XslotTypeItem:

@@ -106,7 +106,8 @@ class ResultsView(QWidget):
         for s in self.corpus.signs:
             if s.signlevel_information.entryid == entryid:
                 thissign = s
-                thisgloss = s.signlevel_information.idgloss
+                idgloss = s.signlevel_information.idgloss
+                entryid = s.signlevel_information.entryid
                 break
 
         self.mainwindow.current_sign = None
@@ -119,7 +120,7 @@ class ResultsView(QWidget):
         resultpopup = QWidget(parent=self)
         resultpopup.setLayout(layout)
         resultpopup.setWindowFlags(Qt.Window)
-        resultpopup.setWindowTitle(f"Search Result: {thisgloss}")
+        resultpopup.setWindowTitle("Search Result: " + str(entryid) +"idgloss")
         resultpopup.setAttribute(Qt.WA_DeleteOnClose) 
         resultpopup.show()
         

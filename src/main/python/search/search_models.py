@@ -15,14 +15,14 @@ from PyQt5.QtWidgets import QStyledItemDelegate, QMessageBox
 
 from PyQt5.QtCore import QModelIndex, Qt
 from gui.panel import SignLevelMenuPanel
-from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, MovementModule, LocationModule
-from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET
+from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
+from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, HAND, ARM, LEG
 import logging
 
 from models.movement_models import MovementTreeModel
-from models.location_models import LocationTreeModel
+from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from search.helper_functions import articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
+from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 
 
 
@@ -184,9 +184,6 @@ class SearchModel(QStandardItemModel):
                 return False
 
         return True
-
-    def sign_matches_reln(self, rows, sign, xslots):
-        return False
     
     def sign_matches_xslot(self, rows, sign):
         # this is a minimal match
@@ -218,10 +215,7 @@ class SearchModel(QStandardItemModel):
                 else:
                     if int(min) > numxslots or numxslots > int(max):
                         return False
-            return True
-
-
-            
+            return True     
     
     def sign_matches_SLI(self, sli_rows, sign):
         '''Returns True if the sign matches all specified rows (corresponding to SLI targets)'''
@@ -289,6 +283,23 @@ class SearchModel(QStandardItemModel):
             return False
         return True
 
+    def sign_matches_reln(self, rows, sign):
+        modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
+        for row in rows:
+            svi = self.target_values(row)
+            xslottype = self.target_xslottype(row)
+            target_module = self.target_module(row)
+            sign_vals = set()
+            for module in modules:
+                sign_vals.add(relationdisplaytext(module))
+            for _ in row:
+                vals = relationdisplaytext(svi)
+                if vals not in sign_vals:
+                    return False
+
+
+        return False
+    
     def sign_matches_mvmt(self, mvmt_rows, sign):
         modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
         for row in mvmt_rows:
@@ -299,7 +310,7 @@ class SearchModel(QStandardItemModel):
                 sign_arts = set()
                 for module in modules:
                     sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
-                for row in mvmt_rows:
+                for _ in mvmt_rows:
                     arts = articulatordisplaytext(svi.articulators, svi.inphase)
                     if arts not in sign_arts:
                         return False
@@ -324,7 +335,7 @@ class SearchModel(QStandardItemModel):
                 sign_arts = set("")
                 for module in modules:
                     sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
-                for row in locn_rows:
+                for _ in locn_rows:
                     arts = articulatordisplaytext(svi.articulators, svi.inphase)
                     if arts not in sign_arts:
                         return False
@@ -372,6 +383,55 @@ class SearchModel(QStandardItemModel):
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # 
                 phonlocs = serialmodule.phonlocs
                 unserialized = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs, inphase)
+                return unserialized
+            elif type == ModuleTypes.RELATION:
+
+                articulators = serialmodule.articulators
+                timingintervals = serialmodule.timingintervals
+                addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()
+                relationx = serialmodule.relationx
+                relationy = serialmodule.relationy
+                bodyparts_dict = {
+                    HAND: {
+                        1: BodypartInfo(
+                            bodyparttype=HAND,
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][1].bodyparttree),
+                            addedinfo=serialmodule.bodyparts_dict[HAND][1].addedinfo),
+                        2: BodypartInfo(
+                            bodyparttype=HAND,
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][2].bodyparttree),
+                            addedinfo=serialmodule.bodyparts_dict[HAND][2].addedinfo),
+                    },
+                    ARM: {
+                        1: BodypartInfo(
+                            bodyparttype=ARM,
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][1].bodyparttree),
+                            addedinfo=serialmodule.bodyparts_dict[ARM][1].addedinfo),
+                        2: BodypartInfo(
+                            bodyparttype=ARM,
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][2].bodyparttree),
+                            addedinfo=serialmodule.bodyparts_dict[ARM][2].addedinfo),
+                    },
+                    LEG: {
+                        1: BodypartInfo(
+                            bodyparttype=LEG,
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][1].bodyparttree),
+                            addedinfo=serialmodule.bodyparts_dict[LEG][1].addedinfo),
+                        2: BodypartInfo(
+                            bodyparttype=LEG,
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][2].bodyparttree),
+                            addedinfo=serialmodule.bodyparts_dict[LEG][2].addedinfo),
+                    },
+                }
+                contactrel = serialmodule.contactrel
+                xy_crossed = serialmodule.xy_crossed
+                xy_linked = serialmodule.xy_linked
+                directions = serialmodule.directions
+
+                unserialized = RelationModule(relationx, relationy, bodyparts_dict, contactrel,
+                                             xy_crossed, xy_linked, directionslist=directions,
+                                             articulators=articulators, timingintervals=timingintervals,
+                                             addedinfo=addedinfo)
                 return unserialized
             elif type == SIGNTYPEINFO_TARGET:
                 return serialmodule
@@ -549,7 +609,7 @@ class SearchValuesItem:
         '''Saves module attributes: e.g. parameter modules have articulators, inphase, paths attributes; 
         location module specifically has phonlocs and loctype attributes, etc. Also assigns the list to be displayed in the "values" column of the searchmodel.'''
         todisplay = []
-        if self.type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]: 
+        if self.type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]: 
             if module.articulators[1][1] or module.articulators[1][2]: # between articulator 1 and articulator 2, at least one is True
                 self.articulators = module.articulators
                 self.inphase = module.inphase
@@ -568,9 +628,21 @@ class SearchValuesItem:
                 if not module.locationtreemodel.locationtype.allfalse():
                     self.loctype = module.locationtreemodel.locationtype
                     todisplay.extend(loctypedisplaytext(self.loctype))
+            else: # relation
+                todisplay.extend(relationdisplaytext(module))
+
+                arts, nums = module.get_articulators_in_use()
+                for i in range(len(arts)):
+                    bodypartinfo = module.bodyparts_dict[arts[i]][nums[i]]
+                    treemodel = bodypartinfo.bodyparttreemodel
+                    paths = treemodel.get_checked_items()
+                    logging.warning(paths)
+
             if len(paths) > 0:
                 self.paths = paths
                 todisplay.extend(self.paths)
+
+        
         elif self.type == SIGNTYPEINFO_TARGET:
             todisplay.extend(signtypedisplaytext(module.specslist))
         else:

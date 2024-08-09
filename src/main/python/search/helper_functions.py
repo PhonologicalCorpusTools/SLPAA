@@ -21,6 +21,49 @@ def articulatordisplaytext(arts, phase):
             todisplay += " connected, in phase"
     return todisplay
 
+def relationdisplaytext(relmod):
+    todisplay = []
+    relX_str = ""
+    relY_str = ""
+    bodyparts1 = []
+    bodyparts2 = []
+    contact = ""
+    direction = ""
+    distance = ""
+
+    if relmod.relationx.connected:
+        relX_str = "relX: both connected"
+    elif relmod.relationx.other:
+        relX_str = "relX: other"
+        if len(relmod.relationx.othertext) > 0:
+            relX_str += " (" + relmod.relationx.othertext + ")"
+    else:
+        rel_dict = relmod.relationx.__dict__
+        for attr in rel_dict:
+            if rel_dict[attr]:
+                relX_str = "relX: " + attr[1:] # attributes are prepended with _
+                break
+
+    if relmod.relationy.existingmodule:
+        # TODO
+        relY_str = "relY: existing module"
+    elif relmod.relationy.other: 
+        relY_str = "relY: other"
+        if len(relmod.relationy.othertext) > 0:
+            relY_str += " (" + relmod.relationx.othertext + ")"
+    else:
+        rel_dict = relmod.relationy.__dict__
+        for attr in "_h2", "_arm2", "_leg1", "_leg2":
+            if rel_dict[attr]:
+                relY_str = "relY: " + attr[1:] # attributes are prepended with _
+                break    
+
+    for s in relX_str, relY_str, contact, direction, distance:
+        if len(s) > 0:
+            todisplay.append(s)
+    return todisplay
+
+# TODO update 
 def phonlocsdisplaytext(phonlocs):
     todisplay = []
     if phonlocs.phonologicalloc:
