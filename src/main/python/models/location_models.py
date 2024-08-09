@@ -16,7 +16,7 @@ import logging
 
 from lexicon.module_classes import LocationType, userdefinedroles as udr, treepathdelimiter, AddedInfo
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, CONTRA, IPSI
 
 
 # radio button vs checkbox
@@ -34,9 +34,7 @@ subgroup = "subgroup"
 c = True  # checked
 u = False  # unchecked
 
-# TODO KV figure out a better way to assign what goes in the
-#  title and content of each column in the details table
-# location type (and types of surfaces, subareas, bones/joints, etc) is either nonhand or hand
+# location types (and related types of surfaces, subareas, bones/joints, etc)
 hb = "hand - bone/joint type"  # "hand"
 hs = "hand - subarea type"
 nh = "nonhand"
@@ -130,6 +128,23 @@ class LocnOptionsNode:
             for child in children:
                 self.insert_child(child)
         self.id = id
+
+    # Returns a list of the nodes traversed in the order specified.
+    # Each item in the returned list is a tuple of (node, depthintree), with root depth = 0.
+    # Traversal orders available are "preorder" and "postorder" (both depth-first).
+    # Used for sorting purposes (eg, arranging location options in right-click list when interacting with image).
+    def flatten(root, order="preorder", depth=0):
+        flattened_children = []
+        if root.children:
+            for child in root.children:
+                flattened_children.extend(child.flatten(order, depth+1))
+
+        if order == "preorder":
+            return [(root, depth)] + flattened_children
+        elif order == "postorder":
+            return flattened_children + [(root, depth)]
+        else:
+            return []
 
     @property
     def surfaces(self):
@@ -226,23 +241,65 @@ class LocnOptionsNode:
     def insert_child(self, node):
         self.children.append(node)
 
-# TODO KV these should go into constant.py... or something similar
+
+# should these go into constant.py... or somewhere similar?
 locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
-    LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas),
-    LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+    LocnOptionsNode("Whole hand - contra", fx, rb, hs, hand_surfaces, hand_subareas),
+    LocnOptionsNode("Whole hand - ipsi", fx, rb, hs, hand_surfaces, hand_subareas),
+    LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas, children=[
+        LocnOptionsNode("Hand minus fingers - contra", fx, rb, hs, hand_surfaces, hand_subareas),
+        LocnOptionsNode("Hand minus fingers - ipsi", fx, rb, hs, hand_surfaces, hand_subareas),
+    ]),
+    LocnOptionsNode("Heel of hand", fx, rb, hs, heelofhand_surfaces, hand_subareas, children=[
+        LocnOptionsNode("Heel of hand - contra", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+        LocnOptionsNode("Heel of hand - ipsi", fx, rb, hs, heelofhand_surfaces, hand_subareas),
+    ]),
     LocnOptionsNode("Fingers and thumb", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
-        LocnOptionsNode("Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+        LocnOptionsNode("Fingers and thumb - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+        LocnOptionsNode("Fingers and thumb - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints),
+        LocnOptionsNode("Thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
+            LocnOptionsNode("Thumb - contra", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+            LocnOptionsNode("Thumb - ipsi", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip]),
+        ]),
         LocnOptionsNode("Fingers", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
-            LocnOptionsNode("Finger 1", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            LocnOptionsNode("Finger 2", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints),
-            LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Fingers - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Fingers - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints),
+            LocnOptionsNode("Finger 1", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 1 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 1 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
+            LocnOptionsNode("Finger 2", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 2 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 2 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
+            LocnOptionsNode("Finger 3", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 3 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 3 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
+            LocnOptionsNode("Finger 4", fx, rb, hb, hand_surfaces, hand_bonejoints, children=[
+                LocnOptionsNode("Finger 4 - contra", fx, rb, hb, hand_surfaces, hand_bonejoints),
+                LocnOptionsNode("Finger 4 - ipsi", fx, rb, hb, hand_surfaces, hand_bonejoints)
+            ]),
         ]),
         LocnOptionsNode("Between fingers", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], children=[
-            LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
-            LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None),
+            LocnOptionsNode("Between fingers - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            LocnOptionsNode("Between fingers - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            LocnOptionsNode("Between Thumb and Finger 1", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Thumb and Finger 1 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Thumb and Finger 1 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
+            LocnOptionsNode("Between Fingers 1 and 2", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Fingers 1 and 2 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Fingers 1 and 2 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
+            LocnOptionsNode("Between Fingers 2 and 3", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Fingers 2 and 3 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Fingers 2 and 3 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
+            LocnOptionsNode("Between Fingers 3 and 4", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone], None, children=[
+                LocnOptionsNode("Between Fingers 3 and 4 - contra", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+                LocnOptionsNode("Between Fingers 3 and 4 - ipsi", fx, rb, hb, hand_surfaces, [proximal_bone, proximal_interphalangeal_joint, medial_bone, distal_interphalangeal_joint, distal_bone]),
+            ]),
         ]),
         LocnOptionsNode("Selected fingers and thumb", fx, rb, hb, hand_surfaces, [metacarpophalangeal_joint, proximal_bone, distal_interphalangeal_joint, distal_bone, tip], children=[
             LocnOptionsNode("Selected fingers", fx, rb, hb, hand_surfaces, hand_bonejoints),
@@ -338,6 +395,8 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
                         LocnOptionsNode("Outer corner of eye - ipsi", fx, rb, nh, None, None)
                     ]),
                     LocnOptionsNode("Eyelid", fx, rb, nh, None, nonhand_subareas, children=[
+                        LocnOptionsNode("Eyelid - contra", fx, rb, nh, None, nonhand_subareas),
+                        LocnOptionsNode("Eyelid - ipsi", fx, rb, nh, None, nonhand_subareas),
                         LocnOptionsNode("Upper eyelid", fx, rb, nh, None, nonhand_subareas, children=[
                             LocnOptionsNode("Upper eyelid - contra", fx, rb, nh, None, nonhand_subareas),
                             LocnOptionsNode("Upper eyelid - ipsi", fx, rb, nh, None, nonhand_subareas)
@@ -381,8 +440,10 @@ locn_options_body = LocnOptionsNode("body_options_root", children=[
                     LocnOptionsNode("Upper lip", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Lower lip", fx, rb, nh, None, nonhand_subareas)
                 ]),
-                LocnOptionsNode("Corner of mouth - contra", fx, rb, nh, None, None),
-                LocnOptionsNode("Corner of mouth - ipsi", fx, rb, nh, None, None),
+                LocnOptionsNode("Corner of mouth", fx, rb, nh, None, None, children=[
+                    LocnOptionsNode("Corner of mouth - contra", fx, rb, nh, None, None),
+                    LocnOptionsNode("Corner of mouth - ipsi", fx, rb, nh, None, None),
+                ]),
                 LocnOptionsNode("Teeth", fx, rb, nh, None, nonhand_subareas, children=[
                     LocnOptionsNode("Upper teeth", fx, rb, nh, None, nonhand_subareas),
                     LocnOptionsNode("Lower teeth", fx, rb, nh, None, nonhand_subareas)
@@ -446,12 +507,6 @@ locn_options_body.insert_child(locn_options_hand)
 locn_options_body.assign_ids(-1)
 
 
-
-# TODO KV: should be able to get rid of "fx" and "subgroup" (and maybe other?) options here...
-# unless we're going to reference the same code (as for movement) for building the tree & list models
-# attributes are:
-#   name, editability, mutual exclusivity, hand/nonhand location,
-#   surfaces, subareas/bone-joints, tooltip, children
 locn_options_purelyspatial = LocnOptionsNode("purelyspatial_options_root", children=[
     LocnOptionsNode("Default neutral space", fx, cb, tooltip="neutral"),
     LocnOptionsNode("Horizontal axis", fx, cb, tooltip="hor", children=[
@@ -493,19 +548,24 @@ class LocationTreeModel(QStandardItemModel):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
         self._multiple_selection_allowed = False
-        self.itemChanged.connect(lambda item: self.updateCheckState(item))
+        self.itemChanged.connect(self.updateCheckState)
         self._locationtype = LocationType()
         self.checked=[]
+
+        self.defaultneutralselected = False
+        self.defaultneutrallist = None
 
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
             self.locationtype = self.serializedlocntree.locationtype
-            try:
+            if hasattr(serializedlocntree, "multiple_selection_allowed"):
                 self._multiple_selection_allowed = serializedlocntree.multiple_selection_allowed
-            except:
-                # logging.warn("multiple selection attribute not present in serialized location tree")
+            else:
                 self._multiple_selection_allowed = False
-            # 
+            if hasattr(serializedlocntree, "defaultneutralselected"):
+                self.defaultneutralselected = serializedlocntree.defaultneutralselected
+                self.defaultneutrallist = serializedlocntree.defaultneutrallist
+
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
             makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
@@ -542,6 +602,9 @@ class LocationTreeModel(QStandardItemModel):
                 if "H1 is behind H2" in k:
                     pairstoadd[k.replace("H1 is behind H2", "H1 is more proximal than H2")] = stored_dict[k]
                     keystoremove.append(k)
+                if "Nostrils" in k:  # all other body locations are named with the singular
+                    pairstoadd[k.replace("Nostrils", "Nostril")] = stored_dict[k]
+                    keystoremove.append(k)
 
             for oldkey in keystoremove:
                 stored_dict.pop(oldkey)
@@ -549,7 +612,7 @@ class LocationTreeModel(QStandardItemModel):
             for newkey in pairstoadd.keys():
                 stored_dict[newkey] = pairstoadd[newkey]
 
-    def uncheck_paths(self, paths_to_uncheck):
+    def uncheck_paths_from_serialized_tree(self, paths_to_uncheck):
         for path in paths_to_uncheck:
             try:
                 self.serializedlocntree.checkstates[path] = Qt.Unchecked
@@ -559,9 +622,10 @@ class LocationTreeModel(QStandardItemModel):
                 print("Could not uncheck old path.")
     
     '''
-    Removes from paths_to_add once found
+    If this function is being used for backwards compatibility (paths_dict is not None),
+     then remove from paths_to_add once found
     '''
-    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None):
+    def addcheckedvalues(self, treenode, paths_to_add, paths_dict=None, include_details=False):
         if treenode is not None:
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
@@ -570,14 +634,20 @@ class LocationTreeModel(QStandardItemModel):
 
                     if pathtext in paths_to_add:
                         treechild.setCheckState(Qt.Checked)
-                        oldtext = paths_dict[pathtext]
-                        paths_to_add.remove(pathtext)
-                        if oldtext in self.serializedlocntree.addedinfos:
-                            treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
-                        if oldtext in self.serializedlocntree.detailstables.keys():
-                            treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+                        if pathtext not in self.checked:
+                            self.checked.append(pathtext)
+                        if paths_dict is not None:
+                            paths_to_add.remove(pathtext) 
+                            oldtext = paths_dict[pathtext]
+                            if oldtext in self.serializedlocntree.addedinfos:
+                                treechild.addedinfo = copy(self.serializedlocntree.addedinfos[oldtext])
+                            if oldtext in self.serializedlocntree.detailstables.keys():
+                                treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[oldtext])
+                        elif include_details: 
+                            # expect paths_to_add to be a dict. keys are paths, values are detailstables
+                            treechild.detailstable.updatefromserialtable(paths_to_add[pathtext])
 
-                    self.addcheckedvalues(treechild, paths_to_add, paths_dict)
+                    self.addcheckedvalues(treechild, paths_to_add, paths_dict, include_details)
 
     # take info stored in this LocationTreeSerializable and ensure it's reflected in the associated LocationTreeModel
     def setvaluesfromserializedtree(self, treenode):
@@ -621,7 +691,7 @@ class LocationTreeModel(QStandardItemModel):
                 
         return differences
                 
-
+    
 
 
 
@@ -655,7 +725,7 @@ class LocationTreeModel(QStandardItemModel):
 
     @multiple_selection_allowed.setter
     def multiple_selection_allowed(self, is_allowed):
-        self._multiple_selection_allowed = is_allowed
+        self._multiple_selection_allowed = is_allowed    
     
     def get_checked_items(self, parent_index=QModelIndex()):
         checked_values = []
@@ -792,15 +862,15 @@ class BodypartTreeModel(LocationTreeModel):
 
             if self.forrelationmodule:
                 structure.children = [child for child in structure.children 
-                                      if "ipsi" not in child.display_name and "contra" not in child.display_name]
+                                      if IPSI not in child.display_name and CONTRA not in child.display_name]
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
     def backwardcompatibility(self):
         dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
 
         hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
-                         "Finger 1", "Finger 2","Finger 3","Finger 4", 
-                         "Between Thumb and Finger 1","Between Fingers 1 and 2", "Between Fingers 2 and 3","Between Fingers 3 and 4"]
+                         "Finger 1", "Finger 2", "Finger 3", "Finger 4",
+                         "Between Thumb and Finger 1", "Between Fingers 1 and 2", "Between Fingers 2 and 3", "Between Fingers 3 and 4"]
         if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
             for val in hand_children:
                 for stored_dict in dicts:

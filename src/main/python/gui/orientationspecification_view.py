@@ -44,12 +44,13 @@ class OrientationSpecificationPanel(ModuleSpecificationPanel):
         # But no for this module, allow any number of empty selections
         return True, ""
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
 
         orimod = OrientationModule(palmdirs_list=self.getcurrentpalmdirections(),
                                    rootdirs_list=self.getcurrentrootdirections(),
                                    articulators=articulators,
                                    timingintervals=timingintervals,
+                                   phonlocs=phonlocs,
                                    addedinfo=addedinfo
                                    )
         

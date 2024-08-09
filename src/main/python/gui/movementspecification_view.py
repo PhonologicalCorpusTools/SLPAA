@@ -19,85 +19,14 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import (
     Qt,
     QEvent,
+    QItemSelectionModel
 )
 
-from lexicon.module_classes import treepathdelimiter, userdefinedroles as udr, MovementModule
-from models.movement_models import MovementTreeModel, MovementPathsProxyModel
+from lexicon.module_classes import userdefinedroles as udr, MovementModule
+from models.movement_models import MovementTreeModel, MovementPathsProxyModel, MovementTreeItem
 from serialization_classes import MovementTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
 from constant import HAND
-
-
-class MvmtTreeSearchComboBox(QComboBox):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.refreshed = True
-        self.lasttextentry = ""
-        self.lastcompletedentry = ""
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        modifiers = event.modifiers()
-
-        if key == Qt.Key_Right:  # TODO KV and modifiers == Qt.NoModifier:
-
-            if self.currentText():
-                self.parent().treedisplay.collapseAll()
-                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
-                                                   self.currentText(),
-                                                   delim=treepathdelimiter)
-                for item in itemstoselect:
-                    if item.checkState() == Qt.Unchecked:
-                        item.setCheckState(Qt.PartiallyChecked)
-                    self.parent().treedisplay.setExpanded(item.index(), True)
-                itemstoselect[-1].setCheckState(Qt.Checked)
-                self.setCurrentIndex(-1)
-
-        if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
-            if self.refreshed:
-                self.lasttextentry = self.currentText()
-                self.refreshed = False
-
-            if self.lastcompletedentry:
-                # cycle to first line of next entry that starts with the last-entered text
-                foundcurrententry = False
-                foundnextentry = False
-                i = 0
-                while self.completer().setCurrentRow(i) and not foundnextentry:
-                    completionoption = self.completer().currentCompletion()
-                    if completionoption.lower().startswith(self.lastcompletedentry.lower()):
-                        foundcurrententry = True
-                    elif foundcurrententry and self.lasttextentry.lower() in completionoption.lower() and not completionoption.lower().startswith(self.lastcompletedentry.lower()):
-                        foundnextentry = True
-                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
-                            self.setEditText(
-                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
-                        else:
-                            self.setEditText(completionoption)
-                        self.lastcompletedentry = self.currentText()
-                    i += 1
-            else:  # ie, not self.lastcompletedentry
-                # cycle to first line of first entry that starts with the last-entered text
-                foundnextentry = False
-                i = 0
-                while self.completer().setCurrentRow(i) and not foundnextentry:
-                    completionoption = self.completer().currentCompletion()
-                    if completionoption.lower().startswith(self.lasttextentry.lower()):
-                        foundnextentry = True
-                        if treepathdelimiter in completionoption[len(self.lasttextentry):]:
-                            self.setEditText(
-                                completionoption[:completionoption.index(treepathdelimiter, len(self.lasttextentry)) + 1])
-                        else:
-                            self.setEditText(completionoption)
-                        self.lastcompletedentry = self.currentText()
-                    i += 1
-
-        else:
-            self.refreshed = True
-            self.lasttextentry = ""
-            self.lastcompletedentry = ""
-            super().keyPressEvent(event)
 
 
 class MovementTreeView(QTreeView):
@@ -119,44 +48,22 @@ class MovementTreeView(QTreeView):
                     self.model().itemFromIndex(index).check()
         return super().edit(index, trigger, event)
 
+    # similar to QTreeView.setExpanded(index, True), but makes sure all ancestors are expanded too, on the way down to this node
+    def setPathExpanded(self, targettreeitem):
+        nodes = []  # building the list from lowest to highest
+        curitem = targettreeitem.parent()  # don't include the target item, because we don't need to see (or hide) its children
+        while curitem is not None:
+            nodes.append(curitem)
+            curitem = curitem.parent()
 
-def gettreeitemsinpath(treemodel, pathstring, delim="/"):
-    pathlist = pathstring.split(delim)
-    pathitemslists = []
-    for level in pathlist:
-        pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
-    validpathsoftreeitems = findvaliditemspaths(pathitemslists)
-    return validpathsoftreeitems[0]
+        nodes.reverse()  # now goes from root down to our target node
 
-
-def findvaliditemspaths(pathitemslists):
-    validpaths = []
-    if len(pathitemslists) > 1:  # the path is longer than 1 level
-        # pathitemslistslotohi = pathitemslists[::-1]
-        for lastitem in pathitemslists[-1]:
-            for secondlastitem in pathitemslists[-2]:
-                if lastitem.parent() == secondlastitem:
-                    higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
-                    for higherpath in higherpaths:
-                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
-                            validpaths.append(higherpath + [lastitem])
-    elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
-        for lastitem in pathitemslists[0]:
-            validpaths.append([lastitem])
-    else:
-        # nothing to add to paths - this case shouldn't ever happen because base case is length==1 above
-        # but just in case...
-        validpaths = []
-
-    return validpaths
+        for treeitem in nodes:
+            self.setExpanded(treeitem.index(), True)
 
 
 # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
 class MvmtTreeItemDelegate(QStyledItemDelegate):
-
-    # def returnkeypressed(self):
-    #     print("return pressed")
-    #     return True
 
     def paint(self, painter, option, index):
         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
@@ -202,10 +109,28 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.listproxymodel = MovementPathsProxyModel(wantselected=True)
         self.listproxymodel.setSourceModel(self.listmodel)
 
-        search_layout = QHBoxLayout()
-        search_layout.addWidget(QLabel("Enter tree node"))  # TODO KV delete? , self))
+        # create layout with combobox for searching movement items
+        search_layout = self.create_search_layout()
+        main_layout.addLayout(search_layout)
 
-        self.combobox = MvmtTreeSearchComboBox(parent=self)
+        # create layout with movement options tree view as well as a list view for selected movement options
+        selection_layout = self.create_selection_layout()
+        main_layout.addLayout(selection_layout)
+
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separate_line)
+
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(main_layout)
+
+    def create_search_layout(self):
+        search_layout = QHBoxLayout()
+
+        search_layout.addWidget(QLabel("Enter tree node"))
+
+        self.combobox = TreeSearchComboBox(parent=self)
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
@@ -216,9 +141,12 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
         self.combobox.completer().setFilterMode(Qt.MatchContains)
         self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.combobox.item_selected.connect(self.selectlistitem)
         search_layout.addWidget(self.combobox)
 
-        main_layout.addLayout(search_layout)
+        return search_layout
+
+    def create_selection_layout(self):
 
         selection_layout = QHBoxLayout()
 
@@ -227,7 +155,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.treedisplay.setHeaderHidden(True)
         self.treedisplay.setModel(self.treemodel)
 
-        userspecifiableitems = self.treemodel.findItemsByRoleValues(Qt.UserRole+udr.isuserspecifiablerole, [1, 2, 3])
+        userspecifiableitems = self.treemodel.findItemsByRoleValues(Qt.UserRole + udr.isuserspecifiablerole, [1, 2, 3])
         editableitems = [it.editablepart() for it in userspecifiableitems]
         for it in editableitems:
             self.treedisplay.openPersistentEditor(self.treemodel.indexFromItem(it))
@@ -255,7 +183,8 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         buttons_layout.addWidget(sortlabel)
 
         self.sortcombo = QComboBox()
-        self.sortcombo.addItems(["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
+        self.sortcombo.addItems(
+            ["order in tree (default)", "alpha by full path", "alpha by lowest node", "order of selection"])
         self.sortcombo.setInsertPolicy(QComboBox.NoInsert)
         self.sortcombo.currentTextChanged.connect(self.sort)
         buttons_layout.addWidget(self.sortcombo)
@@ -267,20 +196,23 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         list_layout.addLayout(buttons_layout)
         selection_layout.addLayout(list_layout)
-        main_layout.addLayout(selection_layout)
 
-        separate_line = QFrame()
-        separate_line.setFrameShape(QFrame.HLine)
-        separate_line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(separate_line)
+        return selection_layout
 
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(main_layout)
+    def selectlistitem(self, treeitem):
+        if isinstance(treeitem, MovementTreeItem):
+            self.treedisplay.collapseAll()
+            self.treedisplay.setPathExpanded(treeitem)
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+        listmodelindex = self.listmodel.indexFromItem(treeitem.listitem)
+        listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
+        self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
+
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         movmod = MovementModule(self.treemodel,
                                 articulators=articulators,
                                 timingintervals=timingintervals,
+                                phonlocs=phonlocs,
                                 addedinfo=addedinfo,
                                 inphase=inphase)
         if self.existingkey is not None:

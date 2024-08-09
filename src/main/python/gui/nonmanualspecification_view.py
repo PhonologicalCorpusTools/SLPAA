@@ -31,6 +31,22 @@ class SLPAARadioButton(RelationRadioButton):
         super().setChecked(checked)
 
 
+class MvmtCharRadioButton(SLPAARadioButton):
+    def __init__(self, text, static_dynamic, **kwargs):
+        # buttons for repetition, direction, ... groups (the third row of the spec window)
+        # subclassing SLPAARadioButton for on_toggled() that enable/disable its 'static' button.
+        super().__init__(text, **kwargs)
+
+        self.static_btn = [btn for btn in static_dynamic.buttons() if btn.text() == 'Static'][0]
+        self.dynamic_btn = [btn for btn in static_dynamic.buttons() if btn.text() == 'Dynamic'][0]
+
+        self.toggled.connect(self.on_toggled)
+
+    def on_toggled(self, checked):
+        if checked:
+            self.dynamic_btn.setChecked(checked)
+
+
 class SLPAAButtonGroup(RelationButtonGroup):
     def __init__(self, buttonslist=None):
         # buttonslist: list of QRadioButton to be included as a group
@@ -69,17 +85,16 @@ class SpecifyLayout(QHBoxLayout):
 
 
 class RepetitionLayout(QVBoxLayout):
-    # something like the below. (I know this will only be used once, but it seemed complicated for my monkey brain.)
-    # ○ Repeated  (radio button)
-    #   specify total # ______ (lineEdit)
-    #   [ ] This # is minimum (checkbox)
-
-    def __init__(self):
+    def __init__(self, static_dynamic_group):
+        # something like the below.
+        # ○ Repeated  (radio button)
+        #   specify total # ______ (lineEdit)
+        #   [ ] This # is minimum (checkbox)
         super().__init__()
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
 
         # radio button
-        self.repeated_btn = SLPAARadioButton("Repeated")
+        self.repeated_btn = MvmtCharRadioButton("Repeated", static_dynamic_group)
         self.repeated_btn.toggled.connect(self.toggle_repeated)
         self.repeated_btn.setFixedHeight(self.repeated_btn.sizeHint().height())
         self.addWidget(self.repeated_btn)
@@ -90,7 +105,7 @@ class RepetitionLayout(QVBoxLayout):
 
         # specify... spinner
         n_of_cycles_layout = QHBoxLayout()
-        n_cycle_label = QLabel("Specify total number of cycles:")
+        self.n_cycle_label = QLabel("Specify total number of cycles:")
         self.n_cycle_input = QDoubleSpinBox()
         self.n_cycle_input.setRange(0.5, 100.0)
         self.n_cycle_input.setSingleStep(0.5)  # accept half as valid input
@@ -99,9 +114,9 @@ class RepetitionLayout(QVBoxLayout):
         self.n_cycle_input.setValue(1.0)  # default value = 1
 
         self.n_cycle_input.setFixedHeight(self.n_cycle_input.sizeHint().height())
-        n_cycle_label.setFixedHeight(self.n_cycle_input.sizeHint().height())
+        self.n_cycle_label.setFixedHeight(self.n_cycle_input.sizeHint().height())
 
-        n_of_cycles_layout.addWidget(n_cycle_label)
+        n_of_cycles_layout.addWidget(self.n_cycle_label)
         n_of_cycles_layout.addWidget(self.n_cycle_input)
         self.indented_layout.addLayout(n_of_cycles_layout)
 
@@ -118,9 +133,9 @@ class RepetitionLayout(QVBoxLayout):
         # enable sub options of 'repeated' button when 'repeated' selected.
         # sub options: specify the number of cycles and check if this number of minimum
         self.n_cycle_input.setEnabled(checked)
+        self.n_cycle_label.setEnabled(checked)
         self.minimum_checkbox.setEnabled(checked)
         return
-
 
 
 class BoldTabBarStyle(QProxyStyle):
@@ -133,8 +148,9 @@ class BoldTabBarStyle(QProxyStyle):
 
     def drawControl(self, element, option, painter, widget=None):
         if element == self.CE_TabBarTabLabel:
-            # Check if the current tab index is the bold one
+            painter.save()
 
+            # Check if the current tab index is the bold one
             font = painter.font()
             if widget.tabAt(option.rect.center()) in self.bold_tab_index:
                 font.setBold(True)
@@ -142,7 +158,20 @@ class BoldTabBarStyle(QProxyStyle):
                 font.setBold(False)
             painter.setFont(font)
 
-        super().drawControl(element, option, painter, widget)
+            super().drawControl(element, option, painter, widget)
+            painter.restore()  # call painter.restore() as painter.save() called in the beginning of the conditional
+
+        else:
+            # for others, just pass to super()
+            super().drawControl(element, option, painter, widget)
+
+
+    def sizeFromContents(self, contents_type, option, size, widget=None):
+        if contents_type == self.CT_TabBarTab:
+            size = super().sizeFromContents(contents_type, option, size, widget)
+            size.setWidth(int(size.width() * 1.15))  # Increase the rectangle width by 20%
+            return size
+        return super().sizeFromContents(contents_type, option, size, widget)
 
     def setBoldTabIndex(self, index, need_bold=True):
         if isinstance(index, int):
@@ -158,6 +187,7 @@ class BoldTabBarStyle(QProxyStyle):
 
         elif isinstance(index, list):
             self.bold_tab_index.extend(index)
+
 
 class TabContentWidget(QWidget):
     def __init__(self):
@@ -189,6 +219,7 @@ class NMTabWidget(QTabWidget):
             idx += 1
         self.setCurrentIndex(index)
 
+
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
     timingintervals_inherited = pyqtSignal(list)
 
@@ -211,7 +242,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         # different major non manual tabs
         self.tab_widget = NMTabWidget()                   # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)   # Create and add tabs to the tab widget
-        self.tab_widget.setMinimumHeight(700)
+        self.tab_widget.setMinimumHeight(1200)
         self.setLayout(main_layout)
 
         scroll_area = QScrollArea(self)
@@ -227,6 +258,101 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if moduletoload is not None and isinstance(moduletoload, NonManualModule):
             self.setvalues(moduletoload)
             self.existingkey = moduletoload.uniqueid
+
+    def greyout_by_static(self, toggled, current_tab):
+        # static btn should enable/disable
+        # 1. row3
+        # 2. mouth > teeth > action/state > clatter
+        # 3. mouth > lips > action/state > vibrate
+        # 4. mouth > tongue > action/state > protrude > direction > circular
+        # 5. air > breath
+        # 6. eyegaze > distance
+        # 7. lower static/dynamic and lower row3, in case it has embedded tabs
+        # 8. higher static/dynamic (and optionally higher repetition/mvmt) if it has a parent
+
+        tab = self.nonman_specifications[current_tab]
+
+        self.greyout_row3(toggled, current_tab)  # do 1
+
+        if current_tab == 'Teeth':       # do 2
+            enable_clatter = not toggled
+            # 'clatter' is one of the action/state buttons
+            self.brute_greyout(tab.action_state, 'Clatter', enable_clatter)
+
+        elif current_tab == 'Lips':      # do 3
+            enable_vibrate = not toggled
+            # 'vibrate' is one of the action/state checkboxes
+            self.brute_greyout(tab.action_state, 'Vibrate', enable_vibrate)
+
+        elif current_tab == 'Tongue':    # do 4
+            enable_circular = not toggled
+            # 'Circular' is one of the action/state checkboxes. tricky to locate (Protrude > Direction > Circular)
+            self.brute_greyout(tab.action_state, 'Circular', enable_circular)
+
+        elif current_tab == 'Air':       # do 5
+            enable_breath = not toggled
+            # 'Breath' is a hierarchy of buttons
+            children = tab.action_state.options
+            for child in children:
+                if not isinstance(child, str):
+                    if child.label == 'Breath':  # found breath
+                        child.main_btn.setEnabled(enable_breath)  # disable it
+                        [sub_btn.setEnabled(enable_breath) for sub_btn in child.as_btn_group.buttons()]  # and its children
+                        break
+
+        elif current_tab == 'Eye gaze':  # do 6
+            enable_distance = toggled
+            target_group = tab.distance_group
+            self.greyout_group(target_group, enable_distance)
+
+        if tab.children is not None:  # do 7 because tab has child tabs
+            self.greyout_related_tabs(toggled, tab.children)
+
+        if tab.parent is not None:  # do 8 because tab has a parent
+            self.greyout_related_tabs(toggled, [tab.parent])
+
+    def greyout_by_dynamic(self, toggled, current_tab):
+        # dynamic btn should enable/disable
+        # 1. lower static/dynamic and lower row3, incase it has embedded tabs
+        # 2. higher static/dynamic and higher row3, if it has a parent tab
+        # 3. air > hold breath (disable)
+
+        tab = self.nonman_specifications[current_tab]
+
+        if tab.children is not None:  # do 1
+            self.greyout_related_tabs(toggled, tab.children)
+
+        if tab.parent is not None:
+            self.greyout_related_tabs(toggled, [tab.parent])
+
+        if current_tab == 'Air':  # do 3
+            enable_holdb = not toggled  # hold breadth Bool opposite to toggled
+            # 'Hold Breath' is one of the action/state buttons
+            self.brute_greyout(tab.action_state, 'Hold breath', enable_holdb)
+
+    def greyout_related_tabs(self, toggled, relative):
+        # for complex tabs (tab embedding), higher and lower dynamic/static should be exclusive
+        # this function enables/disables lower dynamic/static buttons.
+        # Also, high static/dynamic greys out lower row3
+
+        enable_others = not toggled
+
+        for another_tab in relative:
+            # disable/enable lower/higher static and dynamic
+            btn_group_to_disable = another_tab.static_dynamic_group
+            [btn.setEnabled(enable_others) for btn in btn_group_to_disable.buttons()]
+
+            # grey out lower/higher row #3
+            self.greyout_row3(toggled=toggled, current_tab=another_tab.label)
+
+    def greyout_group(self, target_group, enable):
+        # greyout or un-greyout a group of radio buttons and checkboxes
+        # target_group: the group to disable or enable
+        # enable: Bool. if True, enable; if False, grey out
+        target_rbs = target_group.buttons()  # container for all target radio buttons included in row3's buttongroups
+        for rb in target_rbs:
+            # iterate over each radio button in row3 and set enable/disable
+            rb.setEnabled(enable)
 
     def greyout_all(self, state):
         # state: bool. whether the 'all section neutral' cb checked
@@ -249,22 +375,50 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         enable_row3 = not toggled  # enable row 3 when static is 'unselected'
         tab = self.nonman_specifications[current_tab]
 
-        if not any([hasattr(tab, 'repetition_group'),
-                    hasattr(tab, 'directionality_group'),
-                    hasattr(tab, 'additional_char_rb_group')]):
+        if len(tab.row3_groups) == 0:
             # if there is no row3, nothing to grey out.
             return
 
-        target_groups = [tab.repetition_group, tab.directionality_group] + tab.additional_char_rb_group  # groups in row3
+        target_btngroups = []  # groups in row3
+        row3_btngroups = ['repetition_group', 'directionality_group', 'additional_char_rb_group', 'distance_group']
+        for btngroup in row3_btngroups:
+            btngroup_in_tab = getattr(tab, btngroup, None)
+            if btngroup_in_tab is not None:
+                if isinstance(btngroup_in_tab, list):
+                    target_btngroups.extend(btngroup_in_tab)
+                else:
+                    target_btngroups.append(btngroup_in_tab)
 
-        target_rbs = []  # container for all target radio buttons included in row3's buttongroups
-        for g in target_groups:
-            target_rbs += g.buttons()
+        for g in target_btngroups:
+            self.greyout_group(g, enable_row3)
 
-        for rb in target_rbs:
-            # iterate over each radio button in row3 and set enable/disable
-            rb.setEnabled(enable_row3)
+        # repetition > repeated > cycles and  minimum are a special case
+        rep_layout = tab.layout_repetition
+        rep_btn_checked = rep_layout.repeated_btn.isChecked()
+        if enable_row3:
+            rep_layout.toggle_repeated(rep_btn_checked)
+        else:
+            rep_layout.toggle_repeated(False)
         return
+
+    def brute_greyout(self, action_state, target_label, enable):
+        # find the target to enable/disable in the scope of radiobuttons and checkboxes
+        scope = action_state.as_cb_list + action_state.as_btn_group.buttons()
+        target = [unit for unit in scope if unit.text() == target_label]
+        if len(target) != 0:
+            # if target found, either enable or disable and return
+            target[0].setEnabled(enable)
+            return 0
+        else:
+            # if target not found, go one level deeper
+            for child in action_state.options:
+                if isinstance(child, str):
+                    # at the lowest level. just continue.
+                    continue
+                r = self.brute_greyout(child, target_label, enable)
+                if r is not None:
+                    # if target has already got enabled or disabled, return
+                    return 0
 
     def create_major_tabs(self, nonman_units):
         """
@@ -277,13 +431,16 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             major_tab = self.gen_tab_widget(nonman_unit)
             self.tab_widget.addTab(major_tab, nonman_unit.label)
 
-    def gen_tab_widget(self, nonman):
+    def gen_tab_widget(self, nonman, parent=None):
         """
             Deal with the mundane hassle of adding tab gui, recursively
             Args:
                 nonman: NonManualModel
         """
         tab_widget = TabContentWidget()
+
+        # specify parent (only relevant for embedded tabs)
+        nonman.parent = parent
 
         # This section is neutral
         nonman.widget_cb_neutral = QCheckBox("This section is neutral")
@@ -302,20 +459,17 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         if nonman.children:
             subtabs_container = NMTabWidget()
             for sub_category in nonman.children:
-                sub_tab = self.gen_tab_widget(sub_category)
+                sub_tab = self.gen_tab_widget(sub_category, parent=nonman)
                 subtabs_container.addTab(sub_tab, sub_category.label)
             tab_widget.layout.addWidget(subtabs_container)
-            tab_widget.setLayout(tab_widget.layout)
-            return tab_widget
 
         tab_widget.setLayout(tab_widget.layout)
-
         return tab_widget
 
     def greyout_children(self, state, itself, child_tab):
         # called when 'this section is neutral' checkbox state changes
         # have all children widgets disabled when checked / enabled when unchecked
-        # itself: clicked checkbox itself
+        # itself: clicked checkbox itself, whose children should be greyed out. not to be confused with self.
         need_disable = state == Qt.Checked
 
         # unchecking any 'this section is neutral' means NOT 'all sections are neutral'
@@ -360,8 +514,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         row.addWidget(sd_rb_groupbox)
 
-        nonman.widget_rb_static.toggled.connect(lambda toggled: self.greyout_row3(toggled, nonman.label))
-
+        nonman.widget_rb_static.toggled.connect(lambda toggled: self.greyout_by_static(toggled, nonman.label))
+        nonman.widget_rb_dynamic.toggled.connect(lambda toggled: self.greyout_by_dynamic(toggled, nonman.label))
 
         # special case: 'mouth' requires 'Type of mouth movement' which is contained in .subparts
         if nonman.label == 'Mouth':
@@ -369,18 +523,24 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             mvmt_type_box_layout = QVBoxLayout()
             mvmt_type_box.setAlignment(Qt.AlignTop)
             nonman.mvmt_type_group = SLPAAButtonGroup()
-            for type in nonman.subparts:
-                if ';' in type:
-                    type, txt_line = type.split(';')
-                    specify_layout = SpecifyLayout(btn_label=type,
-                                                   text=txt_line)
-                    rb_to_add = specify_layout.radio_btn
-                    nonman.widget_le_specify = specify_layout.lineEdit
-                    mvmt_type_box_layout.addLayout(specify_layout)
+            for m_type in nonman.subparts:
+                # since all options have the 'specify' line edit, just assume btn + lineEdit
+                rb_label, txt_line = m_type.split(';')
+                specify_layout = SpecifyLayout(btn_label=rb_label,
+                                               text=txt_line)
+
+                # first, add btn layout
+                nonman.mvmt_type_group.addButton(specify_layout.radio_btn)
+
+                # then, deal with the line edit part
+                if hasattr(nonman, 'widget_le_specify'):
+                    nonman.widget_le_specify[rb_label] = specify_layout.lineEdit
                 else:
-                    rb_to_add = SLPAARadioButton(type)
-                    mvmt_type_box_layout.addWidget(rb_to_add)
-                nonman.mvmt_type_group.addButton(rb_to_add)
+                    nonman.widget_le_specify = {rb_label: specify_layout.lineEdit}
+
+                # add the whole (rb + le) layout
+                mvmt_type_box_layout.addLayout(specify_layout)
+
             mvmt_type_box.setLayout(mvmt_type_box_layout)
             row1_height = mvmt_type_box.sizeHint().height()
             mvmt_type_box.setFixedHeight(row1_height)
@@ -388,6 +548,31 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             row.addWidget(mvmt_type_box)
             row.setStretchFactor(sd_rb_groupbox, 1)
             row.setStretchFactor(mvmt_type_box, 1)
+            self.nonman_specifications[nonman.label] = nonman
+            return row
+
+        # special case: 'facial expression' requires 'Type of mouth movement' which is contained in .subparts
+        if nonman.label == 'Facial Expression':
+            description_box = QGroupBox("General description")
+            description_box_layout = QVBoxLayout()
+            description_box.setAlignment(Qt.AlignTop)
+            nonman.description_group = SLPAAButtonGroup()
+            for mm_type in nonman.subparts:
+                if ';' in mm_type:
+                    mm_type, txt_line = mm_type.split(';')
+                    specify_layout = SpecifyLayout(btn_label=mm_type,
+                                                   text=txt_line)
+                    rb_to_add = specify_layout.radio_btn
+                    nonman.widget_le_specify = specify_layout.lineEdit
+                    description_box_layout.addLayout(specify_layout)
+                else:
+                    rb_to_add = SLPAARadioButton(mm_type)
+                    description_box_layout.addWidget(rb_to_add)
+                nonman.description_group.addButton(rb_to_add)
+            description_box.setLayout(description_box_layout)
+            row.addWidget(description_box)
+            row.setStretchFactor(sd_rb_groupbox, 1)
+            row.setStretchFactor(description_box, 1)
             self.nonman_specifications[nonman.label] = nonman
             return row
 
@@ -466,10 +651,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # H1 or H2 under One {specifier} selected.
             # make sure to have parent selected
             nonman.rb_subpart_one.setChecked(True)
-        elif 'One' in rb.text() and not ischecked:
-            # deselecting One should deselect its children.
-            for btn in nonman.onepart_group.buttons():
-                deselect_rb_group(btn.group())
+        elif 'One' in rb.text():
+            if nonman.label == 'Eyebrows':
+                # enable/disable 'Furrow' if dealing with Eyebrows
+                self.brute_greyout(nonman.action_state, 'Furrow', not ischecked)
+            if not ischecked:
+                # deselecting One should deselect its children
+                for btn in nonman.onepart_group.buttons():
+                    deselect_rb_group(btn.group())
 
     def handle_mid_rb_toggled(self, ischecked, asm, parent):
         """
@@ -527,6 +716,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         scrollable = QScrollArea()
         scrollable.setWidget(action_state_groupbox)
         scrollable.setWidgetResizable(True)
+        #scrollable.setMinimumHeight(150)
         row.addWidget(scrollable)
 
         return row
@@ -632,73 +822,107 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         """
         Build the third row of the NonMan specification window
         Currently for "Mvmt characteristics"
+        and additionally "Distance" (should only apply to Eye gaze)
         Args:
             nonman: NonManualModel
 
         Returns:
             QHBoxLayout
         """
-        if nonman.action_state is None:  # Currently, if action state is unspecified 3rd row is also nonexistent
-            return None
+        required = ['Repetition', 'Directionality', 'Additional']  # by default the 3rd row consists of three units
+
+        if nonman.action_state is None:
+            # If action state is unspecified, remove directionality. 'repetition' and 'additional' still needed
+            required.remove('Directionality')
+
+        if nonman.label == 'Eye gaze':  # Special case: Eye gaze needs 'Distance' as the 4th column of row #3.
+            required.append('Distance')
 
         row = QHBoxLayout()
         row.setAlignment(Qt.AlignTop)
 
-        # Repetition group
-        repetition_group = QGroupBox("Repetition")
-        repetition_group_layout = QVBoxLayout()
-        repetition_group_layout.setAlignment(Qt.AlignTop)
-        widget_rb_rep_single = SLPAARadioButton("Single")
-        nonman.layout_repetition = RepetitionLayout()
-        widget_rb_rep_trill = SLPAARadioButton("Trilled")
-        rep_btn_list = [widget_rb_rep_single, nonman.layout_repetition.repeated_btn, widget_rb_rep_trill]
+        nonman.row3_groups = []  # groups that constitute the third row
 
-        nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
+        if 'Repetition' in required:
+            # Repetition group
+            repetition_group = QGroupBox("Repetition")
+            repetition_group_layout = QVBoxLayout()
+            repetition_group_layout.setAlignment(Qt.AlignTop)
+            widget_rb_rep_single = MvmtCharRadioButton("Single", nonman.static_dynamic_group)
+            nonman.layout_repetition = RepetitionLayout(static_dynamic_group=nonman.static_dynamic_group)
+            widget_rb_rep_trill = MvmtCharRadioButton("Trilled", nonman.static_dynamic_group)
+            rep_btn_list = [widget_rb_rep_single, nonman.layout_repetition.repeated_btn, widget_rb_rep_trill]
 
-        repetition_group_layout.addWidget(widget_rb_rep_single)
-        repetition_group_layout.addLayout(nonman.layout_repetition)
-        repetition_group_layout.addWidget(widget_rb_rep_trill)
+            nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
 
-        repetition_group.setLayout(repetition_group_layout)
+            repetition_group_layout.addWidget(widget_rb_rep_single)
+            repetition_group_layout.addLayout(nonman.layout_repetition)
+            repetition_group_layout.addWidget(widget_rb_rep_trill)
 
-        # Directionality group
-        directionality_group = QGroupBox("Directionality")
-        directionality_group_layout = QVBoxLayout()
-        directionality_group_layout.setAlignment(Qt.AlignTop)
-        nonman.widget_rb_direction_uni = SLPAARadioButton("Unidirectional")
-        nonman.widget_rb_direction_bi = SLPAARadioButton("Bidirectional")
-        directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
+            repetition_group.setLayout(repetition_group_layout)
+            nonman.row3_groups.append(repetition_group)
 
-        nonman.directionality_group = SLPAAButtonGroup(directionality_list)
+        if 'Directionality' in required:
+            # Directionality group
+            directionality_group = QGroupBox("Directionality")
+            directionality_group_layout = QVBoxLayout()
+            directionality_group_layout.setAlignment(Qt.AlignTop)
+            nonman.widget_rb_direction_uni = MvmtCharRadioButton(text="Unidirectional",
+                                                                 static_dynamic=nonman.static_dynamic_group)
+            nonman.widget_rb_direction_bi = MvmtCharRadioButton(text="Bidirectional",
+                                                                static_dynamic=nonman.static_dynamic_group)
+            directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
 
-        [directionality_group_layout.addWidget(widget) for widget in directionality_list]
-        directionality_group.setLayout(directionality_group_layout)
+            nonman.directionality_group = SLPAAButtonGroup(directionality_list)
 
-        # Additional movement characteristics group -- contains Size Speed Force Tension
-        additional_char_group = QGroupBox("Additional mvmt characteristics")
-        additional_char_group_layout = QHBoxLayout()
-        additional_char_group_layout.setAlignment(Qt.AlignTop)
-        additional_char_specs = {'Size': ['Big', 'Small'],
-                                 'Speed': ['Fast', 'Slow'],
-                                 'Force': ['Strong', 'Weak'],
-                                 'Tension': ['Tense', 'Lax']}
-        additional_subgroups, additional_rb_groups = self.gen_add_move_char(additional_char_specs)
-        [additional_char_group_layout.addWidget(widget) for widget in additional_subgroups]
-        nonman.additional_char_rb_group = additional_rb_groups
+            [directionality_group_layout.addWidget(widget) for widget in directionality_list]
+            directionality_group.setLayout(directionality_group_layout)
+            nonman.row3_groups.append(directionality_group)
 
-        additional_char_group.setLayout(additional_char_group_layout)
+        if 'Additional' in required:
+            # Additional movement characteristics group -- contains Size Speed Force Tension
+            additional_char_group = QGroupBox("Additional mvmt characteristics")
+            additional_char_group_layout = QHBoxLayout()
+            additional_char_group_layout.setAlignment(Qt.AlignTop)
+            additional_char_specs = {'Size': ['Big', 'Small'],
+                                     'Speed': ['Fast', 'Slow'],
+                                     'Force': ['Strong', 'Weak'],
+                                     'Tension': ['Tense', 'Lax']}
+            additional_subgroups, additional_rb_groups = self.gen_add_move_char(additional_char_specs, nonman)
+            [additional_char_group_layout.addWidget(widget) for widget in additional_subgroups]
+            nonman.additional_char_rb_group = additional_rb_groups
 
-        # groups that constitute the third row
-        groups = [repetition_group, directionality_group, additional_char_group]
+            additional_char_group.setLayout(additional_char_group_layout)
+            nonman.row3_groups.append(additional_char_group)
+
+        if 'Distance' in required:
+            # Distance
+            distance_group = QGroupBox("Distance")
+            distance_layout = QVBoxLayout()
+            distance_layout.setAlignment(Qt.AlignTop)
+            nonman.widget_rb_eyegazedistance_distant = MvmtCharRadioButton("Distant", nonman.static_dynamic_group)
+            nonman.widget_rb_eyegazedistance_normal = MvmtCharRadioButton("Normal", nonman.static_dynamic_group)
+            nonman.widget_rb_eyegazedistance_proximal = MvmtCharRadioButton("Proximal", nonman.static_dynamic_group)
+            distance_list = [nonman.widget_rb_eyegazedistance_distant,
+                             nonman.widget_rb_eyegazedistance_normal,
+                             nonman.widget_rb_eyegazedistance_proximal]
+
+            nonman.distance_group = SLPAAButtonGroup(distance_list)
+
+            [distance_layout.addWidget(widget) for widget in distance_list]
+            distance_group.setLayout(distance_layout)
+
+            # And add distance to 'groups' that constitute the third row
+            nonman.row3_groups.append(distance_group)
 
         # set fixed height. fixed b/c more space for action/state
-        row3_height = max([group.sizeHint().height() for group in groups])
-        [group.setFixedHeight(row3_height) for group in groups]
+        row3_height = max([group.sizeHint().height() for group in nonman.row3_groups])
+        [group.setFixedHeight(row3_height) for group in nonman.row3_groups]
 
-        [row.addWidget(group) for group in groups]  # Adding all the groupboxes to form the row
+        [row.addWidget(group) for group in nonman.row3_groups]  # Adding all the groupboxes to form the row
         return row
 
-    def gen_add_move_char(self, specs):
+    def gen_add_move_char(self, specs, nonman):
         groupboxes = []
         groups = []
 
@@ -710,7 +934,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             levels.insert(1, 'Normal')
 
             for level in levels:
-                rb_to_add = SLPAARadioButton(level)
+                rb_to_add = MvmtCharRadioButton(text=level,
+                                                static_dynamic=nonman.static_dynamic_group)
                 buttongroup.addButton(rb_to_add)
                 groupbox_layout.addWidget(rb_to_add)
 
@@ -744,12 +969,18 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         module_output['static_dynamic'] = what_selected(current_module.static_dynamic_group)
 
-        # special case: 'mouth' has 'type of mouth movement' (others have 'subparts')
+        # special cases: 'mouth' has 'type of mouth movement' and 'faceexp' has 'description' in place of 'subparts'
         if current_module.label == 'Mouth':
-            module_output['mvmt_type'] = what_selected(current_module.mvmt_type_group)
-            if module_output['mvmt_type'] == 'other':
-                module_output['mvmt_type'] = f"{module_output['mvmt_type']};{current_module.widget_le_specify.text()}"
             # 'mouth' will exceptionally have 'mvmt_type' key for 'type of mouth movement'
+            rb_label = what_selected(current_module.mvmt_type_group)
+            if rb_label is not None:
+                module_output['mvmt_type'] = f"{rb_label};{current_module.widget_le_specify[rb_label].text()}"
+
+        elif current_module.label == 'Facial Expression':
+            # 'faceexp' will exceptionally have 'description' key for 'general descriptions'
+            module_output['description'] = what_selected(current_module.description_group)
+            if module_output['description'] == 'Description':
+                module_output['description'] = f"{module_output['description']};{current_module.widget_le_specify.text()}"
 
         # get choice between both, h1, h2
         else:
@@ -760,6 +991,34 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             except AttributeError:  # when no subpart spec exists, such as 'body', 'head', etc.
                 pass
 
+        # this time, repetition
+        module_output['repetition'] = what_selected(current_module.repetition_group)
+        if module_output['repetition'] == 'Repeated':
+            # if 'Repeated btn is selected, go one step further and save the number of cycles and whether it is minimum
+            module_output['repetition'] = {'type': 'Repeated',
+                                           'n_repeats': current_module.layout_repetition.n_cycle_input.value(),
+                                           'minimum': current_module.layout_repetition.minimum_checkbox.isChecked()}
+
+        # ... and directionality
+        try:
+            module_output['directionality'] = what_selected(current_module.directionality_group)
+        except AttributeError:  # for a tab like 'mouth' and 'facial expression' that have a tab embedding
+            pass
+
+        # additional mvmt characteristics
+        addit_mvmt_chars = [what_selected(selection) for selection in current_module.additional_char_rb_group]
+
+        addit_keys = ['size', 'speed', 'force', 'tension']
+        for k, v in zip(addit_keys, addit_mvmt_chars):
+            module_output[k] = v
+
+        # optionally, Distance. Distance is only available for eyegaze
+        try:
+            distance_selection = what_selected(current_module.distance_group)
+            module_output['distance'] = distance_selection
+        except AttributeError:  # most cases (i.e., except for eyegaze) raise AttributeError
+            pass
+
         module_output['children'] = None
 
         # case of embedded module like 'facial expression'
@@ -768,22 +1027,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             for child in current_module.children:
                 module_output['children'][child.label] = self.get_nonman_specs(child, parent=current_module)
             return module_output
-
-        # this time, repetition and directionality
-        module_output['repetition'] = what_selected(current_module.repetition_group)
-        if module_output['repetition'] == 'Repeated':
-            # if 'Repeated btn is selected, go one step further and save the number of cycles and whether it is minimum
-            module_output['repetition'] = {'type': 'Repeated',
-                                           'n_repeats': current_module.layout_repetition.n_cycle_input.value(),
-                                           'minimum': current_module.layout_repetition.minimum_checkbox.isChecked()}
-        module_output['directionality'] = what_selected(current_module.directionality_group)
-
-        # additional mvmt characteristics
-        addit_mvmt_chars = [what_selected(selection) for selection in current_module.additional_char_rb_group]
-
-        addit_keys = ['size', 'speed', 'force', 'tension']
-        for k, v in zip(addit_keys, addit_mvmt_chars):
-            module_output[k] = v
 
         # finally, action/state
         as_dict = {}  # usr selections parsed as Dictionary. to be passed as module_output['action_state']
@@ -829,12 +1072,13 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                 r[res_k] = res_v
         return asm.label, r
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         # package the user input and deliver
         nonman_mod = NonManualModule(nonman_specs=self.wrapper_get_nonman_specs(),
                                      articulators=articulators,
                                      timingintervals=timingintervals,
-                                     addedinfo=addedinfo,)
+                                     phonlocs=phonlocs,
+                                     addedinfo=addedinfo)
         if self.existingkey is not None:
             nonman_mod.uniqueid = self.existingkey
         else:
@@ -845,7 +1089,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.setvalues(self._clean_nonman)
 
     def setvalues(self, moduletoload):
-        # called when loading previously saved specifications (e.g., by clicking on an xslot)
+        # called when loading previously saved specifications (e.g., by clicking an xslot on the summary window)
         # set template values by moduletoload (previously saved values)
         toload_dict = moduletoload
 
@@ -916,6 +1160,7 @@ def deselect_rb_group(rb_group):
 
 
 def load_specifications(values_toload, load_destination):
+    # load previous specification and show the selection on the template. called by setvalues
     # values_toload: saved user selections to load
     # load_destination: major modules like 'shoulder' 'facial expressions'...
 
@@ -954,12 +1199,32 @@ def load_specifications(values_toload, load_destination):
         mvmt_type = values_toload['mvmt_type']
         if mvmt_type is None:
             raise KeyError
-        if ';' in mvmt_type:
-            # selected 'other' and specified
-            mvmt_type, content = mvmt_type.split(';')
-            load_destination.widget_le_specify.setText(content)
+        mvmt_type, content = mvmt_type.split(';')
+        load_destination.widget_le_specify[mvmt_type].setText(content)
         select_this(btn_group=load_destination.mvmt_type_group,
                     btn_txt=mvmt_type)
+
+    except KeyError:
+        pass
+
+    # special case: 'eye gaze' distance
+    try:
+        select_this(btn_group=load_destination.distance_group,
+                    btn_txt=values_toload['distance'])
+    except AttributeError:
+        pass
+
+    # special case: 'facial expression' description
+    try:
+        description = values_toload['description']
+        if description is None:
+            raise KeyError
+        if ';' in description:
+            # dealing with a line edit
+            description, content = description.split(';')
+            load_destination.widget_le_specify.setText(content)
+        select_this(btn_group=load_destination.description_group,
+                    btn_txt=description)
 
     except KeyError:
         pass
@@ -990,7 +1255,7 @@ def load_specifications(values_toload, load_destination):
     try:
         select_this(btn_group=load_destination.directionality_group,
                     btn_txt=values_toload['directionality'])
-    except AttributeError:
+    except (AttributeError, KeyError):
         pass
 
     # additional movement characteristics (size, speed, force, tenstion)
@@ -998,7 +1263,7 @@ def load_specifications(values_toload, load_destination):
         for btn_group, btn_txt in zip(load_destination.additional_char_rb_group, ['size', 'speed', 'force', 'tension']):
             select_this(btn_group=btn_group,
                         btn_txt=values_toload[btn_txt])
-    except AttributeError:
+    except (AttributeError, KeyError):
         pass
 
     # action state
