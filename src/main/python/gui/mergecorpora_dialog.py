@@ -334,6 +334,7 @@ class MergedNameLocationWizardPage(QWizardPage):
 
         selectionlayout = QHBoxLayout()
         self.mergedfiledisplay = QLineEdit()
+        self.mergedfiledisplay.setReadOnly(True)
         self.registerField("mergedfilepath", self.mergedfiledisplay)
         choosefilebutton = QPushButton("Browse")
         choosefilebutton.clicked.connect(self.handle_select_mergedfile)
@@ -354,8 +355,10 @@ class MergedNameLocationWizardPage(QWizardPage):
                                                            self.tr('Select merged destination'),
                                                            self.app_settings['storage']['recent_folder'],
                                                            self.tr('SLP-AA Corpus (*.slpaa)'))
-        self.mergedfiledisplay.setText(mergedfilename)
-        self.completeChanged.emit()
+        if mergedfilename:
+            self.mergedfiledisplay.setText(mergedfilename)
+            self.completeChanged.emit()
+
 
 
 # wizard page that allows the user to finally confirm merging the corpora
