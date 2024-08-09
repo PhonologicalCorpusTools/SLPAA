@@ -47,7 +47,7 @@ class ModuleSelectorDialog(QDialog):
     module_saved = pyqtSignal(ParameterModule, str)
     module_deleted = pyqtSignal()
 
-    def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
+    def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
         self.moduletype = moduletype
@@ -72,6 +72,14 @@ class ModuleSelectorDialog(QDialog):
             phonlocstoload = moduletoload.phonlocs
             if moduletoload.articulators is not None:
                 articulators = moduletoload.articulators
+        elif HAND in incl_articulators:
+            # set default articulators
+            handSelection = self.parent().sign.signtype.specslist[0][0]
+            if "1h" in handSelection:
+                articulators = (HAND, {1: True, 2: False})
+            elif "2h" in handSelection:
+                articulators = (HAND, {1: True, 2: True})
+            
             new_instance = False
             if isinstance(moduletoload, LocationModule) or isinstance(moduletoload, MovementModule):
                 inphase = moduletoload.inphase
