@@ -724,10 +724,9 @@ class ArticulatorSelectionPanel(QFrame):
             self.articulator_group.setExclusive(False) # this is needed to uncheck all radio buttons
             checkedButton.setChecked(False)
             self.articulator_group.setExclusive(True)
-            if checkedButton == self.botharts_radio:
-                for btn in self.botharts_group.buttons():
-                    btn.setChecked(False)
-                    btn.setEnabled(False)
+            for btn in self.botharts_group.buttons():
+                btn.setChecked(False)
+                btn.setEnabled(False)
 
 
     def handle_articulatorgroup_toggled(self, selectedbutton, ischecked):
