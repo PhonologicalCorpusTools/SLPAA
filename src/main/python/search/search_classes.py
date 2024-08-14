@@ -81,14 +81,20 @@ class Search_SignLevelInfoSelectorDialog(QDialog):
             self.reject()
 
         elif standard == QDialogButtonBox.Save:
-            sli = self.signlevelinfo_widget.get_value()
-            if sli is not None: # TODO check for a value?
-                self.saved_signlevelinfo.emit(SignLevelInformation(signlevel_info=sli))
+            vals = self.signlevelinfo_widget.get_value()
+            if vals is not None: # TODO check for a value?
+                sli = self.get_SLI(vals)
+                self.saved_signlevelinfo.emit(sli)
                 self.accept()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
             self.signlevelinfo_widget.restore_defaults()
-        
+    
+    def get_SLI(self, vals):
+        sli = SignLevelInformation(signlevel_info=vals)
+        if vals["entryid"] == "":
+            sli.entryid.counter = ""
+        return sli
 
 class Search_SignLevelInfoPanel(SignLevelInfoPanel):
     def __init__(self, signlevelinfo, **kwargs):
@@ -97,14 +103,15 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         self.signlevelinfo = signlevelinfo
         
         self.create_and_set_layout() # otherwise, will be attempting to set layout to something that already has a layout
-    
+
     def create_and_set_layout(self):
         main_layout = QFormLayout()
         main_layout.setSpacing(5)
 
-        entryid_label = QLabel("Entry ID:")
         gloss_label = QLabel('Gloss:')
         lemma_label = QLabel('Lemma:')
+        idgloss_label = QLabel('ID-gloss:')
+        entryid_label = QLabel("Entry ID:")
         source_label = QLabel('Source:')
         signer_label = QLabel('Signer:')
         freq_label = QLabel('Frequency:')
@@ -113,9 +120,10 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         modified_label = QLabel('Date last modified:')
         note_label = QLabel('Notes:')
 
-        self.entryid_value = QLineEdit()
         self.gloss_edit = QLineEdit()
         self.lemma_edit = QLineEdit()
+        self.idgloss_edit = QLineEdit()
+        self.entryid_value = QLineEdit()
         self.source_edit = QLineEdit()
         self.signer_edit = QLineEdit()
         self.freq_edit = QLineEdit()
@@ -162,6 +170,7 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         main_layout.addRow(entryid_label, self.entryid_value)
         main_layout.addRow(gloss_label, self.gloss_edit)
         main_layout.addRow(lemma_label, self.lemma_edit)
+        main_layout.addRow(idgloss_label, self.idgloss_edit)
         main_layout.addRow(source_label, self.source_edit)
         main_layout.addRow(signer_label, self.signer_edit)
         main_layout.addRow(freq_label, self.freq_edit)
@@ -218,7 +227,8 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
     def get_value(self):
         return {
             'entryid': self.entryid_value.text(),
-            'gloss': self.get_gloss(),
+            'gloss': self.get_glosses(),
+            'idgloss': self.get_idgloss(),
             'lemma': self.lemma_edit.text(),
             'source': self.source_edit.text(),
             'signer': self.signer_edit.text(),
@@ -237,9 +247,10 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         if not signlevelinfo:
             signlevelinfo = self.signlevelinfo
         if self.signlevelinfo:
-            entryid = signlevelinfo.entryid
-            self.entryid_value.setText(entryid.display_string() if entryid.counter not in [None, ""] else "")
+            # entry id should be a string?
+            self.entryid_value.setText(self.entryid_string())
             self.gloss_edit.setText(signlevelinfo.gloss)
+            self.idgloss_edit.setText(signlevelinfo.idgloss)
             self.lemma_edit.setText(signlevelinfo.lemma)
             self.source_edit.setText(signlevelinfo.source)
             self.signer_edit.setText(signlevelinfo.signer)
@@ -251,15 +262,28 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
             self.set_fingerspelledstatus(signlevelinfo.fingerspelled)
             self.set_compoundsignstatus(signlevelinfo.compoundsign)
             self.set_handdominance(signlevelinfo.handdominance)
+    
+        
+    # Overload, because we only allow users to search for a single gloss at a time, 
+    # even though the main module allows a list
+    def get_glosses(self):
+        return self.gloss_edit.text().strip()
+
     # Remove the wrapper that forces gloss to be populated
-    def get_gloss(self):
-        return self.gloss_edit.text()
+    def get_identifiers(self):
+        gloss = self.get_glosses()
+        lemma = self.get_lemma()
+        idgloss = self.get_idgloss()
+        return gloss, lemma, idgloss
+
     
     def restore_defaults(self):
         self.entryid_value.setText("")
         self.entryid_value.setEnabled(True)
         self.gloss_edit.setText("")
         self.gloss_edit.setPlaceholderText("")
+        self.idgloss_edit.setText("")
+        self.idgloss_edit.setPlaceholderText("")
         self.lemma_edit.setText("")
         self.source_edit.setText("")
         self.signer_edit.setText("")

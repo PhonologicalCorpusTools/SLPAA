@@ -201,6 +201,9 @@ class EntryID:
             return ""
 
     def display_string(self):
+        
+        if self.counter in [None, ""]:
+            return ""
         qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         orders_strings = []

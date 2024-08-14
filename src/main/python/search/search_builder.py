@@ -483,6 +483,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         values = {}
         values["entryid"] = signlevel_info.entryid.display_string()
         values["gloss"] = signlevel_info.gloss
+        values["idgloss"] = signlevel_info.idgloss
         values["lemma"] = signlevel_info.lemma
         values["source"] = signlevel_info.source
         values["signer"] = signlevel_info.signer

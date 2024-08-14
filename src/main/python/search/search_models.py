@@ -230,8 +230,9 @@ class SearchModel(QStandardItemModel):
             "datelastmodified": sign.signlevel_information.datelastmodified
         }
         text_vals = {
-            "entryid": sign.signlevel_information.entryid,
             "gloss": sign.signlevel_information.gloss,
+            "entryid": sign.signlevel_information.entryid,
+            "idgloss": sign.signlevel_information.idgloss,
             "lemma": sign.signlevel_information.lemma,
             "source": sign.signlevel_information.source,
             "signer": sign.signlevel_information.signer,
@@ -239,6 +240,7 @@ class SearchModel(QStandardItemModel):
             "coder": sign.signlevel_information.coder,
             "note": sign.signlevel_information.note
         }
+
         # CHECK TEXT PROPERTIES
         for val in text_vals:
             target_vals = []
@@ -246,12 +248,16 @@ class SearchModel(QStandardItemModel):
                 this_val = self.target_values(row).values[val]
                 if this_val not in [None, ""]:
                     target_vals.append(this_val)
-            if len(target_vals) > 1:
-                return False
-            if len(target_vals) == 1:
-                # logging.warning("checking text val " + val + " is " + target_vals[0])
-                if text_vals[val] != target_vals[0]:
+            if val == "gloss":
+                if not all(x in text_vals["gloss"] for x in target_vals):
                     return False
+            else:
+                if len(target_vals) > 1:
+                    return False
+                if len(target_vals) == 1:
+                    # logging.warning("checking text val " + val + " is " + target_vals[0])
+                    if text_vals[val] != target_vals[0]:
+                        return False
         # CHECK BINARY PROPERTIES
         for val in binary_vals:
             target_vals = []
