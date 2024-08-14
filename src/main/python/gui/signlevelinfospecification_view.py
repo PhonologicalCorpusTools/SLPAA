@@ -27,6 +27,7 @@ from PyQt5.QtCore import (
 from lexicon.lexicon_classes import SignLevelInformation
 from lexicon.module_classes import EntryID
 from gui.decorator import check_duplicated_lemma, check_empty_glosslemmaIDgloss, check_duplicated_idgloss
+from gui.link_help import show_help
 
 
 class SignLevelDateDisplay(QLabel):
@@ -123,6 +124,9 @@ class SignLevelInfoPanel(QFrame):
         self.defaulthand = self.settings['signdefaults']['handdominance']
 
         self.signlevelinfo = signlevelinfo
+        self.create_and_set_layout()
+
+    def create_and_set_layout(self):
 
         main_layout = QFormLayout()
         main_layout.setSpacing(5)
@@ -322,7 +326,7 @@ class SignlevelinfoSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Help | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
 
@@ -339,6 +343,9 @@ class SignlevelinfoSelectorDialog(QDialog):
 
         if standard == QDialogButtonBox.Cancel:
             self.reject()
+
+        elif standard == QDialogButtonBox.Help:
+            show_help('signlevel')
 
         elif standard == QDialogButtonBox.Save:
             sli = self.signlevelinfo_widget.get_value()

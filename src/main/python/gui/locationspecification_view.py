@@ -10,7 +10,10 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
+    QGridLayout,
     QComboBox,
+    QMessageBox,
+    QAbstractButton,
     QLabel,
     QCompleter,
     QButtonGroup,
@@ -41,10 +44,9 @@ from PyQt5.QtCore import (
 from lexicon.module_classes import LocationModule
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
     LocationType, LocationPathsProxyModel, locn_options_body
-from serialization_classes import LocationTreeSerializable
+from serialization_classes import LocationTreeSerializable, LocationTableSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, \
     TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
-
 from constant import CONTRA, IPSI
 
 
@@ -59,13 +61,16 @@ class LocationTableView(QTableView):
 
 
 class LocationOptionsSelectionPanel(QFrame):
+    default_neutral_reqd = pyqtSignal()
     def __init__(self, treemodeltoload=None, displayvisualwidget=True, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
+        
         self.app_ctx = self.mainwindow.app_ctx
-        self.showimagetabs = displayvisualwidget
         self.dominanthand = self.mainwindow.current_sign.signlevel_information.handdominance
-
+        
+        self.showimagetabs = displayvisualwidget
+        
         main_layout = QVBoxLayout()
 
         self._treemodel = None
@@ -90,20 +95,34 @@ class LocationOptionsSelectionPanel(QFrame):
         main_layout.addLayout(selection_layout)
 
         if treemodeltoload is not None and isinstance(treemodeltoload, LocationTreeModel):
-            self.set_multiple_selection_from_content(self.treemodel.multiple_selection_allowed)
+            self.multiple_selection_cb.setChecked(self.treemodel.multiple_selection_allowed)
 
         self.setLayout(main_layout)
-
-    def get_listed_paths(self):
+    
+    def get_listed_paths(self, include_details=False):
+        # if include_details is True, returns a dict: keys are path strings, values are detailstables
+        # otherwise returns a list of path strings
         proxyModel = self.listproxymodel
         sourceModel = self.listmodel
-        
-        paths = [] 
 
-        for row in range(proxyModel.rowCount()):
-            sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
-            path = sourceModel.data(sourceIndex, Qt.DisplayRole)
-            paths.append(path)
+        if include_details:
+            paths = {}
+            for row in range(proxyModel.rowCount()):
+                sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
+                
+                path = sourceModel.data(sourceIndex, Qt.DisplayRole)
+                selectedlistitem = sourceModel.itemFromIndex(sourceIndex)
+                detailstable = LocationTableSerializable(selectedlistitem.treeitem.detailstable)
+                paths.update({path: detailstable})
+            
+        else:
+            paths = [] 
+            for row in range(proxyModel.rowCount()):
+                sourceIndex = proxyModel.mapToSource(proxyModel.index(row, 0))
+                
+                path = sourceModel.data(sourceIndex, Qt.DisplayRole)
+                paths.append(path)
+            
         return paths
     
     def enableImageTabs(self, enable):
@@ -185,6 +204,9 @@ class LocationOptionsSelectionPanel(QFrame):
         listmodelindex = self.listmodel.indexFromItem(locationtreeitem.listitem)
         listproxyindex = self.listproxymodel.mapFromSource(listmodelindex)
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
+        if locationtreeitem.text() == "Default neutral space" and self.mainwindow.app_settings['location']['autocheck_neutral_on_locn_selected']:
+            self.default_neutral_reqd.emit()
+
 
     def create_selection_layout(self):
         selection_layout = QHBoxLayout()
@@ -338,7 +360,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
             treemodeltoload = LocationTreeModel(LocationTreeSerializable(moduletoload.locationtreemodel))
-
+      
         # create layout with buttons for location type (body, signing space, etc)
         # and for phonological locations (phonological, phonetic, etc)
         loctype_layout = self.create_loctype_layout()
@@ -346,12 +368,14 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         # create panel containing search box, visual location selection (if applicable), list of selected options, and details table
         self.locationoptionsselectionpanel = LocationOptionsSelectionPanel(treemodeltoload=treemodeltoload, displayvisualwidget=showimagetabs, parent=self)
+        self.locationoptionsselectionpanel.default_neutral_reqd.connect(self.check_markneutral_cb)
         main_layout.addWidget(self.locationoptionsselectionpanel)
 
         # set buttons and treemodel according to the existing module being loaded (if applicable)
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.set_loctype_buttons_from_content(loctypetoload)
             self.setcurrenttreemodel(treemodeltoload)
+            self.markneutral_cb.setChecked(treemodeltoload.defaultneutralselected)
         else:
             self.clear_loctype_buttons_to_default()
 
@@ -382,9 +406,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         self.locationoptionsselectionpanel.refresh_listproxies()
         treemodel = self.getcurrenttreemodel()
-        
-        multiple_selections = self.multiple_selections_check()
 
+        multiple_selections = self.multiple_selections_check()
         if self.getcurrentlocationtype().usesbodylocations() and multiple_selections and not treemodel.multiple_selection_allowed:
             selectionsvalid = False
             warningmessage = warningmessage + "Multiple locations have been selected but 'Allow multiple selection' is not checked."
@@ -395,8 +418,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             body=self.body_radio.isChecked(),
             signingspace=self.signingspace_radio.isChecked(),
             bodyanchored=self.signingspacebody_radio.isEnabled() and self.signingspacebody_radio.isChecked(),
-            purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked()
-        )
+            purelyspatial=self.signingspacespatial_radio.isEnabled() and self.signingspacespatial_radio.isChecked()        )
         return locationtype
 
     def create_loctype_layout(self):
@@ -413,18 +435,34 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         body_box.setLayout(body_layout)
         loctype_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
 
-        signingspace_layout = QHBoxLayout()
+        signingspace_layout = QGridLayout()
 
         self.signingspace_radio = QRadioButton("Signing space  (")
         self.signingspace_radio.setProperty('loctype', 'signingspace')
-        signingspace_layout.addWidget(self.signingspace_radio)
+        signingspace_layout.addWidget(self.signingspace_radio, 0, 0)
 
         self.signingspacebody_radio = QRadioButton("body-anchored  /")
         self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
-        signingspace_layout.addWidget(self.signingspacebody_radio)
+        signingspace_layout.addWidget(self.signingspacebody_radio, 0, 1)
+
         self.signingspacespatial_radio = QRadioButton("purely spatial  )")
         self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
-        signingspace_layout.addWidget(self.signingspacespatial_radio)
+        signingspace_layout.addWidget(self.signingspacespatial_radio, 0, 2)
+
+        self.applyneutral_pb = QPushButton("Apply 'neutral' settings")
+        self.applyneutral_pb.clicked.connect(self.handle_toggle_neutral_pb)
+        signingspace_layout.addWidget(self.applyneutral_pb, 0, 3)
+
+        self.markneutral_cb = QCheckBox("This location is 'neutral'")
+        self.markneutral_cb.clicked.connect(self.handle_toggle_neutral_cb)
+        self.neutral_info_pb = QPushButton("Info")
+        self.neutral_info_pb.clicked.connect(self.show_neutral_info)
+        neutral_sublayout = QHBoxLayout()
+        neutral_sublayout.addWidget(self.markneutral_cb)
+        neutral_sublayout.addWidget(self.neutral_info_pb)
+
+        signingspace_layout.addLayout(neutral_sublayout, 1, 3)
+        
         signingspace_box = QGroupBox()
         signingspace_box.setLayout(signingspace_layout)
         loctype_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
@@ -506,13 +544,88 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def handle_toggle_signingspacetype(self, btn):
         if btn is not None and btn.isChecked():
             self.signingspace_radio.setChecked(True)
-            self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(btn != self.signingspacespatial_radio)
-            self.enablelocationtools()
+        if btn == self.signingspacespatial_radio:
+            self.applyneutral_pb.setEnabled(self.default_neutral_loctype() == "purely spatial")
+        elif btn == self.signingspacebody_radio:
+            self.applyneutral_pb.setEnabled(self.default_neutral_loctype() == "body-anchored")
+        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(btn != self.signingspacespatial_radio)
+        self.enablelocationtools()  # TODO should this be inside the if?
 
+    def show_neutral_info(self):
+        message = "Go to Preferences>Location to view or change the current default neutral location settings. "\
+            "Default neutral locations for one-handed and two-handed sign types are specified separately. "\
+            "Sign type is specified in 'Sign type information' and is not dependent on the articulator specified at the top of the Location module. \n\n"\
+            "Any set of locations can be marked as neutral by checking the 'This location is neutral' box, even if it differs from the default set in Preferences>Location. "\
+            "You can also designate a neutral space by adding 'Default neutral space' to the location list under the 'Signing space - purely spatial' location type."
+        QMessageBox.about(self, "Neutral locations", message)
+
+
+    def handle_toggle_neutral_pb(self):
+        
+        is_spatial = self.default_neutral_loctype() == "purely spatial"
+
+        # self.signingspacespatial_radio.setEnabled(is_spatial)
+        self.signingspacespatial_radio.setChecked(is_spatial)
+        # self.signingspacebody_radio.setEnabled(not is_spatial)
+        self.signingspacebody_radio.setChecked(not is_spatial)
+
+        self.recreate_treeandlistmodels()
+        treemodel = self.getcurrenttreemodel()
+        neutrallist = []
+        # The default neutral changes depending on whether the sign type is 1h or 2h
+        if self.is_onehanded_sign():
+            neutrallist = self.mainwindow.app_settings['location']['default_loc_1h']
+        else: # if unspecified, choose twohanded values
+            neutrallist = self.mainwindow.app_settings['location']['default_loc_2h']
+
+        if self.mainwindow.app_settings['location']['autocheck_neutral']:
+            self.markneutral_cb.setChecked(True)
+            treemodel.defaultneutralselected = True 
+            treemodel.defaultneutrallist = neutrallist
+        if not is_spatial and len(neutrallist) > 1:
+            treemodel.multiple_selection_allowed = True
+            self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(True)
+        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), neutrallist, include_details=True)
+        self.enablelocationtools()
+    
+    def handle_toggle_neutral_cb(self, btn):
+        treemodel = self.getcurrenttreemodel()
+        treemodel.defaultneutralselected = btn
+        if btn:
+            treemodel.defaultneutrallist = self.locationoptionsselectionpanel.get_listed_paths(include_details=True)
+        else:
+            treemodel.defaultneutrallist = None
+    
+    def check_markneutral_cb(self):
+        self.markneutral_cb.setChecked(True)
+        self.handle_toggle_neutral_cb(True)
+        
+    
+    def is_onehanded_sign(self):
+        specslist = []
+        if hasattr(self.parent().mainwindow.current_sign.signtype, "specslist"):
+            specslist = self.parent().mainwindow.current_sign.signtype.specslist
+        if ('1h', True) in specslist:
+            return True
+        return False
+        
+    def default_neutral_loctype(self):
+        if self.is_onehanded_sign():
+            return self.mainwindow.app_settings['location']['default_loctype_1h']
+        else:
+            return self.mainwindow.app_settings['location']['default_loctype_2h']
+    
     def handle_toggle_locationtype(self, btn):
         if btn is not None and btn.isChecked():
             for b in self.signingspace_subgroup.buttons():
                 b.setEnabled(btn == self.signingspace_radio)
+            
+            if self.default_neutral_loctype() == "purely spatial":
+                enable_default_neutral = self.signingspacespatial_radio.isChecked() and self.signingspacespatial_radio.isEnabled()
+            else:
+                enable_default_neutral = self.signingspacebody_radio.isChecked() and self.signingspacebody_radio.isEnabled()
+            self.applyneutral_pb.setEnabled(enable_default_neutral)
+            
             self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(
                 self.signingspacespatial_radio.isChecked() == False 
                 or self.signingspacespatial_radio.isEnabled() == False)
@@ -579,7 +692,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
     def clear(self):
         """Restore GUI to the defaults."""
         self.clear_loctype_buttons_to_default()
-        self.clear_phonlocs_buttons()
         self.recreate_treeandlistmodels()
         
         # Reset selections
@@ -624,6 +736,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
                 defaultloctype.purelyspatial = True
             elif loctype_setting == 'signingspace_body':
                 defaultloctype.bodyanchored = True
+        self.markneutral_cb.setChecked(False)
         self.set_loctype_buttons_from_content(defaultloctype)
 
     def set_loctype_buttons_from_content(self, loctype):
@@ -633,18 +746,23 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.loctype_subgroup.setExclusive(False)
         self.signingspace_subgroup.setExclusive(False)
 
+
         for btn in self.loctype_subgroup.buttons() + self.signingspace_subgroup.buttons():
             btn.setChecked(False)
-            
+                    
         self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(not loctype.purelyspatial)
         if loctype.body:
             self.body_radio.setChecked(True)
+            self.applyneutral_pb.setEnabled(False)
         elif loctype.signingspace:
             self.signingspace_radio.setChecked(True)
             if loctype.purelyspatial:
                 self.signingspacespatial_radio.setChecked(True)
+                self.applyneutral_pb.setEnabled(self.default_neutral_loctype() == "purely spatial")
+                
             elif loctype.bodyanchored:
                 self.signingspacebody_radio.setChecked(True)
+                self.applyneutral_pb.setEnabled(self.default_neutral_loctype() == "body-anchored")
 
         for btn in self.signingspace_subgroup.buttons():
             btn.setEnabled(not loctype.body)
@@ -653,6 +771,9 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.signingspace_subgroup.setExclusive(True)
         self.loctype_subgroup.blockSignals(False)
         self.signingspace_subgroup.blockSignals(False)
+
+        self.markneutral_cb.setChecked(self.getcurrenttreemodel().defaultneutralselected)
+
 
     def clearlist(self, button):
         numtoplevelitems = self.getcurrenttreemodel().invisibleRootItem().rowCount()

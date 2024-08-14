@@ -201,6 +201,9 @@ class EntryID:
             return ""
 
     def display_string(self):
+        
+        if self.counter in [None, ""]:
+            return ""
         qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         orders_strings = []
@@ -707,6 +710,7 @@ class LocationType:
             self._bodyanchored = False
             self._body = False
 
+
     def usesbodylocations(self):
         return self._body or self._bodyanchored
 
@@ -882,6 +886,16 @@ class TimingInterval:
             elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint) or (other.startpoint <= self.startpoint and other.endpoint > self.startpoint):
                 return True
         return False
+    
+    
+    def includesinterval(self, other):
+        if isinstance(other, TimingInterval):
+            if self.iswholesign() or other.iswholesign():
+                return True
+            elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint):
+                return True
+        return False
+
 
     def iswholesign(self):
         return self.startpoint == TimingPoint(0, 0) and self.endpoint == TimingPoint(0, 1)
@@ -1425,7 +1439,6 @@ class RelationX:
     @othertext.setter
     def othertext(self, othertext):
         self._othertext = othertext
-
 
 class RelationY:
 

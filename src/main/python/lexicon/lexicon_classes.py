@@ -85,7 +85,7 @@ class Sign:
             self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
             self.handconfigmodules = serializedsign['cfg modules']
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
-            self.nonmanualmodules = serializedsign['nonman modules']  if 'nonman modules' in serializedsign else {}
+            self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}  if 'nonman modules' in serializedsign else {}
             self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
                 if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.NONMANUAL)
 
@@ -572,8 +572,9 @@ class Corpus:
 
         for p in missing_values:
             if p not in paths_missing_bc and p not in paths_not_found:
-                treemodel.uncheck_paths(missing_values)
-
+                treemodel.uncheck_paths_from_serialized_tree(missing_values)
+    
+        
         return 
 
     # Converts a string representing a movement/location path into a list of nodes
