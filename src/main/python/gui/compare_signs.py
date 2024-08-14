@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, 
 import json
 
 from lexicon.lexicon_classes import Sign
+from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
 
 class CompareSignsDialog(QDialog):
     def __init__(self, **kwargs):
@@ -144,6 +145,44 @@ class CompareSignsDialog(QDialog):
         return sign1, sign2
 
     def compare_signs(self, sign1: Sign, sign2: Sign):
-        #modules =
+        module_attributes = [attr for attr in dir(sign1) if attr.endswith("modules")]
+        module_attributes = [attr for attr in module_attributes if not callable(getattr(sign1, attr))]
+
+        for module in module_attributes:
+            if 'movement' in module:
+                self.compare_mvmts(sign1, sign2)
+
+    def compare_mvmts(self, sign1: Sign, sign2: Sign):
+        modules = [m for m in sign2.getmoduledict(ModuleTypes.MOVEMENT).values()]
+        for row in mvmt_rows:
+            xslottype = 'ignore' '# self.target_xslottype(row).type
+            target_module = self.target_module(row)
+            svi = self.target_values(row)
+            if hasattr(svi, "articulators"):
+                sign_arts = set()
+                for module in modules:
+                    sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
+                for _ in mvmt_rows:
+                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
+                    if arts not in sign_arts:
+                        return False
+            if hasattr(svi, "paths"):
+                sign_paths = set()
+                for module in modules:
+                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype,
+                                                sign.xslotstructure, self.matchtype):
+                        for p in module.movementtreemodel.get_checked_items():
+                            sign_paths.add(p)
+                if not all(path in sign_paths for path in svi.paths):
+                    return False
+
+        return True
+
+
+
+
+
+
+
 
         pass
