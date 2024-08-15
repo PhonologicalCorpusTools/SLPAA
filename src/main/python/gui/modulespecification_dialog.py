@@ -326,7 +326,7 @@ class ModuleSelectorDialog(QDialog):
             msgBox.setWindowTitle("Articulator Setting Conflict")
             msgBox.setText("The sign type for this sign is 1-handed. Are you sure this module should apply to both hands?")
             no_btn = msgBox.addButton("Return to editing", QMessageBox.ButtonRole.NoRole)
-            msgBox.addButton("Continue", QMessageBox.ButtonRole.YesRole)
+            msgBox.addButton("Continue with both hands", QMessageBox.ButtonRole.YesRole)
             msgBox.setIcon(QMessageBox.Icon.Warning)
             msgBox.exec_()
             if msgBox.clickedButton() == no_btn:
