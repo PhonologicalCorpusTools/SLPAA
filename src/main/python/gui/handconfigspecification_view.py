@@ -32,6 +32,7 @@ from lexicon.module_classes import AddedInfo, HandConfigurationModule, HandConfi
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 from gui.undo_command import TranscriptionUndoCommand
+from gui.link_help import show_help
 
 # redefine from imported value
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
@@ -981,8 +982,10 @@ class Config(QGroupBox):
         self.hand.slot_leave.connect(self.slot_leave.emit)
         self.hand.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
-        self.predefined_button = QPushButton("Load predefined handshape".replace(" ","\n"))
+        self.predefined_button = QPushButton("Load predefined handshape".replace(" ", "\n"))
         self.predefined_button.clicked.connect(self.load_predefined)
+        predefined_help_btn = QPushButton(" Help ".replace(" ", "\n"))
+        predefined_help_btn.clicked.connect(lambda: show_help("predefined_handshapes"))
         hand_box = QGroupBox(parent=self)
         hand_layout = QHBoxLayout()
         hand_layout.setSpacing(5)
@@ -990,6 +993,7 @@ class Config(QGroupBox):
 
         predefined_layout = QVBoxLayout()
         predefined_layout.addWidget(self.predefined_button)
+        predefined_layout.addWidget(predefined_help_btn)
         predefined_layout.addStretch()
 
         hand_layout.addLayout(predefined_layout)

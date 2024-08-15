@@ -22,8 +22,8 @@ from PyQt5.QtWidgets import (
     QSpacerItem
 )
 
-from PyQt5.QtCore import Qt, pyqtSignal, QSettings
-
+from PyQt5.QtCore import pyqtSignal, QSettings
+from gui.link_help import show_help
 from constant import FRACTION_CHAR, HAND, ARM, LEG, DEFAULT_LOC_2H, DEFAULT_LOC_1H
 from fractions import Fraction
 from lexicon.module_classes import treepathdelimiter, LocationModule
@@ -720,7 +720,7 @@ class PreferenceDialog(QDialog):
         self.location_tab = LocationTab(settings, parent=self)
         tabs.addTab(self.location_tab, 'Location')
 
-        buttons = QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.Save | QDialogButtonBox.Help | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
         main_layout.addWidget(self.button_box)
 
@@ -782,6 +782,8 @@ class PreferenceDialog(QDialog):
         standard = self.button_box.standardButton(button)
         if standard == QDialogButtonBox.Cancel:
             self.reject()
+        elif standard == QDialogButtonBox.Help:
+            show_help('preferences')
         elif standard == QDialogButtonBox.Save:
             errormessages = []
             for tab in [self.display_tab, self.entryid_tab, self.reminder_tab, self.signdefaults_tab, self.location_tab]:

@@ -35,6 +35,7 @@ from gui.relationspecification_view import RelationSpecificationPanel
 from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector, PhonLocSelection
+from gui.link_help import show_help
 from constant import HAND, ARM, LEG
 
 
@@ -74,7 +75,6 @@ class ModuleSelectorDialog(QDialog):
             new_instance = False
             if isinstance(moduletoload, LocationModule) or isinstance(moduletoload, MovementModule):
                 inphase = moduletoload.inphase
-               
 
         main_layout = QVBoxLayout()
 
@@ -161,23 +161,35 @@ class ModuleSelectorDialog(QDialog):
         #   "Save and Add Another" button, to allow the user to continue adding new instances.
         # On the other hand, if we're editing an existing instance of a module, then instead we want a
         #   "Delete" button, in case the user wants to delete the instance rather than editing it.
-        buttons = None
-        applytext = ""
-        discardtext = "Delete"
-        if new_instance:
-            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-            applytext = "Save and close"
-        else:
-            buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Discard | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-            applytext = "Save"
 
-        self.button_box = QDialogButtonBox(buttons, parent=self)
+        # initialize button_box
+        self.button_box = QDialogButtonBox(parent=self)
+
+        # buttons to be added to buttons_box. existing instance as the default
+        buttons = [
+            QDialogButtonBox.RestoreDefaults,
+            QDialogButtonBox.Help,
+            QDialogButtonBox.Discard,
+            QDialogButtonBox.Apply,
+            QDialogButtonBox.Cancel
+            ]
+        applytext = "Save"
+
+        # ... and minimal changes if new_instance
         if new_instance:
-            self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
-        else:
-            self.button_box.button(QDialogButtonBox.Discard).setText(discardtext)
-        self.button_box.button(QDialogButtonBox.Apply).setDefault(True)
+            buttons[2] = QDialogButtonBox.Save
+            applytext += " and close"
+
+        [self.button_box.addButton(btn) for btn in buttons]  # populate self.button_box
+        self.button_box.button(QDialogButtonBox.Apply).setDefault(True)  # set 'apply' as default
+
+        # change button text
         self.button_box.button(QDialogButtonBox.Apply).setText(applytext)
+
+        if self.button_box.button(QDialogButtonBox.Discard):
+            self.button_box.button(QDialogButtonBox.Discard).setText("Delete")
+        else:
+            self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
 
         # TODO KV keep? from orig locationdefinerdialog:
         #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
@@ -249,6 +261,8 @@ class ModuleSelectorDialog(QDialog):
 
         if standard == QDialogButtonBox.Cancel:
             self.reject()
+        elif standard == QDialogButtonBox.Help:
+            show_help(self.moduletype)  # when 'help' button clicked
 
         elif standard == QDialogButtonBox.Discard:
             deletethemodule = True

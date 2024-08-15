@@ -58,6 +58,7 @@ from gui.export_csv_dialog import ExportCSVDialog
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
+from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
 from lexicon.module_classes import treepathdelimiter, LocationType
@@ -180,7 +181,7 @@ class MainWindow(QMainWindow):
         action_define_location.setCheckable(False)
 
         # count x-slots
-        action_count_xslots = QAction("Count x-slots", parent=self)
+        action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
 
@@ -211,7 +212,7 @@ class MainWindow(QMainWindow):
         action_merge_corpora.setCheckable(False)
 
         # export corpus in human-readable form
-        action_export_corpus = QAction("Export corpus (beta)", parent=self)
+        action_export_corpus = QAction("Export corpus... (beta)", parent=self)
         action_export_corpus.triggered.connect(self.on_action_export_corpus)
         action_export_corpus.setCheckable(False)
 
@@ -284,6 +285,23 @@ class MainWindow(QMainWindow):
         action_default_view.triggered.connect(self.on_action_default_view)
         action_default_view.setCheckable(False)
 
+        # help > help (open readthedoc's main page)
+        action_help_main = QAction("Help", parent=self)
+        action_help_main.setStatusTip('Open SLPAA documentations')
+        action_help_main.triggered.connect(self.on_action_help_main)
+
+        # help > about
+        # NB: on MacOS the location of this menu is overriden by the OS.
+        # So that "About" will NOT be under 'help' but the leftmost menu.
+        action_help_about = QAction("About", parent=self)
+        action_help_about.setStatusTip('More information about SLPAA')
+        action_help_about.triggered.connect(self.on_action_help_about)
+
+        # help > show version number
+        action_show_version = QAction("Show version number", parent=self)
+        action_show_version.setStatusTip('Show which version of SLPAA I am working with')
+        action_show_version.triggered.connect(self.on_action_show_version)
+
         toolbar.addAction(action_new_sign)
         toolbar.addAction(self.action_delete_sign)
         toolbar.addSeparator()
@@ -347,6 +365,11 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
+
+        menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
+        menu_help.addAction(action_help_main)
+        menu_help.addAction(action_help_about)
+        menu_help.addAction(action_show_version)
 
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
@@ -1159,6 +1182,15 @@ class MainWindow(QMainWindow):
         self.corpus.remove_sign(trash_sign)
         self.unsaved_changes = True
         self.corpus_display.updated_signs(self.corpus.signs, current_sign=trash_sign, deleted=True)
+
+    def on_action_help_main(self):
+        show_help('main')
+
+    def on_action_help_about(self):
+        show_help('about')
+
+    def on_action_show_version(self):
+        show_version()
 
     def flag_and_refresh(self, sign=None):
         # this function is called when sign_updated Signal is emitted, i.e., any sign changes
