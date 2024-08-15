@@ -369,6 +369,8 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
     def validate_and_save(self, addanother=False, closedialog=False):
         inphase = self.articulators_widget.getphase() if self.usearticulators else 0
         addedinfo = self.addedinfobutton.addedinfo
+        phonlocs = self.phonloc_selection.getcurrentphonlocs()
+
         # validate hand selection
         articulatorsvalid, articulators = self.validate_articulators()
 
@@ -386,7 +388,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             QMessageBox.critical(self, "Warning", messagestring)
         else:
             # save info
-            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
             self.module_saved.emit(savedmodule, self.moduletype)
             if closedialog:
                 # close dialog if caller requests it (but if we're only saving so, eg,
