@@ -170,7 +170,7 @@ class MainWindow(QMainWindow):
         action_define_location.setCheckable(False)
 
         # count x-slots
-        action_count_xslots = QAction("Count x-slots", parent=self)
+        action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
 
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
         action_merge_corpora.setCheckable(False)
 
         # export corpus in human-readable form
-        action_export_corpus = QAction("Export corpus (beta)", parent=self)
+        action_export_corpus = QAction("Export corpus... (beta)", parent=self)
         action_export_corpus.triggered.connect(self.on_action_export_corpus)
         action_export_corpus.setCheckable(False)
 
