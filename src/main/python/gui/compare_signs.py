@@ -1,9 +1,151 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QComboBox, \
     QLabel, QHBoxLayout, QPushButton
-import json
+from PyQt5.QtGui import QBrush, QColor
 
-from lexicon.lexicon_classes import Sign
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
+from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
+
+
+class CompareModel:
+    def __init__(self, sign1, sign2):
+        self.sign1 = sign1
+        self.sign2 = sign2
+
+    def compare(self) -> dict:
+        module_attributes = [attr for attr in dir(self.sign1) if attr.endswith("modules")]
+        module_attributes = [attr for attr in module_attributes if not callable(getattr(self.sign1, attr))]
+
+        result = dict()
+
+        for module in module_attributes:
+            if 'movement' in module:
+                mvmt_res = self.compare_mvmts()
+                result['movement'] = mvmt_res
+                print(f'movement_compare:{mvmt_res}')
+            elif 'location' in module:
+                loc_res = self.compare_locations()
+                result['location'] = loc_res
+                print(f'location_compare:{loc_res}')
+            elif 'relation' in module:
+                reln_res = self.compare_relation()
+                result['relation'] = reln_res
+                print(f'relation_compare:{reln_res}')
+
+            elif 'orientation' in module:
+                pass
+        return result
+
+    def compare_mvmts(self) -> dict:
+        def compare_one_mvmt(pair: tuple) -> [bool, bool]:
+            r = []  # return list of two bools each for articulator and path
+            # pair = pair of movementModule
+            s1art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
+            s2art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
+            r.append(True) if set(s1art) == set(s2art) else r.append(False)
+
+            s1path = pair[0].movementtreemodel.get_checked_items()
+            s2path = pair[1].movementtreemodel.get_checked_items()
+            r.append(True) if set(s1path) == set(s2path) else r.append(False)
+
+            return r  # [bool bool] each for articulators and paths
+
+        sign1_modules = [m for m in self.sign1.getmoduledict(ModuleTypes.MOVEMENT).values()]
+        sign2_modules = [m for m in self.sign2.getmoduledict(ModuleTypes.MOVEMENT).values()]
+
+        if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
+                len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
+            return {'X-slots not matching': False}
+        to_compare = zip(sign1_modules, sign2_modules)
+
+        comparison_result = {
+            'articulators': True,
+            'details': True
+        }
+
+        for pair in to_compare:
+            compare_r = compare_one_mvmt(pair)
+            for b, (key, _) in zip(compare_r, comparison_result.items()):
+                if not b:
+                    comparison_result[key] = b
+        return comparison_result
+
+    def compare_locations(self) -> [bool]:
+        def compare_one_location(pair):
+            r = []  # return list of two bools each for articulators, location types, phonological locations, paths
+
+            # articulator
+            s1art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
+            s2art = articulatordisplaytext(pair[1].articulators, pair[1].inphase)
+            r.append(True) if set(s1art) == set(s2art) else r.append(False)
+
+            # location type
+            s1loctype = loctypedisplaytext(pair[0].locationtreemodel.locationtype)
+            s2loctype = loctypedisplaytext(pair[1].locationtreemodel.locationtype)
+            r.append(True) if set(s1loctype) == set(s2loctype) else r.append(False)
+
+            # phonological locations
+            s1pl = phonlocsdisplaytext(pair[0].phonlocs)
+            slpl = phonlocsdisplaytext(pair[1].phonlocs)
+            r.append(True) if set(s1pl) == set(slpl) else r.append(False)
+
+            # paths
+            s1path = pair[0].locationtreemodel.get_checked_items()
+            s2path = pair[1].locationtreemodel.get_checked_items()
+            r.append(True) if set(s1path) == set(s2path) else r.append(False)
+
+            return r
+
+        sign1_modules = [m for m in self.sign1.getmoduledict(ModuleTypes.LOCATION).values()]
+        sign2_modules = [m for m in self.sign2.getmoduledict(ModuleTypes.LOCATION).values()]
+
+        if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
+                len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
+            return {'X-slots not matching': False}
+        to_compare = zip(sign1_modules, sign2_modules)
+
+        comparison_result = {
+            'articulators': True,
+            'location types': True,
+            'phonological locations': True,
+            'details': True,
+        }
+
+        for pair in to_compare:
+            compare_r = compare_one_location(pair)
+            for b, (key, _) in zip(compare_r, comparison_result.items()):
+                if not b:
+                    comparison_result[key] = b
+        return comparison_result
+
+    def compare_relation(self) -> dict:
+        def compare_one_reln(pair: tuple) -> [bool, bool]:
+            r = []  # return list of two bools each for articulators, location types, phonological locations, paths
+
+            # relation
+            s1reln = relationdisplaytext(pair[0])
+            s2reln = relationdisplaytext(pair[1])
+            r.append(True) if set(s1reln) == set(s2reln) else r.append(False)
+
+            return r
+
+        sign1_modules = [m for m in self.sign1.getmoduledict(ModuleTypes.RELATION).values()]
+        sign2_modules = [m for m in self.sign2.getmoduledict(ModuleTypes.RELATION).values()]
+
+        if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
+                len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
+            return {'X-slots not matching': False}
+        to_compare = zip(sign1_modules, sign2_modules)
+        comparison_result = {
+            'relation': True,
+        }
+
+        for pair in to_compare:
+            compare_r = compare_one_reln(pair)
+            for b, (key, _) in zip(compare_r, comparison_result.items()):
+                if not b:
+                    comparison_result[key] = b
+        return comparison_result
+
 
 class CompareSignsDialog(QDialog):
     def __init__(self, **kwargs):
@@ -105,19 +247,37 @@ class CompareSignsDialog(QDialog):
         self.update_trees()
 
     def populate_tree(self, tree, data):
-        tree.clear()
+        def add_items(parent, data):
+            should_color_red = False
+            for key, value in data.items():
+                if isinstance(value, dict):
+                    # Recursive case: create a parent item and recurse into the dictionary
+                    parent_item = QTreeWidgetItem([key])
+                    child_needs_red = add_items(parent_item, value)
+                    parent.addChild(parent_item)  # Add this parent item under the correct section
+                    if child_needs_red:
+                        red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
+                        parent_item.setBackground(0, red_brush)
+                        should_color_red = True
+                else:
+                    # Base case: create an item with the key and color based on value
+                    item = QTreeWidgetItem([key])
+                    if not value:
+                        # Set background to red if the value is False
+                        red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
+                        item.setBackground(0, red_brush)
+                        should_color_red = True
+                    parent.addChild(item)
+            return should_color_red
+
+        # Add each top-level key as a root item in the tree
         for key, value in data.items():
-            parent = QTreeWidgetItem(tree, [key])
-            if isinstance(value, dict):
-                for subkey, subvalue in value.items():
-                    if isinstance(subvalue, dict):
-                        subparent = QTreeWidgetItem(parent, [subkey])
-                        for subsubkey, subsubvalue in subvalue.items():
-                            QTreeWidgetItem(subparent, [subsubkey, subsubvalue])
-                    else:
-                        QTreeWidgetItem(parent, [subkey, subvalue])
-            else:
-                QTreeWidgetItem(parent, [value])
+            root_item = QTreeWidgetItem([key])
+            if add_items(root_item, value):
+                red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
+                root_item.setBackground(0, red_brush)
+            tree.addTopLevelItem(root_item)
+            root_item.setExpanded(True)  # Optionally expand the root item by default
 
     def update_trees(self):
         # update the dialog visual as dropdown selections
@@ -128,7 +288,16 @@ class CompareSignsDialog(QDialog):
         self.tree2.setHeaderLabel(f"Sign 2: {label_sign2}")
 
         sign1, sign2 = self.find_target_signs(label_sign1, label_sign2) # identify signs to compare
-        self.compare_signs(sign1, sign2)
+        compare = CompareModel(sign1, sign2)
+        compare_res = compare.compare()
+
+        # now update trees! start with clearing.
+        self.tree1.clear()
+        self.tree2.clear()
+
+        # populate trees hierarchically
+        self.populate_tree(self.tree1, compare_res)
+        self.populate_tree(self.tree2, compare_res)
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
@@ -144,45 +313,3 @@ class CompareSignsDialog(QDialog):
                 sign2 = sign
         return sign1, sign2
 
-    def compare_signs(self, sign1: Sign, sign2: Sign):
-        module_attributes = [attr for attr in dir(sign1) if attr.endswith("modules")]
-        module_attributes = [attr for attr in module_attributes if not callable(getattr(sign1, attr))]
-
-        for module in module_attributes:
-            if 'movement' in module:
-                self.compare_mvmts(sign1, sign2)
-
-    def compare_mvmts(self, sign1: Sign, sign2: Sign):
-        modules = [m for m in sign2.getmoduledict(ModuleTypes.MOVEMENT).values()]
-        for row in mvmt_rows:
-            xslottype = 'ignore' '# self.target_xslottype(row).type
-            target_module = self.target_module(row)
-            svi = self.target_values(row)
-            if hasattr(svi, "articulators"):
-                sign_arts = set()
-                for module in modules:
-                    sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
-                for _ in mvmt_rows:
-                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
-                    if arts not in sign_arts:
-                        return False
-            if hasattr(svi, "paths"):
-                sign_paths = set()
-                for module in modules:
-                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype,
-                                                sign.xslotstructure, self.matchtype):
-                        for p in module.movementtreemodel.get_checked_items():
-                            sign_paths.add(p)
-                if not all(path in sign_paths for path in svi.paths):
-                    return False
-
-        return True
-
-
-
-
-
-
-
-
-        pass
