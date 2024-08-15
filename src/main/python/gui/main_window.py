@@ -2,6 +2,7 @@ import os
 import pickle
 import json
 import csv
+import re
 from collections import defaultdict
 from copy import deepcopy
 from datetime import date
@@ -1030,7 +1031,18 @@ class MainWindow(QMainWindow):
                         glossesduplicated, lemmaduplicated, idglossduplicated = duplicatedinfoflags[signidx]
                         if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
                             # user wants duplicated ID-glosses to be tagged to differentiate
-                            signtopaste.signlevel_information.idgloss += "1"  # suuuper lazy; doesn't consider numerical value of any previously-existing indices
+                            thisidgloss = signtopaste.signlevel_information.idgloss
+                            idglossmatches = re.match('.*-copy(\d+)$', thisidgloss)
+                            if idglossmatches:
+                                # then this one has already been tagged; we need to increment
+                                currentnum = idglossmatches.group(1)
+                                nextnum = str(int(currentnum) + 1)
+                                indexofnum = thisidgloss.index("-copy") + 5
+                                thisidgloss = thisidgloss[:indexofnum] + nextnum
+                            else:
+                                # then there isn't a tag yet; we need to add one
+                                thisidgloss += "-copy1"
+                            signtopaste.signlevel_information.idgloss = thisidgloss
 
                         if (
                                 (glossesduplicated and self.edit_SLI["gloss"] == "edit")
