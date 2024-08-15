@@ -1222,6 +1222,7 @@ class PastingDuplicateInfoDialog(QDialog):
         glosses_label = QLabel("For signs with duplicated glosses, do you want to:")
         glosses_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
         glosses_edit_rb.setProperty("edit_SLI", "edit")
+        glosses_edit_rb.setChecked(True)
         glosses_leave_rb = QRadioButton("leave them as they are")
         glosses_leave_rb.setProperty("edit_SLI", "leave")
         self.glosses_btngrp = QButtonGroup()
@@ -1231,6 +1232,7 @@ class PastingDuplicateInfoDialog(QDialog):
 
         lemmas_label = QLabel("For signs with duplicated lemmas, do you want to:")
         lemmas_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        lemmas_edit_rb.setChecked(True)
         lemmas_edit_rb.setProperty("edit_SLI", "edit")
         lemmas_leave_rb = QRadioButton("leave them as they are")
         lemmas_leave_rb.setProperty("edit_SLI", "leave")
@@ -1241,6 +1243,7 @@ class PastingDuplicateInfoDialog(QDialog):
 
         idglosses_label = QLabel("For signs with duplicated ID-glosses, do you want to:")
         idglosses_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
+        idglosses_edit_rb.setChecked(True)
         idglosses_edit_rb.setProperty("edit_SLI", "edit")
         idglosses_tag_rb = QRadioButton("tag the pasted sign's ID-gloss with an index numeral (e.g. IDGLOSS1)")
         idglosses_tag_rb.setProperty("edit_SLI", "tag")
@@ -1261,9 +1264,6 @@ class PastingDuplicateInfoDialog(QDialog):
         buttons = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.OKbutton = self.button_box.button(QDialogButtonBox.Ok)
-        self.OKbutton.setEnabled(False)
-        for btngrp in [self.glosses_btngrp, self.lemmas_btngrp, self.idglosses_btngrp]:
-            btngrp.buttonToggled.connect(lambda a0, a1: self.OKbutton.setEnabled(self.validate()))
         self.button_box.clicked.connect(self.handle_button_click)
         main_layout.addWidget(self.button_box)
 
@@ -1274,28 +1274,15 @@ class PastingDuplicateInfoDialog(QDialog):
         if standard == QDialogButtonBox.Cancel:
             self.reject()
         elif standard == QDialogButtonBox.Ok:
-            if self.validate():
-                glossbutton = self.glosses_btngrp.checkedButton()
-                lemmabutton = self.lemmas_btngrp.checkedButton()
-                idglossbutton = self.idglosses_btngrp.checkedButton()
-                self.edit_SLI.emit(
-                    glossbutton.property("edit_SLI") if glossbutton else "none",
-                    lemmabutton.property("edit_SLI") if lemmabutton else "none",
-                    idglossbutton.property("edit_SLI") if idglossbutton else "none"
-                )
-                self.accept()
-            else:
-                # do nothing-- selections not yet filled in
-                pass
-
-    def validate(self):
-        if self.dup_gloss and self.glosses_btngrp.checkedButton() is None:
-            return False
-        if self.dup_lemma and self.lemmas_btngrp.checkedButton() is None:
-            return False
-        if self.dup_idgloss and self.idglosses_btngrp.checkedButton() is None:
-            return False
-        return True
+            glossbutton = self.glosses_btngrp.checkedButton()
+            lemmabutton = self.lemmas_btngrp.checkedButton()
+            idglossbutton = self.idglosses_btngrp.checkedButton()
+            self.edit_SLI.emit(
+                glossbutton.property("edit_SLI") if glossbutton else "none",
+                lemmabutton.property("edit_SLI") if lemmabutton else "none",
+                idglossbutton.property("edit_SLI") if idglossbutton else "none"
+            )
+            self.accept()
 
     def get_grouped_widget(self, label, buttonslist):
         widget = QWidget()
