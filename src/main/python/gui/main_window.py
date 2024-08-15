@@ -997,55 +997,55 @@ class MainWindow(QMainWindow):
         listfromclipboard = self.clipboard if isinstance(self.clipboard, list) else [self.clipboard]
 
         if self.corpus_display.corpus_view.hasFocus():
-            # focus is on the Corpus View, so we need to check if the clipboard contains any Sign objects
-            signstopaste = [itemtopaste for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
+            # focus is on the Corpus View, so we need to make sure we only paste clipboard object if they're Signs
+            signstopaste = [Sign(serializedsign=itemtopaste.serialize())  # can't use deepcopy with Models
+                            for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
             duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
             duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
 
+
             result = None
-            if len(duplicatedinfostrings) > 0:
+            if len(duplicatedinfostrings) == 0:
+                # there were no duplicates; just paste everything
+                for signtopaste in signstopaste:
+                    signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                    self.corpus.add_sign(signtopaste)
+                self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+                return
+            else:  # there were some duplicates; what does the user want to do?
                 duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
                 duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
                 result = duplicateinfodialog.exec_()
 
-            if result == QDialog.Rejected:
-                # user canceled; do not paste signs
-                pass
-            else:
-                # either there were no duplicates, or there were and the user has decided what to do about it
-                for signtopaste in signstopaste:
-                    serialized = signtopaste.serialize()
-                    signtopaste = Sign(serializedsign=serialized)  # can't use deepcopy with Models
-                    if result == QDialog.Accepted:
+                # do what the user decided
+                if result == QDialog.Rejected:
+                    # user canceled; do not paste signs
+                    return
+                elif result == QDialog.Accepted:
+                    # user has decided what to do about the duplicates
+                    for signidx, signtopaste in enumerate(signstopaste):
+                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+
                         # open SLIs or not, as selected by user
-                        glossesduplicated, lemmaduplicated, idglossduplicated = self.corpus.getsigninfoduplicatedincorpus(signtopaste, allof=False)
+                        glossesduplicated, lemmaduplicated, idglossduplicated = duplicatedinfoflags[signidx]
+                        if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
+                            # user wants duplicated ID-glosses to be tagged to differentiate
+                            signtopaste.signlevel_information.idgloss += "1"  # suuuper lazy; doesn't consider numerical value of any previously-existing indices
+
                         if (
                                 (glossesduplicated and self.edit_SLI["gloss"] == "edit")
                                 or (lemmaduplicated and self.edit_SLI["lemma"] == "edit")
                                 or (idglossduplicated and self.edit_SLI["idgloss"] == "edit")
                         ):
                             # user wants to view/edit at least one of the duplicated infos; open SLI dialog
-                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
                             self.current_sign = None
                             self.signlevel_panel.sign = signtopaste
                             # SLI dialog is already able to deal with duplication of existing lemmas & idglosses
                             self.signlevel_panel.handle_signlevelbutton_click()
-                        elif (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
-                            # user doesn't want to view/edit anything, but did request that duplicated ID-glosses be tagged to differentiate
-                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
-                            signtopaste.signlevel_information.idgloss += "1"  # super lazy; doesn't consider numerical value of any previously-existing indices
-                            self.corpus.add_sign(signtopaste)
-                            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
                         else:
-                            # sign not yet in corpus; adding
-                            signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                            # user didn't want to view/edit any of the signs with duplicated infos; just paste
                             self.corpus.add_sign(signtopaste)
                             self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
-                    else:
-                        # there were no duplicates; just paste everything
-                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
-                        self.corpus.add_sign(signtopaste)
-                        self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
 
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs)
