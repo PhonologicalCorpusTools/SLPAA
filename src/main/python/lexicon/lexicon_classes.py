@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+from datetime import datetime
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
@@ -47,8 +48,13 @@ class LocationTranscription:
 class Sign:
     """
     EntryID in signlevel_information is used as the unique key
+    signlevel_info is a SignLevelInformation object and is used for creating a brand-new Sign
+    serializedsign is a dictionary (created by Sign.serialize()) and is used for re-creating a Sign
+        (that had probably been saved to disk, but might also be just for creating copies without referencing the same object on disk)
+    deepcopy is a boolean and determines whether the Sign re-created from serializedsign should be deep-copied
+        (that is, should all the subcomponents such as modules etc also be copies instead of references to the original objects?)
     """
-    def __init__(self, signlevel_info=None, serializedsign=None):
+    def __init__(self, signlevel_info=None, serializedsign=None, deepcopy=False):
         if signlevel_info is not None:
             signlevel_info.parentsign = self
         self._signlevel_information = signlevel_info
@@ -71,24 +77,82 @@ class Sign:
         self.nonmanualmodulenumbers = {}
 
         if serializedsign is not None:
+            # these attributes don't need to be deep-copied
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
             self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
+
+            # the remaining attributes will be re-created differently depending on whether this is a deep copy or not
+            # also note that relation *must* come before location
+            for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
+                self.loadmodules_and_numbering(serializedsign, moduletype, deepcopy=deepcopy)  # TODO
+
+    def loadmodules_and_numbering(self, serializedsign, moduletype, deepcopy=False):
+
+        # movement, relation, and location are all (sort of) deep-copied already because of the need to serialize their underlying models
+        # however, we will still need to assign new unique IDs to the copies in order to fully deep-copy these modules
+        if moduletype == ModuleTypes.MOVEMENT:
             self.unserializemovementmodules(serializedsign['mov modules'])
-            self.movementmodulenumbers = serializedsign['mov module numbers'] if 'mov module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.MOVEMENT)
-            # backward compatibility; also note relation must come before location
+            self.movementmodulenumbers = serializedsign['mov module numbers'] \
+                if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            if deepcopy:
+                # content is already deep-copied but unique IDs are not, so re-ID the modules
+                self.reIDmodules(moduletype)
+        elif moduletype == ModuleTypes.RELATION:
+            # backward compatibility
             self.unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'])
-            self.relationmodulenumbers = serializedsign['rel module numbers'] if 'rel module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.RELATION)
+            self.relationmodulenumbers = serializedsign['rel module numbers'] \
+                if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            if deepcopy:
+                # content is already deep-copied but unique IDs are not, so re-ID the modules
+                self.reIDmodules(moduletype)
+        elif moduletype == ModuleTypes.LOCATION:
             self.unserializelocationmodules(serializedsign['loc modules'])
-            self.locationmodulenumbers = serializedsign['loc module numbers'] if 'loc module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.LOCATION)
-            self.orientationmodules = serializedsign['ori modules']
-            self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
-            self.handconfigmodules = serializedsign['cfg modules']
-            self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
-            self.nonmanualmodules = serializedsign['nonman modules']  if 'nonman modules' in serializedsign else {}
-            self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
-                if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.NONMANUAL)
+            self.locationmodulenumbers = serializedsign['loc module numbers'] \
+                if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            if deepcopy:
+                # content is already deep-copied but unique IDs are not, so re-ID the modules
+                self.reIDmodules(moduletype)
+
+        # if we are doing a deep copy, then orientation, handconfig, and nonmanual will need to have
+        #   both their content deep-copied and their unique IDs redone in order to fully deep-copy
+        if moduletype in [ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
+            if moduletype == ModuleTypes.ORIENTATION:
+                self.orientationmodules = serializedsign['ori modules']
+                self.orientationmodulenumbers = serializedsign['ori module numbers'] \
+                    if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            elif moduletype == ModuleTypes.HANDCONFIG:
+                self.handconfigmodules = serializedsign['cfg modules']
+                self.handconfigmodulenumbers = serializedsign['cfg module numbers'] \
+                    if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            elif moduletype == ModuleTypes.NONMANUAL:
+                self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
+                self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
+                    if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+
+            # for any of orientation, hand config, nonmanual:
+            if deepcopy:
+                for uniqueid in self.getmoduledict(moduletype).keys():
+                    self.getmoduledict(moduletype)[uniqueid] = deepcopy(self.getmoduledict(moduletype)[uniqueid])
+
+        # for any type of module
+        if deepcopy:
+            # re-ID the modules
+            self.reIDmodules(moduletype)
+
+    def reIDmodules(self, moduletype):
+        olduniquedstoremove = self.getmoduledict(moduletype).keys()
+        for old_uniqueid in olduniquedstoremove:
+            # remove old entries from modules and modulenumbers dicts, while saving content
+            module = self.getmoduledict(moduletype).pop(old_uniqueid)
+            modulenum = self.getmodulenumbersdict(moduletype).pop(old_uniqueid)
+
+            # set uniqueID and re-add content to dicts with new uniqueID
+            new_uniqueid = datetime.timestamp(datetime.now())
+            module.uniqueid = new_uniqueid
+            self.getmoduledict(moduletype)[new_uniqueid] = module
+            self.getmodulenumbersdict(moduletype)[new_uniqueid] = modulenum
 
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
