@@ -1004,7 +1004,6 @@ class MainWindow(QMainWindow):
             duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
             duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
 
-
             result = None
             if len(duplicatedinfostrings) == 0:
                 # there were no duplicates; just paste everything
@@ -1032,16 +1031,16 @@ class MainWindow(QMainWindow):
                         if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
                             # user wants duplicated ID-glosses to be tagged to differentiate
                             thisidgloss = signtopaste.signlevel_information.idgloss
-                            idglossmatches = re.match('.*-copy(\d+)$', thisidgloss)
-                            if idglossmatches:
-                                # then this one has already been tagged; we need to increment
-                                currentnum = idglossmatches.group(1)
-                                nextnum = str(int(currentnum) + 1)
-                                indexofnum = thisidgloss.index("-copy") + 5
-                                thisidgloss = thisidgloss[:indexofnum] + nextnum
-                            else:
-                                # then there isn't a tag yet; we need to add one
+                            suffixmatches = re.match('.*-copy(\d+)$', thisidgloss)
+                            if not suffixmatches:
+                                # this one hasn't been tagged yet
                                 thisidgloss += "-copy1"
+                            # set the tag to be one higher than the max currently existing tag for this idgloss
+                            currentmax = self.corpus.highestIDglossindex(thisidgloss)
+                            nextnum = str(currentmax + 1)
+                            indexofnum = thisidgloss.index("-copy") + 5
+                            thisidgloss = thisidgloss[:indexofnum] + nextnum
+
                             signtopaste.signlevel_information.idgloss = thisidgloss
 
                         if (

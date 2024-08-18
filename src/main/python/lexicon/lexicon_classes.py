@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
@@ -456,6 +457,23 @@ class Corpus:
                 s.signlevel_information.entryid.counter += increase_amount
             self.highestID += increase_amount
 
+    # return the highest index in this corpus that is attached to the IDgloss given by idglosstext
+    # if the idgloss doesn't exist or if it is does but it's not indexed, then 0 is returned
+    def highestIDglossindex(self, idglossinput):
+        suffixmatchesinput = re.match('.*(-copy\d+)$', idglossinput)
+        if suffixmatchesinput:
+            idglossinput = idglossinput[:idglossinput.index(suffixmatchesinput.group(1))]
+        idglossinput = idglossinput.lower()
+
+        all_idglosses_lower = [sign.signlevel_information.idgloss.lower() for sign in self.signs]
+        matching_tags = [0]
+        for idgloss_lower in all_idglosses_lower:
+            idglossmatches = re.match(idglossinput + '-copy\d+$', idgloss_lower)
+            suffixmatches = re.match('.*-copy(\d+)$', idgloss_lower)
+            if idglossmatches and suffixmatches:
+                matching_tags.append(int(suffixmatches.group(1)))
+        return max(matching_tags)
+
     def serialize(self):
         # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty
         if len(self) > 0:
@@ -487,17 +505,6 @@ class Corpus:
 
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)
-
-    # return True iff the given sign's gloss(es), lemma, and/or idgloss are already used by other sign/s in this corpus
-    #   sign = the sign whose info to check for (type: Sign)
-    #   allof = a bool that determines whether the search must find ALL of the given sign's info (True), or ANY (False)
-    def signinfoexistsincorpus(self, sign, allof):
-        glossesexist, lemmaexists, idglossexists = self.getsigninfoduplicatedincorpus(sign, allof)
-
-        if allof:
-            return lemmaexists and idglossexists and glossesexist
-        else:  # anyof
-            return lemmaexists or idglossexists or glossesexist
 
     def getsigninfoduplicatedincorpus(self, sign, allof):
         thissign_glosses = sign.signlevel_information.gloss
