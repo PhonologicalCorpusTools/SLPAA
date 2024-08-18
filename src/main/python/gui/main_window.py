@@ -1256,7 +1256,7 @@ class PastingDuplicateInfoDialog(QDialog):
         idglosses_edit_rb = QRadioButton("open the Sign-level Info dialog to view/edit")
         idglosses_edit_rb.setChecked(True)
         idglosses_edit_rb.setProperty("edit_SLI", "edit")
-        idglosses_tag_rb = QRadioButton("tag the pasted sign's ID-gloss with an index numeral (e.g. IDGLOSS1)")
+        idglosses_tag_rb = QRadioButton("tag the pasted sign's ID-gloss with an indexed tag (e.g. IDGLOSS-copy1)")
         idglosses_tag_rb.setProperty("edit_SLI", "tag")
         self.idglosses_btngrp = QButtonGroup()
         self.idglosses_btngrp.addButton(idglosses_edit_rb)

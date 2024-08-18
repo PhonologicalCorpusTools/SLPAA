@@ -466,13 +466,13 @@ class Corpus:
         idglossinput = idglossinput.lower()
 
         all_idglosses_lower = [sign.signlevel_information.idgloss.lower() for sign in self.signs]
-        matching_tags = [0]
+        matching_indices = [0]
         for idgloss_lower in all_idglosses_lower:
             idglossmatches = re.match(idglossinput + '-copy\d+$', idgloss_lower)
             suffixmatches = re.match('.*-copy(\d+)$', idgloss_lower)
             if idglossmatches and suffixmatches:
-                matching_tags.append(int(suffixmatches.group(1)))
-        return max(matching_tags)
+                matching_indices.append(int(suffixmatches.group(1)))
+        return max(matching_indices)
 
     def serialize(self):
         # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty
