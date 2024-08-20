@@ -72,9 +72,6 @@ class ModuleSelectorDialog(QDialog):
             if "1h" in handSelection:
                 articulators = (HAND, {1: True, 2: False})
                 self.defaultHandArticulator = "1h"
-            elif "2h" in handSelection:
-                articulators = (HAND, {1: True, 2: True})
-                self.defaultHandArticulator = "2h"
         if moduletoload is not None:
             self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
