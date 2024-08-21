@@ -36,7 +36,7 @@ from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector, PhonLocSelection
 from gui.link_help import show_help
-from constant import HAND, ARM, LEG
+from constant import SIGN_TYPE, HAND, ARM, LEG
 
 
 class ModuleSelectorDialog(QDialog):
@@ -55,7 +55,7 @@ class ModuleSelectorDialog(QDialog):
         self.linkedfrommoduleid = linkedfrommoduleid
         self.linkedfrommoduletype = linkedfrommoduletype
         self.existingkey = None
-        self.defaultHandArticulator = None
+        self.signtype_specslist = {}
 
         timingintervals = []
         addedinfo = AddedInfo()
@@ -68,10 +68,14 @@ class ModuleSelectorDialog(QDialog):
 
         if HAND in incl_articulators and self.parent().sign.signtype:
             # set default articulators
-            handSelection = self.parent().sign.signtype.specslist[0][0]
-            if "1h" in handSelection:
+            self.signtype_specslist = { art_setting[0] for art_setting in self.parent().sign.signtype.specslist } 
+            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist:
                 articulators = (HAND, {1: True, 2: False})
-                self.defaultHandArticulator = "1h"
+            elif self.moduletype == ModuleTypes.MOVEMENT:
+                if SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist:
+                    articulators = (HAND, {1: True, 2: False})
+                elif SIGN_TYPE["TWO_HANDS_ONLY_H2"] in self.signtype_specslist:
+                    articulators = (HAND, {1: False, 2: True})            
         if moduletoload is not None:
             self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
@@ -96,7 +100,7 @@ class ModuleSelectorDialog(QDialog):
                                                                  parent=self)
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
-        self.phonloc_selection= PhonLocSelection(moduletype == ModuleTypes.LOCATION)
+        self.phonloc_selection= PhonLocSelection(self.moduletype == ModuleTypes.LOCATION)
         if phonlocstoload is not None:
             self.phonloc_selection.set_phonloc_buttons_from_content(phonlocstoload)
         self.arts_and_addedinfo_layout.addWidget(self.phonloc_selection)
@@ -119,9 +123,9 @@ class ModuleSelectorDialog(QDialog):
             main_layout.addWidget(self.xslot_widget)
 
         self.module_widget = QWidget()
-        if moduletype == ModuleTypes.MOVEMENT:
+        if self.moduletype == ModuleTypes.MOVEMENT:
             self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif moduletype == ModuleTypes.LOCATION:
+        elif self.moduletype == ModuleTypes.LOCATION:
             self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.HANDCONFIG:
             self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
@@ -254,6 +258,7 @@ class ModuleSelectorDialog(QDialog):
 
     # validate articulator selection (all modules except relation must have at least one articulator selected)
     def validate_articulators(self):
+        warning_msg = ""
         if self.usearticulators:
             articulator, articulator_dict = self.articulators_widget.getarticulators()
             articulatorsvalid = not (articulator is None or True not in articulator_dict.values())
@@ -262,7 +267,18 @@ class ModuleSelectorDialog(QDialog):
             articulator_dict = {1: False, 2: False}  # as if no articulators are selected
             articulatorsvalid = True
 
-        return articulatorsvalid, (articulator, articulator_dict)
+        if articulator == HAND:
+            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist and articulator_dict[1] and articulator_dict[2]:
+                warning_msg = "The sign type for this sign is 1-handed. Are you sure this module should apply to both hands?"
+            elif SIGN_TYPE["TWO_HANDS"] in self.signtype_specslist and self.moduletype == ModuleTypes.MOVEMENT:
+                if SIGN_TYPE["TWO_HANDS_NO_MVMT"] in self.signtype_specslist and (articulator_dict[1] or articulator_dict[2]):
+                    warning_msg = "The sign type for this sign specifies that neither hand moves. Are you sure you want this movement module to exist?"
+                elif SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist and (articulator_dict[2] or (articulator[1] and articulator[2])):
+                    warning_msg= "The sign type for this sign specifies that only H1 moves. Are you sure you want this movement module to exist?"
+                elif SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist and (articulator_dict[1] or (articulator[1] and articulator[2])) \
+                    or SIGN_TYPE["TWO_HANDS_ONE_MVMT"] in self.signtype_specslist and (articulator[1] and articulator[2]):
+                    warning_msg= "The sign type for this sign specifies that only H2 moves. Are you sure you want this movement module to exist?"
+        return articulatorsvalid, (articulator, articulator_dict), warning_msg
 
     def handle_button_click(self, button):
         standard = self.button_box.standardButton(button)
@@ -316,14 +332,14 @@ class ModuleSelectorDialog(QDialog):
         savedmodule = None
 
         # validate hand selection
-        articulatorsvalid, articulators = self.validate_articulators()
+        articulatorsvalid, articulators, warning_msg = self.validate_articulators()
         # if the default is "1h" and we have both hands selected...
-        if articulators[0] == HAND and self.defaultHandArticulator == "1h" and articulators[1][1] and articulators[1][2]:
+        if warning_msg:
             msgBox = QMessageBox()
             msgBox.setWindowTitle("Articulator Setting Conflict")
-            msgBox.setText("The sign type for this sign is 1-handed. Are you sure this module should apply to both hands?")
+            msgBox.setText(warning_msg)
             no_btn = msgBox.addButton("Return to editing", QMessageBox.ButtonRole.NoRole)
-            msgBox.addButton("Continue with both hands", QMessageBox.ButtonRole.YesRole)
+            msgBox.addButton("Continue with saving module", QMessageBox.ButtonRole.YesRole)
             msgBox.setIcon(QMessageBox.Icon.Warning)
             msgBox.exec_()
             if msgBox.clickedButton() == no_btn:
