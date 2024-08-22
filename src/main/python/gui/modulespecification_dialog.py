@@ -273,11 +273,12 @@ class ModuleSelectorDialog(QDialog):
             elif SIGN_TYPE["TWO_HANDS"] in self.signtype_specslist and self.moduletype == ModuleTypes.MOVEMENT:
                 if SIGN_TYPE["TWO_HANDS_NO_MVMT"] in self.signtype_specslist and (articulator_dict[1] or articulator_dict[2]):
                     warning_msg = "The sign type for this sign specifies that neither hand moves. Are you sure you want this movement module to exist?"
-                elif SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist and (articulator_dict[2] or (articulator[1] and articulator[2])):
+                elif SIGN_TYPE["TWO_HANDS_ONLY_H2"] in self.signtype_specslist and (articulator_dict[2] or (articulator[1] and articulator[2])):
                     warning_msg= "The sign type for this sign specifies that only H1 moves. Are you sure you want this movement module to exist?"
-                elif SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist and (articulator_dict[1] or (articulator[1] and articulator[2])) \
-                    or SIGN_TYPE["TWO_HANDS_ONE_MVMT"] in self.signtype_specslist and (articulator[1] and articulator[2]):
+                elif SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist and (articulator_dict[1] or (articulator[1] and articulator[2])):
                     warning_msg= "The sign type for this sign specifies that only H2 moves. Are you sure you want this movement module to exist?"
+                elif SIGN_TYPE["TWO_HANDS_ONE_MVMT"] in self.signtype_specslist and (articulator[1] and articulator[2]):
+                    warning_msg="The sign type for this sign specifies that only one hand moves. Are you sure you want this movement module to exist?"
         return articulatorsvalid, (articulator, articulator_dict), warning_msg
 
     def handle_button_click(self, button):
