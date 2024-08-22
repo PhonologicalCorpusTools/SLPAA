@@ -1,9 +1,83 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QComboBox, \
     QLabel, QHBoxLayout, QPushButton
 from PyQt5.QtGui import QBrush, QColor
+from collections import defaultdict
 
+
+from constant import ARTICULATOR_ABBREVS
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
+
+
+def get_informative_elements(l: list) -> list:
+    # get the most informative element
+    informative_elements = []
+    roots = defaultdict(list)
+
+    # Group elements by their root (first part before the first '>')
+    for item in l:
+        root = item.split('>')[0]
+        roots[root].append(item)
+
+    # For each group of the same root, find the most informative one (the longest)
+    for group in roots.values():
+        informative_elements.append(max(group, key=len))
+
+    return informative_elements
+
+
+def compare_elements(e1: str, e2: str, pairwise=True) -> (dict, dict):
+    components1 = e1.split('>')
+    components2 = e2.split('>')
+
+    res1 = {}
+    res2 = {}
+
+    for c1, c2 in zip(components1, components2):
+        res1[c1] = (c1 == c2)
+        res2[c2] = (c1 == c2)
+
+    # If there are extra components in either e1 or e2
+    if len(components1) > len(components2):
+        for c in components1[len(components2):]:
+            res1[c] = False
+    elif len(components2) > len(components1):
+        for c in components2[len(components1):]:
+            res2[c] = False
+
+    hierarchical_res1 = current = {}
+    for item in components1[:-1]:
+        current[item] = {}
+        current = current[item]
+    current[components1[-1]] = res1[components1[-1]]
+
+    hierarchical_res2 = current = {}
+    for item in components2[:-1]:
+        current[item] = {}
+        current = current[item]
+    current[components2[-1]] = res2[components2[-1]]
+
+    if not pairwise:
+        current[components1[-1]], current[components2[-1]] = False, False
+
+    return hierarchical_res1, hierarchical_res2
+
+
+def analyze_modules(modules: list, module_numbers: dict, module_abbrev: str) -> dict:
+    r = {}
+    for m in modules:
+        this_uniqid = m.uniqueid
+        articulator_name: str = m.articulators[0]
+        articulator_bool: dict = m.articulators[1]
+        art_abbrev = ARTICULATOR_ABBREVS[articulator_name]
+
+        # for each case where articulator_bool is true, add (key: module_id, value: module)
+        # and module_id is like H1.Mov1 that is in the summary panel!
+        r.update({
+            f'{art_abbrev}{art_num}.{module_abbrev}{module_numbers[this_uniqid]}': m
+            for art_num, b in articulator_bool.items() if b
+        })
+    return r
 
 
 class CompareModel:
@@ -12,49 +86,110 @@ class CompareModel:
         self.sign2 = sign2
 
     def compare(self) -> dict:
+        # list of modules to compare
         module_attributes = [attr for attr in dir(self.sign1) if attr.endswith("modules")]
         module_attributes = [attr for attr in module_attributes if not callable(getattr(self.sign1, attr))]
 
-        result = dict()
+        result = {'sign1': {}, 'sign2': {}}
 
         for module in module_attributes:
             if 'movement' in module:
                 mvmt_res = self.compare_mvmts()
-                result['movement'] = mvmt_res
+                result['sign1']['movement'] = mvmt_res['sign1']
+                result['sign2']['movement'] = mvmt_res['sign2']
+
                 print(f'movement_compare:{mvmt_res}')
             elif 'location' in module:
-                loc_res = self.compare_locations()
-                result['location'] = loc_res
-                print(f'location_compare:{loc_res}')
+                #loc_res = self.compare_locations()
+                #result['location'] = loc_res
+                #print(f'location_compare:{loc_res}')
+                pass
             elif 'relation' in module:
-                reln_res = self.compare_relation()
-                result['relation'] = reln_res
-                print(f'relation_compare:{reln_res}')
+                #reln_res = self.compare_relation()
+                #result['relation'] = reln_res
+                #print(f'relation_compare:{reln_res}')
+                pass
 
             elif 'orientation' in module:
                 pass
         return result
 
-    def compare_mvmts(self) -> dict:
-        def compare_one_mvmt(pair: tuple) -> [bool, bool]:
-            r = []  # return list of two bools each for articulator and path
-            # pair = pair of movementModule
-            s1art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
-            s2art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
-            r.append(True) if set(s1art) == set(s2art) else r.append(False)
+    def get_module_ids(self, module_type: str) -> (dict, dict):
+        mt_arg_map = {'location': ModuleTypes.LOCATION,
+                      'movement': ModuleTypes.MOVEMENT,
+                      'relation': ModuleTypes.RELATION}
 
+        signs = ['sign1', 'sign2']
+        moduletypeabbrev = ModuleTypes.abbreviations[module_type]
+
+        modules_pair = []
+        for s in signs:
+            sign = getattr(self, s)
+            module_numbers = getattr(sign, f'{module_type}modulenumbers')
+            modules = analyze_modules(modules=[m for m in sign.getmoduledict(mt_arg_map[module_type]).values()],
+                                      module_numbers=module_numbers,
+                                      module_abbrev=moduletypeabbrev)
+            modules_pair.append(modules)
+
+        return modules_pair
+
+    def compare_mvmts(self) -> dict:
+        def compare_one(pair: tuple, pairwise: bool = True) -> (dict, dict):
+            # pair = pair of movementModule
+            # pairwise = False if not comparing one pair
+            # return tuple of two dict each contains true or false at each level of granularity
+            results1 = []
+            results2 = []
+
+            # articulator comparison
+            #s1art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
+            #s2art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
+            #if set(s1art) == set(s2art):
+            #    r_sign1['articulator'] = True
+            #    r_sign2['articulator'] = True
+
+            # path comparison
             s1path = pair[0].movementtreemodel.get_checked_items()
             s2path = pair[1].movementtreemodel.get_checked_items()
-            r.append(True) if set(s1path) == set(s2path) else r.append(False)
 
-            return r  # [bool bool] each for articulators and paths
+            s1_path_element = get_informative_elements(s1path)
+            s2_path_element = get_informative_elements(s2path)
 
-        sign1_modules = [m for m in self.sign1.getmoduledict(ModuleTypes.MOVEMENT).values()]
-        sign2_modules = [m for m in self.sign2.getmoduledict(ModuleTypes.MOVEMENT).values()]
+            for e1 in s1_path_element:
+                for e2 in s2_path_element:
+                    if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                        res1, res2 = compare_elements(e1, e2, pairwise=pairwise)
+                        results1.append(res1)
+                        results2.append(res2)
 
-        if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
-                len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
-            return {'X-slots not matching': False}
+            return results1[0], results2[0]
+
+        sign1_modules, sign2_modules = self.get_module_ids(module_type='movement')
+
+        #if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
+        #        len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
+        #    return {'X-slots not matching': False}
+
+        pair_comparison = {'sign1': {}, 'sign2': {}}
+
+        for module_id in sign1_modules:  # module_id is something like H1.Mov1
+            if module_id in sign2_modules:
+                r_sign1, r_sign2 = compare_one((sign1_modules[module_id], sign2_modules[module_id]))
+                pair_comparison['sign1'][module_id] = r_sign1
+                pair_comparison['sign2'][module_id] = r_sign2
+            else:
+                # the module_id exists in sign1 but not in sign2
+                r_sign1, _ = compare_one((sign1_modules[module_id], sign1_modules[module_id]), pairwise=False)
+                pair_comparison['sign1'][module_id] = r_sign1
+
+        for module_id in sign2_modules:
+            # another for-loop to consider module_ids that only exist in sign2
+            if module_id not in sign1_modules:
+                # the module_id exists in sign2 but not in sign1
+                _, r_sign2 = compare_one((sign2_modules[module_id], sign2_modules[module_id]), pairwise=False)
+                pair_comparison['sign2'][module_id] = r_sign2
+
+        """
         to_compare = zip(sign1_modules, sign2_modules)
 
         comparison_result = {
@@ -63,15 +198,16 @@ class CompareModel:
         }
 
         for pair in to_compare:
-            compare_r = compare_one_mvmt(pair)
+            compare_r = compare_one(pair)
             for b, (key, _) in zip(compare_r, comparison_result.items()):
                 if not b:
                     comparison_result[key] = b
-        return comparison_result
+        """
+        return pair_comparison
 
     def compare_locations(self) -> [bool]:
-        def compare_one_location(pair):
-            r = []  # return list of two bools each for articulators, location types, phonological locations, paths
+        def compare_one(pair) -> [bool, bool, bool, bool]:
+            r = []  # return list of bools each for articulators, location types, phonological locations, paths
 
             # articulator
             s1art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
@@ -103,22 +239,22 @@ class CompareModel:
             return {'X-slots not matching': False}
         to_compare = zip(sign1_modules, sign2_modules)
 
-        comparison_result = {
-            'articulators': True,
-            'location types': True,
-            'phonological locations': True,
-            'details': True,
-        }
-
         for pair in to_compare:
-            compare_r = compare_one_location(pair)
-            for b, (key, _) in zip(compare_r, comparison_result.items()):
+            pair_comparison_result = {
+                'articulators': True,
+                'location types': True,
+                'phonological locations': True,
+                'details': True,
+            }
+            compare_r = compare_one(pair)
+            for b, (key, _) in zip(compare_r, pair_comparison_result.items()):
                 if not b:
-                    comparison_result[key] = b
-        return comparison_result
+                    pair_comparison_result[key] = b
+
+        return compare_r
 
     def compare_relation(self) -> dict:
-        def compare_one_reln(pair: tuple) -> [bool, bool]:
+        def compare_one(pair: tuple) -> [bool, bool]:
             r = []  # return list of two bools each for articulators, location types, phonological locations, paths
 
             # relation
@@ -140,7 +276,7 @@ class CompareModel:
         }
 
         for pair in to_compare:
-            compare_r = compare_one_reln(pair)
+            compare_r = compare_one(pair)
             for b, (key, _) in zip(compare_r, comparison_result.items()):
                 if not b:
                     comparison_result[key] = b
@@ -154,52 +290,6 @@ class CompareSignsDialog(QDialog):
         self.corpus = self.parent().corpus
         self.signs = self.corpus.signs  # don't need meta-data and only 'signs' part
         idgloss_list = self.corpus.get_all_idglosses()
-
-
-        # example
-        """
-        self.corpus = {
-
-            "JUSTIFY": {
-                "Sign Type": {"Number of hands": "1"},
-                "Movement": {"Palm up": "Horizontal left", "Fingers forward/rightward": "Horizontal right"},
-                "Location": {"H1.Loc1": "Fixed position", "H2.Loc1": "Fixed position"},
-                "Contact": {"H1.Cont1": "Onto the left palm", "H2.Cont2": "Onto the left palm"},
-                "Handpart": {
-                    "Surface": "b",
-                    "Bones": "[]",
-                    "Part of hand": "[whole hand]",
-                    "Timing": "linked to at least one full x-slot",
-                    "Type of linking": "linked to a single interval",
-                    "Which interval": "x1-whole"
-                },
-                "Orientation": {
-                    "H1.Ori1": {"Palm direction": "up", "Finger root direction": "distal + contra"},
-                    "H2.Ori1": {"Palm direction": "up", "Finger root direction": "distal + contra"}
-                },
-                "Hand Configuration": {"H1.Config1": "Horizontal left", "H2.Config1": "Horizontal right"}
-            },
-            "STOP": {
-                "Sign Type": {"Number of hands": "1"},
-                "Movement": {"Palm facing left": "Right extended B", "Strike upward/backward": "Right extended B"},
-                "Location": {"H1.Loc1": "Semi-vertical position", "H2.Loc1": "Semi-vertical position"},
-                "Contact": {"H1.Cont1": "Onto the left palm", "H2.Cont2": "Onto the left palm"},
-                "Handpart": {
-                    "Surface": "u",
-                    "Bones": "[]",
-                    "Part of hand": "[whole hand]",
-                    "Timing": "linked to at least one full x-slot",
-                    "Type of linking": "linked to a single interval",
-                    "Which interval": "x1-whole"
-                },
-                "Orientation": {
-                    "H1.Ori1": {"Palm direction": "contra", "Finger root direction": "up + distal"},
-                    "H2.Ori1": {"Palm direction": "up + proximal", "Finger root direction": "distal + contra"}
-                },
-                "Hand Configuration": {"H1.Config1": "Right extended B", "H2.Config1": "Right extended B"}
-            }
-        }
-        """
 
         layout = QVBoxLayout()
 
@@ -296,8 +386,8 @@ class CompareSignsDialog(QDialog):
         self.tree2.clear()
 
         # populate trees hierarchically
-        self.populate_tree(self.tree1, compare_res)
-        self.populate_tree(self.tree2, compare_res)
+        self.populate_tree(self.tree1, compare_res['sign1'])
+        self.populate_tree(self.tree2, compare_res['sign2'])
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
