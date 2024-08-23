@@ -9,22 +9,39 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 
 
+def summarize_path_comparison(ld):
+    def fuse_two_dicts(d1, d2):
+        merged = defaultdict(dict)
+
+        for key in set(d1) | set(d2):  # for each key in either d1 or d2
+            if key in d1 and key in d2:
+                if isinstance(d1[key], dict) and isinstance(d2[key], dict):
+                    # Recursively merge dictionaries
+                    merged[key] = fuse_two_dicts(d1[key], d2[key])
+                else:
+                    # If both keys exist and aren't dictionaries, prioritize True
+                    merged[key] = d1[key] or d2[key]
+            elif key in d1:
+                merged[key] = d1[key]
+            else:
+                merged[key] = d2[key]
+
+        return dict(merged)
+
+    result_dict = {}
+
+    for d in ld:
+        result_dict = fuse_two_dicts(result_dict, d)
+
+    return [result_dict]
+
+
 def get_informative_elements(l: list) -> list:
-    # get the most informative element
-    informative_elements = []
-    roots = defaultdict(list)
-
-    # Group elements by their root (first part before the first '>')
-    for item in l:
-        root = item.split('>')[0]
-        roots[root].append(item)
-
-    # For each group of the same root, find the most informative one (the longest)
-    for group in roots.values():
-        informative_elements.append(max(group, key=len))
-
-    return informative_elements
-
+    result = []
+    for element in reversed(l):
+        if not any(element in already for already in result):
+            result.append(element)
+    return result
 
 def compare_elements(e1: str, e2: str, pairwise=True) -> (dict, dict):
     components1 = e1.split('>')
@@ -95,8 +112,17 @@ class CompareModel:
         for module in module_attributes:
             if 'movement' in module:
                 mvmt_res = self.compare_mvmts()
-                result['sign1']['movement'] = mvmt_res['sign1']
-                result['sign2']['movement'] = mvmt_res['sign2']
+                # For 'sign1'
+                result['sign1']['movement'] = {
+                    k: {key: value for d in v for key, value in d.items()}
+                    for k, v in mvmt_res['sign1'].items()
+                }
+
+                # For 'sign2'
+                result['sign2']['movement'] = {
+                    k: {key: value for d in v for key, value in d.items()}
+                    for k, v in mvmt_res['sign2'].items()
+                }
 
                 print(f'movement_compare:{mvmt_res}')
             elif 'location' in module:
@@ -134,7 +160,7 @@ class CompareModel:
         return modules_pair
 
     def compare_mvmts(self) -> dict:
-        def compare_one(pair: tuple, pairwise: bool = True) -> (dict, dict):
+        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list[dict], list[dict]):
             # pair = pair of movementModule
             # pairwise = False if not comparing one pair
             # return tuple of two dict each contains true or false at each level of granularity
@@ -161,8 +187,9 @@ class CompareModel:
                         res1, res2 = compare_elements(e1, e2, pairwise=pairwise)
                         results1.append(res1)
                         results2.append(res2)
-
-            return results1[0], results2[0]
+            results1 = summarize_path_comparison(results1)
+            results2 = summarize_path_comparison(results2)
+            return results1, results2
 
         sign1_modules, sign2_modules = self.get_module_ids(module_type='movement')
 
@@ -174,35 +201,21 @@ class CompareModel:
 
         for module_id in sign1_modules:  # module_id is something like H1.Mov1
             if module_id in sign2_modules:
-                r_sign1, r_sign2 = compare_one((sign1_modules[module_id], sign2_modules[module_id]))
+                r_sign1, r_sign2 = compare_module_pair((sign1_modules[module_id], sign2_modules[module_id]))
                 pair_comparison['sign1'][module_id] = r_sign1
                 pair_comparison['sign2'][module_id] = r_sign2
             else:
                 # the module_id exists in sign1 but not in sign2
-                r_sign1, _ = compare_one((sign1_modules[module_id], sign1_modules[module_id]), pairwise=False)
+                r_sign1, _ = compare_module_pair((sign1_modules[module_id], sign1_modules[module_id]), pairwise=False)
                 pair_comparison['sign1'][module_id] = r_sign1
 
         for module_id in sign2_modules:
             # another for-loop to consider module_ids that only exist in sign2
             if module_id not in sign1_modules:
                 # the module_id exists in sign2 but not in sign1
-                _, r_sign2 = compare_one((sign2_modules[module_id], sign2_modules[module_id]), pairwise=False)
+                _, r_sign2 = compare_module_pair((sign2_modules[module_id], sign2_modules[module_id]), pairwise=False)
                 pair_comparison['sign2'][module_id] = r_sign2
 
-        """
-        to_compare = zip(sign1_modules, sign2_modules)
-
-        comparison_result = {
-            'articulators': True,
-            'details': True
-        }
-
-        for pair in to_compare:
-            compare_r = compare_one(pair)
-            for b, (key, _) in zip(compare_r, comparison_result.items()):
-                if not b:
-                    comparison_result[key] = b
-        """
         return pair_comparison
 
     def compare_locations(self) -> [bool]:
@@ -402,4 +415,3 @@ class CompareSignsDialog(QDialog):
             if not sign2 and sign.signlevel_information.idgloss == label2:
                 sign2 = sign
         return sign1, sign2
-
