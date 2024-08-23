@@ -351,17 +351,24 @@ class CompareSignsDialog(QDialog):
 
     def populate_tree(self, tree, data):
         def add_items(parent, data):
-            should_color_red = False
+            should_paint_red = False
+            should_paint_pink = False
+            all_red = True  # flag that checks if all children are red
+
             for key, value in data.items():
                 if isinstance(value, dict):
                     # Recursive case: create a parent item and recurse into the dictionary
                     parent_item = QTreeWidgetItem([key])
-                    child_needs_red = add_items(parent_item, value)
+                    child_needs_red, child_needs_pink = add_items(parent_item, value)
                     parent.addChild(parent_item)  # Add this parent item under the correct section
+
                     if child_needs_red:
-                        red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
-                        parent_item.setBackground(0, red_brush)
-                        should_color_red = True
+                        should_paint_red = True
+                    else:
+                        all_red = False  # If any child is not red, set all_red to False
+
+                    if child_needs_pink:
+                        should_paint_pink = True
                 else:
                     # Base case: create an item with the key and color based on value
                     item = QTreeWidgetItem([key])
@@ -369,16 +376,34 @@ class CompareSignsDialog(QDialog):
                         # Set background to red if the value is False
                         red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
                         item.setBackground(0, red_brush)
-                        should_color_red = True
+                        should_paint_red = True
+                    else:
+                        all_red = False  # If any child is not red, set all_red to False
                     parent.addChild(item)
-            return should_color_red
+
+            # Determine the color of the current parent node
+            if all_red and should_paint_red:
+                red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
+                parent.setBackground(0, red_brush)
+            elif should_paint_red and not all_red:
+                pink_brush = QBrush(QColor(255, 192, 203, 128))  # semi-transparent pink
+                parent.setBackground(0, pink_brush)
+                should_paint_pink = True
+            return should_paint_red, should_paint_pink
 
         # Add each top-level key as a root item in the tree
         for key, value in data.items():
             root_item = QTreeWidgetItem([key])
-            if add_items(root_item, value):
+            child_needs_red, child_needs_pink = add_items(root_item, value)
+
+            # Determine the color of the root item
+            if child_needs_red and not child_needs_pink:
                 red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
                 root_item.setBackground(0, red_brush)
+            elif child_needs_pink:
+                pink_brush = QBrush(QColor(255, 192, 203, 128))  # semi-transparent pink
+                root_item.setBackground(0, pink_brush)
+
             tree.addTopLevelItem(root_item)
             root_item.setExpanded(True)  # Optionally expand the root item by default
 
