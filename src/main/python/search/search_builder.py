@@ -62,7 +62,8 @@ class SearchWindow(QMainWindow):
         self.app_ctx = app_ctx
         self.corpus = corpus
         self.app_settings = app_settings
-        self.current_sign = SearchWindowSign()
+        sli = self.app_ctx.main_window.current_sign.signlevel_information
+        self.current_sign = SearchWindowSign(signlevel_info=sli)
         self.unsaved_changes = False
 
         main_widget = QWidget()
@@ -988,6 +989,7 @@ class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc n
     def __init__(self, signlevel_info=None, serializedsign=None):
         super().__init__(signlevel_info, serializedsign)
         self._xslotstructure = XslotStructure()
+        
     
     def updatemodules(self, model):
         for row in range(model.rowCount()):

@@ -1,6 +1,6 @@
 import logging, fractions
 from search.search_classes import XslotTypes
-from lexicon.module_classes import TimingInterval, TimingPoint
+from lexicon.module_classes import TimingInterval, TimingPoint, ModuleTypes
 
 def articulatordisplaytext(arts, phase):
     k = arts[0] # hand, arm, or leg
@@ -28,35 +28,53 @@ def relationdisplaytext(relmod):
     bodyparts1 = []
     bodyparts2 = []
     contact = ""
+    manner = ""
     direction = ""
     distance = ""
 
-    if relmod.relationx.connected:
-        relX_str = "relX: both connected"
-    elif relmod.relationx.other:
-        relX_str = "relX: other"
-        if len(relmod.relationx.othertext) > 0:
-            relX_str += " (" + relmod.relationx.othertext + ")"
-    else:
-        rel_dict = relmod.relationx.__dict__
-        for attr in rel_dict:
-            if rel_dict[attr]:
-                relX_str = "relX: " + attr[1:] # attributes are prepended with _
-                break
+    relX_str = relmod.relationx.displaystr()
+    relY_str = relmod.relationy.displaystr()
 
-    if relmod.relationy.existingmodule:
-        # TODO
-        relY_str = "relY: existing module"
-    elif relmod.relationy.other: 
-        relY_str = "relY: other"
-        if len(relmod.relationy.othertext) > 0:
-            relY_str += " (" + relmod.relationx.othertext + ")"
-    else:
-        rel_dict = relmod.relationy.__dict__
-        for attr in "_h2", "_arm2", "_leg1", "_leg2":
-            if rel_dict[attr]:
-                relY_str = "relY: " + attr[1:] # attributes are prepended with _
-                break    
+
+    if relmod.contactrel.contact == False: # if None, then no contact has been specified.
+        contact = "no contact"
+    elif relmod.contactrel.contact:
+        hascontacttype = True
+        hascontactmanner = True
+        contact = "contact"
+        contacttype = relmod.contactrel.contacttype
+        if contacttype.light:
+            contact += ": light"
+        elif contacttype.firm:
+            contact += ": firm"
+        elif contacttype.other:
+            contact += ": other"
+            if len(contacttype.othertext) > 0:
+                contact += f" ({contacttype.othertext})"
+        else:
+            hascontacttype = False
+        contactmanner = relmod.contactrel.manner
+        if contactmanner.holding:
+            manner += "holding"
+        elif contactmanner.continuous:
+            manner += "continuous"
+        elif contactmanner.intermittent:
+            manner += "intermittent"
+        else:
+            hascontactmanner = False
+        
+        if hascontacttype and hascontactmanner:
+            contact = contact + ", " + manner
+        elif hascontactmanner:
+            contact = contact + ": " + manner
+
+    if relmod.xy_linked:
+        direction += "x/y linked"
+    if relmod.xy_crossed:
+        direction += "x/y crossed"
+    # TODO hori, vert, sag; distance
+                
+    
 
     for s in relX_str, relY_str, contact, direction, distance:
         if len(s) > 0:
@@ -138,7 +156,6 @@ def signtypedisplaytext(specslist):
 
 # TODO
 def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslotstructure, matchtype):
-    logging.warning(targetintervals)
     # logging.warning(timingintervals)
     if xslottype == XslotTypes.IGNORE:
         return True

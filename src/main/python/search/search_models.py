@@ -290,21 +290,98 @@ class SearchModel(QStandardItemModel):
         return True
 
     def sign_matches_reln(self, rows, sign):
+        # TODO think about issue where target matches a sign, but matches are split across multiple modules
+        # eg module 1 matches relation_x, module 2 matches contact
+        # instead of using any(), could keep a list of matching modules, and trim the list as modules no longer match successive target specs
         modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
         for row in rows:
-            svi = self.target_values(row)
+            svi = self.target_values(row) 
             xslottype = self.target_xslottype(row)
             target_module = self.target_module(row)
-            sign_vals = set()
-            for module in modules:
-                sign_vals.add(relationdisplaytext(module))
-            for _ in row:
-                vals = relationdisplaytext(svi)
-                if vals not in sign_vals:
+
+            # All relation_x possibilities are mutually exclusive, so check if target relation_x matches at least one of sign's relation_xs
+            target_relationx = target_module.relationx.displaystr()
+            if target_relationx != "":
+                if not any(target_relationx == m.relationx.displaystr() for m in modules):
+                    return False
+            # If target relation_y is "Existing module", this can also match "existing module - locn" or "existing module - mvmt".
+            # Otherwise, relation_y possibilities are mutually exclusive.
+            target_relationy = target_module.relationy.displaystr()
+            if target_relationy != "": 
+                if target_relationy == "Y: existing module":
+                    if not any(target_relationy in m.relationy.displaystr() for m in modules): # match locn and mvmt existing modules
+                        return False
+                else:
+                    if not any(target_relationy == m.relationy.displaystr() for m in modules):
+                        return False
+            # If target contact is only "Contact", this needs to match contact type suboptions (light, firm, other)
+            # If target contact is "No contact", must match signs where contact is not specified or empty (?)
+            # Manner options are mutually exclusive.
+            if target_module.contactrel.contact is False: # if False, then "no contact" specified
+                if not any (m.contactrel.contact == False for m in modules):
+                    return False
+            elif target_module.contactrel.contact is not None:
+                if target_module.contactrel.has_manner() and target_module.contactrel.has_contacttype(): # module must match manner AND contacttype exactly
+                    if not any (m.contactrel.manner == target_module.contactrel.manner and
+                                m.contactrel.contacttype == target_module.contactrel.contacttype 
+                                for m in modules):
+                        return False
+                elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
+                    if not any (m.contactrel.manner == target_module.contactrel.manner for m in modules):
+                        return False
+                elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
+                    if not any (m.contactrel.contacttype == target_module.contactrel.contacttype for m in modules):
+                        return False
+                else: # only "contact" specified, so module must have some contact / contacttype
+                    if not any (m.contactrel.contact for m in modules):
+                        return False
+            
+            # direction:
+            matching_modules = modules
+            if target_module.xy_linked:
+                matching_modules = [m for m in matching_modules if m.xy_linked]
+            if target_module.xy_crossed:
+                matching_modules = [m for m in matching_modules if m.xy_crossed]
+            for i in range(3):
+                if target_module.directions[i].axisselected:
+                    if target_module.has_direction(i): # match exactly because suboption is selected
+                        matching_modules = [m for m in matching_modules if m.directions[i] == target_module.directions[i]]
+                    else: # only axis is selected, so match if any suboption is selected
+                        matching_modules = [m for m in matching_modules if m.has_direction(i)]
+            if len(matching_modules) == 0:
+                return False
+            
+            # Distance:
+            matching_modules = modules
+            if not target_module.contactrel.contact:
+                for i in range(3):
+                    dist = target_module.contactrel.distances[i]
+                    if dist.has_selection():
+                        matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]
+                            
+                if len(matching_modules) == 0:
+                    return False
+            
+            
+            # Paths
+            if hasattr(svi, "paths"):
+                target_dict = target_module.get_paths()
+                
+                flag = False
+                for m in matching_modules:
+                    sign_dict = m.get_paths()
+                    matching_keys = [k for k in sign_dict.keys() if k in target_dict.keys()]
+                    for k in matching_keys:
+                        if all(p in sign_dict[k] for p in target_dict[k]):
+                            flag = True
+                            break
+                if not flag:
                     return False
 
+        return True
+            
 
-        return False
+
     
     def sign_matches_mvmt(self, mvmt_rows, sign):
         modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
@@ -349,7 +426,7 @@ class SearchModel(QStandardItemModel):
                 sign_loctypes = set("")
                 for module in modules:
                     sign_loctypes.update(loctypedisplaytext(module.locationtreemodel.locationtype))
-                for row in locn_rows:
+                for _ in locn_rows:
                     lt = loctypedisplaytext(svi.loctype)
                     if not all(loctype in sign_loctypes for loctype in lt):
                         return False
@@ -357,7 +434,7 @@ class SearchModel(QStandardItemModel):
                 sign_phonlocs = set("")
                 for module in modules:
                     sign_phonlocs.update(phonlocsdisplaytext(module.phonlocs))
-                for row in locn_rows:
+                for _ in locn_rows:
                     pl = phonlocsdisplaytext(svi.phonlocs)
                     if not all(phonloc in sign_phonlocs for phonloc in pl):
                         return False
@@ -635,14 +712,10 @@ class SearchValuesItem:
                     self.loctype = module.locationtreemodel.locationtype
                     todisplay.extend(loctypedisplaytext(self.loctype))
             else: # relation
+                paths = module.get_paths()
                 todisplay.extend(relationdisplaytext(module))
 
-                arts, nums = module.get_articulators_in_use()
-                for i in range(len(arts)):
-                    bodypartinfo = module.bodyparts_dict[arts[i]][nums[i]]
-                    treemodel = bodypartinfo.bodyparttreemodel
-                    paths = treemodel.get_checked_items()
-                    logging.warning(paths)
+                
 
             if len(paths) > 0:
                 self.paths = paths

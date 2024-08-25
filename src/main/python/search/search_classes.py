@@ -302,7 +302,7 @@ class Search_SigntypeSelectorDialog(SigntypeSelectorDialog):
         super().__init__(signtypetoload, **kwargs)
 
 class Search_ModuleSelectorDialog(ModuleSelectorDialog):
-    def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=..., incl_articulator_subopts=0, **kwargs):
+    def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, includephase, incl_articulators, incl_articulator_subopts, **kwargs)
 
@@ -360,15 +360,17 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             self.validate_and_save(addanother=False, closedialog=True)
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
-            # TODO KV -- where should the "defaults" be defined?
-            self.articulators_widget.clear()
+            if self.usearticulators:
+                self.articulators_widget.clear()
             self.addedinfobutton.clear()
-            self.xslot_widget.clear()
+            if self.usexslots:
+                self.xslot_widget.clear()
             self.module_widget.clear()
 
     def validate_and_save(self, addanother=False, closedialog=False):
         inphase = self.articulators_widget.getphase() if self.usearticulators else 0
         addedinfo = self.addedinfobutton.addedinfo
+        phonlocs = self.phonloc_selection.getcurrentphonlocs()
         # validate hand selection
         articulatorsvalid, articulators = self.validate_articulators()
 
@@ -386,7 +388,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             QMessageBox.critical(self, "Warning", messagestring)
         else:
             # save info
-            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, addedinfo, inphase)
+            savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
             self.module_saved.emit(savedmodule, self.moduletype)
             if closedialog:
                 # close dialog if caller requests it (but if we're only saving so, eg,
@@ -426,10 +428,10 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
 class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
-        self.y_existingmod_radio.clicked.connect(self.on_module_link)
+    #     self.y_existingmod_radio.clicked.connect(self.on_module_link)
     
-    def on_module_link(self):
-        QMessageBox.critical(self, "Not implemented", "searching for connected modules not yet implemented")
+    # def on_module_link(self):
+    #     QMessageBox.critical(self, "Not implemented", "searching for connected modules not yet implemented")
 
 
     

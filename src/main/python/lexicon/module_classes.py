@@ -1285,6 +1285,22 @@ class RelationX:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def displaystr(self):
+        relX_str = ""
+        if self.connected:
+            relX_str = "X: both connected"
+        elif self.other:
+            relX_str = "X: other"
+            if len(self.othertext) > 0:
+                relX_str += " (" + self.othertext + ")"
+        else:
+            rel_dict = self.__dict__
+            for attr in rel_dict:
+                if rel_dict[attr]:
+                    relX_str = "X: " + attr[1:] # attributes are prepended with _
+                    break
+        return relX_str
+
     @property
     def h1(self):
         return self._h1
@@ -1462,6 +1478,27 @@ class RelationY:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def displaystr(self):
+        relY_str = ""
+        if self.existingmodule:
+            relY_str = "Y: existing module"
+            if self.linkedmoduletype is not None:
+                if self.linkedmoduletype == ModuleTypes.MOVEMENT:
+                    relY_str += " (mvmt)"
+                else:
+                    relY_str += " (locn)"
+        elif self.other: 
+            relY_str = "Y: other"
+            if len(self.othertext) > 0:
+                relY_str += " (" + self.othertext + ")"
+        else:
+            rel_dict = self.__dict__
+            for attr in "_h2", "_arm2", "_leg1", "_leg2":
+                if rel_dict[attr]:
+                    relY_str = "Y: " + attr[1:] # attributes are prepended with _
+                    break    
+        return relY_str
 
     @property
     def h2(self):
@@ -1656,7 +1693,20 @@ class RelationModule(ParameterModule):
     @directions.setter
     def directions(self, directions):
         self._directions = directions
-
+    
+    def get_paths(self):
+        paths = {}
+        arts, nums = self.get_articulators_in_use()
+        for i in range(len(arts)):
+            bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
+            treemodel = bodypartinfo.bodyparttreemodel
+            paths.update({arts[i]: treemodel.get_checked_items()})
+        return paths
+    
+    def has_direction(self, axisnum): # returns true if suboptions of direction are selected
+        dir = self.directions[axisnum]
+        return dir.plus or dir.minus or dir.inline
+    
     def usesarticulator(self, articulator, artnum=None):
         articulators_in_use = {1: False, 2: False}
         if articulator == HAND:
@@ -1736,6 +1786,7 @@ class MannerRelation:
             repr_str = "intermittent"
 
         return '<MannerRelation: ' + repr(repr_str) + '>'
+    
 
     @property
     def holding(self):
@@ -1811,6 +1862,11 @@ class ContactRelation:
 
         return '<ContactRelation: ' + repr(repr_str) + '>'
 
+    def has_manner(self):
+        return self.manner.holding or self.manner.intermittent or self.manner.continuous
+
+    def has_contacttype(self):
+        return self.contacttype.light or self.contacttype.firm or self.contacttype.other
     @property
     def contact(self):
         return self._contact
@@ -2043,6 +2099,9 @@ class Distance:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def has_selection(self):
+        return self.close or self.medium or self.far
 
     @property
     def axis(self):
