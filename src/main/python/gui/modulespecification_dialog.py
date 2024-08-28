@@ -69,7 +69,7 @@ class ModuleSelectorDialog(QDialog):
         if HAND in incl_articulators and self.parent().sign.signtype:
             # set default articulators
             self.signtype_specslist = { art_setting[0] for art_setting in self.parent().sign.signtype.specslist } 
-            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist:
+            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist and SIGN_TYPE["ONE_HAND_NO_MVMT"] not in self.signtype_specslist:
                 articulators = (HAND, {1: True, 2: False})
             elif self.moduletype == ModuleTypes.MOVEMENT:
                 if SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist:
@@ -258,27 +258,42 @@ class ModuleSelectorDialog(QDialog):
 
     # validate articulator selection (all modules except relation must have at least one articulator selected)
     def validate_articulators(self):
-        warning_msg = ""
+        def calculate_selected_hand(articulator_dict):
+                if articulator_dict[1] and not articulator_dict[2]:
+                    return "H1"
+                elif not articulator_dict[1] and articulator_dict[2]:
+                    return "H2"
+                elif articulator_dict[1] and articulator_dict[2]:
+                    return "both hands"
+                else:
+                    "no articulator"
+                    
         if self.usearticulators:
             articulator, articulator_dict = self.articulators_widget.getarticulators()
-            articulatorsvalid = not (articulator is None or True not in articulator_dict.values())
+            articulatorsvalid = not articulator is None and True in articulator_dict.values()
         else:
             articulator = ""  # otherwise "Hand", "Arm", or "Leg"
             articulator_dict = {1: False, 2: False}  # as if no articulators are selected
             articulatorsvalid = True
 
+        warning_msg = ""
         if articulator == HAND:
-            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist and articulator_dict[1] and articulator_dict[2]:
+            both_hands_selected = articulator_dict[1] and articulator_dict[2]
+            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist and both_hands_selected:
                 warning_msg = "The sign type for this sign is 1-handed. Are you sure this module should apply to both hands?"
-            elif SIGN_TYPE["TWO_HANDS"] in self.signtype_specslist and self.moduletype == ModuleTypes.MOVEMENT:
+            elif self.moduletype == ModuleTypes.MOVEMENT:
+                if SIGN_TYPE["ONE_HAND_NO_MVMT"] in self.signtype_specslist:
+                    warning_msg = "The sign type for this sign specifies that the hand doesn't move. Are you sure you want this movement module to exist?"
                 if SIGN_TYPE["TWO_HANDS_NO_MVMT"] in self.signtype_specslist and (articulator_dict[1] or articulator_dict[2]):
                     warning_msg = "The sign type for this sign specifies that neither hand moves. Are you sure you want this movement module to exist?"
-                elif SIGN_TYPE["TWO_HANDS_ONLY_H2"] in self.signtype_specslist and (articulator_dict[2] or (articulator[1] and articulator[2])):
-                    warning_msg= "The sign type for this sign specifies that only H1 moves. Are you sure you want this movement module to exist?"
-                elif SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist and (articulator_dict[1] or (articulator[1] and articulator[2])):
-                    warning_msg= "The sign type for this sign specifies that only H2 moves. Are you sure you want this movement module to exist?"
-                elif SIGN_TYPE["TWO_HANDS_ONE_MVMT"] in self.signtype_specslist and (articulator[1] and articulator[2]):
-                    warning_msg="The sign type for this sign specifies that only one hand moves. Are you sure you want this movement module to exist?"
+                elif SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist and (articulator_dict[2] or both_hands_selected):
+                    warning_msg = f"The sign type for this sign specifies that only H1 moves. Are you sure you want this movement module to apply to {calculate_selected_hand(articulator_dict)}?"
+                elif SIGN_TYPE["TWO_HANDS_ONLY_H2"] in self.signtype_specslist and (articulator_dict[1] or both_hands_selected):
+                    warning_msg = f"The sign type for this sign specifies that only H2 moves. Are you sure you want this movement module to apply to {calculate_selected_hand(articulator_dict)}?"
+                elif SIGN_TYPE["TWO_HANDS_ONE_MVMT"] in self.signtype_specslist and both_hands_selected:
+                    # this is when there is no specification for which hand moves
+                    warning_msg = f"The sign type for this sign specifies that only one hand moves. Are you sure you want this movement module to apply to both hands?"
+
         return articulatorsvalid, (articulator, articulator_dict), warning_msg
 
     def handle_button_click(self, button):
