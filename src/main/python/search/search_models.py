@@ -412,7 +412,7 @@ class SearchModel(QStandardItemModel):
         modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
         for row in locn_rows:
             svi = self.target_values(row)
-            xslottype = self.target_xslottype(row)
+            xslottype = self.target_xslottype(row).type
             target_module = self.target_module(row)
             if hasattr(svi, "articulators"):
                 sign_arts = set("")
@@ -442,7 +442,8 @@ class SearchModel(QStandardItemModel):
                 sign_paths = set("")
                 for module in modules:
                     if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
-                        sign_paths.update(module.locationtreemodel.get_checked_items())
+                        fully_checked = target_module.locationtreemodel.nodes_are_terminal
+                        sign_paths.update(module.locationtreemodel.get_checked_items(only_fully_checked=fully_checked))
                 if not all(path in sign_paths for path in svi.paths):
                     return False
                     
@@ -465,7 +466,7 @@ class SearchModel(QStandardItemModel):
                 timingintervals = serialmodule.timingintervals
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # 
                 phonlocs = serialmodule.phonlocs
-                unserialized = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs, inphase)
+                unserialized = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
                 return unserialized
             elif type == ModuleTypes.RELATION:
 
@@ -704,7 +705,7 @@ class SearchValuesItem:
             if self.type == ModuleTypes.MOVEMENT:
                 paths = module.movementtreemodel.get_checked_items()
             elif self.type == ModuleTypes.LOCATION:
-                paths = module.locationtreemodel.get_checked_items()
+                paths = module.locationtreemodel.get_checked_items(only_fully_checked=True)
                 if not module.phonlocs.allfalse():
                     self.phonlocs = module.phonlocs
                     todisplay.extend(phonlocsdisplaytext(self.phonlocs))

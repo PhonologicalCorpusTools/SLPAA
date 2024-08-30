@@ -7,7 +7,7 @@ from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
-from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
+from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule
 from lexicon.lexicon_classes import Sign, SignLevelInformation
 from gui.modulespecification_dialog import ModuleSelectorDialog
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
@@ -302,6 +302,7 @@ class Search_SigntypeSelectorDialog(SigntypeSelectorDialog):
         super().__init__(signtypetoload, **kwargs)
 
 class Search_ModuleSelectorDialog(ModuleSelectorDialog):
+
     def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, includephase, incl_articulators, incl_articulator_subopts, **kwargs)
@@ -416,10 +417,35 @@ class Search_MovementSpecPanel(MovementSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
 
+    
+
+
 
 class Search_LocationSpecPanel(LocationSpecificationPanel):
     def __init__(self, moduletoload=None, showimagetabs=True, **kwargs):
         super().__init__(moduletoload, showimagetabs, **kwargs)
+
+        self.make_terminal_node_cb()
+        if moduletoload is not None and isinstance(moduletoload, LocationModule):
+            self.locationoptionsselectionpanel.terminal_node_cb.setChecked(self.getcurrenttreemodel().nodes_are_terminal)
+    
+    def make_terminal_node_cb(self):
+        # used in search window
+        self.locationoptionsselectionpanel.terminal_node_cb = QCheckBox("Interpret selections as terminal nodes")
+        self.locationoptionsselectionpanel.terminal_node_cb.setEnabled(len(self.locationoptionsselectionpanel.get_listed_paths())>0)
+        self.locationoptionsselectionpanel.search_layout.addWidget(self.locationoptionsselectionpanel.terminal_node_cb)
+        if self.getcurrenttreemodel().nodes_are_terminal:
+            self.locationoptionsselectionpanel.terminal_node_cb.setChecked(True)
+        self.locationoptionsselectionpanel.terminal_node_cb.clicked.connect(self.handle_toggle_terminal_node)
+
+    def handle_toggle_terminal_node(self):
+        self.getcurrenttreemodel().nodes_are_terminal = self.locationoptionsselectionpanel.terminal_node_cb.isChecked()
+
+    
+    def clear(self):
+        super().clear()
+        self.locationoptionsselectionpanel.terminal_node_cb.setChecked(False)
+        self.locationoptionsselectionpanel.terminal_node_cb.setEnabled(False)
 
 class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
