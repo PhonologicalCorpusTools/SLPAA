@@ -69,13 +69,14 @@ class ModuleSelectorDialog(QDialog):
         if HAND in incl_articulators and self.parent().sign.signtype:
             # set default articulators
             self.signtype_specslist = { art_setting[0] for art_setting in self.parent().sign.signtype.specslist } 
-            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist and SIGN_TYPE["ONE_HAND_NO_MVMT"] not in self.signtype_specslist:
+            if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist and \
+                not (SIGN_TYPE["ONE_HAND_NO_MVMT"] in self.signtype_specslist and self.moduletype == ModuleTypes.MOVEMENT):
                 articulators = (HAND, {1: True, 2: False})
             elif self.moduletype == ModuleTypes.MOVEMENT:
                 if SIGN_TYPE["TWO_HANDS_ONLY_H1"] in self.signtype_specslist:
                     articulators = (HAND, {1: True, 2: False})
                 elif SIGN_TYPE["TWO_HANDS_ONLY_H2"] in self.signtype_specslist:
-                    articulators = (HAND, {1: False, 2: True})            
+                    articulators = (HAND, {1: False, 2: True})        
         if moduletoload is not None:
             self.existingkey = moduletoload.uniqueid
             timingintervals = deepcopy(moduletoload.timingintervals)
