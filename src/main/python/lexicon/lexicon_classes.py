@@ -561,6 +561,16 @@ class Corpus:
                 newpath = treepathdelimiter.join(path)
                 correctionsdict[type][entryidcounter][newpath] = oldpath
                 newpaths.append(newpath)
+
+        # Issue 371
+        if type != ModuleTypes.MOVEMENT:
+            for oldpath in treemodel.checked:
+                newpath = self.get_contra_path(oldpath)
+                if newpath is not None:
+                    newpath = treepathdelimiter.join(newpath)
+                    correctionsdict[type][entryidcounter][newpath] = oldpath
+                    newpaths.append(newpath)
+
         thisdict = correctionsdict[type][entryidcounter]
         treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
         
@@ -574,7 +584,6 @@ class Corpus:
             if p not in paths_missing_bc and p not in paths_not_found:
                 treemodel.uncheck_paths_from_serialized_tree(missing_values)
     
-        
         return 
 
     # Converts a string representing a movement/location path into a list of nodes
@@ -702,3 +711,16 @@ class Corpus:
                 nodes[3].replace('Mastoid process', 'Behind ear')
                 paths_to_add.append(nodes)
         return paths_to_add
+
+    def get_contra_path(self, path):
+
+        nodes = self.get_node_sequence(path)
+        l = len(nodes)
+        if nodes[0] == 'Whole hand':
+            
+            if 'contra' not in nodes[-1] and 'ipsi' not in nodes[-1]:
+                logging.warning(nodes)
+                nodes.insert(l, nodes[-1] + " - contra")
+                logging.warning(nodes)
+                return nodes
+        return None
