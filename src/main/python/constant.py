@@ -349,6 +349,30 @@ CONTRA = "contra"
 IPSI = "ipsi"
 
 
+# Sign type constants
+SIGN_TYPE = {
+    "ONE_HAND": "1h",
+    "ONE_HAND_MVMT": "1h.moves",
+    "ONE_HAND_NO_MVMT": "1h.no mvmt",
+    "TWO_HANDS": "2h",
+    "TWO_HANDS_SAME_HCONF": "2h.same HCs",
+    "TWO_HANDS_DIFF_HCONF": "2h.different HCs",
+    "TWO_HANDS_MAINT_CONT": "2h.maintain contact",
+    "TWO_HANDS_NO_CONT": "2h.contact not maintained",
+    "TWO_HANDS_BISYM": "2h.bilaterally symmetric",
+    "TWO_HANDS_NO_BISYM": "2h.not bilaterally symmetric",
+    "TWO_HANDS_NO_MVMT": "2h.neither moves",
+    "TWO_HANDS_ONE_MVMT": "2h.only 1 moves",
+    "TWO_HANDS_BOTH_MVMT": "2h.both move",
+    "TWO_HANDS_ONLY_H1": "2h.only 1 moves.H1 moves",
+    "TWO_HANDS_ONLY_H2": "2h.only 1 moves.H2 moves",
+    "TWO_HANDS_BOTH_MVMT_DIFF": "2h.both move.move differently",
+    "TWO_HANDS_BOTH_MVMT_SAME": "2h.both move.move similarly",
+    "TWO_HANDS_BOTH_MVMT_SEQ": "2h.both move.move similarly.sequential",
+    "TWO_HANDS_BOTH_MVMT_SIMU": "2h.both move.move similarly.simultaneous"
+}
+
+
 treepathdelimiter = ">" # define here or in module_classes?
 DEFAULT_LOC_1H = {"Horizontal axis" + treepathdelimiter + "Ipsi": None, 
                 "Vertical axis" + treepathdelimiter + "Mid": None,
