@@ -563,13 +563,22 @@ class Corpus:
                 newpaths.append(newpath)
 
         # Issue 371
-        if type != ModuleTypes.MOVEMENT:
+        if type == ModuleTypes.LOCATION:
+            to_remove = []
             for oldpath in treemodel.checked:
                 newpath = self.get_contra_path(oldpath)
                 if newpath is not None:
+                    to_remove.append(oldpath)
                     newpath = treepathdelimiter.join(newpath)
                     correctionsdict[type][entryidcounter][newpath] = oldpath
                     newpaths.append(newpath)
+            if len(to_remove) > 0:
+                label = "   EntryID counter " + str(entryidcounter) + " " + str(type) + str(count+1)
+                logging.warning(label + ": 'contra' node appended for " + str(to_remove))
+                for p in to_remove:
+                    treemodel.uncheck_items(p)
+            
+            
 
         thisdict = correctionsdict[type][entryidcounter]
         treemodel.addcheckedvalues(treemodel.invisibleRootItem(), newpaths, thisdict)
@@ -582,7 +591,7 @@ class Corpus:
 
         for p in missing_values:
             if p not in paths_missing_bc and p not in paths_not_found:
-                treemodel.uncheck_paths_from_serialized_tree(missing_values)
+                treemodel.uncheck_paths_from_serialized_tree(p)
     
         return 
 
@@ -718,9 +727,7 @@ class Corpus:
         l = len(nodes)
         if nodes[0] == 'Whole hand':
             
-            if 'contra' not in nodes[-1] and 'ipsi' not in nodes[-1]:
-                logging.warning(nodes)
+            if 'contra' not in nodes[-1] and 'ipsi' not in nodes[-1] and 'Selected' not in nodes[-1]:
                 nodes.insert(l, nodes[-1] + " - contra")
-                logging.warning(nodes)
                 return nodes
         return None

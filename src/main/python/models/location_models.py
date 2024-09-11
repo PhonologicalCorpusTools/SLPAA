@@ -4,7 +4,8 @@ from PyQt5.QtCore import (
     Qt,
     QSortFilterProxyModel,
     QDateTime,
-    QAbstractTableModel
+    QAbstractTableModel,
+    QModelIndex
 )
 
 from PyQt5.Qt import (
@@ -818,6 +819,29 @@ class LocationTreeModel(QStandardItemModel):
                 elif self.hasselections(treechild):
                     return True
             return False
+
+    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True):
+        checked_values = []
+        for row in range(self.rowCount(parent_index)):
+            index = self.index(row, 0, parent_index)
+            if only_fully_checked:
+                checkstate_to_match = Qt.Checked # 2
+            else:
+                checkstate_to_match = Qt.PartiallyChecked # 1
+            if index.data(Qt.CheckStateRole) >= checkstate_to_match:
+                checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
+            
+            checked_values.extend(self.get_checked_items(index, only_fully_checked))
+        return checked_values
+
+    def uncheck_items(self, items, parent_index=QModelIndex()):
+        for row in range(self.rowCount(parent_index)):
+            index = self.index(row, 0, parent_index)
+            if index.data(Qt.UserRole+udr.pathdisplayrole) in items:
+                self.setData(index, Qt.Unchecked, Qt.CheckStateRole) 
+            self.uncheck_items(items, index)
+
+    
 
 class BodypartTreeModel(LocationTreeModel):
 
