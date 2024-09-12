@@ -999,7 +999,7 @@ class MainWindow(QMainWindow):
 
         if self.corpus_display.corpus_view.hasFocus():
             # focus is on the Corpus View, so we need to make sure we only paste clipboard object if they're Signs
-            signstopaste = [Sign(serializedsign=itemtopaste.serialize())  # can't use deepcopy with Models
+            signstopaste = [Sign(serializedsign=itemtopaste.serialize(), makedeepcopy=True)  # can't use deepcopy with Models
                             for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
             duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
             duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
