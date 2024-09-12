@@ -57,7 +57,7 @@ class ModuleSelectorDialog(QDialog):
         self.existingkey = None
         self.signtype_specslist = {}
 
-        timingintervals = []
+        self.loaded_timingintervals = []
         addedinfo = AddedInfo()
         phonlocstoload = None
         new_instance = True
@@ -79,7 +79,7 @@ class ModuleSelectorDialog(QDialog):
                     articulators = (HAND, {1: False, 2: True})
         if moduletoload is not None:
             self.existingkey = moduletoload.uniqueid
-            timingintervals = deepcopy(moduletoload.timingintervals)
+            self.loaded_timingintervals = deepcopy(moduletoload.timingintervals)
             addedinfo = deepcopy(moduletoload.addedinfo)
             phonlocstoload = moduletoload.phonlocs
             if moduletoload.articulators is not None:
@@ -119,7 +119,7 @@ class ModuleSelectorDialog(QDialog):
         if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
             self.usexslots = True
             self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
-                                                  timingintervals=timingintervals,
+                                                  timingintervals=self.loaded_timingintervals,
                                                   parent=self)
             main_layout.addWidget(self.xslot_widget)
 
@@ -250,9 +250,15 @@ class ModuleSelectorDialog(QDialog):
         if self.usexslots:
             timingintervals = self.xslot_widget.gettimingintervals()
             timingvalid = len(timingintervals) != 0
+        elif len(self.loaded_timingintervals) > 0:
+            # we're currently in "no x-slots" mode BUT we've loaded a previously-existing module that was
+            #   created when x-slots *were* being used... so preserve the existing timing information in
+            #   case the user wants to return to x-slots mode
+            timingintervals = self.loaded_timingintervals
+            timingvalid = True
         else:
             # no x-slots; make the timing interval be for the whole sign
-            timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(1, 0))]
+            timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1))]
             timingvalid = True
 
         return timingvalid, timingintervals
@@ -384,7 +390,7 @@ class ModuleSelectorDialog(QDialog):
         if messagestring != "":
             # warn user that there's missing and/or invalid info and don't let them save
             QMessageBox.critical(self, "Warning", messagestring)
-        elif messagestring == "" and modulevalid == False:
+        elif messagestring == "" and not modulevalid:
             return savedmodule 
         elif addanother:
             # save info and then refresh screen to start next module

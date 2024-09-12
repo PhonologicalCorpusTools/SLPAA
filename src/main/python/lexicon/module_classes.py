@@ -812,6 +812,8 @@ class TimingPoint:
 
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
+# in order to represent a "whole sign" timing interval (no matter how many x-slots long), use
+#   TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1))
 class TimingInterval:
 
     # startpt (type TimingPoint) = the point at which this xslot interval begins
