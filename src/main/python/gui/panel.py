@@ -739,7 +739,6 @@ class SignSummaryPanel(QScrollArea):
         module_selector = ModuleSelectorDialog(moduletype=moduletype,
                                                xslotstructure=self.sign.xslotstructure,
                                                moduletoload=module_to_edit,
-                                               includephase=includephase,
                                                incl_articulators=includearticulators,
                                                incl_articulator_subopts=includephase,
                                                parent=self
@@ -922,7 +921,6 @@ class SignLevelMenuPanel(QScrollArea):
         module_selector = ModuleSelectorDialog(moduletype=moduletype,
                                                xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                moduletoload=None,
-                                               includephase=includephase,
                                                incl_articulators=includearticulators,
                                                incl_articulator_subopts=includephase,
                                                parent=self)
