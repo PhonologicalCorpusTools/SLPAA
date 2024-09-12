@@ -466,6 +466,7 @@ class SigntypeCheckBox(QCheckBox):
     def __repr__(self):
         return '<SigntypeCheckBox: ' + repr(self.text()) + '>'
 
+# here's a random comment
 
 class SigntypeSelectorDialog(QDialog):
     saved_signtype = pyqtSignal(Signtype)
