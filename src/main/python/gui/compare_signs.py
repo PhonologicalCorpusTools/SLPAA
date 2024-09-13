@@ -349,6 +349,14 @@ class CompareSignsDialog(QDialog):
 
         self.update_trees()
 
+        # Connect expand/collapse events
+        self.tree1.itemExpanded.connect(lambda item: self.on_item_expanded(item, self.tree2))
+        self.tree1.itemCollapsed.connect(lambda item: self.on_item_collapsed(item, self.tree2))
+
+        self.tree2.itemExpanded.connect(lambda item: self.on_item_expanded(item, self.tree1))
+        self.tree2.itemCollapsed.connect(lambda item: self.on_item_collapsed(item, self.tree1))
+
+
     def populate_tree(self, tree, data):
         def add_items(parent, data):
             should_paint_red = False
@@ -415,7 +423,7 @@ class CompareSignsDialog(QDialog):
         self.tree1.setHeaderLabel(f"Sign 1: {label_sign1}")
         self.tree2.setHeaderLabel(f"Sign 2: {label_sign2}")
 
-        sign1, sign2 = self.find_target_signs(label_sign1, label_sign2) # identify signs to compare
+        sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # identify signs to compare
         compare = CompareModel(sign1, sign2)
         compare_res = compare.compare()
 
@@ -440,3 +448,56 @@ class CompareSignsDialog(QDialog):
             if not sign2 and sign.signlevel_information.idgloss == label2:
                 sign2 = sign
         return sign1, sign2
+
+    def on_item_expanded(self, item, target_tree):
+        # when a qtreeitem gets expanded do the following:
+        # - find corresponding line in the other tree and expand
+        # - change colour
+
+        # Find and expand the corresponding item in the target tree
+        path = self.get_full_path(item)
+        corresponding_item = self.find_corresponding_line(path, target_tree)
+        if corresponding_item:
+            target_tree.blockSignals(True)
+            target_tree.expandItem(corresponding_item)
+            target_tree.blockSignals(False)
+
+    def on_item_collapsed(self, item, target_tree):
+        # when a qtreeitem gets expanded do the following:
+        # - find corresponding line in the other tree and expand
+        # - change colour
+
+        # Find and collapse the corresponding item in the target tree
+        path = self.get_full_path(item)
+        corresponding_item = self.find_corresponding_line(path, target_tree)
+        if corresponding_item:
+            target_tree.blockSignals(True)
+            target_tree.collapseItem(corresponding_item)
+            target_tree.blockSignals(False)
+
+    def get_full_path(self, item):
+        # helper function to get a full ancestry of a tree item
+        path = []
+        while item:
+            path.append(item.text(0))
+            item = item.parent()
+        return path[::-1]  # Reverse to get root-to-item order
+
+    def find_corresponding_line(self, line, tree):
+        # find line correspondences between trees,
+        # e.g., expanding 'movement' in tree1 should find 'movement' line in tree2
+
+        current = tree.invisibleRootItem()
+
+        # Iterate through the path (line) to find the corresponding item
+        for part in line:
+            found = False
+            for i in range(current.childCount()):
+                child = current.child(i)
+                if child.text(0) == part:
+                    current = child
+                    found = True
+                    break
+            if not found:
+                return None  # Return None if the item in the path doesn't exist
+        return current  # Return the found corresponding item
