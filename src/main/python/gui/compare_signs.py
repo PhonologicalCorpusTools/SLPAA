@@ -329,6 +329,7 @@ class CompareSignsDialog(QDialog):
         self.tree2 = QTreeWidget()
         self.tree2.setHeaderLabel("Sign 2")
 
+        # add two trees
         splitter = QSplitter()
         splitter.addWidget(self.tree1)
         splitter.addWidget(self.tree2)
@@ -355,6 +356,22 @@ class CompareSignsDialog(QDialog):
 
         self.tree2.itemExpanded.connect(lambda item: self.on_item_expanded(item, self.tree1))
         self.tree2.itemCollapsed.connect(lambda item: self.on_item_collapsed(item, self.tree1))
+
+        # Connect scroll events to sync two trees' scrollbars
+        self.tree1.verticalScrollBar().valueChanged.connect(lambda value: self.sync_scrollbars(scrolled_value=value,
+                                                                                               other_tree=self.tree2))
+        self.tree2.verticalScrollBar().valueChanged.connect(lambda value: self.sync_scrollbars(scrolled_value=value,
+                                                                                               other_tree=self.tree1))
+
+        # flag to prevent infinite recursion of the `sync_scrollbars` method...
+        self.syncing_scrollbars = False
+
+    def sync_scrollbars(self, scrolled_value, other_tree):
+        if not self.syncing_scrollbars:
+            target_scrollbar = other_tree.verticalScrollBar()  # the scrollbar to programmatically scroll
+            self.syncing_scrollbars = True
+            target_scrollbar.setValue(scrolled_value)
+            self.syncing_scrollbars = False
 
     def new_populate_tree(self, tree1, tree2, data1, data2):
         def add_items(parent1, parent2, data1, data2):
