@@ -182,11 +182,18 @@ class CompareModel:
             s2_path_element = get_informative_elements(s2path)
 
             for e1 in s1_path_element:
+                matched = False
                 for e2 in s2_path_element:
                     if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                        matched = True
                         res1, res2 = compare_elements(e1, e2, pairwise=pairwise)
                         results1.append(res1)
                         results2.append(res2)
+
+                if not matched:
+                    res1, _ = compare_elements(e1, '', pairwise=False)
+                    results1.append(res1)
+
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
             return results1, results2
