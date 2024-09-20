@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QComboBox, \
     QLabel, QHBoxLayout, QPushButton
-from PyQt5.QtGui import QBrush, QColor
+from PyQt5.QtGui import QBrush, QColor, QPalette
 from collections import defaultdict
-
+from PyQt5.QtCore import Qt
 
 from constant import ARTICULATOR_ABBREVS
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
@@ -356,6 +356,83 @@ class CompareSignsDialog(QDialog):
         self.tree2.itemExpanded.connect(lambda item: self.on_item_expanded(item, self.tree1))
         self.tree2.itemCollapsed.connect(lambda item: self.on_item_collapsed(item, self.tree1))
 
+    def new_populate_tree(self, tree1, tree2, data1, data2):
+        def add_items(parent1, parent2, data1, data2):
+            # Get the union of all keys in both data1 and data2
+            data1_keys = set(data1.keys()) if isinstance(data1, dict) else set()
+            data2_keys = set(data2.keys()) if isinstance(data2, dict) else set()
+            all_keys = data1_keys.union(data2_keys)
+
+            for key in reversed(list(all_keys)):
+                value1, value2 = None, None
+                try:
+                    value1 = data1.get(key, None)
+                    value2 = data2.get(key, None)
+                except AttributeError:
+                    # when data1 or data2 is bool
+                    pass
+
+                # Create tree items for both trees
+                item1 = QTreeWidgetItem([key])
+                item2 = QTreeWidgetItem([key])
+
+                # Set the color of missing nodes
+                if value1 is None:
+                    background_colour = tree1.palette().color(QPalette.Base)
+                    item1.setForeground(0, QBrush(background_colour))  # greyed out
+                    item1.setFlags(Qt.NoItemFlags)
+                if value2 is None:
+                    background_colour = tree1.palette().color(QPalette.Base)
+                    item2.setForeground(0, QBrush(background_colour))  # greyed out
+                    item2.setFlags(Qt.NoItemFlags)
+                parent1.addChild(item1)
+                parent2.addChild(item2)
+
+                # If both values are dicts, recurse into them
+                if isinstance(value1, dict) or isinstance(value2, dict):
+                    add_items(item1, item2, value1 if value1 else {}, value2 if value2 else {})
+                else:
+                    # Set color for false values (optional, depending on your original logic)
+                    if value1 is False:
+                        item1.setBackground(0, QBrush(QColor(255, 0, 0, 128)))  # red
+                    if value2 is False:
+                        item2.setBackground(0, QBrush(QColor(255, 0, 0, 128)))  # red
+
+        # Add each top-level key as a root item in the tree
+        for key in set(data1.keys()).union(data2.keys()):
+            top_item1 = QTreeWidgetItem([key])
+            top_item2 = QTreeWidgetItem([key])
+
+            tree1.addTopLevelItem(top_item1)
+            tree2.addTopLevelItem(top_item2)
+
+            # expand the root item by default
+            top_item1.setExpanded(True)
+            top_item2.setExpanded(True)
+
+            # Recursively add children under the top-level item
+            add_items(top_item1, top_item2, data1.get(key, {}), data2.get(key, {}))
+
+    def update_trees(self):
+        # Update the dialog visual as dropdown selections
+        label_sign1 = self.sign1_dropdown.currentText()
+        label_sign2 = self.sign2_dropdown.currentText()
+
+        self.tree1.setHeaderLabel(f"Sign 1: {label_sign1}")
+        self.tree2.setHeaderLabel(f"Sign 2: {label_sign2}")
+
+        sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # Identify signs to compare
+        compare = CompareModel(sign1, sign2)
+        compare_res = compare.compare()
+
+        # Now update trees! Start with clearing.
+        self.tree1.clear()
+        self.tree2.clear()
+
+        # Populate trees hierarchically
+        self.new_populate_tree(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
+        #self.populate_tree(self.tree1, compare_res['sign1'])
+        #self.populate_tree(self.tree2, compare_res['sign2'])
 
     def populate_tree(self, tree, data):
         def add_items(parent, data):
@@ -414,26 +491,6 @@ class CompareSignsDialog(QDialog):
 
             tree.addTopLevelItem(root_item)
             root_item.setExpanded(True)  # Optionally expand the root item by default
-
-    def update_trees(self):
-        # update the dialog visual as dropdown selections
-        label_sign1 = self.sign1_dropdown.currentText()
-        label_sign2 = self.sign2_dropdown.currentText()
-
-        self.tree1.setHeaderLabel(f"Sign 1: {label_sign1}")
-        self.tree2.setHeaderLabel(f"Sign 2: {label_sign2}")
-
-        sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # identify signs to compare
-        compare = CompareModel(sign1, sign2)
-        compare_res = compare.compare()
-
-        # now update trees! start with clearing.
-        self.tree1.clear()
-        self.tree2.clear()
-
-        # populate trees hierarchically
-        self.populate_tree(self.tree1, compare_res['sign1'])
-        self.populate_tree(self.tree2, compare_res['sign2'])
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
