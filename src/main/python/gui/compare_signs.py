@@ -375,6 +375,11 @@ class CompareSignsDialog(QDialog):
 
     def new_populate_tree(self, tree1, tree2, data1, data2):
         def add_items(parent1, parent2, data1, data2):
+            should_paint_red = [False, False]
+            should_paint_yellow = [False, False]
+            red_brush = QBrush(QColor(255, 192, 203, 128))   # red when mismatch
+            yellow_brush = QBrush(QColor(255, 255, 0, 128))  # yellow when no counterpart
+
             # Get the union of all keys in both data1 and data2
             data1_keys = set(data1.keys()) if isinstance(data1, dict) else set()
             data2_keys = set(data2.keys()) if isinstance(data2, dict) else set()
@@ -398,22 +403,49 @@ class CompareSignsDialog(QDialog):
                     background_colour = tree1.palette().color(QPalette.Base)
                     item1.setForeground(0, QBrush(background_colour))  # greyed out
                     item1.setFlags(Qt.NoItemFlags)
+                    item2.setBackground(0, yellow_brush)
+                    should_paint_yellow[1] = True
                 if value2 is None:
                     background_colour = tree1.palette().color(QPalette.Base)
                     item2.setForeground(0, QBrush(background_colour))  # greyed out
                     item2.setFlags(Qt.NoItemFlags)
+                    item1.setBackground(0, yellow_brush)
+                    should_paint_yellow[0] = True
                 parent1.addChild(item1)
                 parent2.addChild(item2)
 
+                # initialize child color flags
+                child_r = [False, False]  # flag marking whether a child node is coloured red
+                child_y = [False, False]  # flag marking whether a child node is coloured yellow
+
                 # If both values are dicts, recurse into them
                 if isinstance(value1, dict) or isinstance(value2, dict):
-                    add_items(item1, item2, value1 if value1 else {}, value2 if value2 else {})
+                    child_r, child_y = add_items(item1, item2, value1 if value1 else {}, value2 if value2 else {})
                 else:
-                    # Set color for false values (optional, depending on your original logic)
+                    # Set color for false values
                     if value1 is False:
-                        item1.setBackground(0, QBrush(QColor(255, 0, 0, 128)))  # red
+                        item1.setBackground(0, red_brush)  # red
+                        should_paint_red[0] = True
                     if value2 is False:
-                        item2.setBackground(0, QBrush(QColor(255, 0, 0, 128)))  # red
+                        item2.setBackground(0, red_brush)  # red
+                        should_paint_red[1] = True
+
+                # color the node depending on children
+                should_paint_red = child_r
+                should_paint_yellow = child_y
+
+            # color of the parent node
+            if should_paint_red[0]:
+                parent1.setBackground(0, red_brush)
+            if should_paint_red[1]:
+                parent2.setBackground(0, red_brush)
+            if should_paint_yellow[0]:
+                parent1.setBackground(0, yellow_brush)
+            if should_paint_yellow[1]:
+                parent2.setBackground(0, yellow_brush)
+
+            return should_paint_red, should_paint_yellow
+
 
         # Add each top-level key as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
@@ -446,6 +478,7 @@ class CompareSignsDialog(QDialog):
         self.tree1.clear()
         self.tree2.clear()
 
+        print(compare_res)
         # Populate trees hierarchically
         self.new_populate_tree(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
         #self.populate_tree(self.tree1, compare_res['sign1'])
