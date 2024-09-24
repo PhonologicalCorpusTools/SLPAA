@@ -3,7 +3,10 @@
  - Yurika Aonuki
  - Kathleen Currie Hall
  - Oksana Tkachman
+
 ## [Software](https://github.com/PhonologicalCorpusTools/SLPAA/graphs/contributors)
+ - [Parto Balazadeh Minouei](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=partobm)
+ - [Huini Chen](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=Harukaichii)
  - [Brian Diep](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=brdiep113)
  - Michael Fry ([contributions to original implementation](https://github.com/PhonologicalCorpusTools/SLP-AA-old-/commits?author=mdfry))
  - [Roger Yu-Hsiang Lo](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=YuHsiangLo)* (see also [contributions to original implementation](https://github.com/PhonologicalCorpusTools/SLP-AA-old-/commits?author=YuHsiangLo))
@@ -12,6 +15,10 @@
  - [Stanley Nam](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=stannam)
  - [Kaili Vesik](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=kvesik)*
  - [Grace Zhang](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=gracemyz)
+ 
+ 
+
+
 
 \* lead developers
 ### Diagrams
@@ -23,8 +30,17 @@
  - Nico Tolmie
  - April Poy
 ## Data transcription and management
- - Anushka Asthana
+ - Stephanie Aliman
+ - Anushka Asthana*
  - Yiran Gao
  - Kathleen Currie Hall
  - Grace Hobby
- - Maggie Reid
+ - Shannon Hsu
+ - Jessica Martinez
+ - Natalie Michaelian
+ - Maggie Reid*
+ - Riea Singh
+ - Jaida Siu
+ - Regan Tam
+
+\* lead transcribers
