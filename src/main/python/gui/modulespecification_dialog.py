@@ -463,8 +463,8 @@ class AssociatedRelationsDialog(QDialog):
         module_selector = ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
                                                xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                moduletoload=relmod,
-                                               includephase=0,
                                                incl_articulators=[],
+                                               incl_articulator_subopts=0,
                                                parent=self)
         module_selector.module_saved.connect(self.module_saved.emit)
         # module_selector.module_deleted.connect(lambda: self.handle_moduledeleted(relmod.uniqueid))
@@ -573,8 +573,8 @@ class AssociatedRelationsPanel(QFrame):
                                                    moduletoload=None,
                                                    linkedfrommoduleid=self.anchormodule.uniqueid,
                                                    linkedfrommoduletype=self.parent().moduletype,
-                                                   includephase=0,
                                                    incl_articulators=[],
+                                                   incl_articulator_subopts=0,
                                                    parent=self)
             module_selector.module_saved.connect(self.module_saved.emit)
             module_selector.exec_()
