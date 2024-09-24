@@ -21,7 +21,7 @@
 
 
 \* lead developers
-### Diagrams
+## Diagrams
  - Sophie Cook
  - Cristina Lee
 ## Documentation
