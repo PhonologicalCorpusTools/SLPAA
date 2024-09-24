@@ -1,8 +1,10 @@
 # Contributors
 ## Conceptualization
  - Yurika Aonuki
- - Kathleen Currie Hall
+ - Kathleen Currie Hall*
  - Oksana Tkachman
+
+\* project lead
 
 ## [Software](https://github.com/PhonologicalCorpusTools/SLPAA/graphs/contributors)
  - [Parto Balazadeh Minouei](https://github.com/PhonologicalCorpusTools/SLPAA/commits?author=partobm)
