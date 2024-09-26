@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (
     QGraphicsRectItem,
     QGraphicsScene,
     QMessageBox,
-    QGraphicsEllipseItem
+    QGraphicsEllipseItem,
+    QGraphicsSceneMouseEvent
 )
 
 from PyQt5.QtGui import (
@@ -117,7 +118,13 @@ class XslotRectButton(XslotRect):
         super().__init__(parentwidget, **kwargs)
         self.setAcceptHoverEvents(True)
         self.hover = 0  # 0 = no; 1 = yes; 2 = associated/partial
-        self.selected = selected
+        self.setFlags(self.ItemIsSelectable)
+        self.setSelected(selected)
+
+    def setSelected(self, selected):
+        super().setSelected(selected)
+        self.update()
+
 
     def hoverEnterEvent(self, event):
         self.hover = 1
@@ -142,20 +149,19 @@ class XslotRectButton(XslotRect):
             return self.restingpen()
 
     def restingbrush(self):
-        if self.selected:
+        if self.isSelected():
             return QBrush(Qt.black)
         else:
             return QBrush(Qt.white)
 
     def restingpen(self):
-        if self.selected:
+        if self.isSelected():
             return QPen(Qt.white)
         else:
             return QPen(Qt.black)
 
     def toggle(self):
-        self.selected = not self.selected
-        self.update()
+        self.setSelected(not self.isSelected())
 
 
 class XslotRectLinkingButton(XslotRectButton):
@@ -170,7 +176,7 @@ class XslotRectLinkingButton(XslotRectButton):
 
 class XslotEllipseModuleButton(QGraphicsEllipseItem):
 
-    def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None):
+    def __init__(self, parentwidget, module_uniqueid=0, text="", moduletype=None, sign=None, selected=False):
         super().__init__()
         self.parentwidget = parentwidget
         self.text = text
@@ -181,14 +187,32 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
 
         self.setAcceptHoverEvents(True)
         self.hover = 0  # 0 = no; 1 = yes; 2 = associated/partial
+        self.setFlags(self.ItemIsSelectable)
+        # self._selected = selected  # bool
+        self.setSelected(selected)
         self.module_uniqueid = module_uniqueid
+    #
+    # @property
+    # def selected(self):
+    #     return self._selected
+    #
+    # @selected.setter
+    # def selected(self, selected):
+    #     self._selected = selected
+    #     self.update()
+
+    def setSelected(self, selected):
+        super().setSelected(selected)
+        self.update()
 
     def mousePressEvent(self, event):
         pass
 
     def mouseReleaseEvent(self, event):
-        # print("mouse released on module ellipse")
-        self.scene().moduleellipse_clicked.emit(self)
+        self.scene().moduleellipse_clicked.emit(self, 1, event)
+
+    def mouseDoubleClickEvent(self, event):
+        self.scene().moduleellipse_clicked.emit(self, 2, event)
 
     def hoverEnterEvent(self, event):
         self.hover = 1
@@ -208,19 +232,48 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         self.update()
         self.update_partners_hover()
 
+    # def currentbrush(self):
+    #     if self.hover == 1:
+    #         return QColor(0, 120, 215)
+    #     elif self.hover == 2:
+    #         return QColor(170, 215, 245)
+    #     else:
+    #         return QBrush(Qt.white)
+
     def currentbrush(self):
         if self.hover == 1:
             return QColor(0, 120, 215)
         elif self.hover == 2:
             return QColor(170, 215, 245)
         else:
-            return QBrush(Qt.white)
+            return self.restingbrush()
+
+    # def currentpen(self):
+    #     if self.hover > 0:
+    #         return QPen(Qt.black)
+    #     else:
+    #         return QPen(Qt.black)
 
     def currentpen(self):
         if self.hover > 0:
             return QPen(Qt.black)
         else:
+            return self.restingpen()
+
+    def restingbrush(self):
+        if self.isSelected():
+            return QBrush(Qt.black)
+        else:
+            return QBrush(Qt.white)
+
+    def restingpen(self):
+        if self.isSelected():
+            return QPen(Qt.white)
+        else:
             return QPen(Qt.black)
+
+    def toggle(self):
+        self.setSelected(not self.isSelected())
 
     def paint(self, painter, option, widget):
 
@@ -267,7 +320,10 @@ class XslotRectModuleButton(XslotRectButton):
         pass
 
     def mouseReleaseEvent(self, event):
-        self.scene().modulerect_clicked.emit(self)
+        self.scene().modulerect_clicked.emit(self, 1, event)
+
+    def mouseDoubleClickEvent(self, event):
+        self.scene().modulerect_clicked.emit(self, 2, event)
 
     def hoverEnterEvent(self, event):
         super().hoverEnterEvent(event)
@@ -287,8 +343,9 @@ class XslotRectModuleButton(XslotRectButton):
 
 
 class SignSummaryScene(QGraphicsScene):
-    modulerect_clicked = pyqtSignal(XslotRectModuleButton)
-    moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton)
+    # button that was clicked, single vs double click, mouseevent
+    modulerect_clicked = pyqtSignal(XslotRectModuleButton, int, QGraphicsSceneMouseEvent)
+    moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton, int, QGraphicsSceneMouseEvent)
 
 
 class XSlotCheckbox(QGraphicsRectItem):
@@ -300,13 +357,18 @@ class XSlotCheckbox(QGraphicsRectItem):
         # self.sidelength = sidelength
         self.textsize = textsize
         self.penwidth = penwidth
-        self.checked = checked
+        self.setFlags(self.ItemIsSelectable)
+        self.setSelected(checked)
 
         self.setAcceptHoverEvents(True)
         self.hover = False
 
         self.xslot_whole = xslot_whole
         self.xslot_part = xslot_part
+
+    def setSelected(self, selected):
+        super().setSelected(selected)
+        self.update()
 
     def currentpen(self):
         pen = QPen()
@@ -338,11 +400,10 @@ class XSlotCheckbox(QGraphicsRectItem):
         font.setPixelSize(self.textsize)
         painter.setFont(font)
         # draw check or empty box
-        painter.drawText(rect, "☑" if self.checked else "☐", textoption)
+        painter.drawText(rect, "☑" if self.isSelected() else "☐", textoption)
 
     def toggle(self):
-        self.checked = not self.checked
-        self.update()
+        self.setSelected(not self.isSelected())
 
     def mousePressEvent(self, event):
         pass
@@ -416,9 +477,9 @@ class XslotLinkScene(QGraphicsScene):
         frac = xslotcheckbox.xslot_part
         pointinterval = TimingInterval(TimingPoint(whole, frac), TimingPoint(whole, frac))
 
-        if xslotcheckbox.checked and self.check_no_xslot_overlap(pointinterval, xslotcheckbox):
+        if xslotcheckbox.isSelected() and self.check_no_xslot_overlap(pointinterval, xslotcheckbox):
             self.xslotlinks.append(pointinterval)
-        elif (not xslotcheckbox.checked) and pointinterval in self.xslotlinks:
+        elif (not xslotcheckbox.isSelected()) and pointinterval in self.xslotlinks:
             self.xslotlinks.remove(pointinterval)
 
         self.emit_selection_changed()
@@ -471,9 +532,9 @@ class XslotLinkScene(QGraphicsScene):
         endfrac = xslotintervalrect.xslot_part_end
         interval = TimingInterval(TimingPoint(whole, startfrac), TimingPoint(whole, endfrac))
 
-        if xslotintervalrect.selected and self.check_no_xslot_overlap(interval, xslotintervalrect):
+        if xslotintervalrect.isSelected() and self.check_no_xslot_overlap(interval, xslotintervalrect):
             self.xslotlinks.append(interval)
-        elif (not xslotintervalrect.selected) and interval in self.xslotlinks:
+        elif (not xslotintervalrect.isSelected()) and interval in self.xslotlinks:
             self.xslotlinks.remove(interval)
 
         self.emit_selection_changed()

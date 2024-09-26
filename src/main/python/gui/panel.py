@@ -51,6 +51,7 @@ from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
 from lexicon.lexicon_classes import Sign, glossesdelimiter
 from gui.modulespecification_dialog import ModuleSelectorDialog
+from gui.modulespecification_widgets import ModuleButtonContextMenu
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
 
 
@@ -287,7 +288,8 @@ class SignSummaryPanel(QScrollArea):
         self.current_y = 0
         self.onexslot_width = 0
 
-        self.moduleitems = []
+        self.modulebuttons_timed = []
+        self.modulebuttons_untimed = []
         self.gridlinestart = 0
         self.refreshsign()  # self.sign)
         self.xslotview = QGraphicsView(self.scene)
@@ -319,7 +321,8 @@ class SignSummaryPanel(QScrollArea):
         for sceneitem in self.scene.items():
             self.scene.removeItem(sceneitem)
 
-        self.moduleitems = []
+        self.modulebuttons_timed = []
+        self.modulebuttons_untimed = []
         self.current_y = 0
 
         # set the top text, either welcome or the sign gloss(es) + Entry ID
@@ -359,7 +362,9 @@ class SignSummaryPanel(QScrollArea):
             signtyperect = XslotRectModuleButton(self, text=signtypetext, moduletype='signtype', sign=self.sign)
             signtyperect.setRect(self.x_offset + self.indent, self.current_y, self.xslots_width,
                                  self.default_xslot_height)
-            self.scene.addItem(signtyperect)
+            self.modulebuttons_untimed.append(signtyperect)
+            for btn in self.modulebuttons_untimed:
+                self.scene.addItem(btn)
 
     def addxslots(self):
         xslotrects = {}
@@ -475,7 +480,7 @@ class SignSummaryPanel(QScrollArea):
                     paramabbrev = mod.getabbreviation()
                     paramrect.setToolTip(paramabbrev)
                     paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
-                    self.moduleitems.append(paramrect)
+                    self.modulebuttons_timed.append(paramrect)
                     self.scene.addItem(paramrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
@@ -536,7 +541,7 @@ class SignSummaryPanel(QScrollArea):
                         paramabbrev = mod.getabbreviation()
                         paramrect.setToolTip(paramabbrev)
                         paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
-                        self.moduleitems.append(paramrect)
+                        self.modulebuttons_timed.append(paramrect)
                         self.scene.addItem(paramrect)
             else:  # 'manual' or 'auto'
                 # associate modules with x-slots
@@ -628,15 +633,15 @@ class SignSummaryPanel(QScrollArea):
             if True in anyoverlaps:
                 self.current_y += self.default_xslot_height + self.verticalspacing
             paramrect.setRect(*self.getxywh(t))  # how big is it / where does it go?
-            self.moduleitems.append(paramrect)
+            self.modulebuttons_timed.append(paramrect)
 
     # I don't know that I'm a big fan of having every single module button know about every other module button
     # from the same module instance, but at this point it seemed the most effective way to sync the hover behaviour
     def assign_hover_partners(self):
-        for modbtn in self.moduleitems:
-            hoverpartners_same = [b for b in self.moduleitems if b != modbtn and b.module_uniqueid == modbtn.module_uniqueid]
+        for modbtn in self.modulebuttons_timed:
+            hoverpartners_same = [b for b in self.modulebuttons_timed if b != modbtn and b.module_uniqueid == modbtn.module_uniqueid]
             hoverpartners_associated = []
-            for b in self.moduleitems:
+            for b in self.modulebuttons_timed:
                 if b != modbtn:
                     if b.moduletype == ModuleTypes.RELATION and modbtn.moduletype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT]:
                         relmod = self.sign.getmoduledict(ModuleTypes.RELATION)[b.module_uniqueid]
@@ -673,10 +678,10 @@ class SignSummaryPanel(QScrollArea):
             if True in anyequivalent:
                 self.current_y += self.default_xslot_height + self.verticalspacing
             paramellipse.setRect(*self.getxywh(t))  # how big is it / where does it go?
-            self.moduleitems.append(paramellipse)
+            self.modulebuttons_timed.append(paramellipse)
 
     def addgridlines(self):
-        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and len(self.moduleitems) > 0:
+        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none' and len(self.modulebuttons_timed) > 0:
 
             pen = QPen(Qt.lightGray)
             pen.setWidth(5)
@@ -700,25 +705,75 @@ class SignSummaryPanel(QScrollArea):
                     if curvalue <= totalvalue:
                         xstart = self.x_offset + self.indent + float((whole+frac)*self.onexslot_width)
                         self.scene.addLine(xstart, self.gridlinestart, xstart, self.current_y + self.default_xslot_height + self.verticalspacing, pen)
-            for item in self.moduleitems:
+            for item in self.modulebuttons_timed:
                 self.scene.addItem(item)
 
-    def handle_summarymodulebtn_clicked(self, modulebutton):
-        # TODO KV
+    def clearbuttonselections(self):
+        for btn in self.selectedmodulebuttons():
+            btn.setSelected(False)
+
+    # return a list of the module buttons that are selected in the summary window for the current sign
+    #   (any of sign type, movement, location, orientation, non-manual, hand config, relation)
+    def selectedmodulebuttons(self):
+        return [btn for btn in self.allmodulebuttons() if btn.isSelected()]
+
+    # return a list of all module buttons in the summary window for the current sign
+    #   (any of sign type, movement, location, orientation, non-manual, hand config, relation)
+    def allmodulebuttons(self):
+        return self.modulebuttons_timed + self.modulebuttons_untimed
+
+    def selectonemodulebutton(self, btn):
+        self.clearbuttonselections()
+        btn.setSelected(True)
+        for otherside in btn.samemodule_buttons:
+            otherside.setSelected(True)
+
+    # ctrl + single-L-click --> just toggle this button, regardless of whether any others are selected
+    # single-L-click alone --> select this button (whether already selected or not) and deselect any/all others
+    # single-R-click alone --> open a context menu with options that apply to all currently-selected buttons
+    # double-L-click (regardless of ctrl) --> open the module dialog and deselect all buttons
+    def handle_summarymodulebtn_clicked(self, modulebutton, numclicks, mouseevent):
+        ctrlmodifier = mouseevent.modifiers() & Qt.ControlModifier
+        mousebutton = mouseevent.button()
         moduletype = modulebutton.moduletype
-        if moduletype == 'signtype':
-            self.handle_signtype_clicked()
-        # elif moduletype == "xslot":
-        #     self.handle_xslot_clicked()
+
+        if moduletype == "xslot":
+            # TODO why doesn't this do anything? do we want it to?
+            self.handle_xslot_clicked()
         else:
-            modulekey = modulebutton.module_uniqueid
-            self.open_module_dialog(modulekey, moduletype)
+            if numclicks == 1:
+                if mousebutton == Qt.LeftButton:
+                    if ctrlmodifier:
+                        # toggle the button's selection status (and also its other-side counterpart, if applicable)
+                        modulebutton.toggle()
+                        for otherside in modulebutton.samemodule_buttons:
+                            otherside.setSelected(modulebutton.isSelected())
+                    else:
+                        # only this button should be selected (and also its other-side counterpart, if applicable)
+                        self.selectonemodulebutton(modulebutton)
+                elif mousebutton == Qt.RightButton and not ctrlmodifier:
+                    if not modulebutton.isSelected():
+                        # if there is no button selected then we should assume that
+                        # the user is selecting this one as they right-click on it
+                        self.selectonemodulebutton(modulebutton)
+                    # provide a context menu with options that apply to all currently-selected buttons
+                    menu = ModuleButtonContextMenu(self.selectedmodulebuttons())
+                    # TODO menu.action_selected.connect(self.action_selected.emit)
+                    menu.exec_(mouseevent.screenPos())
+            elif numclicks == 2 and mousebutton == Qt.LeftButton:
+                if moduletype == 'signtype':
+                    self.open_signtype_dialog()
+                else:  # parameter module
+                    modulekey = modulebutton.module_uniqueid
+                    self.open_module_dialog(modulekey, moduletype)
+                # deselect all module buttons once dialog is closed
+                self.clearbuttonselections()
 
     def handle_xslot_clicked(self):
-        # TODO KV - open xslot editing window
-        pass
+        # open xslot editing window
+        self.mainwindow.signlevel_panel.handle_xslotsbutton_click()
 
-    def handle_signtype_clicked(self):
+    def open_signtype_dialog(self):
         signtypedialog = SigntypeSelectorDialog(self.mainwindow.current_sign.signtype, parent=self)
         signtypedialog.saved_signtype.connect(self.handle_save_signtype)
         signtypedialog.exec_()

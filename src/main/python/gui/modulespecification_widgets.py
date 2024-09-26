@@ -236,6 +236,35 @@ class AddedInfoContextMenu(QMenu):
         self.info_added.emit(self.addedinfo)
 
 
+# menu associated with a module button/buttons in the sign summary panel, offering copy/paste/edit/delete functions
+class ModuleButtonContextMenu(QMenu):
+    action_selected = pyqtSignal(str)  # TODO "copy", "edit", or "delete"
+
+    # individual menu items are enabled/disabled based on TODO
+    def __init__(self, selected_buttons):
+        super().__init__()
+
+        self.copy_action = QAction("Copy TODO modules: " + str([btn.text for btn in selected_buttons]))
+        self.copy_action.setEnabled(True)
+        # self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
+        self.addAction(self.copy_action)
+
+        self.paste_action = QAction("Paste TODO modules: " + str([btn.text for btn in selected_buttons]))
+        self.paste_action.setEnabled(True)
+        # self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
+        self.addAction(self.paste_action)
+
+        self.edit_action = QAction("Edit TODO modules: " + str([btn.text for btn in selected_buttons]))
+        self.edit_action.setEnabled(True)
+        # self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
+        self.addAction(self.edit_action)
+
+        self.delete_action = QAction("Delete TODO modules: " + str([btn.text for btn in selected_buttons]))
+        self.delete_action.setEnabled(True)
+        # self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
+        self.addAction(self.delete_action)
+
+
 # menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
 class SignEntryContextMenu(QMenu):
     action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
