@@ -23,6 +23,9 @@
 
 
 \* lead developers
+
+[Click here](https://github.com/PhonologicalCorpusTools/SLPAA/graphs/contributors) to see visualizations of software contributions over time.
+
 ## Diagrams
  - Sophie Cook
  - Cristina Lee
