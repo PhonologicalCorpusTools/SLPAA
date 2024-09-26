@@ -170,7 +170,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         self.pathslistview = TreeListView()
         self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
-        self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.pathslistview.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)
         self.pathslistview.installEventFilter(self)
