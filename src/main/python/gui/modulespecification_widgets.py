@@ -90,6 +90,8 @@ class SpecifyBodypartPushButton(QPushButton):
         self.updateStyle()
 
 
+# Styled QPushButton whose text is bolded iff the associated AddedInfo object's _hascontent attribute is true
+# clicking this type of button spawns an AddedInfoContextMenu
 class AddedInfoPushButton(QPushButton):
 
     def __init__(self, title, **kwargs):
@@ -134,7 +136,8 @@ class AddedInfoPushButton(QPushButton):
     def clear(self):
         self.addedinfo = AddedInfo()
 
-
+# menu allowing user to specify whether the relevant object/module/etc is
+#   uncertain, estimated, not specified, variable, etc (and add notes for each)
 class AddedInfoContextMenu(QMenu):
     info_added = pyqtSignal(AddedInfo)
 
@@ -231,6 +234,36 @@ class AddedInfoContextMenu(QMenu):
         self.addedinfo.other_note = self.other_action.text()
 
         self.info_added.emit(self.addedinfo)
+
+
+# menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
+class SignEntryContextMenu(QMenu):
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
+
+    # individual menu items are enabled/disabled based on whether any signs are currently selected
+    #   and/or whether there are any signs on the clipboard
+    def __init__(self, has_selectedsigns, has_clipboardsigns):
+        super().__init__()
+
+        self.copy_action = QAction("Copy Sign(s)")
+        self.copy_action.setEnabled(has_selectedsigns)
+        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
+        self.addAction(self.copy_action)
+
+        self.paste_action = QAction("Paste Sign(s)")
+        self.paste_action.setEnabled(has_clipboardsigns)
+        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
+        self.addAction(self.paste_action)
+
+        self.edit_action = QAction("Edit Sign-level Info(s)")
+        self.edit_action.setEnabled(has_selectedsigns)
+        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
+        self.addAction(self.edit_action)
+
+        self.delete_action = QAction("Delete Sign(s)")
+        self.delete_action.setEnabled(has_selectedsigns)
+        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
+        self.addAction(self.delete_action)
 
 
 class AbstractLocationAction(QWidgetAction):

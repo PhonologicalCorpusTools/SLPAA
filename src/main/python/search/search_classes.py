@@ -305,7 +305,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
 
     def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
-        super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, includephase, incl_articulators, incl_articulator_subopts, **kwargs)
+        super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, incl_articulators, incl_articulator_subopts, **kwargs)
 
 
     def add_button_box(self, new_instance=False):
@@ -373,7 +373,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         addedinfo = self.addedinfobutton.addedinfo
         phonlocs = self.phonloc_selection.getcurrentphonlocs()
         # validate hand selection
-        articulatorsvalid, articulators = self.validate_articulators()
+        _, articulators, _ = self.validate_articulators()
 
         # validate timing interval(s) selection
         timingvalid, timingintervals = self.validate_timingintervals()
