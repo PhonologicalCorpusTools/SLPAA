@@ -4,34 +4,105 @@ from collections import defaultdict
 from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
-    QDialog,
     QPushButton,
     QLabel,
-    QFormLayout,
-    QFrame,
-    QDialogButtonBox,
     QFileDialog,
-    QSpinBox,
+    QCheckBox,
+    QLineEdit,
+    QWizard,
+    QWizardPage,
+    QSpacerItem,
+    QSizePolicy,
+    QRadioButton,
+    QButtonGroup,
     QMessageBox
 )
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 
 from constant import filenamefrompath
 from lexicon.lexicon_classes import Corpus
 from gui.modulespecification_widgets import StatusDisplay
+from gui.helper_widget import OptionSwitch
 
 
-class MergeCorporaDialog(QDialog):
+# wizard that walks the user through merging one or more corpora, whether into a new file or into the currently-open one
+class MergeCorporaWizard(QWizard):
 
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
+        self.setOption(QWizard.IndependentPages, True)
         self.app_settings = app_settings
+        self.mainwindow = self.parent()
         self.corpusfilepaths = []
-        self.corpuspaths_order = []
-        self.mergedfilepath = ""
+        self.corporatomerge = []
+        self.mergesuccessful = False
 
-        self.results_lists = {
+        fileselection_page = FilesSelectionWizardPage(self.app_settings)
+        fileselection_page.corpusfilesselected.connect(self.handle_corpusfilesselected)
+        fileselection_page.completeChanged.connect(self.clear_statusdisplay)
+        self.fileselection_pageid = self.addPage(fileselection_page)
+
+        entryIDstrategy_page = EntryIDStrategyWizardPage()
+        entryIDstrategy_page.completeChanged.connect(self.clear_statusdisplay)
+        self.entryIDstrategy_pageid = self.addPage(entryIDstrategy_page)
+
+        namelocation_page = MergedNameLocationWizardPage(self.app_settings)
+        namelocation_page.completeChanged.connect(self.clear_statusdisplay)
+        self.namelocation_pageid = self.addPage(namelocation_page)
+
+        self.mergecorpora_page = MergeCorporaWizardPage()
+        self.mergecorpora_page.mergecorpora.connect(self.handle_merge_corpora)
+        self.mergecorpora_pageid = self.addPage(self.mergecorpora_page)
+
+        self.setWindowTitle("Merge Corpora")
+
+        self.button(QWizard.FinishButton).clicked.connect(self.onFinish)
+
+    def clear_statusdisplay(self):
+        self.mergecorpora_page.mergeattempted = False
+        self.mergecorpora_page.statusdisplay.clear()
+
+    # when the user clicks the "Finish" button, open the newly-merged corpus if applicable
+    def onFinish(self, checked):
+        mergedfilepath_str = str(self.field("mergedfilepath"))
+        if self.field("openmergedcorpus") and os.path.exists(mergedfilepath_str) and self.mergesuccessful:
+            # if "Open new merged file ..." on MergeCorporaWizardPage is checked
+            # and the merged path exists
+            #   (but this might be because the user was going to overwrite a previously existing file)
+            # and the merge was successful
+            self.mainwindow.load_corpus_info(mergedfilepath_str)
+
+    def handle_corpusfilesselected(self, fileslist):
+        self.corpusfilepaths = fileslist
+
+    # ensure the appropriate corpora to merge are selected
+    #   (make sure current corpus is either not selected, or not selected twice, as applicable)
+    # load and merge corpora
+    # display results messages in status display
+    def handle_merge_corpora(self):
+
+        self.mergecorpora_page.statusdisplay.setText("merging...")
+        self.mergecorpora_page.statusdisplay.repaint()
+
+        results_lists = self.load_and_merge_corpora()
+
+        self.mergecorpora_page.statusdisplay.clear()
+        for listname in results_lists.keys():
+            if len(results_lists[listname]) > 0:
+                filenames = [filenamefrompath(fp) for fp in results_lists[listname]]
+                statusstring = listname + ":\n\t" + ",\n\t".join(filenames)
+                self.mergecorpora_page.statusdisplay.appendText(statusstring, joinwithnewline=True)
+
+    # load corpora to be merged from their paths
+    # merge if possible (but merge might be canceled if the user said to do so in the case of conflicting EntryIDs,
+    #   or if there are duplicate IDglosses and the user decides to cancel out of the merge and address the duplicates
+    #   before trying again
+    # returns a dictionary of results messages
+    def load_and_merge_corpora(self):
+        mergedcorpus = Corpus()
+        results_lists = {
+            "conflicting Entry IDs": [],
             "incorrect format": [],
             "failed to load": [],
             "failed to count": [],
@@ -41,233 +112,292 @@ class MergeCorporaDialog(QDialog):
             "duplicated ID-glosses": []
         }
 
-        main_layout = QVBoxLayout()
-        form_layout = QFormLayout()
+        glosses_seen = defaultdict(list)
+        lemmas_seen = defaultdict(list)
 
-        self.choosefileslabel = QLabel("1. Choose the .slpaa corpus files to merge.")
-        self.choosefilesbutton = QPushButton("Select corpus files")
-        self.choosefilesbutton.clicked.connect(self.handle_select_corpusfiles)
-        form_layout.addRow(self.choosefileslabel, self.choosefilesbutton)
-        self.chooseorderlabel = QLabel("2. Choose the order in which the corpora should be combined (this affects EntryID numbering).")
-        self.chooseorderbutton = QPushButton("Select order")
-        self.chooseorderbutton.setEnabled(False)
-        self.chooseorderbutton.clicked.connect(self.handle_choose_order)
-        form_layout.addRow(self.chooseorderlabel, self.chooseorderbutton)
-        self.choosemergedfilelabel = QLabel("3. Choose the name and location for the merged file.")
-        self.choosemergedfilebutton = QPushButton("Select merged file")
-        self.choosemergedfilebutton.setEnabled(False)
-        self.choosemergedfilebutton.clicked.connect(self.handle_select_mergedfile)
-        form_layout.addRow(self.choosemergedfilelabel, self.choosemergedfilebutton)
-        self.mergecorporalabel = QLabel("4. Merge selected .slpaa files.")
-        self.mergecorporabutton = QPushButton("Merge corpora")
-        self.mergecorporabutton.setEnabled(False)
-        self.mergecorporabutton.clicked.connect(self.handle_merge_corpora)
-        form_layout.addRow(self.mergecorporalabel, self.mergecorporabutton)
-        self.statuslabel = QLabel("5. Status of merge:")
-        self.statusdisplay = StatusDisplay("not yet attempted")
-        form_layout.addRow(self.statuslabel, self.statusdisplay)
+        # check file formats
+        validfilenames = [fname for fname in self.corpusfilepaths if fname.endswith(".slpaa")]
+        invalidfilenames = [fname for fname in self.corpusfilepaths if fname not in validfilenames]
+        results_lists["incorrect format"] = invalidfilenames
 
-        main_layout.addLayout(form_layout)
+        self.corporatomerge = [self.parent().load_corpus_binary(fname) for fname in validfilenames]
 
-        horizontal_line = QFrame()
-        horizontal_line.setFrameShape(QFrame.HLine)
-        horizontal_line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(horizontal_line)
+        # check if EntryIDs overlap at all
+        entryIDs_overlap = self.checkforoverlap_entryIDs()
 
-        buttons = QDialogButtonBox.Close
-        self.button_box = QDialogButtonBox(buttons, parent=self)
-        self.button_box.clicked.connect(self.handle_buttonbox_click)
-        main_layout.addWidget(self.button_box)
+        if entryIDs_overlap and self.field("conflict_cancel"):
+            # there is overlap, and the user said to cancel the merge in the case of overlap
+            # so, give up and cancel the merge
+            results_lists["conflicting Entry IDs"].append("merge canceled due to conflicting EntryIDs")
+            return results_lists
+        else:
+            # go ahead with the merge, whether with new IDs or not (as specified by user)
+            makenewIDs = (entryIDs_overlap and self.field("conflict_newIDs")) or self.field("noconflict_newIDs")
 
-        self.setLayout(main_layout)
+            # check for duplicated IDglosses
+            duplicated_IDglosses = self.checkforoverlap_IDglosses()
+            dupl_IDglosses_counters = {k:0 for k in duplicated_IDglosses}
+            if len(duplicated_IDglosses) > 0:
+                results_lists["duplicated ID-glosses"] = duplicated_IDglosses
+                firstduplicate = duplicated_IDglosses[0]
+                response = QMessageBox.question(self, "Duplicated ID-glosses",
+                                                "The corpora you selected have one or more overlapping ID-glosses (" +
+                                                ", ".join(duplicated_IDglosses) + "), which are not permitted. " +
+                                                "Click 'OK' to proceed with the merge and append indexed tags to the " +
+                                                "duplicated ID-glosses (e.g. " + firstduplicate + "-copy1, " + firstduplicate + "-copy2) " +
+                                                "or 'Cancel' to exit this wizard and edit the ID-glosses yourself before trying again.",
+                                                buttons=QMessageBox.Ok | QMessageBox.Cancel)
+                if response == QMessageBox.Cancel:
+                    # also cancel out of the whole merge wizard
+                    self.button(QWizard.CancelButton).click()
+                    return results_lists
+                # else: continue on with the merge, but make sure to tag the duplicated ID-glosses
 
+            # go ahead with the merge, either making new EntryIDs or keeping the existing ones as per user specification
+            # and tagging any duplicated ID-glosses, if applicable
+            for idx, corpustoadd in enumerate(self.corporatomerge):
+                corpuspath = validfilenames[idx]
+                if corpustoadd is None:
+                    pass
+                    results_lists["failed to load"].append(corpuspath)
+                else:
+                    if makenewIDs:
+                        next_entryID = mergedcorpus.highestID
+                    for sign in corpustoadd.signs:
+                        sli = sign.signlevel_information
+                        if makenewIDs:
+                            next_entryID += 1
+                            sli.entryid.counter = next_entryID
+                        # else: use existing Entry ID (so, nothing to change)
+                        # tag duplicatd ID-gloss with index, if applicable
+                        if sli.idgloss in dupl_IDglosses_counters.keys():
+                            dupl_IDglosses_counters[sli.idgloss] += 1
+                            sli.idgloss += "-copy" + str(dupl_IDglosses_counters[sli.idgloss])
+
+                        mergedcorpus.add_sign(sign)
+                        for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:
+                            glosses_seen[gloss].append(corpuspath)
+                        lemma = sli.lemma.lower().strip()
+                        if lemma != "":
+                            lemmas_seen[lemma].append(corpuspath)
+                    mergedcorpus.confirmhighestID("merge")
+                    results_lists["successful results"].append(corpuspath)
+
+                for (gloss, corpuslist) in glosses_seen.items():
+                    if len(corpuslist) > 1 and gloss not in results_lists["duplicated glosses"]:
+                        results_lists["duplicated glosses"].append(gloss)
+                for (lemma, corpuslist) in lemmas_seen.items():
+                    if len(corpuslist) > 1 and lemma not in results_lists["duplicated lemmas"]:
+                        results_lists["duplicated lemmas"].append(lemma)
+
+                self.parent().save_corpus_binary(othercorpusandpath=(mergedcorpus, str(self.field("mergedfilepath"))))
+                self.mergesuccessful = True
+        return results_lists
+
+    # return a list of IDglosses that are duplicated in the corpora to be merged
+    # list is empty if there are no duplicated IDglosses
+    def checkforoverlap_IDglosses(self):
+        idglosses_in_merge = [sign.signlevel_information.idgloss.lower().strip() for corpus in self.corporatomerge for sign in corpus.signs]
+        seen = set()
+        dupes = []
+        for idgloss in [idgloss for idgloss in idglosses_in_merge if idgloss != ""]:
+            if idgloss in seen:
+                dupes.append(idgloss)
+            else:
+                seen.add(idgloss)
+        return dupes
+
+    # return True iff the entryID ranges for any of the merging corpora overlap at all
+    def checkforoverlap_entryIDs(self):
+        entryIDintervals = [(corpus.minimumID, corpus.highestID) for corpus in self.corporatomerge]
+        runningrange = range(0)
+        for entryIDinterval in entryIDintervals:
+            rangetocompare = range(entryIDinterval[0], entryIDinterval[1]+1)
+            if len(runningrange) == 0:  # we're on the first corpus
+                runningrange = rangetocompare
+            else:
+                overlaprange = range(max(runningrange[0], rangetocompare[0]), min(runningrange[-1], rangetocompare[-1]) + 1)
+                if len(overlaprange) == 0:
+                    # there's no overlap; update the running range
+                    runningrange = range(min(runningrange[0], rangetocompare[0]), max(runningrange[-1], rangetocompare[-1])+1)
+                else:
+                    # there is overlap; give up
+                    return True
+        return False
+
+
+# wizard page that asks the user to select which files should be merged, and whether they should be saved as an entirely
+# new corpus or folded into the one that's currently open
+class FilesSelectionWizardPage(QWizardPage):
+    corpusfilesselected = pyqtSignal(list)
+
+    def __init__(self, app_settings, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+        self.corpusfilenames = []
+        pagelayout = QVBoxLayout()
+
+        pagelayout.addWidget(QLabel("Choose the .slpaa corpus files to merge:"))
+
+        selectionlayout = QHBoxLayout()
+        self.selectedfilesdisplay = StatusDisplay()  # QLineEdit()
+        self.selectedfilesdisplay.setMinimumWidth(500)
+        choosefilesbutton = QPushButton("Browse")
+        choosefilesbutton.clicked.connect(self.handle_select_corpusfiles)
+        selectionlayout.addWidget(self.selectedfilesdisplay)
+        selectionlayout.addWidget(choosefilesbutton)
+        selectionlayout.setAlignment(choosefilesbutton, Qt.AlignTop)
+        pagelayout.addLayout(selectionlayout)
+
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return len(self.corpusfilenames) > 0  #  and self.mergetypeselected
+
+    # presents the user with a standard file selection dialog to choose which corpora to merge
     def handle_select_corpusfiles(self):
-        file_names, file_type = QFileDialog.getOpenFileNames(self,
-                                                            self.tr('Select Corpora'),
-                                                            self.app_settings['storage']['recent_folder'],
-                                                            self.tr('SLP-AA Corpus (*.slpaa)'))
-        if file_names != self.corpusfilepaths:
-            numfiles = len(file_names)
-            self.statusdisplay.setText(str(numfiles) + " file" + ("" if numfiles == 1 else "s") + " selected")
-        self.corpusfilepaths = file_names
-        if len(self.corpusfilepaths) > 0:
-            self.chooseorderbutton.setEnabled(True)
+        self.corpusfilenames, file_type = QFileDialog.getOpenFileNames(self,
+                                                             self.tr('Select Corpora'),
+                                                             self.app_settings['storage']['recent_folder'],
+                                                             self.tr('SLP-AA Corpus (*.slpaa)'))
+        self.completeChanged.emit()
+        self.corpusfilesselected.emit(self.corpusfilenames)
+        self.selectedfilesdisplay.clear()
+        for filepath in self.corpusfilenames:
+            folders, filename = os.path.split(filepath)
+            higherfolders, lowestfolder = os.path.split(folders)
+            self.selectedfilesdisplay.appendText(os.path.join("...", lowestfolder, filename), joinwithnewline=True)
 
-    def handle_choose_order(self):
-        existingorder = []
-        if self.corpuspaths_order:
-            # an order has been set at some point
-            if sorted(self.corpuspaths_order) == sorted(self.corpusfilepaths):
-                # the corpora in the ordered list correspond to the currently-selected corpora;
-                # show this ordering in the spinboxes
-                existingorder = self.corpuspaths_order
 
-        chooseorderdialog = ChooseOrderDialog(self.corpusfilepaths, existingorder, parent=self)
-        chooseorderdialog.setcorpusorder.connect(self.handle_setcorpusorder)
-        chooseorderdialog.exec_()
+# wizard page that asks the user to decide what to do with Entry IDs in case the ones from the various merging corpora
+# (a) don't conflict or (b) do conflict
+class EntryIDStrategyWizardPage(QWizardPage):
 
-    def handle_setcorpusorder(self, corpuspathslist):
-        self.corpuspaths_order = corpuspathslist
-        self.statusdisplay.setText("order selected")
-        self.choosemergedfilebutton.setEnabled(True)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        pagelayout = QVBoxLayout()
 
+        pagelayout.addWidget(QLabel("If Entry IDs do not conflict:"))
+
+        noconflictlayout = QHBoxLayout()
+        noconflictlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        noconflict_sublayout = QVBoxLayout()
+        self.noconflict_group = QButtonGroup()
+        self.noconflict_keepIDs_rb = QRadioButton("Keep existing EntryIDs")
+        self.noconflict_newIDs_rb = QRadioButton("Assign new unique EntryIDs")
+        self.registerField("noconflict_keepIDs", self.noconflict_keepIDs_rb)
+        self.registerField("noconflict_newIDs", self.noconflict_newIDs_rb)
+        self.noconflict_group.addButton(self.noconflict_keepIDs_rb)
+        self.noconflict_group.addButton(self.noconflict_newIDs_rb)
+        self.noconflict_group.buttonToggled.connect(lambda a0, a1: self.completeChanged.emit())
+        noconflict_sublayout.addWidget(self.noconflict_keepIDs_rb)
+        noconflict_sublayout.addWidget(self.noconflict_newIDs_rb)
+        noconflictlayout.addLayout(noconflict_sublayout)
+        pagelayout.addLayout(noconflictlayout)
+
+        pagelayout.addWidget(QLabel("If Entry IDs conflict:"))
+
+        conflictlayout = QHBoxLayout()
+        conflictlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        conflict_sublayout = QVBoxLayout()
+        self.conflict_group = QButtonGroup()
+        self.conflict_newIDs_rb = QRadioButton("Assign new unique EntryIDs")
+        self.conflict_cancel_rb = QRadioButton("Cancel merge")
+        self.registerField("conflict_newIDs", self.conflict_newIDs_rb)
+        self.registerField("conflict_cancel", self.conflict_cancel_rb)
+        self.conflict_group.addButton(self.conflict_newIDs_rb)
+        self.conflict_group.addButton(self.conflict_cancel_rb)
+        self.conflict_group.buttonToggled.connect(lambda a0, a1: self.completeChanged.emit())
+        conflict_sublayout.addWidget(self.conflict_newIDs_rb)
+        conflict_sublayout.addWidget(self.conflict_cancel_rb)
+        conflictlayout.addLayout(conflict_sublayout)
+        pagelayout.addLayout(conflictlayout)
+
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return self.noconflict_group.checkedButton() is not None and self.conflict_group.checkedButton() is not None
+
+
+# wizard page that asks the user to choose a path/name for the merged file
+# this page does not always show; if the user chose to merge into an existing corpus then it is not necessary
+class MergedNameLocationWizardPage(QWizardPage):
+
+    def __init__(self, app_settings, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+        pagelayout = QVBoxLayout()
+
+        pagelayout.addWidget(QLabel("Choose the name and location for the merged file:"))
+
+        selectionlayout = QHBoxLayout()
+        self.mergedfiledisplay = QLineEdit()
+        self.mergedfiledisplay.setReadOnly(True)
+        self.registerField("mergedfilepath", self.mergedfiledisplay)
+        choosefilebutton = QPushButton("Browse")
+        choosefilebutton.clicked.connect(self.handle_select_mergedfile)
+        selectionlayout.addWidget(self.mergedfiledisplay)
+        selectionlayout.addWidget(choosefilebutton)
+
+        pagelayout.addLayout(selectionlayout)
+
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return len(self.field("mergedfilepath")) > 0
+
+    # presents the user a standard file selection dialog to choose where to save the merged file
     def handle_select_mergedfile(self):
-        file_name, file_type = QFileDialog.getSaveFileName(self,
+        mergedfilename, file_type = QFileDialog.getSaveFileName(self,
                                                            self.tr('Select merged destination'),
                                                            self.app_settings['storage']['recent_folder'],
                                                            self.tr('SLP-AA Corpus (*.slpaa)'))
-        if file_name != self.mergedfilepath:
-            self.statusdisplay.setText("destination selected")
-        self.mergedfilepath = file_name
-        if len(self.corpusfilepaths) > 0 and len(self.mergedfilepath) > 0:
-            self.mergecorporabutton.setEnabled(True)
-
-    def handle_merge_corpora(self):
-
-        self.statusdisplay.setText("merging...")
-        self.statusdisplay.repaint()
-        self.clear_results_lists()
-
-        self.load_and_merge_corpora()
-
-        statusstrings = []
-        for listname in self.results_lists.keys():
-            if len(self.results_lists[listname]) > 0:
-                filenames = [filenamefrompath(fp) for fp in self.results_lists[listname]]
-                statusstrings.append("\n" + listname + ":\n\t" + ",\n\t".join(filenames))
-        self.statusdisplay.setText("\n".join(statusstrings))
-
-    def clear_results_lists(self):
-        for k in self.results_lists.keys():
-            self.results_lists[k] = []
-
-    def load_and_merge_corpora(self):
-        mergedcorpus = Corpus()
-
-        glosses_seen = defaultdict(list)
-        lemmas_seen = defaultdict(list)
-        idglosses_seen = defaultdict(list)
-
-        for corpusfilepath in self.corpuspaths_order if self.corpuspaths_order else self.corpusfilepaths:
-            self.statusdisplay.appendText("\t" + filenamefrompath(corpusfilepath), afternewline=True)
-            self.statusdisplay.repaint()
-
-            if not corpusfilepath.endswith(".slpaa"):
-                self.results_lists["incorrect format"].append(corpusfilepath)
-            else:
-                corpustoadd = self.parent().load_corpus_binary(corpusfilepath)
-                if corpustoadd is None:
-                    self.results_lists["failed to load"].append(corpusfilepath)
-                else:
-                    corpustoadd.increaseminID(mergedcorpus.highestID + 1)
-                    for sign in corpustoadd.signs:
-                        mergedcorpus.add_sign(sign)
-                        sli = sign.signlevel_information
-                        for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:
-                            glosses_seen[gloss].append(corpusfilepath)
-                        lemma = sli.lemma.lower().strip()
-                        if lemma != "":
-                            lemmas_seen[lemma].append(corpusfilepath)
-                        idgloss = sli.idgloss.lower().strip()
-                        if idgloss != "":
-                            idglosses_seen[idgloss].append(corpusfilepath)
-
-                    mergedcorpus.highestID = corpustoadd.highestID
-                    self.results_lists["successful results"].append(corpusfilepath)
-
-                    # self.results_lists["failed to load"].append(corpusfilepath + " (" + result + ")")
-
-        for (gloss, corpuslist) in glosses_seen.items():
-            if len(corpuslist) > 1:
-                self.results_lists["duplicated glosses"].append(gloss)
-        for (lemma, corpuslist) in lemmas_seen.items():
-            if len(corpuslist) > 1:
-                self.results_lists["duplicated lemmas"].append(lemma)
-        for (idgloss, corpuslist) in idglosses_seen.items():
-            if len(corpuslist) > 1:
-                self.results_lists["duplicated ID-glosses"].append(idgloss)
-
-        self.parent().save_corpus_binary(othercorpusandpath=(mergedcorpus, self.mergedfilepath))
-
-    def handle_buttonbox_click(self, button):
-        standard = self.button_box.standardButton(button)
-
-        if standard == QDialogButtonBox.Close:
-            # close dialog
-            self.accept()
+        if mergedfilename:
+            self.mergedfiledisplay.setText(mergedfilename)
+            self.completeChanged.emit()
 
 
-class ChooseOrderDialog(QDialog):
-    setcorpusorder = pyqtSignal(list)
 
-    def __init__(self, corpusfilepaths, ordered, **kwargs):
+# wizard page that allows the user to finally confirm merging the corpora
+# it also shows a status display and offers the user an option to open the newly-merged corpus upon exiting the wizard
+class MergeCorporaWizardPage(QWizardPage):
+    mergecorpora = pyqtSignal()
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.corpusfilepaths = corpusfilepaths
+        self.mergeattempted = False
+        pagelayout = QVBoxLayout()
 
-        main_layout = QVBoxLayout()
+        mergelayout = QHBoxLayout()
+        mergelayout.addWidget(QLabel("Merge selected .slpaa files:"))
+        mergecorporabutton = QPushButton("Merge corpora")
+        mergecorporabutton.clicked.connect(self.handle_merge_corpora)
+        mergelayout.addWidget(mergecorporabutton)
+        pagelayout.addLayout(mergelayout)
 
-        instructionstring = "Choose the order in which the corpora should be combined, or leave them all the same if it doesn't matter."
-        instructionstring += "\n\nThis affects which corpora will have their sequential Entry ID numbering incremented."
-        instructionstring += "\n\nFor example, suppose CorpusA.slpaa and CorpusB.slpaa both have three signs, with counters 1, 2, and 3."
-        instructionstring += "\nThen if A is added first and B is added next, the signs in A will still have their counter values 1, 2, 3"
-        instructionstring += "\nbut the signs in B will have theirs adjusted to 4, 5, and 6."
-        main_layout.addWidget(QLabel(instructionstring))
+        statuslayout = QHBoxLayout()
+        statuslabel = QLabel("Status of merge:")
+        statuslayout.addWidget(statuslabel)
+        statuslayout.setAlignment(statuslabel, Qt.AlignTop)
+        self.statusdisplay = StatusDisplay("not yet attempted")
+        statuslayout.addWidget(self.statusdisplay)
+        pagelayout.addLayout(statuslayout)
 
-        chooseorder_layout = QFormLayout()
-        self.spinboxes_dict = {}
-        numcorpora = len(self.corpusfilepaths)
-        for corpuspath in self.corpusfilepaths:
-            spinlayout = QHBoxLayout()
-            orderspin = QSpinBox(parent=self)
-            orderspin.setMinimum(1)
-            orderspin.setMaximum(numcorpora)
-            if ordered:
-                orderspin.setValue(ordered.index(corpuspath) + 1)
-            spinlayout.addWidget(orderspin)
-            spinlayout.addStretch()
-            self.spinboxes_dict[corpuspath] = orderspin
-            folders, filename = os.path.split(corpuspath)
-            higherfolders, lastfolder = os.path.split(folders)
-            chooseorder_layout.addRow(QLabel(os.path.join("...", lastfolder, filename)), spinlayout)
-        main_layout.addLayout(chooseorder_layout)
+        self.openmergedfilecb = QCheckBox("Open new merged file when this dialog box is closed")
+        self.registerField("openmergedcorpus", self.openmergedfilecb)
+        pagelayout.addWidget(self.openmergedfilecb)
 
-        buttons = QDialogButtonBox.Cancel | QDialogButtonBox.Save
-        self.button_box = QDialogButtonBox(buttons, parent=self)
-        self.button_box.clicked.connect(self.on_button_click)
-        main_layout.addWidget(self.button_box)
+        self.setLayout(pagelayout)
 
-        self.setLayout(main_layout)
+    # signals to the parent (wizard) to try merging the corpora
+    def handle_merge_corpora(self, checked):
+        self.mergecorpora.emit()
+        self.mergeattempted = True
+        self.completeChanged.emit()
 
-    def check_ordering(self):
-        if not self.spinboxes_dict:
-            return 0
-
-        order_numbers = []
-        for box in self.spinboxes_dict.values():
-            order_numbers.append(box.value())
-        allunique = len(set(order_numbers)) == len(order_numbers)
-        allsame = len([num for num in order_numbers if num != order_numbers[0]]) == 0
-        return 0 if allsame else (1 if allunique else 2)
-
-    def on_button_click(self, button):
-        standard = self.button_box.standardButton(button)
-        if standard == QDialogButtonBox.Save:
-            orderingtype = self.check_ordering()
-            if orderingtype == 0:
-                # all values are the same; don't set a particular order
-                self.setcorpusorder.emit([])
-                self.accept()
-            elif orderingtype == 1:
-                # user set a unique ordering
-                orders_corpuspaths = []
-                for corpuspath, spinbox in self.spinboxes_dict.items():
-                    orders_corpuspaths.append((spinbox.value(), corpuspath))
-                orders_corpuspaths.sort()
-                self.setcorpusorder.emit([corpuspath for (order, corpuspath) in orders_corpuspaths])
-                self.accept()
-            else:
-                # user duplicates at least one of the ordering values
-                QMessageBox.critical(self, "Warning", "Ordering values must either all be unique, or all be zero")
-
-        elif standard == QDialogButtonBox.Cancel:
-            self.reject()
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return self.mergeattempted

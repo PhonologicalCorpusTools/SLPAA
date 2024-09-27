@@ -1,8 +1,11 @@
 import logging
 import os
+import re
+from datetime import datetime
+from copy import deepcopy
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, AddedInfo, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
+from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
 from gui.signtypespecification_view import Signtype
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
@@ -46,8 +49,13 @@ class LocationTranscription:
 class Sign:
     """
     EntryID in signlevel_information is used as the unique key
+    signlevel_info is a SignLevelInformation object and is used for creating a brand-new Sign
+    serializedsign is a dictionary (created by Sign.serialize()) and is used for re-creating a Sign
+        (that had probably been saved to disk, but might also be just for creating copies without referencing the same object on disk)
+    deepcopy is a boolean and determines whether the Sign re-created from serializedsign should be deep-copied
+        (that is, should all the subcomponents such as modules etc also be copies instead of references to the original objects?)
     """
-    def __init__(self, signlevel_info=None, serializedsign=None):
+    def __init__(self, signlevel_info=None, serializedsign=None, makedeepcopy=False):
         if signlevel_info is not None:
             signlevel_info.parentsign = self
         self._signlevel_information = signlevel_info
@@ -66,26 +74,104 @@ class Sign:
         self.orientationmodulenumbers = {}
         self.handconfigmodules = {}
         self.handconfigmodulenumbers = {}
+        self.nonmanualmodules = {}
+        self.nonmanualmodulenumbers = {}
 
         if serializedsign is not None:
+            # these attributes don't need to be deep-copied
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
-            signtype = serializedsign['type']
-            self._signtype = Signtype(signtype.specslist) if signtype is not None else None
-            if hasattr(serializedsign['type'], '_addedinfo'):  # for backward compatibility
-                self._signtype.addedinfo = serializedsign['type'].addedinfo
+            self._signtype = serializedsign['type']
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
+
+            # the remaining attributes will be re-created differently depending on whether this is a deep copy or not
+            # also note that relation *must* come before location
+            for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
+                self.loadmodules_and_numbering(serializedsign, moduletype, makedeepcopy=makedeepcopy)  # TODO
+
+    def loadmodules_and_numbering(self, serializedsign, moduletype, makedeepcopy=False):
+
+        # movement, relation, and location are all partially deep-copied already because of the need to serialize their underlying models
+        # however, we will still need to assign new unique IDs to the copies in order to fully deep-copy these modules
+        if moduletype == ModuleTypes.MOVEMENT:
             self.unserializemovementmodules(serializedsign['mov modules'])
-            self.movementmodulenumbers = serializedsign['mov module numbers'] if 'mov module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.MOVEMENT)
-            # backward compatibility; also note relation must come before location
+            if makedeepcopy:
+                self.movementmodulenumbers = deepcopy(serializedsign['mov module numbers']) \
+                    if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            else:
+                self.movementmodulenumbers = serializedsign['mov module numbers'] \
+                    if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.RELATION:
+            # backward compatibility
             self.unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'])
-            self.relationmodulenumbers = serializedsign['rel module numbers'] if 'rel module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.RELATION)
+            if makedeepcopy:
+                self.relationmodulenumbers = deepcopy(serializedsign['rel module numbers']) \
+                    if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            else:
+                self.relationmodulenumbers = serializedsign['rel module numbers'] \
+                    if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.LOCATION:
             self.unserializelocationmodules(serializedsign['loc modules'])
-            self.locationmodulenumbers = serializedsign['loc module numbers'] if 'loc module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.LOCATION)
-            self.orientationmodules = serializedsign['ori modules']
-            self.orientationmodulenumbers = serializedsign['ori module numbers'] if 'ori module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.ORIENTATION)
-            self.handconfigmodules = serializedsign['cfg modules']
-            self.handconfigmodulenumbers = serializedsign['cfg module numbers'] if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(ModuleTypes.HANDCONFIG)
+            if makedeepcopy:
+                self.locationmodulenumbers = deepcopy(serializedsign['loc module numbers']) \
+                    if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            else:
+                self.locationmodulenumbers = serializedsign['loc module numbers'] \
+                    if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+
+        # if we are doing a deep copy, then orientation, handconfig, and nonmanual will need to have
+        #   both their content deep-copied and their unique IDs redone in order to fully deep-copy
+        if moduletype in [ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
+            if moduletype == ModuleTypes.ORIENTATION:
+                if makedeepcopy:
+                    self.orientationmodules = deepcopy(serializedsign['ori modules'])
+                    self.orientationmodulenumbers = deepcopy(serializedsign['ori module numbers']) \
+                        if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+                else:
+                    self.orientationmodules = serializedsign['ori modules']
+                    self.orientationmodulenumbers = serializedsign['ori module numbers'] \
+                        if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            elif moduletype == ModuleTypes.HANDCONFIG:
+                if makedeepcopy:
+                    self.handconfigmodules = deepcopy(serializedsign['cfg modules'])
+                    self.handconfigmodulenumbers = deepcopy(serializedsign['cfg module numbers']) \
+                        if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+                else:
+                    self.handconfigmodules = serializedsign['cfg modules']
+                    self.handconfigmodulenumbers = serializedsign['cfg module numbers'] \
+                        if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            elif moduletype == ModuleTypes.NONMANUAL:
+                if makedeepcopy:
+                    self.nonmanualmodules = deepcopy(serializedsign['nonman modules']) if 'nonman modules' in serializedsign else {}
+                    self.nonmanualmodulenumbers = deepcopy(serializedsign['nonman module numbers']) \
+                        if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+                else:
+                    self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
+                    self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
+                        if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+
+            # for any of orientation, hand config, nonmanual:
+            if makedeepcopy:
+                for uniqueid in self.getmoduledict(moduletype).keys():
+                    self.getmoduledict(moduletype)[uniqueid] = deepcopy(self.getmoduledict(moduletype)[uniqueid])
+
+        # for any type of module
+        if makedeepcopy:
+            # re-ID the modules
+            self.reIDmodules(moduletype)
+
+    def reIDmodules(self, moduletype):
+        olduniquedstoremove = [uid for uid in self.getmoduledict(moduletype).keys()]
+        for old_uniqueid in olduniquedstoremove:
+            # remove old entries from modules and modulenumbers dicts, while saving content
+            module = self.getmoduledict(moduletype).pop(old_uniqueid)
+            modulenum = self.getmodulenumbersdict(moduletype).pop(old_uniqueid)
+
+            # set uniqueID and re-add content to dicts with new uniqueID
+            new_uniqueid = datetime.timestamp(datetime.now())
+            module.uniqueid = new_uniqueid
+            self.getmoduledict(moduletype)[new_uniqueid] = module
+            self.getmodulenumbersdict(moduletype)[new_uniqueid] = modulenum
 
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
@@ -107,6 +193,8 @@ class Sign:
             return self.relationmodules
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodules
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodules
         else:
             return {}
 
@@ -121,6 +209,8 @@ class Sign:
             return self.relationmodulenumbers
         elif moduletype == ModuleTypes.ORIENTATION:
             return self.orientationmodulenumbers
+        elif moduletype == ModuleTypes.NONMANUAL:
+            return self.nonmanualmodulenumbers
         else:
             return {}
 
@@ -138,11 +228,12 @@ class Sign:
             'rel module numbers': self.relationmodulenumbers,
             'ori modules': self.orientationmodules,
             'ori module numbers': self.orientationmodulenumbers,
+            'nonman modules': self.nonmanualmodules,
+            'nonman module numbers': self.nonmanualmodulenumbers,
             'cfg modules': self.handconfigmodules,
             'cfg module numbers': self.handconfigmodulenumbers,
         }
 
-    # TODO KV - can the un/serialization methods below be combined into generic ones that can be used for all model-based modules?
 
     def serializemovementmodules(self):
         serialized = {}
@@ -158,8 +249,9 @@ class Sign:
             articulators = serialmodule.articulators
             inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+            addedinfo = serialmodule.addedinfo
+            phonlocs = serialmodule.phonlocs
+            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
             unserialized[k].uniqueid = k
         self.movementmodules = unserialized
 
@@ -175,9 +267,9 @@ class Sign:
             serialmodule = serialized_locnmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
+            addedinfo = serialmodule.addedinfo
             phonlocs = serialmodule.phonlocs
-            inphase = serialmodule.inphase if hasattr(serialmodule, 'inphase') else 0  # for backward compatibility with pre-20230410 location modules
+            inphase = serialmodule.inphase
 
             serialtree = serialmodule.locationtree
 
@@ -230,12 +322,12 @@ class Sign:
                     }
                 }
                 # relation module should not have contact or manner or distance specified
-                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, addedinfo=addedinfo)
+                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
                 self.addmodule(convertedrelationmodule, ModuleTypes.RELATION)
 
             else:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
-                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, addedinfo, phonlocs=phonlocs, inphase=inphase)
+                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase=inphase)
                 unserialized[k].uniqueid = k
         self.locationmodules = unserialized
 
@@ -251,7 +343,8 @@ class Sign:
             serialmodule = serialized_relmodules[k]
             articulators = serialmodule.articulators
             timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()
+            addedinfo = serialmodule.addedinfo
+            phonlocs = serialmodule.phonlocs
             relationx = serialmodule.relationx
             relationy = serialmodule.relationy
             bodyparts_dict = {
@@ -294,7 +387,7 @@ class Sign:
             unserialized[k] = RelationModule(relationx, relationy, bodyparts_dict, contactrel,
                                              xy_crossed, xy_linked, directionslist=directions,
                                              articulators=articulators, timingintervals=timingintervals,
-                                             addedinfo=addedinfo)
+                                             phonlocs=phonlocs, addedinfo=addedinfo)
             unserialized[k].uniqueid = k
         self.relationmodules = unserialized
 
@@ -366,9 +459,9 @@ class Sign:
         currentmod_attrs = current_module.__dict__
         updatedmod_attrs = updated_module.__dict__
         for attr in currentmod_attrs:
-            if currentmod_attrs[attr] != updatedmod_attrs[attr]:
-                # TODO KV note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
-                # therefore copies (even if identical) of these classes will not be assessed as equal
+            if attr in updatedmod_attrs and currentmod_attrs[attr] != updatedmod_attrs[attr]:
+                # TODO note that locationtreemodel and movementtreemodel don't have __eq__ & __ne__ methods;
+                #   therefore copies (even if identical) of these classes will not be assessed as equal
                 currentmod_attrs[attr] = updatedmod_attrs[attr]
                 ischanged = True
         if ischanged:
@@ -421,7 +514,6 @@ class Corpus:
             self.minimumID = serializedcorpus['minimum id'] if 'minimum id' in serializedcorpus.keys() else 1
             self.highestID = serializedcorpus['highest id']
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty 
-            # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
             if len(self) > 0:
                 self.confirmhighestID("load")
             self.add_missing_paths()  # Another backwards compatibility function for movement and location
@@ -434,14 +526,10 @@ class Corpus:
             self.highestID = highestID
 
     # check and make sure the highest ID saved is equivalent to the actual highest entry ID
-    # see issue  # 242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
-    # this function should hopefully not be necessary forever, but for now I want to make sure that
-    # functionality isn't affected by an incorrectly-saved value
     def confirmhighestID(self, actionname):
         entryIDcounters = [s.signlevel_information.entryid.counter for s in self.signs] or [0]
         max_entryID = max(entryIDcounters)
         if max_entryID > self.highestID:
-            logging.warn(" upon " + actionname + " - highest entryID was not correct (recorded as " + str(self.highestID) + " but should have been " + str(max_entryID) + ");\nplease copy/paste this warning into an email to Kaili, along with the name of the corpus you're using")
             self.highestID = max_entryID
 
     def increaseminID(self, newmin):
@@ -452,9 +540,25 @@ class Corpus:
                 s.signlevel_information.entryid.counter += increase_amount
             self.highestID += increase_amount
 
+    # return the highest index in this corpus that is attached to the IDgloss given by idglosstext
+    # if the idgloss doesn't exist or if it is does but it's not indexed, then 0 is returned
+    def highestIDglossindex(self, idglossinput):
+        suffixmatchesinput = re.match('.*(-copy\d+)$', idglossinput)
+        if suffixmatchesinput:
+            idglossinput = idglossinput[:idglossinput.index(suffixmatchesinput.group(1))]
+        idglossinput = idglossinput.lower()
+
+        all_idglosses_lower = [sign.signlevel_information.idgloss.lower() for sign in self.signs]
+        matching_indices = [0]
+        for idgloss_lower in all_idglosses_lower:
+            idglossmatches = re.match(idglossinput + '-copy\d+$', idgloss_lower)
+            suffixmatches = re.match('.*-copy(\d+)$', idgloss_lower)
+            if idglossmatches and suffixmatches:
+                matching_indices.append(int(suffixmatches.group(1)))
+        return max(matching_indices)
+
     def serialize(self):
         # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty
-        # see issue #242: https://github.com/PhonologicalCorpusTools/SLPAA/issues/242
         if len(self) > 0:
             self.confirmhighestID("save")
         return {
@@ -465,9 +569,16 @@ class Corpus:
             'highest id': self.highestID
         }
 
+    # return a flat list of all the glosses used in this corpus
+    #   (does not provide any info about which glosses may or may not be associated with the same sign)
+    def get_all_glosses(self):
+        return [gloss for sign in self.signs for gloss in sign.signlevel_information.gloss]
+
+    # return a list of all the lemmas used in this corpus
     def get_all_lemmas(self):
         return [sign.signlevel_information.lemma for sign in self.signs]
 
+    # return a list of all the ID-glosses used in this corpus
     def get_all_idglosses(self):
         return [sign.signlevel_information.idgloss for sign in self.signs]
 
@@ -477,6 +588,22 @@ class Corpus:
 
     def remove_sign(self, trash_sign):
         self.signs.remove(trash_sign)
+
+    def getsigninfoduplicatedincorpus(self, sign, allof):
+        thissign_glosses = sign.signlevel_information.gloss
+        thissign_lemma = sign.signlevel_information.lemma
+        thissign_idgloss = sign.signlevel_information.idgloss
+
+        lemmaexists = thissign_lemma.lower() in [lemma.lower() for lemma in self.get_all_lemmas()]
+        idglossexists = thissign_idgloss.lower() in [idgloss.lower() for idgloss in self.get_all_idglosses()]
+        all_glosses_lower = [gloss.lower() for gloss in self.get_all_glosses()]
+        glossmatches = [(gloss.lower() in all_glosses_lower) for gloss in thissign_glosses]
+        if allof:
+            glossesexist = False not in glossmatches
+        else:  # anyof
+            glossesexist = True in glossmatches
+
+        return glossesexist, lemmaexists, idglossexists
 
     def __contains__(self, item):
         return item in self.signs
@@ -492,7 +619,7 @@ class Corpus:
         if self.path:
             _, filename = os.path.split(self.path)
         return '<CORPUS: ' + repr(filename) + '>'
-    
+
     def add_missing_paths(self):
         for sign in self.signs:
             correctionsdict = {ModuleTypes.MOVEMENT: {},
@@ -568,8 +695,9 @@ class Corpus:
 
         for p in missing_values:
             if p not in paths_missing_bc and p not in paths_not_found:
-                treemodel.uncheck_paths(missing_values)
-
+                treemodel.uncheck_paths_from_serialized_tree(missing_values)
+    
+        
         return 
 
     # Converts a string representing a movement/location path into a list of nodes
@@ -646,6 +774,14 @@ class Corpus:
                 elif nodes[1] == 'Selected fingers and Thumb':
                     nodes[1] = 'Selected fingers and thumb'
                     nodes.insert(1, 'Fingers and thumb')
+                # Issue 85: New hand layers
+                # don't need any special insertion code for "Whole hand - contra" or "Whole hand - ipsi" because they are leaf nodes
+                # same for  "Hand minus fingers - contra" and "Hand minus fingers - ipsi"
+                # same for  "Heel of hand - contra" and "Heel of hand - ipsi"
+                # same for  "Fingers and thumb - contra" and "Fingers and thumb - ipsi"
+                # same for  "Thumb - contra" and "Thumb - ipsi"
+                # same for  "Fingers - contra" and "Fingers - ipsi" as well as for each of Finger 1, 2, 3, 4 - contra/ipsi
+                # same for  "Between fingers - contra" and "Between fingers - ipsi" as well as for each of Between thumb & finger 1/1&2/2&3/3&4 ipsi/contra
                 paths_to_add.append(nodes)
             # Issue 162: leg and feet changes
             elif nodes[0] == 'Legs and feet':
@@ -679,7 +815,11 @@ class Corpus:
                 elif length > 3 and nodes[3] in ['Upper eyelid', 'Lower eyelid']:
                     nodes.insert(4, 'Eyelid')
                 elif nodes[-1] == 'Septum':
-                    nodes.insert(length-2, 'Septum/nostril area')
+                    nodes.insert(length-2, 'Septum / nostril area')
+                # Issue 85: New face layers
+                elif length > 3 and nodes[3] in ['Corner of mouth - contra', 'Corner of mouth - ipsi']:
+                    nodes.insert(3, 'Corner of mouth')
+                # don't need any special insertion code for "Eyelid - contra" or "Eyelid - ipsi" because they are leaf nodes
                 paths_to_add.append(nodes)
             elif length > 2 and nodes[1] == 'Ear':
                 nodes[3].replace('Mastoid process', 'Behind ear')

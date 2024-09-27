@@ -18,6 +18,7 @@ from PyQt5.QtCore import (
     pyqtSignal,
 )
 
+from gui.link_help import show_help
 from lexicon.module_classes import XslotStructure
 
 
@@ -105,7 +106,7 @@ class XslotSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Help | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.button_box.button(QDialogButtonBox.RestoreDefaults).setText("Clear")
@@ -129,6 +130,8 @@ class XslotSelectorDialog(QDialog):
             #     self.accept()
 
             self.reject()
+        elif standard == QDialogButtonBox.Help:
+            show_help('xslot')
 
         elif standard == QDialogButtonBox.Save:
             self.validate_and_save()

@@ -45,7 +45,7 @@ from PyQt5.QtGui import (
 # from gui.hand_configuration import ConfigGlobal, Config
 from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
-from gui.helper_widget import CollapsibleSection, ToggleSwitch
+from gui.helper_widget import ToggleSwitch
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
@@ -393,9 +393,8 @@ class SignSummaryPanel(QScrollArea):
         othertext.setPos(self.x_offset, self.current_y)
         self.scene.addItem(othertext)
 
-        for mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION]:
+        for mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION, ModuleTypes.NONMANUAL]:
             self.addmodules_other(moduletype=mtype)
-        self.addnonmanual()
 
     def addhand(self, articulatornum):
         # add hand label
@@ -447,13 +446,13 @@ class SignSummaryPanel(QScrollArea):
 
         return x, y, w, h
 
-    def addnonmanual(self):
-        return  # TODO KV implement
 
     def addmodules_other(self, moduletype):  # artnum,
         # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
         if moduletype == ModuleTypes.RELATION:
             modules = self.relmods_other
+        elif moduletype == ModuleTypes.NONMANUAL:
+            modules = [mod for mod in self.sign.getmoduledict(moduletype).values()]
         else:
             modules = [mod for mod in self.sign.getmoduledict(moduletype).values() if
                        mod.articulators is not None and
@@ -616,8 +615,7 @@ class SignSummaryPanel(QScrollArea):
         return condensed_intervals
 
     def addmoduleintervals(self, articulator, artnum, intervals, moduletype, moduletypeabbrev, modules):
-        if len(intervals) > 0:
-            self.current_y += self.default_xslot_height + self.verticalspacing
+        self.current_y += self.default_xslot_height + self.verticalspacing
         for i_idx, (modnum, m_id, t) in enumerate(intervals):
             paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,
                                               text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduletypeabbrev + str(modnum),
@@ -733,7 +731,7 @@ class SignSummaryPanel(QScrollArea):
         modules_list = self.sign.getmoduledict(moduletype)
         module_to_edit = modules_list[modulekey]
         includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
-            else ([] if moduletype == ModuleTypes.RELATION else [HAND])
+            else ([] if moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL] else [HAND])
         includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
             1 if moduletype == ModuleTypes.LOCATION else
             0  # default
@@ -741,7 +739,6 @@ class SignSummaryPanel(QScrollArea):
         module_selector = ModuleSelectorDialog(moduletype=moduletype,
                                                xslotstructure=self.sign.xslotstructure,
                                                moduletoload=module_to_edit,
-                                               includephase=includephase,
                                                incl_articulators=includearticulators,
                                                incl_articulator_subopts=includephase,
                                                parent=self
@@ -760,6 +757,7 @@ class SignSummaryPanel(QScrollArea):
 
 class SignLevelMenuPanel(QScrollArea):
     sign_updated = pyqtSignal(Sign)
+    corpus_updated = pyqtSignal(Sign)
 
     def __init__(self, sign, mainwindow, **kwargs):
         super().__init__(**kwargs)
@@ -820,7 +818,7 @@ class SignLevelMenuPanel(QScrollArea):
 
         self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
-        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked_na(ModuleTypes.NONMANUAL))
+        self.nonmanual_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.NONMANUAL))
         self.modulebuttons_timed.append(self.nonmanual_button)
 
         main_layout.addWidget(self.signgloss_label)
@@ -887,16 +885,22 @@ class SignLevelMenuPanel(QScrollArea):
 
     def handle_save_signlevelinfo(self, signlevelinfo):
         if self.sign:
-            # an existing sign is highlighted; update it
+            # We have a fully formed sign; update its sign-level info.
             self.sign.signlevel_information = signlevelinfo
+
+            if self.sign not in self.mainwindow.corpus.signs:
+                # But, if it's not already in the corpus that means it's a sign that's about to
+                #   be copied and we're just confirming the SLI. In this case, it needs to
+                #   be added to the corpus.
+                self.mainwindow.corpus.add_sign(self.sign)
         else:
-            # this is a new sign
+            # this is a brand new sign
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(self.sign)
 
         self.sign_updated.emit(self.sign)
-        self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
+        self.corpus_updated.emit(self.sign)
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
@@ -909,7 +913,7 @@ class SignLevelMenuPanel(QScrollArea):
 
     def handle_menumodulebtn_clicked(self, moduletype):
         includearticulators = [HAND, ARM, LEG] if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
-            else ([] if moduletype == ModuleTypes.RELATION else [HAND])
+            else ([] if moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL] else [HAND])
         includephase = 2 if moduletype == ModuleTypes.MOVEMENT else (
             1 if moduletype == ModuleTypes.LOCATION else
             0  # default
@@ -917,7 +921,6 @@ class SignLevelMenuPanel(QScrollArea):
         module_selector = ModuleSelectorDialog(moduletype=moduletype,
                                                xslotstructure=self.mainwindow.current_sign.xslotstructure,
                                                moduletoload=None,
-                                               includephase=includephase,
                                                incl_articulators=includearticulators,
                                                incl_articulator_subopts=includephase,
                                                parent=self)

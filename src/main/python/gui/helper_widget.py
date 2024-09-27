@@ -55,7 +55,7 @@ class CollapsibleSection(QWidget):
         self.headerLine.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
 
         self.contentArea.setStyleSheet('QScrollArea { background-color: white; border: none; }')
-        self.contentArea.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)  # TODO KV was expanding, fixed
+        self.contentArea.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)  # was expanding, fixed
 
         # start out collapsed
         self.contentArea.setMaximumHeight(0)
@@ -93,7 +93,7 @@ class CollapsibleSection(QWidget):
         self.contentArea.setLayout(contentLayout)
 
         collapsedHeight = self.sizeHint().height() - self.contentArea.maximumHeight()
-        contentHeight = 800  # TODO KV was contentLayout.sizeHint().height()
+        contentHeight = 800  # was contentLayout.sizeHint().height()
 
         for i in range(self.toggleAnimation.animationCount()-1):
             spoilerAnimation = self.toggleAnimation.animationAt(i)
@@ -230,6 +230,12 @@ class OptionSwitch(QWidget):
             1: self.left_btn.isChecked(),
             2: self.right_btn.isChecked()
         }
+
+    def getwhichbuttonselected(self):
+        return 1 if self.left_btn.isChecked() else (2 if self.right_btn.isChecked() else 0)
+
+    def setwhichbuttonselected(self, buttonnum):
+        self.setvalue({k: buttonnum == k for k in [1, 2]})
 
     def setvalue(self, valuesdict):
         self.left_btn.setChecked(valuesdict[1])

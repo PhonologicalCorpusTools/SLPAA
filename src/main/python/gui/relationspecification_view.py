@@ -97,7 +97,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.check_enable_allsubmenus()
 
     # return a Relation Module composed of the currently-specified data in the GUI
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
 
         relmod = RelationModule(relationx=self.getcurrentx(),
                                 relationy=self.getcurrenty(),
@@ -108,6 +108,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                 directionslist=self.getcurrentdirections(),
                                 articulators=articulators,
                                 timingintervals=timingintervals,
+                                phonlocs=phonlocs,
                                 addedinfo=addedinfo,
                                 )
         if self.existingkey is not None:
@@ -736,8 +737,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.existingmodule_listmodel = ModuleLinkingListModel()
         self.existingmod_listview.setModel(self.existingmodule_listmodel)
         self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
-        self.existingmod_listview.setSelectionMode(QAbstractItemView.MultiSelection)
-        self.existingmod_listview.clicked.connect(lambda index: self.handle_existingmod_clicked(index))
+        self.existingmod_listview.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.existingmod_listview.clicked.connect(self.handle_existingmod_clicked)
         self.y_other_radio = RelationRadioButton("Other")
         self.y_other_text = QLineEdit()
         self.y_other_text.setPlaceholderText("Specify")

@@ -32,6 +32,7 @@ from lexicon.module_classes import AddedInfo, HandConfigurationModule, HandConfi
 from gui.predefined_handshape_dialog import PredefinedHandshapeDialog
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel
 from gui.undo_command import TranscriptionUndoCommand
+from gui.link_help import show_help
 
 # redefine from imported value
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
@@ -779,22 +780,24 @@ class ConfigHand(QWidget):
         self.predefined_ctx = predefined_ctx
         self.setStyleSheet('QWidget{margin: 0; padding: 0}')
 
-        self.main_layout = QHBoxLayout()
+        self.main_layout = QVBoxLayout()
         self.main_layout.setSpacing(5)
         self.main_layout.addStretch()
+        self.main_layout.setAlignment(Qt.AlignLeft)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
-        self.generate_fields()
+        self.generate_fields()  # generate slots 2 to 7 that gets placed next to the 'load predefined' btn
 
+        self.preview_clearbtn_layout = QHBoxLayout()  # layout for predefined image, predefined label, and clear btn
         self.predefined_image = QLabel()
         self.predefined_image.setToolTip('Predefined handshape image matching the current transcription')
-        self.predefined_image.setFixedSize(50, 50)
+        self.predefined_image.setFixedSize(100, 100)
         handshape_image = QPixmap(self.predefined_ctx['empty'])
         self.predefined_image.setPixmap(
             handshape_image.scaled(self.predefined_image.width(), self.predefined_image.height(), Qt.KeepAspectRatio)
         )
-        self.main_layout.addWidget(self.predefined_image)
+        self.preview_clearbtn_layout.addWidget(self.predefined_image)
 
         self.predefined_label = QLabel('empty')
         self.predefined_label.setFixedSize(150, 20)
@@ -802,13 +805,14 @@ class ConfigHand(QWidget):
                                             'border-style: outset;'
                                             'border-color: black;'
                                             'border-width: 1px;')
-        self.main_layout.addWidget(self.predefined_label)
+        self.preview_clearbtn_layout.addWidget(self.predefined_label)
 
         clear_button = QPushButton('Clear', parent=self)
         clear_button.setFixedWidth(75)
         clear_button.setContentsMargins(0, 0, 0, 0)
         clear_button.clicked.connect(self.clear)
-        self.main_layout.addWidget(clear_button)
+        self.preview_clearbtn_layout.addWidget(clear_button)
+        self.main_layout.addLayout(self.preview_clearbtn_layout)
 
     def hasFocus(self):
         return any(field.hasFocus() for field in self.__iter__())
@@ -852,13 +856,16 @@ class ConfigHand(QWidget):
         self.repaint()
 
     def generate_fields(self):
+        field23_layout = QHBoxLayout()    # layout for fields 2-3. to be added to main_layout
+        field4567_layout = QHBoxLayout()  # layout for fields 4-7. to be added to main_layout
+
         self.field2 = ConfigField(2, parent=self)
         self.field2.slot_on_focus.connect(self.slot_on_focus.emit)
         self.field2.slot_num_on_focus.connect(self.slot_num_on_focus.emit)
         self.field2.slot_leave.connect(self.slot_leave.emit)
         self.field2.slot_changed.connect(self.update_predefined_image_text)
         self.field2.slot_finish_edit.connect(self.slot_finish_edit.emit)
-        self.main_layout.addWidget(self.field2)
+        field23_layout.addWidget(self.field2)
 
         self.field3 = ConfigField(3, parent=self)
         self.field3.slot_on_focus.connect(self.slot_on_focus.emit)
@@ -866,7 +873,7 @@ class ConfigHand(QWidget):
         self.field3.slot_leave.connect(self.slot_leave.emit)
         self.field3.slot_changed.connect(self.update_predefined_image_text)
         self.field3.slot_finish_edit.connect(self.slot_finish_edit.emit)
-        self.main_layout.addWidget(self.field3)
+        field23_layout.addWidget(self.field3)
 
         self.field4 = ConfigField(4, parent=self)
         self.field4.slot_on_focus.connect(self.slot_on_focus.emit)
@@ -874,7 +881,7 @@ class ConfigHand(QWidget):
         self.field4.slot_leave.connect(self.slot_leave.emit)
         self.field4.slot_changed.connect(self.update_predefined_image_text)
         self.field4.slot_finish_edit.connect(self.slot_finish_edit.emit)
-        self.main_layout.addWidget(self.field4)
+        field4567_layout.addWidget(self.field4)
 
         self.field5 = ConfigField(5, parent=self)
         self.field5.slot_on_focus.connect(self.slot_on_focus.emit)
@@ -882,7 +889,7 @@ class ConfigHand(QWidget):
         self.field5.slot_leave.connect(self.slot_leave.emit)
         self.field5.slot_changed.connect(self.update_predefined_image_text)
         self.field5.slot_finish_edit.connect(self.slot_finish_edit.emit)
-        self.main_layout.addWidget(self.field5)
+        field4567_layout.addWidget(self.field5)
 
         self.field6 = ConfigField(6, parent=self)
         self.field6.slot_on_focus.connect(self.slot_on_focus.emit)
@@ -890,7 +897,7 @@ class ConfigHand(QWidget):
         self.field6.slot_leave.connect(self.slot_leave.emit)
         self.field6.slot_changed.connect(self.update_predefined_image_text)
         self.field6.slot_finish_edit.connect(self.slot_finish_edit.emit)
-        self.main_layout.addWidget(self.field6)
+        field4567_layout.addWidget(self.field6)
 
         self.field7 = ConfigField(7, parent=self)
         self.field7.slot_on_focus.connect(self.slot_on_focus.emit)
@@ -898,7 +905,10 @@ class ConfigHand(QWidget):
         self.field7.slot_leave.connect(self.slot_leave.emit)
         self.field7.slot_changed.connect(self.update_predefined_image_text)
         self.field7.slot_finish_edit.connect(self.slot_finish_edit.emit)
-        self.main_layout.addWidget(self.field7)
+        field4567_layout.addWidget(self.field7)
+
+        self.main_layout.addLayout(field23_layout)
+        self.main_layout.addLayout(field4567_layout)
 
     def set_predefined(self, transcription_list):
         for symbol, slot in zip(transcription_list, self.__iter__()):
@@ -972,15 +982,18 @@ class Config(QGroupBox):
         self.hand.slot_leave.connect(self.slot_leave.emit)
         self.hand.slot_finish_edit.connect(self.slot_finish_edit.emit)
 
-        self.predefined_button = QPushButton("Load predefined handshape")
+        self.predefined_button = QPushButton("Load predefined handshape".replace(" ", "\n"))
         self.predefined_button.clicked.connect(self.load_predefined)
+        predefined_help_btn = QPushButton(" Help ".replace(" ", "\n"))
+        predefined_help_btn.clicked.connect(lambda: show_help("predefined_handshapes"))
         hand_box = QGroupBox(parent=self)
-        hand_layout = QVBoxLayout()
+        hand_layout = QHBoxLayout()
         hand_layout.setSpacing(5)
         hand_box.setLayout(hand_layout)
 
-        predefined_layout = QHBoxLayout()
+        predefined_layout = QVBoxLayout()
         predefined_layout.addWidget(self.predefined_button)
+        predefined_layout.addWidget(predefined_help_btn)
         predefined_layout.addStretch()
 
         hand_layout.addLayout(predefined_layout)
@@ -1090,7 +1103,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
         self.mainwindow.undostack.push(undo_command)
 
-    def getsavedmodule(self, articulators, timingintervals, addedinfo, inphase):
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         configdict = self.panel.config.get_value()
         handconfiguration = configdict['hand']
         overalloptions = {k: v for (k, v) in configdict.items() if k != 'hand'}
@@ -1098,6 +1111,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
                                        overalloptions=overalloptions,
                                        articulators=articulators,
                                        timingintervals=timingintervals,
+                                       phonlocs=phonlocs,
                                        addedinfo=addedinfo)
         if self.existingkey is not None:
             hcfg.uniqueid = self.existingkey
@@ -1144,7 +1158,7 @@ class HandTranscriptionPanel(QScrollArea):
         self.setWidget(main_frame)
 
     def sizeHint(self):
-        return QSize(1300, 400)
+        return QSize(900, 400)
 
     def update_details_label(self, text=""):
         self.details_label.setText(text)

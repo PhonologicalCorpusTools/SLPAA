@@ -17,13 +17,20 @@ from PyQt5.QtWidgets import (
     QButtonGroup
 )
 
+from PyQt5.QtCore import (
+    QEvent,
+)
+
+
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
+from gui.modulespecification_widgets import SignEntryContextMenu
 
 
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
     selection_cleared = pyqtSignal()
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
 
     def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
@@ -38,6 +45,8 @@ class CorpusDisplay(QWidget):
         self.corpusfile_edit.setEnabled(False)
         filename_layout.addWidget(corpusfile_label)
         filename_layout.addWidget(self.corpusfile_edit)
+        self.numentries_label = QLabel("0 total signs")
+        filename_layout.addWidget(self.numentries_label)
         main_layout.addLayout(filename_layout)
 
         self.corpus_model = CorpusModel(settings=self.mainwindow.app_settings, parent=self)
@@ -49,15 +58,22 @@ class CorpusDisplay(QWidget):
         self.corpus_model.modelupdated.connect(lambda: self.corpus_sortproxy.sortnow())
         self.corpus_view.setModel(self.corpus_sortproxy)
         self.corpus_view.newcurrentindex.connect(self.handle_selection)
+        self.corpus_view.noselection.connect(self.handle_selection)
         self.corpus_view.setEditTriggers(QAbstractItemView.NoEditTriggers)  # disable edit by double-clicking an item
         self.corpus_view.doubleClicked.connect(self.mainwindow.signlevel_panel.handle_signlevelbutton_click)
         self.corpus_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.corpus_view.installEventFilter(self)
 
         # Corpus filter by any info in table (gloss, entry id string, lemma, id-gloss)
+        filter_layout = QHBoxLayout()
         self.corpus_filter_input = QLineEdit()
-        self.corpus_filter_input.setPlaceholderText('Filter corpus entries')
+        self.corpus_filter_input.setPlaceholderText("Filter corpus entries")
         self.corpus_filter_input.textChanged.connect(self.filter_corpus_list)
-        main_layout.addWidget(self.corpus_filter_input)
+        filter_layout.addWidget(self.corpus_filter_input)
+        self.numlines_label = QLabel("0 of 0 glosses shown")
+        filter_layout.addWidget(self.numlines_label)
+        main_layout.addLayout(filter_layout)
+
         main_layout.addWidget(self.corpus_view)
 
         sort_layout = QHBoxLayout()
@@ -83,10 +99,12 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
-    def handle_selection(self, proxyindex=None):
+    def handle_selection(self, proxyindex=None, sign=None):
         if proxyindex is not None and proxyindex.model() is not None:
             sourceindex = self.corpus_sortproxy.mapToSource(proxyindex)
             sign = self.corpus_model.itemFromIndex(sourceindex).sign
+            self.selected_sign.emit(sign)
+        elif sign is not None:
             self.selected_sign.emit(sign)
         else:
             self.selection_cleared.emit()
@@ -141,6 +159,39 @@ class CorpusDisplay(QWidget):
         except ValueError:
             self.clear()
 
+        self.update_summarylabels()
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.ContextMenu and source == self.corpus_view:
+            # right-click menu in the corpus view means we're focusing on Sign objects
+            selectedsigns = self.getselectedsigns()
+
+            clipboard = self.mainwindow.clipboard
+            clipboardsigns = []
+            if isinstance(clipboard, Sign):
+                clipboardsigns.append(clipboard)
+            elif isinstance(clipboard, list):
+                for copieditem in clipboard:
+                    if isinstance(copieditem, Sign):
+                        clipboardsigns.append(copieditem)
+
+            menu = SignEntryContextMenu(selectedsigns != [], clipboardsigns != [])
+            menu.action_selected.connect(self.action_selected.emit)
+            menu.exec_(event.globalPos())
+
+        elif event.type() == QEvent.KeyPress and event.key() == Qt.Key_Return and source == self.corpus_view:
+            self.action_selected.emit("edit")
+
+        return super().eventFilter(source, event)
+
+    # returns a list of Sign objects (could be empty) that are currently selected in the corpus display
+    def getselectedsigns(self):
+        proxyindices = self.corpus_view.selectedIndexes()
+        sourceindices = [self.getsourceindex((proxyindex.row(), proxyindex.column())) for proxyindex in proxyindices]
+        corpusitems = [self.getcorpusitem(sourceindex) for sourceindex in sourceindices]
+        selectedsigns = list(set([corpusitem.sign for corpusitem in corpusitems if corpusitem is not None]))
+        return selectedsigns
+
     def getproxyindex(self, fromproxyrowcol=None, fromsourceindex=None):
         if fromproxyrowcol:
             return self.corpus_view.model().index(fromproxyrowcol[0], fromproxyrowcol[1])
@@ -171,16 +222,32 @@ class CorpusDisplay(QWidget):
         self.corpus_model.clear()
         self.corpus_model.layoutChanged.emit()
         self.corpus_view.clearSelection()
+        self.update_summarylabels()
 
     def filter_corpus_list(self):
         self.corpus_sortproxy.setFilterRegExp(self.sender().text())
         self.corpus_view.clearSelection()  # Deselects all signs in the corpus list
+        self.update_summarylabels()
 
+    def update_summarylabels(self):
+        totalsigns = len(self.mainwindow.corpus.signs)
+        self.numentries_label.setText(str(totalsigns) + " signs")
+        filteredlines = self.getrowcount()
+        totallines = self.corpus_model.rowCount()
+        self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " glosses shown")
 
 class CorpusTableView(QTableView):
     newcurrentindex = pyqtSignal(QModelIndex)
+    noselection = pyqtSignal()
 
     # same signal no matter how the user selects a new row
     # (whether by clicking, using up/down arrows, or typing a character on the keyboard)
     def currentChanged(self, current, previous):
         self.newcurrentindex.emit(current)
+
+    def selectionChanged(self, selected, deselected):
+        if len(self.selectedIndexes()) == 0:
+            self.noselection.emit()
+
+        super().selectionChanged(selected, deselected)
+

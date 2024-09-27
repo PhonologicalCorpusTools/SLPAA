@@ -24,7 +24,9 @@ from PyQt5.QtCore import (
 )
 
 from gui.modulespecification_dialog import AddedInfoPushButton
+from gui.link_help import show_help
 from lexicon.module_classes import Signtype
+from constant import SIGN_TYPE
 
 
 class SigntypeSpecificationPanel(QFrame):
@@ -45,10 +47,10 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_unspec_radio.setProperty('abbreviation.include', True)
         self.addedinfobutton = AddedInfoPushButton("Notes")
         self.handstype_1h_radio = SigntypeRadioButton("1 hand", parentbutton=None)
-        self.handstype_1h_radio.setProperty('abbreviation.path', "1h")
+        self.handstype_1h_radio.setProperty('abbreviation.path', SIGN_TYPE["ONE_HAND"])
         self.handstype_1h_radio.setProperty('abbreviation.include', True)
         self.handstype_2h_radio = SigntypeRadioButton("2 hands", parentbutton=None)
-        self.handstype_2h_radio.setProperty('abbreviation.path', "2h")
+        self.handstype_2h_radio.setProperty('abbreviation.path',  SIGN_TYPE["TWO_HANDS"])
         self.handstype_2h_radio.setProperty('abbreviation.include', True)
         self.handstype_group.addButton(self.handstype_unspec_radio)
         self.handstype_group.addButton(self.handstype_1h_radio)
@@ -58,11 +60,11 @@ class SigntypeSpecificationPanel(QFrame):
         # buttons and groups for 1-handed signs
         self.handstype_1h_group = SigntypeButtonGroup(prt=self)
         self.handstype_1hmove_radio = SigntypeRadioButton('The hand moves', parentbutton=self.handstype_1h_radio)
-        self.handstype_1hmove_radio.setProperty('abbreviation.path', "1h.moves")
+        self.handstype_1hmove_radio.setProperty('abbreviation.path', SIGN_TYPE["ONE_HAND_MVMT"])
         self.handstype_1hmove_radio.setProperty('abbreviation.include', True)
         self.handstype_1hnomove_radio = SigntypeRadioButton("The hand doesn\'t move",
                                                             parentbutton=self.handstype_1h_radio)
-        self.handstype_1hnomove_radio.setProperty('abbreviation.path', "1h.no mvmt")
+        self.handstype_1hnomove_radio.setProperty('abbreviation.path', SIGN_TYPE["ONE_HAND_NO_MVMT"])
         self.handstype_1hnomove_radio.setProperty('abbreviation.include', True)
         self.handstype_1h_group.addButton(self.handstype_1hmove_radio)
         self.handstype_1h_group.addButton(self.handstype_1hnomove_radio)
@@ -72,11 +74,11 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_handshapereln_group = SigntypeButtonGroup(prt=self)
         self.handstype_2hsameshapes_radio = SigntypeRadioButton("H1 and H2 use same set(s) of hand configurations",
                                                                 parentbutton=self.handstype_2h_radio)
-        self.handstype_2hsameshapes_radio.setProperty('abbreviation.path', "2h.same HCs")
+        self.handstype_2hsameshapes_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_SAME_HCONF"])
         self.handstype_2hsameshapes_radio.setProperty('abbreviation.include', True)
         self.handstype_2hdiffshapes_radio = SigntypeRadioButton("H1 and H2 use different set(s) of hand configurations",
                                                                 parentbutton=self.handstype_2h_radio)
-        self.handstype_2hdiffshapes_radio.setProperty('abbreviation.path', "2h.different HCs")
+        self.handstype_2hdiffshapes_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_DIFF_HCONF"])
         self.handstype_2hdiffshapes_radio.setProperty('abbreviation.include', True)
         # self.handstype_2hdiffshapes_radio.toggled.connect(self.linkhandconfigbuttons)
         self.handstype_handshapereln_group.addButton(self.handstype_2hsameshapes_radio)
@@ -87,11 +89,11 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_contactreln_group = SigntypeButtonGroup(prt=self)
         self.handstype_2hcontactyes_radio = SigntypeRadioButton("H1 and H2 maintain contact throughout sign",
                                                                 parentbutton=self.handstype_2h_radio)
-        self.handstype_2hcontactyes_radio.setProperty('abbreviation.path', "2h.maintain contact")
+        self.handstype_2hcontactyes_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_MAINT_CONT"])
         self.handstype_2hcontactyes_radio.setProperty('abbreviation.include', True)
         self.handstype_2hcontactno_radio = SigntypeRadioButton("H1 and H2 do not maintain contact",
                                                                parentbutton=self.handstype_2h_radio)
-        self.handstype_2hcontactno_radio.setProperty('abbreviation.path', "2h.contact not maintained")
+        self.handstype_2hcontactno_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_NO_CONT"])
         self.handstype_2hcontactno_radio.setProperty('abbreviation.include', False)
         self.handstype_contactreln_group.addButton(self.handstype_2hcontactyes_radio)
         self.handstype_contactreln_group.addButton(self.handstype_2hcontactno_radio)
@@ -101,11 +103,11 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_symmetryreln_group = SigntypeButtonGroup(prt=self)
         self.handstype_2hsymmetryyes_radio = SigntypeRadioButton("H1 and H2 are bilaterally symmetric",
                                                                  parentbutton=self.handstype_2h_radio)
-        self.handstype_2hsymmetryyes_radio.setProperty('abbreviation.path', "2h.bilaterally symmetric")
+        self.handstype_2hsymmetryyes_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_BISYM"])
         self.handstype_2hsymmetryyes_radio.setProperty('abbreviation.include', True)
         self.handstype_2hsymmetryno_radio = SigntypeRadioButton("H1 and H2 are not bilaterally symmetric",
                                                                 parentbutton=self.handstype_2h_radio)
-        self.handstype_2hsymmetryno_radio.setProperty('abbreviation.path', "2h.not bilaterally symmetric")
+        self.handstype_2hsymmetryno_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_NO_BISYM"])
         self.handstype_2hsymmetryno_radio.setProperty('abbreviation.include', False)
         self.handstype_symmetryreln_group.addButton(self.handstype_2hsymmetryyes_radio)
         self.handstype_symmetryreln_group.addButton(self.handstype_2hsymmetryno_radio)
@@ -115,13 +117,13 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_mvmtreln_group = SigntypeButtonGroup(prt=self)
         self.handstype_2hmvmtneither_radio = SigntypeRadioButton("Neither hand moves",
                                                                  parentbutton=self.handstype_2h_radio)
-        self.handstype_2hmvmtneither_radio.setProperty('abbreviation.path', "2h.neither moves")
+        self.handstype_2hmvmtneither_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_NO_MVMT"])
         self.handstype_2hmvmtneither_radio.setProperty('abbreviation.include', True)
         self.handstype_2hmvmtone_radio = SigntypeRadioButton("Only 1 hand moves", parentbutton=self.handstype_2h_radio)
-        self.handstype_2hmvmtone_radio.setProperty('abbreviation.path', "2h.only 1 moves")
+        self.handstype_2hmvmtone_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_ONE_MVMT"])
         self.handstype_2hmvmtone_radio.setProperty('abbreviation.include', False)
         self.handstype_2hmvmtboth_radio = SigntypeRadioButton("Both hands move", parentbutton=self.handstype_2h_radio)
-        self.handstype_2hmvmtboth_radio.setProperty('abbreviation.path', "2h.both move")
+        self.handstype_2hmvmtboth_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_BOTH_MVMT"])
         self.handstype_2hmvmtboth_radio.setProperty('abbreviation.include', False)
         self.handstype_mvmtreln_group.addButton(self.handstype_2hmvmtneither_radio)
         self.handstype_mvmtreln_group.addButton(self.handstype_2hmvmtone_radio)
@@ -132,11 +134,11 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_mvmtonehandreln_group = SigntypeButtonGroup(prt=self)
         self.handstype_2hmvmtoneH1_radio = SigntypeRadioButton("Only H1 moves",
                                                                parentbutton=self.handstype_2hmvmtone_radio)
-        self.handstype_2hmvmtoneH1_radio.setProperty('abbreviation.path', "2h.only 1 moves.H1 moves")
+        self.handstype_2hmvmtoneH1_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_ONLY_H1"])
         self.handstype_2hmvmtoneH1_radio.setProperty('abbreviation.include', True)
         self.handstype_2hmvmtoneH2_radio = SigntypeRadioButton("Only H2 moves",
                                                                parentbutton=self.handstype_2hmvmtone_radio)
-        self.handstype_2hmvmtoneH2_radio.setProperty('abbreviation.path', "2h.only 1 moves.H2 moves")
+        self.handstype_2hmvmtoneH2_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_ONLY_H2"])
         self.handstype_2hmvmtoneH2_radio.setProperty('abbreviation.include', True)
         self.handstype_mvmtonehandreln_group.addButton(self.handstype_2hmvmtoneH1_radio)
         self.handstype_mvmtonehandreln_group.addButton(self.handstype_2hmvmtoneH2_radio)
@@ -146,11 +148,11 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_mvmtbothhandreln_group = SigntypeButtonGroup(prt=self)
         self.handstype_2hmvmtbothdiff_radio = SigntypeRadioButton("H1 and H2 move differently",
                                                                   parentbutton=self.handstype_2hmvmtboth_radio)
-        self.handstype_2hmvmtbothdiff_radio.setProperty('abbreviation.path', "2h.both move.move differently")
+        self.handstype_2hmvmtbothdiff_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_BOTH_MVMT_DIFF"])
         self.handstype_2hmvmtbothdiff_radio.setProperty('abbreviation.include', True)
         self.handstype_2hmvmtbothsame_radio = SigntypeRadioButton("H1 and H2 move similarly",
                                                                   parentbutton=self.handstype_2hmvmtboth_radio)
-        self.handstype_2hmvmtbothsame_radio.setProperty('abbreviation.path', "2h.both move.move similarly")
+        self.handstype_2hmvmtbothsame_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_BOTH_MVMT_SAME"])
         self.handstype_2hmvmtbothsame_radio.setProperty('abbreviation.include', True)
         self.handstype_mvmtbothhandreln_group.addButton(self.handstype_2hmvmtbothdiff_radio)
         self.handstype_mvmtbothhandreln_group.addButton(self.handstype_2hmvmtbothsame_radio)
@@ -160,11 +162,11 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_mvmttimingreln_group = SigntypeButtonGroup(prt=self)
         self.handstype_2hmvmtseq_radio = SigntypeRadioButton("Sequential",
                                                              parentbutton=self.handstype_2hmvmtbothsame_radio)
-        self.handstype_2hmvmtseq_radio.setProperty('abbreviation.path', "2h.both move.move similarly.sequential")
+        self.handstype_2hmvmtseq_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_BOTH_MVMT_SEQ"])
         self.handstype_2hmvmtseq_radio.setProperty('abbreviation.include', True)
         self.handstype_2hmvmtsimult_radio = SigntypeRadioButton("Simultaneous",
                                                                 parentbutton=self.handstype_2hmvmtbothsame_radio)
-        self.handstype_2hmvmtsimult_radio.setProperty('abbreviation.path', "2h.both move.move similarly.simultaneous")
+        self.handstype_2hmvmtsimult_radio.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_BOTH_MVMT_SIMU"] )
         self.handstype_2hmvmtsimult_radio.setProperty('abbreviation.include', True)
         self.handstype_mvmttimingreln_group.addButton(self.handstype_2hmvmtseq_radio)
         self.handstype_mvmttimingreln_group.addButton(self.handstype_2hmvmtsimult_radio)
@@ -472,7 +474,6 @@ class SigntypeSelectorDialog(QDialog):
     def __init__(self, signtypetoload, **kwargs):
         super().__init__(**kwargs)
 
-        # TODO KV delete self.app_settings = app_settings
         self.mainwindow = self.parent().mainwindow
         self.settings = self.mainwindow.app_settings
 
@@ -488,7 +489,7 @@ class SigntypeSelectorDialog(QDialog):
         separate_line.setFrameShadow(QFrame.Sunken)
         main_layout.addWidget(separate_line)
 
-        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Help | QDialogButtonBox.Save | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(buttons, parent=self)
         self.button_box.button(QDialogButtonBox.RestoreDefaults).setAutoDefault(False)
@@ -521,6 +522,9 @@ class SigntypeSelectorDialog(QDialog):
             #     self.accept()
 
             self.reject()
+
+        elif standard == QDialogButtonBox.Help:
+            show_help('signtype')
 
         #     elif standard == QDialogButtonBox.RestoreDefaults:
         #         self.movement_tab.remove_all_pages()
