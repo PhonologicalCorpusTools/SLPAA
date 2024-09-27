@@ -393,6 +393,10 @@ class CompareSignsDialog(QDialog):
             all_keys = data1_keys.union(data2_keys)
 
             for key in reversed(list(all_keys)):
+                # Create tree items for both trees
+                item1 = QTreeWidgetItem([key])
+                item2 = QTreeWidgetItem([key])
+
                 value1, value2 = None, None
                 try:
                     value1 = data1.get(key, None)
@@ -400,10 +404,6 @@ class CompareSignsDialog(QDialog):
                 except AttributeError:
                     # when data1 or data2 is bool
                     pass
-
-                # Create tree items for both trees
-                item1 = QTreeWidgetItem([key])
-                item2 = QTreeWidgetItem([key])
 
                 # Set the color of missing nodes
                 if value1 is None and value2 is not None:
@@ -415,10 +415,11 @@ class CompareSignsDialog(QDialog):
                     should_paint_yellow[1] = True
                 elif value2 is None and value1 is not None:
                     # only tree 1 has it
-                    background_colour = tree1.palette().color(QPalette.Base)
+                    background_colour = tree2.palette().color(QPalette.Base)
                     item2.setForeground(0, QBrush(background_colour))  # node in tree 2 greyed out
                     item2.setFlags(Qt.NoItemFlags)
                     item1.setBackground(0, yellow_brush)
+                    print(f"terminal node {key} gets painted yellow because no corresponding node")
                     should_paint_yellow[0] = True
                 parent1.addChild(item1)
                 parent2.addChild(item2)
@@ -433,6 +434,7 @@ class CompareSignsDialog(QDialog):
                 else:
                     # Set color for false values
                     if value1 is False and not should_paint_yellow[0]:
+                        print(f"terminal node {key} gets painted red because false")
                         item1.setBackground(0, red_brush)  # red
                         should_paint_red[0] = True
                     if value2 is False and not should_paint_yellow[1]:
@@ -440,18 +442,38 @@ class CompareSignsDialog(QDialog):
                         should_paint_red[1] = True
 
                 # color the node depending on children
+                if child_r[0] or child_y[0]:
+                    should_paint_red[0] = True
+                if child_r[1] or child_y[1]:
+                    should_paint_red[1] = True
                 should_paint_red = [should_paint_red[0] or child_r[0], should_paint_red[1] or child_r[1]]
-                should_paint_yellow = [should_paint_yellow[0] or child_y[0], should_paint_yellow[1] or child_y[1]]
 
-            # color of the parent node
+            # color of the parent node: red wins over yellow
             if should_paint_red[0]:
-                parent1.setBackground(0, red_brush)
-            if should_paint_red[1]:
-                parent2.setBackground(0, red_brush)
-            if should_paint_yellow[0]:
+                # red should not override already painted yellow
+                if parent1.background(0).color() != yellow_brush:
+                    print(f"node={key}'s parent is not yellow\n{parent1.background(0).color()}")
+                    parent1.setBackground(0, red_brush)
+                    print(f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
+                else:
+                    print(f"node={key}'s parent is yellow\n{parent1.background(0).color()}")
+            elif should_paint_yellow[0]:
                 parent1.setBackground(0, yellow_brush)
-            if should_paint_yellow[1]:
+                print(
+                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
+
+            if should_paint_red[1]:
+                if parent2.background(0).color() != yellow_brush:
+                    print(f"node={key}'s parent is not yellow")
+                    parent2.setBackground(0, red_brush)
+                    print(
+                        f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
+                else:
+                    print(f"node={key}'s parent is yellow")
+            elif should_paint_yellow[1]:
                 parent2.setBackground(0, yellow_brush)
+                print(
+                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
 
             return should_paint_red, should_paint_yellow
 
