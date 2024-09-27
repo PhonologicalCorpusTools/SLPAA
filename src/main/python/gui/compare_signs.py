@@ -382,8 +382,8 @@ class CompareSignsDialog(QDialog):
 
     def new_populate_tree(self, tree1, tree2, data1, data2):
         def add_items(parent1, parent2, data1, data2):
-            should_paint_red = [False, False]
-            should_paint_yellow = [False, False]
+            should_paint_red = [False, False]     # paint tree 1 node / tree 2 node red
+            should_paint_yellow = [False, False]  # yellow to tree 1 node / tree 2 node
             red_brush = QBrush(QColor(255, 192, 203, 128))   # red when mismatch
             yellow_brush = QBrush(QColor(255, 255, 0, 128))  # yellow when no counterpart
 
@@ -406,15 +406,17 @@ class CompareSignsDialog(QDialog):
                 item2 = QTreeWidgetItem([key])
 
                 # Set the color of missing nodes
-                if value1 is None:
+                if value1 is None and value2 is not None:
+                    # only tree 2 has this node
                     background_colour = tree1.palette().color(QPalette.Base)
-                    item1.setForeground(0, QBrush(background_colour))  # greyed out
+                    item1.setForeground(0, QBrush(background_colour))  # node in tree 1 greyed out
                     item1.setFlags(Qt.NoItemFlags)
                     item2.setBackground(0, yellow_brush)
                     should_paint_yellow[1] = True
-                if value2 is None:
+                elif value2 is None and value1 is not None:
+                    # only tree 1 has it
                     background_colour = tree1.palette().color(QPalette.Base)
-                    item2.setForeground(0, QBrush(background_colour))  # greyed out
+                    item2.setForeground(0, QBrush(background_colour))  # node in tree 2 greyed out
                     item2.setFlags(Qt.NoItemFlags)
                     item1.setBackground(0, yellow_brush)
                     should_paint_yellow[0] = True
@@ -430,16 +432,16 @@ class CompareSignsDialog(QDialog):
                     child_r, child_y = add_items(item1, item2, value1 if value1 else {}, value2 if value2 else {})
                 else:
                     # Set color for false values
-                    if value1 is False:
+                    if value1 is False and not should_paint_yellow[0]:
                         item1.setBackground(0, red_brush)  # red
                         should_paint_red[0] = True
-                    if value2 is False:
+                    if value2 is False and not should_paint_yellow[1]:
                         item2.setBackground(0, red_brush)  # red
                         should_paint_red[1] = True
 
                 # color the node depending on children
-                should_paint_red = child_r
-                should_paint_yellow = child_y
+                should_paint_red = [should_paint_red[0] or child_r[0], should_paint_red[1] or child_r[1]]
+                should_paint_yellow = [should_paint_yellow[0] or child_y[0], should_paint_yellow[1] or child_y[1]]
 
             # color of the parent node
             if should_paint_red[0]:
@@ -452,7 +454,6 @@ class CompareSignsDialog(QDialog):
                 parent2.setBackground(0, yellow_brush)
 
             return should_paint_red, should_paint_yellow
-
 
         # Add each top-level key as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
