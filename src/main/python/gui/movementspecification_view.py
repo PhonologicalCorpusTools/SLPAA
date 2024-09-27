@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
     QStyle,
     QStyleOptionButton,
+    QStyleOptionViewItem,
     QApplication,
     QHeaderView,
     QStyleOptionFrame,
@@ -51,8 +52,9 @@ class MvmtTreeSearchComboBox(QComboBox):
                     if item.checkState() == Qt.Unchecked:
                         item.setCheckState(Qt.PartiallyChecked)
                     self.parent().treedisplay.setExpanded(item.index(), True)
-                itemstoselect[-1].setCheckState(Qt.Checked)
-                self.setCurrentIndex(-1)
+                if len(itemstoselect) > 0 and not itemstoselect[-1].data(Qt.UserRole + udr.nocontrolrole):
+                    itemstoselect[-1].setCheckState(Qt.Checked)
+                    self.setCurrentIndex(-1)
 
         if key == Qt.Key_Period and modifiers == Qt.ControlModifier:
             if self.refreshed:
@@ -126,7 +128,10 @@ def gettreeitemsinpath(treemodel, pathstring, delim="/"):
     for level in pathlist:
         pathitemslists.append(treemodel.findItems(level, Qt.MatchRecursive))
     validpathsoftreeitems = findvaliditemspaths(pathitemslists)
-    return validpathsoftreeitems[0]
+    if len(validpathsoftreeitems) > 0:
+        return validpathsoftreeitems[0]
+    else:
+        return []
 
 
 def findvaliditemspaths(pathitemslists):
@@ -159,6 +164,7 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
     #     return True
 
     def paint(self, painter, option, index):
+        
         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
             widget = option.widget
             style = widget.style() if widget else QApplication.style()
@@ -169,6 +175,13 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
                 painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+        elif index.data(Qt.UserRole+udr.nocontrolrole): 
+            widget = option.widget
+            style = widget.style() if widget else QApplication.style()
+            opt = QStyleOptionViewItem(option)
+            self.initStyleOption(opt, index)  
+            opt.features &= ~QStyleOptionViewItem.HasCheckIndicator # Turn off HasCheckIndicator
+            style.drawControl(QStyle.CE_ItemViewItem, opt, painter, widget)
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
             if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):

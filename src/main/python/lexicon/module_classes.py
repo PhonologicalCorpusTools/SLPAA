@@ -54,9 +54,10 @@ userdefinedroles = UserDefinedRoles({
         # mutuallyexclusiverole:
         # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
         # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,
-        # unusedrole:
-        # currently unused; can repurpose if needed
+    'nocontrolrole': 3,
+        # nocontrolrole:
+        # used by MovementTreeItemDelegate when a MovementTreeItem is never a selectable item
+        # so text may be displayed, but no checkbox or radiobutton
     'lastingrouprole': 4,
         # lastingrouprole:
         # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
@@ -89,6 +90,7 @@ userdefinedroles = UserDefinedRoles({
     'userspecifiedvaluerole': 10,
         # userspecifiedvaluerole:
         # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
+
 })
 
 

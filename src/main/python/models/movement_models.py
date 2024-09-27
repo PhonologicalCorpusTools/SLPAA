@@ -26,6 +26,7 @@ numberofreps_str = "Number of repetitions"
 
 rb = "radio button"  # ie mutually exclusive in group / at this level
 cb = "checkbox"  # ie not mutually exlusive
+nc = "no control" # no radio button or checkbox should be shown
 ed_1 = "editable level 1"  # ie value is editable but restricted to numbers that are >= 1 and multiples of 0.5
 ed_2 = "editable level 2"  # ie value is editable but restricted to numbers
 ed_3 = "editable level 3"  # ie value is editable and unrestricted
@@ -309,7 +310,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                 
                 ]),
                 MvmtOptionsNode("Relative", fx, rb, children=[
-                    MvmtOptionsNode("Finger(s)", fx, rb, children=[
+                    MvmtOptionsNode("Finger(s)", fx, nc, children=[
                         MvmtOptionsNode("On plane of finger", fx, cb, children=[
                             MvmtOptionsNode("To tip end from radial side", fx, rb),
                             MvmtOptionsNode("To base end from radial side", fx, rb),
@@ -323,7 +324,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                             MvmtOptionsNode("To ulnar side from centre of finger", fx, rb),
                         ])
                     ]),
-                    MvmtOptionsNode("Hand", fx, rb, children=[
+                    MvmtOptionsNode("Hand", fx, nc, children=[
                         MvmtOptionsNode("On plane of hand", fx, cb, children=[
                             MvmtOptionsNode("To finger end from radial side", fx, rb),
                             MvmtOptionsNode("To wrist end from radial side", fx, rb),
@@ -337,7 +338,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                             MvmtOptionsNode("To ulnar side from centre of hand", fx, rb),
                         ])
                     ]),
-                    MvmtOptionsNode("Forearm", fx, rb, children=[
+                    MvmtOptionsNode("Forearm", fx, nc, children=[
                         MvmtOptionsNode("On plane of forearm", fx, cb, children=[
                             MvmtOptionsNode("To wrist end from radial side", fx, rb),
                             MvmtOptionsNode("To elbow end from radial side", fx, rb),
@@ -351,7 +352,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                             MvmtOptionsNode("To ulnar side from centre of forearm", fx, rb),
                         ])
                     ]),
-                    MvmtOptionsNode("Upper arm", fx, rb, children=[
+                    MvmtOptionsNode("Upper arm", fx, nc, children=[
                         MvmtOptionsNode("On plane of upper arm", fx, cb, children=[
                             MvmtOptionsNode("To elbow end from radial side", fx, rb),
                             MvmtOptionsNode("To shoulder end from radial side", fx, rb),
@@ -365,7 +366,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                             MvmtOptionsNode("To ulnar side from centre of upper arm", fx, rb),
                         ])
                     ]),
-                    MvmtOptionsNode("Arm", fx, rb, children=[
+                    MvmtOptionsNode("Arm", fx, nc, children=[
                         MvmtOptionsNode("On plane of arm", fx, cb, children=[
                             MvmtOptionsNode("To fingertip end from radial side", fx, rb),
                             MvmtOptionsNode("To shoulder end from radial side", fx, rb),
@@ -381,7 +382,7 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                     ]),
                     MvmtOptionsNode("Other", ed_3, rb, custom_abbrev, children=[
                         MvmtOptionsNode(subgroup, button_type=0, children=[
-                            MvmtOptionsNode("Top:", ed_3, cb, custom_abbrev)
+                            MvmtOptionsNode("Specify top of area:", ed_3, nc, custom_abbrev)
                         ]),
                         MvmtOptionsNode("Horizontal", fx, cb, children=[
                             MvmtOptionsNode("Ipsilateral", fx, rb),
@@ -843,14 +844,14 @@ defaultMvmtTree = MvmtOptionsNode(children=[
 
 class MovementTreeItem(QStandardItem):
 
-    def __init__(self, txt="", nodeID=-1, listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
+    def __init__(self, txt="", nodeID=-1, listit=None, mutuallyexclusive=False, nocontrol=False, addedinfo=None, serializedmvmtitem=None):
         super().__init__()
 
         self.setEditable(False)
 
         if serializedmvmtitem:
             self.setText(serializedmvmtitem['text'])
-            self.setCheckable(serializedmvmtitem['checkable'])
+            self.setCheckable(serializedmvmtitem['checkable'] and not serializedmvmtitem['nocontrolrole'])
             self.setCheckState(serializedmvmtitem['checkstate'])
             self.setUserTristate(serializedmvmtitem['usertristate'])
             self.setData(serializedmvmtitem['selectedrole'], Qt.UserRole+udr.selectedrole)
@@ -858,6 +859,7 @@ class MovementTreeItem(QStandardItem):
             self.setData(serializedmvmtitem['isuserspecifiablerole'], Qt.UserRole+udr.isuserspecifiablerole)
             self.setData(serializedmvmtitem['userspecifiedvaluerole'], Qt.UserRole+udr.userspecifiedvaluerole)
             self.setData(serializedmvmtitem['mutuallyexclusiverole'], Qt.UserRole+udr.mutuallyexclusiverole)
+            self.setData(serializedmvmtitem['nocontrolrole'], Qt.UserRole+udr.nocontrolrole)
             self.setData(serializedmvmtitem['displayrole'], Qt.DisplayRole)
             self._addedinfo = serializedmvmtitem['addedinfo']
             self._nodeID = serializedmvmtitem['nodeID']
@@ -865,7 +867,7 @@ class MovementTreeItem(QStandardItem):
             self.listitem.treeitem = self
         else:
             self.setText(txt)
-            self.setCheckable(True)
+            self.setCheckable(not nocontrol)
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
             self.setData(False, Qt.UserRole+udr.selectedrole)
@@ -903,6 +905,7 @@ class MovementTreeItem(QStandardItem):
             'selectedrole': self.data(Qt.UserRole+udr.selectedrole),
             'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
             'mutuallyexclusiverole': self.data(Qt.UserRole+udr.mutuallyexclusiverole),
+            'nocontrolrole': self.data(Qt.UserRole+udr.nocontrolrole),
             'displayrole': self.data(Qt.DisplayRole),
             'isuserspecifiablerole': self.data(Qt.UserRole+udr.isuserspecifiablerole),
             'userspecifiedvaluerole': self.data(Qt.UserRole+udr.userspecifiedvaluerole),
@@ -1522,6 +1525,7 @@ class MovementTreeModel(QStandardItemModel):
                 # userspecifiability = child.user_specifiability
                 # classifier = child.button_type
                 ismutuallyexclusive = child.button_type == rb
+                nocontrol = child.button_type == nc
                 iseditable = child.user_specifiability != fx
 
                 if child.display_name == subgroup:
@@ -1535,8 +1539,9 @@ class MovementTreeModel(QStandardItemModel):
                                   subgroupname=subgroup+"_"+pathsofar+"_"+(str(child.button_type)))
 
                 else:
-                    thistreenode = MovementTreeItem(label, child.id, mutuallyexclusive=ismutuallyexclusive)
+                    thistreenode = MovementTreeItem(label, child.id, mutuallyexclusive=ismutuallyexclusive, nocontrol=nocontrol)
                     thistreenode.setData(child.user_specifiability, Qt.UserRole+udr.isuserspecifiablerole)
+                    thistreenode.setData(nocontrol, Qt.UserRole+udr.nocontrolrole)
                     editablepart = QStandardItem()
                     editablepart.setEditable(iseditable)
                     editablepart.setText("specify" if iseditable else "")
