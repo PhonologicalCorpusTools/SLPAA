@@ -18,12 +18,16 @@ from PyQt5.QtWidgets import (
     QListView,
     QAbstractItemView,
     QPushButton,
-    QScrollArea
+    QScrollArea,
+    QApplication
 )
 
 from PyQt5.QtCore import (
     Qt,
-    pyqtSignal
+    pyqtSignal,
+    QRect,
+    QSettings,
+    QSize
 )
 
 from gui.xslot_graphics import XslotLinkScene
@@ -50,6 +54,7 @@ class ModuleSelectorDialog(QDialog):
 
     def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         super().__init__(**kwargs)
+        self.qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
         self.mainwindow = self.parent().mainwindow
         self.moduletype = moduletype
         self.usearticulators = len(incl_articulators) > 0
@@ -217,15 +222,47 @@ class ModuleSelectorDialog(QDialog):
 
         main_layout.addWidget(self.button_box)
         self.setLayout(main_layout)
-        # make sure there's a reasonable default size for the dialog
+
+        # set widget geometry to saved value if possible, else default
         widget_geom = moduleselector_widget.geometry()
-        self.setGeometry(widget_geom.x(), widget_geom.y(), widget_geom.width()+80, widget_geom.height()+130)
+        desiredgeometry = self.getdesiredgeometry(widget_geom)
+        self.setGeometry(desiredgeometry)
 
         # get first rendered widget heights and fix them.
         if self.usearticulators:
             self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
         if self.usexslots:
             self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
+
+    def getdesiredgeometry(self, widget_geom):
+        # check if there's a saved location & size for this module type dialog
+        # qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+        xywh = self.qsettings.value('display/dialoggeometry/' + self.moduletype, defaultValue=QRect(0, 0, 0, 0))
+
+        if xywh == QRect(0, 0, 0, 0):
+            # user hasn't opened this dialog before; display default geometry
+            return widget_geom
+        elif QApplication.instance().screenAt(xywh.topLeft()) is not None:
+            # user has opened the dialog before and left it in a spot where it will still be visible;
+            # open it in the saved location and just make sure it's not tiny for some reason
+            return QRect(xywh.topLeft(), QSize(max(480, xywh.width()), max(320, xywh.height())))
+        else:
+            # user has opened the dialog before but maybe moved it offscreen or decreased number of screens available;
+            # display default geometry
+            return widget_geom
+
+    def accept(self):
+        self.savedialoggeom()
+        super().accept()
+
+    def reject(self):
+        self.savedialoggeom()
+        super().reject()
+
+    def savedialoggeom(self):
+        # save (to settings) the last-used geometry for this dialog-- but no validity checking for location or size
+        # qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+        self.qsettings.setValue('display/dialoggeometry/' + self.moduletype, self.geometry())
 
     def handle_modulesaved(self, relationtosave, moduletype):
         self.module_saved.emit(relationtosave, moduletype)
