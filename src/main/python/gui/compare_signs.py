@@ -9,6 +9,31 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 
 
+class CompareTreeWidgetItem(QTreeWidgetItem):
+    def __init__(self, labels):
+        super().__init__(labels)
+
+        self._text = self.text(0)
+
+        # underlying background colour is unspecified by default, but may be green red or yellow!
+        self.underlying_bg = None
+
+        # imagine each tree item carries a palette and use it to change background colour
+        self.palette = {'red': QBrush(QColor(255, 0, 0, 128)),
+                        'green': QBrush(QColor(0, 255, 0, 128)),
+                        'yellow': QBrush(QColor(255, 255, 0, 128)),
+                        'transparent': QBrush(QColor(0, 0, 0, 0))}
+
+        self.is_label: bool = False
+        if self._text.startswith(('H1', 'H2')) or self._text in ['movement', 'relation']:
+            self.is_label = True
+
+    def set_bg_color(self, bg_color: str = 'transparent'):
+        # wrapper for the parent's setBackround method
+        colour_brush = self.palette[bg_color] if bg_color in self.palette else self.palette['transparent']
+        self.setBackground(0, colour_brush)
+
+
 def summarize_path_comparison(ld):
     def fuse_two_dicts(d1, d2):
         merged = defaultdict(dict)
@@ -394,8 +419,8 @@ class CompareSignsDialog(QDialog):
 
             for key in reversed(list(all_keys)):
                 # Create tree items for both trees
-                item1 = QTreeWidgetItem([key])
-                item2 = QTreeWidgetItem([key])
+                item1 = CompareTreeWidgetItem([key])
+                item2 = CompareTreeWidgetItem([key])
 
                 value1, value2 = None, None
                 try:
@@ -411,6 +436,7 @@ class CompareSignsDialog(QDialog):
                     background_colour = tree1.palette().color(QPalette.Base)
                     item1.setForeground(0, QBrush(background_colour))  # node in tree 1 greyed out
                     item1.setFlags(Qt.NoItemFlags)
+                    item2.underlying_bg = 'yellow'
                     item2.setBackground(0, yellow_brush)
                     should_paint_yellow[1] = True
                 elif value2 is None and value1 is not None:
@@ -418,6 +444,7 @@ class CompareSignsDialog(QDialog):
                     background_colour = tree2.palette().color(QPalette.Base)
                     item2.setForeground(0, QBrush(background_colour))  # node in tree 2 greyed out
                     item2.setFlags(Qt.NoItemFlags)
+                    item1.underlying_bg = 'yellow'
                     item1.setBackground(0, yellow_brush)
                     print(f"terminal node {key} gets painted yellow because no corresponding node")
                     should_paint_yellow[0] = True
@@ -435,9 +462,11 @@ class CompareSignsDialog(QDialog):
                     # Set color for false values
                     if value1 is False and not should_paint_yellow[0]:
                         print(f"terminal node {key} gets painted red because false")
+                        item1.underlying_bg = 'red'
                         item1.setBackground(0, red_brush)  # red
                         should_paint_red[0] = True
                     if value2 is False and not should_paint_yellow[1]:
+                        item2.underlying_bg = 'red'
                         item2.setBackground(0, red_brush)  # red
                         should_paint_red[1] = True
 
@@ -453,11 +482,13 @@ class CompareSignsDialog(QDialog):
                 # red should not override already painted yellow
                 if parent1.background(0).color() != yellow_brush:
                     print(f"node={key}'s parent is not yellow\n{parent1.background(0).color()}")
+                    parent1.underlying_bg = 'red'
                     parent1.setBackground(0, red_brush)
                     print(f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
                 else:
                     print(f"node={key}'s parent is yellow\n{parent1.background(0).color()}")
             elif should_paint_yellow[0]:
+                parent1.underlying_bg = 'yellow'
                 parent1.setBackground(0, yellow_brush)
                 print(
                     f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
@@ -465,12 +496,14 @@ class CompareSignsDialog(QDialog):
             if should_paint_red[1]:
                 if parent2.background(0).color() != yellow_brush:
                     print(f"node={key}'s parent is not yellow")
+                    parent2.underlying_bg = 'red'
                     parent2.setBackground(0, red_brush)
                     print(
                         f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
                 else:
                     print(f"node={key}'s parent is yellow")
             elif should_paint_yellow[1]:
+                parent2.underlying_bg = 'yellow'
                 parent2.setBackground(0, yellow_brush)
                 print(
                     f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
@@ -479,8 +512,8 @@ class CompareSignsDialog(QDialog):
 
         # Add each top-level key as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
-            top_item1 = QTreeWidgetItem([key])
-            top_item2 = QTreeWidgetItem([key])
+            top_item1 = CompareTreeWidgetItem([key])
+            top_item2 = CompareTreeWidgetItem([key])
 
             tree1.addTopLevelItem(top_item1)
             tree2.addTopLevelItem(top_item2)
@@ -514,64 +547,6 @@ class CompareSignsDialog(QDialog):
         #self.populate_tree(self.tree1, compare_res['sign1'])
         #self.populate_tree(self.tree2, compare_res['sign2'])
 
-    def populate_tree(self, tree, data):
-        def add_items(parent, data):
-            should_paint_red = False
-            should_paint_pink = False
-            all_red = True  # flag that checks if all children are red
-
-            for key, value in data.items():
-                if isinstance(value, dict):
-                    # Recursive case: create a parent item and recurse into the dictionary
-                    parent_item = QTreeWidgetItem([key])
-                    child_needs_red, child_needs_pink = add_items(parent_item, value)
-                    parent.addChild(parent_item)  # Add this parent item under the correct section
-
-                    if child_needs_red:
-                        should_paint_red = True
-                    else:
-                        all_red = False  # If any child is not red, set all_red to False
-
-                    if child_needs_pink:
-                        should_paint_pink = True
-                else:
-                    # Base case: create an item with the key and color based on value
-                    item = QTreeWidgetItem([key])
-                    if not value:
-                        # Set background to red if the value is False
-                        red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
-                        item.setBackground(0, red_brush)
-                        should_paint_red = True
-                    else:
-                        all_red = False  # If any child is not red, set all_red to False
-                    parent.addChild(item)
-
-            # Determine the color of the current parent node
-            if all_red and should_paint_red:
-                red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
-                parent.setBackground(0, red_brush)
-            elif should_paint_red and not all_red:
-                pink_brush = QBrush(QColor(255, 192, 203, 128))  # semi-transparent pink
-                parent.setBackground(0, pink_brush)
-                should_paint_pink = True
-            return should_paint_red, should_paint_pink
-
-        # Add each top-level key as a root item in the tree
-        for key, value in data.items():
-            root_item = QTreeWidgetItem([key])
-            child_needs_red, child_needs_pink = add_items(root_item, value)
-
-            # Determine the color of the root item
-            if child_needs_red and not child_needs_pink:
-                red_brush = QBrush(QColor(255, 0, 0, 128))  # semi-transparent red
-                root_item.setBackground(0, red_brush)
-            elif child_needs_pink:
-                pink_brush = QBrush(QColor(255, 192, 203, 128))  # semi-transparent pink
-                root_item.setBackground(0, pink_brush)
-
-            tree.addTopLevelItem(root_item)
-            root_item.setExpanded(True)  # Optionally expand the root item by default
-
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
         sign1, sign2 = False, False  # sign1 and sign2 declared as bool but eventually Sign instances
@@ -591,13 +566,30 @@ class CompareSignsDialog(QDialog):
         # - find corresponding line in the other tree and expand
         # - change colour
 
+        item_invisible = True if item.flags() == Qt.NoItemFlags else False # check if item is invisible
+
         # Find and expand the corresponding item in the target tree
         path = self.get_full_path(item)
         corresponding_item = self.find_corresponding_line(path, target_tree)
         if corresponding_item:
-            target_tree.blockSignals(True)
-            target_tree.expandItem(corresponding_item)
-            target_tree.blockSignals(False)
+            # check the corresponding line is invisible (i.e., if it does not really exist).
+            corresponding_invisible = True if corresponding_item.flags() == Qt.NoItemFlags else False
+
+            if not corresponding_item.isExpanded():
+                # to prevent infinite recursions, expand corresponding tree only when it is collapsed
+                target_tree.expandItem(corresponding_item)
+
+        # change colour
+        if item.is_label:
+            # if the item is a label, no colour when expanded
+            item.set_bg_color('transparent')
+        else:
+            # if selection, check whether it matches with its correspondence
+            if not corresponding_item:
+                item.set_bg_color(item.underlying_bg)
+            elif not (corresponding_invisible or item_invisible):
+                item.set_bg_color('green')
+
 
     def on_item_collapsed(self, item, target_tree):
         # when a qtreeitem gets expanded do the following:
@@ -607,10 +599,12 @@ class CompareSignsDialog(QDialog):
         # Find and collapse the corresponding item in the target tree
         path = self.get_full_path(item)
         corresponding_item = self.find_corresponding_line(path, target_tree)
-        if corresponding_item:
-            target_tree.blockSignals(True)
+        if corresponding_item and corresponding_item.isExpanded():
+            # to prevent infinite recursions, expand corresponding tree only when it is collapsed
             target_tree.collapseItem(corresponding_item)
-            target_tree.blockSignals(False)
+
+        # change colour
+        item.set_bg_color(item.underlying_bg)
 
     def get_full_path(self, item):
         # helper function to get a full ancestry of a tree item
