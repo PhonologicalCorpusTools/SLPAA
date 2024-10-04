@@ -27,6 +27,7 @@ numberofreps_str = "Number of repetitions"
 
 rb = "radio button"  # ie mutually exclusive in group / at this level
 cb = "checkbox"  # ie not mutually exlusive
+nc = "no control" # no radio button or checkbox should be shown
 ed_1 = "editable level 1"  # ie value is editable but restricted to numbers that are >= 1 and multiples of 0.5
 ed_2 = "editable level 2"  # ie value is editable but restricted to numbers
 ed_3 = "editable level 3"  # ie value is editable and unrestricted
@@ -281,132 +282,126 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                 MvmtOptionsNode("Not relevant", fx, rb, "")  # TODO KV Auto-select this if movement is straight or the axis is not relevant
             ]),
             MvmtOptionsNode("Plane", fx, cb, children=[  # choose as many as needed, but only one direction per plane
-                MvmtOptionsNode(subgroup, button_type=0, children=[
-                    MvmtOptionsNode("H1 and H2 move in opposite directions", fx, rb, "H1 & H2 opposite"),
-                ]),
-                MvmtOptionsNode(subgroup, button_type=1, children=[
-                    
-
-                    MvmtOptionsNode("Absolute", fx, rb, children=[
-                        MvmtOptionsNode("Horizontal", fx, cb, "Hor", children=[
-                            MvmtOptionsNode(subgroup, button_type=0, children=[
-                                MvmtOptionsNode("Ipsilateral from top of circle", fx, rb, "ipsi from top"),
-                                MvmtOptionsNode("Contralateral from top of circle", fx, rb, "contra from top"),
-                                # MvmtOptionsNode("Clockwise", fx, rb, u),  # TODO KV or Ipsilateral from the top of the circle
-                                # MvmtOptionsNode("Counterclockwise", fx, rb, u)  # TODO KV or Contralateral from the top of the circle
-                            ]),
+                MvmtOptionsNode("H1 and H2 move in opposite directions", fx, cb, "H1 & H2 opposite"),
+                MvmtOptionsNode("Absolute", fx, rb, children=[
+                    MvmtOptionsNode("Horizontal", fx, cb, "Hor", children=[
+                        MvmtOptionsNode(subgroup, button_type=0, children=[
+                            MvmtOptionsNode("Ipsilateral from top of circle", fx, rb, "ipsi from top"),
+                            MvmtOptionsNode("Contralateral from top of circle", fx, rb, "contra from top"),
+                            # MvmtOptionsNode("Clockwise", fx, rb, u),  # TODO KV or Ipsilateral from the top of the circle
+                            # MvmtOptionsNode("Counterclockwise", fx, rb, u)  # TODO KV or Contralateral from the top of the circle
                         ]),
-                        MvmtOptionsNode("Vertical", fx, cb, "Ver", children=[
-                            MvmtOptionsNode(subgroup, button_type=0, children=[
-                                MvmtOptionsNode("Ipsilateral from top of circle", fx, rb, "ipsi from top"),
-                                MvmtOptionsNode("Contralateral from top of circle", fx, rb, "contra from top"),
-                                # MvmtOptionsNode("Clockwise", fx, rb, u),  # TODO KV or Ipsilateral from the top of the circle
-                                # MvmtOptionsNode("Counterclockwise", fx, rb, u)  # TODO KV or Contralateral from the top of the circle
-                            ]),
-                        ]),
-                        MvmtOptionsNode("Sagittal", fx, cb, "Sag", children=[
-                            MvmtOptionsNode(subgroup, button_type=0, children=[
-                                MvmtOptionsNode("Distal from top of circle", fx, rb, "distal from top"),
-                                MvmtOptionsNode("Proximal from top of circle", fx, rb, "proximal from top"),
-                                # MvmtOptionsNode("Clockwise", fx, rb, u),
-                                # MvmtOptionsNode("Counterclockwise", fx, rb, u)
-                            ]),
-                        ]),
-                    
                     ]),
-                    MvmtOptionsNode("Relative", fx, rb, children=[
-                        MvmtOptionsNode("Finger(s)", fx, rb, children=[
-                            MvmtOptionsNode("On plane of finger", fx, cb, children=[
-                                MvmtOptionsNode("To tip end from radial side", fx, rb),
-                                MvmtOptionsNode("To base end from radial side", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of finger, along length", fx, cb, children=[
-                                MvmtOptionsNode("To tip end from centre of finger", fx, rb),
-                                MvmtOptionsNode("To base end from centre of finger", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of finger, across width", fx, cb, children=[
-                                MvmtOptionsNode("To radial side from centre of finger", fx, rb),
-                                MvmtOptionsNode("To ulnar side from centre of finger", fx, rb),
-                            ])
+                    MvmtOptionsNode("Vertical", fx, cb, "Ver", children=[
+                        MvmtOptionsNode(subgroup, button_type=0, children=[
+                            MvmtOptionsNode("Ipsilateral from top of circle", fx, rb, "ipsi from top"),
+                            MvmtOptionsNode("Contralateral from top of circle", fx, rb, "contra from top"),
+                            # MvmtOptionsNode("Clockwise", fx, rb, u),  # TODO KV or Ipsilateral from the top of the circle
+                            # MvmtOptionsNode("Counterclockwise", fx, rb, u)  # TODO KV or Contralateral from the top of the circle
                         ]),
-                        MvmtOptionsNode("Hand", fx, rb, children=[
-                            MvmtOptionsNode("On plane of hand", fx, cb, children=[
-                                MvmtOptionsNode("To finger end from radial side", fx, rb),
-                                MvmtOptionsNode("To wrist end from radial side", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of hand, along length", fx, cb, children=[
-                                MvmtOptionsNode("To finger end from centre of hand", fx, rb),
-                                MvmtOptionsNode("To wrist end from centre of hand", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of hand, across width", fx, cb, children=[
-                                MvmtOptionsNode("To radial side from centre of hand", fx, rb),
-                                MvmtOptionsNode("To ulnar side from centre of hand", fx, rb),
-                            ])
+                    ]),
+                    MvmtOptionsNode("Sagittal", fx, cb, "Sag", children=[
+                        MvmtOptionsNode(subgroup, button_type=0, children=[
+                            MvmtOptionsNode("Distal from top of circle", fx, rb, "distal from top"),
+                            MvmtOptionsNode("Proximal from top of circle", fx, rb, "proximal from top"),
+                            # MvmtOptionsNode("Clockwise", fx, rb, u),
+                            # MvmtOptionsNode("Counterclockwise", fx, rb, u)
                         ]),
-                        MvmtOptionsNode("Forearm", fx, rb, children=[
-                            MvmtOptionsNode("On plane of forearm", fx, cb, children=[
-                                MvmtOptionsNode("To wrist end from radial side", fx, rb),
-                                MvmtOptionsNode("To elbow end from radial side", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of forearm, along length", fx, cb, children=[
-                                MvmtOptionsNode("To wrist end from centre of forearm", fx, rb),
-                                MvmtOptionsNode("To elbow end from centre of forearm", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of forearm, across width", fx, cb, children=[
-                                MvmtOptionsNode("To radial side from centre of forearm", fx, rb),
-                                MvmtOptionsNode("To ulnar side from centre of forearm", fx, rb),
-                            ])
+                    ]),
+                
+                ]),
+                MvmtOptionsNode("Relative", fx, rb, children=[
+                    MvmtOptionsNode("Finger(s)", fx, nc, children=[
+                        MvmtOptionsNode("On plane of finger", fx, cb, children=[
+                            MvmtOptionsNode("To tip end from radial side", fx, rb),
+                            MvmtOptionsNode("To base end from radial side", fx, rb),
                         ]),
-                        MvmtOptionsNode("Upper arm", fx, rb, children=[
-                            MvmtOptionsNode("On plane of upper arm", fx, cb, children=[
-                                MvmtOptionsNode("To elbow end from radial side", fx, rb),
-                                MvmtOptionsNode("To shoulder end from radial side", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of upper arm, along length", fx, cb, children=[
-                                MvmtOptionsNode("To wrist end from centre of upper arm", fx, rb),
-                                MvmtOptionsNode("To elbow end from centre of upper arm", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of upper arm, across width", fx, cb, children=[
-                                MvmtOptionsNode("To radial side from centre of upper arm", fx, rb),
-                                MvmtOptionsNode("To ulnar side from centre of upper arm", fx, rb),
-                            ])
+                        MvmtOptionsNode("Perpendicular to plane of finger, along length", fx, cb, children=[
+                            MvmtOptionsNode("To tip end from centre of finger", fx, rb),
+                            MvmtOptionsNode("To base end from centre of finger", fx, rb),
                         ]),
-                        MvmtOptionsNode("Arm", fx, rb, children=[
-                            MvmtOptionsNode("On plane of arm", fx, cb, children=[
-                                MvmtOptionsNode("To fingertip end from radial side", fx, rb),
-                                MvmtOptionsNode("To shoulder end from radial side", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of arm, along length", fx, cb, children=[
-                                MvmtOptionsNode("To elbow end from centre of arm", fx, rb),
-                                MvmtOptionsNode("To shoulder end from centre of arm", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Perpendicular to plane of arm, across width", fx, cb, children=[
-                                MvmtOptionsNode("To radial side from centre of arm", fx, rb),
-                                MvmtOptionsNode("To ulnar side from centre of arm", fx, rb),
-                            ])
+                        MvmtOptionsNode("Perpendicular to plane of finger, across width", fx, cb, children=[
+                            MvmtOptionsNode("To radial side from centre of finger", fx, rb),
+                            MvmtOptionsNode("To ulnar side from centre of finger", fx, rb),
+                        ])
+                    ]),
+                    MvmtOptionsNode("Hand", fx, nc, children=[
+                        MvmtOptionsNode("On plane of hand", fx, cb, children=[
+                            MvmtOptionsNode("To finger end from radial side", fx, rb),
+                            MvmtOptionsNode("To wrist end from radial side", fx, rb),
                         ]),
-                        MvmtOptionsNode("Other", ed_3, rb, custom_abbrev, children=[
-                            MvmtOptionsNode(subgroup, button_type=0, children=[
-                                MvmtOptionsNode("Top:", ed_3, cb, custom_abbrev)
-                            ]),
-                            MvmtOptionsNode("Horizontal", fx, cb, children=[
-                                MvmtOptionsNode("Ipsilateral", fx, rb),
-                                MvmtOptionsNode("Contralateral", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Vertical", fx, cb, children=[
-                                MvmtOptionsNode("Up", fx, rb),
-                                MvmtOptionsNode("Down", fx, rb),
-                            ]),
-                            MvmtOptionsNode("Sagittal", fx, cb, children=[
-                                MvmtOptionsNode("Distal", fx, rb),
-                                MvmtOptionsNode("Proximal", fx, rb),
-                            ])
+                        MvmtOptionsNode("Perpendicular to plane of hand, along length", fx, cb, children=[
+                            MvmtOptionsNode("To finger end from centre of hand", fx, rb),
+                            MvmtOptionsNode("To wrist end from centre of hand", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Perpendicular to plane of hand, across width", fx, cb, children=[
+                            MvmtOptionsNode("To radial side from centre of hand", fx, rb),
+                            MvmtOptionsNode("To ulnar side from centre of hand", fx, rb),
+                        ])
+                    ]),
+                    MvmtOptionsNode("Forearm", fx, nc, children=[
+                        MvmtOptionsNode("On plane of forearm", fx, cb, children=[
+                            MvmtOptionsNode("To wrist end from radial side", fx, rb),
+                            MvmtOptionsNode("To elbow end from radial side", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Perpendicular to plane of forearm, along length", fx, cb, children=[
+                            MvmtOptionsNode("To wrist end from centre of forearm", fx, rb),
+                            MvmtOptionsNode("To elbow end from centre of forearm", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Perpendicular to plane of forearm, across width", fx, cb, children=[
+                            MvmtOptionsNode("To radial side from centre of forearm", fx, rb),
+                            MvmtOptionsNode("To ulnar side from centre of forearm", fx, rb),
+                        ])
+                    ]),
+                    MvmtOptionsNode("Upper arm", fx, nc, children=[
+                        MvmtOptionsNode("On plane of upper arm", fx, cb, children=[
+                            MvmtOptionsNode("To elbow end from radial side", fx, rb),
+                            MvmtOptionsNode("To shoulder end from radial side", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Perpendicular to plane of upper arm, along length", fx, cb, children=[
+                            MvmtOptionsNode("To wrist end from centre of upper arm", fx, rb),
+                            MvmtOptionsNode("To elbow end from centre of upper arm", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Perpendicular to plane of upper arm, across width", fx, cb, children=[
+                            MvmtOptionsNode("To radial side from centre of upper arm", fx, rb),
+                            MvmtOptionsNode("To ulnar side from centre of upper arm", fx, rb),
+                        ])
+                    ]),
+                    MvmtOptionsNode("Arm", fx, nc, children=[
+                        MvmtOptionsNode("On plane of arm", fx, cb, children=[
+                            MvmtOptionsNode("To fingertip end from radial side", fx, rb),
+                            MvmtOptionsNode("To shoulder end from radial side", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Perpendicular to plane of arm, along length", fx, cb, children=[
+                            MvmtOptionsNode("To elbow end from centre of arm", fx, rb),
+                            MvmtOptionsNode("To shoulder end from centre of arm", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Perpendicular to plane of arm, across width", fx, cb, children=[
+                            MvmtOptionsNode("To radial side from centre of arm", fx, rb),
+                            MvmtOptionsNode("To ulnar side from centre of arm", fx, rb),
+                        ])
+                    ]),
+                    MvmtOptionsNode("Other", ed_3, rb, custom_abbrev, children=[
+                        MvmtOptionsNode(subgroup, button_type=0, children=[
+                            MvmtOptionsNode("Specify top of area:", ed_3, nc, custom_abbrev)
+                        ]),
+                        MvmtOptionsNode("Horizontal", fx, cb, children=[
+                            MvmtOptionsNode("Ipsilateral", fx, rb),
+                            MvmtOptionsNode("Contralateral", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Vertical", fx, cb, children=[
+                            MvmtOptionsNode("Up", fx, rb),
+                            MvmtOptionsNode("Down", fx, rb),
+                        ]),
+                        MvmtOptionsNode("Sagittal", fx, cb, children=[
+                            MvmtOptionsNode("Distal", fx, rb),
+                            MvmtOptionsNode("Proximal", fx, rb),
                         ])
                     ])
                 ]),
-                MvmtOptionsNode("Not relevant", fx, rb, ""),  # TODO KV Auto-select this if movement is straight or the axis is not relevant
-            ]),
+            MvmtOptionsNode("Not relevant", fx, rb, ""),  # TODO KV Auto-select this if movement is straight or the axis is not relevant
         ]),
+    ]),
         # mutually exclusive @ level of pivoting, twisting, etc. and also within (nodding vs unnodding)
         MvmtOptionsNode("Joint-specific movements", fx, rb, children=[
             MvmtOptionsNode("Nodding/un-nodding", fx, rb, "Nod/Un-", children=[
@@ -850,14 +845,14 @@ defaultMvmtTree = MvmtOptionsNode(children=[
 
 class MovementTreeItem(QStandardItem):
 
-    def __init__(self, txt="", nodeID=-1, listit=None, mutuallyexclusive=False, addedinfo=None, serializedmvmtitem=None):
+    def __init__(self, txt="", nodeID=-1, listit=None, mutuallyexclusive=False, nocontrol=False, addedinfo=None, serializedmvmtitem=None):
         super().__init__()
 
         self.setEditable(False)
 
         if serializedmvmtitem:
             self.setText(serializedmvmtitem['text'])
-            self.setCheckable(serializedmvmtitem['checkable'])
+            self.setCheckable(serializedmvmtitem['checkable'] and not serializedmvmtitem['nocontrolrole'])
             self.setCheckState(serializedmvmtitem['checkstate'])
             self.setUserTristate(serializedmvmtitem['usertristate'])
             self.setData(serializedmvmtitem['selectedrole'], Qt.UserRole+udr.selectedrole)
@@ -865,6 +860,7 @@ class MovementTreeItem(QStandardItem):
             self.setData(serializedmvmtitem['isuserspecifiablerole'], Qt.UserRole+udr.isuserspecifiablerole)
             self.setData(serializedmvmtitem['userspecifiedvaluerole'], Qt.UserRole+udr.userspecifiedvaluerole)
             self.setData(serializedmvmtitem['mutuallyexclusiverole'], Qt.UserRole+udr.mutuallyexclusiverole)
+            self.setData(serializedmvmtitem['nocontrolrole'], Qt.UserRole+udr.nocontrolrole)
             self.setData(serializedmvmtitem['displayrole'], Qt.DisplayRole)
             self._addedinfo = serializedmvmtitem['addedinfo']
             self._nodeID = serializedmvmtitem['nodeID']
@@ -872,7 +868,7 @@ class MovementTreeItem(QStandardItem):
             self.listitem.treeitem = self
         else:
             self.setText(txt)
-            self.setCheckable(True)
+            self.setCheckable(not nocontrol)
             self.setCheckState(Qt.Unchecked)
             self.setUserTristate(False)
             self.setData(False, Qt.UserRole+udr.selectedrole)
@@ -910,6 +906,7 @@ class MovementTreeItem(QStandardItem):
             'selectedrole': self.data(Qt.UserRole+udr.selectedrole),
             'timestamprole': self.data(Qt.UserRole+udr.timestamprole),
             'mutuallyexclusiverole': self.data(Qt.UserRole+udr.mutuallyexclusiverole),
+            'nocontrolrole': self.data(Qt.UserRole+udr.nocontrolrole),
             'displayrole': self.data(Qt.DisplayRole),
             'isuserspecifiablerole': self.data(Qt.UserRole+udr.isuserspecifiablerole),
             'userspecifiedvaluerole': self.data(Qt.UserRole+udr.userspecifiedvaluerole),
@@ -1529,6 +1526,7 @@ class MovementTreeModel(QStandardItemModel):
                 # userspecifiability = child.user_specifiability
                 # classifier = child.button_type
                 ismutuallyexclusive = child.button_type == rb
+                nocontrol = child.button_type == nc
                 iseditable = child.user_specifiability != fx
 
                 if child.display_name == subgroup:
@@ -1542,8 +1540,9 @@ class MovementTreeModel(QStandardItemModel):
                                   subgroupname=subgroup+"_"+pathsofar+"_"+(str(child.button_type)))
 
                 else:
-                    thistreenode = MovementTreeItem(label, child.id, mutuallyexclusive=ismutuallyexclusive)
+                    thistreenode = MovementTreeItem(label, child.id, mutuallyexclusive=ismutuallyexclusive, nocontrol=nocontrol)
                     thistreenode.setData(child.user_specifiability, Qt.UserRole+udr.isuserspecifiablerole)
+                    thistreenode.setData(nocontrol, Qt.UserRole+udr.nocontrolrole)
                     editablepart = QStandardItem()
                     editablepart.setEditable(iseditable)
                     editablepart.setText("specify" if iseditable else "")
