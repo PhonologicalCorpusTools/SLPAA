@@ -5,8 +5,7 @@ from PyQt5.QtCore import (
     Qt,
     QRectF,
     QPoint,
-    pyqtSignal,
-    QSettings
+    pyqtSignal
 )
 
 from PyQt5.QtWidgets import (
