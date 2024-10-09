@@ -97,7 +97,7 @@ class ModuleSelectorDialog(QDialog):
 
         main_layout = QVBoxLayout()
         moduleselector_scroll = QScrollArea(parent=self)
-        moduleselector_widget = QWidget(parent=self)
+        moduleselector_widget = ContainerWidget(parent=self)
         moduleselector_layout = QVBoxLayout()
 
         self.arts_and_addedinfo_layout = QHBoxLayout()
@@ -456,6 +456,12 @@ class ModuleSelectorDialog(QDialog):
                 self.accept()
 
         return savedmodule
+
+
+class ContainerWidget(QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
 
 
 class AssociatedRelationsDialog(QDialog):
