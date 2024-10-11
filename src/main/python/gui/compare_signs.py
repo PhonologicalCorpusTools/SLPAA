@@ -246,7 +246,7 @@ class CompareModel:
         return modules_pair
 
     def compare_mvmts(self) -> dict:
-        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list[dict], list[dict]):
+        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
             # pair = pair of movementModule
             # pairwise = False if not comparing one pair
             # return tuple of two dict each contains true or false at each level of granularity
@@ -621,12 +621,12 @@ class CompareSignsDialog(QDialog):
             tree1.addTopLevelItem(top_item1)
             tree2.addTopLevelItem(top_item2)
 
-            # expand the root item by default
-            top_item1.setExpanded(True)
-            top_item2.setExpanded(True)
-
             # Recursively add children under the top-level item
             add_items(top_item1, top_item2, data1.get(key, {}), data2.get(key, {}))
+
+            # expand the root item by default
+            #top_item1.setExpanded(True)
+            #top_item2.setExpanded(True)
 
     def update_trees(self):
         # Update the dialog visual as dropdown selections
