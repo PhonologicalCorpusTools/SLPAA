@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QComboBox, \
-    QLabel, QHBoxLayout, QPushButton
+    QLabel, QHBoxLayout, QPushButton, QWidget
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from collections import defaultdict
 from PyQt5.QtCore import Qt
@@ -9,8 +9,69 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 
 
+class ColourCounter(QWidget):
+    # ColourCounter shows the number of colours in the tree
+    def __init__(self, palette):
+        super().__init__()
+
+        # Main layout
+        self.layout = QHBoxLayout()
+
+        # red, yellow green rgba to be used for creating label background
+        rgba_dict = self.extract_colours(palette)
+
+        # Create three sections with color, text, and number
+        self.red_counter = self.gen_colour_counter_label("Mismatch", "1", rgba_dict['red'])
+        self.yellow_counter = self.gen_colour_counter_label("No\nCorrespondence", "2", rgba_dict['yellow'])
+        self.green_counter = self.gen_colour_counter_label("Match", "3", rgba_dict['green'])
+        self.layout.addLayout(self.red_counter)
+        self.layout.addLayout(self.yellow_counter)
+        self.layout.addLayout(self.green_counter)
+
+        self.setLayout(self.layout)
+
+    def gen_colour_counter_label(self, text, count, color):
+        h_layout = QHBoxLayout()  # [label] [counter], horizontally
+
+        # label. should have background in the given colour
+        label = QLabel(text)
+        label.setStyleSheet(f"background-color: {color}; color: black;")
+        label.setFixedWidth(100)
+        label.setAlignment(Qt.AlignLeft)
+
+        # counter outside the label
+        count_txt = QLabel(count)
+        count_txt.setFixedWidth(50)
+        count_txt.setAlignment(Qt.AlignLeft)
+
+        # Add both labels to the horizontal layout
+        h_layout.addWidget(label)
+        h_layout.addWidget(count_txt)
+        return h_layout
+
+    def update_counter(self, label, new_count):
+        label.setText(f"{new_count}")
+
+    def extract_colours(self, palette):
+        #
+        rgba_dict = {}
+
+        for key, brush in palette.items():
+            qcolor = brush.color()
+            red = qcolor.red()
+            green = qcolor.green()
+            blue = qcolor.blue()
+            alpha = qcolor.alpha()
+            alpha_css = alpha / 255.0
+            # Format the rgba() string
+            rgba_string = 'rgba({}, {}, {}, {:.3f})'.format(red, green, blue, alpha_css)
+            rgba_dict[key] = rgba_string
+
+        return rgba_dict
+
+
 class CompareTreeWidgetItem(QTreeWidgetItem):
-    def __init__(self, labels):
+    def __init__(self, labels, palette):
         super().__init__(labels)
 
         self._text = self.text(0)
@@ -19,10 +80,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         self.underlying_bg = None
 
         # imagine each tree item carries a palette and use it to change background colour
-        self.palette = {'red': QBrush(QColor(255, 0, 0, 128)),
-                        'green': QBrush(QColor(0, 255, 0, 128)),
-                        'yellow': QBrush(QColor(255, 255, 0, 128)),
-                        'transparent': QBrush(QColor(0, 0, 0, 0))}
+        self.palette = palette
 
         self.is_label: bool = False
         if self._text.startswith(('H1', 'H2')) or self._text in ['movement', 'relation']:
@@ -333,9 +391,16 @@ class CompareSignsDialog(QDialog):
         super().__init__(**kwargs)
 
         self.corpus = self.parent().corpus
-        self.signs = self.corpus.signs  # don't need meta-data and only 'signs' part
+        self.signs = self.corpus.signs  # don't need meta-data; only need 'signs' part
         idgloss_list = self.corpus.get_all_idglosses()
 
+        # colour scheme to be used throughout the dialog
+        self.palette = {'red': QBrush(QColor(255, 0, 0, 128)),
+                        'green': QBrush(QColor(0, 255, 0, 128)),
+                        'yellow': QBrush(QColor(255, 255, 0, 128)),
+                        'transparent': QBrush(QColor(0, 0, 0, 0))}
+
+        # the main layout
         layout = QVBoxLayout()
 
         # Dropdown menus for selecting signs
@@ -367,6 +432,14 @@ class CompareSignsDialog(QDialog):
         splitter.addWidget(self.tree2)
 
         layout.addWidget(splitter)
+
+        # Add counters
+        self.overall_colour_counter = ColourCounter(palette=self.palette)
+        self.current_colour_counter = ColourCounter(palette=self.palette)
+        layout.addWidget(QLabel("Overall"))
+        layout.addWidget(self.overall_colour_counter)
+        layout.addWidget(QLabel("Current"))
+        layout.addWidget(self.current_colour_counter)
 
         # Add OK and Cancel buttons
         button_layout = QHBoxLayout()
@@ -419,8 +492,8 @@ class CompareSignsDialog(QDialog):
 
             for key in reversed(list(all_keys)):
                 # Create tree items for both trees
-                item1 = CompareTreeWidgetItem([key])
-                item2 = CompareTreeWidgetItem([key])
+                item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
+                item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
 
                 value1, value2 = None, None
                 try:
@@ -526,8 +599,8 @@ class CompareSignsDialog(QDialog):
 
         # Add each top-level key as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
-            top_item1 = CompareTreeWidgetItem([key])
-            top_item2 = CompareTreeWidgetItem([key])
+            top_item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
+            top_item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
 
             tree1.addTopLevelItem(top_item1)
             tree2.addTopLevelItem(top_item2)
