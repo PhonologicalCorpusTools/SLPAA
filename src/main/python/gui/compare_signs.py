@@ -86,6 +86,9 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         if self._text.startswith(('H1', 'H2')) or self._text in ['movement', 'relation']:
             self.is_label = True
 
+    def __repr__(self):
+        return f'<CompareTreeWidgetItem {self._text!r}>'
+
     def set_bg_color(self, bg_color: str = 'transparent'):
         # wrapper for the parent's setBackround method
         colour_brush = self.palette[bg_color] if bg_color in self.palette else self.palette['transparent']
@@ -482,8 +485,8 @@ class CompareSignsDialog(QDialog):
         def add_items(parent1, parent2, data1, data2):
             should_paint_red = [False, False]     # paint tree 1 node / tree 2 node red
             should_paint_yellow = [False, False]  # yellow to tree 1 node / tree 2 node
-            red_brush = QBrush(QColor(255, 192, 203, 128))   # red when mismatch
-            yellow_brush = QBrush(QColor(255, 255, 0, 128))  # yellow when no counterpart
+            red_brush = self.palette['red']   # red when mismatch
+            yellow_brush = self.palette['yellow']  # yellow when no counterpart
 
             # Get the union of all keys in both data1 and data2
             data1_keys = set(data1.keys()) if isinstance(data1, dict) else set()
