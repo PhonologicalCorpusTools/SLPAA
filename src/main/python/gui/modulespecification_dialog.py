@@ -17,12 +17,17 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QListView,
     QAbstractItemView,
-    QPushButton
+    QPushButton,
+    QScrollArea,
+    QApplication
 )
 
 from PyQt5.QtCore import (
     Qt,
-    pyqtSignal
+    pyqtSignal,
+    QRect,
+    QSettings,
+    QSize
 )
 
 from gui.xslot_graphics import XslotLinkScene
@@ -49,6 +54,7 @@ class ModuleSelectorDialog(QDialog):
 
     def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         super().__init__(**kwargs)
+        self.qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
         self.mainwindow = self.parent().mainwindow
         self.moduletype = moduletype
         self.usearticulators = len(incl_articulators) > 0
@@ -90,6 +96,9 @@ class ModuleSelectorDialog(QDialog):
                 inphase = moduletoload.inphase
 
         main_layout = QVBoxLayout()
+        moduleselector_scroll = QScrollArea(parent=self)
+        moduleselector_widget = ContainerWidget(parent=self)
+        moduleselector_layout = QVBoxLayout()
 
         self.arts_and_addedinfo_layout = QHBoxLayout()
         self.articulators_widget = None
@@ -101,7 +110,7 @@ class ModuleSelectorDialog(QDialog):
                                                                  parent=self)
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
-        self.phonloc_selection= PhonLocSelection(self.moduletype == ModuleTypes.LOCATION)
+        self.phonloc_selection = PhonLocSelection(self.moduletype == ModuleTypes.LOCATION)
         if phonlocstoload is not None:
             self.phonloc_selection.set_phonloc_buttons_from_content(phonlocstoload)
         self.arts_and_addedinfo_layout.addWidget(self.phonloc_selection)
@@ -111,7 +120,7 @@ class ModuleSelectorDialog(QDialog):
         self.arts_and_addedinfo_layout.addWidget(self.addedinfobutton)
         self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
-        main_layout.addLayout(self.arts_and_addedinfo_layout)
+        moduleselector_layout.addLayout(self.arts_and_addedinfo_layout)
         self.arts_and_addedinfo_layout.minimumSize()
 
         self.xslot_widget = None
@@ -121,7 +130,7 @@ class ModuleSelectorDialog(QDialog):
             self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
                                                   timingintervals=self.loaded_timingintervals,
                                                   parent=self)
-            main_layout.addWidget(self.xslot_widget)
+            moduleselector_layout.addWidget(self.xslot_widget)
 
         self.module_widget = QWidget()
         if self.moduletype == ModuleTypes.MOVEMENT:
@@ -141,7 +150,8 @@ class ModuleSelectorDialog(QDialog):
             self.module_widget = NonManualSpecificationPanel(moduletoload=moduletoload, parent=self)
         elif self.moduletype == ModuleTypes.ORIENTATION:
             self.module_widget = OrientationSpecificationPanel(moduletoload=moduletoload, parent=self)
-        main_layout.addWidget(self.module_widget)
+
+        moduleselector_layout.addWidget(self.module_widget)
 
         self.handle_articulator_changed(articulators[0])
         if self.usearticulators:
@@ -163,7 +173,11 @@ class ModuleSelectorDialog(QDialog):
                 self.module_widget.loctype_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
                 self.module_widget.signingspace_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
 
-            main_layout.addWidget(self.associatedrelations_widget)
+            moduleselector_layout.addWidget(self.associatedrelations_widget)
+
+        moduleselector_widget.setLayout(moduleselector_layout)
+        moduleselector_scroll.setWidget(moduleselector_widget)
+        main_layout.addWidget(moduleselector_scroll)
 
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
@@ -204,24 +218,51 @@ class ModuleSelectorDialog(QDialog):
         else:
             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
 
-        # TODO KV keep? from orig locationdefinerdialog:
-        #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
 
         main_layout.addWidget(self.button_box)
-
         self.setLayout(main_layout)
-        # self.setMinimumSize(QSize(500, 700))
-        # # self.setMinimumSize(modulelayout.desiredwidth(), modulelayout.desiredheight())
-        # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
-        # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # self.adjustSize()
+
+        # set widget geometry to saved value if possible, else default
+        widget_geom = moduleselector_widget.geometry()
+        desiredgeometry = self.getdesiredgeometry(widget_geom)
+        self.setGeometry(desiredgeometry)
 
         # get first rendered widget heights and fix them.
         if self.usearticulators:
             self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
         if self.usexslots:
             self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
+
+    def getdesiredgeometry(self, widget_geom):
+        # check if there's a saved location & size for this module type dialog
+        # qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+        xywh = self.qsettings.value('display/dialoggeometry/' + self.moduletype, defaultValue=QRect(0, 0, 0, 0))
+
+        if xywh == QRect(0, 0, 0, 0):
+            # user hasn't opened this dialog before; display default geometry
+            return widget_geom
+        elif QApplication.instance().screenAt(xywh.topLeft()) is not None:
+            # user has opened the dialog before and left it in a spot where it will still be visible;
+            # open it in the saved location and just make sure it's not tiny for some reason
+            return QRect(xywh.topLeft(), QSize(max(480, xywh.width()), max(320, xywh.height())))
+        else:
+            # user has opened the dialog before but maybe moved it offscreen or decreased number of screens available;
+            # display default geometry
+            return widget_geom
+
+    def accept(self):
+        self.savedialoggeom()
+        super().accept()
+
+    def reject(self):
+        self.savedialoggeom()
+        super().reject()
+
+    def savedialoggeom(self):
+        # save (to settings) the last-used geometry for this dialog-- but no validity checking for location or size
+        # qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+        self.qsettings.setValue('display/dialoggeometry/' + self.moduletype, self.geometry())
 
     def handle_modulesaved(self, relationtosave, moduletype):
         self.module_saved.emit(relationtosave, moduletype)
@@ -415,6 +456,12 @@ class ModuleSelectorDialog(QDialog):
                 self.accept()
 
         return savedmodule
+
+
+class ContainerWidget(QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
 
 
 class AssociatedRelationsDialog(QDialog):
