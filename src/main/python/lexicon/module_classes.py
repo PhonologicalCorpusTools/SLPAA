@@ -58,15 +58,15 @@ userdefinedroles = UserDefinedRoles({
         # nocontrolrole:
         # used by MovementTreeItemDelegate when a MovementTreeItem is never a selectable item
         # so text may be displayed, but no checkbox or radiobutton
-    'lastingrouprole': 4,
-        # lastingrouprole:
-        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
+    'firstingrouprole': 4,
+        # firstingrouprole:
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the first
         # in its subgroup, which affects how it is painted in the movement tree
-        # (eg, whether the item will be followed by a horizontal line)
-    'finalsubgrouprole': 5,
-        # finalsubgrouprole:
+        # (eg, whether the item will be preceded by a horizontal line)
+    'firstsubgrouprole': 5,
+        # firstsubgrouprole:
         # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
-        # also in the *last* subgroup in its section. Such a subgroup will not have a horizontal line drawn after it.
+        # also in the *first* subgroup in its section. Such a subgroup will not have a horizontal line drawn before it.
     'subgroupnamerole': 6,
         # subgroupnamerole:
         # Used by MovementTreeItem & LocationTreeItem to identify which items are grouped together. Such

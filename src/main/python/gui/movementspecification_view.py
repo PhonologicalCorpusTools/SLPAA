@@ -75,8 +75,8 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
             opt.text = index.data()
             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+            if index.data(Qt.UserRole+udr.firstingrouprole) and not index.data(Qt.UserRole+udr.firstsubgrouprole):
+                painter.drawLine(opt.rect.topLeft(), opt.rect.topRight())
         elif index.data(Qt.UserRole+udr.nocontrolrole): 
             widget = option.widget
             style = widget.style() if widget else QApplication.style()
@@ -86,10 +86,10 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
             style.drawControl(QStyle.CE_ItemViewItem, opt, painter, widget)
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+            if index.data(Qt.UserRole+udr.firstingrouprole) and not index.data(Qt.UserRole+udr.firstsubgrouprole):
                 opt = QStyleOptionFrame()
                 opt.rect = option.rect
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+                painter.drawLine(opt.rect.topLeft(), opt.rect.topRight())
 
 
 class MovementSpecificationPanel(ModuleSpecificationPanel):
