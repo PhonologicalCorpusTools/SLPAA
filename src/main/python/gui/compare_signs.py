@@ -541,17 +541,30 @@ class CompareSignsDialog(QDialog):
                         item1.underlying_bg = 'red'
                         item1.setBackground(0, red_brush)  # red
                         should_paint_red[0] = True
-                    else:
+                    elif item1.flags() == Qt.NoItemFlags:
+                        item1.underlying_bg = 'transparent'
+                        item1.set_bg_color('transparent')
+                    elif item2.flags() != Qt.NoItemFlags:
                         item1.underlying_bg = 'green'
                         item1.set_bg_color('green')
+                    else:
+                        item1.underlying_bg = 'yellow'
+                        item1.set_bg_color('yellow')
 
                     if value2 is False and not should_paint_yellow[1]:
                         item2.underlying_bg = 'red'
                         item2.setBackground(0, red_brush)  # red
                         should_paint_red[1] = True
-                    else:
+                    elif item2.flags() == Qt.NoItemFlags:
+                        item2.underlying_bg = 'transparent'
+                        item2.set_bg_color('transparent')
+                    elif item1.flags() != Qt.NoItemFlags:
                         item2.underlying_bg = 'green'
                         item2.set_bg_color('green')
+                        print(f"{key} in item1 becomes green")
+                    else:
+                        item2.underlying_bg = 'yellow'
+                        item2.set_bg_color('yellow')
 
                 # color the node depending on children
                 # if a child is either yellow or red, the parent should be red
