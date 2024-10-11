@@ -28,7 +28,7 @@ from PyQt5.QtGui import (
     QStandardItem,
 )
 
-from lexicon.module_classes import AddedInfo, treepathdelimiter, PhonLocations
+from lexicon.module_classes import AddedInfo, treepathdelimiter, PhonLocations, userdefinedroles as udr
 
 
 class ModuleSpecificationPanel(QFrame):
@@ -455,11 +455,11 @@ class TreeSearchComboBox(QComboBox):
                     for item in itemstoselect:
                         if item.checkState() == Qt.Unchecked:
                             item.setCheckState(Qt.PartiallyChecked)
-
                     targetitem = itemstoselect[-1]
-                    targetitem.setCheckState(Qt.Checked)
-                    self.item_selected.emit(targetitem)
-                    self.setCurrentIndex(-1)
+                    if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
+                        targetitem.setCheckState(Qt.Checked)
+                        self.item_selected.emit(targetitem)
+                        self.setCurrentIndex(-1)
 
         super().keyPressEvent(event)
 
