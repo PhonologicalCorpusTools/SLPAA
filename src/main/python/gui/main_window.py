@@ -63,7 +63,6 @@ from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
-from lexicon.module_classes import treepathdelimiter, LocationType
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 
@@ -427,7 +426,7 @@ class MainWindow(QMainWindow):
 
         self.open_initialization_window()
 
-    # TODO KV this needs an overhaul
+    # TODO this needs an overhaul - it's from the old (non-modular) version of SLPAA
     # GZ - missing compound sign attribute
     def on_action_export_handshape_transcription_csv(self):
         export_csv_dialog = ExportCSVDialog(self.app_settings, parent=self)
@@ -790,7 +789,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('recent_folder', self.app_settings['storage']['recent_folder'])
         self.app_qsettings.setValue('corpora', self.app_settings['storage']['corpora'])
         self.app_qsettings.setValue('image', self.app_settings['storage']['image'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # storage
 
         self.app_qsettings.beginGroup('display')
         self.app_qsettings.setValue('size', self.size())  # MainWindow size
@@ -808,19 +807,19 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
         self.app_qsettings.setValue('fontsize', self.app_settings['display']['fontsize'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # display
 
         # We don't need to explicitly save any of the 'entryid' group values, because they are never cached
         # into self.app_settings; they're always directly saved to and referenced from QSettings in real time
 
         self.app_qsettings.beginGroup('metadata')
         self.app_qsettings.setValue('coder', self.app_settings['metadata']['coder'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # metadata
 
         self.app_qsettings.beginGroup('reminder')
         self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
         self.app_qsettings.setValue('duplicatelemma', self.app_settings['reminder']['duplicatelemma'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
         self.app_qsettings.setValue('handdominance', self.app_settings['signdefaults']['handdominance'])

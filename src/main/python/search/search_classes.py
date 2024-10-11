@@ -329,6 +329,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             QMessageBox.critical(self, "Warning", "hand config not impl")
         elif self.moduletype == ModuleTypes.RELATION:
             self.module_widget = Search_RelationSpecPanel(moduletoload=moduletoload, parent=self)
+        self.moduleselector_layout.addWidget(self.module_widget)
     
     def handle_xslot_widget(self, xslotstructure, timingintervals):
         self.xslot_widget = None
@@ -348,7 +349,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
                                                   timingintervals=timingintervals,
                                                   partialxslots=partialxslots,
                                                   parent=self)
-            self.main_layout.addWidget(self.xslot_widget)
+            self.moduleselector_layout.addWidget(self.xslot_widget)
 
     
     def handle_button_click(self, button):
