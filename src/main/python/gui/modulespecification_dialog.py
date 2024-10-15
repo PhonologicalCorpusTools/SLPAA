@@ -485,6 +485,7 @@ class ContainerWidget(QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
+        self.moduletype = self.parent().moduletype
 
 
 class AssociatedRelationsDialog(QDialog):
