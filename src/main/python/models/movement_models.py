@@ -929,7 +929,7 @@ class MovementTreeItem(QStandardItem):
 
     @addedinfo.setter
     def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._addedinfo = addedinfo if addedinfo is not None and isinstance(addedinfo, AddedInfo) else AddedInfo()
 
     # GZ was nodetypeID, don't think it was used anywhere
     @property
@@ -1316,7 +1316,8 @@ class MovementTreeModel(QStandardItemModel):
         for path in paths_to_uncheck:
             try:
                 self.serializedmvmttree.checkstates[path] = Qt.Unchecked
-                self.serializedmvmttree.addedinfos[path] = Qt.Unchecked
+                self.serializedmvmttree.addedinfos.pop(path)
+                # self.serializedmvmttree.addedinfos[path] = Qt.Unchecked
             except:
                 print("Could not uncheck old path.")
 

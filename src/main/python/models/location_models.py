@@ -615,8 +615,8 @@ class LocationTreeModel(QStandardItemModel):
         for path in paths_to_uncheck:
             try:
                 self.serializedlocntree.checkstates[path] = Qt.Unchecked
-                self.serializedlocntree.addedinfos[path] = Qt.Unchecked
-                self.serializedlocntree.detailstables[path] = Qt.Unchecked
+                self.serializedlocntree.addedinfos.pop(path)
+                self.serializedlocntree.detailstables.pop(path)
             except:
                 print("Could not uncheck old path.")
     
@@ -1166,7 +1166,7 @@ class LocationTreeItem(QStandardItem):
 
     @addedinfo.setter
     def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._addedinfo = addedinfo if addedinfo is not None and isinstance(addedinfo, AddedInfo) else AddedInfo()
 
     def check(self, fully=True, multiple_selection_allowed=False):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
