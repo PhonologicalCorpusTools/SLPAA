@@ -619,8 +619,8 @@ class LocationTreeModel(QStandardItemModel):
         for path in paths_to_uncheck:
             try:
                 self.serializedlocntree.checkstates[path] = Qt.Unchecked
-                self.serializedlocntree.addedinfos[path] = Qt.Unchecked
-                self.serializedlocntree.detailstables[path] = Qt.Unchecked
+                self.serializedlocntree.addedinfos.pop(path)
+                self.serializedlocntree.detailstables.pop(path)
             except:
                 print("Could not uncheck old path.")
     
@@ -772,7 +772,7 @@ class LocationTreeModel(QStandardItemModel):
             item.uncheck(force=False)
 
     # TODO pass in structure (options structure) 
-    def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+    def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfirstsubgroup=True, subgroupname=""):
         if structure.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
             pass
@@ -800,7 +800,7 @@ class LocationTreeModel(QStandardItemModel):
                     if idx + 1 >= numentriesatthislevel:
                         # if there are no more items at this level
                         isfinal = True
-                    self.populate(parentnode, structure=child, pathsofar=pathsofar, issubgroup=True, isfinalsubgroup=isfinal, 
+                    self.populate(parentnode, structure=child, pathsofar=pathsofar, issubgroup=True, isfirstsubgroup=isfinal,
                                   subgroupname=subgroup + "_" + pathsofar + "_" + (str(child.button_type)))
 
                 else:
@@ -811,8 +811,8 @@ class LocationTreeModel(QStandardItemModel):
                     if issubgroup:
                         thistreenode.setData(subgroupname, role=Qt.UserRole+udr.subgroupnamerole)
                         if idx + 1 == numentriesatthislevel:
-                            thistreenode.setData(True, role=Qt.UserRole+udr.lastingrouprole)
-                            thistreenode.setData(isfinalsubgroup, role=Qt.UserRole+udr.finalsubgrouprole)
+                            thistreenode.setData(True, role=Qt.UserRole+udr.firstingrouprole)
+                            thistreenode.setData(isfirstsubgroup, role=Qt.UserRole+udr.firstsubgrouprole)
                     self.populate(thistreenode, structure=child, pathsofar=pathsofar + label + treepathdelimiter)
                     parentnode.appendRow([thistreenode])
 
@@ -857,7 +857,7 @@ class BodypartTreeModel(LocationTreeModel):
             self.serializedlocntree = serializedlocntree
             self.backwardcompatibility()
 
-    def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfinalsubgroup=True, subgroupname=""):
+    def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfirstsubgroup=True, subgroupname=""):
         
         if structure.children == [] and pathsofar != "":
             # base case (leaf node); don't build any more nodes
@@ -1194,7 +1194,7 @@ class LocationTreeItem(QStandardItem):
 
     @addedinfo.setter
     def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._addedinfo = addedinfo if addedinfo is not None and isinstance(addedinfo, AddedInfo) else AddedInfo()
 
     def check(self, fully=True, multiple_selection_allowed=False):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)

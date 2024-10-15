@@ -571,8 +571,6 @@ class AssociatedRelationsPanel(QFrame):
         self.check_enable_saveaddrelation()
         self.addrelation_button.clicked.connect(self.handle_save_add_relationmodule)
         self.seerelations_button = SeeRelationsPushButton("See associated Relation modules")
-        # TODO KV this button should be bolded when the list of such modules is nonempty
-        # self.seerelations_button = QPushButton("See associated Relation modules")
         self.seerelations_button.clicked.connect(self.handle_see_relationmodules)
 
         main_layout.addStretch()
