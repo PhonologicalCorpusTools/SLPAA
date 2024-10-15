@@ -9,6 +9,7 @@ from PyQt5.QtCore import (
 
 from PyQt5.Qt import (
     QStandardItem,
+    QModelIndex,
     QStandardItemModel
 )
 import logging
@@ -547,6 +548,7 @@ class LocationTreeModel(QStandardItemModel):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
         self._multiple_selection_allowed = False
+        self._nodes_are_terminal = False
         self.itemChanged.connect(self.updateCheckState)
         self._locationtype = LocationType()
         self.checked=[]
@@ -564,6 +566,8 @@ class LocationTreeModel(QStandardItemModel):
             if hasattr(serializedlocntree, "defaultneutralselected"):
                 self.defaultneutralselected = serializedlocntree.defaultneutralselected
                 self.defaultneutrallist = serializedlocntree.defaultneutrallist
+            if hasattr(serializedlocntree, "nodes_are_terminal"):
+                self._nodes_are_terminal = serializedlocntree.nodes_are_terminal
 
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
@@ -725,6 +729,30 @@ class LocationTreeModel(QStandardItemModel):
     @multiple_selection_allowed.setter
     def multiple_selection_allowed(self, is_allowed):
         self._multiple_selection_allowed = is_allowed    
+    
+    # Used when searching for locations
+    @property
+    def nodes_are_terminal(self):
+        return self._nodes_are_terminal
+
+    @nodes_are_terminal.setter
+    def nodes_are_terminal(self, terminal):
+        self._nodes_are_terminal = terminal    
+
+    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True):
+        checked_values = []
+        for row in range(self.rowCount(parent_index)):
+            index = self.index(row, 0, parent_index)
+            if only_fully_checked:
+                checkstate_to_match = Qt.Checked # 2
+            else:
+                checkstate_to_match = Qt.PartiallyChecked # 1
+            if index.data(Qt.CheckStateRole) >= checkstate_to_match:
+                checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
+            
+            checked_values.extend(self.get_checked_items(index, only_fully_checked))
+        return checked_values
+    
     
     def updateCheckState(self, item):
         thestate = item.checkState()

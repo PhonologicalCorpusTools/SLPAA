@@ -50,6 +50,7 @@ from PyQt5.QtGui import (
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
+from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
@@ -184,6 +185,22 @@ class MainWindow(QMainWindow):
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
+
+        # merge corpora
+        action_merge_corpora = QAction("Merge corpora...", parent=self)
+        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
+        action_merge_corpora.setCheckable(False)
+
+        # export corpus in human-readable form
+        action_export_corpus = QAction("Export corpus...", parent=self)
+        action_export_corpus.triggered.connect(self.on_action_export_corpus)
+        action_export_corpus.setCheckable(False)
+
+        # search
+        action_search = QAction("Search", parent=self)
+        action_search.triggered.connect(self.on_action_search)
+        action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
+        action_search.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -365,7 +382,7 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
-
+        menu_analysis_beta.addAction(action_search)
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
         menu_help.addAction(action_help_main)
         menu_help.addAction(action_help_about)
@@ -667,6 +684,11 @@ class MainWindow(QMainWindow):
             'corpora',
             defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'CORPORA'))
         )
+        self.app_settings['storage']['searches'] = self.app_qsettings.value('searches',
+                                                                           defaultValue=os.path.normpath(
+                                                                               os.path.join(
+                                                                                   os.path.expanduser('~/Documents'),
+                                                                                   'PCT', 'SLP-AA', 'SEARCHES')))
         self.app_settings['storage']['image'] = self.app_qsettings.value(
             'image',
             defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'IMAGE'))
@@ -844,6 +866,10 @@ class MainWindow(QMainWindow):
     def on_action_export_corpus(self):
         export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
         export_corpus_window.exec_()
+
+    def on_action_search(self):
+        self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
+        self.search_window.show()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
