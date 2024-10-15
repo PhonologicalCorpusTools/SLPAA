@@ -675,8 +675,6 @@ class LocationTreeModel(QStandardItemModel):
             for k in list(self.serializedlocntree.checkstates):
                 if self.serializedlocntree.checkstates[k] == Qt.Checked:
                     checked.append(k)
-                    if isinstance(self.serializedlocntree.addedinfos[k], Qt.CheckState) or isinstance(self.serializedlocntree.detailstables[k], Qt.CheckState):
-                        logging.warning("bad addedinfo/detailstables for " + k)
         return checked
 
         # Compare what was serialized with what the current tree actually shows

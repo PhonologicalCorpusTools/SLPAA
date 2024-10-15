@@ -1185,9 +1185,6 @@ class MovementTreeModel(QStandardItemModel):
             for k in list(self.serializedmvmttree.checkstates):
                 if self.serializedmvmttree.checkstates[k] == Qt.Checked:
                     checked.append(k)
-                    if isinstance(self.serializedmvmttree.addedinfos[k], Qt.CheckState):
-                        logging.warning("bad addedinfo for " + k)
-                        # self.serializedmvmttree.addedinfos[k] = AddedInfo()
         return checked
     
     def update_currently_checked(self, treenode):
