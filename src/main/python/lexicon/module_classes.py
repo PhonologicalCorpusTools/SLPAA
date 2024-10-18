@@ -1837,7 +1837,8 @@ class ContactRelation:
         self._distances = distance_list or [
             Distance(Direction.HORIZONTAL),
             Distance(Direction.VERTICAL),
-            Distance(Direction.SAGITTAL)
+            Distance(Direction.SAGITTAL),
+            Distance(Direction.GENERIC)
         ]
 
     def __eq__(self, other):
@@ -1987,6 +1988,7 @@ class Direction:
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
     SAGITTAL = "sagittal"
+    GENERIC = "generic"
 
     def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False):
         self._axis = axis
