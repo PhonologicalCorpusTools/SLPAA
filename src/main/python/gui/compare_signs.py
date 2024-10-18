@@ -87,7 +87,13 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
             self.is_label = True
 
     def __repr__(self):
-        return f'<CompareTreeWidgetItem {self._text!r}>'
+        invisibility = self.flags() == Qt.NoItemFlags
+        invisibility = 'in' if invisibility else ''
+        return f'<CompareTreeWidgetItem {self._text!r} ({invisibility}visible)>'
+
+    def __eq__(self, other):
+        return self._text == other._text and self.flags() == other.flags()
+
 
     def set_bg_color(self, bg_color: str = 'transparent'):
         # wrapper for the parent's setBackround method
@@ -584,6 +590,11 @@ class CompareSignsDialog(QDialog):
                     print(f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
                 else:
                     print(f"node={key}'s parent is yellow\n{parent1.background(0).color()}")
+            elif should_paint_yellow[0] and parent1 == parent2:
+                parent1.underlying_bg = 'red'
+                parent1.setBackground(0, red_brush)
+                print(
+                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent red\n")
             elif should_paint_yellow[0]:
                 parent1.underlying_bg = 'yellow'
                 parent1.setBackground(0, yellow_brush)
@@ -602,11 +613,14 @@ class CompareSignsDialog(QDialog):
                         f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
                 else:
                     print(f"node={key}'s parent is yellow")
+            elif should_paint_yellow[1] and parent1 == parent2:
+                parent2.underlying_bg = 'red'
+                parent2.setBackground(0, red_brush)
+                print(
+                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
             elif should_paint_yellow[1]:
                 parent2.underlying_bg = 'yellow'
                 parent2.setBackground(0, yellow_brush)
-                print(
-                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
             elif not parent2.flags() == Qt.NoItemFlags:
                 parent2.underlying_bg = 'blue'
                 parent2.set_bg_color('blue')
