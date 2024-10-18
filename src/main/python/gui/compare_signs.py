@@ -17,16 +17,16 @@ class ColourCounter(QWidget):
         # Main layout
         self.layout = QHBoxLayout()
 
-        # red, yellow green rgba to be used for creating label background
+        # red, yellow blue rgba to be used for creating label background
         rgba_dict = self.extract_colours(palette)
 
         # Create three sections with color, text, and number
         self.red_counter = self.gen_colour_counter_label("Mismatch", "1", rgba_dict['red'])
         self.yellow_counter = self.gen_colour_counter_label("No\nCorrespondence", "2", rgba_dict['yellow'])
-        self.green_counter = self.gen_colour_counter_label("Match", "3", rgba_dict['green'])
+        self.blue_counter = self.gen_colour_counter_label("Match", "3", rgba_dict['blue'])
         self.layout.addLayout(self.red_counter)
         self.layout.addLayout(self.yellow_counter)
-        self.layout.addLayout(self.green_counter)
+        self.layout.addLayout(self.blue_counter)
 
         self.setLayout(self.layout)
 
@@ -76,7 +76,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
 
         self._text = self.text(0)
 
-        # underlying background colour is unspecified by default, but may be green red or yellow!
+        # underlying background colour is unspecified by default, but may be blue red or yellow!
         self.underlying_bg = None
 
         # imagine each tree item carries a palette and use it to change background colour
@@ -129,7 +129,7 @@ def get_informative_elements(l: list) -> list:
             result.append(element)
     return result
 
-def compare_elements(e1: str, e2: str, pairwise=True) -> (dict, dict):
+def compare_elements(e1: str, e2: str, pairwise=True):
     components1 = e1.split('>')
     components2 = e2.split('>')
 
@@ -166,7 +166,7 @@ def compare_elements(e1: str, e2: str, pairwise=True) -> (dict, dict):
     return hierarchical_res1, hierarchical_res2
 
 
-def analyze_modules(modules: list, module_numbers: dict, module_abbrev: str) -> dict:
+def analyze_modules(modules: list, module_numbers: dict, module_abbrev: str):
     r = {}
     for m in modules:
         this_uniqid = m.uniqueid
@@ -399,7 +399,7 @@ class CompareSignsDialog(QDialog):
 
         # colour scheme to be used throughout the dialog
         self.palette = {'red': QBrush(QColor(255, 0, 0, 128)),
-                        'green': QBrush(QColor(0, 255, 0, 128)),
+                        'blue': QBrush(QColor(0, 100, 255, 64)),
                         'yellow': QBrush(QColor(255, 255, 0, 128)),
                         'transparent': QBrush(QColor(0, 0, 0, 0))}
 
@@ -545,8 +545,8 @@ class CompareSignsDialog(QDialog):
                         item1.underlying_bg = 'transparent'
                         item1.set_bg_color('transparent')
                     elif item2.flags() != Qt.NoItemFlags:
-                        item1.underlying_bg = 'green'
-                        item1.set_bg_color('green')
+                        item1.underlying_bg = 'blue'
+                        item1.set_bg_color('blue')
                     else:
                         item1.underlying_bg = 'yellow'
                         item1.set_bg_color('yellow')
@@ -559,9 +559,9 @@ class CompareSignsDialog(QDialog):
                         item2.underlying_bg = 'transparent'
                         item2.set_bg_color('transparent')
                     elif item1.flags() != Qt.NoItemFlags:
-                        item2.underlying_bg = 'green'
-                        item2.set_bg_color('green')
-                        print(f"{key} in item1 becomes green")
+                        item2.underlying_bg = 'blue'
+                        item2.set_bg_color('blue')
+                        print(f"{key} in item1 becomes blue")
                     else:
                         item2.underlying_bg = 'yellow'
                         item2.set_bg_color('yellow')
@@ -590,8 +590,8 @@ class CompareSignsDialog(QDialog):
                 print(
                     f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
             elif not parent1.flags() == Qt.NoItemFlags:
-                parent1.underlying_bg = 'green'
-                parent1.set_bg_color('green')
+                parent1.underlying_bg = 'blue'
+                parent1.set_bg_color('blue')
 
             if should_paint_red[1]:
                 if parent2.background(0).color() != yellow_brush:
@@ -608,8 +608,8 @@ class CompareSignsDialog(QDialog):
                 print(
                     f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
             elif not parent2.flags() == Qt.NoItemFlags:
-                parent2.underlying_bg = 'green'
-                parent2.set_bg_color('green')
+                parent2.underlying_bg = 'blue'
+                parent2.set_bg_color('blue')
 
             return should_paint_red, should_paint_yellow
 
@@ -691,7 +691,7 @@ class CompareSignsDialog(QDialog):
             if not corresponding_item:
                 item.set_bg_color(item.underlying_bg)
             elif not (corresponding_invisible or item_invisible):
-                item.set_bg_color('green')
+                item.set_bg_color('blue')
 
 
     def on_item_collapsed(self, item, target_tree):
