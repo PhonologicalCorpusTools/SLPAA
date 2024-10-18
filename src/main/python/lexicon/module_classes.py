@@ -1706,6 +1706,23 @@ class RelationModule(ParameterModule):
             treemodel = bodypartinfo.bodyparttreemodel
             paths.update({arts[i]: treemodel.get_checked_items()})
         return paths
+
+    def has_any_distance(self):
+        for i in range(3):
+            dis = self.contactrel.distances[i]
+            if dis.has_selection():
+                return True
+        return False
+    
+    def has_any_direction(self): # returns true if anything in direction is selected, including axis checkboxes or crossed/linked
+        if self.xy_crossed or self.xy_linked:
+            return True
+        for i in range(3):
+            dir = self.directions[i]
+            if dir.axisselected:
+                return True
+        return False
+
     
     def has_direction(self, axisnum): # returns true if suboptions of direction are selected
         dir = self.directions[axisnum]
@@ -1876,10 +1893,15 @@ class ContactRelation:
         return '<ContactRelation: ' + repr(repr_str) + '>'
 
     def has_manner(self):
-        return self.manner.holding or self.manner.intermittent or self.manner.continuous
+        if self.manner is not None:
+            return self.manner.holding or self.manner.intermittent or self.manner.continuous
+        return False
 
     def has_contacttype(self):
-        return self.contacttype.light or self.contacttype.firm or self.contacttype.other
+        if self.contacttype is not None:
+            return self.contacttype.light or self.contacttype.firm or self.contacttype.other
+        return False
+    
     @property
     def contact(self):
         return self._contact
@@ -2058,6 +2080,14 @@ class Direction:
     @axis.setter
     def axis(self, axis):
         self._axis = axis
+
+    @property
+    def any(self):
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
 
     @property
     def axisselected(self):

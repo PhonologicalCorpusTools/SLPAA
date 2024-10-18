@@ -293,7 +293,7 @@ class SearchModel(QStandardItemModel):
         # TODO think about issue where target matches a sign, but matches are split across multiple modules
         # eg module 1 matches relation_x, module 2 matches contact
         # instead of using any(), could keep a list of matching modules, and trim the list as modules no longer match successive target specs
-        modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
+        matching_modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
         for row in rows:
             svi = self.target_values(row) 
             xslottype = self.target_xslottype(row)
@@ -302,63 +302,89 @@ class SearchModel(QStandardItemModel):
             # All relation_x possibilities are mutually exclusive, so check if target relation_x matches at least one of sign's relation_xs
             target_relationx = target_module.relationx.displaystr()
             if target_relationx != "":
-                if not any(target_relationx == m.relationx.displaystr() for m in modules):
-                    return False
+                matching_modules = [m for m in matching_modules if target_relationx == m.relationx.displaystr()]
+                if len(matching_modules) == 0: return False
+
             # If target relation_y is "Existing module", this can also match "existing module - locn" or "existing module - mvmt".
             # Otherwise, relation_y possibilities are mutually exclusive.
             target_relationy = target_module.relationy.displaystr()
             if target_relationy != "": 
                 if target_relationy == "Y: existing module":
-                    if not any(target_relationy in m.relationy.displaystr() for m in modules): # match locn and mvmt existing modules
-                        return False
+                    matching_modules = [m for m in matching_modules if target_relationy in m.relationy.displaystr()]
                 else:
-                    if not any(target_relationy == m.relationy.displaystr() for m in modules):
-                        return False
+                    matching_modules = [m for m in matching_modules if target_relationy == m.relationy.displaystr()]
+                if len(matching_modules) == 0: return False
             # If target contact is only "Contact", this needs to match contact type suboptions (light, firm, other)
             # If target contact is "No contact", must match signs where contact is not specified or empty (?)
             # Manner options are mutually exclusive.
             if target_module.contactrel.contact is False: # if False, then "no contact" specified
-                if not any (m.contactrel.contact == False for m in modules):
-                    return False
+                matching_modules = [m for m in matching_modules if m.contactrel.contact == False]
             elif target_module.contactrel.contact is not None:
-                if target_module.contactrel.has_manner() and target_module.contactrel.has_contacttype(): # module must match manner AND contacttype exactly
-                    if not any (m.contactrel.manner == target_module.contactrel.manner and
-                                m.contactrel.contacttype == target_module.contactrel.contacttype 
-                                for m in modules):
-                        return False
-                elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
-                    if not any (m.contactrel.manner == target_module.contactrel.manner for m in modules):
-                        return False
+                if target_module.contactrel.contacttype.any:
+                    matching_modules = [m for m in matching_modules if m.contactrel.has_contacttype()]
+                    if len(matching_modules) == 0: return False   
                 elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
-                    if not any (m.contactrel.contacttype == target_module.contactrel.contacttype for m in modules):
-                        return False
+                    matching_modules = [m for m in matching_modules if m.contactrel.contacttype == target_module.contactrel.contacttype]
+                    if len(matching_modules) == 0: return False 
+                if target_module.contactrel.manner.any:
+                    matching_modules = [m for m in matching_modules if m.contactrel.has_manner()]
+                    if len(matching_modules) == 0: return False  
+                elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
+                    matching_modules = [m for m in matching_modules if m.contactrel.manner == target_module.contactrel.manner]
+                    if len(matching_modules) == 0: return False 
                 else: # only "contact" specified, so module must have some contact / contacttype
-                    if not any (m.contactrel.contact for m in modules):
-                        return False
+                    matching_modules = [m for m in matching_modules if m.contactrel.contact]
+            if len(matching_modules) == 0: return False 
+                # if target_module.contactrel.contacttype.any:
+                #     matching_modules = [m for m in matching_modules if m.contactrel.has_contacttype()]
+                #     if len(matching_modules) == 0: return False   
+                # if target_module.contactrel.manner.any:
+                #     matching_modules = [m for m in matching_modules if m.contactrel.has_manner()]
+                #     if len(matching_modules) == 0: return False  
+                # if target_module.contactrel.has_manner() and target_module.contactrel.has_contacttype(): # module must match manner AND contacttype exactly
+                #     matching_modules = [m for m in matching_modules if (
+                #                 m.contactrel.manner == target_module.contactrel.manner and
+                #                 m.contactrel.contacttype == target_module.contactrel.contacttype)]
+                #     if len(matching_modules) == 0: return False
+                # elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
+                #     matching_modules = [m for m in matching_modules if m.contactrel.manner == target_module.contactrel.manner]
+                #     if len(matching_modules) == 0: return False 
+
+                # elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
+                #     matching_modules = [m for m in matching_modules if m.contactrel.contacttype == target_module.contactrel.contacttype]
+                #     if len(matching_modules) == 0: return False 
+                # else: # only "contact" specified, so module must have some contact / contacttype
+                #     matching_modules = [m for m in matching_modules if m.contactrel.contact]
+                #     if len(matching_modules) == 0: return False 
+
             
             # direction:
-            matching_modules = modules
-            if target_module.xy_linked:
-                matching_modules = [m for m in matching_modules if m.xy_linked]
-            if target_module.xy_crossed:
-                matching_modules = [m for m in matching_modules if m.xy_crossed]
-            for i in range(3):
-                if target_module.directions[i].axisselected:
-                    if target_module.has_direction(i): # match exactly because suboption is selected
-                        matching_modules = [m for m in matching_modules if m.directions[i] == target_module.directions[i]]
-                    else: # only axis is selected, so match if any suboption is selected
-                        matching_modules = [m for m in matching_modules if m.has_direction(i)]
+            if len(target_module.directions) == 1 and target_module.directions[0].any: 
+                matching_modules = [m for m in matching_modules if m.has_any_direction()]
+            else:
+                if target_module.xy_linked:
+                    matching_modules = [m for m in matching_modules if m.xy_linked]
+                if target_module.xy_crossed:
+                    matching_modules = [m for m in matching_modules if m.xy_crossed]
+                for i in range(3):
+                    if target_module.directions[i].axisselected:
+                        if target_module.has_direction(i): # match exactly because suboption is selected
+                            matching_modules = [m for m in matching_modules if m.directions[i] == target_module.directions[i]]
+                        else: # only axis is selected, so match if any suboption is selected
+                            matching_modules = [m for m in matching_modules if m.has_direction(i)]
             if len(matching_modules) == 0:
                 return False
             
             # Distance:
-            matching_modules = modules
             if not target_module.contactrel.contact:
-                for i in range(3):
-                    dist = target_module.contactrel.distances[i]
-                    if dist.has_selection():
-                        matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]
-                            
+                if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
+                    matching_modules = [m for m in matching_modules if m.has_any_distance()]
+                else:
+                    for i in range(3):
+                        dist = target_module.contactrel.distances[i]
+                        if dist.has_selection():
+                            matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]
+                                
                 if len(matching_modules) == 0:
                     return False
             

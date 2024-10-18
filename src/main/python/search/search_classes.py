@@ -495,7 +495,9 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         if self.any_direction_cb.isChecked():
             return[Direction(axis=None, any=True)]
         else:
-            return super().getcurrentdirections()
+            dir = super().getcurrentdirections()
+            dir.any = False
+            return dir
         
     def setcurrentdistances(self, distances_list):
         if distances_list is not None and len(distances_list) == 1: # only the case when "any" was selected
@@ -507,7 +509,9 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         if self.any_distance_cb.isChecked():
             return[Distance(axis=None, any=True)]
         else:
-            return super().getcurrentdistances()
+            dist = super().getcurrentdistances()
+            dist.any = False
+            return dist
 
 
     # Differs from mainwindow in that a generic contact type cb is present
