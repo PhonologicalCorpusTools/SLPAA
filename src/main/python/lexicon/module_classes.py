@@ -1766,10 +1766,11 @@ class RelationModule(ParameterModule):
 
 
 class MannerRelation:
-    def __init__(self, holding=False, continuous=False, intermittent=False):
+    def __init__(self, holding=False, continuous=False, intermittent=False, any=False):
         self._holding = holding
         self._continuous = continuous
         self._intermittent = intermittent
+        self._any = any
 
     def __eq__(self, other):
         if isinstance(other, MannerRelation):
@@ -1827,6 +1828,14 @@ class MannerRelation:
         if checked:
             self._continuous = False
             self._holding = False
+
+    @property
+    def any(self):
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
 
 
 class ContactRelation:
@@ -1905,11 +1914,12 @@ class ContactRelation:
 
 
 class ContactType:
-    def __init__(self, light=False, firm=False, other=False, othertext=""):
+    def __init__(self, light=False, firm=False, other=False, othertext="", any=False):
         self._light = light
         self._firm = firm
         self._other = other
         self._othertext = othertext
+        self._any = any # Used by search targets to match any contact type selection
 
     def __eq__(self, other):
         if isinstance(other, ContactType):
@@ -1980,6 +1990,14 @@ class ContactType:
     def othertext(self, othertext):
         self._othertext = othertext
 
+    @property
+    def any(self):
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
+
 
 # This class is used by the Relation Module to track the axis on which to measure the relation between
 # two elements (X and Y), as well as the direction of X relative to Y.
@@ -1988,12 +2006,13 @@ class Direction:
     VERTICAL = "vertical"
     SAGITTAL = "sagittal"
 
-    def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False):
+    def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False, any=False):
         self._axis = axis
         self._axisselected = axisselected
         self._plus = plus  # ipsi for horizontal, above for vertical, distal for sagittal
         self._minus = minus  # contra for horizontal, below for vertical, proximal for sagittal
         self._inline = inline  # in line with (for all axes)
+        self._any = any # Used by search targets to match any direction selection (crossed / linked / hor / ver / sag)
 
     def __eq__(self, other):
         if isinstance(other, Direction):
@@ -2089,11 +2108,12 @@ class Direction:
 # two elements (X and Y), as well as the relative distance between those two elements.
 class Distance:
 
-    def __init__(self, axis, close=False, medium=False, far=False):
+    def __init__(self, axis, close=False, medium=False, far=False, any=False):
         self._axis = axis
         self._close = close
         self._medium = medium
         self._far = far
+        self._any = any # Used by search targets to match any specified distance
 
     def __eq__(self, other):
         if isinstance(other, Distance):
@@ -2150,6 +2170,14 @@ class Distance:
         if isfar:
             self._close = False
             self._medium = False
+
+    @property
+    def any(self):
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
 
 
 # This module stores the absolute orientation of a particular hand/s.

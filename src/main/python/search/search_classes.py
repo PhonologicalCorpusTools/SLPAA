@@ -7,9 +7,10 @@ from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
 from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
-from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule
+from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule, Direction, Distance
 from lexicon.lexicon_classes import Sign, SignLevelInformation
 from gui.modulespecification_dialog import ModuleSelectorDialog
+
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QSize
 from PyQt5.QtWidgets import (
@@ -28,13 +29,15 @@ from PyQt5.QtWidgets import (
     QWidget,
     QMessageBox,
     QSpacerItem,
-    QSizePolicy
+    QSizePolicy,
+    QGroupBox,
+
 )
 
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
-from gui.relationspecification_view import RelationSpecificationPanel
+from gui.relationspecification_view import RelationSpecificationPanel, RelationRadioButton, RelationButtonGroup
 from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
@@ -458,6 +461,55 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
 
+    def setcurrentmanner(self, mannerrel):
+        if mannerrel is not None and mannerrel.any:
+            self.any_manner_cb.setChecked(True)
+        else:
+            super().setcurrentmanner(mannerrel)
+
+    # return the current contact-manner specification as per the GUI values
+    def getcurrentmanner(self):
+        reln = super().getcurrentmanner()
+        reln.any = self.any_manner_cb.isChecked()
+        return reln
+
+
+    def setcurrentcontacttype(self, contacttype):
+        if contacttype is not None and contacttype.any:
+            self.any_contacttype_cb.setChecked(True)
+        else:
+            super().setcurrentcontacttype(contacttype)
+
+    def getcurrentcontacttype(self):
+        reln = super().getcurrentcontacttype()
+        reln.any = self.any_contacttype_cb.isChecked()
+        return reln
+
+    def setcurrentdirection(self, directions_list):
+        if directions_list is not None and len(directions_list) == 1: # only the case when "any" was selected
+            self.any_direction_cb.setChecked(True)
+        else:
+            super().setcurrentdirection(directions_list)
+
+    def getcurrentdirections(self):
+        if self.any_direction_cb.isChecked():
+            return[Direction(axis=None, any=True)]
+        else:
+            return super().getcurrentdirections()
+        
+    def setcurrentdistances(self, distances_list):
+        if distances_list is not None and len(distances_list) == 1: # only the case when "any" was selected
+            self.any_distance_cb.setChecked(True)
+        else:
+            super().setcurrentdistances(distances_list)
+
+    def getcurrentdistances(self):
+        if self.any_distance_cb.isChecked():
+            return[Distance(axis=None, any=True)]
+        else:
+            return super().getcurrentdistances()
+
+
     # Differs from mainwindow in that a generic contact type cb is present
     def populate_contacttype_layout(self):
         self.any_contacttype_cb = QCheckBox("Search for any contact type")
@@ -476,11 +528,10 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
 
     # Differs from mainwindow in that a generic contact manner cb is available
     def handle_any_contacttype_cb_toggled(self, btn):
-        # TODO this doesnt work the first time contacttype_rb is clicked, why?
         for b in self.contacttype_group.buttons():
             b.setDisabled(btn)
         self.contact_other_text.setEnabled(not btn and self.contactother_rb.isChecked())
-        # self.contact_rb.setChecked(btn or self.contacttype_group.checkedButton() is not None) # this also doesnt work
+        self.contact_rb.setChecked(btn or self.contacttype_group.checkedButton() is not None) # TODO fix
 
     def populate_manner_layout(self):
         self.any_manner_cb = QCheckBox("Search for any contact manner")
@@ -497,6 +548,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
     def handle_any_manner_cb_clicked(self, btn):
         for b in self.manner_group.buttons():
             b.setDisabled(btn)
+        self.contact_rb.setChecked(btn or self.manner_group.checkedButton() is not None)  # TODO fix
 
 
     def clear_contact_options(self):
@@ -506,23 +558,84 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         self.any_manner_cb.setEnabled(True)
         super().clear_contact_options()
 
+    # differs from main GUI in that hor, ver, and sag distance checkboxes are available
+    # create side-by-side layout for specifying distance
+    def create_distance_box(self):
+        distance_box = QGroupBox("Distance between X and Y")
+            
+        # create layout for horizontal distance options
+        self.dishor_box = QGroupBox()
+        self.dishor_label = QLabel("Horizontal")
+        self.dishorclose_rb = RelationRadioButton("Close")
+        self.dishormed_rb = RelationRadioButton("Med.")
+        self.dishorfar_rb = RelationRadioButton("Far")
+        self.dishor_cb = QCheckBox(self.dishor_label.text())
+        self.dishor_group = RelationButtonGroup()
+        self.dishor_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_hor_layout = self.create_axis_layout(self.dishorclose_rb,
+                                                 self.dishormed_rb,
+                                                 self.dishorfar_rb,
+                                                 self.dishor_group,
+                                                 axis_cb=self.dishor_cb,
+                                                 axis_label=self.dishor_label)
+        self.dishor_box.setLayout(dis_hor_layout)
+        
+
+        # create layout for vertical distance options
+        self.disver_box = QGroupBox()
+        self.disver_label = QLabel("Vertical")
+        self.disverclose_rb = RelationRadioButton("Close")
+        self.disvermed_rb = RelationRadioButton("Med.")
+        self.disverfar_rb = RelationRadioButton("Far")
+        self.disver_cb = QCheckBox(self.disver_label.text())
+        self.disver_group = RelationButtonGroup()
+        self.disver_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_ver_layout = self.create_axis_layout(self.disverclose_rb,
+                                                 self.disvermed_rb,
+                                                 self.disverfar_rb,
+                                                 self.disver_group,
+                                                 axis_cb=self.disver_cb,
+                                                 axis_label=self.disver_label)
+        self.disver_box.setLayout(dis_ver_layout)
+        
+
+        # create layout for sagittal direction options
+        self.dissag_box = QGroupBox()
+        self.dissag_label = QLabel("Sagittal")
+        self.dissagclose_rb = RelationRadioButton("Close")
+        self.dissagmed_rb = RelationRadioButton("Med.")
+        self.dissagfar_rb = RelationRadioButton("Far")
+        self.dissag_cb = QCheckBox(self.dissag_label.text())
+        self.dissag_group = RelationButtonGroup()
+        self.dissag_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_sag_layout = self.create_axis_layout(self.dissagclose_rb,
+                                                 self.dissagmed_rb,
+                                                 self.dissagfar_rb,
+                                                 self.dissag_group,
+                                                 axis_cb=self.dissag_cb,
+                                                 axis_label=self.dissag_label)
+        self.dissag_box.setLayout(dis_sag_layout)
+        
+
+        distance_box.setLayout(self.populate_distance_layout())
+        return distance_box
 
     # create layout for distance or direction options on a particular axis
-    def create_axis_layout(self, radio1, radio2, radio3, radiogroup, axis_cb=None, axis_label=None):
+    def create_axis_layout(self, radio1, radio2, radio3, radiogroup, axis_cb, axis_label=None):
         axis_layout = QVBoxLayout()
         axisoptions_spacedlayout = QHBoxLayout()
         axisoptions_layout = QVBoxLayout()
         radiogroup.addButton(radio1)
         radiogroup.addButton(radio2)
         radiogroup.addButton(radio3)
-        if axis_cb is not None:
+        if axis_label is not None:
             # then we are setting up direction rather than distance
-            radiogroup.buttonToggled.connect(lambda rb, ischecked: self.handle_directiongroup_toggled(ischecked, axis_cb))
+            radiogroup.buttonToggled.connect(lambda ischecked: self.handle_directiongroup_toggled(ischecked, axis_cb))
             axis_cb.toggled.connect(lambda ischecked: self.handle_directioncb_toggled(ischecked, radiogroup))
             axis_layout.addWidget(axis_cb)
-        elif axis_label is not None:
+        else:
             # Set up checkboxes for distance as well, since we want to be able to search for them
-            axis_cb = QCheckBox(axis_label.text())
+            radiogroup.buttonToggled.connect(lambda ischecked: self.handle_distancegroup_toggled(ischecked, axis_cb))
             axis_cb.toggled.connect(lambda ischecked: self.handle_distancecb_toggled(ischecked, radiogroup))
             axis_layout.addWidget(axis_cb)
         axisoptions_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
@@ -533,9 +646,6 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         axis_layout.addLayout(axisoptions_spacedlayout)
 
         return axis_layout
-    
-    def handle_distancecb_toggled(ischecked, radiogroup):
-        pass
 
     def populate_direction_layout(self, direction_crossedlinked_layout, direction_sublayout):
         self.any_direction_cb = QCheckBox("Search for any direction of relation")
@@ -548,8 +658,28 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         
         return direction_layout
     
+    # if user checks one of the distance axis radio buttons, ensure that its parent checkbox is
+    #   also checked
+    # Only exists in search GUI, since parent checkboxes are not present in main GUI
+    def handle_distancegroup_toggled(self, ischecked, axis_cb):
+        if not ischecked:
+            # don't need to do anything special
+            return
+
+        # ensure the parent is checked
+        axis_cb.setChecked(True)
+
+    def handle_distancecb_toggled(self, ischecked, radiogroup):
+        self.nocontact_rb.setChecked(ischecked or radiogroup.checkedButton() is not None) # todo fix
+        for btn in radiogroup.buttons():
+            btn.setEnabled(ischecked or radiogroup.checkedButton() is None)
+
+    
     def handle_any_direction_cb_toggled(self, btn):
-        pass
+        for b in self.dirhor_group.buttons() + self.dirsag_group.buttons() + self.dirver_group.buttons():
+            b.setDisabled(btn)
+        for b in [self.dirsag_cb, self.dirhor_cb, self.dirver_cb, self.crossed_cb, self.linked_cb]:
+            b.setDisabled(btn)
 
     def populate_distance_layout(self):
         self.any_distance_cb = QCheckBox("Search for any distance between X and Y")
@@ -567,8 +697,28 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         return layout
     
     def handle_any_distance_cb_toggled(self, btn):
-        for b in self.dishor_group.buttons() + self.dissag_group.buttons() + self.disver_group.buttons():
+        distancegrp = self.dishor_group.buttons() + self.dissag_group.buttons() + self.disver_group.buttons() + [self.dissag_cb, self.dishor_cb, self.disver_cb]
+        hascheckedbtn = False
+        for b in distancegrp:
             b.setDisabled(btn)
+            if b.isChecked():
+                hascheckedbtn = True
+        self.nocontact_rb.setChecked(btn or hascheckedbtn) # TODO fix
+
+    def clear_direction_buttons(self):
+        super().clear_direction_buttons()
+        for b in [self.any_direction_cb, self.dirhor_cb, self.dirver_cb, self.dirsag_cb]:
+            b.setChecked(False)
+            b.setEnabled(True)
+
+    def clear_distance_buttons(self):
+        super().clear_distance_buttons()
+        for b in [self.any_distance_cb, self.dishor_cb, self.disver_cb, self.dissag_cb]:
+            b.setChecked(False)
+            b.setEnabled(True)
+
+
+
     
 
 class XslotTypeItem:
