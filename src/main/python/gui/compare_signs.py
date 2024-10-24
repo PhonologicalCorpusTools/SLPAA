@@ -21,9 +21,9 @@ class ColourCounter(QWidget):
         rgba_dict = self.extract_colours(palette)
 
         # Create three sections with color, text, and number
-        self.red_counter = self.gen_colour_counter_label("Mismatch", "1", rgba_dict['red'])
-        self.yellow_counter = self.gen_colour_counter_label("No\nCorrespondence", "2", rgba_dict['yellow'])
-        self.blue_counter = self.gen_colour_counter_label("Match", "3", rgba_dict['blue'])
+        self.red_counter, self.red_many = self.gen_colour_counter_label("Mismatch", "1", rgba_dict['red'])
+        self.yellow_counter, self.yellow_many = self.gen_colour_counter_label("No\nCorrespondence", "2", rgba_dict['yellow'])
+        self.blue_counter, self.blue_many = self.gen_colour_counter_label("Match", "3", rgba_dict['blue'])
         self.layout.addLayout(self.red_counter)
         self.layout.addLayout(self.yellow_counter)
         self.layout.addLayout(self.blue_counter)
@@ -47,13 +47,24 @@ class ColourCounter(QWidget):
         # Add both labels to the horizontal layout
         h_layout.addWidget(label)
         h_layout.addWidget(count_txt)
-        return h_layout
+        return h_layout, count_txt
 
-    def update_counter(self, label, new_count):
-        label.setText(f"{new_count}")
+    def update_counter(self, label=None, new_count=None):
+        # let's make this method simple. since I know there are only three colours
+        # red, yellow, and blue, just take a colour term as 'label' and get this function
+        # do the rest.
+        if isinstance(label, dict):
+            # updating all colours and label is given something like {'red': 4, 'yellow': 2, 'blue': 1}
+            for label, count in label.items():
+                print(f'label: {label}, count: {count}')
+                self.update_counter(label=label, new_count=count)
+            return
+
+        label_txt = getattr(self, f'{label}_many')
+        label_txt.setText(f"{new_count}")
 
     def extract_colours(self, palette):
-        #
+        # convert qcolor into rgba string
         rgba_dict = {}
 
         for key, brush in palette.items():
@@ -71,6 +82,7 @@ class ColourCounter(QWidget):
 
 
 class CompareTreeWidgetItem(QTreeWidgetItem):
+    # each line in the tree
     def __init__(self, labels, palette):
         super().__init__(labels)
 
@@ -442,9 +454,11 @@ class CompareSignsDialog(QDialog):
 
         layout.addWidget(splitter)
 
-        # Add counters
+        # Gen counters
         self.overall_colour_counter = ColourCounter(palette=self.palette)
         self.current_colour_counter = ColourCounter(palette=self.palette)
+
+        # Add counters
         layout.addWidget(QLabel("Overall"))
         layout.addWidget(self.overall_colour_counter)
         layout.addWidget(QLabel("Current"))
@@ -487,7 +501,7 @@ class CompareSignsDialog(QDialog):
             target_scrollbar.setValue(scrolled_value)
             self.syncing_scrollbars = False
 
-    def new_populate_tree(self, tree1, tree2, data1, data2):
+    def populate_trees(self, tree1, tree2, data1, data2):
         def add_items(parent1, parent2, data1, data2):
             should_paint_red = [False, False]     # paint tree 1 node / tree 2 node red
             should_paint_yellow = [False, False]  # yellow to tree 1 node / tree 2 node
@@ -660,9 +674,11 @@ class CompareSignsDialog(QDialog):
 
         print(compare_res)
         # Populate trees hierarchically
-        self.new_populate_tree(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
-        #self.populate_tree(self.tree1, compare_res['sign1'])
-        #self.populate_tree(self.tree2, compare_res['sign2'])
+        self.populate_trees(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
+
+        # Update counters, now as the trees are all populated.
+        colour_counts = self.count_coloured_lines()
+        self.overall_colour_counter.update_counter(colour_counts)
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
@@ -749,3 +765,25 @@ class CompareSignsDialog(QDialog):
             if not found:
                 return None  # Return None if the item in the path doesn't exist
         return current  # Return the found corresponding item
+
+    def count_coloured_lines(self):
+        # traverse the trees and count the number of colours
+        counts = {'red': 0, 'yellow': 0, 'blue': 0}
+
+        def walk_tree(item):
+            if hasattr(item, 'underlying_bg'):
+                print(f'item: {item}, bg:{item.underlying_bg}')
+                bg_color = item.underlying_bg
+                if bg_color in counts:
+                    counts[bg_color] += 1
+            # recursively apply walk_tree to the children
+            for i in range(item.childCount()):
+                walk_tree(item.child(i))
+
+        # for both trees
+        for tree in [self.tree1, self.tree2]:
+            root = tree.invisibleRootItem()
+            for i in range(root.childCount()):
+                walk_tree(root.child(i))
+
+        return counts
