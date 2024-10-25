@@ -62,9 +62,11 @@ from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
-from lexicon.module_classes import treepathdelimiter, LocationType
+from lexicon.module_classes import ParameterModule
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
+from constant import ModuleTypes
+from lexicon.module_utils import deepcopymodule
 
 
 class SubWindow(QMdiSubWindow):
@@ -375,6 +377,7 @@ class MainWindow(QMainWindow):
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
+        self.signsummary_panel.action_selected.connect(self.handle_moduleaction_selected)
         self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
         self.signlevel_panel.corpus_updated.connect(lambda sign: self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign))
 
@@ -641,10 +644,19 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
 
+    # action_str indicates the type of action selected from the Sign Summary R-click menu:
+    #   "copy", "paste", or "delete"
+    def handle_moduleaction_selected(self, action_str):
+        if action_str == "delete":
+            self.on_action_delete_modules()
+        elif action_str == "copy":
+            self.on_action_copy()
+        elif action_str == "paste":
+            self.on_action_paste()
+
     # action_str indicates the type of action selected fom the Corpus View R-click menu:
     #   "copy", "paste", "edit" (sign-level info), or "delete"
     def handle_signaction_selected(self, action_str):
-
         if action_str == "edit":
             self.on_action_edit_signs()
         elif action_str == "delete":
@@ -984,14 +996,31 @@ class MainWindow(QMainWindow):
             corpus.path = path
             return corpus
 
+    def modules_fromselectedbuttons(self):
+        selectedmodulebuttons = self.signsummary_panel.selectedmodulebuttons()
+        # two buttons might point to the same module so make sure we don't report duplicated modules
+        selectedmodule_uids_types = list(set([(btn.module_uniqueid, btn.moduletype) for btn in selectedmodulebuttons]))
+        selectedmodules = []
+        for uid, mtype in selectedmodule_uids_types:
+            if mtype not in ModuleTypes.abbreviations.keys():  # or if uid == 0
+                # then it's the signtype module
+                selectedmodules.append(self.current_sign.signtype)
+            else:
+                # it's one of the timed parameter modules
+                mod = self.current_sign.getmoduledict(mtype)[uid]
+                selectedmodules.append(mod)
+        return selectedmodules
+
     # copies the items currently selected in whichever panel has focus
     #   (corpus view has focus --> copy signs)
-    #   TODO (visual summary has focus --> copy modules)
+    #   (sign summary scene has focus --> copy modules)
     def on_action_copy(self, clicked=None):
         if self.corpus_display.corpus_view.hasFocus():
             self.clipboard = self.corpus_display.getselectedsigns()
+        elif self.signsummary_panel.scene.hasFocus():
+            self.clipboard = self.modules_fromselectedbuttons()
         else:
-            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
 
     def on_action_paste(self, clicked=None):
@@ -1058,8 +1087,22 @@ class MainWindow(QMainWindow):
                             self.corpus.add_sign(signtopaste)
                             self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
 
+        elif self.signsummary_panel.scene.hasFocus():
+            # focus is on the Sign Summary Panel, so we need to make sure we only paste clipboard object if they're modules
+            signtypemodules = [mod for mod in listfromclipboard if isinstance(mod, Signtype)]
+            for signtypemod in signtypemodules:
+                if self.current_sign.signtype == signtypemod:
+                    pass  # do nothing
+                else:
+                    self.current_sign.signtype = deepcopy(signtypemod)
+                    self.signsummary_panel.refreshsign()
+
+            parametermodulestopaste = [deepcopymodule(mod) for mod in listfromclipboard if isinstance(mod, ParameterModule)]
+            self.current_sign.addmodules(parametermodulestopaste)
+            self.signsummary_panel.refreshsign()
+
         else:
-            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
 
     def handle_edit_SLI(self, edit_glosses, edit_lemmas, edit_idglosses):
@@ -1168,6 +1211,32 @@ class MainWindow(QMainWindow):
             self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign)
             # edit the sign-level info
             self.signlevel_panel.handle_signlevelbutton_click()
+
+    # optionally provide a list of modules to delete, referenced by tuples of (uniqueid, moduletype)
+    # if uids_types argument is not used, then the function deletes the modules currently selected in the sign summary panel
+    def on_action_delete_modules(self, clicked=None, uids_types=None):
+        if uids_types is None:
+            selectedmodulebuttons = self.signsummary_panel.selectedmodulebuttons()
+            uids_types = [(btn.module_uniqueid, btn.moduletype) for btn in selectedmodulebuttons]
+
+        modulenames = []
+        for uid, mtype in uids_types:
+            if mtype == ModuleTypes.SIGNTYPE:  # or if uid == 0
+                modulenames.append("Sign Type")
+            else:
+                # it's one of the timed parameter modules
+                modulenames.append(ModuleTypes.abbreviations[mtype] + str(self.current_sign.getmodulenumbersdict(mtype)[uid]))
+        modulenamesstring = "\n".join(modulenames)
+
+        question1 = "Do you want to delete the following selected module"
+        question2 = "s" if len(modulenames) > 1 else ""
+        question3 = "?"
+        response = QMessageBox.question(self, "Delete the selected module" + question2,
+                                        question1 + question2 + question3 + "\n" + modulenamesstring)
+        if response == QMessageBox.Yes:
+            for uid, mtype in uids_types:
+                self.current_sign.removemodule(uid, mtype)
+            self.flag_and_refresh(self.current_sign)
 
     # optionally provide a list of Signs to delete
     # if signs argument is not used, then the function deletes the signs currently selected in the corpus view

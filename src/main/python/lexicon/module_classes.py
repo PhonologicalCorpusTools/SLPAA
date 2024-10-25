@@ -1,6 +1,8 @@
 from datetime import datetime
 from fractions import Fraction
 from itertools import chain
+import functools
+import time
 import logging
 
 from PyQt5.QtCore import (
@@ -8,88 +10,22 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
-treepathdelimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
 
+# Resetting a module's uniqueid can come so quickly on the heels of another
+#   (e.g. if copy/pasting several modules that aren't treemodel-based)
+#   that they end up getting reassigned the exact same timestamp as uniqueid;
+#   this decorator ensures that there is at least a brief pause before reassigning,
+#   so that we avoid accidentally duplicate uniqueids
+def delay_uniqueid_reset(func):
+    @functools.wraps(func)
+    def wrapper_delay_uniqueid_reset(self, *args, **kwargs):
+        time.sleep(1/1000000)
+        func(self, *args, **kwargs)
 
-class ModuleTypes:
-    MOVEMENT = 'movement'
-    LOCATION = 'location'
-    HANDCONFIG = 'handconfig'
-    RELATION = 'relation'
-    ORIENTATION = 'orientation'
-    NONMANUAL = 'nonmanual'
-
-    abbreviations = {
-        MOVEMENT: 'Mov',
-        LOCATION: 'Loc',
-        HANDCONFIG: 'Config',
-        RELATION: 'Rel',
-        ORIENTATION: 'Ori',
-        NONMANUAL: 'NonMan'
-    }
-
-
-class UserDefinedRoles(dict):
-    __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
-
-userdefinedroles = UserDefinedRoles({
-    'selectedrole': 0,
-        # selectedrole:
-        # Used by MovementTreeItem, LocationTreeItem, MovementListItem, LocationListItem to indicate
-        # whether they are selected by the user. Not exactly the same as ...Item.checkState() because:
-        #   (1) selectedrole only uses True & False whereas checkstate has none/partial/full, and
-        #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
-    'pathdisplayrole': 1,
-        # pathdisplayrole:
-        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
-        # the full path (node names, separated by delimiters) of the model Item in question,
-        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
-    'mutuallyexclusiverole': 2,
-        # mutuallyexclusiverole:
-        # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
-        # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,
-        # unusedrole:
-        # currently unused; can repurpose if needed
-    'lastingrouprole': 4,
-        # lastingrouprole:
-        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
-        # in its subgroup, which affects how it is painted in the movement tree
-        # (eg, whether the item will be followed by a horizontal line)
-    'finalsubgrouprole': 5,
-        # finalsubgrouprole:
-        # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
-        # also in the *last* subgroup in its section. Such a subgroup will not have a horizontal line drawn after it.
-    'subgroupnamerole': 6,
-        # subgroupnamerole:
-        # Used by MovementTreeItem & LocationTreeItem to identify which items are grouped together. Such
-        # subgroups are separated from other siblings by a horizontal line in the tree, and item selection
-        # is often (always?) mutually exclusive within the subgroup.
-    'nodedisplayrole': 7,
-        # nodedisplayrole:
-        # Used by MovementListItem & LocationListItem to store just the corresponding treeitem's node name
-        # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
-    'timestamprole': 8,
-        # timestamprole:
-        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
-    'isuserspecifiablerole': 9,
-        # isuserspecifiablerole:
-        # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
-        # If 0, the corresponding QStandardItem (ie, the "editable part") is marked not editable; the user cannot change its value;
-        # If 1, the corresponding QStandardItem is marked editable but must be a number, >= 1, and a multiple of 0.5;
-        # If 2, the corrresponding QStandardItem is marked editable but must be a number;
-        # If 3, the corrresponding QStandardItem is marked editable with no restrictions.
-        # This kind of editable functionality was formerly achieved via a separate (subsidiary) editable MovementTreeItem.
-    'userspecifiedvaluerole': 10,
-        # userspecifiedvaluerole:
-        # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
-})
+    return wrapper_delay_uniqueid_reset
 
 
 # TODO KV comments
@@ -105,6 +41,21 @@ class ParameterModule:
             self.timingintervals = timingintervals
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
+        self._moduletype = ""
+
+    @property
+    def moduletype(self):
+        if not hasattr(self, '_moduletype'):
+            # for backward compatibility with pre-20241018 parameter modules
+            print("moduletype backward compatibility")
+            self._moduletype = ""
+        return self._moduletype
+
+    @moduletype.setter
+    def moduletype(self, moduletype):
+        # validate the input string
+        if moduletype in ModuleTypes.abbreviations.keys():
+            self._moduletype = moduletype
 
     @property
     def addedinfo(self):
@@ -146,6 +97,10 @@ class ParameterModule:
     @uniqueid.setter
     def uniqueid(self, uniqueid):
         self._uniqueid = uniqueid
+
+    @delay_uniqueid_reset
+    def uniqueid_reset(self):
+        self.uniqueid = datetime.timestamp(datetime.now())
 
     @property
     def timingintervals(self):
@@ -460,6 +415,10 @@ class MovementModule(ParameterModule):
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.MOVEMENT
+
+    @property
     def movementtreemodel(self):
         return self._movementtreemodel
 
@@ -479,7 +438,6 @@ class MovementModule(ParameterModule):
         
         wordlist = []
 
-        udr = userdefinedroles
         listmodel = self._movementtreemodel.listmodel
         abbrevs = {
             "Perceptual shape": "Perceptual",
@@ -1105,6 +1063,15 @@ class Signtype:
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._moduletype = ModuleTypes.SIGNTYPE
+
+    @property
+    def moduletype(self):
+        if not hasattr(self, '_moduletype'):
+            # for backward compatibility with pre-20241018 sign type
+            print("signtype backward compatibility")
+            self._moduletype = ""
+        return self._moduletype
 
     @property
     def addedinfo(self):
@@ -1229,6 +1196,10 @@ class LocationModule(ParameterModule):
         self._locationtreemodel = locationtreemodel
         self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.LOCATION
 
     @property
     def locationtreemodel(self):
@@ -1589,6 +1560,10 @@ class RelationModule(ParameterModule):
             Direction(axis=Direction.SAGITTAL),
         ]
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.RELATION
 
     @property
     def relationx(self):
@@ -2097,6 +2072,10 @@ class OrientationModule(ParameterModule):
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
 
     @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.ORIENTATION
+
+    @property
     def palm(self):
         return self._palm
 
@@ -2126,6 +2105,10 @@ class HandConfigurationModule(ParameterModule):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.HANDCONFIG
 
     @property
     def handconfiguration(self):
@@ -2203,6 +2186,10 @@ class NonManualModule(ParameterModule):
         self._nonmanual = nonman_specs
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
         pass
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.NONMANUAL
 
 
 # This class consists of 34 slots; each instance of a HandConfigurationField corresponds to a certain subset
@@ -2343,3 +2330,4 @@ class XslotStructure:
     @additionalfraction.setter
     def additionalfraction(self, additionalfraction):
         self._additionalfraction = additionalfraction
+

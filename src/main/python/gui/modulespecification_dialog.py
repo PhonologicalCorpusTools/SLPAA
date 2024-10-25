@@ -26,7 +26,7 @@ from PyQt5.QtCore import (
 )
 
 from gui.xslot_graphics import XslotLinkScene
-from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, LocationModule, MovementModule
+from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, LocationModule, MovementModule
 from models.relation_models import ModuleLinkingListModel
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
@@ -36,7 +36,7 @@ from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector, PhonLocSelection
 from gui.link_help import show_help
-from constant import SIGN_TYPE, HAND, ARM, LEG
+from constant import SIGN_TYPE, HAND, ARM, LEG, ModuleTypes
 
 
 class ModuleSelectorDialog(QDialog):

@@ -7,9 +7,9 @@ from PyQt5.QtCore import (
     Qt
 )
 
-from lexicon.module_classes import PhonLocations, userdefinedroles as udr, AddedInfo
+from lexicon.module_classes import PhonLocations, AddedInfo
 from models.movement_models import fx
-from constant import HAND
+from constant import HAND, userdefinedroles as udr
 import logging
 
 class ParameterModuleSerializable:

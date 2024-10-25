@@ -6,7 +6,7 @@ from PyQt5.QtCore import (
     QRectF,
     QPoint,
     pyqtSignal,
-    QSettings
+    QEvent
 )
 
 from PyQt5.QtWidgets import (
@@ -40,15 +40,16 @@ from PyQt5.QtGui import (
     QPen,
     QBrush,
     QPolygonF,
+    QTransform
 )
 
 # from gui.hand_configuration import ConfigGlobal, Config
 from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog
 from gui.helper_widget import ToggleSwitch
-from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
+from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS, ModuleTypes
 from gui.xslotspecification_view import XslotSelectorDialog
-from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes
+from lexicon.module_classes import TimingPoint, TimingInterval, ParameterModule, Signtype
 from lexicon.lexicon_classes import Sign, glossesdelimiter
 from gui.modulespecification_dialog import ModuleSelectorDialog
 from gui.modulespecification_widgets import ModuleButtonContextMenu
@@ -261,6 +262,7 @@ class SingleLocationViewer(QGraphicsView):
 
 
 class SignSummaryPanel(QScrollArea):
+    action_selected = pyqtSignal(str)
 
     def __init__(self, mainwindow, sign=None, **kwargs):
         super().__init__(**kwargs)
@@ -359,7 +361,7 @@ class SignSummaryPanel(QScrollArea):
             #     signtypetext += topleveltriple[1]
             #     if len(signtypeabbreviations) > 0:
             #         signtypetext += " (" + "; ".join(signtypeabbreviations) + ") "
-            signtyperect = XslotRectModuleButton(self, text=signtypetext, moduletype='signtype', sign=self.sign)
+            signtyperect = XslotRectModuleButton(self, text=signtypetext, moduletype=ModuleTypes.SIGNTYPE, sign=self.sign)
             signtyperect.setRect(self.x_offset + self.indent, self.current_y, self.xslots_width,
                                  self.default_xslot_height)
             self.modulebuttons_untimed.append(signtyperect)
@@ -712,6 +714,19 @@ class SignSummaryPanel(QScrollArea):
         for btn in self.selectedmodulebuttons():
             btn.setSelected(False)
 
+    # return a list of the items currently on the clipboard that are also Modules
+    #   (any of sign type, movement, location, orientation, non-manual, hand config, relation)
+    def getclipboardmodules(self):
+        clipboard = self.mainwindow.clipboard
+        if not isinstance(clipboard, list):
+            clipboard = [clipboard]
+
+        clipboardmodules = []
+        for copieditem in clipboard:
+            if isinstance(copieditem, ParameterModule) or isinstance(copieditem, Signtype):
+                clipboardmodules.append(copieditem)
+        return clipboardmodules
+
     # return a list of the module buttons that are selected in the summary window for the current sign
     #   (any of sign type, movement, location, orientation, non-manual, hand config, relation)
     def selectedmodulebuttons(self):
@@ -727,6 +742,30 @@ class SignSummaryPanel(QScrollArea):
         btn.setSelected(True)
         for otherside in btn.samemodule_buttons:
             otherside.setSelected(True)
+
+    # # TODO describe
+    # def handle_summaryscene_clicked(self, numclicks, mouseevent):
+    #     return
+    #     # ctrlmodifier = mouseevent.modifiers() & Qt.ControlModifier
+    #     # mousebutton = mouseevent.button()
+    #     #
+    #     # if numclicks == 1 and mousebutton == Qt.RightButton and not ctrlmodifier:
+    #     #     itemclicked = self.scene.itemAt(mouseevent.scenePos().x(), mouseevent.scenePos().y(), QTransform.TxNone)
+    #     #     if itemclicked is not None and (isinstance(itemclicked, XslotRectModuleButton) or isinstance(itemclicked, XslotEllipseModuleButton)):
+    #     #
+    #     #         clipboard = self.mainwindow.clipboard
+    #     #         clipboardmodules = []
+    #     #         if isinstance(clipboard, ParameterModule) or isinstance(clipboard, Signtype):
+    #     #             clipboardmodules.append(clipboard)
+    #     #         elif isinstance(clipboard, list):
+    #     #             for copieditem in clipboard:
+    #     #                 if isinstance(clipboard, ParameterModule) or isinstance(clipboard, Signtype):
+    #     #                     clipboardmodules.append(copieditem)
+    #     #
+    #     #         menu = ModuleButtonContextMenu(clipboard_modules=clipboardmodules, whichactions=["paste"])
+    #     #         menu.action_selected.connect(self.action_selected.emit)
+    #     #         menu.exec_(mouseevent.screenPos())
+    #     #         # TODO finish/check implementation
 
     # ctrl + single-L-click --> just toggle this button, regardless of whether any others are selected
     # single-L-click alone --> select this button (whether already selected or not) and deselect any/all others
@@ -757,11 +796,11 @@ class SignSummaryPanel(QScrollArea):
                         # the user is selecting this one as they right-click on it
                         self.selectonemodulebutton(modulebutton)
                     # provide a context menu with options that apply to all currently-selected buttons
-                    menu = ModuleButtonContextMenu(self.selectedmodulebuttons())
-                    # TODO menu.action_selected.connect(self.action_selected.emit)
+                    menu = ModuleButtonContextMenu(selected_buttons=self.selectedmodulebuttons(), clipboard_modules=self.getclipboardmodules())
+                    menu.action_selected.connect(self.action_selected.emit)
                     menu.exec_(mouseevent.screenPos())
             elif numclicks == 2 and mousebutton == Qt.LeftButton:
-                if moduletype == 'signtype':
+                if moduletype == ModuleTypes.SIGNTYPE:
                     self.open_signtype_dialog()
                 else:  # parameter module
                     modulekey = modulebutton.module_uniqueid
@@ -988,9 +1027,9 @@ class SignLevelMenuPanel(QScrollArea):
 
     def handle_save_module(self, module_to_save, moduletype, existing_key=None):
         if existing_key is None or existing_key not in self.sign.getmoduledict(moduletype):
-            self.sign.addmodule(module_to_save, moduletype)
+            self.sign.addmodule(module_to_save)
         else:
-            self.sign.updatemodule(existing_key, module_to_save, moduletype)
+            self.sign.updatemodule(existing_key, module_to_save)
         self.sign_updated.emit(self.sign)
 
     def handle_menumodulebtn_clicked_na(self, moduletype):
