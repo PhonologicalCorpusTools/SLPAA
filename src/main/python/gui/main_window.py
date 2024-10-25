@@ -1091,6 +1091,7 @@ class MainWindow(QMainWindow):
             # focus is on the Sign Summary Panel, so we need to make sure we only paste clipboard object if they're modules
             signtypemodules = [mod for mod in listfromclipboard if isinstance(mod, Signtype)]
             for signtypemod in signtypemodules:
+                # if it's the same one as the sign we're already in (ie trying to copy/paste in same sign), do nothing
                 if self.current_sign.signtype == signtypemod:
                     pass  # do nothing
                 else:
@@ -1217,7 +1218,8 @@ class MainWindow(QMainWindow):
     def on_action_delete_modules(self, clicked=None, uids_types=None):
         if uids_types is None:
             selectedmodulebuttons = self.signsummary_panel.selectedmodulebuttons()
-            uids_types = [(btn.module_uniqueid, btn.moduletype) for btn in selectedmodulebuttons]
+            # two buttons might point to the same module so make sure we don't report duplicated modules
+            uids_types = list(set([(btn.module_uniqueid, btn.moduletype) for btn in selectedmodulebuttons]))
 
         modulenames = []
         for uid, mtype in uids_types:
