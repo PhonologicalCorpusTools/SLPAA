@@ -88,8 +88,9 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
 
         self._text = self.text(0)
 
-        # underlying background colour is unspecified by default, but may be blue red or yellow!
+        # underlying and current background colours are unspecified by default, but may be blue red or yellow!
         self.underlying_bg = None
+        self.current_bg = None
 
         # imagine each tree item carries a palette and use it to change background colour
         self.palette = palette
@@ -106,11 +107,11 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
     def __eq__(self, other):
         return self._text == other._text and self.flags() == other.flags()
 
-
     def set_bg_color(self, bg_color: str = 'transparent'):
         # wrapper for the parent's setBackround method
         colour_brush = self.palette[bg_color] if bg_color in self.palette else self.palette['transparent']
         self.setBackground(0, colour_brush)
+        self.current_bg = bg_color
 
 
 def summarize_path_comparison(ld):
@@ -679,6 +680,13 @@ class CompareSignsDialog(QDialog):
         # Update counters, now as the trees are all populated.
         colour_counts = self.count_coloured_lines()
         self.overall_colour_counter.update_counter(colour_counts)
+        self.update_current_counters()
+
+    def update_current_counters(self):
+        counts_current = self.count_coloured_lines(only_visible_now=True)
+        self.current_colour_counter.update_counter('red', counts_current.get('red', 0))
+        self.current_colour_counter.update_counter('yellow', counts_current.get('yellow', 0))
+        self.current_colour_counter.update_counter('blue', counts_current.get('blue', 0))
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
@@ -698,8 +706,9 @@ class CompareSignsDialog(QDialog):
         # when a qtreeitem gets expanded do the following:
         # - find corresponding line in the other tree and expand
         # - change colour
+        # - update current colour counter
 
-        item_invisible = True if item.flags() == Qt.NoItemFlags else False # check if item is invisible
+        item_invisible = True if item.flags() == Qt.NoItemFlags else False  # check if item is invisible
 
         # Find and expand the corresponding item in the target tree
         path = self.get_full_path(item)
@@ -723,11 +732,14 @@ class CompareSignsDialog(QDialog):
             elif not (corresponding_invisible or item_invisible):
                 item.set_bg_color('blue')
 
+        # update current colour counter
+        self.update_current_counters()
 
     def on_item_collapsed(self, item, target_tree):
         # when a qtreeitem gets expanded do the following:
         # - find corresponding line in the other tree and expand
         # - change colour
+        # - update current colour counter
 
         # Find and collapse the corresponding item in the target tree
         path = self.get_full_path(item)
@@ -738,6 +750,9 @@ class CompareSignsDialog(QDialog):
 
         # change colour
         item.set_bg_color(item.underlying_bg)
+
+        # update current colour counter
+        self.update_current_counters()
 
     def get_full_path(self, item):
         # helper function to get a full ancestry of a tree item
@@ -766,24 +781,44 @@ class CompareSignsDialog(QDialog):
                 return None  # Return None if the item in the path doesn't exist
         return current  # Return the found corresponding item
 
-    def count_coloured_lines(self):
+    def count_coloured_lines(self, only_visible_now=False):
         # traverse the trees and count the number of colours
+        # only_visible_now: bool. count only colours that are currently visible
         counts = {'red': 0, 'yellow': 0, 'blue': 0}
 
-        def walk_tree(item):
-            if hasattr(item, 'underlying_bg'):
-                print(f'item: {item}, bg:{item.underlying_bg}')
-                bg_color = item.underlying_bg
-                if bg_color in counts:
-                    counts[bg_color] += 1
+        def walk_tree(item, tree, fully_visible=True):
+            # decide whether the current item is visible
+            if item.parent() is None:
+                # no parent means the item is the root.
+                item_visible = fully_visible
+            else:
+                parent_index = tree.indexFromItem(item.parent())
+                parent_expanded = tree.isExpanded(parent_index)  # check if parent is expanded. (i.e., am i visible)
+                item_visible = fully_visible and parent_expanded
+
+            bg_color = None
+
+            if not only_visible_now:
+                if hasattr(item, 'underlying_bg'):
+                    print(f'item: {item}, bg:{item.underlying_bg}')
+                    bg_color = item.underlying_bg
+
+            elif item_visible:
+                if hasattr(item, 'current_bg'):
+                    bg_color = item.current_bg
+
+            if bg_color in counts:
+                counts[bg_color] += 1
+
+
             # recursively apply walk_tree to the children
             for i in range(item.childCount()):
-                walk_tree(item.child(i))
+                walk_tree(item.child(i), tree, item_visible)
 
         # for both trees
         for tree in [self.tree1, self.tree2]:
             root = tree.invisibleRootItem()
             for i in range(root.childCount()):
-                walk_tree(root.child(i))
+                walk_tree(root.child(i), tree, fully_visible=True)
 
         return counts
