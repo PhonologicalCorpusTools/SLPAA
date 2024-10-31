@@ -246,7 +246,7 @@ class ModuleButtonContextMenu(QMenu):
         selected_buttons = selected_buttons or []
         clipboard_modules = clipboard_modules or []
         if whichactions is None:
-            whichactions = ["copy", "paste", "delete"]
+            whichactions = ["copy", "paste", "delete"]  # seemed potentially messy to include "edit" so I didn't
 
         if "copy" in whichactions:
             self.copy_action = QAction("Copy module(s)")  # : " + str([btn.text for btn in selected_buttons]))
