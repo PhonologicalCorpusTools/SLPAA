@@ -1095,12 +1095,67 @@ class MainWindow(QMainWindow):
                 if self.current_sign.signtype == signtypemod:
                     pass  # do nothing
                 else:
+                    # otherwise paste TODO but should we ask before overwriting?
                     self.current_sign.signtype = deepcopy(signtypemod)
                     self.signsummary_panel.refreshsign()
 
-            parametermodulestopaste = [deepcopymodule(mod) for mod in listfromclipboard if isinstance(mod, ParameterModule)]
+            # TODO when copy/pasting a linked module but not its partner (mov or loc vs rel), ask user if they want to paste the partner(s) too
+            parametermodules = [mod for mod in listfromclipboard if isinstance(mod, ParameterModule)]
+            parameteruids = [mod.uniqueid for mod in parametermodules]
+
+            question1 = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
+            question1 += "Do you want to paste the associated module{suffix} too?"
+
+            i = 0
+            while i < len(parametermodules):
+                module = parametermodules[i]
+
+                if module.moduletype == ModuleTypes.RELATION and module.relationy.existingmodule:
+                    linked_type = module.relationy.linkedmoduletype
+                    if linked_type is not None:
+                        moduledict = self.current_sign.getmoduledict(linked_type)
+                        missinganchors = [moduledict[linked_uid] for linked_uid in module.relationy.linkedmoduleids if
+                                          linked_uid > 0 and linked_uid not in parameteruids]
+                        if len(missinganchors) > 0:
+                            rel_abbrev = ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(self.current_sign.relationmodulenumbers[module.uniqueid])
+                            suffix = "s" if len(missinganchors) > 1 else ""
+                            anchor_abbrevs_list = [ModuleTypes.abbreviations[linked_type] + str(self.current_sign.getmodulenumbersdict(linked_type)[m.uniqueid]) for m in missinganchors]
+                            anchor_abbrevs = ", ".join(anchor_abbrevs_list)
+                            response = QMessageBox.question(self, "Paste associated module" + suffix,
+                                                            question1.format(mod_abbrev=rel_abbrev,
+                                                                             suffix=suffix,
+                                                                             linked_abbrevs=anchor_abbrevs))
+                            if response == QMessageBox.Yes:
+                                for m in missinganchors:
+                                    parametermodules.append(m)
+                                    parameteruids.append(m.uniqueid)
+
+                elif module.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                    missingrels = list(self.current_sign.relationmodules.values())
+                    missingrels = [rel for rel in missingrels if
+                                   (rel.relationy.existingmodule and
+                                    module.uniqueid in rel.relationy.linkedmoduleids and
+                                    rel.uniqueid not in parameteruids)]
+                    if len(missingrels) > 0:
+                            anchor_abbrev = ModuleTypes.abbreviations[module.moduletype] + str(self.current_sign.getmodulenumbersdict(module.moduletype)[module.uniqueid])
+                            suffix = "s" if len(missingrels) > 1 else ""
+                            rel_abbrevs_list = [ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(self.current_sign.relationmodulenumbers[m.uniqueid]) for m in missingrels]
+                            rel_abbrevs = ", ".join(rel_abbrevs_list)
+                            response = QMessageBox.question(self, "Paste associated module" + suffix,
+                                                            question1.format(mod_abbrev=anchor_abbrev,
+                                                                             suffix=suffix,
+                                                                             linked_abbrevs=rel_abbrevs))
+                            if response == QMessageBox.Yes:
+                                for m in missingrels:
+                                    parametermodules.append(m)
+                                    parameteruids.append(m.uniqueid)
+
+                i += 1
+
+            # TODO need to update the linked uids in the relation module too - think about waterfall effects!
+            parametermodulestopaste = [deepcopymodule(mod) for mod in parametermodules]
             self.current_sign.addmodules(parametermodulestopaste)
-            self.signsummary_panel.refreshsign()
+            self.signsummary_panel.refreshsign()  # TODO isn't working properly for added rel modules
 
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
