@@ -484,7 +484,7 @@ class AssociatedRelationsDialog(QDialog):
         else:
             self.relationslist = []
 
-        self.relations_listmodel.setmoduleslist(self.relationslist, self.relationmodulenumsdict, ModuleTypes.RELATION)
+        self.relations_listmodel.setmoduleslist(self.relationslist, self.relationmodulenumsdict)
 
 
 class AssociatedRelationsPanel(QFrame):

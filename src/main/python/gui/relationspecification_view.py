@@ -781,9 +781,9 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # update the list of existing modules according to which module type was selected
     def update_existingmodule_list(self, selection_dict):
         if selection_dict[1]:
-            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums, ModuleTypes.LOCATION)
+            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums)
         elif selection_dict[2]:
-            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums, ModuleTypes.MOVEMENT)
+            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums)
         else:
             self.existingmodule_listmodel.setmoduleslist(None)
 
