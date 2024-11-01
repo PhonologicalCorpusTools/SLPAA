@@ -100,7 +100,6 @@ class CompareSignsDialog(QDialog):
 
         self.corpus = self.parent().corpus
         self.signs = self.corpus.signs  # don't need meta-data; only need 'signs' part
-        idgloss_list = self.corpus.get_all_idglosses()
 
         # colour scheme to be used throughout the dialog
         self.palette = {'red': QBrush(QColor(255, 0, 0, 128)),
@@ -114,42 +113,34 @@ class CompareSignsDialog(QDialog):
         # Dropdown menus for selecting signs
         self.sign1_dropdown = QComboBox()
         self.sign2_dropdown = QComboBox()
-        self.sign1_dropdown.addItems(idgloss_list)
-        self.sign2_dropdown.addItems(idgloss_list)
-
-        self.sign1_dropdown.currentIndexChanged.connect(self.update_trees)
-        self.sign2_dropdown.currentIndexChanged.connect(self.update_trees)
-
-        dropdown_layout = QHBoxLayout()
-        dropdown_layout.addWidget(QLabel("Select Sign 1:"))
-        dropdown_layout.addWidget(self.sign1_dropdown)
-        dropdown_layout.addWidget(QLabel("Select Sign 2:"))
-        dropdown_layout.addWidget(self.sign2_dropdown)
-
+        dropdown_layout = self.initialize_dropdown()
         layout.addLayout(dropdown_layout)
 
         # Tree widgets for hierarchical variables
         self.tree1 = QTreeWidget()
-        self.tree1.setHeaderLabel("Sign 1")
         self.tree2 = QTreeWidget()
+        self.tree1.setHeaderLabel("Sign 1")
         self.tree2.setHeaderLabel("Sign 2")
 
-        # add two trees
-        splitter = QSplitter()
-        splitter.addWidget(self.tree1)
-        splitter.addWidget(self.tree2)
+        # Gen colour counters for Sign1
+        self.overall_colour_counter_sign1 = ColourCounter(palette=self.palette)
+        self.current_colour_counter_sign1 = ColourCounter(palette=self.palette)
+        sign1_counters = {'overall': self.overall_colour_counter_sign1,
+                          'current': self.current_colour_counter_sign1}
 
-        layout.addWidget(splitter)
+        # Gen colour counters for Sign2
+        self.overall_colour_counter_sign2 = ColourCounter(palette=self.palette)
+        self.current_colour_counter_sign2 = ColourCounter(palette=self.palette)
+        sign2_counters = {'overall': self.overall_colour_counter_sign2,
+                          'current': self.current_colour_counter_sign2}
 
-        # Gen counters
-        self.overall_colour_counter = ColourCounter(palette=self.palette)
-        self.current_colour_counter = ColourCounter(palette=self.palette)
-
-        # Add counters
-        layout.addWidget(QLabel("Overall"))
-        layout.addWidget(self.overall_colour_counter)
-        layout.addWidget(QLabel("Current"))
-        layout.addWidget(self.current_colour_counter)
+        # Vertical layout for signs 1 and 2 (i.e., tree and counters)
+        sign1_layout = self.initialize_sign_layout(self.tree1, sign1_counters)
+        sign2_layout = self.initialize_sign_layout(self.tree2, sign2_counters)
+        tree_counter_layout = QHBoxLayout()
+        tree_counter_layout.addLayout(sign1_layout)
+        tree_counter_layout.addLayout(sign2_layout)
+        layout.addLayout(tree_counter_layout)
 
         # Add OK and Cancel buttons
         button_layout = QHBoxLayout()
@@ -180,6 +171,30 @@ class CompareSignsDialog(QDialog):
 
         # flag to prevent infinite recursion of the `sync_scrollbars` method...
         self.syncing_scrollbars = False
+
+    def initialize_dropdown(self):
+        idgloss_list = self.corpus.get_all_idglosses()
+
+        self.sign1_dropdown.addItems(idgloss_list)
+        self.sign2_dropdown.addItems(idgloss_list)
+
+        self.sign1_dropdown.currentIndexChanged.connect(self.update_trees)
+        self.sign2_dropdown.currentIndexChanged.connect(self.update_trees)
+
+        layout = QHBoxLayout()
+        layout.addWidget(QLabel("Select Sign 1:"))
+        layout.addWidget(self.sign1_dropdown)
+        layout.addWidget(QLabel("Select Sign 2:"))
+        layout.addWidget(self.sign2_dropdown)
+        return layout
+
+    def initialize_sign_layout(self, tree, counters):
+        sign_layout = QVBoxLayout()
+        sign_layout.addWidget(tree)
+        for k, v in counters.items():
+            sign_layout.addWidget(QLabel(k.capitalize()))
+            sign_layout.addWidget(v)
+        return sign_layout
 
     def sync_scrollbars(self, scrolled_value, other_tree):
         if not self.syncing_scrollbars:
@@ -366,14 +381,14 @@ class CompareSignsDialog(QDialog):
 
         # Update counters, now as the trees are all populated.
         colour_counts = self.count_coloured_lines()
-        self.overall_colour_counter.update_counter(colour_counts)
+        self.overall_colour_counter_sign1.update_counter(colour_counts)
         self.update_current_counters()
 
     def update_current_counters(self):
         counts_current = self.count_coloured_lines(only_visible_now=True)
-        self.current_colour_counter.update_counter('red', counts_current.get('red', 0))
-        self.current_colour_counter.update_counter('yellow', counts_current.get('yellow', 0))
-        self.current_colour_counter.update_counter('blue', counts_current.get('blue', 0))
+        self.current_colour_counter_sign1.update_counter('red', counts_current.get('red', 0))
+        self.current_colour_counter_sign1.update_counter('yellow', counts_current.get('yellow', 0))
+        self.current_colour_counter_sign1.update_counter('blue', counts_current.get('blue', 0))
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
