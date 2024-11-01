@@ -54,18 +54,19 @@ userdefinedroles = UserDefinedRoles({
         # mutuallyexclusiverole:
         # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
         # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,
-        # unusedrole:
-        # currently unused; can repurpose if needed
-    'lastingrouprole': 4,
-        # lastingrouprole:
-        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
+    'nocontrolrole': 3,
+        # nocontrolrole:
+        # used by MovementTreeItemDelegate when a MovementTreeItem is never a selectable item
+        # so text may be displayed, but no checkbox or radiobutton
+    'firstingrouprole': 4,
+        # firstingrouprole:
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the first
         # in its subgroup, which affects how it is painted in the movement tree
-        # (eg, whether the item will be followed by a horizontal line)
-    'finalsubgrouprole': 5,
-        # finalsubgrouprole:
+        # (eg, whether the item will be preceded by a horizontal line)
+    'firstsubgrouprole': 5,
+        # firstsubgrouprole:
         # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
-        # also in the *last* subgroup in its section. Such a subgroup will not have a horizontal line drawn after it.
+        # also in the *first* subgroup in its section. Such a subgroup will not have a horizontal line drawn before it.
     'subgroupnamerole': 6,
         # subgroupnamerole:
         # Used by MovementTreeItem & LocationTreeItem to identify which items are grouped together. Such
@@ -89,6 +90,7 @@ userdefinedroles = UserDefinedRoles({
     'userspecifiedvaluerole': 10,
         # userspecifiedvaluerole:
         # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
+
 })
 
 
@@ -201,6 +203,9 @@ class EntryID:
             return ""
 
     def display_string(self):
+        
+        if self.counter in [None, ""]:
+            return ""
         qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
 
         orders_strings = []
@@ -812,6 +817,8 @@ class TimingPoint:
 
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
+# in order to represent a "whole sign" timing interval (no matter how many x-slots long), use
+#   TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1))
 class TimingInterval:
 
     # startpt (type TimingPoint) = the point at which this xslot interval begins
@@ -883,6 +890,16 @@ class TimingInterval:
             elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint) or (other.startpoint <= self.startpoint and other.endpoint > self.startpoint):
                 return True
         return False
+    
+    
+    def includesinterval(self, other):
+        if isinstance(other, TimingInterval):
+            if self.iswholesign() or other.iswholesign():
+                return True
+            elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint):
+                return True
+        return False
+
 
     def iswholesign(self):
         return self.startpoint == TimingPoint(0, 0) and self.endpoint == TimingPoint(0, 1)
@@ -1272,6 +1289,22 @@ class RelationX:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def displaystr(self):
+        relX_str = ""
+        if self.connected:
+            relX_str = "X: both connected"
+        elif self.other:
+            relX_str = "X: other"
+            if len(self.othertext) > 0:
+                relX_str += " (" + self.othertext + ")"
+        else:
+            rel_dict = self.__dict__
+            for attr in rel_dict:
+                if rel_dict[attr]:
+                    relX_str = "X: " + attr[1:] # attributes are prepended with _
+                    break
+        return relX_str
+
     @property
     def h1(self):
         return self._h1
@@ -1449,6 +1482,27 @@ class RelationY:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def displaystr(self):
+        relY_str = ""
+        if self.existingmodule:
+            relY_str = "Y: existing module"
+            if self.linkedmoduletype is not None:
+                if self.linkedmoduletype == ModuleTypes.MOVEMENT:
+                    relY_str += " (mvmt)"
+                else:
+                    relY_str += " (locn)"
+        elif self.other: 
+            relY_str = "Y: other"
+            if len(self.othertext) > 0:
+                relY_str += " (" + self.othertext + ")"
+        else:
+            rel_dict = self.__dict__
+            for attr in "_h2", "_arm2", "_leg1", "_leg2":
+                if rel_dict[attr]:
+                    relY_str = "Y: " + attr[1:] # attributes are prepended with _
+                    break    
+        return relY_str
 
     @property
     def h2(self):
@@ -1643,7 +1697,20 @@ class RelationModule(ParameterModule):
     @directions.setter
     def directions(self, directions):
         self._directions = directions
-
+    
+    def get_paths(self):
+        paths = {}
+        arts, nums = self.get_articulators_in_use()
+        for i in range(len(arts)):
+            bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
+            treemodel = bodypartinfo.bodyparttreemodel
+            paths.update({arts[i]: treemodel.get_checked_items()})
+        return paths
+    
+    def has_direction(self, axisnum): # returns true if suboptions of direction are selected
+        dir = self.directions[axisnum]
+        return dir.plus or dir.minus or dir.inline
+    
     def usesarticulator(self, articulator, artnum=None):
         articulators_in_use = {1: False, 2: False}
         if articulator == HAND:
@@ -1723,6 +1790,7 @@ class MannerRelation:
             repr_str = "intermittent"
 
         return '<MannerRelation: ' + repr(repr_str) + '>'
+    
 
     @property
     def holding(self):
@@ -1769,7 +1837,8 @@ class ContactRelation:
         self._distances = distance_list or [
             Distance(Direction.HORIZONTAL),
             Distance(Direction.VERTICAL),
-            Distance(Direction.SAGITTAL)
+            Distance(Direction.SAGITTAL),
+            Distance(Direction.GENERIC)
         ]
 
     def __eq__(self, other):
@@ -1798,6 +1867,11 @@ class ContactRelation:
 
         return '<ContactRelation: ' + repr(repr_str) + '>'
 
+    def has_manner(self):
+        return self.manner.holding or self.manner.intermittent or self.manner.continuous
+
+    def has_contacttype(self):
+        return self.contacttype.light or self.contacttype.firm or self.contacttype.other
     @property
     def contact(self):
         return self._contact
@@ -1914,6 +1988,7 @@ class Direction:
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
     SAGITTAL = "sagittal"
+    GENERIC = "generic"
 
     def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False):
         self._axis = axis
@@ -2030,6 +2105,9 @@ class Distance:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def has_selection(self):
+        return self.close or self.medium or self.far
 
     @property
     def axis(self):

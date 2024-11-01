@@ -150,3 +150,25 @@ def check_unsaved_corpus(func):
         return func(self, *args, **kwargs)
 
     return wrapper_check_unsaved_corpus
+
+def check_unsaved_search_targets(func):
+    ''' This decorator is a fail-safe that is activated when saving a (new) search targets file for the first time.
+    I.e., check (if we are dealing with an) unsaved search targets file.
+    For example, it is active if the user creates a search targets file from scratch and then saves it with the 'save' button.'''
+    @functools.wraps(func)
+    def wrapper_check_unsaved_search_targets(self, **kwargs):
+        if self.searchmodel.path is None:
+            name = self.searchmodel.name or "New search"
+            file_name, _ = QFileDialog.getSaveFileName(self,
+                                                    self.tr('Save Targets'),
+                                                    os.path.join(self.app_settings['storage']['recent_folder'],
+                                                                    name + '.slpst'),  # 'corpus.slpaa'),
+                                                    self.tr('SLP-AA Search Targets (*.slpst)'))
+            if file_name:
+                self.searchmodel.path = file_name
+                folder, _ = os.path.split(file_name)
+                if folder:
+                    self.app_settings['storage']['recent_folder'] = folder
+        return func(self, **kwargs)
+
+    return wrapper_check_unsaved_search_targets

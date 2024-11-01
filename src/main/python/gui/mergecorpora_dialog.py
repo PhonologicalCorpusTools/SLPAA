@@ -143,8 +143,8 @@ class MergeCorporaWizard(QWizard):
                 response = QMessageBox.question(self, "Duplicated ID-glosses",
                                                 "The corpora you selected have one or more overlapping ID-glosses (" +
                                                 ", ".join(duplicated_IDglosses) + "), which are not permitted. " +
-                                                "Click 'OK' to proceed with the merge and append numerals to the " +
-                                                "duplicated ID-glosses (e.g. " + firstduplicate + "1, " + firstduplicate + "2) " +
+                                                "Click 'OK' to proceed with the merge and append indexed tags to the " +
+                                                "duplicated ID-glosses (e.g. " + firstduplicate + "-copy1, " + firstduplicate + "-copy2) " +
                                                 "or 'Cancel' to exit this wizard and edit the ID-glosses yourself before trying again.",
                                                 buttons=QMessageBox.Ok | QMessageBox.Cancel)
                 if response == QMessageBox.Cancel:
@@ -172,7 +172,7 @@ class MergeCorporaWizard(QWizard):
                         # tag duplicatd ID-gloss with index, if applicable
                         if sli.idgloss in dupl_IDglosses_counters.keys():
                             dupl_IDglosses_counters[sli.idgloss] += 1
-                            sli.idgloss += str(dupl_IDglosses_counters[sli.idgloss])
+                            sli.idgloss += "-copy" + str(dupl_IDglosses_counters[sli.idgloss])
 
                         mergedcorpus.add_sign(sign)
                         for gloss in [g.lower().strip() for g in sli.gloss if g != ""]:

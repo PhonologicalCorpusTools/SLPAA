@@ -5,8 +5,7 @@ from PyQt5.QtCore import (
     Qt,
     QRectF,
     QPoint,
-    pyqtSignal,
-    QSettings
+    pyqtSignal
 )
 
 from PyQt5.QtWidgets import (
@@ -757,6 +756,7 @@ class SignSummaryPanel(QScrollArea):
 
 class SignLevelMenuPanel(QScrollArea):
     sign_updated = pyqtSignal(Sign)
+    corpus_updated = pyqtSignal(Sign)
 
     def __init__(self, sign, mainwindow, **kwargs):
         super().__init__(**kwargs)
@@ -884,16 +884,22 @@ class SignLevelMenuPanel(QScrollArea):
 
     def handle_save_signlevelinfo(self, signlevelinfo):
         if self.sign:
-            # an existing sign is highlighted; update it
+            # We have a fully formed sign; update its sign-level info.
             self.sign.signlevel_information = signlevelinfo
+
+            if self.sign not in self.mainwindow.corpus.signs:
+                # But, if it's not already in the corpus that means it's a sign that's about to
+                #   be copied and we're just confirming the SLI. In this case, it needs to
+                #   be added to the corpus.
+                self.mainwindow.corpus.add_sign(self.sign)
         else:
-            # this is a new sign
+            # this is a brand new sign
             newsign = Sign(signlevelinfo)
             self.sign = newsign
             self.mainwindow.corpus.add_sign(self.sign)
 
         self.sign_updated.emit(self.sign)
-        self.mainwindow.corpus_display.updated_signs(self.mainwindow.corpus.signs, self.sign)
+        self.corpus_updated.emit(self.sign)
 
     def handle_signtypebutton_click(self):
         signtype_selector = SigntypeSelectorDialog(self.sign.signtype, parent=self)
