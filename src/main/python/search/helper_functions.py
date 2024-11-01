@@ -251,7 +251,139 @@ def collapsetimingintervals(timingintervals):
     
     return collapsed
 
-        
+
+#  Returns True if modulelist (list of relation modules) contains a module that matches target_module
+# If target_is_assoc_reln, then we assume modulelist also contains associated relation modules with anchor modules of the correct type
+def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
+
+    # All relation_x possibilities are mutually exclusive, so check if target relation_x matches at least one relation_x in the list
+    target_relationx = target_module.relationx.displaystr()
+    if target_relationx != "":
+        modulelist = [m for m in modulelist if target_relationx == m.relationx.displaystr()]
+        if not modulelist: return False
+
+    # If target relation_y is "Existing module", this can also match "existing module - locn" or "existing module - mvmt".
+    # Otherwise, relation_y possibilities are mutually exclusive.
+    # We don't have to check relation_y if target_is_assoc_reln, because in this case we assume modulelist is already filtered.
+    if not target_is_assoc_reln and target_module.relationy.displaystr() != "": 
+        target_relationy = target_module.relationy.displaystr()
+        if target_relationy == "Y: existing module":
+            modulelist = [m for m in modulelist if target_relationy in m.relationy.displaystr()]
+        else:
+            modulelist = [m for m in modulelist if target_relationy == m.relationy.displaystr()]
+        if not modulelist: return False
+    # If target contact is only "Contact", this needs to match contact type suboptions (light, firm, other)
+    # If target contact is "No contact", must match signs where contact is not specified or empty (?)
+    # Manner options are mutually exclusive.
+    if target_module.contactrel.contact is False: # if False, then "no contact" specified
+        modulelist = [m for m in modulelist if m.contactrel.contact == False]
+    elif target_module.contactrel.contact is not None:
+        if target_module.contactrel.contacttype.any:
+            modulelist = [m for m in modulelist if m.contactrel.has_contacttype()]
+        elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
+            modulelist = [m for m in modulelist if m.contactrel.contacttype == target_module.contactrel.contacttype]
+        if not modulelist: return False 
+
+        if target_module.contactrel.manner.any:
+            modulelist = [m for m in modulelist if m.contactrel.has_manner()]
+        elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
+            modulelist = [m for m in modulelist if m.contactrel.manner == target_module.contactrel.manner]
+        else: # only "contact" specified, so module must have some contact / contacttype
+            modulelist = [m for m in modulelist if m.contactrel.contact]
+    if not modulelist: return False 
+    
+    # direction:
+    if len(target_module.directions) == 1 and target_module.directions[0].any: 
+        modulelist = [m for m in modulelist if m.has_any_direction()]
+    else:
+        if target_module.xy_linked:
+            modulelist = [m for m in modulelist if m.xy_linked]
+        if target_module.xy_crossed:
+            modulelist = [m for m in modulelist if m.xy_crossed]
+        for i in range(3):
+            if target_module.directions[i].axisselected:
+                if target_module.has_direction(i): # match exactly because suboption is selected
+                    modulelist = [m for m in modulelist if m.directions[i] == target_module.directions[i]]
+                else: # only axis is selected, so match if any suboption is selected
+                    modulelist = [m for m in modulelist if m.has_direction(i)]
+    if not modulelist:
+        return False
+    
+    # Distance:
+    if not target_module.contactrel.contact:
+        if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
+            modulelist = [m for m in modulelist if m.has_any_distance()]
+        else:
+            for i in range(3):
+                dist = target_module.contactrel.distances[i]
+                if dist.has_selection():
+                    modulelist = [m for m in modulelist if m.contactrel.distances[i].has_selection()]
+                        
+        if not modulelist:
+            return False
+    
+    # Paths
+    target_dict = target_module.get_paths()
+    if target_dict:
+        flag = False
+        for m in modulelist:
+            sign_dict = m.get_paths()
+            matching_keys = [k for k in sign_dict.keys() if k in target_dict.keys()]
+            for k in matching_keys:
+                if all(p in sign_dict[k] for p in target_dict[k]):
+                    flag = True
+                    break
+        if not flag:
+            return False
 
 
+    return True    
+
+
+def mvmt_module_matches(modulelist, target_module):
+    
+    # Filter for modules that match target articulators
+    if target_module.has_articulators():
+        target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
+        modulelist = [m for m in modulelist if articulatordisplaytext(m.articulators, m.inphase) == target_art]
+        if not modulelist: return False
+
+    # Filter for modules that match target paths
+    target_paths = set(target_module.movementtreemodel.get_checked_items())
+    if target_paths:
+        modulelist = [m for m in modulelist if target_paths.issubset(set(m.movementtreemodel.get_checked_items()))]
+        if not modulelist: return False
+
+    # TODO For final check, can break out of loop early if a match is found; don't have to filter the entire list.
+    return True
         
+def locn_module_matches(modulelist, target_module):
+    # Filter for modules that match target articulators
+    if target_module.has_articulators():
+        target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
+        modulelist = [m for m in modulelist if articulatordisplaytext(m.articulators, m.inphase) == target_art]
+        if not modulelist: return False
+    
+    # Filter for modules that match locationtype
+    if not target_module.locationtreemodel.locationtype.allfalse():
+        target_loctype = loctypedisplaytext(target_module.locationtreemodel.locationtype)
+        modulelist = [m for m in modulelist if loctypedisplaytext(m.locationtreemodel.locationtype) == target_loctype]
+        if not modulelist: return False
+
+    # Filter for modules that match phonlocs
+    if not target_module.phonlocs.allfalse():
+        target_phonlocs = phonlocsdisplaytext(target_module.phonlocs)
+        modulelist = [m for m in modulelist if phonlocsdisplaytext(m.locationtreemodel.locationtype) == target_phonlocs]
+        if not modulelist: return False
+
+    # Filter for modules that match target paths
+    # TODO deal with subareas and surfaces
+    fully_checked = target_module.locationtreemodel.nodes_are_terminal
+    target_paths = set(target_module.locationtreemodel.get_checked_items(only_fully_checked=fully_checked))
+    if target_paths:
+        modulelist = [m for m in modulelist if target_paths.issubset(set(m.locationtreemodel.get_checked_items(only_fully_checked=fully_checked)))]
+        if not modulelist: return False
+                
+
+    # TODO For final check, can break out of loop early if a match is found; don't have to filter the entire list.
+    return True

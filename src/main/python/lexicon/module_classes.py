@@ -107,6 +107,9 @@ class ParameterModule:
             self.timingintervals = timingintervals
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
+    
+    def has_articulators(self):
+        return self.articulators[1][1] or self.articulators[1][2] # between articulator 1 and articulator 2, at least one is True
 
     @property
     def addedinfo(self):

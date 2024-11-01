@@ -16,14 +16,15 @@ from PyQt5.QtWidgets import QStyledItemDelegate, QMessageBox
 from PyQt5.QtCore import QModelIndex, Qt
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
-from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, HAND, ARM, LEG
+from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, LOC_REL_TARGET, MOV_REL_TARGET, HAND, ARM, LEG
 import logging
 
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
-
+from search.helper_functions import (relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, 
+                                     signtypedisplaytext, module_matches_xslottype, reln_module_matches, locn_module_matches, mvmt_module_matches)
+from search.search_classes import SearchTargetItem
 
 
 
@@ -54,6 +55,8 @@ class SearchModel(QStandardItemModel):
         if serializedsearchmodel is not None:
             self.serializedsearchmodel = serializedsearchmodel.serializedmodel
             self.setvaluesfromserializedmodel()
+    
+
 
     def setvaluesfromserializedmodel(self):
         
@@ -77,6 +80,8 @@ class SearchModel(QStandardItemModel):
 
         name = QStandardItem(t.name)
         name.setData(t.module, Qt.UserRole)
+        name.setData(t.associatedrelnmodule, Qt.UserRole+1)
+
 
         ttype = QStandardItem(t.targettype)
 
@@ -104,7 +109,7 @@ class SearchModel(QStandardItemModel):
         for col, data in enumerate(row_data):
             self.setItem(row, col, data)
 
-    
+
     def add_target(self, t):     
         self.appendRow(self.create_row_from_target(t))
 
@@ -180,8 +185,38 @@ class SearchModel(QStandardItemModel):
             if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign):
                 return False
         if ModuleTypes.RELATION in target_dict: 
-            if not self.sign_matches_reln(target_dict[ModuleTypes.RELATION], sign):
-                return False
+            modulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
+            if not modulelist: return False
+
+            for row in target_dict[ModuleTypes.RELATION]:
+                target_module = self.target_module(row)
+                if not reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
+                    return False
+        for ttype in [LOC_REL_TARGET, MOV_REL_TARGET]:
+            if ttype in target_dict:
+                anchortype = ModuleTypes.LOCATION if ttype == LOC_REL_TARGET else MOV_REL_TARGET
+                relationmodulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
+                if not relationmodulelist: return False
+                
+                for row in target_dict[ttype]:
+                    target_reln_module = self.target_associatedrelnmodule(row)
+                    if not reln_module_matches(relationmodulelist, target_reln_module, target_is_assoc_reln=True):
+                        return False    
+                    anchormodulelist = []
+                    for m in relationmodulelist:
+                        anchormod = sign.getmoduledict(anchortype)[m.relationy.linkedmoduleids[0]]
+                        anchormodulelist.append(anchormod)
+
+                    if ttype == LOC_REL_TARGET:
+                        if not locn_module_matches(anchormodulelist, self.target_module(row)): return False
+                    elif ttype == MOV_REL_TARGET:
+                        if not mvmt_module_matches(anchormodulelist, self.target_module(row)): return False
+                return True
+
+                    
+
+            
+
 
         return True
     
@@ -289,11 +324,13 @@ class SearchModel(QStandardItemModel):
             return False
         return True
 
+
+
+
     def sign_matches_reln(self, rows, sign):
-        # TODO think about issue where target matches a sign, but matches are split across multiple modules
-        # eg module 1 matches relation_x, module 2 matches contact
-        # instead of using any(), could keep a list of matching modules, and trim the list as modules no longer match successive target specs
         matching_modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
+        if len(matching_modules) == 0:
+            return False
         for row in rows:
             svi = self.target_values(row) 
             xslottype = self.target_xslottype(row)
@@ -335,28 +372,6 @@ class SearchModel(QStandardItemModel):
                 else: # only "contact" specified, so module must have some contact / contacttype
                     matching_modules = [m for m in matching_modules if m.contactrel.contact]
             if len(matching_modules) == 0: return False 
-                # if target_module.contactrel.contacttype.any:
-                #     matching_modules = [m for m in matching_modules if m.contactrel.has_contacttype()]
-                #     if len(matching_modules) == 0: return False   
-                # if target_module.contactrel.manner.any:
-                #     matching_modules = [m for m in matching_modules if m.contactrel.has_manner()]
-                #     if len(matching_modules) == 0: return False  
-                # if target_module.contactrel.has_manner() and target_module.contactrel.has_contacttype(): # module must match manner AND contacttype exactly
-                #     matching_modules = [m for m in matching_modules if (
-                #                 m.contactrel.manner == target_module.contactrel.manner and
-                #                 m.contactrel.contacttype == target_module.contactrel.contacttype)]
-                #     if len(matching_modules) == 0: return False
-                # elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
-                #     matching_modules = [m for m in matching_modules if m.contactrel.manner == target_module.contactrel.manner]
-                #     if len(matching_modules) == 0: return False 
-
-                # elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
-                #     matching_modules = [m for m in matching_modules if m.contactrel.contacttype == target_module.contactrel.contacttype]
-                #     if len(matching_modules) == 0: return False 
-                # else: # only "contact" specified, so module must have some contact / contacttype
-                #     matching_modules = [m for m in matching_modules if m.contactrel.contact]
-                #     if len(matching_modules) == 0: return False 
-
             
             # direction:
             if len(target_module.directions) == 1 and target_module.directions[0].any: 
@@ -405,12 +420,12 @@ class SearchModel(QStandardItemModel):
                     return False
 
         return True
-            
 
 
-    
     def sign_matches_mvmt(self, mvmt_rows, sign):
         modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
+        if len(modules) == 0:
+            return False
         for row in mvmt_rows:
             xslottype = self.target_xslottype(row).type
             target_module = self.target_module(row)
@@ -436,6 +451,8 @@ class SearchModel(QStandardItemModel):
 
     def sign_matches_locn(self, locn_rows, sign):
         modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
+        if len(modules) == 0:
+            return False
         for row in locn_rows:
             svi = self.target_values(row)
             xslottype = self.target_xslottype(row).type
@@ -558,6 +575,9 @@ class SearchModel(QStandardItemModel):
     def target_module(self, row):
         return self.index(row, TargetHeaders.NAME).data(Qt.UserRole)
     
+    def target_associatedrelnmodule(self, row):
+        return self.index(row, TargetHeaders.NAME).data(Qt.UserRole+1)
+    
     def target_type(self, row):
         return self.index(row, TargetHeaders.TYPE).data(Qt.DisplayRole)
     
@@ -603,62 +623,6 @@ class SearchModel(QStandardItemModel):
     def searchtype(self, value):
         self._searchtype = value
 
-# TODO move the methods above into here?
-class SearchTargetItem(QStandardItem):
-    def __init__(self, name=None, targettype=None, xslottype=None, searchvaluesitem=None, module=None, negative=False, include=False, **kwargs):
-        super().__init__(**kwargs)
-        self._name = name
-        self._targettype = targettype
-        self._xslottype = xslottype 
-        self._searchvaluesitem = searchvaluesitem
-        self._module = module
-        self.negative = negative
-        self.include = include
-
-    def __repr__(self):
-        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\ntargettype " + str(self.targettype)  
-        msg += "\nValues: " + repr(self.values)
-        return msg
-    
-    @property
-    def targettype(self):
-        return self._targettype
-
-    @targettype.setter
-    def targettype(self, value):
-        self._targettype = value
-
-    @property
-    def searchvaluesitem(self):
-        return self._searchvaluesitem
-
-    @searchvaluesitem.setter
-    def searchvaluesitem(self, v):
-        self._searchvaluesitem = v
-    
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
-
-    @property
-    def xslottype(self):
-        return self._xslottype
-
-    @xslottype.setter
-    def xslottype(self, value):
-        self._xslottype = value
-
-    @property
-    def module(self):
-        return self._module
-    
-    @module.setter
-    def module(self, m):
-        self._module = m
 
 
 # This class is a serializable form of the class SearchModel, which is itself not pickleable.
@@ -678,13 +642,21 @@ class SearchModelSerializable:
                 row_data = {} 
                 name = searchmodel.target_name(r)
                 ttype = searchmodel.target_type(r)
-                module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
                 row_data[TargetHeaders.TYPE] = ttype
                 row_data[TargetHeaders.VALUE] = searchmodel.target_values(r)
                 row_data[TargetHeaders.INCLUDE] = searchmodel.is_included(r)
                 row_data[TargetHeaders.NEGATIVE] = searchmodel.is_negative(r)
                 row_data[TargetHeaders.XSLOTS] = searchmodel.target_xslottype(r)
+
+                if ttype == LOC_REL_TARGET:
+                    module = self.get_serialized_parameter_module(ModuleTypes.LOCATION, searchmodel.target_module(r))
+                elif ttype == MOV_REL_TARGET:
+                    module = self.get_serialized_parameter_module(ModuleTypes.MOVEMENT, searchmodel.target_module(r))
+                else:                    
+                    module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
                 row_data["module"] = module
+                associatedrelnmodule = searchmodel.target_associatedrelnmodule(r)
+                row_data["associatedrelnmodule"] = self.get_serialized_parameter_module(ModuleTypes.RELATION, associatedrelnmodule) if associatedrelnmodule is not None else None
 
                 model[name] = row_data  
         return model
@@ -741,8 +713,6 @@ class SearchValuesItem:
             else: # relation
                 paths = module.get_paths()
                 todisplay.extend(relationdisplaytext(module))
-
-                
 
             if len(paths) > 0:
                 self.paths = paths

@@ -384,6 +384,8 @@ DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None,
 SIGNLEVELINFO_TARGET = "sign level info"
 XSLOT_TARGET = "xslot"
 SIGNTYPEINFO_TARGET = "sign type info"
+MOV_REL_TARGET = "mvmt + reln"
+LOC_REL_TARGET = "locn + reln"
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

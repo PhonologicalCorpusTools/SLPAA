@@ -5,13 +5,14 @@ from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInfoPanel
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
-from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
+from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS, MOV_REL_TARGET, LOC_REL_TARGET
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
 from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule, Direction, Distance
 from lexicon.lexicon_classes import Sign, SignLevelInformation
 from gui.modulespecification_dialog import ModuleSelectorDialog
 
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
+from PyQt5.Qt import QStandardItem
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QSize
 from PyQt5.QtWidgets import (
     QLineEdit,
@@ -33,12 +34,11 @@ from PyQt5.QtWidgets import (
     QGroupBox,
 
 )
-
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
 from gui.relationspecification_view import RelationSpecificationPanel, RelationRadioButton, RelationButtonGroup
-from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene
+from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene, AssociatedRelationsDialog, AssociatedRelationsPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
 
@@ -310,9 +310,21 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
 
     def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
+        if moduletype in [LOC_REL_TARGET, MOV_REL_TARGET]:
+            moduletype = ModuleTypes.LOCATION if moduletype == LOC_REL_TARGET else ModuleTypes.MOVEMENT
+        self.targettype = moduletype
+
+        
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, incl_articulators, incl_articulator_subopts, **kwargs)
 
+    def create_associatedrelations_widget(self):
+        associatedrelations_widget = Search_AssociatedRelationsPanel(parent=self)
+        if self.existingkey is not None:
+            associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
+        return associatedrelations_widget
+    
 
+    
     def add_button_box(self, new_instance=False):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
@@ -332,8 +344,13 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             self.module_widget = Search_LocationSpecPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.HANDCONFIG:
             QMessageBox.critical(self, "Warning", "hand config not impl")
-        elif self.moduletype == ModuleTypes.RELATION:
+        elif moduletype == ModuleTypes.RELATION:
             self.module_widget = Search_RelationSpecPanel(moduletoload=moduletoload, parent=self)
+            if self.usexslots:
+                self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
+                self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
+                self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
+            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         self.moduleselector_layout.addWidget(self.module_widget)
     
     def handle_xslot_widget(self, xslotstructure, timingintervals):
@@ -396,13 +413,16 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         else:
             # save info
             savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
-            self.module_saved.emit(savedmodule, self.moduletype)
+            self.module_saved.emit(savedmodule, self.targettype)
             if closedialog:
                 # close dialog if caller requests it (but if we're only saving so, eg,
                 # we can add an associated relation module, then closedialog will be False)
                 self.accept()
 
+
         return savedmodule
+    
+
 
 
 class CustomRBGrp(QButtonGroup):
@@ -495,9 +515,10 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         if self.any_direction_cb.isChecked():
             return[Direction(axis=None, any=True)]
         else:
-            dir = super().getcurrentdirections()
-            dir.any = False
-            return dir
+            dirs = super().getcurrentdirections()
+            for d in dirs:
+                d.any = False
+            return dirs
         
     def setcurrentdistances(self, distances_list):
         if distances_list is not None and len(distances_list) == 1: # only the case when "any" was selected
@@ -509,9 +530,10 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         if self.any_distance_cb.isChecked():
             return[Distance(axis=None, any=True)]
         else:
-            dist = super().getcurrentdistances()
-            dist.any = False
-            return dist
+            dists = super().getcurrentdistances()
+            for d in dists:
+                d.any = False
+            return dists
 
 
     # Differs from mainwindow in that a generic contact type cb is present
@@ -721,7 +743,78 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
             b.setChecked(False)
             b.setEnabled(True)
 
+class Search_AssociatedRelationsDialog(AssociatedRelationsDialog):
+    def __init__(self, anchormodule=None, **kwargs):
+        super().__init__(anchormodule, **kwargs)
 
+    def handle_relationmod_clicked(self, relmod):
+
+        module_selector = Search_ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
+                                               xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                               xslottype=self.mainwindow.current_sign.xslottype,
+                                               moduletoload=relmod,
+                                               incl_articulators=[],
+                                               incl_articulator_subopts=0,
+                                               parent=self)
+        module_selector.module_saved.connect(self.module_saved.emit)
+        # module_selector.module_deleted.connect(lambda: self.handle_moduledeleted(relmod.uniqueid))
+        module_selector.module_deleted.connect(lambda: self.mainwindow.signlevel_panel.handle_delete_module(
+            existingkey=relmod.uniqueid, moduletype=ModuleTypes.RELATION))
+        module_selector.exec_()
+        self.refresh_listmodel()
+
+class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
+    def __init__(self, anchormodule=None, **kwargs):
+        super().__init__(anchormodule, **kwargs)
+
+    def handle_see_relationmodules(self):
+        associatedrelations_dialog = Search_AssociatedRelationsDialog(anchormodule=self.anchormodule, parent=self)
+        associatedrelations_dialog.module_saved.connect(self.module_saved.emit)
+        associatedrelations_dialog.exec_()
+        self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
+
+
+    def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
+        enable_addrelation = True
+
+        # if hastiming is None and hasarticulators is None and bodyloc is None:
+        #     enable_addrelation = False
+
+        # # only use arguments if they have a boolean value (ie, are not None)
+        # if hastiming is not None:
+        #     # make sure the anchor has a valid timing selection
+        #     enable_addrelation = enable_addrelation and hastiming
+            # timingvalid, timingintervals = self.parent().validate_timingintervals()
+        if bodyloc is not None:
+            # make sure the anchor is not a purely spatial location
+            enable_addrelation = enable_addrelation and bodyloc
+        # if hasarticulators is not None:
+        #     # make sure the anchor has a valid hand(s) selection
+        #     enable_addrelation = enable_addrelation and hasarticulators
+
+        self.addrelation_button.setEnabled(enable_addrelation)
+
+    def handle_save_add_relationmodule(self):
+        # save the current anchor module before trying to link a relation module to it
+        self.save_anchor.emit()
+        if self.anchormodule is not None:  # the save above was successful; continue
+
+            module_selector = Search_ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
+                                                   xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                                   xslottype=self.mainwindow.current_sign.xslottype,
+                                                   moduletoload=None,
+                                                   linkedfrommoduleid=self.anchormodule.uniqueid,
+                                                   linkedfrommoduletype=self.parent().moduletype,
+                                                   incl_articulators=[],
+                                                   incl_articulator_subopts=0,
+                                                   parent=self)
+            module_selector.module_saved.connect(lambda module_to_save:
+                                                 self.mainwindow.build_search_target_view.handle_add_associated_relation_module(
+                                                     self.anchormodule, module_to_save
+                                                 ))
+            # module_selector.module_saved.connect(lambda module_to_save: 
+            #                                      self.mainwindow.build_search_target_view.handle_add_target(target, module_to_save))
+            module_selector.exec_()
 
     
 
@@ -761,3 +854,69 @@ class XslotTypeItem:
 
 
 
+
+# TODO move the methods above into here?
+class SearchTargetItem(QStandardItem):
+    def __init__(self, name=None, targettype=None, xslottype=None, searchvaluesitem=None, module=None, negative=False, include=False, associatedrelnmodule=None, **kwargs):
+        super().__init__(**kwargs)
+        self._name = name
+        self._targettype = targettype
+        self._xslottype = xslottype 
+        self._searchvaluesitem = searchvaluesitem
+        self._module = module
+        self._associatedrelnmodule = associatedrelnmodule
+        self.negative = negative
+        self.include = include
+
+    def __repr__(self):
+        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\ntargettype " + str(self.targettype)  
+        msg += "\nValues: " + repr(self.values)
+        return msg
+    
+    @property
+    def targettype(self):
+        return self._targettype
+
+    @targettype.setter
+    def targettype(self, value):
+        self._targettype = value
+
+    @property
+    def searchvaluesitem(self):
+        return self._searchvaluesitem
+
+    @searchvaluesitem.setter
+    def searchvaluesitem(self, v):
+        self._searchvaluesitem = v
+    
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
+    def xslottype(self):
+        return self._xslottype
+
+    @xslottype.setter
+    def xslottype(self, value):
+        self._xslottype = value
+
+    @property
+    def module(self):
+        return self._module
+    
+    @module.setter
+    def module(self, m):
+        self._module = m
+
+    @property
+    def associatedrelnmodule(self):
+        return self._associatedrelnmodule
+    
+    @associatedrelnmodule.setter
+    def associatedrelnmodule(self, m):
+        self._associatedrelnmodule = m
