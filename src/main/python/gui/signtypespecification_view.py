@@ -293,7 +293,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.handstype_2h_radio.setchildlayout(self.twohand_spacedlayout)
         ## end layout for 2-handed sign options
 
-        self.signtype_box = QGroupBox("Sign type")
+        self.signtype_box = QGroupBox()
         self.signtype_box.setLayout(self.signtype_layout)
         # end layout for sign type (highest level)
 
@@ -514,7 +514,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.armstype_2a_radio.setchildlayout(self.twoarm_spacedlayout)
         ## end layout for 2-armed sign options
 
-        self.signtype_box = QGroupBox("Sign type")
+        self.signtype_box = QGroupBox()
         self.signtype_box.setLayout(self.signtype_layout)
         # end layout for sign type (highest level)
 
@@ -752,7 +752,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.legstype_2l_radio.setchildlayout(self.twoleg_spacedlayout)
         ## end layout for 2-leg sign options
 
-        self.signtype_box = QGroupBox("Sign type")
+        self.signtype_box = QGroupBox()
         self.signtype_box.setLayout(self.signtype_layout)
         # end layout for sign type (highest level)
 
