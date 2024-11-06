@@ -68,7 +68,6 @@ class LocationModuleSerializable(ParameterModuleSerializable):
 
         # creates a full serializable copy of the location module, eg for saving to disk
         self._inphase = locnmodule.inphase
-        self.phonlocs = locnmodule.phonlocs
         self.locationtree = LocationTreeSerializable(locnmodule.locationtreemodel)
 
     @property
