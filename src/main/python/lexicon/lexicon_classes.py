@@ -85,8 +85,18 @@ class Sign:
 
             # the remaining attributes will be re-created differently depending on whether this is a deep copy or not
             # also note that relation *must* come before location
+            uid_updates = {}
             for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
-                self.loadmodules_and_numbering(serializedsign, moduletype, makedeepcopy=makedeepcopy)  # TODO
+                uid_updates[moduletype] = self.loadmodules_and_numbering(serializedsign, moduletype, makedeepcopy=makedeepcopy)
+
+            if deepcopy:
+                # make sure any rel modules with associated mov or loc modules have their linked module IDs updated to the new version
+                for relmod in self.relationmodules.values():
+                    if relmod.relationy.existingmodule:
+                        linked_type = relmod.relationy.linkedmoduletype
+                        if linked_type is not None:
+                            orig_anchor_uids = relmod.relationy.linkedmoduleids
+                            relmod.relationy.linkedmoduleids = [uid_updates[linked_type][a_uid]for a_uid in orig_anchor_uids]
 
     def loadmodules_and_numbering(self, serializedsign, moduletype, makedeepcopy=False):
 
@@ -102,7 +112,7 @@ class Sign:
                     if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.RELATION:
             # backward compatibility
-            self.relationmodules = unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'])
+            self.relationmodules = unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'], makedeepcopy=makedeepcopy)
             if makedeepcopy:
                 self.relationmodulenumbers = deepcopy(serializedsign['rel module numbers']) \
                     if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
@@ -159,9 +169,18 @@ class Sign:
         # for any type of module
         if makedeepcopy:
             # re-ID the modules
-            self.reIDmodules(moduletype)
+            uid_updates = self.reIDmodules(moduletype)
+        else:
+            # don't need to re-ID
+            uid_updates = {uid: uid for uid in self.getmoduledict(moduletype).keys()}
+
+        return uid_updates
 
     def reIDmodules(self, moduletype):
+        # dict of float --> float where the keys are the original modules' uids,
+        #   and the values are their pasted deep-copied versions' new uids
+        uid_updates = {}
+
         olduniquedstoremove = [uid for uid in self.getmoduledict(moduletype).keys()]
         for old_uniqueid in olduniquedstoremove:
             # remove old entries from modules and modulenumbers dicts, while saving content
@@ -173,6 +192,10 @@ class Sign:
             module.uniqueid = new_uniqueid
             self.getmoduledict(moduletype)[new_uniqueid] = module
             self.getmodulenumbersdict(moduletype)[new_uniqueid] = modulenum
+
+            uid_updates[old_uniqueid] = new_uniqueid
+
+        return uid_updates
 
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
@@ -467,7 +490,7 @@ def unserializelocationmodules(serialized_locnmodules):
     return unserialized, convertedrelationmodules
 
 
-def unserializerelationmodules(serialized_relmodules):
+def unserializerelationmodules(serialized_relmodules, makedeepcopy=False):
     unserialized = {}
     for k in serialized_relmodules.keys():
         serialmodule = serialized_relmodules[k]
@@ -476,7 +499,7 @@ def unserializerelationmodules(serialized_relmodules):
         addedinfo = serialmodule.addedinfo
         phonlocs = serialmodule.phonlocs
         relationx = serialmodule.relationx
-        relationy = serialmodule.relationy
+        relationy = deepcopy(serialmodule.relationy) if makedeepcopy else serialmodule.relationy
         bodyparts_dict = {
             HAND: {
                 1: BodypartInfo(

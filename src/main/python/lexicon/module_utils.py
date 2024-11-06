@@ -13,15 +13,15 @@ def deepcopymodule(module_orig):
     module_copy = None
 
     if moduletype == ModuleTypes.MOVEMENT:
-        serialdict = {uid:MovementModuleSerializable(module_orig)}
+        serialdict = {uid: MovementModuleSerializable(module_orig)}
         module_copy = unserializemovementmodules(serialdict)[uid]
     elif moduletype == ModuleTypes.LOCATION:
-        serialdict = {uid:LocationModuleSerializable(module_orig)}
+        serialdict = {uid: LocationModuleSerializable(module_orig)}
         locmods_copied, _ = unserializelocationmodules(serialdict)
         module_copy = locmods_copied[uid]
     elif moduletype == ModuleTypes.RELATION:
-        serialdict = {uid:RelationModuleSerializable(module_orig)}
-        module_copy = unserializerelationmodules(serialdict)[uid]
+        serialdict = {uid: RelationModuleSerializable(module_orig)}
+        module_copy = unserializerelationmodules(serialdict, makedeepcopy=True)[uid]
     elif moduletype in [ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION, ModuleTypes.NONMANUAL]:
         module_copy = deepcopy(module_orig)
 

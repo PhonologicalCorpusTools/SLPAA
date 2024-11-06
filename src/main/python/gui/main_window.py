@@ -93,6 +93,7 @@ class MainWindow(QMainWindow):
 
         self.corpus = None
         self.current_sign = None
+        self.copypaste_referencesign = None
 
         self.undostack = QUndoStack(parent=self)
         self.unsaved_changes = False  # a flag that tracks any unsaved changes.
@@ -1015,6 +1016,8 @@ class MainWindow(QMainWindow):
     #   (corpus view has focus --> copy signs)
     #   (sign summary scene has focus --> copy modules)
     def on_action_copy(self, clicked=None):
+        self.copypaste_referencesign = self.current_sign
+
         if self.corpus_display.corpus_view.hasFocus():
             self.clipboard = self.corpus_display.getselectedsigns()
         elif self.signsummary_panel.scene.hasFocus():
@@ -1023,140 +1026,162 @@ class MainWindow(QMainWindow):
             # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
 
+    # paste any modules that are on the clipboard
+    def paste_modules(self, listfromclipboard):
+        signtypemodules = [mod for mod in listfromclipboard if isinstance(mod, Signtype)]
+        for signtypemod in signtypemodules:
+            # if it's the same one as the sign we're already in (ie trying to copy/paste in same sign), do nothing
+            if self.current_sign.signtype == signtypemod:
+                pass  # do nothing
+            else:
+                self.current_sign.signtype = deepcopy(signtypemod)
+                self.signsummary_panel.refreshsign()
+
+        parametermodules = [mod for mod in listfromclipboard if isinstance(mod, ParameterModule)]
+        parameteruids = [mod.uniqueid for mod in parametermodules]
+
+        question1 = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
+        question1 += "Do you want to paste the associated module{suffix} too?"
+
+        i = 0
+        while i < len(parametermodules):
+            module = parametermodules[i]
+
+            if module.moduletype == ModuleTypes.RELATION and module.relationy.existingmodule:
+                linked_type = module.relationy.linkedmoduletype
+                if linked_type is not None:
+                    moduledict = self.copypaste_referencesign.getmoduledict(linked_type)
+                    missinganchors = [moduledict[linked_uid] for linked_uid in module.relationy.linkedmoduleids if
+                                      linked_uid > 0 and linked_uid not in parameteruids]
+                    if len(missinganchors) > 0:
+                        rel_abbrev = ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(
+                            self.copypaste_referencesign.relationmodulenumbers[module.uniqueid])
+                        suffix = "s" if len(missinganchors) > 1 else ""
+                        anchor_abbrevs_list = [ModuleTypes.abbreviations[linked_type] + str(
+                            self.copypaste_referencesign.getmodulenumbersdict(linked_type)[m.uniqueid]) for m in missinganchors]
+                        anchor_abbrevs = ", ".join(anchor_abbrevs_list)
+                        response = QMessageBox.question(self, "Paste associated module" + suffix,
+                                                        question1.format(mod_abbrev=rel_abbrev,
+                                                                         suffix=suffix,
+                                                                         linked_abbrevs=anchor_abbrevs))
+                        if response == QMessageBox.Yes:
+                            for m in missinganchors:
+                                parametermodules.append(m)
+                                parameteruids.append(m.uniqueid)
+
+            elif module.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                missingrels = list(self.copypaste_referencesign.relationmodules.values())
+                missingrels = [rel for rel in missingrels if
+                               (rel.relationy.existingmodule and
+                                module.uniqueid in rel.relationy.linkedmoduleids and
+                                rel.uniqueid not in parameteruids)]
+                if len(missingrels) > 0:
+                    anchor_abbrev = ModuleTypes.abbreviations[module.moduletype] + str(
+                        self.copypaste_referencesign.getmodulenumbersdict(module.moduletype)[module.uniqueid])
+                    suffix = "s" if len(missingrels) > 1 else ""
+                    rel_abbrevs_list = [ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(
+                        self.copypaste_referencesign.relationmodulenumbers[m.uniqueid]) for m in missingrels]
+                    rel_abbrevs = ", ".join(rel_abbrevs_list)
+                    response = QMessageBox.question(self, "Paste associated module" + suffix,
+                                                    question1.format(mod_abbrev=anchor_abbrev,
+                                                                     suffix=suffix,
+                                                                     linked_abbrevs=rel_abbrevs))
+                    if response == QMessageBox.Yes:
+                        for m in missingrels:
+                            parametermodules.append(m)
+                            parameteruids.append(m.uniqueid)
+
+            i += 1
+
+        # dict of float --> float where the keys are the original modules' uids,
+        #   and the values are their pasted deep-copied versions' new uids
+        uid_updates = {}
+        parametermodulestopaste = []
+        for mod in parametermodules:
+            copiedmod = deepcopymodule(mod)
+            parametermodulestopaste.append(copiedmod)
+            uid_updates[mod.uniqueid] = copiedmod.uniqueid
+        for mod in parametermodulestopaste:
+            if mod.moduletype == ModuleTypes.RELATION and mod.relationy.existingmodule:
+                linked_type = mod.relationy.linkedmoduletype
+                if linked_type is not None:
+                    anchor_uids = mod.relationy.linkedmoduleids
+                    mod.relationy.linkedmoduleids = [(uid_updates[a_uid] if a_uid in uid_updates.keys() else a_uid) for a_uid in anchor_uids]
+
+        self.current_sign.addmodules(parametermodulestopaste)
+        self.signsummary_panel.refreshsign()
+
+    # paste any signs that are on the clipboard
+    def paste_signs(self, listfromclipboard):
+        signstopaste = [Sign(serializedsign=itemtopaste.serialize(), makedeepcopy=True)
+                        # can't use deepcopy with Models
+                        for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
+        duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
+        duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
+
+        result = None
+        if len(duplicatedinfostrings) == 0:
+            # there were no duplicates; just paste everything
+            for signtopaste in signstopaste:
+                signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                self.corpus.add_sign(signtopaste)
+            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+            return
+        else:  # there were some duplicates; what does the user want to do?
+            duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
+            duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
+            result = duplicateinfodialog.exec_()
+
+            # do what the user decided
+            if result == QDialog.Rejected:
+                # user canceled; do not paste signs
+                return
+            elif result == QDialog.Accepted:
+                # user has decided what to do about the duplicates
+                for signidx, signtopaste in enumerate(signstopaste):
+                    signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+
+                    # open SLIs or not, as selected by user
+                    glossesduplicated, lemmaduplicated, idglossduplicated = duplicatedinfoflags[signidx]
+                    if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
+                        # user wants duplicated ID-glosses to be tagged to differentiate
+                        thisidgloss = signtopaste.signlevel_information.idgloss
+                        suffixmatches = re.match('.*-copy(\d+)$', thisidgloss)
+                        if not suffixmatches:
+                            # this one hasn't been tagged yet
+                            thisidgloss += "-copy1"
+                        # set the tag to be one higher than the max currently existing tag for this idgloss
+                        currentmax = self.corpus.highestIDglossindex(thisidgloss)
+                        nextnum = str(currentmax + 1)
+                        indexofnum = thisidgloss.index("-copy") + 5
+                        thisidgloss = thisidgloss[:indexofnum] + nextnum
+
+                        signtopaste.signlevel_information.idgloss = thisidgloss
+
+                    if (
+                            (glossesduplicated and self.edit_SLI["gloss"] == "edit")
+                            or (lemmaduplicated and self.edit_SLI["lemma"] == "edit")
+                            or (idglossduplicated and self.edit_SLI["idgloss"] == "edit")
+                    ):
+                        # user wants to view/edit at least one of the duplicated infos; open SLI dialog
+                        self.current_sign = None
+                        self.signlevel_panel.sign = signtopaste
+                        # SLI dialog is already able to deal with duplication of existing lemmas & idglosses
+                        self.signlevel_panel.handle_signlevelbutton_click()
+                    else:
+                        # user didn't want to view/edit any of the signs with duplicated infos; just paste
+                        self.corpus.add_sign(signtopaste)
+                        self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+
     def on_action_paste(self, clicked=None):
         listfromclipboard = self.clipboard if isinstance(self.clipboard, list) else [self.clipboard]
 
         if self.corpus_display.corpus_view.hasFocus():
             # focus is on the Corpus View, so we need to make sure we only paste clipboard object if they're Signs
-            signstopaste = [Sign(serializedsign=itemtopaste.serialize(), makedeepcopy=True)  # can't use deepcopy with Models
-                            for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
-            duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
-            duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
-
-            result = None
-            if len(duplicatedinfostrings) == 0:
-                # there were no duplicates; just paste everything
-                for signtopaste in signstopaste:
-                    signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
-                    self.corpus.add_sign(signtopaste)
-                self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
-                return
-            else:  # there were some duplicates; what does the user want to do?
-                duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
-                duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
-                result = duplicateinfodialog.exec_()
-
-                # do what the user decided
-                if result == QDialog.Rejected:
-                    # user canceled; do not paste signs
-                    return
-                elif result == QDialog.Accepted:
-                    # user has decided what to do about the duplicates
-                    for signidx, signtopaste in enumerate(signstopaste):
-                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
-
-                        # open SLIs or not, as selected by user
-                        glossesduplicated, lemmaduplicated, idglossduplicated = duplicatedinfoflags[signidx]
-                        if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
-                            # user wants duplicated ID-glosses to be tagged to differentiate
-                            thisidgloss = signtopaste.signlevel_information.idgloss
-                            suffixmatches = re.match('.*-copy(\d+)$', thisidgloss)
-                            if not suffixmatches:
-                                # this one hasn't been tagged yet
-                                thisidgloss += "-copy1"
-                            # set the tag to be one higher than the max currently existing tag for this idgloss
-                            currentmax = self.corpus.highestIDglossindex(thisidgloss)
-                            nextnum = str(currentmax + 1)
-                            indexofnum = thisidgloss.index("-copy") + 5
-                            thisidgloss = thisidgloss[:indexofnum] + nextnum
-
-                            signtopaste.signlevel_information.idgloss = thisidgloss
-
-                        if (
-                                (glossesduplicated and self.edit_SLI["gloss"] == "edit")
-                                or (lemmaduplicated and self.edit_SLI["lemma"] == "edit")
-                                or (idglossduplicated and self.edit_SLI["idgloss"] == "edit")
-                        ):
-                            # user wants to view/edit at least one of the duplicated infos; open SLI dialog
-                            self.current_sign = None
-                            self.signlevel_panel.sign = signtopaste
-                            # SLI dialog is already able to deal with duplication of existing lemmas & idglosses
-                            self.signlevel_panel.handle_signlevelbutton_click()
-                        else:
-                            # user didn't want to view/edit any of the signs with duplicated infos; just paste
-                            self.corpus.add_sign(signtopaste)
-                            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
-
+            self.paste_signs(listfromclipboard)
         elif self.signsummary_panel.scene.hasFocus():
             # focus is on the Sign Summary Panel, so we need to make sure we only paste clipboard object if they're modules
-            signtypemodules = [mod for mod in listfromclipboard if isinstance(mod, Signtype)]
-            for signtypemod in signtypemodules:
-                # if it's the same one as the sign we're already in (ie trying to copy/paste in same sign), do nothing
-                if self.current_sign.signtype == signtypemod:
-                    pass  # do nothing
-                else:
-                    # otherwise paste TODO but should we ask before overwriting?
-                    self.current_sign.signtype = deepcopy(signtypemod)
-                    self.signsummary_panel.refreshsign()
-
-            # TODO when copy/pasting a linked module but not its partner (mov or loc vs rel), ask user if they want to paste the partner(s) too
-            parametermodules = [mod for mod in listfromclipboard if isinstance(mod, ParameterModule)]
-            parameteruids = [mod.uniqueid for mod in parametermodules]
-
-            question1 = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
-            question1 += "Do you want to paste the associated module{suffix} too?"
-
-            i = 0
-            while i < len(parametermodules):
-                module = parametermodules[i]
-
-                if module.moduletype == ModuleTypes.RELATION and module.relationy.existingmodule:
-                    linked_type = module.relationy.linkedmoduletype
-                    if linked_type is not None:
-                        moduledict = self.current_sign.getmoduledict(linked_type)
-                        missinganchors = [moduledict[linked_uid] for linked_uid in module.relationy.linkedmoduleids if
-                                          linked_uid > 0 and linked_uid not in parameteruids]
-                        if len(missinganchors) > 0:
-                            rel_abbrev = ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(self.current_sign.relationmodulenumbers[module.uniqueid])
-                            suffix = "s" if len(missinganchors) > 1 else ""
-                            anchor_abbrevs_list = [ModuleTypes.abbreviations[linked_type] + str(self.current_sign.getmodulenumbersdict(linked_type)[m.uniqueid]) for m in missinganchors]
-                            anchor_abbrevs = ", ".join(anchor_abbrevs_list)
-                            response = QMessageBox.question(self, "Paste associated module" + suffix,
-                                                            question1.format(mod_abbrev=rel_abbrev,
-                                                                             suffix=suffix,
-                                                                             linked_abbrevs=anchor_abbrevs))
-                            if response == QMessageBox.Yes:
-                                for m in missinganchors:
-                                    parametermodules.append(m)
-                                    parameteruids.append(m.uniqueid)
-
-                elif module.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
-                    missingrels = list(self.current_sign.relationmodules.values())
-                    missingrels = [rel for rel in missingrels if
-                                   (rel.relationy.existingmodule and
-                                    module.uniqueid in rel.relationy.linkedmoduleids and
-                                    rel.uniqueid not in parameteruids)]
-                    if len(missingrels) > 0:
-                            anchor_abbrev = ModuleTypes.abbreviations[module.moduletype] + str(self.current_sign.getmodulenumbersdict(module.moduletype)[module.uniqueid])
-                            suffix = "s" if len(missingrels) > 1 else ""
-                            rel_abbrevs_list = [ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(self.current_sign.relationmodulenumbers[m.uniqueid]) for m in missingrels]
-                            rel_abbrevs = ", ".join(rel_abbrevs_list)
-                            response = QMessageBox.question(self, "Paste associated module" + suffix,
-                                                            question1.format(mod_abbrev=anchor_abbrev,
-                                                                             suffix=suffix,
-                                                                             linked_abbrevs=rel_abbrevs))
-                            if response == QMessageBox.Yes:
-                                for m in missingrels:
-                                    parametermodules.append(m)
-                                    parameteruids.append(m.uniqueid)
-
-                i += 1
-
-            # TODO need to update the linked uids in the relation module too - think about waterfall effects!
-            parametermodulestopaste = [deepcopymodule(mod) for mod in parametermodules]
-            self.current_sign.addmodules(parametermodulestopaste)
-            self.signsummary_panel.refreshsign()  # TODO isn't working properly for added rel modules
-
+            self.paste_modules(listfromclipboard)
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
