@@ -1352,7 +1352,21 @@ class MainWindow(QMainWindow):
                 modulenames.append("Sign Type")
             else:
                 # it's one of the timed parameter modules
-                modulenames.append(ModuleTypes.abbreviations[mtype] + str(self.current_sign.getmodulenumbersdict(mtype)[uid]))
+                module_abbrev = ModuleTypes.abbreviations[mtype] + str(self.current_sign.getmodulenumbersdict(mtype)[uid])
+                associated_relation_comment = ""
+                # if it's loc or mov check if there's an associated relation module(s)
+                if mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                    relationslist = list(self.current_sign.relationmodules.values())
+                    relationslist = [rel for rel in relationslist if (
+                            rel.relationy.existingmodule and uid in rel.relationy.linkedmoduleids)]
+                    if len(relationslist) > 0:
+                        rel_abbrevs = [ModuleTypes.abbreviations[ModuleTypes.RELATION] +
+                                       str(self.current_sign.relationmodulenumbers[relmod.uniqueid])
+                                           for relmod in relationslist]
+                        associated_relation_comment = " (has associated module" + ("s " if len(relationslist) > 1 else " ") + ", ".join(rel_abbrevs) + ")"
+
+                modulenames.append(module_abbrev + associated_relation_comment)
+
         modulenamesstring = "\n".join(modulenames)
 
         question1 = "Do you want to delete the following selected module"
