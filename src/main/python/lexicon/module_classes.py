@@ -111,7 +111,7 @@ def delay_uniqueid_reset(func):
 
 # TODO KV comments
 # TODO KV - for parameter modules and x-slots
-# common ancestor for (eg) HandshapeModule, MovementModule, etc
+# common ancestor for (eg) HandConfigurationModule, MovementModule, etc
 class ParameterModule:
 
     def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):

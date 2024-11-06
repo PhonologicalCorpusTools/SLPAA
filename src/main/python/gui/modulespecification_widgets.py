@@ -28,8 +28,8 @@ from PyQt5.QtGui import (
     QStandardItem,
 )
 
-from lexicon.module_classes import AddedInfo, PhonLocations, userdefinedroles as udr
-from constant import treepathdelimiter
+from lexicon.module_classes import AddedInfo, PhonLocations
+from constant import treepathdelimiter, userdefinedroles as udr
 
 
 class ModuleSpecificationPanel(QFrame):
