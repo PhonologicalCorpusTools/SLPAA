@@ -1066,7 +1066,7 @@ class MainWindow(QMainWindow):
                 question1 += "Note also that you must check for sign type compatibility (e.g. one-handed sign type vs "
                 question1 += "two-handed modules) yourself; SLP-AA has not done it for you. "
                 question1 += "Do you still want to paste the copied sign type into this sign?"
-                response = QMessageBox.question(self, "Paste sign type", question1,
+                response = QMessageBox.question(self, "Overwrite sign type", question1,
                                                 QMessageBox.Yes | QMessageBox.No)
                 if response == QMessageBox.Yes:
                     self.current_sign.signtype = deepcopy(signtypemod)
