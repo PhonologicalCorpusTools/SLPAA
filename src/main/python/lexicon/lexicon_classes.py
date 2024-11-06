@@ -188,8 +188,8 @@ class Sign:
             modulenum = self.getmodulenumbersdict(moduletype).pop(old_uniqueid)
 
             # set uniqueID and re-add content to dicts with new uniqueID
-            new_uniqueid = datetime.timestamp(datetime.now())
-            module.uniqueid = new_uniqueid
+            module.uniqueid_reset()
+            new_uniqueid = module.uniqueid
             self.getmoduledict(moduletype)[new_uniqueid] = module
             self.getmodulenumbersdict(moduletype)[new_uniqueid] = modulenum
 
