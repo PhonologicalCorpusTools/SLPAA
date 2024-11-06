@@ -391,6 +391,9 @@ class ModuleTypes:
         NONMANUAL: 'NonMan'
     }
 
+    parametertypes = list(abbreviations.keys())
+    parametertypes_relationfirst = [RELATION] + [mtype for mtype in parametertypes if mtype != 'relation']
+
 
 class UserDefinedRoles(dict):
     __getattr__ = dict.__getitem__

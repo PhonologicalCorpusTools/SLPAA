@@ -135,7 +135,7 @@ class ParameterModule:
     @moduletype.setter
     def moduletype(self, moduletype):
         # validate the input string
-        if moduletype in ModuleTypes.abbreviations.keys():
+        if moduletype in ModuleTypes.parametertypes:
             self._moduletype = moduletype
 
     @property

@@ -1029,7 +1029,7 @@ class MainWindow(QMainWindow):
         selectedmodule_uids_types = list(set([(btn.module_uniqueid, btn.moduletype) for btn in selectedmodulebuttons]))
         selectedmodules = []
         for uid, mtype in selectedmodule_uids_types:
-            if mtype not in ModuleTypes.abbreviations.keys():  # or if uid == 0
+            if mtype not in ModuleTypes.parametertypes:  # or if uid == 0
                 # then it's the signtype module
                 selectedmodules.append(self.current_sign.signtype)
             else:
