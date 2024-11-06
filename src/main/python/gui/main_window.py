@@ -1166,10 +1166,11 @@ class MainWindow(QMainWindow):
         result = None
         if len(duplicatedinfostrings) == 0:
             # there were no duplicates; just paste everything
-            for signtopaste in signstopaste:
-                signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
-                self.corpus.add_sign(signtopaste)
-            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+            if len(signstopaste) > 0:
+                for signtopaste in signstopaste:
+                    signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                    self.corpus.add_sign(signtopaste)
+                self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
             return
         else:  # there were some duplicates; what does the user want to do?
             duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
