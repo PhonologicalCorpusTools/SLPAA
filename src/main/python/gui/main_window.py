@@ -1054,18 +1054,29 @@ class MainWindow(QMainWindow):
 
     # paste any modules that are on the clipboard
     def paste_modules(self, listfromclipboard):
+        # deal with copy/pasting signtype, if applicable
         signtypemodules = [mod for mod in listfromclipboard if isinstance(mod, Signtype)]
         for signtypemod in signtypemodules:
             # if it's the same one as the sign we're already in (ie trying to copy/paste in same sign), do nothing
             if self.current_sign.signtype == signtypemod:
-                pass  # do nothing
+                pass
             else:
-                self.current_sign.signtype = deepcopy(signtypemod)
-                self.signsummary_panel.refreshsign()
+                # otherwise paste, once we've confirmed that the user is ok with overwriting
+                question1 = "You are about to overwrite the existing sign type for this sign. "
+                question1 += "Note also that you must check for sign type compatibility (e.g. one-handed sign type vs "
+                question1 += "two-handed modules) yourself; SLP-AA has not done it for you. "
+                question1 += "Do you still want to paste the copied sign type into this sign?"
+                response = QMessageBox.question(self, "Paste sign type", question1,
+                                                QMessageBox.Yes | QMessageBox.No)
+                if response == QMessageBox.Yes:
+                    self.current_sign.signtype = deepcopy(signtypemod)
+                    self.signsummary_panel.refreshsign()
 
+        # deal with copy/pasting other modules, if applicable
         parametermodules = [mod for mod in listfromclipboard if isinstance(mod, ParameterModule)]
         parameteruids = [mod.uniqueid for mod in parametermodules]
 
+        # when copy/pasting a linked module but not its partner (mov or loc vs rel), ask user if they want to paste the partner(s) too
         question1 = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
         question1 += "Do you want to paste the associated module{suffix} too?"
 
