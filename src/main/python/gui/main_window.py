@@ -1089,11 +1089,15 @@ class MainWindow(QMainWindow):
                         response = QMessageBox.question(self, "Paste associated module" + suffix,
                                                         question1.format(mod_abbrev=rel_abbrev,
                                                                          suffix=suffix,
-                                                                         linked_abbrevs=anchor_abbrevs))
-                        if response == QMessageBox.Yes:
+                                                                         linked_abbrevs=anchor_abbrevs),
+                                                        QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+                        if response == QMessageBox.Cancel:
+                            return
+                        elif response == QMessageBox.Yes:
                             for m in missinganchors:
                                 parametermodules.append(m)
                                 parameteruids.append(m.uniqueid)
+
 
             elif module.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
                 missingrels = list(self.copypaste_referencesign.relationmodules.values())
@@ -1111,8 +1115,11 @@ class MainWindow(QMainWindow):
                     response = QMessageBox.question(self, "Paste associated module" + suffix,
                                                     question1.format(mod_abbrev=anchor_abbrev,
                                                                      suffix=suffix,
-                                                                     linked_abbrevs=rel_abbrevs))
-                    if response == QMessageBox.Yes:
+                                                                     linked_abbrevs=rel_abbrevs),
+                                                    QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+                    if response == QMessageBox.Cancel:
+                        return
+                    elif response == QMessageBox.Yes:
                         for m in missingrels:
                             parametermodules.append(m)
                             parameteruids.append(m.uniqueid)
