@@ -182,6 +182,7 @@ class LocationTreeSerializable:
         self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
         self.defaultneutralselected = locntreemodel.defaultneutralselected
         self.defaultneutrallist = locntreemodel.defaultneutrallist
+        self.nodes_are_terminal = locntreemodel.nodes_are_terminal
 
         self.collectdatafromLocationTreeModel(treenode)
         

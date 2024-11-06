@@ -124,6 +124,9 @@ class SignLevelInfoPanel(QFrame):
         self.defaulthand = self.settings['signdefaults']['handdominance']
 
         self.signlevelinfo = signlevelinfo
+        self.create_and_set_layout()
+
+    def create_and_set_layout(self):
 
         main_layout = QFormLayout()
         main_layout.setSpacing(5)

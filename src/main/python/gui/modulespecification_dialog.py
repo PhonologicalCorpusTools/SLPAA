@@ -17,12 +17,17 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QListView,
     QAbstractItemView,
-    QPushButton
+    QPushButton,
+    QScrollArea,
+    QApplication
 )
 
 from PyQt5.QtCore import (
     Qt,
-    pyqtSignal
+    pyqtSignal,
+    QRect,
+    QSettings,
+    QSize
 )
 
 from gui.xslot_graphics import XslotLinkScene
@@ -49,6 +54,7 @@ class ModuleSelectorDialog(QDialog):
 
     def __init__(self, moduletype, xslotstructure=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         super().__init__(**kwargs)
+        self.qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
         self.mainwindow = self.parent().mainwindow
         self.moduletype = moduletype
         self.usearticulators = len(incl_articulators) > 0
@@ -89,7 +95,10 @@ class ModuleSelectorDialog(QDialog):
             if isinstance(moduletoload, LocationModule) or isinstance(moduletoload, MovementModule):
                 inphase = moduletoload.inphase
 
-        main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout()
+        moduleselector_scroll = QScrollArea(parent=self)
+        moduleselector_widget = ContainerWidget(parent=self)
+        self.moduleselector_layout = QVBoxLayout()
 
         self.arts_and_addedinfo_layout = QHBoxLayout()
         self.articulators_widget = None
@@ -101,7 +110,7 @@ class ModuleSelectorDialog(QDialog):
                                                                  parent=self)
             self.arts_and_addedinfo_layout.addWidget(self.articulators_widget)
 
-        self.phonloc_selection= PhonLocSelection(self.moduletype == ModuleTypes.LOCATION)
+        self.phonloc_selection = PhonLocSelection(self.moduletype == ModuleTypes.LOCATION)
         if phonlocstoload is not None:
             self.phonloc_selection.set_phonloc_buttons_from_content(phonlocstoload)
         self.arts_and_addedinfo_layout.addWidget(self.phonloc_selection)
@@ -111,39 +120,16 @@ class ModuleSelectorDialog(QDialog):
         self.arts_and_addedinfo_layout.addWidget(self.addedinfobutton)
         self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
-        main_layout.addLayout(self.arts_and_addedinfo_layout)
+        self.moduleselector_layout.addLayout(self.arts_and_addedinfo_layout)
         self.arts_and_addedinfo_layout.minimumSize()
 
-        self.xslot_widget = None
-        self.usexslots = False
-        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
-            self.usexslots = True
-            self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
-                                                  timingintervals=self.loaded_timingintervals,
-                                                  parent=self)
-            main_layout.addWidget(self.xslot_widget)
-
+        self.handle_xslot_widget(xslotstructure, self.loaded_timingintervals)
         self.module_widget = QWidget()
-        if self.moduletype == ModuleTypes.MOVEMENT:
-            self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif self.moduletype == ModuleTypes.LOCATION:
-            self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif moduletype == ModuleTypes.HANDCONFIG:
-            self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif self.moduletype == ModuleTypes.RELATION:
-            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
-            if self.usexslots:
-                self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
-                self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
-                self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
-            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
-        elif self.moduletype == ModuleTypes.NONMANUAL:
-            self.module_widget = NonManualSpecificationPanel(moduletoload=moduletoload, parent=self)
-        elif self.moduletype == ModuleTypes.ORIENTATION:
-            self.module_widget = OrientationSpecificationPanel(moduletoload=moduletoload, parent=self)
-        main_layout.addWidget(self.module_widget)
+
+        self.assign_module_widget(moduletype, moduletoload)
 
         self.handle_articulator_changed(articulators[0])
+        
         if self.usearticulators:
             self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
 
@@ -163,13 +149,75 @@ class ModuleSelectorDialog(QDialog):
                 self.module_widget.loctype_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
                 self.module_widget.signingspace_subgroup.buttonClicked.connect(self.check_enable_saveaddrelation)
 
-            main_layout.addWidget(self.associatedrelations_widget)
+            self.moduleselector_layout.addWidget(self.associatedrelations_widget)
+
+        moduleselector_widget.setLayout(self.moduleselector_layout)
+        moduleselector_scroll.setWidget(moduleselector_widget)
+        self.main_layout.addWidget(moduleselector_scroll)
 
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
         separate_line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(separate_line)
+        self.main_layout.addWidget(separate_line)
 
+        self.add_button_box(new_instance)
+
+        # self.setMinimumSize(QSize(500, 700))
+        # # self.setMinimumSize(modulelayout.desiredwidth(), modulelayout.desiredheight())
+        # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
+        # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # self.adjustSize()
+
+        # get first rendered widget heights and fix them.
+        if self.usearticulators:
+            self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
+        if self.usexslots:
+            self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
+        
+        self.setLayout(self.main_layout)
+        # set widget geometry to saved value if possible, else default
+        widget_geom = moduleselector_widget.geometry()
+        desiredgeometry = self.getdesiredgeometry(widget_geom)
+        self.setGeometry(desiredgeometry)
+
+        # get first rendered widget heights and fix them.
+        if self.usearticulators:
+            self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
+        if self.usexslots:
+            self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
+
+    def handle_xslot_widget(self, xslotstructure, timingintervals):
+        self.xslot_widget = None
+        self.usexslots = False
+        if self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none':
+            self.usexslots = True
+            self.xslot_widget = XslotLinkingPanel(xslotstructure=xslotstructure,
+                                                  timingintervals=self.loaded_timingintervals,
+                                                  parent=self)
+            self.moduleselector_layout.addWidget(self.xslot_widget)
+
+    def assign_module_widget(self, moduletype, moduletoload):
+        if self.moduletype == ModuleTypes.MOVEMENT:
+            self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif self.moduletype == ModuleTypes.LOCATION:
+            self.module_widget = LocationSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            self.module_widget = HandConfigSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif self.moduletype == ModuleTypes.RELATION:
+            self.module_widget = RelationSpecificationPanel(moduletoload=moduletoload, parent=self)
+            if self.usexslots:
+                self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
+                self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
+                self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
+            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+        elif self.moduletype == ModuleTypes.NONMANUAL:
+            self.module_widget = NonManualSpecificationPanel(moduletoload=moduletoload, parent=self)
+        elif self.moduletype == ModuleTypes.ORIENTATION:
+            self.module_widget = OrientationSpecificationPanel(moduletoload=moduletoload, parent=self)
+
+        self.moduleselector_layout.addWidget(self.module_widget)
+
+    def add_button_box(self, new_instance):
         # If we're creating a brand new instance of a module, then we want a
         #   "Save and Add Another" button, to allow the user to continue adding new instances.
         # On the other hand, if we're editing an existing instance of a module, then instead we want a
@@ -204,24 +252,40 @@ class ModuleSelectorDialog(QDialog):
         else:
             self.button_box.button(QDialogButtonBox.Save).setText("Save and add another")
 
-        # TODO KV keep? from orig locationdefinerdialog:
-        #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
 
-        main_layout.addWidget(self.button_box)
+        self.main_layout.addWidget(self.button_box)
 
-        self.setLayout(main_layout)
-        # self.setMinimumSize(QSize(500, 700))
-        # # self.setMinimumSize(modulelayout.desiredwidth(), modulelayout.desiredheight())
-        # self.setMinimumSize(QSize(modulelayout.rect().width(), modulelayout.rect().height()))
-        # self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # self.adjustSize()
 
-        # get first rendered widget heights and fix them.
-        if self.usearticulators:
-            self.articulators_widget.setFixedHeight(self.articulators_widget.sizeHint().height())
-        if self.usexslots:
-            self.xslot_widget.setFixedHeight(self.xslot_widget.sizeHint().height())
+    def getdesiredgeometry(self, widget_geom):
+        # check if there's a saved location & size for this module type dialog
+        # qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+        xywh = self.qsettings.value('display/dialoggeometry/' + self.moduletype, defaultValue=QRect(0, 0, 0, 0))
+
+        if xywh == QRect(0, 0, 0, 0):
+            # user hasn't opened this dialog before; display default geometry
+            return widget_geom
+        elif QApplication.instance().screenAt(xywh.topLeft()) is not None:
+            # user has opened the dialog before and left it in a spot where it will still be visible;
+            # open it in the saved location and just make sure it's not tiny for some reason
+            return QRect(xywh.topLeft(), QSize(max(480, xywh.width()), max(320, xywh.height())))
+        else:
+            # user has opened the dialog before but maybe moved it offscreen or decreased number of screens available;
+            # display default geometry
+            return widget_geom
+
+    def accept(self):
+        self.savedialoggeom()
+        super().accept()
+
+    def reject(self):
+        self.savedialoggeom()
+        super().reject()
+
+    def savedialoggeom(self):
+        # save (to settings) the last-used geometry for this dialog-- but no validity checking for location or size
+        # qsettings = QSettings()  # organization name & application name were set in MainWindow.__init__()
+        self.qsettings.setValue('display/dialoggeometry/' + self.moduletype, self.geometry())
 
     def handle_modulesaved(self, relationtosave, moduletype):
         self.module_saved.emit(relationtosave, moduletype)
@@ -417,6 +481,13 @@ class ModuleSelectorDialog(QDialog):
         return savedmodule
 
 
+class ContainerWidget(QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.mainwindow = self.parent().mainwindow
+        self.moduletype = self.parent().moduletype
+
+
 class AssociatedRelationsDialog(QDialog):
     module_saved = pyqtSignal(ParameterModule, str)
 
@@ -501,8 +572,6 @@ class AssociatedRelationsPanel(QFrame):
         self.check_enable_saveaddrelation()
         self.addrelation_button.clicked.connect(self.handle_save_add_relationmodule)
         self.seerelations_button = SeeRelationsPushButton("See associated Relation modules")
-        # TODO KV this button should be bolded when the list of such modules is nonempty
-        # self.seerelations_button = QPushButton("See associated Relation modules")
         self.seerelations_button.clicked.connect(self.handle_see_relationmodules)
 
         main_layout.addStretch()
@@ -626,13 +695,17 @@ class XslotLinkingPanel(QFrame):
     selection_changed = pyqtSignal(bool,  # has >= 1 point
                                    bool)  # has >= 1 interval
 
-    def __init__(self, xslotstructure, timingintervals=None, **kwargs):
+    def __init__(self, xslotstructure, timingintervals=None, partialxslots=None, **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
         self.timingintervals = [] if timingintervals is None else timingintervals
-        xslotstruct = self.mainwindow.current_sign.xslotstructure
-        if xslotstruct is None:
+        self.partialxslots = partialxslots
+        if xslotstructure is not None:
+            self.xslotstruct = xslotstructure
+        else:
+            self.xslotstruct = self.mainwindow.current_sign.xslotstructure
+        if self.xslotstruct is None:
             print("no x-slot structure!")
 
         main_layout = QVBoxLayout()

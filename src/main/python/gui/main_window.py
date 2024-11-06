@@ -50,6 +50,7 @@ from PyQt5.QtGui import (
 # Ref: https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html
 from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
+from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
@@ -188,6 +189,22 @@ class MainWindow(QMainWindow):
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
+
+        # merge corpora
+        action_merge_corpora = QAction("Merge corpora...", parent=self)
+        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
+        action_merge_corpora.setCheckable(False)
+
+        # export corpus in human-readable form
+        action_export_corpus = QAction("Export corpus...", parent=self)
+        action_export_corpus.triggered.connect(self.on_action_export_corpus)
+        action_export_corpus.setCheckable(False)
+
+        # search
+        action_search = QAction("Search", parent=self)
+        action_search.triggered.connect(self.on_action_search)
+        action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
+        action_search.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -369,7 +386,7 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
-
+        menu_analysis_beta.addAction(action_search)
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
         menu_help.addAction(action_help_main)
         menu_help.addAction(action_help_about)
@@ -414,7 +431,7 @@ class MainWindow(QMainWindow):
 
         self.open_initialization_window()
 
-    # TODO KV this needs an overhaul
+    # TODO this needs an overhaul - it's from the old (non-modular) version of SLPAA
     # GZ - missing compound sign attribute
     def on_action_export_handshape_transcription_csv(self):
         export_csv_dialog = ExportCSVDialog(self.app_settings, parent=self)
@@ -681,6 +698,11 @@ class MainWindow(QMainWindow):
             'corpora',
             defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'CORPORA'))
         )
+        self.app_settings['storage']['searches'] = self.app_qsettings.value('searches',
+                                                                           defaultValue=os.path.normpath(
+                                                                               os.path.join(
+                                                                                   os.path.expanduser('~/Documents'),
+                                                                                   'PCT', 'SLP-AA', 'SEARCHES')))
         self.app_settings['storage']['image'] = self.app_qsettings.value(
             'image',
             defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'IMAGE'))
@@ -781,7 +803,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('recent_folder', self.app_settings['storage']['recent_folder'])
         self.app_qsettings.setValue('corpora', self.app_settings['storage']['corpora'])
         self.app_qsettings.setValue('image', self.app_settings['storage']['image'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # storage
 
         self.app_qsettings.beginGroup('display')
         self.app_qsettings.setValue('size', self.size())  # MainWindow size
@@ -799,19 +821,19 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('sig_figs', self.app_settings['display']['sig_figs'])
         self.app_qsettings.setValue('tooltips', self.app_settings['display']['tooltips'])
         self.app_qsettings.setValue('fontsize', self.app_settings['display']['fontsize'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # display
 
         # We don't need to explicitly save any of the 'entryid' group values, because they are never cached
         # into self.app_settings; they're always directly saved to and referenced from QSettings in real time
 
         self.app_qsettings.beginGroup('metadata')
         self.app_qsettings.setValue('coder', self.app_settings['metadata']['coder'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # metadata
 
         self.app_qsettings.beginGroup('reminder')
         self.app_qsettings.setValue('overwrite', self.app_settings['reminder']['overwrite'])
         self.app_qsettings.setValue('duplicatelemma', self.app_settings['reminder']['duplicatelemma'])
-        self.app_qsettings.endGroup()
+        self.app_qsettings.endGroup()  # reminder
 
         self.app_qsettings.beginGroup('signdefaults')
         self.app_qsettings.setValue('handdominance', self.app_settings['signdefaults']['handdominance'])
@@ -858,6 +880,10 @@ class MainWindow(QMainWindow):
     def on_action_export_corpus(self):
         export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
         export_corpus_window.exec_()
+
+    def on_action_search(self):
+        self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
+        self.search_window.show()
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there

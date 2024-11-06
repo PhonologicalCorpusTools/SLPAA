@@ -1,5 +1,6 @@
 from fractions import Fraction
 from num2words import num2words
+import logging
 
 from PyQt5.QtWidgets import (
     QGraphicsRectItem,
@@ -432,10 +433,13 @@ class XslotLinkScene(QGraphicsScene):
         self.scene_height = 0
         self.x_offset = 10
 
-        xslotstruct = self.mainwindow.current_sign.xslotstructure
+        xslotstruct = self.parentwidget.xslotstruct
         self.numwholes = xslotstruct.number
         self.additionalfrac = xslotstruct.additionalfraction
-        partialxslots = self.mainwindow.app_settings['signdefaults']['partial_xslots']
+        if self.parentwidget.partialxslots is None:
+            partialxslots = self.mainwindow.app_settings['signdefaults']['partial_xslots']
+        else:
+            partialxslots = self.parentwidget.partialxslots
         self.avail_denoms = [Fraction(f).denominator for f in list(partialxslots.keys()) if partialxslots[f]]
         self.fractionalpoints = []
         for d in self.avail_denoms:
@@ -449,6 +453,8 @@ class XslotLinkScene(QGraphicsScene):
         # TODO KV do we need this modularity now that there's only one row of them?
         self.point_checkboxes = {}
         self.populate_checkboxes(self.point_checkboxes)
+        if len(self.point_checkboxes) == 0:
+            self.populate_start_end_checkboxes(self.point_checkboxes)
         self.add_checkboxes(self.point_checkboxes, yloc=0)
 
         self.add_rectangles(yloc=3*self.checkbox_size)
@@ -465,6 +471,8 @@ class XslotLinkScene(QGraphicsScene):
         # TODO KV do we need this modularity now that there's only one row of them?
         self.point_checkboxes = {}
         self.populate_checkboxes(self.point_checkboxes)
+        if len(self.point_checkboxes) == 0:
+            self.populate_start_end_checkboxes(self.point_checkboxes)
         self.add_checkboxes(self.point_checkboxes, yloc=0)
 
         self.add_rectangles(yloc=3*self.checkbox_size)
@@ -553,9 +561,14 @@ class XslotLinkScene(QGraphicsScene):
             idx += 1
 
         self.selection_changed.emit(haspoint, hasinterval)
+    
+    def populate_start_end_checkboxes(self, start_end):
+        start = XSlotCheckbox(1, 0, parentwidget=self, textsize=self.checkbox_size, checked=False)
+        end = XSlotCheckbox(1, 1, parentwidget=self, textsize=self.checkbox_size, checked=False)
+        start_end[(1,0)] = start
+        start_end[(1,1)] = end
 
     def populate_checkboxes(self, checkboxes):
-
         for whole in range(1, self.numwholes+1):
             for part in self.fractionalpoints:
                 checkthebox = False
@@ -580,12 +593,19 @@ class XslotLinkScene(QGraphicsScene):
             xloc_box = (cb.xslot_whole-1 + cb.xslot_part) * self.xslot_width + self.x_offset
             xloc_text = xloc_box
             if cb.xslot_part == 0:
-                textbox.setText("[ x" + str(k[0]))
+                if len(checkboxes) == 2: # only start and end points are required (no fractional xslots)
+                    textbox.setText("Start")
+                else:
+                    textbox.setText("[ x" + str(k[0]))
                 textbox.setAlign(Qt.AlignLeft)
                 xloc_box += 0.1 * self.checkbox_size
                 xloc_text = xloc_box
             elif cb.xslot_part == 1:
-                textbox.setText("x"+str(k[0])+" ]")
+                if len(checkboxes) == 2: # only start and end points are required (no fractional xslots)
+                    textbox.setText("End")
+                else:
+                    textbox.setText("x"+str(k[0])+" ]")
+                
                 textbox.setAlign(Qt.AlignRight)
                 xloc_text = xloc_box - (0.1*self.checkbox_size) - self.textbox_width
                 xloc_box -= 1.1 * self.checkbox_size
@@ -664,6 +684,7 @@ class XslotLinkScene(QGraphicsScene):
         # TODO do some more validity checking (are there even xslots?) before just going for it
 
         # for the fractional (and whole x-slot) rows
+        yloc_row = 2*self.rect_height
         denoms = list(set([f.denominator for f in self.fractionalpoints]))
         for idx, denom in enumerate(sorted(denoms, reverse=True)):
             yloc_row = yloc + idx*self.rect_height
