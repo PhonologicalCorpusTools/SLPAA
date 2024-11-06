@@ -311,15 +311,6 @@ class SignSummaryPanel(QScrollArea):
             if self.mainwindow.current_sign is not None:
                 self.sign = self.mainwindow.current_sign
 
-            self.relmodnums = self.sign.getmodulenumbersdict(ModuleTypes.RELATION)
-            self.relmods_hands_arms = []
-            self.relmods_other = []
-            for rmod in self.sign.getmoduledict(ModuleTypes.RELATION).values():
-                if rmod.usesarticulator(HAND) or rmod.usesarticulator(ARM):
-                    self.relmods_hands_arms.append(rmod)
-                else:
-                    self.relmods_other.append(rmod)
-
         for sceneitem in self.scene.items():
             self.scene.removeItem(sceneitem)
 
@@ -339,6 +330,15 @@ class SignSummaryPanel(QScrollArea):
 
         if self.sign is None:
             return
+
+        self.relmodnums = self.sign.getmodulenumbersdict(ModuleTypes.RELATION)
+        self.relmods_hands_arms = []
+        self.relmods_other = []
+        for rmod in self.sign.getmoduledict(ModuleTypes.RELATION).values():
+            if rmod.usesarticulator(HAND) or rmod.usesarticulator(ARM):
+                self.relmods_hands_arms.append(rmod)
+            else:
+                self.relmods_other.append(rmod)
 
         self.addsigntype()
         self.addxslots()
