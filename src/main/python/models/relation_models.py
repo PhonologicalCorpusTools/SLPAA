@@ -1,17 +1,13 @@
-from copy import copy
-
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
 )
 
 from PyQt5.QtCore import (
-    Qt,
-    QDateTime
+    Qt
 )
 
-from models.location_models import LocationTableModel, LocationTableSerializable, locn_options_hand, rb, ed, fx
-from constant import HAND, ARM, LEG, ARTICULATOR_ABBREVS, ModuleTypes, userdefinedroles as udr
+from constant import ARTICULATOR_ABBREVS, ModuleTypes
 
 
 class ModuleLinkingListModel(QStandardItemModel):

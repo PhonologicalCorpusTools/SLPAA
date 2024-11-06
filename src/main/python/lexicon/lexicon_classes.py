@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-from datetime import datetime
 from copy import deepcopy
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
