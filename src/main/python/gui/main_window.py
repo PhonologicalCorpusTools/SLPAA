@@ -63,7 +63,7 @@ from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
-from lexicon.module_classes import ParameterModule
+from lexicon.module_classes import ParameterModule, TimingPoint, TimingInterval
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 from constant import ModuleTypes
@@ -1062,11 +1062,11 @@ class MainWindow(QMainWindow):
                 pass
             else:
                 # otherwise paste, once we've confirmed that the user is ok with overwriting
-                question1 = "You are about to overwrite the existing sign type for this sign."
-                question1 += "\n\nNote also that you must check for sign type compatibility (e.g. one-handed sign type vs "
-                question1 += "two-handed modules) yourself; SLP-AA has not done it for you."
-                question1 += "\n\nDo you still want to paste the copied sign type into this sign?"
-                response = QMessageBox.question(self, "Overwrite sign type", question1,
+                signtype_q = "You are about to overwrite the existing sign type for this sign."
+                signtype_q += "\n\nNote also that you must check for sign type compatibility (e.g. one-handed sign type vs "
+                signtype_q += "two-handed modules) yourself; SLP-AA has not done it for you."
+                signtype_q += "\n\nDo you still want to paste the copied sign type into this sign?"
+                response = QMessageBox.question(self, "Overwrite sign type", signtype_q,
                                                 QMessageBox.Yes | QMessageBox.No)
                 if response == QMessageBox.Yes:
                     self.current_sign.signtype = deepcopy(signtypemod)
@@ -1076,9 +1076,29 @@ class MainWindow(QMainWindow):
         parametermodules = [mod for mod in listfromclipboard if isinstance(mod, ParameterModule)]
         parameteruids = [mod.uniqueid for mod in parametermodules]
 
+        # confirm that the user is ok with timing being reset to whole sign, in case of x-slot structure mismatch
+        mismatchedxslots_q = "The x-slot structures of the source and destination signs do not match."
+        mismatchedxslots_q += "\n\nEach pasted module will have its timing reset to the whole sign; "
+        mismatchedxslots_q += "you will need to open the pasted modules and re-specify timing for each."
+        reset_xslots = False
+
+        if len(parametermodules) > 0:
+            # check x-slot structure of source vs destination signs
+            xslots_src = self.copypaste_referencesign.xslotstructure
+            xslots_dest = self.current_sign.xslotstructure
+            if xslots_src != xslots_dest:
+                response = QMessageBox.question(self, "X-slot mismatch", mismatchedxslots_q,
+                                                QMessageBox.Ok | QMessageBox.Cancel)
+                if response == QMessageBox.Ok:
+                    # set a flag to reset all xslotstructures to whole-sign
+                    reset_xslots = True
+                else:
+                    # cancel the rest of the paste operation
+                    return
+
         # when copy/pasting a linked module but not its partner (mov or loc vs rel), ask user if they want to paste the partner(s) too
-        question1 = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
-        question1 += "Do you want to paste the associated module{suffix} too?"
+        associatedmods_q = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
+        associatedmods_q += "Do you want to paste the associated module{suffix} too?"
 
         i = 0
         while i < len(parametermodules):
@@ -1098,17 +1118,17 @@ class MainWindow(QMainWindow):
                             self.copypaste_referencesign.getmodulenumbersdict(linked_type)[m.uniqueid]) for m in missinganchors]
                         anchor_abbrevs = ", ".join(anchor_abbrevs_list)
                         response = QMessageBox.question(self, "Paste associated module" + suffix,
-                                                        question1.format(mod_abbrev=rel_abbrev,
+                                                        associatedmods_q.format(mod_abbrev=rel_abbrev,
                                                                          suffix=suffix,
                                                                          linked_abbrevs=anchor_abbrevs),
                                                         QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
                         if response == QMessageBox.Cancel:
+                            # cancel the rest of the paste operation
                             return
                         elif response == QMessageBox.Yes:
                             for m in missinganchors:
                                 parametermodules.append(m)
                                 parameteruids.append(m.uniqueid)
-
 
             elif module.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
                 missingrels = list(self.copypaste_referencesign.relationmodules.values())
@@ -1124,7 +1144,7 @@ class MainWindow(QMainWindow):
                         self.copypaste_referencesign.relationmodulenumbers[m.uniqueid]) for m in missingrels]
                     rel_abbrevs = ", ".join(rel_abbrevs_list)
                     response = QMessageBox.question(self, "Paste associated module" + suffix,
-                                                    question1.format(mod_abbrev=anchor_abbrev,
+                                                    associatedmods_q.format(mod_abbrev=anchor_abbrev,
                                                                      suffix=suffix,
                                                                      linked_abbrevs=rel_abbrevs),
                                                     QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
@@ -1143,6 +1163,9 @@ class MainWindow(QMainWindow):
         parametermodulestopaste = []
         for mod in parametermodules:
             copiedmod = deepcopymodule(mod)
+            if reset_xslots:
+                # set to "whole sign"
+                copiedmod.timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1))]
             parametermodulestopaste.append(copiedmod)
             uid_updates[mod.uniqueid] = copiedmod.uniqueid
         for mod in parametermodulestopaste:
