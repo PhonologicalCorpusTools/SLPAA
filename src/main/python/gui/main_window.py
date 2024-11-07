@@ -1078,8 +1078,7 @@ class MainWindow(QMainWindow):
 
         # confirm that the user is ok with timing being reset to whole sign, in case of x-slot structure mismatch
         mismatchedxslots_q = "The x-slot structures of the source and destination signs do not match."
-        mismatchedxslots_q += "\n\nEach pasted module will have its timing reset to the whole sign; "
-        mismatchedxslots_q += "you will need to open the pasted modules and re-specify timing for each."
+        mismatchedxslots_q += " If you proceed, you should manually check the timing options in the pasted module(s)."  # "Each pasted module will have its timing reset to the whole sign; "
         reset_xslots = False
 
         if len(parametermodules) > 0:
