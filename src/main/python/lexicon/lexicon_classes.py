@@ -53,7 +53,7 @@ class Sign:
     deepcopy is a boolean and determines whether the Sign re-created from serializedsign should be deep-copied
         (that is, should all the subcomponents such as modules etc also be copies instead of references to the original objects?)
     """
-    def __init__(self, signlevel_info=None, serializedsign=None, makedeepcopy=False):
+    def __init__(self, signlevel_info=None, serializedsign=None):
         if signlevel_info is not None:
             signlevel_info.parentsign = self
         self._signlevel_information = signlevel_info
@@ -82,98 +82,38 @@ class Sign:
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
 
-            # the remaining attributes will be re-created differently depending on whether this is a deep copy or not
-            # also note that relation *must* come before location
-            uid_updates = {}
+            # note that relation *must* come before location
             for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
-                uid_updates[moduletype] = self.loadmodules_and_numbering(serializedsign, moduletype, makedeepcopy=makedeepcopy)
+                self.loadmodules_and_numbering(serializedsign, moduletype)
 
-            if deepcopy:
-                # make sure any rel modules with associated mov or loc modules have their linked module IDs updated to the new version
-                for relmod in self.relationmodules.values():
-                    if relmod.relationy.existingmodule:
-                        linked_type = relmod.relationy.linkedmoduletype
-                        if linked_type is not None:
-                            orig_anchor_uids = relmod.relationy.linkedmoduleids
-                            relmod.relationy.linkedmoduleids = [uid_updates[linked_type][a_uid]for a_uid in orig_anchor_uids]
-
-    def loadmodules_and_numbering(self, serializedsign, moduletype, makedeepcopy=False):
-
-        # movement, relation, and location are all partially deep-copied already because of the need to serialize their underlying models
-        # however, we will still need to assign new unique IDs to the copies in order to fully deep-copy these modules
+    def loadmodules_and_numbering(self, serializedsign, moduletype):
         if moduletype == ModuleTypes.MOVEMENT:
             self.movementmodules = unserializemovementmodules(serializedsign['mov modules'])
-            if makedeepcopy:
-                self.movementmodulenumbers = deepcopy(serializedsign['mov module numbers']) \
-                    if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            else:
-                self.movementmodulenumbers = serializedsign['mov module numbers'] \
-                    if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            self.movementmodulenumbers = serializedsign['mov module numbers'] \
+                if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.RELATION:
             # backward compatibility
-            self.relationmodules = unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'], makedeepcopy=makedeepcopy)
-            if makedeepcopy:
-                self.relationmodulenumbers = deepcopy(serializedsign['rel module numbers']) \
-                    if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            else:
-                self.relationmodulenumbers = serializedsign['rel module numbers'] \
-                    if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            self.relationmodules = unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'])
+            self.relationmodulenumbers = serializedsign['rel module numbers'] \
+                if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.LOCATION:
             locmodules, relmodules = unserializelocationmodules(serializedsign['loc modules'])
             self.addmodules(relmodules)
             self.locationmodules = locmodules
-            if makedeepcopy:
-                self.locationmodulenumbers = deepcopy(serializedsign['loc module numbers']) \
-                    if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            else:
-                self.locationmodulenumbers = serializedsign['loc module numbers'] \
-                    if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-
-        # if we are doing a deep copy, then orientation, handconfig, and nonmanual will need to have
-        #   both their content deep-copied and their unique IDs redone in order to fully deep-copy
-        if moduletype in [ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
-            if moduletype == ModuleTypes.ORIENTATION:
-                if makedeepcopy:
-                    self.orientationmodules = deepcopy(serializedsign['ori modules'])
-                    self.orientationmodulenumbers = deepcopy(serializedsign['ori module numbers']) \
-                        if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-                else:
-                    self.orientationmodules = serializedsign['ori modules']
-                    self.orientationmodulenumbers = serializedsign['ori module numbers'] \
-                        if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            elif moduletype == ModuleTypes.HANDCONFIG:
-                if makedeepcopy:
-                    self.handconfigmodules = deepcopy(serializedsign['cfg modules'])
-                    self.handconfigmodulenumbers = deepcopy(serializedsign['cfg module numbers']) \
-                        if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-                else:
-                    self.handconfigmodules = serializedsign['cfg modules']
-                    self.handconfigmodulenumbers = serializedsign['cfg module numbers'] \
-                        if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            elif moduletype == ModuleTypes.NONMANUAL:
-                if makedeepcopy:
-                    self.nonmanualmodules = deepcopy(serializedsign['nonman modules']) if 'nonman modules' in serializedsign else {}
-                    self.nonmanualmodulenumbers = deepcopy(serializedsign['nonman module numbers']) \
-                        if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-                else:
-                    self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
-                    self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
-                        if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-
-            # for any of orientation, hand config, nonmanual:
-            if makedeepcopy:
-                for uniqueid in self.getmoduledict(moduletype).keys():
-                    self.getmoduledict(moduletype)[uniqueid] = deepcopy(self.getmoduledict(moduletype)[uniqueid])
-
-        # for any type of module
-        if makedeepcopy:
-            # re-ID the modules
-            uid_updates = self.reIDmodules(moduletype)
-        else:
-            # don't need to re-ID
-            uid_updates = {uid: uid for uid in self.getmoduledict(moduletype).keys()}
-
-        return uid_updates
+            self.locationmodulenumbers = serializedsign['loc module numbers'] \
+                if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.ORIENTATION:
+            self.orientationmodules = serializedsign['ori modules']
+            self.orientationmodulenumbers = serializedsign['ori module numbers'] \
+                if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            self.handconfigmodules = serializedsign['cfg modules']
+            self.handconfigmodulenumbers = serializedsign['cfg module numbers'] \
+                if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.NONMANUAL:
+            self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
+            self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
+                if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
 
     def reIDmodules(self, moduletype):
         # dict of float --> float where the keys are the original modules' uids,
@@ -489,7 +429,7 @@ def unserializelocationmodules(serialized_locnmodules):
     return unserialized, convertedrelationmodules
 
 
-def unserializerelationmodules(serialized_relmodules, makedeepcopy=False):
+def unserializerelationmodules(serialized_relmodules):
     unserialized = {}
     for k in serialized_relmodules.keys():
         serialmodule = serialized_relmodules[k]
@@ -498,7 +438,9 @@ def unserializerelationmodules(serialized_relmodules, makedeepcopy=False):
         addedinfo = serialmodule.addedinfo
         phonlocs = serialmodule.phonlocs
         relationx = serialmodule.relationx
-        relationy = deepcopy(serialmodule.relationy) if makedeepcopy else serialmodule.relationy
+        # deepcopy for linked modules in relationy is necessary in case this function is being used to
+        #   deep-copy relation modules (and no problem if it's not)
+        relationy = deepcopy(serialmodule.relationy)
         bodyparts_dict = {
             HAND: {
                 1: BodypartInfo(

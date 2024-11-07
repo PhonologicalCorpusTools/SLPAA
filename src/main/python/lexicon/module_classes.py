@@ -128,7 +128,6 @@ class ParameterModule:
     def moduletype(self):
         if not hasattr(self, '_moduletype'):
             # for backward compatibility with pre-20241018 parameter modules
-            print("moduletype backward compatibility")
             self._moduletype = ""
         return self._moduletype
 

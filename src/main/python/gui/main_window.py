@@ -67,7 +67,7 @@ from lexicon.module_classes import ParameterModule
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 from constant import ModuleTypes
-from lexicon.module_utils import deepcopymodule
+from lexicon.module_utils import deepcopymodule, deepcopysign
 
 
 class SubWindow(QMdiSubWindow):
@@ -1062,10 +1062,10 @@ class MainWindow(QMainWindow):
                 pass
             else:
                 # otherwise paste, once we've confirmed that the user is ok with overwriting
-                question1 = "You are about to overwrite the existing sign type for this sign. "
-                question1 += "Note also that you must check for sign type compatibility (e.g. one-handed sign type vs "
-                question1 += "two-handed modules) yourself; SLP-AA has not done it for you. "
-                question1 += "Do you still want to paste the copied sign type into this sign?"
+                question1 = "You are about to overwrite the existing sign type for this sign."
+                question1 += "\n\nNote also that you must check for sign type compatibility (e.g. one-handed sign type vs "
+                question1 += "two-handed modules) yourself; SLP-AA has not done it for you."
+                question1 += "\n\nDo you still want to paste the copied sign type into this sign?"
                 response = QMessageBox.question(self, "Overwrite sign type", question1,
                                                 QMessageBox.Yes | QMessageBox.No)
                 if response == QMessageBox.Yes:
@@ -1157,7 +1157,7 @@ class MainWindow(QMainWindow):
 
     # paste any signs that are on the clipboard
     def paste_signs(self, listfromclipboard):
-        signstopaste = [Sign(serializedsign=itemtopaste.serialize(), makedeepcopy=True)
+        signstopaste = [deepcopysign(itemtopaste)
                         # can't use deepcopy with Models
                         for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
         duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
