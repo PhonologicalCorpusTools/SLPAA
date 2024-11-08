@@ -380,15 +380,24 @@ class CompareSignsDialog(QDialog):
         self.populate_trees(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
 
         # Update counters, now as the trees are all populated.
-        colour_counts = self.count_coloured_lines()
-        self.overall_colour_counter_sign1.update_counter(colour_counts)
+        colour_counts_sign1 = self.count_coloured_lines(self.tree1)
+        colour_counts_sign2 = self.count_coloured_lines(self.tree2)
+
+        self.overall_colour_counter_sign1.update_counter(colour_counts_sign1)
+        self.overall_colour_counter_sign2.update_counter(colour_counts_sign2)
         self.update_current_counters()
 
     def update_current_counters(self):
-        counts_current = self.count_coloured_lines(only_visible_now=True)
-        self.current_colour_counter_sign1.update_counter('red', counts_current.get('red', 0))
-        self.current_colour_counter_sign1.update_counter('yellow', counts_current.get('yellow', 0))
-        self.current_colour_counter_sign1.update_counter('blue', counts_current.get('blue', 0))
+        counts_current_sign1 = self.count_coloured_lines(tree=self.tree1, only_visible_now=True)
+        counts_current_sign2 = self.count_coloured_lines(tree=self.tree2, only_visible_now=True)
+
+        self.current_colour_counter_sign1.update_counter('red', counts_current_sign1.get('red', 0))
+        self.current_colour_counter_sign1.update_counter('yellow', counts_current_sign1.get('yellow', 0))
+        self.current_colour_counter_sign1.update_counter('blue', counts_current_sign1.get('blue', 0))
+
+        self.current_colour_counter_sign2.update_counter('red', counts_current_sign2.get('red', 0))
+        self.current_colour_counter_sign2.update_counter('yellow', counts_current_sign2.get('yellow', 0))
+        self.current_colour_counter_sign2.update_counter('blue', counts_current_sign2.get('blue', 0))
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
@@ -483,13 +492,13 @@ class CompareSignsDialog(QDialog):
                 return None  # Return None if the item in the path doesn't exist
         return current  # Return the found corresponding item
 
-    def count_coloured_lines(self, only_visible_now=False):
+    def count_coloured_lines(self, tree, only_visible_now=False):
         # traverse the trees and count the number of colours
         # only_visible_now: bool. count only colours that are currently visible
         counts = {'red': 0, 'yellow': 0, 'blue': 0}
 
         def walk_tree(item, tree, fully_visible=True):
-            # decide whether the current item is visible
+            # this conditional decides whether the current item is visible
             if item.parent() is None:
                 # no parent means the item is the root.
                 item_visible = fully_visible
@@ -512,15 +521,13 @@ class CompareSignsDialog(QDialog):
             if bg_color in counts:
                 counts[bg_color] += 1
 
-
             # recursively apply walk_tree to the children
             for i in range(item.childCount()):
                 walk_tree(item.child(i), tree, item_visible)
 
-        # for both trees
-        for tree in [self.tree1, self.tree2]:
-            root = tree.invisibleRootItem()
-            for i in range(root.childCount()):
-                walk_tree(root.child(i), tree, fully_visible=True)
+        # for one tree (given as the 'tree' parameter)
+        root = tree.invisibleRootItem()
+        for i in range(root.childCount()):
+            walk_tree(root.child(i), tree, fully_visible=True)
 
         return counts
