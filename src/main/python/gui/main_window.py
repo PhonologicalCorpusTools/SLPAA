@@ -256,11 +256,11 @@ class MainWindow(QMainWindow):
         action_new_sign.setCheckable(False)
 
         # delete sign
-        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign(s)', parent=self)
+        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete', parent=self)
         self.action_delete_sign.setEnabled(False)
-        self.action_delete_sign.setStatusTip('Delete the selected sign(s)')
+        self.action_delete_sign.setStatusTip('Delete the selected sign(s) or module(s)')
         self.action_delete_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Delete))
-        self.action_delete_sign.triggered.connect(self.on_action_delete_signs)
+        self.action_delete_sign.triggered.connect(self.on_action_delete)
         self.action_delete_sign.setCheckable(False)
 
         # preferences
@@ -666,7 +666,7 @@ class MainWindow(QMainWindow):
     #   "copy", "paste", or "delete"
     def handle_moduleaction_selected(self, action_str):
         if action_str == "delete":
-            self.on_action_delete_modules()
+            self.delete_modules()
         elif action_str == "copy":
             self.on_action_copy()
         elif action_str == "paste":
@@ -678,7 +678,7 @@ class MainWindow(QMainWindow):
         if action_str == "edit":
             self.on_action_edit_signs()
         elif action_str == "delete":
-            self.on_action_delete_signs()
+            self.on_action_delete()
         elif action_str == "copy":
             self.on_action_copy()
         elif action_str == "paste":
@@ -1360,9 +1360,21 @@ class MainWindow(QMainWindow):
             # edit the sign-level info
             self.signlevel_panel.handle_signlevelbutton_click()
 
+    # deletes the items currently selected in whichever panel has focus
+    #   (corpus view has focus --> delete signs)
+    #   (sign summary scene has focus --> delete modules)
+    def on_action_delete(self, clicked=None):
+        if self.corpus_display.corpus_view.hasFocus():
+            self.delete_signs()
+        elif self.signsummary_panel.scene.hasFocus():
+            self.delete_modules()
+        else:
+            # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
+            pass
+
     # optionally provide a list of modules to delete, referenced by tuples of (uniqueid, moduletype)
     # if uids_types argument is not used, then the function deletes the modules currently selected in the sign summary panel
-    def on_action_delete_modules(self, clicked=None, uids_types=None):
+    def delete_modules(self, uids_types=None):
         if uids_types is None:
             selectedmodulebuttons = self.signsummary_panel.selectedmodulebuttons()
             # two buttons might point to the same module so make sure we don't report duplicated modules
@@ -1403,7 +1415,7 @@ class MainWindow(QMainWindow):
 
     # optionally provide a list of Signs to delete
     # if signs argument is not used, then the function deletes the signs currently selected in the corpus view
-    def on_action_delete_signs(self, clicked=None, signs=None):
+    def delete_signs(self, clicked=None, signs=None):
         if signs is None:
             signs = self.corpus_display.getselectedsigns()
 
