@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt
 from compare_signs.compare_models import CompareModel
 from compare_signs.compare_helpers import qcolor_to_rgba_str
 
+
 class ColourCounter(QWidget):
     # ColourCounter shows the number of colours in the tree
     def __init__(self, palette):
@@ -17,13 +18,24 @@ class ColourCounter(QWidget):
         # red, yellow blue rgba to be used for creating label background
         rgba_dict = {key: qcolor_to_rgba_str(brush.color()) for key, brush in palette.items()}
 
-        # Create three sections with color, text, and number
-        self.red_counter, self.red_many = self.gen_colour_counter_label("Mismatch", "1", rgba_dict['red'])
-        self.yellow_counter, self.yellow_many = self.gen_colour_counter_label("No\nCorrespondence", "2", rgba_dict['yellow'])
-        self.blue_counter, self.blue_many = self.gen_colour_counter_label("Match", "3", rgba_dict['blue'])
-        self.layout.addLayout(self.red_counter)
-        self.layout.addLayout(self.yellow_counter)
-        self.layout.addLayout(self.blue_counter)
+        # what we mean by each colour
+        colour_mapping = [
+            ('red', 'Mismatch'),
+            ('yellow', 'No\nCorrespondence'),
+            ('blue', 'Match')
+        ]
+
+        # create a set of colour counters ('all expanded', 'current' and 'all collapsed')
+        self.counters = {}
+
+        for colour_key, meaning in colour_mapping:
+            counter_layout, count_label = self.gen_colour_counter_label(text=meaning,
+                                                                        count='999',  # just a random number
+                                                                        color=rgba_dict[colour_key])
+            self.layout.addLayout(counter_layout)
+            setattr(self, f'{colour_key}_counter', counter_layout)
+            setattr(self, f'{colour_key}_many', count_label)
+            self.counters[colour_key] = count_label   # just for easy access...
 
         self.setLayout(self.layout)
 
@@ -57,8 +69,9 @@ class ColourCounter(QWidget):
                 self.update_counter(label=label, new_count=count)
             return
 
-        label_txt = getattr(self, f'{label}_many')
-        label_txt.setText(f"{new_count}")
+        label_txt = self.counters.get(label)
+        if label_txt:
+            label_txt.setText(f"{new_count}")
 
 
 class CompareTreeWidgetItem(QTreeWidgetItem):
@@ -75,8 +88,12 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         # imagine each tree item carries a palette and use it to change background colour
         self.palette = palette
 
+        self.is_root: bool = False
+        if self._text in ['movement', 'relation']:
+            self.is_root = True
+
         self.is_label: bool = False
-        if self._text.startswith(('H1', 'H2')) or self._text in ['movement', 'relation']:
+        if self._text.startswith(('H1', 'H2')) or self.is_root:
             self.is_label = True
 
     def __repr__(self):
@@ -129,17 +146,17 @@ class CompareSignsDialog(QDialog):
         self.tree1.setHeaderLabel("Sign 1")
         self.tree2.setHeaderLabel("Sign 2")
 
-        # Gen colour counters for Sign1
-        self.overall_colour_counter_sign1 = ColourCounter(palette=self.palette)
-        self.current_colour_counter_sign1 = ColourCounter(palette=self.palette)
-        sign1_counters = {'overall': self.overall_colour_counter_sign1,
-                          'current': self.current_colour_counter_sign1}
+        # Gen colour counters for two signs
+        sign1_counters = self.initialize_sign_counters()
+        sign2_counters = self.initialize_sign_counters()
 
-        # Gen colour counters for Sign2
-        self.overall_colour_counter_sign2 = ColourCounter(palette=self.palette)
-        self.current_colour_counter_sign2 = ColourCounter(palette=self.palette)
-        sign2_counters = {'overall': self.overall_colour_counter_sign2,
-                          'current': self.current_colour_counter_sign2}
+        self.overall_colour_counter_sign1 = sign1_counters['all expanded']
+        self.current_colour_counter_sign1 = sign1_counters['current']
+        self.collapsed_colour_counter_sign1 = sign1_counters['all collapsed']
+
+        self.overall_colour_counter_sign2 = sign2_counters['all expanded']
+        self.current_colour_counter_sign2 = sign2_counters['current']
+        self.collapsed_colour_counter_sign2 = sign2_counters['all collapsed']
 
         # Vertical layout for signs 1 and 2 (i.e., tree and counters)
         sign1_layout = self.initialize_sign_layout(self.tree1, sign1_counters)
@@ -178,6 +195,12 @@ class CompareSignsDialog(QDialog):
 
         # flag to prevent infinite recursion of the `sync_scrollbars` method...
         self.syncing_scrollbars = False
+
+    def initialize_sign_counters(self):
+        # generate a dictionary of ColourCounters for a sign
+        palette = self.palette
+        counter_kinds = ['all expanded', 'current', 'all collapsed']
+        return {key: ColourCounter(palette=palette) for key in counter_kinds}
 
     def initialize_dropdown(self):
         idgloss_list = self.corpus.get_all_idglosses()
@@ -369,24 +392,22 @@ class CompareSignsDialog(QDialog):
         self.populate_trees(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
 
         # Update counters, now as the trees are all populated.
-        colour_counts_sign1 = self.count_coloured_lines(self.tree1)
-        colour_counts_sign2 = self.count_coloured_lines(self.tree2)
+        colour_counts_sign1, root_colour_counts_sign1 = self.count_coloured_lines(self.tree1)
+        colour_counts_sign2, root_colour_counts_sign2 = self.count_coloured_lines(self.tree2)
 
-        self.overall_colour_counter_sign1.update_counter(colour_counts_sign1)
-        self.overall_colour_counter_sign2.update_counter(colour_counts_sign2)
+        self.overall_colour_counter_sign1.update_counter(colour_counts_sign1)  # update 'all expanded' for 1
+        self.overall_colour_counter_sign2.update_counter(colour_counts_sign2)  # update 'all expanded' for 2
+        self.collapsed_colour_counter_sign1.update_counter(root_colour_counts_sign1)
+        self.collapsed_colour_counter_sign2.update_counter(root_colour_counts_sign2)
+
         self.update_current_counters()
 
     def update_current_counters(self):
-        counts_current_sign1 = self.count_coloured_lines(tree=self.tree1, only_visible_now=True)
-        counts_current_sign2 = self.count_coloured_lines(tree=self.tree2, only_visible_now=True)
+        counts_current_sign1, _ = self.count_coloured_lines(tree=self.tree1, only_visible_now=True)
+        counts_current_sign2, _ = self.count_coloured_lines(tree=self.tree2, only_visible_now=True)
 
-        self.current_colour_counter_sign1.update_counter('red', counts_current_sign1.get('red', 0))
-        self.current_colour_counter_sign1.update_counter('yellow', counts_current_sign1.get('yellow', 0))
-        self.current_colour_counter_sign1.update_counter('blue', counts_current_sign1.get('blue', 0))
-
-        self.current_colour_counter_sign2.update_counter('red', counts_current_sign2.get('red', 0))
-        self.current_colour_counter_sign2.update_counter('yellow', counts_current_sign2.get('yellow', 0))
-        self.current_colour_counter_sign2.update_counter('blue', counts_current_sign2.get('blue', 0))
+        self.current_colour_counter_sign1.update_counter(counts_current_sign1)
+        self.current_colour_counter_sign2.update_counter(counts_current_sign2)
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
@@ -482,9 +503,12 @@ class CompareSignsDialog(QDialog):
         return current  # Return the found corresponding item
 
     def count_coloured_lines(self, tree, only_visible_now=False):
-        # traverse the trees and count the number of colours
+        # traverse the trees and count the number of colours (both all collapsed and all expanded)
         # only_visible_now: bool. count only colours that are currently visible
-        counts = {'red': 0, 'yellow': 0, 'blue': 0}
+
+        # initialize counters
+        counts = {'red': 0, 'yellow': 0, 'blue': 0}  # for 'all expanded'
+        counts_roots = {'red': 0, 'yellow': 0, 'blue': 0}  # for 'all collapsed'
 
         def walk_tree(item, tree, fully_visible=True):
             # this conditional decides whether the current item is visible
@@ -508,7 +532,12 @@ class CompareSignsDialog(QDialog):
                     bg_color = item.current_bg
 
             if bg_color in counts:
+                # update 'all expanded' counter
                 counts[bg_color] += 1
+
+                if item.is_root:
+                    # if the line is root (e.g., movement, relation ...) count its colour for 'all collapsed'
+                    counts_roots[bg_color] += 1
 
             # recursively apply walk_tree to the children
             for i in range(item.childCount()):
@@ -519,4 +548,4 @@ class CompareSignsDialog(QDialog):
         for i in range(root.childCount()):
             walk_tree(root.child(i), tree, fully_visible=True)
 
-        return counts
+        return counts, counts_roots
