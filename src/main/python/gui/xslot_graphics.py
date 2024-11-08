@@ -354,13 +354,13 @@ class SignSummaryScene(QGraphicsScene):
         super().mouseReleaseEvent(event)
 
         itemsatclick = self.items(QPointF(event.scenePos().x(), event.scenePos().y()))
-        for sceneitem in itemsatclick:
-            if isinstance(sceneitem, XslotRectModuleButton) or isinstance(sceneitem, XslotEllipseModuleButton):
-                return  # don't do anything, because the menu will be spawned by the module button
-
-        # if we've run through all the items at the click point and none of them are module buttons,
-        #   then show the menu via the scene background
-        self.scenebg_clicked.emit(1, event)
+        modulebuttonsatclick = [sceneitem for sceneitem in itemsatclick if isinstance(sceneitem, XslotRectModuleButton) or isinstance(sceneitem, XslotEllipseModuleButton)]
+        if len(modulebuttonsatclick) > 0:
+            return  # don't do anything, because the menu will be spawned by the module button
+        else:
+            # we've run through all the items at the click point and none of them are module buttons,
+            #   so show the menu via the scene background
+            self.scenebg_clicked.emit(1, event)
 
 
 class XSlotCheckbox(QGraphicsRectItem):
