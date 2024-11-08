@@ -150,21 +150,17 @@ class CompareSignsDialog(QDialog):
         sign1_counters = self.initialize_sign_counters()
         sign2_counters = self.initialize_sign_counters()
 
-        self.overall_colour_counter_sign1 = sign1_counters['all expanded']
-        self.current_colour_counter_sign1 = sign1_counters['current']
-        self.collapsed_colour_counter_sign1 = sign1_counters['all collapsed']
+        self.expanded_colour_counter_1 = sign1_counters['all expanded']
+        self.current_colour_counter_1 = sign1_counters['current']
+        self.collapsed_colour_counter_1 = sign1_counters['all collapsed']
 
-        self.overall_colour_counter_sign2 = sign2_counters['all expanded']
-        self.current_colour_counter_sign2 = sign2_counters['current']
-        self.collapsed_colour_counter_sign2 = sign2_counters['all collapsed']
+        self.expanded_colour_counter_2 = sign2_counters['all expanded']
+        self.current_colour_counter_2 = sign2_counters['current']
+        self.collapsed_colour_counter_2 = sign2_counters['all collapsed']
 
         # Vertical layout for signs 1 and 2 (i.e., tree and counters)
-        sign1_layout = self.initialize_sign_layout(self.tree1, sign1_counters)
-        sign2_layout = self.initialize_sign_layout(self.tree2, sign2_counters)
-        tree_counter_layout = QHBoxLayout()
-        tree_counter_layout.addLayout(sign1_layout)
-        tree_counter_layout.addLayout(sign2_layout)
-        layout.addLayout(tree_counter_layout)
+        sign_tree_and_counters_layout = self.initialize_signs_layout(sign1_counters, sign2_counters)
+        layout.addLayout(sign_tree_and_counters_layout)
 
         # Add OK and Cancel buttons
         button_layout = QHBoxLayout()
@@ -177,6 +173,7 @@ class CompareSignsDialog(QDialog):
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
+        # -- done creating main layout
 
         self.update_trees()
 
@@ -218,13 +215,21 @@ class CompareSignsDialog(QDialog):
         layout.addWidget(self.sign2_dropdown)
         return layout
 
-    def initialize_sign_layout(self, tree, counters):
-        sign_layout = QVBoxLayout()
-        sign_layout.addWidget(tree)
-        for k, v in counters.items():
-            sign_layout.addWidget(QLabel(k.capitalize()))
-            sign_layout.addWidget(v)
-        return sign_layout
+    def initialize_signs_layout(self, counters_1, counters_2):
+        def gen_sign_layout(tree, counters):
+            sign_layout = QVBoxLayout()
+            sign_layout.addWidget(tree)
+            for k, v in counters.items():
+                sign_layout.addWidget(QLabel(k.capitalize()))
+                sign_layout.addWidget(v)
+            return sign_layout
+
+        sign1_layout = gen_sign_layout(self.tree1, counters_1)
+        sign2_layout = gen_sign_layout(self.tree2, counters_2)
+        tree_counter_layout = QHBoxLayout()
+        tree_counter_layout.addLayout(sign1_layout)
+        tree_counter_layout.addLayout(sign2_layout)
+        return tree_counter_layout
 
     def sync_scrollbars(self, scrolled_value, other_tree):
         if not self.syncing_scrollbars:
@@ -395,10 +400,10 @@ class CompareSignsDialog(QDialog):
         colour_counts_sign1, root_colour_counts_sign1 = self.count_coloured_lines(self.tree1)
         colour_counts_sign2, root_colour_counts_sign2 = self.count_coloured_lines(self.tree2)
 
-        self.overall_colour_counter_sign1.update_counter(colour_counts_sign1)  # update 'all expanded' for 1
-        self.overall_colour_counter_sign2.update_counter(colour_counts_sign2)  # update 'all expanded' for 2
-        self.collapsed_colour_counter_sign1.update_counter(root_colour_counts_sign1)
-        self.collapsed_colour_counter_sign2.update_counter(root_colour_counts_sign2)
+        self.expanded_colour_counter_1.update_counter(colour_counts_sign1)  # update 'all expanded' for 1
+        self.expanded_colour_counter_2.update_counter(colour_counts_sign2)  # update 'all expanded' for 2
+        self.collapsed_colour_counter_1.update_counter(root_colour_counts_sign1)
+        self.collapsed_colour_counter_2.update_counter(root_colour_counts_sign2)
 
         self.update_current_counters()
 
@@ -406,8 +411,8 @@ class CompareSignsDialog(QDialog):
         counts_current_sign1, _ = self.count_coloured_lines(tree=self.tree1, only_visible_now=True)
         counts_current_sign2, _ = self.count_coloured_lines(tree=self.tree2, only_visible_now=True)
 
-        self.current_colour_counter_sign1.update_counter(counts_current_sign1)
-        self.current_colour_counter_sign2.update_counter(counts_current_sign2)
+        self.current_colour_counter_1.update_counter(counts_current_sign1)
+        self.current_colour_counter_2.update_counter(counts_current_sign2)
 
     def find_target_signs(self, label1: str, label2: str):
         # identify two sign instances to compare. label1 and label2 are strings user selected in dropdown box
