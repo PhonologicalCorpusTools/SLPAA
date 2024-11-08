@@ -754,8 +754,8 @@ class SignSummaryPanel(QScrollArea):
 
         if numclicks == 1 and mousebutton == Qt.RightButton and not ctrlmodifier:
             # provide a context menu with options that apply to all currently-selected buttons
-            menu = ModuleButtonContextMenu(selected_buttons=self.selectedmodulebuttons(),
-                                           clipboard_modules=self.getclipboardmodules())
+            menu = ModuleButtonContextMenu(has_selected_buttons=len(self.selectedmodulebuttons()) > 0,
+                                           has_clipboard_modules=len(self.getclipboardmodules()) > 0)
             menu.action_selected.connect(self.action_selected.emit)
             # don't let the user paste if x-slots are on but they haven't yet specified a structure for this sign
             menu.setEnabled(self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none' or (self.sign is not None and self.sign.specifiedxslots))
@@ -790,7 +790,7 @@ class SignSummaryPanel(QScrollArea):
                         # the user is selecting this one as they right-click on it
                         self.selectonemodulebutton(modulebutton)
                     # provide a context menu with options that apply to all currently-selected buttons
-                    menu = ModuleButtonContextMenu(selected_buttons=self.selectedmodulebuttons(), clipboard_modules=self.getclipboardmodules())
+                    menu = ModuleButtonContextMenu(has_selected_buttons=len(self.selectedmodulebuttons()) > 0, has_clipboard_modules=len(self.getclipboardmodules()) > 0)
                     menu.action_selected.connect(self.action_selected.emit)
                     menu.exec_(mouseevent.screenPos())
             elif numclicks == 2 and mousebutton == Qt.LeftButton:

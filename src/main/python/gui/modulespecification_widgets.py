@@ -237,33 +237,32 @@ class AddedInfoContextMenu(QMenu):
         self.info_added.emit(self.addedinfo)
 
 
-# menu associated with a module button/buttons in the sign summary panel, offering copy/paste/edit/delete functions
+# menu associated with a module button/buttons in the sign summary panel, offering copy/paste/delete functions
 class ModuleButtonContextMenu(QMenu):
     action_selected = pyqtSignal(str)  # "copy", "paste", or "delete"
 
-    # individual menu items are enabled/disabled based on TODO
-    def __init__(self, selected_buttons=None, clipboard_modules=None, whichactions=None):
+    # individual menu items are enabled/disabled based on whether any module buttons are selected (for copy or delete)
+    #   and whether there's anything on the clipboard (for paste)
+    def __init__(self, has_selected_buttons=False, has_clipboard_modules=False, whichactions=None):
         super().__init__()
-        selected_buttons = selected_buttons or []
-        clipboard_modules = clipboard_modules or []
         if whichactions is None:
             whichactions = ["copy", "paste", "delete"]  # seemed potentially messy to include "edit" so I didn't
 
         if "copy" in whichactions:
             self.copy_action = QAction("Copy module(s)")  # : " + str([btn.text for btn in selected_buttons]))
-            self.copy_action.setEnabled(len(selected_buttons) > 0)
+            self.copy_action.setEnabled(has_selected_buttons)
             self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
             self.addAction(self.copy_action)
 
         if "paste" in whichactions:
             self.paste_action = QAction("Paste module(s)")  # : " + str([btn.text for btn in selected_buttons]))
-            self.paste_action.setEnabled(len(clipboard_modules) > 0)
+            self.paste_action.setEnabled(has_clipboard_modules)
             self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
             self.addAction(self.paste_action)
 
         if "delete" in whichactions:
             self.delete_action = QAction("Delete module(s)")  # : " + str([btn.text for btn in selected_buttons]))
-            self.delete_action.setEnabled(len(selected_buttons) > 0)
+            self.delete_action.setEnabled(has_selected_buttons)
             self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
             self.addAction(self.delete_action)
 
