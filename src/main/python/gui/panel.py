@@ -279,6 +279,7 @@ class SignSummaryPanel(QScrollArea):
         self.scene = SignSummaryScene()
         self.scene.modulerect_clicked.connect(self.handle_summarymodulebtn_clicked)
         self.scene.moduleellipse_clicked.connect(self.handle_summarymodulebtn_clicked)
+        self.scene.scenebg_clicked.connect(self.handle_summaryscenebg_clicked)
 
         self.scene_width = 1100
         self.xslots_width = 1000
@@ -743,29 +744,23 @@ class SignSummaryPanel(QScrollArea):
         for otherside in btn.samemodule_buttons:
             otherside.setSelected(True)
 
-    # # TODO describe
-    # def handle_summaryscene_clicked(self, numclicks, mouseevent):
-    #     return
-    #     # ctrlmodifier = mouseevent.modifiers() & Qt.ControlModifier
-    #     # mousebutton = mouseevent.button()
-    #     #
-    #     # if numclicks == 1 and mousebutton == Qt.RightButton and not ctrlmodifier:
-    #     #     itemclicked = self.scene.itemAt(mouseevent.scenePos().x(), mouseevent.scenePos().y(), QTransform.TxNone)
-    #     #     if itemclicked is not None and (isinstance(itemclicked, XslotRectModuleButton) or isinstance(itemclicked, XslotEllipseModuleButton)):
-    #     #
-    #     #         clipboard = self.mainwindow.clipboard
-    #     #         clipboardmodules = []
-    #     #         if isinstance(clipboard, ParameterModule) or isinstance(clipboard, Signtype):
-    #     #             clipboardmodules.append(clipboard)
-    #     #         elif isinstance(clipboard, list):
-    #     #             for copieditem in clipboard:
-    #     #                 if isinstance(clipboard, ParameterModule) or isinstance(clipboard, Signtype):
-    #     #                     clipboardmodules.append(copieditem)
-    #     #
-    #     #         menu = ModuleButtonContextMenu(clipboard_modules=clipboardmodules, whichactions=["paste"])
-    #     #         menu.action_selected.connect(self.action_selected.emit)
-    #     #         menu.exec_(mouseevent.screenPos())
-    #     #         # TODO finish/check implementation
+
+    # single-R-click alone --> open a context menu with options that apply to all currently-selected buttons
+    #   ... which essentially means only 'paste', since clicking on the background only will de-select any that could
+    #   have potentially been used as inputs to copy or delete functions
+    def handle_summaryscenebg_clicked(self, numclicks, mouseevent):
+        ctrlmodifier = mouseevent.modifiers() & Qt.ControlModifier
+        mousebutton = mouseevent.button()
+
+        if numclicks == 1 and mousebutton == Qt.RightButton and not ctrlmodifier:
+            # provide a context menu with options that apply to all currently-selected buttons
+            menu = ModuleButtonContextMenu(selected_buttons=self.selectedmodulebuttons(),
+                                           clipboard_modules=self.getclipboardmodules(),
+                                           whichactions=["paste"])
+            menu.action_selected.connect(self.action_selected.emit)
+            # don't let the user paste if x-slots are on but they haven't yet specified a structure for this sign
+            menu.setEnabled(self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none' or (self.sign is not None and self.sign.specifiedxslots))
+            menu.exec_(mouseevent.screenPos())
 
     # ctrl + single-L-click --> just toggle this button, regardless of whether any others are selected
     # single-L-click alone --> select this button (whether already selected or not) and deselect any/all others

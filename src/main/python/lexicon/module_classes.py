@@ -1158,6 +1158,14 @@ class Signtype:
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._moduletype = ModuleTypes.SIGNTYPE
 
+    # == check compares all content (equality does not require references to be to the same spot in memory)
+    def __eq__(self, other):
+        if isinstance(other, Signtype):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
     @property
     def moduletype(self):
         if not hasattr(self, '_moduletype'):

@@ -1058,7 +1058,7 @@ class MainWindow(QMainWindow):
         signtypemodules = [mod for mod in listfromclipboard if isinstance(mod, Signtype)]
         for signtypemod in signtypemodules:
             # if it's the same one as the sign we're already in (ie trying to copy/paste in same sign), do nothing
-            if self.current_sign.signtype == signtypemod:
+            if self.current_sign.signtype == signtypemod or self.current_sign.signtype is None:
                 pass
             else:
                 # otherwise paste, once we've confirmed that the user is ok with overwriting
@@ -1081,8 +1081,8 @@ class MainWindow(QMainWindow):
         mismatchedxslots_q += " If you proceed, you should manually check the timing options in the pasted module(s)."  # "Each pasted module will have its timing reset to the whole sign; "
         reset_xslots = False
 
-        if len(parametermodules) > 0:
-            # check x-slot structure of source vs destination signs
+        if len(parametermodules) > 0 and self.app_settings['signdefaults']['xslot_generation'] != 'none':
+            # check x-slot structure of source vs destination signs, assuming that x-slot structure is relevant at all
             xslots_src = self.copypaste_referencesign.xslotstructure
             xslots_dest = self.current_sign.xslotstructure
             if xslots_src != xslots_dest:
