@@ -310,9 +310,10 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
 
     def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
-        if moduletype in [LOC_REL_TARGET, MOV_REL_TARGET]:
-            moduletype = ModuleTypes.LOCATION if moduletype == LOC_REL_TARGET else ModuleTypes.MOVEMENT
         self.targettype = moduletype
+        if self.targettype in [LOC_REL_TARGET, MOV_REL_TARGET]:
+            moduletype = ModuleTypes.LOCATION if moduletype == LOC_REL_TARGET else ModuleTypes.MOVEMENT
+        self.moduletype = moduletype
 
         
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, incl_articulators, incl_articulator_subopts, **kwargs)
@@ -413,7 +414,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         else:
             # save info
             savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
-            self.module_saved.emit(savedmodule, self.targettype)
+            self.module_saved.emit(savedmodule, self.moduletype)
             if closedialog:
                 # close dialog if caller requests it (but if we're only saving so, eg,
                 # we can add an associated relation module, then closedialog will be False)

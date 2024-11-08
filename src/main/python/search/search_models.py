@@ -68,8 +68,9 @@ class SearchModel(QStandardItemModel):
             include = row_data[TargetHeaders.INCLUDE] 
             negative = row_data[TargetHeaders.NEGATIVE] 
             module = self.unserialize(ttype, row_data["module"]) 
+            assocrelnmodule = self.unserialize(ModuleTypes.RELATION, row_data["associatedrelnmodule"]) 
 
-            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, negative=negative, include=include)
+            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, negative=negative, include=include, associatedrelnmodule=assocrelnmodule)
             row = self.create_row_from_target(target)
             self.appendRow(row)
     
@@ -494,7 +495,7 @@ class SearchModel(QStandardItemModel):
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
-            if type == ModuleTypes.MOVEMENT:
+            if type in [ModuleTypes.MOVEMENT, MOV_REL_TARGET]:
                 mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
                 articulators = serialmodule.articulators
                 inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
@@ -502,7 +503,7 @@ class SearchModel(QStandardItemModel):
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
                 unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
                 return unserialized
-            elif type == ModuleTypes.LOCATION:
+            elif type in [ModuleTypes.LOCATION, LOC_REL_TARGET]:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
                 articulators = serialmodule.articulators
                 inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0

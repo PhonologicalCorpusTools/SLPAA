@@ -480,7 +480,13 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             module_selector.exec_()
 
     def handle_add_target(self, target, module_to_save, row=None):
-        moduletype = target.targettype
+
+        if target.targettype == LOC_REL_TARGET:
+            moduletype = ModuleTypes.LOCATION
+        elif target.targettype == MOV_REL_TARGET:
+            moduletype == ModuleTypes.MOVEMENT
+        else:   
+            moduletype = target.targettype
         existingkey = module_to_save.uniqueid
         if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype):
             self.sign.addmodule(module_to_save, moduletype)
@@ -1041,6 +1047,7 @@ class SearchWindowSign(Sign): # equivalent of sign for when xslotstructure etc n
         super().__init__(signlevel_info, serializedsign)
         self._xslotstructure = XslotStructure()
         self._xslottype = XslotTypeItem()
+
         
     
     def updatemodules(self, model):
