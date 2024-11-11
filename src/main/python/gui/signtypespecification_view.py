@@ -802,7 +802,7 @@ class SigntypeSpecificationPanel(QFrame):
             g.setExclusive(True)
 
     def getsigntype(self):
-        addedinfo = self.addedinfobutton.addedinfo
+        addedinfo = self.addedinfobutton_arms.addedinfo
 
         allbuttons = [btn for btngrp in self.buttongroups for btn in btngrp.buttons()]
         # when saving, only use options that are both checked AND enabled!
