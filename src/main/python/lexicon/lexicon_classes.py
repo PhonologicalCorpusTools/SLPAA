@@ -317,6 +317,12 @@ class Sign:
         else:
             self.getmoduledict(moduletype).pop(uniqueid)
             self.removemodulenumber(uniqueid, moduletype)
+            if moduletype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT]:
+                # update any Relation modules that contain references to this anchor module
+                relationslist = list(self.relationmodules.values())
+                for relmod in relationslist:
+                    if relmod.relationy.existingmodule and uniqueid in relmod.relationy.linkedmoduleids:
+                        relmod.relationy.linkedmoduleids.remove(uniqueid)
         self.lastmodifiednow()
 
     def removemodulenumber(self, uniqueid, moduletype):
