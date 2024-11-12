@@ -1063,8 +1063,9 @@ class MainWindow(QMainWindow):
             else:
                 # otherwise paste, once we've confirmed that the user is ok with overwriting
                 signtype_q = "You are about to overwrite the existing sign type for this sign."
-                signtype_q += "\n\nNote also that you must check for sign type compatibility (e.g. one-handed sign type vs "
-                signtype_q += "two-handed modules) yourself; SLP-AA has not done it for you."
+                signtype_q += "\n\nNote also that you must check for compatibility between modules "
+                signtype_q += "(e.g. one-handed sign type vs two-handed modules) yourself; "
+                signtype_q += "SLP-AA has not done it for you."
                 signtype_q += "\n\nDo you still want to paste the copied sign type into this sign?"
                 response = QMessageBox.question(self, "Overwrite sign type", signtype_q,
                                                 QMessageBox.Yes | QMessageBox.No)
