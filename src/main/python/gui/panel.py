@@ -752,8 +752,9 @@ class SignSummaryPanel(QScrollArea):
         ctrlmodifier = mouseevent.modifiers() & Qt.ControlModifier
         mousebutton = mouseevent.button()
 
-        if numclicks == 1 and mousebutton == Qt.RightButton and not ctrlmodifier:
+        if numclicks == 1 and mousebutton == Qt.RightButton and not ctrlmodifier and self.scene.last_menu_pos != mouseevent.scenePos():
             # provide a context menu with options that apply to all currently-selected buttons
+            self.scene.last_menu_pos = mouseevent.scenePos()
             menu = ModuleButtonContextMenu(has_selected_buttons=len(self.selectedmodulebuttons()) > 0,
                                            has_clipboard_modules=len(self.getclipboardmodules()) > 0)
             menu.action_selected.connect(self.action_selected.emit)
@@ -790,6 +791,7 @@ class SignSummaryPanel(QScrollArea):
                         # the user is selecting this one as they right-click on it
                         self.selectonemodulebutton(modulebutton)
                     # provide a context menu with options that apply to all currently-selected buttons
+                    self.scene.last_menu_pos = mouseevent.scenePos()
                     menu = ModuleButtonContextMenu(has_selected_buttons=len(self.selectedmodulebuttons()) > 0, has_clipboard_modules=len(self.getclipboardmodules()) > 0)
                     menu.action_selected.connect(self.action_selected.emit)
                     menu.exec_(mouseevent.screenPos())

@@ -350,15 +350,20 @@ class SignSummaryScene(QGraphicsScene):
     moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton, int, QGraphicsSceneMouseEvent)
     scenebg_clicked = pyqtSignal(int, QGraphicsSceneMouseEvent)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.last_menu_pos = QPointF(0, 0)
+
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
 
         itemsatclick = self.items(QPointF(event.scenePos().x(), event.scenePos().y()))
         modulebuttonsatclick = [sceneitem for sceneitem in itemsatclick if isinstance(sceneitem, XslotRectModuleButton) or isinstance(sceneitem, XslotEllipseModuleButton)]
         if len(modulebuttonsatclick) > 0:
-            return  # don't do anything, because the menu will be spawned by the module button
+            # don't do anything, because the menu at this click point will be spawned by the module button instead
+            return
         else:
-            # we've run through all the items at the click point and none of them are module buttons,
+            # we've checked all the items at the click point and none of them are module buttons,
             #   so show the menu via the scene background
             self.scenebg_clicked.emit(1, event)
 
