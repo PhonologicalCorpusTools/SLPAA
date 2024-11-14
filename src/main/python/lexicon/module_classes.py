@@ -1283,7 +1283,7 @@ class BodypartInfo:
         return not self.__eq__(other)
 
     def getabbreviation(self):
-        # TODO KV implement
+        # TODO implement
         return "Bodypart abbreviations not yet implemented"
 
 
@@ -1642,7 +1642,7 @@ class RelationY:
 
     @linkedmoduletype.setter
     def linkedmoduletype(self, linkedmoduletype):
-        # TODO KV validate?
+        # TODO validate?
         self._linkedmoduletype = linkedmoduletype
 
     @property
@@ -1651,7 +1651,7 @@ class RelationY:
 
     @linkedmoduleids.setter
     def linkedmoduleids(self, linkedmoduleids):
-        # TODO KV validate?
+        # TODO validate?
         self._linkedmoduleids = linkedmoduleids
 
     @property
@@ -2492,4 +2492,14 @@ class XslotStructure:
     @additionalfraction.setter
     def additionalfraction(self, additionalfraction):
         self._additionalfraction = additionalfraction
+
+    def __eq__(self, other):
+        if isinstance(other, XslotStructure):
+            return self.number == other.number \
+                and self.additionalfraction == other.additionalfraction \
+                and set(self.fractionalpoints) == set(other.fractionalpoints)
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
