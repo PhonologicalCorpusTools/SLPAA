@@ -5,8 +5,7 @@ from PyQt5.QtCore import (
     Qt,
     QRectF,
     QPoint,
-    pyqtSignal,
-    QEvent
+    pyqtSignal
 )
 
 from PyQt5.QtWidgets import (
@@ -39,8 +38,7 @@ from PyQt5.QtGui import (
     QColor,
     QPen,
     QBrush,
-    QPolygonF,
-    QTransform
+    QPolygonF
 )
 
 # from gui.hand_configuration import ConfigGlobal, Config
@@ -52,8 +50,7 @@ from gui.xslotspecification_view import XslotSelectorDialog
 from lexicon.module_classes import TimingPoint, TimingInterval, ParameterModule, Signtype
 from lexicon.lexicon_classes import Sign, glossesdelimiter
 from gui.modulespecification_dialog import ModuleSelectorDialog
-from gui.modulespecification_widgets import ModuleButtonContextMenu
-from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
+from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton, ModuleButtonContextMenu
 
 
 
@@ -276,10 +273,11 @@ class SignSummaryPanel(QScrollArea):
         main_frame.setLayout(main_layout)
 
         # self.scene = QGraphicsScene()
-        self.scene = SignSummaryScene()
+        self.scene = SignSummaryScene(parent=self)
         self.scene.modulerect_clicked.connect(self.handle_summarymodulebtn_clicked)
         self.scene.moduleellipse_clicked.connect(self.handle_summarymodulebtn_clicked)
         self.scene.scenebg_clicked.connect(self.handle_summaryscenebg_clicked)
+        self.scene.clear_selections.connect(self.clearbuttonselections)
 
         self.scene_width = 1100
         self.xslots_width = 1000
@@ -465,8 +463,6 @@ class SignSummaryPanel(QScrollArea):
             modules = [mod for mod in self.sign.getmoduledict(moduletype).values() if
                        mod.articulators is not None and
                        (mod.articulators[0] == LEG and True in mod.articulators[1].values())]
-        modulenumbers = self.sign.getmodulenumbersdict(moduletype)
-        moduletypeabbrev = ModuleTypes.abbreviations[moduletype]
 
         mods_count = len(modules)
         if mods_count > 0:
@@ -474,10 +470,11 @@ class SignSummaryPanel(QScrollArea):
                 # everything just gets listed vertically
 
                 for mod in modules:
+                    modabbrev = self.sign.getmoduleabbreviation(module=mod)
                     m_id = mod.uniqueid
                     self.current_y += self.default_xslot_height + self.verticalspacing
                     paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,
-                                                      text=moduletypeabbrev + str(modulenumbers[m_id]),
+                                                      text=modabbrev,
                                                       moduletype=moduletype,
                                                       sign=self.sign)
                     paramabbrev = mod.getabbreviation()
@@ -491,18 +488,19 @@ class SignSummaryPanel(QScrollArea):
                 points = []
 
                 for mod in modules:
+                    modabbrev = self.sign.getmoduleabbreviation(module=mod)
                     m_id = mod.uniqueid
                     condensed_timingintervals = self.condense_timingintervals(mod.timingintervals)
                     for t in condensed_timingintervals:
                         if t.ispoint():
-                            points.append((modulenumbers[m_id], m_id, t))
+                            points.append((m_id, t))
                         else:
-                            intervals.append((modulenumbers[m_id], m_id, t))
+                            intervals.append((m_id, t))
 
                 if len(intervals) > 0:
-                    self.addmoduleintervals(None, None, intervals, moduletype, moduletypeabbrev, modules)
+                    self.addmoduleintervals(None, None, intervals, moduletype, modabbrev, modules)
                 if len(points) > 0:
-                    self.addmodulepoints(None, None, points, moduletype, moduletypeabbrev, modules)
+                    self.addmodulepoints(None, None, points, moduletype, modabbrev, modules)
             self.assign_hover_partners()
 
     def addmodules_hands_arms(self, artnum, moduletype):
@@ -515,8 +513,6 @@ class SignSummaryPanel(QScrollArea):
             modules = [mod for mod in self.sign.getmoduledict(moduletype).values() if
                        mod.articulators is not None and
                        (mod.articulators[0] in [HAND, ARM] and mod.articulators[1][artnum])]
-        modulenumbers = self.sign.getmodulenumbersdict(moduletype)
-        moduletypeabbrev = ModuleTypes.abbreviations[moduletype]
 
         mods_count = len(modules)
         if mods_count > 0:
@@ -524,6 +520,7 @@ class SignSummaryPanel(QScrollArea):
                 # everything just gets listed vertically
 
                 for mod in modules:
+                    moduleabbrev = self.sign.getmoduleabbreviation(module=mod)
                     m_id = mod.uniqueid
                     self.current_y += self.default_xslot_height + self.verticalspacing
                     if isrel:
@@ -539,7 +536,7 @@ class SignSummaryPanel(QScrollArea):
 
                     if articulator_dict[artnum]:
                         paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,  # parammodid,
-                                                          text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduletypeabbrev + str(modulenumbers[m_id]), moduletype=moduletype,
+                                                          text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduleabbrev, moduletype=moduletype,
                                                           sign=self.sign)
                         paramabbrev = mod.getabbreviation()
                         paramrect.setToolTip(paramabbrev)
@@ -552,6 +549,7 @@ class SignSummaryPanel(QScrollArea):
                 points = {}
 
                 for mod in modules:
+                    moduleabbrev = self.sign.getmoduleabbreviation(module=mod)
                     m_id = mod.uniqueid
                     if isrel:
                         if mod.usesarticulator(HAND, artnum):
@@ -570,17 +568,17 @@ class SignSummaryPanel(QScrollArea):
                             if t.ispoint():
                                 if articulator not in points.keys():
                                     points[articulator] = []
-                                points[articulator].append((modulenumbers[m_id], m_id, t))
+                                points[articulator].append((m_id, t))
                             else:
                                 if articulator not in intervals.keys():
                                     intervals[articulator] = []
-                                intervals[articulator].append((modulenumbers[m_id], m_id, t))
+                                intervals[articulator].append((m_id, t))
 
                 for articulator in [HAND, ARM]:  # , LEG]:
                     if articulator in intervals and len(intervals[articulator]) > 0:
-                        self.addmoduleintervals(articulator, artnum, intervals[articulator], moduletype, moduletypeabbrev, modules)
+                        self.addmoduleintervals(articulator, artnum, intervals[articulator], moduletype, moduleabbrev, modules)
                     if articulator in points and len(points[articulator]) > 0:
-                        self.addmodulepoints(articulator, artnum, points[articulator], moduletype, moduletypeabbrev, modules)
+                        self.addmodulepoints(articulator, artnum, points[articulator], moduletype, moduleabbrev, modules)
             self.assign_hover_partners()
 
     def condense_timingintervals(self, intervals):
@@ -622,11 +620,11 @@ class SignSummaryPanel(QScrollArea):
 
         return condensed_intervals
 
-    def addmoduleintervals(self, articulator, artnum, intervals, moduletype, moduletypeabbrev, modules):
+    def addmoduleintervals(self, articulator, artnum, intervals, moduletype, moduleabbrev, modules):
         self.current_y += self.default_xslot_height + self.verticalspacing
-        for i_idx, (modnum, m_id, t) in enumerate(intervals):
+        for i_idx, (m_id, t) in enumerate(intervals):
             paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,
-                                              text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduletypeabbrev + str(modnum),
+                                              text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduleabbrev,
                                               moduletype=moduletype,
                                               sign=self.sign)
             paramabbrev = [mod for mod in modules if mod.uniqueid == m_id][0].getabbreviation()
@@ -665,13 +663,13 @@ class SignSummaryPanel(QScrollArea):
             modifiedtext = text[dotindex+1:]
         return modifiedtext
 
-    def addmodulepoints(self, articulator, artnum, points, moduletype, moduletypeabbrev, modules):
+    def addmodulepoints(self, articulator, artnum, points, moduletype, moduleabbrev, modules):
         if len(points) > 0:
             self.current_y += self.default_xslot_height + self.verticalspacing
 
-        for i_idx, (modnum, m_id, t) in enumerate(points):
+        for i_idx, (m_id, t) in enumerate(points):
             paramellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
-                                                    text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduletypeabbrev + str(modnum),
+                                                    text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduleabbrev,
                                                     moduletype=moduletype,
                                                     sign=self.sign)
             paramabbrev = [mod for mod in modules if mod.uniqueid == m_id][0].getabbreviation()
@@ -713,17 +711,13 @@ class SignSummaryPanel(QScrollArea):
 
     def clearbuttonselections(self):
         for btn in self.selectedmodulebuttons():
-            btn.setSelected(False)
+            btn.selected = False
 
     # return a list of the items currently on the clipboard that are also Modules
     #   (any of sign type, movement, location, orientation, non-manual, hand config, relation)
     def getclipboardmodules(self):
-        clipboard = self.mainwindow.clipboard
-        if not isinstance(clipboard, list):
-            clipboard = [clipboard]
-
         clipboardmodules = []
-        for copieditem in clipboard:
+        for copieditem in self.mainwindow.clipboard:
             if isinstance(copieditem, ParameterModule) or isinstance(copieditem, Signtype):
                 clipboardmodules.append(copieditem)
         return clipboardmodules
@@ -731,7 +725,7 @@ class SignSummaryPanel(QScrollArea):
     # return a list of the module buttons that are selected in the summary window for the current sign
     #   (any of sign type, movement, location, orientation, non-manual, hand config, relation)
     def selectedmodulebuttons(self):
-        return [btn for btn in self.allmodulebuttons() if btn.isSelected()]
+        return [btn for btn in self.allmodulebuttons() if btn.selected]
 
     # return a list of all module buttons in the summary window for the current sign
     #   (any of sign type, movement, location, orientation, non-manual, hand config, relation)
@@ -740,13 +734,12 @@ class SignSummaryPanel(QScrollArea):
 
     def selectonemodulebutton(self, btn):
         self.clearbuttonselections()
-        btn.setSelected(True)
+        btn.selected = True
         for otherside in btn.samemodule_buttons:
-            otherside.setSelected(True)
-
+            otherside.selected = True
 
     # single-R-click alone --> open a context menu with options that apply to all currently-selected buttons
-    #   ... which essentially means only 'paste', since clicking on the background only will de-select any that could
+    #   ... which essentially means only TODO 'paste', since clicking on the background only will de-select any that could
     #   have potentially been used as inputs to copy or delete functions
     def handle_summaryscenebg_clicked(self, numclicks, mouseevent):
         ctrlmodifier = mouseevent.modifiers() & Qt.ControlModifier
@@ -755,8 +748,9 @@ class SignSummaryPanel(QScrollArea):
         if numclicks == 1 and mousebutton == Qt.RightButton and not ctrlmodifier and self.scene.last_menu_pos != mouseevent.scenePos():
             # provide a context menu with options that apply to all currently-selected buttons
             self.scene.last_menu_pos = mouseevent.scenePos()
-            menu = ModuleButtonContextMenu(has_selected_buttons=len(self.selectedmodulebuttons()) > 0,
-                                           has_clipboard_modules=len(self.getclipboardmodules()) > 0)
+            menu = ModuleButtonContextMenu(selected_modules=self.mainwindow.modules_fromselectedbuttons(),
+                                           clipboardlist=self.getclipboardmodules(),
+                                           hastiming=self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none')
             menu.action_selected.connect(self.action_selected.emit)
             # don't let the user paste if x-slots are on but they haven't yet specified a structure for this sign
             menu.setEnabled(self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'none' or (self.sign is not None and self.sign.specifiedxslots))
@@ -781,18 +775,20 @@ class SignSummaryPanel(QScrollArea):
                         # toggle the button's selection status (and also its other-side counterpart, if applicable)
                         modulebutton.toggle()
                         for otherside in modulebutton.samemodule_buttons:
-                            otherside.setSelected(modulebutton.isSelected())
+                            otherside.selected = modulebutton.selected
                     else:
                         # only this button should be selected (and also its other-side counterpart, if applicable)
                         self.selectonemodulebutton(modulebutton)
                 elif mousebutton == Qt.RightButton and not ctrlmodifier:
-                    if not modulebutton.isSelected():
+                    if not modulebutton.selected:
                         # if there is no button selected then we should assume that
                         # the user is selecting this one as they right-click on it
                         self.selectonemodulebutton(modulebutton)
                     # provide a context menu with options that apply to all currently-selected buttons
                     self.scene.last_menu_pos = mouseevent.scenePos()
-                    menu = ModuleButtonContextMenu(has_selected_buttons=len(self.selectedmodulebuttons()) > 0, has_clipboard_modules=len(self.getclipboardmodules()) > 0)
+                    menu = ModuleButtonContextMenu(selected_modules=self.mainwindow.modules_fromselectedbuttons(),
+                                                   clipboardlist=self.getclipboardmodules(),
+                                                   hastiming=self.mainwindow.app_settings['signdefaults']['xslot_generation'] != 'none')
                     menu.action_selected.connect(self.action_selected.emit)
                     menu.exec_(mouseevent.screenPos())
             elif numclicks == 2 and mousebutton == Qt.LeftButton:
@@ -875,8 +871,6 @@ class SignLevelMenuPanel(QScrollArea):
         self.signtype_button.clicked.connect(self.handle_signtypebutton_click)
         self.modulebuttons_untimed.append(self.signtype_button)
 
-        # TODO KV
-        # if self.mainwindow.app_settings['signdefaults']['xslot_generation'] == 'manual':  # could also be 'none' or 'auto'
         self.xslots_button = QPushButton("X-slot information")
         self.xslots_button.clicked.connect(self.handle_xslotsbutton_click)
         self.modulebuttons_untimed.append(self.xslots_button)

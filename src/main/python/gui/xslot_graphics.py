@@ -7,7 +7,9 @@ from PyQt5.QtWidgets import (
     QGraphicsScene,
     QMessageBox,
     QGraphicsEllipseItem,
-    QGraphicsSceneMouseEvent
+    QGraphicsSceneMouseEvent,
+    QMenu,
+    QAction
 )
 
 from PyQt5.QtGui import (
@@ -23,8 +25,8 @@ from PyQt5.QtCore import (
     QPointF
 )
 
-from lexicon.module_classes import TimingPoint, TimingInterval
-from constant import FRACTION_CHAR
+from lexicon.module_classes import TimingPoint, TimingInterval, Signtype, ParameterModule
+from constant import FRACTION_CHAR, ModuleTypes
 
 
 class XslotPointLabel(QGraphicsRectItem):
@@ -41,7 +43,6 @@ class XslotPointLabel(QGraphicsRectItem):
         self.align = align
 
     def paint(self, painter, option, widget):
-
         # turn pen off while filling rectangle
         painter.setBrush(Qt.NoBrush)
 
@@ -78,7 +79,6 @@ class XslotRect(QGraphicsRectItem):
         return QPen(Qt.black)
 
     def paint(self, painter, option, widget):
-
         # turn pen off while filling rectangle
         painter.setPen(Qt.NoPen)
 
@@ -120,13 +120,17 @@ class XslotRectButton(XslotRect):
         super().__init__(parentwidget, **kwargs)
         self.setAcceptHoverEvents(True)
         self.hover = 0  # 0 = no; 1 = yes; 2 = associated/partial
-        self.setFlags(self.ItemIsSelectable)
-        self.setSelected(selected)
+        self._selected = selected
 
-    def setSelected(self, selected):
-        super().setSelected(selected)
-        self.update()
+    @property
+    def selected(self):
+        return self._selected
 
+    @selected.setter
+    def selected(self, selected):
+        if isinstance(selected, bool):
+            self._selected = selected
+            self.update()
 
     def hoverEnterEvent(self, event):
         self.hover = 1
@@ -138,9 +142,9 @@ class XslotRectButton(XslotRect):
 
     def currentbrush(self):
         if self.hover == 1:
-            return QColor(0, 120, 215)
+            return QBrush(QColor(0, 120, 215))
         elif self.hover == 2:
-            return QColor(170, 215, 245)
+            return QBrush(QColor(170, 215, 245))
         else:
             return self.restingbrush()
 
@@ -151,19 +155,19 @@ class XslotRectButton(XslotRect):
             return self.restingpen()
 
     def restingbrush(self):
-        if self.isSelected():
+        if self.selected:
             return QBrush(Qt.black)
         else:
             return QBrush(Qt.white)
 
     def restingpen(self):
-        if self.isSelected():
+        if self.selected:
             return QPen(Qt.white)
         else:
             return QPen(Qt.black)
 
     def toggle(self):
-        self.setSelected(not self.isSelected())
+        self.selected = not self.selected
 
 
 class XslotRectLinkingButton(XslotRectButton):
@@ -172,8 +176,9 @@ class XslotRectLinkingButton(XslotRectButton):
         pass
 
     def mouseReleaseEvent(self, event):
-        self.toggle()
-        self.parentwidget.linkingrect_clicked.emit(self)
+        if event.button() == Qt.LeftButton:
+            self.toggle()
+            self.parentwidget.linkingrect_clicked.emit(self)
 
 
 class XslotEllipseModuleButton(QGraphicsEllipseItem):
@@ -184,28 +189,22 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         self.text = text
         self.moduletype = moduletype
         self.sign = sign
-        # self.mainwindow = mainwindow
         self.samemodule_buttons = []
 
         self.setAcceptHoverEvents(True)
         self.hover = 0  # 0 = no; 1 = yes; 2 = associated/partial
-        self.setFlags(self.ItemIsSelectable)
-        # self._selected = selected  # bool
-        self.setSelected(selected)
+        self._selected = selected
         self.module_uniqueid = module_uniqueid
-    #
-    # @property
-    # def selected(self):
-    #     return self._selected
-    #
-    # @selected.setter
-    # def selected(self, selected):
-    #     self._selected = selected
-    #     self.update()
 
-    def setSelected(self, selected):
-        super().setSelected(selected)
-        self.update()
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, selected):
+        if isinstance(selected, bool):
+            self._selected = selected
+            self.update()
 
     def mousePressEvent(self, event):
         pass
@@ -234,27 +233,13 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         self.update()
         self.update_partners_hover()
 
-    # def currentbrush(self):
-    #     if self.hover == 1:
-    #         return QColor(0, 120, 215)
-    #     elif self.hover == 2:
-    #         return QColor(170, 215, 245)
-    #     else:
-    #         return QBrush(Qt.white)
-
     def currentbrush(self):
         if self.hover == 1:
-            return QColor(0, 120, 215)
+            return QBrush(QColor(0, 120, 215))
         elif self.hover == 2:
-            return QColor(170, 215, 245)
+            return QBrush(QColor(170, 215, 245))
         else:
             return self.restingbrush()
-
-    # def currentpen(self):
-    #     if self.hover > 0:
-    #         return QPen(Qt.black)
-    #     else:
-    #         return QPen(Qt.black)
 
     def currentpen(self):
         if self.hover > 0:
@@ -263,22 +248,21 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
             return self.restingpen()
 
     def restingbrush(self):
-        if self.isSelected():
+        if self.selected:
             return QBrush(Qt.black)
         else:
             return QBrush(Qt.white)
 
     def restingpen(self):
-        if self.isSelected():
+        if self.selected:
             return QPen(Qt.white)
         else:
             return QPen(Qt.black)
 
     def toggle(self):
-        self.setSelected(not self.isSelected())
+        self.selected = not self.selected
 
     def paint(self, painter, option, widget):
-
         # turn pen off while filling ellipse
         painter.setPen(Qt.NoPen)
 
@@ -303,11 +287,6 @@ class XslotEllipseModuleButton(QGraphicsEllipseItem):
         font.setPixelSize(15)
         painter.setFont(font)
         painter.drawText(self.rect(), self.text, textoption)
-
-    # def boundingRect(self):
-    #     penWidth = self.pen().width()
-    #     return QRectF(-radius - penWidth / 2, -radius - penWidth / 2,
-    #                   diameter + penWidth, diameter + penWidth)
 
 
 class XslotRectModuleButton(XslotRectButton):
@@ -344,41 +323,116 @@ class XslotRectModuleButton(XslotRectButton):
             btn.update()
 
 
+# menu associated with a module button/buttons in the sign summary panel, offering copy/paste/delete functions
+class ModuleButtonContextMenu(QMenu):
+    action_selected = pyqtSignal(str)  # "copy", "paste", "delete", "copy timing", or "paste timing"
+
+    # individual menu items are enabled/disabled based on whether any module buttons are selected (for copy or delete)
+    #   and whether there's anything on the clipboard (for paste)
+    def __init__(self, selected_modules=None, clipboardlist=None, whichactions=None, hastiming=True, **kwargs):
+        super().__init__(**kwargs)
+        selected_modules = selected_modules or []
+        clipboardlist = clipboardlist or []
+        if whichactions is None:
+            # seemed potentially messy to include "edit" so I didn't
+            whichactions = ["copy", "paste", "delete", "copy timing", "paste timing"]
+
+        if "copy" in whichactions:
+            self.copy_action = QAction("Copy module(s)")  # : " + str([btn.text for btn in selected_buttons]))
+            self.copy_action.setEnabled(len(selected_modules) > 0 and islistofmodules(selected_modules))
+            self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
+            self.addAction(self.copy_action)
+
+        if "paste" in whichactions:
+            self.paste_action = QAction("Paste module(s)")
+            self.paste_action.setEnabled(len(clipboardlist) > 0 and islistofmodules(clipboardlist))
+            self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
+            self.addAction(self.paste_action)
+
+        if "delete" in whichactions:
+            self.delete_action = QAction("Delete module(s)")
+            self.delete_action.setEnabled(len(clipboardlist) > 0 and islistofmodules(clipboardlist))
+            self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
+            self.addAction(self.delete_action)
+
+        if hastiming:
+            if "copy timing" in whichactions:
+                self.copytiming_action = QAction("Copy module timing")  # can only be done for one module at a time
+                self.copytiming_action.setEnabled(len(selected_modules) == 1 and selected_modules[0].moduletype != ModuleTypes.SIGNTYPE)
+                self.copytiming_action.triggered.connect(lambda checked: self.action_selected.emit("copy timing"))
+                self.addAction(self.copytiming_action)
+
+            if "paste timing" in whichactions:
+                self.pastetiming_action = QAction("Paste module timing")  # could be for more than one module at a time, but can't paste to Signtype
+                self.pastetiming_action.setEnabled(islistoftimingintervals(clipboardlist) and len([mod for mod in selected_modules if mod.moduletype != ModuleTypes.SIGNTYPE]) > 0)
+                self.pastetiming_action.triggered.connect(lambda checked: self.action_selected.emit("paste timing"))
+                self.addAction(self.pastetiming_action)
+
+
+# This context menu allows users to copy or paste module timing information by right-clicking in the X-slot linking view
+#   in a module editing dialog
+class XslotLinkSceneContextMenu(ModuleButtonContextMenu):
+
+    # individual menu items are enabled/disabled based on whether there's anything on the clipboard (for paste timing)
+    def __init__(self, clipboardlist=None, **kwargs):  # , selected_timingintervals_list=None
+        super().__init__(clipboardlist=clipboardlist, hastiming=True, whichactions=["copy timing", "paste timing"], **kwargs)
+
+        # in the parent class this depends on whether any modules are selected, but from the xslot linking view itself
+        #   it should always be possible to copy
+        self.copytiming_action.setEnabled(True)
+
+        # paste is only available in the xslot linking view if the contents of the clipboard are a list of timing intervals
+        self.pastetiming_action.setEnabled(len(clipboardlist) > 0 and islistoftimingintervals(clipboardlist))
+
+
+# checks whether the given list contains only TimingIntervals
+def islistoftimingintervals(itemslist):
+    istimingintervals = [isinstance(item, TimingInterval) for item in itemslist]
+    return False not in istimingintervals
+
+
+# checks whether the given list contains only modules (either ParameterModule or Signtype)
+def islistofmodules(itemslist):
+    ismodules = [(isinstance(item, Signtype) or isinstance(item, ParameterModule)) for item in itemslist]
+    return False not in ismodules
+
+
 class SignSummaryScene(QGraphicsScene):
     # button that was clicked, single vs double click, mouseevent
     modulerect_clicked = pyqtSignal(XslotRectModuleButton, int, QGraphicsSceneMouseEvent)
     moduleellipse_clicked = pyqtSignal(XslotEllipseModuleButton, int, QGraphicsSceneMouseEvent)
     scenebg_clicked = pyqtSignal(int, QGraphicsSceneMouseEvent)
+    clear_selections = pyqtSignal()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.last_menu_pos = QPointF(0, 0)
 
     def mouseReleaseEvent(self, event):
-        super().mouseReleaseEvent(event)
-
         itemsatclick = self.items(QPointF(event.scenePos().x(), event.scenePos().y()))
         modulebuttonsatclick = [sceneitem for sceneitem in itemsatclick if isinstance(sceneitem, XslotRectModuleButton) or isinstance(sceneitem, XslotEllipseModuleButton)]
         if len(modulebuttonsatclick) > 0:
-            # don't do anything, because the menu at this click point will be spawned by the module button instead
-            return
+            # don't do anything here; the menu at this click point will be spawned by the module button instead
+            super().mouseReleaseEvent(event)
         else:
+            self.clear_selections.emit()
             # we've checked all the items at the click point and none of them are module buttons,
             #   so show the menu via the scene background
             self.scenebg_clicked.emit(1, event)
 
+    # def mousePressEvent(self, event):
+    #     super().mousePressEvent(event)
+
 
 class XSlotCheckbox(QGraphicsRectItem):
 
-    def __init__(self, xslot_whole, xslot_part, parentwidget, textsize=30, penwidth=2, checked=False):  # sidelength=20
+    def __init__(self, xslot_whole, xslot_part, parentwidget, textsize=30, penwidth=2, selected=False):  # sidelength=20
         super().__init__()
         self.parentwidget = parentwidget
 
-        # self.sidelength = sidelength
         self.textsize = textsize
         self.penwidth = penwidth
-        self.setFlags(self.ItemIsSelectable)
-        self.setSelected(checked)
+        self._selected = selected
 
         self.setAcceptHoverEvents(True)
         self.hover = False
@@ -386,9 +440,15 @@ class XSlotCheckbox(QGraphicsRectItem):
         self.xslot_whole = xslot_whole
         self.xslot_part = xslot_part
 
-    def setSelected(self, selected):
-        super().setSelected(selected)
-        self.update()
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, selected):
+        if isinstance(selected, bool):
+            self._selected = selected
+            self.update()
 
     def currentpen(self):
         pen = QPen()
@@ -420,10 +480,11 @@ class XSlotCheckbox(QGraphicsRectItem):
         font.setPixelSize(self.textsize)
         painter.setFont(font)
         # draw check or empty box
-        painter.drawText(rect, "☑" if self.isSelected() else "☐", textoption)
+        painter.drawText(rect, "☑" if self.selected else "☐", textoption)
 
     def toggle(self):
-        self.setSelected(not self.isSelected())
+        self.selected = not self.selected
+        self.update()
 
     def mousePressEvent(self, event):
         pass
@@ -438,6 +499,7 @@ class XslotLinkScene(QGraphicsScene):
     linkingrect_clicked = pyqtSignal(XslotRectLinkingButton)
     selection_changed = pyqtSignal(bool,  # has >= 1 point
                                    bool)  # has >= 1 interval
+    scene_Rclicked = pyqtSignal(QGraphicsSceneMouseEvent)
 
     def __init__(self, parentwidget, timingintervals=None, **kwargs):
         super().__init__(**kwargs)
@@ -504,9 +566,9 @@ class XslotLinkScene(QGraphicsScene):
         frac = xslotcheckbox.xslot_part
         pointinterval = TimingInterval(TimingPoint(whole, frac), TimingPoint(whole, frac))
 
-        if xslotcheckbox.isSelected() and self.check_no_xslot_overlap(pointinterval, xslotcheckbox):
+        if xslotcheckbox.selected and self.check_no_xslot_overlap(pointinterval, xslotcheckbox):
             self.xslotlinks.append(pointinterval)
-        elif (not xslotcheckbox.isSelected()) and pointinterval in self.xslotlinks:
+        elif (not xslotcheckbox.selected) and pointinterval in self.xslotlinks:
             self.xslotlinks.remove(pointinterval)
 
         self.emit_selection_changed()
@@ -559,9 +621,9 @@ class XslotLinkScene(QGraphicsScene):
         endfrac = xslotintervalrect.xslot_part_end
         interval = TimingInterval(TimingPoint(whole, startfrac), TimingPoint(whole, endfrac))
 
-        if xslotintervalrect.isSelected() and self.check_no_xslot_overlap(interval, xslotintervalrect):
+        if xslotintervalrect.selected and self.check_no_xslot_overlap(interval, xslotintervalrect):
             self.xslotlinks.append(interval)
-        elif (not xslotintervalrect.isSelected()) and interval in self.xslotlinks:
+        elif (not xslotintervalrect.selected) and interval in self.xslotlinks:
             self.xslotlinks.remove(interval)
 
         self.emit_selection_changed()
@@ -582,8 +644,8 @@ class XslotLinkScene(QGraphicsScene):
         self.selection_changed.emit(haspoint, hasinterval)
     
     def populate_start_end_checkboxes(self, start_end):
-        start = XSlotCheckbox(1, 0, parentwidget=self, textsize=self.checkbox_size, checked=False)
-        end = XSlotCheckbox(1, 1, parentwidget=self, textsize=self.checkbox_size, checked=False)
+        start = XSlotCheckbox(1, 0, parentwidget=self, textsize=self.checkbox_size, selected=False)
+        end = XSlotCheckbox(1, 1, parentwidget=self, textsize=self.checkbox_size, selected=False)
         start_end[(1,0)] = start
         start_end[(1,1)] = end
 
@@ -593,14 +655,14 @@ class XslotLinkScene(QGraphicsScene):
                 checkthebox = False
                 if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:
                     checkthebox = True
-                cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
+                cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, selected=checkthebox)
                 checkboxes[(whole, part)] = cb
         whole = self.numwholes+1
         for part in [fp for fp in self.fractionalpoints if fp <= self.additionalfrac and (fp > 0 or self.additionalfrac > 0)]:
             checkthebox = False
             if TimingInterval(TimingPoint(whole, part), TimingPoint(whole, part)) in self.xslotlinks:
                 checkthebox = True
-            cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, checked=checkthebox)
+            cb = XSlotCheckbox(whole, part, parentwidget=self, textsize=self.checkbox_size, selected=checkthebox)
             checkboxes[(whole, part)] = cb
 
     def add_checkboxes(self, checkboxes, yloc):
@@ -712,4 +774,14 @@ class XslotLinkScene(QGraphicsScene):
         # for the whole-sign row
         yloc_row = yloc_row + self.rect_height
         self.add_rectangle_row(yloc_row, None)
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+
+        ctrlmodifier = event.modifiers() & Qt.ControlModifier
+        mousebutton = event.button()
+
+        if mousebutton == Qt.RightButton and not ctrlmodifier:
+            # provide a context menu to paste timing from the module currently on the clipboard
+            self.scene_Rclicked.emit(event)
 

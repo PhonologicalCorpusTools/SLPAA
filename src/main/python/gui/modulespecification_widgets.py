@@ -28,8 +28,8 @@ from PyQt5.QtGui import (
     QStandardItem,
 )
 
-from lexicon.module_classes import AddedInfo, PhonLocations
-from constant import treepathdelimiter, userdefinedroles as udr
+from lexicon.module_classes import AddedInfo, PhonLocations, TimingInterval, Signtype, ParameterModule
+from constant import treepathdelimiter, userdefinedroles as udr, ModuleTypes
 
 
 class ModuleSpecificationPanel(QFrame):
@@ -235,66 +235,6 @@ class AddedInfoContextMenu(QMenu):
         self.addedinfo.other_note = self.other_action.text()
 
         self.info_added.emit(self.addedinfo)
-
-
-# menu associated with a module button/buttons in the sign summary panel, offering copy/paste/delete functions
-class ModuleButtonContextMenu(QMenu):
-    action_selected = pyqtSignal(str)  # "copy", "paste", or "delete"
-
-    # individual menu items are enabled/disabled based on whether any module buttons are selected (for copy or delete)
-    #   and whether there's anything on the clipboard (for paste)
-    def __init__(self, has_selected_buttons=False, has_clipboard_modules=False, whichactions=None):
-        super().__init__()
-        if whichactions is None:
-            whichactions = ["copy", "paste", "delete"]  # seemed potentially messy to include "edit" so I didn't
-
-        if "copy" in whichactions:
-            self.copy_action = QAction("Copy module(s)")  # : " + str([btn.text for btn in selected_buttons]))
-            self.copy_action.setEnabled(has_selected_buttons)
-            self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
-            self.addAction(self.copy_action)
-
-        if "paste" in whichactions:
-            self.paste_action = QAction("Paste module(s)")  # : " + str([btn.text for btn in selected_buttons]))
-            self.paste_action.setEnabled(has_clipboard_modules)
-            self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
-            self.addAction(self.paste_action)
-
-        if "delete" in whichactions:
-            self.delete_action = QAction("Delete module(s)")  # : " + str([btn.text for btn in selected_buttons]))
-            self.delete_action.setEnabled(has_selected_buttons)
-            self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
-            self.addAction(self.delete_action)
-
-
-# menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
-class SignEntryContextMenu(QMenu):
-    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
-
-    # individual menu items are enabled/disabled based on whether any signs are currently selected
-    #   and/or whether there are any signs on the clipboard
-    def __init__(self, has_selectedsigns, has_clipboardsigns):
-        super().__init__()
-
-        self.copy_action = QAction("Copy Sign(s)")
-        self.copy_action.setEnabled(has_selectedsigns)
-        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
-        self.addAction(self.copy_action)
-
-        self.paste_action = QAction("Paste Sign(s)")
-        self.paste_action.setEnabled(has_clipboardsigns)
-        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
-        self.addAction(self.paste_action)
-
-        self.edit_action = QAction("Edit Sign-level Info(s)")
-        self.edit_action.setEnabled(has_selectedsigns)
-        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
-        self.addAction(self.edit_action)
-
-        self.delete_action = QAction("Delete Sign(s)")
-        self.delete_action.setEnabled(has_selectedsigns)
-        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
-        self.addAction(self.delete_action)
 
 
 class AbstractLocationAction(QWidgetAction):

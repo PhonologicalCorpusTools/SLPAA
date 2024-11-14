@@ -200,12 +200,6 @@ class LocationTreeSerializable:
                     self.addedinfos[pathtext] = copy(addedinfo)
                     self.detailstables[pathtext] = LocationTableSerializable(locntable)
                     self.checkstates[pathtext] = checkstate
-                    # editable = treechild.isEditable()  # TODO KV do this the same way as movement tree
-                    # if editable:
-                    #     pathsteps = pathtext.split(delimiter)
-                    #     parentpathtext = delimiter.join(pathsteps[:-1])
-                    #     numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
-                    #     self.numvals[parentpathtext] = numericstring
                     iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
                     userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
                     # if iseditable:

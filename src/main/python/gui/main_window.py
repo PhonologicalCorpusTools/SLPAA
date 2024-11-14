@@ -62,6 +62,7 @@ from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
+from gui.xslot_graphics import islistoftimingintervals
 from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
 from lexicon.module_classes import ParameterModule, TimingPoint, TimingInterval
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
@@ -99,7 +100,7 @@ class MainWindow(QMainWindow):
         self.undostack = QUndoStack(parent=self)
         self.unsaved_changes = False  # a flag that tracks any unsaved changes.
 
-        self.clipboard = None
+        self._clipboard = []
 
         self.predefined_handshape_dialog = None
 
@@ -167,14 +168,14 @@ class MainWindow(QMainWindow):
 
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
-        action_copy.setStatusTip('Copy the selected sign(s)')
+        action_copy.setStatusTip('Copy the selected sign(s) or module(s)')
         action_copy.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
         action_copy.triggered.connect(self.on_action_copy)
         action_copy.setCheckable(False)
 
         # paste
         action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
-        action_paste.setStatusTip('Paste the copied sign(s)')
+        action_paste.setStatusTip('Paste the copied sign(s) or module(s)')
         action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_V))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
@@ -431,6 +432,14 @@ class MainWindow(QMainWindow):
 
         self.open_initialization_window()
 
+    @property
+    def clipboard(self):
+        return self._clipboard  #  if isinstance(self._clipboard, list) else [self.clipboard]
+
+    @clipboard.setter
+    def clipboard(self, newcontents):
+        self._clipboard = newcontents if isinstance(newcontents, list) else [newcontents]
+
     # TODO this needs an overhaul - it's from the old (non-modular) version of SLPAA
     # GZ - missing compound sign attribute
     def on_action_export_handshape_transcription_csv(self):
@@ -671,6 +680,10 @@ class MainWindow(QMainWindow):
             self.on_action_copy()
         elif action_str == "paste":
             self.on_action_paste()
+        elif action_str == "copy timing":
+            self.on_action_copytiming()
+        elif action_str == "paste timing":
+            self.on_action_pastetiming()
 
     # action_str indicates the type of action selected fom the Corpus View R-click menu:
     #   "copy", "paste", "edit" (sign-level info), or "delete"
@@ -1052,6 +1065,63 @@ class MainWindow(QMainWindow):
             # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
 
+    # copies timing info from the module (there can only be one) currently selected in the sign summary window
+    def on_action_copytiming(self):
+        self.copypaste_referencesign = self.current_sign
+
+        if self.signsummary_panel.scene.hasFocus():
+            # timing will be copy/pasted from one and only one selected parametermodule
+            selectedmodules = self.modules_fromselectedbuttons()
+            if len(selectedmodules) == 1 and isinstance(selectedmodules[0], ParameterModule):
+                self.clipboard = selectedmodules[0].timingintervals
+
+    # pastes timing info from the clipboard to whichever non-Signtype module(s) are currently selected in the sign summary window
+    def on_action_pastetiming(self):
+        if not islistoftimingintervals(self.clipboard):
+            # at least some of clipboard contents is not timing info; don't attempt to paste
+            return
+
+        # check x-slot structure of source vs destination signs
+        xslots_src = self.copypaste_referencesign.xslotstructure
+        xslots_dest = self.current_sign.xslotstructure
+        differences = []
+        if xslots_src.number != xslots_dest.number:
+            differences.append("number of whole x-slots")
+        if xslots_src.additionalfraction != xslots_dest.additionalfraction:
+            differences.append("additional fraction of an x-slot")
+        if set(xslots_src.fractionalpoints) != set(xslots_dest.fractionalpoints):
+            differences.append("visible fractions")
+        if differences:
+            # if x-slot structure doesn't match between source module and destination module(s), don't let user paste
+            diff_str = "\n".join([" - " + diff for diff in differences])
+            QMessageBox.critical(self, "X-slot mismatch",
+                                 "Cannot paste timing: the x-slot structures of the source and destination signs do not match."
+                                 + "\nThey differ with respect to:"
+                                 + "\n" + diff_str)
+            return
+
+        # everything looks ok so far; get ready to paste timing into selected module(s)
+        destinationmodules = [mod for mod in self.modules_fromselectedbuttons() if isinstance(mod, ParameterModule)]
+        for destmod in destinationmodules:
+            # check for overwriting timing
+            destmoduletiming = destmod.timingintervals
+            timingmismatches = [ti for ti in destmoduletiming if ti not in self.clipboard] \
+                               + [ti for ti in self.clipboard if ti not in destmoduletiming]
+            if destmoduletiming and timingmismatches:
+                response = QMessageBox.question(self, "Overwrite timing",
+                                                "You are about to overwrite the existing timing for "
+                                                + self.current_sign.getmoduleabbreviation(destmod) + ". "
+                                                + "Do you still want to paste the copied timing into this module?",
+                                                QMessageBox.Ok | QMessageBox.Cancel)
+                if response == QMessageBox.Cancel:
+                    # don't paste timing into this current module
+                    continue
+                else:
+                    # go ahead and paste
+                    destmod.timingintervals = self.clipboard
+
+        self.signsummary_panel.refreshsign()
+
     # paste any modules that are on the clipboard
     def paste_modules(self, listfromclipboard):
         # deal with copy/pasting signtype, if applicable
@@ -1097,7 +1167,8 @@ class MainWindow(QMainWindow):
                     # cancel the rest of the paste operation
                     return
 
-        # when copy/pasting a linked module but not its partner (mov or loc vs rel), ask user if they want to paste the partner(s) too
+        # when copy/pasting a linked module but not its partner (mov or loc vs rel),
+        #   ask user if they want to paste the partner(s) too
         associatedmods_q = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
         associatedmods_q += "Do you want to paste the associated module{suffix} too?"
 
@@ -1115,8 +1186,7 @@ class MainWindow(QMainWindow):
                         rel_abbrev = ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(
                             self.copypaste_referencesign.relationmodulenumbers[module.uniqueid])
                         suffix = "s" if len(missinganchors) > 1 else ""
-                        anchor_abbrevs_list = [ModuleTypes.abbreviations[linked_type] + str(
-                            self.copypaste_referencesign.getmodulenumbersdict(linked_type)[m.uniqueid]) for m in missinganchors]
+                        anchor_abbrevs_list = [self.copypaste_referencesign.getmoduleabbreviation(module=m) for m in missinganchors]
                         anchor_abbrevs = ", ".join(anchor_abbrevs_list)
                         response = QMessageBox.question(self, "Paste associated module" + suffix,
                                                         associatedmods_q.format(mod_abbrev=rel_abbrev,
@@ -1138,8 +1208,7 @@ class MainWindow(QMainWindow):
                                 module.uniqueid in rel.relationy.linkedmoduleids and
                                 rel.uniqueid not in parameteruids)]
                 if len(missingrels) > 0:
-                    anchor_abbrev = ModuleTypes.abbreviations[module.moduletype] + str(
-                        self.copypaste_referencesign.getmodulenumbersdict(module.moduletype)[module.uniqueid])
+                    anchor_abbrev = self.copypaste_referencesign.getmoduleabbreviation(module=module)
                     suffix = "s" if len(missingrels) > 1 else ""
                     rel_abbrevs_list = [ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(
                         self.copypaste_referencesign.relationmodulenumbers[m.uniqueid]) for m in missingrels]
@@ -1243,14 +1312,12 @@ class MainWindow(QMainWindow):
                         self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
 
     def on_action_paste(self, clicked=None):
-        listfromclipboard = self.clipboard if isinstance(self.clipboard, list) else [self.clipboard]
-
         if self.corpus_display.corpus_view.hasFocus():
-            # focus is on the Corpus View, so we need to make sure we only paste clipboard object if they're Signs
-            self.paste_signs(listfromclipboard)
+            # focus is on the Corpus View, so we need to make sure we only paste clipboard objects if they're Signs
+            self.paste_signs(self.clipboard)
         elif self.signsummary_panel.scene.hasFocus():
-            # focus is on the Sign Summary Panel, so we need to make sure we only paste clipboard object if they're modules
-            self.paste_modules(listfromclipboard)
+            # focus is on the Sign Summary Panel, so we need to make sure we only paste clipboard objects if they're modules
+            self.paste_modules(self.clipboard)
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
@@ -1388,7 +1455,7 @@ class MainWindow(QMainWindow):
                 modulenames.append("Sign Type")
             else:
                 # it's one of the timed parameter modules
-                module_abbrev = ModuleTypes.abbreviations[mtype] + str(self.current_sign.getmodulenumbersdict(mtype)[uid])
+                module_abbrev = self.current_sign.getmoduleabbreviation(mod_type=mtype, mod_uid=uid)
                 associated_relation_comment = ""
                 # if it's loc or mov check if there's an associated relation module(s)
                 if mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
