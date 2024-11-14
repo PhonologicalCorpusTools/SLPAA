@@ -136,6 +136,15 @@ class Sign:
 
         return uid_updates
 
+    def getmoduleabbreviation(self, module=None, mod_type=None, mod_uid=None):
+        if module is not None:
+            mod_type = module.moduletype
+            mod_uid = module.uniqueid
+        elif mod_type is None or mod_uid is None:
+            return ""
+        modnum = self.getmodulenumbersdict(mod_type)[mod_uid]
+        return ModuleTypes.abbreviations[mod_type] + str(modnum)
+
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
         modulenumbersdict = {}
@@ -196,7 +205,6 @@ class Sign:
             'cfg modules': self.handconfigmodules,
             'cfg module numbers': self.handconfigmodulenumbers,
         }
-
 
     def serializemovementmodules(self):
         serialized = {}
