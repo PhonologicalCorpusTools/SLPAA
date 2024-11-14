@@ -719,12 +719,8 @@ class SignSummaryPanel(QScrollArea):
 
     def handle_signtype_clicked(self):
         signtypedialog = SigntypeSelectorDialog(self.mainwindow.current_sign.signtype, parent=self)
-        signtypedialog.saved_signtype.connect(self.handle_save_signtype)
+        signtypedialog.saved_signtype.connect(self.mainwindow.signlevel_panel.handle_save_signtype)
         signtypedialog.exec_()
-
-    def handle_save_signtype(self, signtype):
-        self.sign.signtype = signtype
-        self.refreshsign()
 
     def open_module_dialog(self, modulekey, moduletype):
         modules_list = self.sign.getmoduledict(moduletype)
