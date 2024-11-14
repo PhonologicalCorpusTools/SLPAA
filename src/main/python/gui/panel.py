@@ -463,6 +463,8 @@ class SignSummaryPanel(QScrollArea):
             modules = [mod for mod in self.sign.getmoduledict(moduletype).values() if
                        mod.articulators is not None and
                        (mod.articulators[0] == LEG and True in mod.articulators[1].values())]
+        modulenumbers = self.sign.getmodulenumbersdict(moduletype)  # added back in
+        moduletypeabbrev = ModuleTypes.abbreviations[moduletype]  # added back in
 
         mods_count = len(modules)
         if mods_count > 0:
@@ -488,19 +490,18 @@ class SignSummaryPanel(QScrollArea):
                 points = []
 
                 for mod in modules:
-                    modabbrev = self.sign.getmoduleabbreviation(module=mod)
                     m_id = mod.uniqueid
                     condensed_timingintervals = self.condense_timingintervals(mod.timingintervals)
                     for t in condensed_timingintervals:
                         if t.ispoint():
-                            points.append((m_id, t))
+                            points.append((modulenumbers[m_id], m_id, t))
                         else:
-                            intervals.append((m_id, t))
+                            intervals.append((modulenumbers[m_id], m_id, t))
 
                 if len(intervals) > 0:
-                    self.addmoduleintervals(None, None, intervals, moduletype, modabbrev, modules)
+                    self.addmoduleintervals(None, None, intervals, moduletype, moduletypeabbrev, modules)
                 if len(points) > 0:
-                    self.addmodulepoints(None, None, points, moduletype, modabbrev, modules)
+                    self.addmodulepoints(None, None, points, moduletype, moduletypeabbrev, modules)
             self.assign_hover_partners()
 
     def addmodules_hands_arms(self, artnum, moduletype):
@@ -513,6 +514,8 @@ class SignSummaryPanel(QScrollArea):
             modules = [mod for mod in self.sign.getmoduledict(moduletype).values() if
                        mod.articulators is not None and
                        (mod.articulators[0] in [HAND, ARM] and mod.articulators[1][artnum])]
+        modulenumbers = self.sign.getmodulenumbersdict(moduletype)
+        moduletypeabbrev = ModuleTypes.abbreviations[moduletype]
 
         mods_count = len(modules)
         if mods_count > 0:
@@ -549,7 +552,6 @@ class SignSummaryPanel(QScrollArea):
                 points = {}
 
                 for mod in modules:
-                    moduleabbrev = self.sign.getmoduleabbreviation(module=mod)
                     m_id = mod.uniqueid
                     if isrel:
                         if mod.usesarticulator(HAND, artnum):
@@ -568,17 +570,17 @@ class SignSummaryPanel(QScrollArea):
                             if t.ispoint():
                                 if articulator not in points.keys():
                                     points[articulator] = []
-                                points[articulator].append((m_id, t))
+                                points[articulator].append((modulenumbers[m_id], m_id, t))
                             else:
                                 if articulator not in intervals.keys():
                                     intervals[articulator] = []
-                                intervals[articulator].append((m_id, t))
+                                intervals[articulator].append((modulenumbers[m_id], m_id, t))
 
                 for articulator in [HAND, ARM]:  # , LEG]:
                     if articulator in intervals and len(intervals[articulator]) > 0:
-                        self.addmoduleintervals(articulator, artnum, intervals[articulator], moduletype, moduleabbrev, modules)
+                        self.addmoduleintervals(articulator, artnum, intervals[articulator], moduletype, moduletypeabbrev, modules)
                     if articulator in points and len(points[articulator]) > 0:
-                        self.addmodulepoints(articulator, artnum, points[articulator], moduletype, moduleabbrev, modules)
+                        self.addmodulepoints(articulator, artnum, points[articulator], moduletype, moduletypeabbrev, modules)
             self.assign_hover_partners()
 
     def condense_timingintervals(self, intervals):
@@ -620,11 +622,11 @@ class SignSummaryPanel(QScrollArea):
 
         return condensed_intervals
 
-    def addmoduleintervals(self, articulator, artnum, intervals, moduletype, moduleabbrev, modules):
+    def addmoduleintervals(self, articulator, artnum, intervals, moduletype, moduletypeabbrev, modules):
         self.current_y += self.default_xslot_height + self.verticalspacing
-        for i_idx, (m_id, t) in enumerate(intervals):
+        for i_idx, (modnum, m_id, t) in enumerate(intervals):
             paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,
-                                              text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduleabbrev,
+                                              text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduletypeabbrev + str(modnum),
                                               moduletype=moduletype,
                                               sign=self.sign)
             paramabbrev = [mod for mod in modules if mod.uniqueid == m_id][0].getabbreviation()
@@ -663,13 +665,13 @@ class SignSummaryPanel(QScrollArea):
             modifiedtext = text[dotindex+1:]
         return modifiedtext
 
-    def addmodulepoints(self, articulator, artnum, points, moduletype, moduleabbrev, modules):
+    def addmodulepoints(self, articulator, artnum, points, moduletype, moduletypeabbrev, modules):
         if len(points) > 0:
             self.current_y += self.default_xslot_height + self.verticalspacing
 
-        for i_idx, (m_id, t) in enumerate(points):
+        for i_idx, (modnum, m_id, t) in enumerate(points):
             paramellipse = XslotEllipseModuleButton(self, module_uniqueid=m_id,
-                                                    text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduleabbrev,
+                                                    text=((ARTICULATOR_ABBREVS[articulator] + str(artnum) + ".") if articulator is not None else "") + moduletypeabbrev + str(modnum),
                                                     moduletype=moduletype,
                                                     sign=self.sign)
             paramabbrev = [mod for mod in modules if mod.uniqueid == m_id][0].getabbreviation()
