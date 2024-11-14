@@ -761,7 +761,7 @@ class XslotLinkingPanel(QFrame):
             if xslots_src.additionalfraction != xslots_dest.additionalfraction:
                 differences.append("additional fraction of an x-slot")
             if set(xslots_src.fractionalpoints) != set(xslots_dest.fractionalpoints):
-                differences.append("visible fractions")
+                differences.append("fractional divisions within x-slots")
             if differences:
                 # if x-slot structure doesn't match between source module and destination module(s), don't let user paste
                 diff_str = "\n".join([" - " + diff for diff in differences])
