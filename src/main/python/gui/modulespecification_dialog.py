@@ -745,6 +745,7 @@ class XslotLinkingPanel(QFrame):
 
     def handle_timingaction_selected(self, action_str):
         if action_str == "copy timing":
+            self.mainwindow.copypaste_referencesign = self.mainwindow.current_sign
             self.mainwindow.clipboard = self.timingintervals
 
         elif action_str == "paste timing":
