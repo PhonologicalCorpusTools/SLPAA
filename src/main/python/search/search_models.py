@@ -41,13 +41,15 @@ class TargetHeaders:
 
 
 class SearchModel(QStandardItemModel):
-    def __init__(self, serializedsearchmodel=None,**kwargs):
+    def __init__(self, sign=None, serializedsearchmodel=None,**kwargs):
         super().__init__(**kwargs)
         self.name = None
         self.path = None
         self._matchtype = None # exact / minimal
         self._matchdegree = None # any / all
         self._searchtype = None # new / add
+
+        self.sign = sign
 
         self.headers = ["Name", "Type", "Value", "Include?", "Negative?",  "X-slots"]
         self.setHorizontalHeaderLabels(self.headers)
@@ -502,6 +504,7 @@ class SearchModel(QStandardItemModel):
                 timingintervals = serialmodule.timingintervals
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
                 unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+                
                 return unserialized
             elif type in [ModuleTypes.LOCATION, LOC_REL_TARGET]:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
@@ -632,10 +635,11 @@ class SearchModel(QStandardItemModel):
 class SearchModelSerializable:
 
     def __init__(self, searchmodel):
+        self.sign = searchmodel.sign
+        print(f"current sign: {self.sign}")
         self.serializedmodel = self.collectdatafromSearchModel(searchmodel)
         
 
-    # collect data from the LocationTreeModel to store in this LocationTreeSerializable
     def collectdatafromSearchModel(self, searchmodel):
         model = {}
         if searchmodel is not None:
@@ -655,11 +659,14 @@ class SearchModelSerializable:
                     module = self.get_serialized_parameter_module(ModuleTypes.MOVEMENT, searchmodel.target_module(r))
                 else:                    
                     module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
+                print(f"modul is {module}")
                 row_data["module"] = module
                 associatedrelnmodule = searchmodel.target_associatedrelnmodule(r)
                 row_data["associatedrelnmodule"] = self.get_serialized_parameter_module(ModuleTypes.RELATION, associatedrelnmodule) if associatedrelnmodule is not None else None
 
                 model[name] = row_data  
+
+                print(f"Saving: {name}, {ttype}, associatedrelnmodule: {associatedrelnmodule.uniqueid if associatedrelnmodule is not None else 'None'} ")
         return model
     
     def get_serialized_parameter_module(self, type, module):

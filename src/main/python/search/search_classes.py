@@ -775,6 +775,7 @@ class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
         self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
 
 
+
     def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
         enable_addrelation = True
 
