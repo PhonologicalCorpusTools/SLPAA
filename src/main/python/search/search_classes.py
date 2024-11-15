@@ -775,6 +775,7 @@ class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
         self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
 
 
+
     def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
         enable_addrelation = True
 
@@ -858,14 +859,16 @@ class XslotTypeItem:
 
 # TODO move the methods above into here?
 class SearchTargetItem(QStandardItem):
-    def __init__(self, name=None, targettype=None, xslottype=None, searchvaluesitem=None, module=None, negative=False, include=False, associatedrelnmodule=None, **kwargs):
+    def __init__(self, name=None, targettype=None, xslottype=None, searchvaluesitem=None, module=None, module_id = None, negative=False, include=False, associatedrelnmodule=None, associatedrelnmodule_id = None, **kwargs):
         super().__init__(**kwargs)
         self._name = name
         self._targettype = targettype
         self._xslottype = xslottype 
         self._searchvaluesitem = searchvaluesitem
         self._module = module
+        self.module_id = module_id
         self._associatedrelnmodule = associatedrelnmodule
+        self.associatedrelnmodule_id = associatedrelnmodule_id
         self.negative = negative
         self.include = include
 

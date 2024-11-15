@@ -36,18 +36,25 @@ class TargetHeaders:
     INCLUDE = 3
     NEGATIVE = 4
     XSLOTS = 5
+    MODULE = 6
+    MODULE_ID = 7
+    ASSOCRELNMODULE = 8
+    ASSOCRELNMODULE_ID = 9
+    
 
 
 
 
 class SearchModel(QStandardItemModel):
-    def __init__(self, serializedsearchmodel=None,**kwargs):
+    def __init__(self, sign=None, serializedsearchmodel=None,**kwargs):
         super().__init__(**kwargs)
         self.name = None
         self.path = None
         self._matchtype = None # exact / minimal
         self._matchdegree = None # any / all
         self._searchtype = None # new / add
+
+        self.sign = sign
 
         self.headers = ["Name", "Type", "Value", "Include?", "Negative?",  "X-slots"]
         self.setHorizontalHeaderLabels(self.headers)
@@ -67,14 +74,22 @@ class SearchModel(QStandardItemModel):
             svi = row_data[TargetHeaders.VALUE]
             include = row_data[TargetHeaders.INCLUDE] 
             negative = row_data[TargetHeaders.NEGATIVE] 
-            module = self.unserialize(ttype, row_data["module"]) 
-            assocrelnmodule = self.unserialize(ModuleTypes.RELATION, row_data["associatedrelnmodule"]) 
 
-            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, negative=negative, include=include, associatedrelnmodule=assocrelnmodule)
+            module_id = row_data[TargetHeaders.MODULE_ID]
+            module = self.unserialize(ttype, row_data[TargetHeaders.MODULE]) 
+            
+            assocrelnmodule_id = row_data[TargetHeaders.ASSOCRELNMODULE_ID]
+            assocrelnmodule = self.unserialize(ModuleTypes.RELATION, row_data[TargetHeaders.ASSOCRELNMODULE]) 
+            
+
+            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, module_id=module_id, negative=negative, include=include, associatedrelnmodule=assocrelnmodule, associatedrelnmodule_id=assocrelnmodule_id)
+            
+            logging.warning(f"{ttype}. setting value of module id: {module_id}")
             row = self.create_row_from_target(target)
             self.appendRow(row)
     
     def serialize(self):
+        # return self.sign.serialize()
         return SearchModelSerializable(self)
  
     def create_row_from_target(self, t):
@@ -82,6 +97,8 @@ class SearchModel(QStandardItemModel):
         name = QStandardItem(t.name)
         name.setData(t.module, Qt.UserRole)
         name.setData(t.associatedrelnmodule, Qt.UserRole+1)
+        name.setData(t.module_id, Qt.UserRole+2)
+        name.setData(t.associatedrelnmodule_id, Qt.UserRole+3)
 
 
         ttype = QStandardItem(t.targettype)
@@ -199,8 +216,9 @@ class SearchModel(QStandardItemModel):
                 relationmodulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
                 if not relationmodulelist: return False
                 
-                for row in target_dict[ttype]:
+                for row in target_dict[ttype]:  
                     target_reln_module = self.target_associatedrelnmodule(row)
+                    logging.warning(f"target module: {self.target_module_id(row)}; assoc module: {self.target_associatedrelnmodule_id(row)}; ")
                     if not reln_module_matches(relationmodulelist, target_reln_module, target_is_assoc_reln=True):
                         return False    
                     anchormodulelist = []
@@ -502,6 +520,7 @@ class SearchModel(QStandardItemModel):
                 timingintervals = serialmodule.timingintervals
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
                 unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+                
                 return unserialized
             elif type in [ModuleTypes.LOCATION, LOC_REL_TARGET]:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
@@ -579,6 +598,12 @@ class SearchModel(QStandardItemModel):
     def target_associatedrelnmodule(self, row):
         return self.index(row, TargetHeaders.NAME).data(Qt.UserRole+1)
     
+    def target_module_id(self, row):
+        return self.index(row, TargetHeaders.NAME).data(Qt.UserRole+2)
+    
+    def target_associatedrelnmodule_id(self, row):
+        return self.index(row, TargetHeaders.NAME).data(Qt.UserRole+3)
+    
     def target_type(self, row):
         return self.index(row, TargetHeaders.TYPE).data(Qt.DisplayRole)
     
@@ -632,10 +657,10 @@ class SearchModel(QStandardItemModel):
 class SearchModelSerializable:
 
     def __init__(self, searchmodel):
+        # self.sign = searchmodel.sign
         self.serializedmodel = self.collectdatafromSearchModel(searchmodel)
         
 
-    # collect data from the LocationTreeModel to store in this LocationTreeSerializable
     def collectdatafromSearchModel(self, searchmodel):
         model = {}
         if searchmodel is not None:
@@ -655,11 +680,14 @@ class SearchModelSerializable:
                     module = self.get_serialized_parameter_module(ModuleTypes.MOVEMENT, searchmodel.target_module(r))
                 else:                    
                     module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
-                row_data["module"] = module
+                row_data[TargetHeaders.MODULE] = module
+                row_data[TargetHeaders.MODULE_ID] = searchmodel.target_module_id(r)
                 associatedrelnmodule = searchmodel.target_associatedrelnmodule(r)
-                row_data["associatedrelnmodule"] = self.get_serialized_parameter_module(ModuleTypes.RELATION, associatedrelnmodule) if associatedrelnmodule is not None else None
-
+                row_data[TargetHeaders.ASSOCRELNMODULE] = self.get_serialized_parameter_module(ModuleTypes.RELATION, associatedrelnmodule) if associatedrelnmodule is not None else None
+                row_data[TargetHeaders.ASSOCRELNMODULE_ID] = searchmodel.target_associatedrelnmodule_id(r)
                 model[name] = row_data  
+
+                logging.warning(f"Saving: {name}, {ttype}, module: {row_data[TargetHeaders.MODULE_ID]},  associatedrelnmodule: {row_data[TargetHeaders.ASSOCRELNMODULE_ID]} ")
         return model
     
     def get_serialized_parameter_module(self, type, module):
