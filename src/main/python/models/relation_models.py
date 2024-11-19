@@ -1,31 +1,26 @@
-from copy import copy
-
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
 )
 
 from PyQt5.QtCore import (
-    Qt,
-    QDateTime
+    Qt
 )
 
-from models.location_models import LocationTableModel, LocationTableSerializable, locn_options_hand, rb, ed, fx
-from lexicon.module_classes import AddedInfo, userdefinedroles as udr, ModuleTypes
-from constant import HAND, ARM, LEG, ARTICULATOR_ABBREVS
+from constant import ARTICULATOR_ABBREVS, ModuleTypes
 
 
 class ModuleLinkingListModel(QStandardItemModel):
 
-    def __init__(self, modules=None, modulenumsdict=None, moduletype=None, **kwargs):
+    def __init__(self, modules=None, modulenumsdict=None, **kwargs):
         super().__init__(**kwargs)
-        self.setmoduleslist(modules, modulenumsdict, moduletype)
+        self.setmoduleslist(modules, modulenumsdict)
 
-    def setmoduleslist(self, modules=None, modulenumsdict=None, moduletype=None):
+    def setmoduleslist(self, modules=None, modulenumsdict=None):
         modules = modules or []
         self.clear()
         for idx, module in enumerate(modules):
-            moduleitem = ModuleLinkingListItem(module, modulenumsdict[module.uniqueid], moduletype)
+            moduleitem = ModuleLinkingListItem(module, modulenumsdict[module.uniqueid])
             self.appendRow(moduleitem)
         # self.modelupdated.emit()
         # self.dataChanged.emit()
@@ -48,12 +43,12 @@ class ModuleLinkingListModel(QStandardItemModel):
 
 class ModuleLinkingListItem(QStandardItem):
 
-    def __init__(self, module, modulenumber, moduletype):
+    def __init__(self, module, modulenumber):
         super().__init__()
 
         self.module = module
         self.modnum = modulenumber
-        self.moduletype = moduletype
+        self.moduletype = module.moduletype
         self.setEditable(False)
         self.setCheckable(False)
 

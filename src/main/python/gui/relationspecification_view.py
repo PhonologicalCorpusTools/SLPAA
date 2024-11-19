@@ -11,12 +11,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton
 )
 
 from PyQt5.QtCore import (
-    Qt,
-    QEvent,
     pyqtSignal,
     QItemSelectionModel
 )
@@ -30,7 +27,6 @@ from lexicon.module_classes import (
     Direction,
     RelationX,
     RelationY,
-    ModuleTypes,
     ContactRelation,
     ContactType,
     BodypartInfo
@@ -40,7 +36,7 @@ from models.location_models import BodypartTreeModel
 from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, ModuleTypes
 
 
 # This panel contains all the relation-specific options for users to define an instance of a Relation module.
@@ -823,9 +819,9 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # update the list of existing modules according to which module type was selected
     def update_existingmodule_list(self, selection_dict):
         if selection_dict[1]:
-            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums, ModuleTypes.LOCATION)
+            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums)
         elif selection_dict[2]:
-            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums, ModuleTypes.MOVEMENT)
+            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums)
         else:
             self.existingmodule_listmodel.setmoduleslist(None)
 
