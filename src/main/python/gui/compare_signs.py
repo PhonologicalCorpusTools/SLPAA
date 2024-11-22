@@ -251,6 +251,59 @@ class CompareSignsDialog(QDialog):
             data2_keys = set(data2.keys()) if isinstance(data2, dict) else set()
             all_keys = data1_keys.union(data2_keys)
 
+            # special case: terminal node
+            if len(data1_keys) == len(data2_keys) == 1:
+                _, value1 = next(iter(data1.items()))
+                _, value2 = next(iter(data2.items()))
+                value1_match = value1.get('match', "NA")
+                value2_match = value2.get('match', "NA")
+                if "NA" not in [value1_match, value2_match]:
+                    btn_types1_final = value1['button_type'].split('>')[-1]
+                    btn_types2_final = value2['button_type'].split('>')[-1]
+                    if btn_types1_final == 'radio button' and btn_types2_final == 'radio button' and parent1 == parent2:
+                        item1 = CompareTreeWidgetItem(labels=[str(list(data1_keys)[0])], palette=self.palette)
+                        item2 = CompareTreeWidgetItem(labels=[str(list(data2_keys)[0])], palette=self.palette)
+                        if not item1 == item2:
+                            item1.initilize_bg_color('red')  # red
+                            item2.initilize_bg_color('red')
+                            should_paint_red[0] = True
+                            should_paint_red[1] = True
+                            if parent1.background(0).color() != yellow_brush:
+                                parent1.initilize_bg_color('red')
+                            if parent2.background(0).color() != yellow_brush:
+                                parent2.initilize_bg_color('red')
+                        else:
+                            item1.initilize_bg_color('blue')
+                            item2.initilize_bg_color('blue')
+                        parent1.addChild(item1)
+                        parent2.addChild(item2)
+
+                        should_paint_red = [should_paint_red[0], should_paint_red[1]]
+                        # color of the parent node: red wins over yellow
+                        if should_paint_red[0]:
+                            # red should not override already painted yellow
+                            if parent1.background(0).color() != yellow_brush:
+                                parent1.initilize_bg_color('red')
+                        elif should_paint_yellow[0] and parent1 == parent2:
+                            parent1.initilize_bg_color('red')
+                        elif should_paint_yellow[0]:
+                            parent1.initilize_bg_color('yellow')
+                        elif not parent1.flags() == Qt.NoItemFlags:
+                            parent1.initilize_bg_color('blue')
+
+                        if should_paint_red[1]:
+                            if parent2.background(0).color() != yellow_brush:
+                                parent2.initilize_bg_color('red')
+                        elif should_paint_yellow[1] and parent1 == parent2:
+                            parent2.initilize_bg_color('red')
+                        elif should_paint_yellow[1]:
+                            parent2.initilize_bg_color('yellow')
+                        elif not parent2.flags() == Qt.NoItemFlags:
+                            parent2.initilize_bg_color('blue')
+
+                        return should_paint_red, should_paint_yellow
+
+
             for key in reversed(list(all_keys)):
                 # Create tree items for both trees
                 item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
