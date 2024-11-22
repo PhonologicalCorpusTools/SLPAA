@@ -196,7 +196,7 @@ class CompareSignsDialog(QDialog):
     def initialize_sign_counters(self):
         # generate a dictionary of ColourCounters for a sign
         palette = self.palette
-        counter_kinds = ['all expanded', 'current', 'all collapsed']
+        counter_kinds = ['all collapsed', 'current', 'all expanded']
         return {key: ColourCounter(palette=palette) for key in counter_kinds}
 
     def initialize_dropdown(self):
@@ -321,7 +321,6 @@ class CompareSignsDialog(QDialog):
                 if child_r[1] or child_y[1]:
                     should_paint_red[1] = True
                 should_paint_red = [should_paint_red[0], should_paint_red[1]]
-
             # color of the parent node: red wins over yellow
             if should_paint_red[0]:
                 # red should not override already painted yellow
@@ -377,7 +376,7 @@ class CompareSignsDialog(QDialog):
             #top_item2.setExpanded(True)
 
     def update_trees(self):
-        # Update the dialog visual as dropdown selections
+        # Update the dialog visual as the user selects signs from the dropdown
         label_sign1 = self.sign1_dropdown.currentText()
         label_sign2 = self.sign2_dropdown.currentText()
 

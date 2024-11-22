@@ -38,39 +38,68 @@ def get_informative_elements(l: list) -> list:
     return result
 
 
-def compare_elements(e1: str, e2: str, pairwise=True):
+def build_hierarchy(components, res):
+    if not components:
+        return {}
+    hierarchy = current = {}
+    for c in components[:-1]:
+        current[c] = {}
+        current = current[c]
+    current[components[-1]] = res[components[-1]]
+    return hierarchy
+
+
+def compare_elements(e1: str, e2: str, btn_types1: dict, btn_types2: dict, pairwise=True):
     components1 = e1.split('>')
     components2 = e2.split('>')
 
     res1 = {}
     res2 = {}
 
-    for c1, c2 in zip(components1, components2):
-        res1[c1] = (c1 == c2)
-        res2[c2] = (c1 == c2)
-
-    # If there are extra components in either e1 or e2
-    if len(components1) > len(components2):
-        for c in components1[len(components2):]:
-            res1[c] = False
-    elif len(components2) > len(components1):
-        for c in components2[len(components1):]:
-            res2[c] = False
-
-    hierarchical_res1 = current = {}
-    for item in components1[:-1]:
-        current[item] = {}
-        current = current[item]
-    current[components1[-1]] = res1[components1[-1]]
-
-    hierarchical_res2 = current = {}
-    for item in components2[:-1]:
-        current[item] = {}
-        current = current[item]
-    current[components2[-1]] = res2[components2[-1]]
-
+    # special case: non-pairwise
     if not pairwise:
-        current[components1[-1]], current[components2[-1]] = False, False
+        if components1:
+            # e2 is missing; mark all components in e1 as unmatched
+            for idx, c1 in enumerate(components1):
+                path1 = '>'.join(components1[:idx+1])
+                btn_type1 = btn_types1.get(path1, 'unknown')
+                res1[c1] = {'match': False, 'button_type': btn_type1}
+        if components2:
+            # e1 is missing; mark all components in e2 as unmatched
+            for idx, c2 in enumerate(components2):
+                path2 = '>'.join(components2[:idx+1])
+                btn_type2 = btn_types2.get(path2, 'unknown')
+                res2[c2] = {'match': False, 'button_type': btn_type2}
+        hierarchical_res1 = build_hierarchy(components1, res1)
+        hierarchical_res2 = build_hierarchy(components2, res2)
+        return hierarchical_res1, hierarchical_res2
+
+    # regular cases
+    for idx, (c1, c2) in enumerate(zip(components1, components2)):
+        # Build the path up to this point
+        path1 = '>'.join(components1[:idx + 1])
+        path2 = '>'.join(components2[:idx + 1])
+
+        btn_type1 = btn_types1.get(path1, 'unknown')
+        btn_type2 = btn_types2.get(path2, 'unknown')
+
+        match = c1 == c2
+        res1[c1] = {'match': match, 'button_type': btn_type1}
+        res2[c2] = {'match': match, 'button_type': btn_type2}
+
+    # Handle extra components in either e1 or e2
+    if len(components1) > len(components2):
+        for idx, c in enumerate(components1[len(components2):], start=len(components2)):
+            path1 = '>'.join(components1[:idx + 1])
+            btn_type1 = btn_types1.get(path1, 'unknown')
+            res1[c] = {'match': False, 'button_type': btn_type1}
+    elif len(components2) > len(components1):
+        for idx, c in enumerate(components2[len(components1):], start=len(components1)):
+            path2 = '>'.join(components2[:idx + 1])
+            btn_type2 = btn_types2.get(path2, 'unknown')
+            res2[c] = {'match': False, 'button_type': btn_type2}
+    hierarchical_res1 = build_hierarchy(components1, res1)
+    hierarchical_res2 = build_hierarchy(components2, res2)
 
     return hierarchical_res1, hierarchical_res2
 
@@ -98,3 +127,39 @@ def analyze_modules(modules: list, module_numbers: dict, module_abbrev: str):
             for art_num, b in articulator_bool.items() if b
         })
     return r
+
+def get_btn_type_for_mvmtpath(path, root_node):
+    """
+    Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
+    """
+    parts = path.split('>')
+    btn_types = []
+
+    def traverse(node, path_parts):
+        if not path_parts:
+            return True  # Reached the end successfully
+        part = path_parts[0]
+
+        # First, check if the current node's children have the desired part
+        matching_child = None
+        for child in node.children:
+            if child.display_name == part:
+                matching_child = child
+                break
+
+        if matching_child:
+            btn_types.append(matching_child.button_type)
+            return traverse(matching_child, path_parts[1:])
+        else:
+            # Recursively search in all children
+            for child in node.children:
+                if traverse(child, path_parts):
+                    return True
+            return False  # Not found in this branch
+
+    found = traverse(root_node, parts)
+
+    if found:
+        return ">".join(btn_types)
+    else:
+        return "Path not found"

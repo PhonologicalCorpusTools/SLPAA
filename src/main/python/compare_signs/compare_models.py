@@ -1,7 +1,8 @@
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
-                                           compare_elements, summarize_path_comparison)
+                                           compare_elements, summarize_path_comparison,
+                                           get_btn_type_for_mvmtpath)
 
 class CompareModel:
     def __init__(self, sign1, sign2):
@@ -87,17 +88,30 @@ class CompareModel:
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
 
+            s1_path_btn_types = {
+                path: get_btn_type_for_mvmtpath(path, pair[0].movementtreemodel.optionstree) for path in s1_path_element
+            }
+            s2_path_btn_types = {
+                path: get_btn_type_for_mvmtpath(path, pair[1].movementtreemodel.optionstree) for path in s2_path_element
+            }
+
             for e1 in s1_path_element:
                 matched = False
                 for e2 in s2_path_element:
                     if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
                         matched = True
-                        res1, res2 = compare_elements(e1, e2, pairwise=pairwise)
+                        res1, res2 = compare_elements(
+                            e1=e1,
+                            e2=e2,
+                            btn_types1=s1_path_btn_types,
+                            btn_types2=s2_path_btn_types,
+                            pairwise=pairwise
+                        )
                         results1.append(res1)
                         results2.append(res2)
 
                 if not matched:
-                    res1, _ = compare_elements(e1, '', pairwise=False)
+                    res1, _ = compare_elements(e1, '', s1_path_btn_types, {}, pairwise=False)
                     results1.append(res1)
 
             results1 = summarize_path_comparison(results1)
