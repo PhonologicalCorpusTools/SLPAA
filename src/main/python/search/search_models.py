@@ -47,6 +47,7 @@ class TargetHeaders:
 
 class SearchModel(QStandardItemModel):
     def __init__(self, sign=None, serializedsearchmodel=None,**kwargs):
+    def __init__(self, sign=None, serializedsearchmodel=None,**kwargs):
         super().__init__(**kwargs)
         self.name = None
         self.path = None
