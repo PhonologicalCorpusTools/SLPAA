@@ -15,6 +15,7 @@ from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScen
 from PyQt5.Qt import QStandardItem
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QSize
 from PyQt5.QtWidgets import (
+    QListView,
     QLineEdit,
     QDialog,
     QFrame,
@@ -37,7 +38,7 @@ from PyQt5.QtWidgets import (
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
-from gui.relationspecification_view import RelationSpecificationPanel, RelationRadioButton, RelationButtonGroup
+from gui.relationspecification_view import RelationSpecificationPanel, RelationRadioButton, RelationButtonGroup, ModuleLinkingListModel
 from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene, AssociatedRelationsDialog, AssociatedRelationsPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
@@ -481,6 +482,52 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
 class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
+
+    # If an associated relation module is being created, then the linked module box should only show this target's anchor module.
+    # If we use the parent class's method, all location or movement search targets in this search file will appear, 
+    # since they all belong to the same "current_sign"
+    def create_linked_module_box(self):
+        self.existingmod_listview = QListView()
+        # Check if this is an associated relation module
+        curr_row = self.mainwindow.current_row
+        # logging.warning(curr_row)
+        # logging.warning(self.mainwindow.searchmodel.target_type(curr_row))
+        target_type = self.mainwindow.searchmodel.target_type(curr_row)
+        if target_type != ModuleTypes.RELATION:
+            anchor_module = self.mainwindow.searchmodel.target_module(curr_row)
+            anchor_module_id = self.mainwindow.searchmodel.target_module_id(curr_row)
+
+            logging.warning(f"relation panel. curr row: {curr_row}. anchor: {anchor_module_id}")
+
+            self.locmodslist = []
+            self.locmodnums = {}
+            self.movmodslist = []
+            self.movmodnums = {}
+            if target_type in [ModuleTypes.LOCATION, LOC_REL_TARGET]: 
+                self.locmodslist = [anchor_module]
+                self.locmodnums[anchor_module_id] = 1
+                label = 'Location'
+            elif target_type in [ModuleTypes.MOVEMENT, MOV_REL_TARGET]:
+                self.movmodslist = [anchor_module]
+                self.movmodnums[anchor_module_id] = 1
+                label = 'Movement'
+
+            self.existingmodule_listmodel = ModuleLinkingListModel()
+            self.existingmod_listview.setModel(self.existingmodule_listmodel)
+
+            # disable y options
+            for b in self.y_group.buttons():
+                b.setChecked(False)
+                b.setEnabled(False)
+            self.y_existingmod_radio.setEnabled(True)
+            self.y_existingmod_switch.freezeOption(label)     
+            
+        else: 
+            super().create_linked_module_box()
+
+
+
+
 
     def setcurrentmanner(self, mannerrel):
         if mannerrel is not None and mannerrel.any:

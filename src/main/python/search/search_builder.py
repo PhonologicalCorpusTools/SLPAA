@@ -457,7 +457,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             include = preexistingitem.include
             associatedrelnmodule = preexistingitem.associatedrelnmodule
             associatedrelnmodule_id = preexistingitem.associatedrelnmodule_id
-            logging.warning(f"preexisting item: {module_id}. assoc: {associatedrelnmodule_id}")
+            # logging.warning(f"preexisting item: {module_id}. assoc: {associatedrelnmodule_id}")
 
         
         if row is not None:
@@ -520,23 +520,40 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
 
     def handle_add_target(self, target, module_to_save, row=None):
+        logging.warning(f"handle add target. row: {row}. {target.targettype}, {module_to_save}, {self.mainwindow.searchmodel.target_type(self.mainwindow.current_row)}")
         existingkey = module_to_save.uniqueid
+
+        # Special case: converting a regular loc/mvmt target into an anchor target
+        # This happens when user associates a relation module to an existing loc/mvmt search target
+        curr_row = self.mainwindow.current_row
+        if (target.targettype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT] 
+            and self.mainwindow.searchmodel.target_type(curr_row) in [LOC_REL_TARGET, MOV_REL_TARGET]):
+            row = curr_row
+            moduletype = target.targettype if not isinstance(module_to_save, RelationModule) else ModuleTypes.RELATION
+            target.targettype = self.mainwindow.searchmodel.target_type(row)
+            
+            target.associatedrelnmodule = self.mainwindow.searchmodel.target_associatedrelnmodule(row)
+            target.associatedrelnmodule_id = self.mainwindow.searchmodel.target_associatedrelnmodule_id(row)
+            # logging.warning(f"new anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
+            
+
         # Default case: adding or modifying a target that is not and does not have an assoc. reln module
-        if target.targettype not in [LOC_REL_TARGET, MOV_REL_TARGET]:
+        elif target.targettype not in [LOC_REL_TARGET, MOV_REL_TARGET]:
             moduletype = target.targettype
             target.module = module_to_save
             target.module_id = existingkey
-            logging.warning(f"regular module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
+            # logging.warning(f"regular module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
             
         # Modifying a connected target: 
         # In the search window, an anchor module and its assoc reln module comprise a single target.
         # So the module being saved could be either the anchor module or the associated relation module
         else:
+            row = self.mainwindow.current_row
             if isinstance(module_to_save, RelationModule): # 
                 moduletype = ModuleTypes.RELATION
                 target.associatedrelnmodule = module_to_save
                 target.associatedrelnmodule_id = existingkey
-                logging.warning(f"assoc reln module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
+                # logging.warning(f"assoc reln module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
                 
             else:
                 if target.targettype == LOC_REL_TARGET:
@@ -545,18 +562,9 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                     moduletype == ModuleTypes.MOVEMENT
                 target.module = module_to_save
                 target.module_id = existingkey
-                logging.warning(f"anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
+                # logging.warning(f"anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
 
-        # Special case: converting a regular loc/mvmt target into an anchor target
-        # This happens when user associates a relation module to an existing loc/mvmt search target
-        curr_row = self.mainwindow.current_row
-        if (target.targettype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT] 
-            and self.mainwindow.searchmodel.target_type(curr_row) in [LOC_REL_TARGET, MOV_REL_TARGET]):
-            row = curr_row
-            target.targettype = self.mainwindow.searchmodel.target_type(row)
-            target.associatedrelnmodule = self.mainwindow.searchmodel.target_associatedrelnmodule(row)
-            target.associatedrelnmodule_id = self.mainwindow.searchmodel.target_associatedrelnmodule_id(row)
-            logging.warning(f"new anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
+
 
         # Add the module_to_save to the searchwindowsign's module dict
         if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype):
@@ -567,7 +575,11 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             self.sign.updatemodule(existingkey, module_to_save, moduletype)
 
         # Create and save the new or modified target
-        target.searchvaluesitem = SearchValuesItem(moduletype, module_to_save)
+        try:
+            target.searchvaluesitem = SearchValuesItem(moduletype, module_to_save)
+        except:
+            logging.warning(f"module type was {moduletype} but module to save was {module_to_save}")
+        # logging.warning(f"saving. {row} ")
         self.emit_signal(target, row)
 
         #####
@@ -627,10 +639,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             targettype=targettype,
             xslottype=xslottype,
             searchvaluesitem=searchvaluesitem,
-            module=anchormodule
+            module=anchormodule,
+            module_id=anchormodule.uniqueid,
+            associatedrelnmodule=relnmodule,
+            associatedrelnmodule_id=relnmodule.uniqueid
+
         )
-        connectedtarget.associatedrelnmodule = relnmodule
-        connectedtarget.associatedrelnmodule_id = relnmodule.uniqueid
         
         # self.sign.updatemodule(self.mainwindow.searchmodel.target_associatedrelnmodule_id(row), relnmodule, ModuleTypes.RELATION)
         self.sign.addmodule(relnmodule, ModuleTypes.RELATION)

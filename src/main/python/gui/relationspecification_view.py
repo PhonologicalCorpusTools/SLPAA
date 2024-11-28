@@ -752,17 +752,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_l2_radio = RelationRadioButton("Leg2")
         self.y_existingmod_radio = RelationRadioButton("Existing module:")
         self.y_existingmod_switch = OptionSwitch("Location", "Movement")
-        self.existingmod_listview = QListView()
-        self.locmodslist = list(self.mainwindow.current_sign.locationmodules.values())
-        self.locmodslist = [loc for loc in self.locmodslist if loc.locationtreemodel.locationtype.usesbodylocations()]
-        self.locmodnums = self.mainwindow.current_sign.locationmodulenumbers
-        self.movmodslist = list(self.mainwindow.current_sign.movementmodules.values())
-        self.movmodnums = self.mainwindow.current_sign.movementmodulenumbers
-        self.existingmodule_listmodel = ModuleLinkingListModel()
-        self.existingmod_listview.setModel(self.existingmodule_listmodel)
-        self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
-        self.existingmod_listview.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.existingmod_listview.clicked.connect(self.handle_existingmod_clicked)
+
         self.y_other_radio = RelationRadioButton("Other")
         self.y_other_text = QLineEdit()
         self.y_other_text.setPlaceholderText("Specify")
@@ -773,6 +763,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_group.addButton(self.y_l2_radio)
         self.y_group.addButton(self.y_existingmod_radio)
         self.y_group.addButton(self.y_other_radio)
+
+        self.create_linked_module_box()
 
         y_layout_left.addWidget(self.y_h2_radio)
         y_layout_left.addWidget(self.y_a2_radio)
@@ -794,6 +786,19 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         y_layout.addLayout(y_other_layout)
         y_box.setLayout(y_layout)
         return y_box
+
+    def create_linked_module_box(self):
+        self.existingmod_listview = QListView()
+        self.locmodslist = list(self.mainwindow.current_sign.locationmodules.values())
+        self.locmodslist = [loc for loc in self.locmodslist if loc.locationtreemodel.locationtype.usesbodylocations()]
+        self.locmodnums = self.mainwindow.current_sign.locationmodulenumbers
+        self.movmodslist = list(self.mainwindow.current_sign.movementmodules.values())
+        self.movmodnums = self.mainwindow.current_sign.movementmodulenumbers
+        self.existingmodule_listmodel = ModuleLinkingListModel()
+        self.existingmod_listview.setModel(self.existingmodule_listmodel)
+        self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
+        self.existingmod_listview.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.existingmod_listview.clicked.connect(self.handle_existingmod_clicked)
 
     # if user toggles the switch for selecting an existing module (movement or location),
     #   ensure the parent ("existing module") radio button is checked, that the list of
