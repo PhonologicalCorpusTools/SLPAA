@@ -158,7 +158,7 @@ class CompareSignsDialog(QDialog):
         self.current_colour_counter_2 = sign2_counters['current']
         self.collapsed_colour_counter_2 = sign2_counters['all collapsed']
 
-        # Vertical layout for signs 1 and 2 (i.e., tree and counters)
+        # Vertical tree layout for signs 1 and 2 (tree, expand/collapse btns, and counters)
         sign_tree_and_counters_layout = self.initialize_signs_layout(sign1_counters, sign2_counters)
         layout.addLayout(sign_tree_and_counters_layout)
 
@@ -216,19 +216,42 @@ class CompareSignsDialog(QDialog):
         return layout
 
     def initialize_signs_layout(self, counters_1, counters_2):
-        def gen_sign_layout(tree, counters):
-            sign_layout = QVBoxLayout()
-            sign_layout.addWidget(tree)
+        def create_counters_layout(counters):
+            # helper function to create vertical box layout for counters
+            vbl = QVBoxLayout()
             for k, v in counters.items():
-                sign_layout.addWidget(QLabel(k.capitalize()))
-                sign_layout.addWidget(v)
-            return sign_layout
+                vbl.addWidget(QLabel(k.capitalize()))
+                vbl.addWidget(v)
+            return vbl
 
-        sign1_layout = gen_sign_layout(self.tree1, counters_1)
-        sign2_layout = gen_sign_layout(self.tree2, counters_2)
-        tree_counter_layout = QHBoxLayout()
-        tree_counter_layout.addLayout(sign1_layout)
-        tree_counter_layout.addLayout(sign2_layout)
+        # container for all
+        tree_counter_layout = QVBoxLayout()
+
+        # two sign trees
+        signtrees_hbl = QHBoxLayout()
+        signtrees_hbl.addWidget(self.tree1)
+        signtrees_hbl.addWidget(self.tree2)
+        tree_counter_layout.addLayout(signtrees_hbl)
+
+        # Expand All and Collapse All btns
+        expand_collapse_layout_hbox = QHBoxLayout()
+
+        expand_all_button = QPushButton("Expand All")
+        expand_collapse_layout_hbox.addWidget(expand_all_button)
+        expand_all_button.clicked.connect(self.expand_all_trees)
+
+        collapse_all_button = QPushButton("Collapse All")
+        expand_collapse_layout_hbox.addWidget(collapse_all_button)
+        collapse_all_button.clicked.connect(self.collapse_all_trees)
+
+        tree_counter_layout.addLayout(expand_collapse_layout_hbox)
+
+        # colour counters
+        counters_hbl = QHBoxLayout()
+        counters_hbl.addLayout(create_counters_layout(counters_1))
+        counters_hbl.addLayout(create_counters_layout(counters_2))
+        tree_counter_layout.addLayout(counters_hbl)
+
         return tree_counter_layout
 
     def sync_scrollbars(self, scrolled_value, other_tree):
@@ -239,7 +262,7 @@ class CompareSignsDialog(QDialog):
             self.syncing_scrollbars = False
 
     def populate_trees(self, tree1, tree2, data1, data2):
-        # this really needs refactoring.
+        # this really really needs refactoring.
         def add_items(parent1, parent2, data1, data2):
             should_paint_red = [False, False]     # paint tree 1 node / tree 2 node red
             should_paint_yellow = [False, False]  # yellow to tree 1 node / tree 2 node
@@ -523,7 +546,7 @@ class CompareSignsDialog(QDialog):
         path = self.get_full_path(item)
         corresponding_item = self.find_corresponding_line(path, target_tree)
         if corresponding_item and corresponding_item.isExpanded():
-            # to prevent infinite recursions, expand corresponding tree only when it is collapsed
+            # to prevent infinite recursions, collapse corresponding tree only when it is expanded
             target_tree.collapseItem(corresponding_item)
 
         # change colour
@@ -531,6 +554,31 @@ class CompareSignsDialog(QDialog):
 
         # update current colour counter
         self.update_current_counters()
+
+    def expand_all_trees(self):
+        # Expand all lines in tree1, but effectively do so for both trees due to syncing
+        root1 = self.tree1.invisibleRootItem()
+
+        def recursive_expand(root):
+            for i in range(root.childCount()):
+                item = root.child(i)
+                self.tree1.expandItem(item) if not item.isExpanded() else 0  # only expand expandable lines
+                recursive_expand(item)
+
+        recursive_expand(root1)
+
+    def collapse_all_trees(self):
+        # collapse all lines in tree1, but effectively do so for both trees due to syncing
+        root1 = self.tree1.invisibleRootItem()
+
+        def recursive_collapse(root):
+            # recursively collapse
+            for i in range(root.childCount()):
+                item = root.child(i)
+                self.tree1.collapseItem(item) if item.isExpanded() else 0  # only collapse collapsible lines
+                recursive_collapse(item)
+
+        recursive_collapse(root1)
 
     def get_full_path(self, item):
         # helper function to get a full ancestry of a tree item
