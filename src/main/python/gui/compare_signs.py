@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QComboBox, \
-    QLabel, QHBoxLayout, QPushButton, QWidget
+    QLabel, QHBoxLayout, QPushButton, QWidget, QFrame
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 
@@ -238,13 +238,19 @@ class CompareSignsDialog(QDialog):
 
         expand_all_button = QPushButton("Expand All")
         expand_collapse_layout_hbox.addWidget(expand_all_button)
-        expand_all_button.clicked.connect(self.expand_all_trees)
+        expand_all_button.clicked.connect(lambda: self.toggle_all_trees(expand=True))
 
         collapse_all_button = QPushButton("Collapse All")
         expand_collapse_layout_hbox.addWidget(collapse_all_button)
-        collapse_all_button.clicked.connect(self.collapse_all_trees)
+        collapse_all_button.clicked.connect(lambda: self.toggle_all_trees(expand=False))
 
         tree_counter_layout.addLayout(expand_collapse_layout_hbox)
+
+        # separator
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        tree_counter_layout.addWidget(separate_line)
 
         # colour counters
         counters_hbl = QHBoxLayout()
@@ -555,30 +561,20 @@ class CompareSignsDialog(QDialog):
         # update current colour counter
         self.update_current_counters()
 
-    def expand_all_trees(self):
-        # Expand all lines in tree1, but effectively do so for both trees due to syncing
-        root1 = self.tree1.invisibleRootItem()
-
-        def recursive_expand(root):
+    def toggle_all_trees(self, expand=True):
+        # expand or collapse all lines in tree1, effectively doing so for tree2 due to syncing
+        # called by the 'expand all' or 'collapse all' buttons
+        def recursive_toggle(root, should_expand):
+            # recursively expand or collapse
             for i in range(root.childCount()):
                 item = root.child(i)
-                self.tree1.expandItem(item) if not item.isExpanded() else 0  # only expand expandable lines
-                recursive_expand(item)
+                if should_expand and not item.isExpanded():    # only expand expandable lines
+                    self.tree1.expandItem(item)
+                elif not should_expand and item.isExpanded():  # only collapse collapsible lines
+                    self.tree1.collapseItem(item)
+                recursive_toggle(item, should_expand)
 
-        recursive_expand(root1)
-
-    def collapse_all_trees(self):
-        # collapse all lines in tree1, but effectively do so for both trees due to syncing
-        root1 = self.tree1.invisibleRootItem()
-
-        def recursive_collapse(root):
-            # recursively collapse
-            for i in range(root.childCount()):
-                item = root.child(i)
-                self.tree1.collapseItem(item) if item.isExpanded() else 0  # only collapse collapsible lines
-                recursive_collapse(item)
-
-        recursive_collapse(root1)
+        recursive_toggle(self.tree1.invisibleRootItem(), expand)
 
     def get_full_path(self, item):
         # helper function to get a full ancestry of a tree item
