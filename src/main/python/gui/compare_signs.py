@@ -616,7 +616,7 @@ class CompareSignsDialog(QDialog):
         counts_roots = {'red': 0, 'yellow': 0, 'blue': 0}  # for 'all collapsed'
 
         def walk_tree(item, tree, fully_visible=True):
-            # this conditional decides whether the current item is visible
+            # this conditional decides whether the current item is visible (item_visible)
             if item.parent() is None:
                 # no parent means the item is the root.
                 item_visible = fully_visible
@@ -627,7 +627,7 @@ class CompareSignsDialog(QDialog):
 
             bg_color = None
 
-            if not only_visible_now:
+            if not only_visible_now:   # if not counting lines visible now, meaning counting all
                 if hasattr(item, 'underlying_bg'):
                     print(f'item: {item}, bg:{item.underlying_bg}')
                     bg_color = item.underlying_bg
@@ -637,12 +637,13 @@ class CompareSignsDialog(QDialog):
                     bg_color = item.current_bg
 
             if bg_color in counts:
-                # update 'all expanded' counter
-                counts[bg_color] += 1
 
                 if item.is_root:
                     # if the line is root (e.g., movement, relation ...) count its colour for 'all collapsed'
                     counts_roots[bg_color] += 1
+                elif not item.is_label:
+                    # update 'all expanded' counter (when all expanded labels are transparent -- should not be counted)
+                    counts[bg_color] += 1
 
             # recursively apply walk_tree to the children
             for i in range(item.childCount()):
