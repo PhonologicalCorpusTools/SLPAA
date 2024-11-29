@@ -515,12 +515,11 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                                                 parent=self)
             
             module_selector.module_saved.connect(lambda module_to_save: self.handle_add_target(target, module_to_save, row=row))
-            
             module_selector.exec_()
 
 
     def handle_add_target(self, target, module_to_save, row=None):
-        logging.warning(f"handle add target. row: {row}. {target.targettype}, {module_to_save}, {self.mainwindow.searchmodel.target_type(self.mainwindow.current_row)}")
+        # logging.warning(f"handle add target. row: {row}. {target.targettype}, {self.mainwindow.searchmodel.target_type(self.mainwindow.current_row)}, {self.mainwindow.searchmodel.target_module_id(self.mainwindow.current_row)}")
         existingkey = module_to_save.uniqueid
 
         # Special case: converting a regular loc/mvmt target into an anchor target
@@ -534,7 +533,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             
             target.associatedrelnmodule = self.mainwindow.searchmodel.target_associatedrelnmodule(row)
             target.associatedrelnmodule_id = self.mainwindow.searchmodel.target_associatedrelnmodule_id(row)
-            # logging.warning(f"new anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
+            # logging.warning(f"{curr_row}.new anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
             
 
         # Default case: adding or modifying a target that is not and does not have an assoc. reln module
@@ -542,7 +541,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             moduletype = target.targettype
             target.module = module_to_save
             target.module_id = existingkey
-            # logging.warning(f"regular module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
+            # logging.warning(f"{curr_row}. regular module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
             
         # Modifying a connected target: 
         # In the search window, an anchor module and its assoc reln module comprise a single target.
@@ -564,67 +563,25 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                 target.module_id = existingkey
                 # logging.warning(f"anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
 
-
-
-        # Add the module_to_save to the searchwindowsign's module dict
-        if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype):
-            # logging.warning(f"added new module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
-            self.sign.addmodule(module_to_save, moduletype)
-        else:
-            
-            self.sign.updatemodule(existingkey, module_to_save, moduletype)
-
         # Create and save the new or modified target
         try:
             target.searchvaluesitem = SearchValuesItem(moduletype, module_to_save)
         except:
             logging.warning(f"module type was {moduletype} but module to save was {module_to_save}")
-        # logging.warning(f"saving. {row} ")
+
+        # Add the module_to_save to the searchwindowsign's module dict
+        if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype):
+            self.sign.addmodule(module_to_save, moduletype)
+        else:
+            row = self.mainwindow.current_row
+            self.sign.updatemodule(existingkey, module_to_save, moduletype)
+
         self.emit_signal(target, row)
 
-        #####
-        # existingkey = module_to_save.uniqueid
-        # logging.warning(f"existing key is {existingkey}")
-
-        # if target.targettype in [LOC_REL_TARGET, MOV_REL_TARGET]:
-        #     # The module being saved could be either the anchor module or the associated relation module
-        #     if isinstance(module_to_save, RelationModule):
-        #         moduletype = ModuleTypes.RELATION
-        #         # target.associatedrelnmodule_id = existingkey
-        #     else: 
-        #         if target.targettype == LOC_REL_TARGET:
-        #             moduletype = ModuleTypes.LOCATION
-        #         elif target.targettype == MOV_REL_TARGET:
-        #             moduletype == ModuleTypes.MOVEMENT
-                
-        # else:   
-        #     moduletype = target.targettype
-        #     target.module_id = existingkey
-        
-        # if existingkey is None or existingkey not in self.sign.getmoduledict(moduletype):
-        #     logging.warning("added new module")
-        #     self.sign.addmodule(module_to_save, moduletype)
-        # else:
-        #     logging.warning("updated module")
-        #     self.sign.updatemodule(existingkey, module_to_save, moduletype)
-    
-        # target.searchvaluesitem = SearchValuesItem(moduletype, module_to_save)
-        # target.module = module_to_save
-        # target.module_id = module_to_save.uniqueid
-        
-    
-        # # check if this is a loc/mvmt target that has just been converted into an anchor target
-        # curr_row = self.mainwindow.current_row
-        # if target.targettype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT] and self.mainwindow.searchmodel.target_type(curr_row) in [LOC_REL_TARGET, MOV_REL_TARGET]:
-        #     row = curr_row
-        #     target.targettype = self.mainwindow.searchmodel.target_type(row)
-        #     target.associatedrelnmodule = self.mainwindow.searchmodel.target_associatedrelnmodule(row)
-        #     target.associatedrelnmodule_id = self.mainwindow.searchmodel.target_associatedrelnmodule_id(row)
-
-        # self.emit_signal(target, row)
 
     
     def handle_add_associated_relation_module(self, anchormodule, relnmodule):
+        self.sign.addmodule(relnmodule, ModuleTypes.RELATION)
         row = self.mainwindow.current_row
     
         # Replace the old anchor target with a new connected target
@@ -647,7 +604,8 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         )
         
         # self.sign.updatemodule(self.mainwindow.searchmodel.target_associatedrelnmodule_id(row), relnmodule, ModuleTypes.RELATION)
-        self.sign.addmodule(relnmodule, ModuleTypes.RELATION)
+        
+        # self.style_seeassociatedrelations()
         self.emit_signal(connectedtarget, row)
         
 
@@ -1192,7 +1150,7 @@ class SearchWindowSign(Sign):
         if module_to_add is not None:
             self.getmoduledict(moduletype)[module_to_add.uniqueid] = module_to_add
             self.getmodulenumbersdict(moduletype)[module_to_add.uniqueid] = self.getnextmodulenumber(moduletype)
-            logging.warning(f"Adding new {moduletype}. Unique id: {module_to_add.uniqueid}. ")
+            # logging.warning(f"Adding new {moduletype}. Unique id: {module_to_add.uniqueid}. ")
         else:
             logging.warning("failed to add " + moduletype)
 

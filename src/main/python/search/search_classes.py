@@ -326,6 +326,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         return associatedrelations_widget
     
 
+
     
     def add_button_box(self, new_instance=False):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
@@ -490,14 +491,13 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         self.existingmod_listview = QListView()
         # Check if this is an associated relation module
         curr_row = self.mainwindow.current_row
-        # logging.warning(curr_row)
-        # logging.warning(self.mainwindow.searchmodel.target_type(curr_row))
         target_type = self.mainwindow.searchmodel.target_type(curr_row)
-        if target_type != ModuleTypes.RELATION:
+
+        # Anchor modules are saved before assoc reln modules are added, so target_type will not be none if this is a connected target
+        # However, if this is a new Relation target, the target will not have been saved yet, so target_type will be None.
+        if target_type not in [ModuleTypes.RELATION, None]:
             anchor_module = self.mainwindow.searchmodel.target_module(curr_row)
             anchor_module_id = self.mainwindow.searchmodel.target_module_id(curr_row)
-
-            logging.warning(f"relation panel. curr row: {curr_row}. anchor: {anchor_module_id}")
 
             self.locmodslist = []
             self.locmodnums = {}
@@ -795,6 +795,9 @@ class Search_AssociatedRelationsDialog(AssociatedRelationsDialog):
     def __init__(self, anchormodule=None, **kwargs):
         super().__init__(anchormodule, **kwargs)
 
+
+
+
     def handle_relationmod_clicked(self, relmod):
 
         module_selector = Search_ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
@@ -810,6 +813,9 @@ class Search_AssociatedRelationsDialog(AssociatedRelationsDialog):
             existingkey=relmod.uniqueid, moduletype=ModuleTypes.RELATION))
         module_selector.exec_()
         self.refresh_listmodel()
+        
+
+
 
 class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
     def __init__(self, anchormodule=None, **kwargs):
@@ -857,15 +863,18 @@ class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
                                                    incl_articulators=[],
                                                    incl_articulator_subopts=0,
                                                    parent=self)
-            module_selector.module_saved.connect(lambda module_to_save:
-                                                 self.mainwindow.build_search_target_view.handle_add_associated_relation_module(
-                                                     self.anchormodule, module_to_save
-                                                 ))
-            # module_selector.module_saved.connect(lambda module_to_save: 
-            #                                      self.mainwindow.build_search_target_view.handle_add_target(target, module_to_save))
+            # module_selector.module_saved.connect(lambda module_to_save:
+            #                                      self.mainwindow.build_search_target_view.handle_add_associated_relation_module(
+            #                                          self.anchormodule, module_to_save
+            #                                      ))
+            module_selector.module_saved.connect(lambda module_to_save: self.handle_modulesaved(module_to_save=module_to_save))
             module_selector.exec_()
 
-    
+    def handle_modulesaved(self, module_to_save):
+        
+        self.mainwindow.build_search_target_view.handle_add_associated_relation_module(self.anchormodule, module_to_save)
+        self.style_seeassociatedrelations()
+
 
 class XslotTypeItem:
     def __init__(self, type=None, num=None, frac=None):
