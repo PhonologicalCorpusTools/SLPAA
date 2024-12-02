@@ -1996,6 +1996,12 @@ class Direction:
         self._minus = minus  # contra for horizontal, below for vertical, proximal for sagittal
         self._inline = inline  # in line with (for all axes)
 
+    def sameaxisselection(self, other):
+        if isinstance(other, Direction):
+            if self._axis == other.axis and self._axisselected == other.axisselected:
+                return True
+        return False
+
     def __eq__(self, other):
         if isinstance(other, Direction):
             if self._axis == other.axis and self._axisselected == other.axisselected and self._plus == other.plus and self._minus == other.minus and self._inline == other.inline:
