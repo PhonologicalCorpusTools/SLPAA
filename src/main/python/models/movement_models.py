@@ -1178,7 +1178,7 @@ class MovementTreeModel(QStandardItemModel):
             self.serializedmvmttree = serializedmvmttree
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
-            makelistmodel = self.listmodel  # TODO   what is this? necessary?
+            makelistmodel = self.listmodel
             userspecifiedvalues = self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode, userspecifiedvalues)
 

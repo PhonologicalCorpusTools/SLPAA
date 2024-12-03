@@ -551,7 +551,7 @@ class LocationTreeModel(QStandardItemModel):
         self._nodes_are_terminal = False
         self.itemChanged.connect(self.updateCheckState)
         self._locationtype = LocationType()
-        self.checked=[]
+        self.checked = []
 
         self.defaultneutralselected = False
         self.defaultneutrallist = None
@@ -571,7 +571,7 @@ class LocationTreeModel(QStandardItemModel):
 
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
-            makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
+            makelistmodel = self.listmodel
             self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode)
 
