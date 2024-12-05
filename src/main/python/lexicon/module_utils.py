@@ -90,65 +90,66 @@ def alignmodules(sign1, sign2, moduletype):
 
         # now we are at the point where we know that the module type in questions exists in both sign1 and sign2;
         #   we have to decide how to align them
-        if moduletype == ModuleTypes.MOVEMENT:
+        if moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG]:
             # i. First 'align by hand.' That is, try to align hand1 modules from sign1 to hand1 modules from sign2.
             #   If sign1 and sign2 each have only hand1 modules, or each have only hand2 modules, then proceed to the next step of alignment.
             #   If sign1 has both hand1 and hand2 modules, while sign2 has only hand1 modules (or vice versa), then align the hand1 modules only,
             #   and leave all hand2 modules unmatched.
             #   If sign1 has only hand1 modules, and sign2 has only hand2 modules, then this is the only time that non-matching hand modules can be aligned.
-            modsalignedbyhand, unmatched = alignbyarticulator(modulesbysign)
-            # ii. After aligning by hand as described above, try to align by movement type (perceptual shape, joint specific, or handshape change)
-            #   -- e.g., if sign 1 has both perceptual shape movement and joint-specific movement,
-            #   while sign 2 has only joint-specific movement, align the two joint-specific movements,
-            #   and then say that sign 1 has an extra perceptual shape movement that doesn’t have a match.
-            #   If both signs have two of the same type of movements (e.g. two perceptual shapes), move down to the
-            #   top-most characteristic (e.g., what the perceptual shape or the joint-specific movement is, like 'straight' or 'close/open'),
-            #   and align ones that match at that level. If things can't be aligned based on any of the above, align by coding order
-            #   (e.g. align sign 1’s H1.Mov3 with sign 2’s H1.Mov3, regardless of content).
-            modsalignedbymovtype, unmatched = alignbymovementtype(unmatched)
-            #   If modules still can't be aligned, align by coding order.
-            modsalignedbycodingorder, _ = alignbycodingorder(unmatched, matchwithnone=True)
-        elif moduletype == ModuleTypes.LOCATION:
-            # i. First ‘align by hand’ as for the movement module.
-            modsalignedbyhand, unmatched = alignbyarticulator(modulesbysign)
-            # ii. After aligning by hand, try to align by general location type (body-anchored or signing space)
-            #   -- e.g., if sign1 has both body-anchored and signing space locations, and sign2 has only a body-anchored location,
-            #   then align the body-anchored modules and leave the signing-space module unmatched.
-            #   If there are multiple locations of the same type (e.g., multiple body-anchored locations),
-            #   use the uppermost (in the tree) location specifications to align
-            #   (e.g., align two head-locations rather than a head location with a torso location, if possible).
-            modsalignedbyloctype, unmatched = alignbylocationtype(unmatched)
-            #   If modules still can't be aligned, align by coding order.
-            modsalignedbycodingorder, _ = alignbycodingorder(unmatched, matchwithnone=True)
-            return modsalignedbyhand + modsalignedbyloctype + modsalignedbycodingorder
-        elif moduletype == ModuleTypes.ORIENTATION:
-            # i. First ‘align by hand’ as for the movement module.
-            modsalignedbyhand, unmatched = alignbyarticulator(modulesbysign)
-            # ii. After aligning by hand, align by palm orientation if possible (e.g. align two palm-up modules).
-            modsalignedbypalm, unmatched = alignbypalmori(unmatched)
-            #   If not possible, align by finger root direction.
-            modsalignedbyfingerroot, unmatched = alignbyfingerrootdir(unmatched)
-            #   If still not possible, align by coding order.
-            modsalignedbycodingorder, _ = alignbycodingorder(unmatched, matchwithnone=True)
-            return modsalignedbyhand + modsalignedbypalm + modsalignedbyfingerroot + modsalignedbycodingorder
-        elif moduletype == ModuleTypes.HANDCONFIG:
-            pass  # TODO
-            # i. First ‘align by hand’ as for the movement module.
-            modsalignedbyhand, unmatched = alignbyarticulator(modulesbysign)
-            # ii. After aligning by hand, align by handshape name if possible (e.g. align two '5' handshapes).
-            modsalignedbyhs, unmatched = alignbyhandshapename(unmatched)
-            #   If not possible, align by coding order.
-            modsalignedbycodingorder, _ = alignbycodingorder(unmatched, matchwithnone=True)
-            return modsalignedbyhand + modsalignedbyhs + modsalignedbycodingorder
-            #   [NB: this one might eventually need to get refined.]
-        elif moduletype == ModuleTypes.RELATION:
+            return alignbyarticulator(modulesbysign, moduletype)
+        elif moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL]:
             # TODO - waiting for further intructions from Kathleen
-            modsalignedbycodingorder, _ = alignbycodingorder(modulesbysign, matchwithnone=True)
-            return modsalignedbycodingorder
-        elif moduletype == ModuleTypes.NONMANUAL:
-            # TODO - waiting for further intructions from Kathleen
-            modsalignedbycodingorder, _ = alignbycodingorder(modulesbysign, matchwithnone=True)
-            return modsalignedbycodingorder
+            return alignmodules_helper(modulesbysign, moduletype)
+
+
+def alignmodules_helper(modulesbysign, moduletype):
+    if moduletype == ModuleTypes.MOVEMENT:
+        # ii. After aligning by hand as described above, try to align by movement type (perceptual shape, joint specific, or handshape change)
+        #   -- e.g., if sign 1 has both perceptual shape movement and joint-specific movement,
+        #   while sign 2 has only joint-specific movement, align the two joint-specific movements,
+        #   and then say that sign 1 has an extra perceptual shape movement that doesn’t have a match.
+        #   If both signs have two of the same type of movements (e.g. two perceptual shapes), move down to the
+        #   top-most characteristic (e.g., what the perceptual shape or the joint-specific movement is, like 'straight' or 'close/open'),
+        #   and align ones that match at that level. If things can't be aligned based on any of the above, align by coding order
+        #   (e.g. align sign 1’s H1.Mov3 with sign 2’s H1.Mov3, regardless of content).
+        modsalignedbymovtype, unmatched = alignbymovementtype(modulesbysign)
+        #   If modules still can't be aligned, align by coding order.
+        modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
+        return modsalignedbymovtype + modsalignedbycodingorder, unmatched
+    elif moduletype == ModuleTypes.LOCATION:
+        # ii. After aligning by hand, try to align by general location type (body-anchored or signing space)
+        #   -- e.g., if sign1 has both body-anchored and signing space locations, and sign2 has only a body-anchored location,
+        #   then align the body-anchored modules and leave the signing-space module unmatched.
+        #   If there are multiple locations of the same type (e.g., multiple body-anchored locations),
+        #   use the uppermost (in the tree) location specifications to align
+        #   (e.g., align two head-locations rather than a head location with a torso location, if possible).
+        modsalignedbyloctype, unmatched = alignbylocationtype(modulesbysign)
+        #   If modules still can't be aligned, align by coding order.
+        modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
+        return modsalignedbyloctype + modsalignedbycodingorder, unmatched
+    elif moduletype == ModuleTypes.ORIENTATION:
+        # ii. After aligning by hand, align by palm orientation if possible (e.g. align two palm-up modules).
+        modsalignedbypalm, unmatched = alignbypalmori(modulesbysign)
+        #   If not possible, align by finger root direction.
+        modsalignedbyfingerroot, unmatched = alignbyfingerrootdir(unmatched)
+        #   If still not possible, align by coding order.
+        modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
+        return modsalignedbypalm + modsalignedbyfingerroot + modsalignedbycodingorder, unmatched
+    elif moduletype == ModuleTypes.HANDCONFIG:
+        # ii. After aligning by hand, align by handshape name if possible (e.g. align two '5' handshapes).
+        modsalignedbyhs, unmatched = alignbyhandshapename(modulesbysign)
+        #   If not possible, align by coding order.
+        modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
+        return modsalignedbyhs + modsalignedbycodingorder, unmatched
+        #   [NB: this one might eventually need to get refined.]
+    elif moduletype == ModuleTypes.RELATION:
+        # TODO - waiting for further intructions from Kathleen
+        modsalignedbycodingorder, unmatched = alignbycodingorder(modulesbysign, matchwithnone=False)
+        return modsalignedbycodingorder, unmatched
+    elif moduletype == ModuleTypes.NONMANUAL:
+        # TODO - waiting for further intructions from Kathleen
+        modsalignedbycodingorder, unmatched = alignbycodingorder(modulesbysign, matchwithnone=False)
+        return modsalignedbycodingorder, unmatched
 
 
 def alignbypalmori(orimodsbysign):
@@ -601,137 +602,173 @@ def alignbycodingorder(modulesbysign, matchwithnone=False):
     matchedmods = [modpair for modpair in zip(modulesbysign[1], modulesbysign[2])]
     return matchedmods, unmatchedmods
 
-def alignbyarticulator(modulesbysign):
-    return [], modulesbysign
+def alignbyarticulator(modulesbysign, moduletype):
 
-    # sign1mods_artnames = set([s1mod.articulators[0] for s1mod in sign1modules])
-    # sign2mods_artnames = set([s2mod.articulators[0] for s2mod in sign2modules])
-    #
-    # if sign1mods_artnames == sign2mods_artnames:
-    #     # all modules in both signs use the exact same articulators (but we haven't checked yet which number, ie H1 vs H2
-    #     pass  # TODO
-    # else:
-    #     #
-    #     # proceed to next step
-    # elif sign1mods_artnames.issubset(sign2mods_artnames) or sign2mods_artnames.issubset(sign1mods_artnames):
-    #     # modules in sign1 use a proper subset of the articulators of modules in sign2, or vice versa
-    #     pass  # TODO
-    #     # align the modules that have matching articulators
+    matchedmods = []
 
-    # organize modules by articular and articular number (eg hand/arm/leg, 1/2)
-    articulators = {
-        1: [],
-        2: []
-    }
-    for snum in snums:
-        for mod in modulesbysign[snum]:
-            for artnum in [1, 2]:
-                if mod.articulators[1][artnum]:
-                    articulators[snum].append(ARTICULATOR_ABBREVS[mod.articulators[0]] + str(artnum))
-
-    articulators = {snum: set(articulatorslist) for snum, articulatorslist in articulators.items()}
-    sign1articulators = set(sign1articulators)
-    sign2articulators = set(sign2articulators)
-
-    # organize modules by articular and articular number (eg hand/arm/leg, 1/2)
-    sign1articulators = {
-        HAND: {
-            1: [],
-            2: []
-        },
-        ARM: {
-            1: [],
-            2: []
-        },
-        LEG: {
-            1: [],
-            2: []
-        }
-    }
-    sign2articulators = {
-        HAND: {
-            1: [],
-            2: []
-        },
-        ARM: {
-            1: [],
-            2: []
-        },
-        LEG: {
-            1: [],
-            2: []
-        }
+    sign1modsbyarticulator = {
+        HAND: {1: [], 2: [], 3: []},  # with 3 meaning both 1 and 2
+        ARM: {1: [], 2: [], 3: []},
+        LEG: {1: [], 2: [], 3: []},
     }
 
-    for snum in snums:
-        for mod in modulesbysign[snum]:
-            for artnum in [1, 2]:
-                if mod.articulators[1][artnum]:
-                    # if this articulatornumber is used, add the module to the list for articulatorname --> artnum
-                    sign1articulators[mod.articulators[0]][artnum].append(mod)
+    sign2modsbyarticulator = {
+        HAND: {1: [], 2: [], 3: []},  # with 3 meaning both 1 and 2
+        ARM: {1: [], 2: [], 3: []},
+        LEG: {1: [], 2: [], 3: []},
+    }
 
-    for s1mod in sign1modules:
-        if s1mod.articulators[1][1]:
-            # if art1 is used, add the module to the list for articulatorname --> 1
-            sign1articulators[s1mod.articulators[0]][1].append(s1mod)
-        if s1mod.articulators[1][2]:
-            # if art2 is used, add the module to the list for articulatorname --> 2
-            sign1articulators[s1mod.articulators[0]][2].append(s1mod)
-    for s2mod in sign2modules:
-        if s2mod.articulators[1][1]:
-            # if art1 is used, add the module to the list for articulatorname --> 1
-            sign2articulators[s2mod.articulators[0]][1].append(s2mod)
-        if s2mod.articulators[1][2]:
-            # if art2 is used, add the module to the list for articulatorname --> 2
-            sign2articulators[s2mod.articulators[0]][2].append(s2mod)
+    # TODO does this need to be reassigned or does it work in place?
+    sign1modsbyarticulator, sign2modsbyarticulator = arrangemodsbyarticulator(modulesbysign, sign1modsbyarticulator, sign2modsbyarticulator)
 
-    # at this point for each sign (sign 1 vs sign 2), we have a dictionary of
-    #   articulatorname --> articulatornum --> [list of modules that use that articulator name/number]
+    for art in [HAND, ARM, LEG]:
+        for artnum in [1, 2, 3]:
+            if sign1modsbyarticulator[art][artnum] and sign2modsbyarticulator[art][artnum]:
+                # the articulators are a perfect match (eg, H1-H1 or L1&2-L1&2) so try and align whatever modules are in those lists
+                alignedmodules, unmatched = alignmodules_helper({
+                    1: sign1modsbyarticulator[art][artnum],
+                    2: sign2modsbyarticulator[art][artnum]
+                },
+                moduletype)
+                # save aligned modules to be returned at the end of the function
+                matchedmods.extend(alignedmodules)
+                # put any unmatched ones back into the pot
+                sign1modsbyarticulator[art][artnum] = unmatched[1]
+                sign2modsbyarticulator[art][artnum] = unmatched[2]
 
-    for artname in [HAND, ARM, LEG]:
-        if sign1articulators[artname][1] or sign1articulators[artname][2]:
-            # there is at least one module in sign1 that uses this articulatorname
-            pass  # TODO
-        if sign2articulators[artname][1] or sign2articulators[artname][2]:
-            # there is at least one module in sign2 that uses this articulatorname
-            pass  # TODO
+        # once that previous loop is done, we will have tried to make all possible precise articulator matches
+        #   (eg H1 with H1, A2 with A2, L1&2 with L1&2, etc)
 
-
+        # next we will try to make any subset matches (eg H1 with H1&2)
 
         for artnum in [1, 2]:
-            if sign1articulators[artname][artnum] and sign2articulators[artname][artnum]:
-                pass  # TODO
-                # articulators and numbers both match
+            if sign1modsbyarticulator[art][artnum] and sign2modsbyarticulator[art][3]:
+                # the articulators are a subset match (eg, H1-H1&2 or A2-A1&2) so try and align whatever modules are in those lists
+                alignedmodules, unmatched = alignmodules_helper({
+                    1: sign1modsbyarticulator[art][artnum],
+                    2: sign2modsbyarticulator[art][3]
+                },
+                moduletype)
+                # save aligned modules to be returned at the end of the function
+                matchedmods.extend(alignedmodules)
+                # put any unmatched ones back into the pot
+                sign1modsbyarticulator[art][artnum] = unmatched[1]
+                sign2modsbyarticulator[art][3] = unmatched[2]
+            if sign1modsbyarticulator[art][3] and sign2modsbyarticulator[art][artnum]:
+                # the articulators are a subset match (eg, H1&2-H2 or L1&2-L1) so try and align whatever modules are in those lists
+                alignedmodules, unmatched = alignmodules_helper({
+                    1: sign1modsbyarticulator[art][3],
+                    2: sign2modsbyarticulator[art][artnum]
+                },
+                moduletype)
+                # save aligned modules to be returned at the end of the function
+                matchedmods.extend(alignedmodules)
+                # put any unmatched ones back into the pot
+                sign1modsbyarticulator[art][3] = unmatched[1]
+                sign2modsbyarticulator[art][artnum] = unmatched[2]
+
+        # and then we'll align any leftovers within an articulator (eg A1 with A2)
+        stillunmatchedwithinarticulator = {
+            1: sign1modsbyarticulator[art][1] + sign1modsbyarticulator[art][2] + sign1modsbyarticulator[art][3],
+            2: sign2modsbyarticulator[art][1] + sign2modsbyarticulator[art][2] + sign2modsbyarticulator[art][3],
+        }
+        alignedmodules, unmatched = alignmodules_helper(stillunmatchedwithinarticulator, moduletype)
+        # save aligned modules to be returned at the end of the function
+        matchedmods.extend(alignedmodules)
+        # put unmatched mods back into the pot
+        sign1modsbyarticulator[art] = {1: [], 2: [], 3: []}
+        sign2modsbyarticulator[art] = {1: [], 2: [], 3: []}
+
+        # TODO does this need to be reassigned or does it work in place?
+        sign1modsbyarticulator, sign2modsbyarticulator = arrangemodsbyarticulator(unmatched, sign1modsbyarticulator, sign2modsbyarticulator)
+
+    # once all the within-articulator matches have been attempted, we'll try to match across articulators
+    #   first H&A, then H&L, then A&L
+    for artpair in [(HAND, ARM), (HAND, LEG), (ARM, LEG)]:
+        for arttype1, arttype2 in [artpair, artpair[::-1]]:
+            for artnum in [1, 2, 3]:
+                if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][artnum]:
+                    # the articulators are a near-perfect match (eg, H1-A1 or L1&2-H1&2) so try and align whatever modules are in those lists
+                    alignedmodules, unmatched = alignmodules_helper({
+                        1: sign1modsbyarticulator[arttype1][artnum],
+                        2: sign2modsbyarticulator[arttype2][artnum]
+                    },
+                    moduletype)
+                    # save aligned modules to be returned at the end of the function
+                    matchedmods.extend(alignedmodules)
+                    # put any unmatched ones back into the pot
+                    sign1modsbyarticulator[arttype1][artnum] = unmatched[1]
+                    sign2modsbyarticulator[arttype2][artnum] = unmatched[2]
+
+
+            for artnum in [1, 2]:
+                if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][3]:
+                    # the articulators are a near-subset match (eg, L1-H1&2 or H2-A1&2) so try and align whatever modules are in those lists
+                    alignedmodules, unmatched = alignmodules_helper({
+                        1: sign1modsbyarticulator[arttype1][artnum],
+                        2: sign2modsbyarticulator[arttype2][3]
+                    },
+                    moduletype)
+                    # save aligned modules to be returned at the end of the function
+                    matchedmods.extend(alignedmodules)
+                    # put any unmatched ones back into the pot
+                    sign1modsbyarticulator[arttype1][artnum] = unmatched[1]
+                    sign2modsbyarticulator[arttype2][3] = unmatched[2]
+                if sign1modsbyarticulator[arttype1][3] and sign2modsbyarticulator[arttype2][artnum]:
+                    # the articulators are a subset match (eg, H1&2-L2 or L1&2-A1) so try and align whatever modules are in those lists
+                    alignedmodules, unmatched = alignmodules_helper({
+                        1: sign1modsbyarticulator[arttype1][3],
+                        2: sign2modsbyarticulator[arttype2][artnum]
+                    },
+                    moduletype)
+                    # save aligned modules to be returned at the end of the function
+                    matchedmods.extend(alignedmodules)
+                    # put any unmatched ones back into the pot
+                    sign1modsbyarticulator[arttype1][3] = unmatched[1]
+                    sign2modsbyarticulator[arttype2][artnum] = unmatched[2]
+
+        # and then we'll align any leftovers within an articulator pair (eg A1 with L2)
+
+        stillunmatchedwithinarticulatorpair = {
+            1: sign1modsbyarticulator[arttype1][1] + sign1modsbyarticulator[arttype1][2] + sign1modsbyarticulator[arttype1][3],
+            2: sign2modsbyarticulator[arttype2][1] + sign2modsbyarticulator[arttype2][2] + sign2modsbyarticulator[arttype2][3],
+        }
+
+        alignedmodules, unmatched = alignmodules_helper(stillunmatchedwithinarticulatorpair, moduletype)
+        # save aligned modules to be returned at the end of the function
+        matchedmods.extend(alignedmodules)
+
+        # TODO at this point any unmatched modules should be... aligned by coding order? left unmatched? ... it is tres confusing
+
+        # TODO at this point will as much be aligned as possible? I think so... but just in case should we try by coding order?
 
 
 
-    trytoalign = ([], [])
-    leaveunmatched = ([], [])
+    return matchedmods  # all the aligned modules, some possibly with TODO 'none'
 
 
+def arrangemodsbyarticulator(modulesbysign, sign1modsbyart, sign2modsbyart):
+    for snum in snums:
+        for mod in modulesbysign[snum]:
+            artname = mod.articulators[0]
+            artnums_usage = mod.articulators[1]
+            if artnums_usage[1] and artnums_usage[2]:
+                if snum == 1:
+                    sign1modsbyart[artname][3].append(mod)
+                elif snum == 2:
+                    sign2modsbyart[artname][3].append(mod)
+            elif artnums_usage[1]:
+                if snum == 1:
+                    sign1modsbyart[artname][1].append(mod)
+                elif snum == 2:
+                    sign2modsbyart[artname][1].append(mod)
+            elif artnums_usage[2]:
+                if snum == 1:
+                    sign1modsbyart[artname][2].append(mod)
+                elif snum == 2:
+                    sign2modsbyart[artname][2].append(mod)
 
-
-
-    return trytoalign, leaveunmatched
-
-
-    # i. First 'align by hand.' That is, try to align hand1 modules from sign1 to hand1 modules from sign2.
-    #   If sign1 and sign2 each have only hand1 modules, or each have only hand2 modules, then proceed to the next step of alignment.
-    #   If sign1 has both hand1 and hand2 modules, while sign2 has only hand1 modules (or vice versa), then align the hand1 modules only,
-    #   and leave all hand2 modules unmatched.
-    #   If sign1 has only hand1 modules, and sign2 has only hand2 modules, then this is the only time that non-matching hand modules can be aligned.
-
-
-    # @property
-    # def articulators(self):
-    #     if not hasattr(self, '_articulators'):
-    #         # backward compatibility pre-20230804 addition of arms and legs as articulators (issues #175 and #176)
-    #         articulator_dict = {1: False, 2: False}
-    #         if hasattr(self, '_hands'):
-    #             articulator_dict[1] = self._hands['H1']
-    #             articulator_dict[2] = self._hands['H2']
-    #         self._articulators = (HAND, articulator_dict)
-    #     return self._articulators
+    return sign1modsbyart, sign2modsbyart
 
 
 def whichsignshavemodulesoftype(modulesbysign):
