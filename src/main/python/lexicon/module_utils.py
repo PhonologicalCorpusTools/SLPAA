@@ -4,6 +4,7 @@ from copy import deepcopy
 from PyQt5.QtCore import Qt
 
 from lexicon.lexicon_classes import unserializemovementmodules, unserializelocationmodules, unserializerelationmodules, Sign, SignLevelInformation
+from lexicon.module_classes import HandConfigurationHand
 from serialization_classes import MovementModuleSerializable, LocationModuleSerializable, RelationModuleSerializable
 from constant import ModuleTypes, HAND, ARM, LEG, ARTICULATOR_ABBREVS, PREDEFINED_MAP, userdefinedroles as udr
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
@@ -216,14 +217,15 @@ def alignbyhandshapename(configmodsbysign):
     index1 = 0
     while index1 < len(sign1mods):
         mod1 = sign1mods[index1]
-        mod1hs = PREDEFINED_MAP.get(tuple(mod1.handconfiguration.get_hand_transcription_list()))
+        mod1hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(mod1.handconfiguration).get_hand_transcription_list()))
+        # tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
         if mod1hs is not None:
             mod1hsname = mod1hs.name
 
             index2 = 0
             while index2 < len(sign2mods):
                 mod2 = sign2mods[index2]
-                mod2hs = PREDEFINED_MAP.get(tuple(mod2.handconfiguration.get_hand_transcription_list()))
+                mod2hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(mod2.handconfiguration).get_hand_transcription_list()))
                 if mod2hs is not None:
                     mod2hsname = mod2hs.name
 
@@ -278,7 +280,8 @@ def alignbymvmttype_helper(movmodsbysign, typename):
 def getmvmtsubtypes(movtreemodel, typename):
     subtypenodes = []
 
-    typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.nodedisplayrole, [typename])[0]
+    # typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.nodedisplayrole, [typename])[0]
+    typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.pathdisplayrole, [typename])[0]
 
     for r in range(typeitem.rowCount()):  # top level only
         child = typeitem.child(r, 0)
@@ -520,11 +523,11 @@ def alignbylocationtype(locmodsbysign):
 
 
 def alignbybodybasedlocation(bodybasedlocmodsbysign):
-    alignbyloctreeitems_helper(bodybasedlocmodsbysign)
+    return alignbyloctreeitems_helper(bodybasedlocmodsbysign)
 
 
 def alignbypurelyspatiallocation(purelyspatiallocmodsbysign):
-    alignbyloctreeitems_helper(purelyspatiallocmodsbysign)
+    return alignbyloctreeitems_helper(purelyspatiallocmodsbysign)
 
 
 def alignbyloctreeitems_helper(locmodsybsign):
@@ -562,7 +565,7 @@ def locationtreetoplevelnodes(locationtreemodel):
     for r in range(root.rowCount()):  # top level only
         child = root.child(r, 0)
         if child is not None:
-            nodetext = child.data(Qt.UserRole + udr.nodetext)
+            nodetext = child.data(Qt.UserRole + udr.nodedisplayrole)
             checkstate = child.checkState()
             if checkstate in [Qt.Checked, Qt.PartiallyChecked]:
                 toplevelnodes.append(nodetext)
@@ -618,8 +621,8 @@ def alignbyarticulator(modulesbysign, moduletype):
         LEG: {1: [], 2: [], 3: []},
     }
 
-    # TODO does this need to be reassigned or does it work in place?
-    sign1modsbyarticulator, sign2modsbyarticulator = arrangemodsbyarticulator(modulesbysign, sign1modsbyarticulator, sign2modsbyarticulator)
+    # works in place
+    arrangemodsbyarticulator(modulesbysign, sign1modsbyarticulator, sign2modsbyarticulator)
 
     for art in [HAND, ARM, LEG]:
         for artnum in [1, 2, 3]:
@@ -679,8 +682,8 @@ def alignbyarticulator(modulesbysign, moduletype):
         sign1modsbyarticulator[art] = {1: [], 2: [], 3: []}
         sign2modsbyarticulator[art] = {1: [], 2: [], 3: []}
 
-        # TODO does this need to be reassigned or does it work in place?
-        sign1modsbyarticulator, sign2modsbyarticulator = arrangemodsbyarticulator(unmatched, sign1modsbyarticulator, sign2modsbyarticulator)
+        # works in place
+        arrangemodsbyarticulator(unmatched, sign1modsbyarticulator, sign2modsbyarticulator)
 
     # once all the within-articulator matches have been attempted, we'll try to match across articulators
     #   first H&A, then H&L, then A&L
@@ -739,14 +742,14 @@ def alignbyarticulator(modulesbysign, moduletype):
         matchedmods.extend(alignedmodules)
 
         # TODO at this point any unmatched modules should be... aligned by coding order? left unmatched? ... it is tres confusing
-
         # TODO at this point will as much be aligned as possible? I think so... but just in case should we try by coding order?
+        alignedmodules, unmatched = alignbycodingorder(unmatched, matchwithnone=True)
+        matchedmods.extend(alignedmodules)
+
+    return matchedmods  # all the aligned modules, some possibly with 'none'
 
 
-
-    return matchedmods  # all the aligned modules, some possibly with TODO 'none'
-
-
+# in-place
 def arrangemodsbyarticulator(modulesbysign, sign1modsbyart, sign2modsbyart):
     for snum in snums:
         for mod in modulesbysign[snum]:
