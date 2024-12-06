@@ -414,7 +414,7 @@ class SearchModel(QStandardItemModel):
                 if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
                     matching_modules = [m for m in matching_modules if m.has_any_distance()]
                 else:
-                    for i in range(3):
+                    for i in range(4):
                         dist = target_module.contactrel.distances[i]
                         if dist.has_selection():
                             matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]
