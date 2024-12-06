@@ -14,9 +14,9 @@ from PyQt5.Qt import (
 )
 import logging
 
-from lexicon.module_classes import LocationType, userdefinedroles as udr, treepathdelimiter, AddedInfo
+from lexicon.module_classes import LocationType, AddedInfo
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
-from constant import HAND, ARM, LEG, CONTRA, IPSI
+from constant import HAND, ARM, LEG, CONTRA, IPSI, userdefinedroles as udr, treepathdelimiter
 
 
 # radio button vs checkbox

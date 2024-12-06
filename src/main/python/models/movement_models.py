@@ -19,8 +19,8 @@ from PyQt5.QtWidgets import (
     QMessageBox
 )
 
-from lexicon.module_classes import userdefinedroles as udr, treepathdelimiter, AddedInfo
-from constant import CONTRA, IPSI
+from lexicon.module_classes import AddedInfo
+from constant import CONTRA, IPSI, userdefinedroles as udr, treepathdelimiter
 
 # for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"

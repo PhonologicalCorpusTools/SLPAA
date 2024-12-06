@@ -62,9 +62,13 @@ from gui.preference_dialog import PreferenceDialog
 from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
+from gui.xslot_graphics import islistoftimingintervals
 from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from lexicon.module_classes import ParameterModule, TimingPoint, TimingInterval
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
+from constant import ModuleTypes
+from lexicon.module_utils import deepcopymodule, deepcopysign
 
 
 class SubWindow(QMdiSubWindow):
@@ -91,11 +95,12 @@ class MainWindow(QMainWindow):
 
         self.corpus = None
         self.current_sign = None
+        self.copypaste_referencesign = None
 
         self.undostack = QUndoStack(parent=self)
         self.unsaved_changes = False  # a flag that tracks any unsaved changes.
 
-        self.clipboard = None
+        self._clipboard = []
 
         self.predefined_handshape_dialog = None
 
@@ -163,14 +168,14 @@ class MainWindow(QMainWindow):
 
         # copy
         action_copy = QAction(QIcon(self.app_ctx.icons['copy']), 'Copy', parent=self)
-        action_copy.setStatusTip('Copy the selected sign(s)')
+        action_copy.setStatusTip('Copy the selected sign(s) or module(s)')
         action_copy.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_C))
         action_copy.triggered.connect(self.on_action_copy)
         action_copy.setCheckable(False)
 
         # paste
         action_paste = QAction(QIcon(self.app_ctx.icons['paste']), 'Paste', parent=self)
-        action_paste.setStatusTip('Paste the copied sign(s)')
+        action_paste.setStatusTip('Paste the copied sign(s) or module(s)')
         action_paste.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_V))
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
@@ -252,11 +257,11 @@ class MainWindow(QMainWindow):
         action_new_sign.setCheckable(False)
 
         # delete sign
-        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete sign(s)', parent=self)
+        self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete', parent=self)
         self.action_delete_sign.setEnabled(False)
-        self.action_delete_sign.setStatusTip('Delete the selected sign(s)')
+        self.action_delete_sign.setStatusTip('Delete the selected sign(s) or module(s)')
         self.action_delete_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Delete))
-        self.action_delete_sign.triggered.connect(self.on_action_delete_signs)
+        self.action_delete_sign.triggered.connect(self.on_action_delete)
         self.action_delete_sign.setCheckable(False)
 
         # preferences
@@ -391,6 +396,7 @@ class MainWindow(QMainWindow):
         self.signlevel_panel = SignLevelMenuPanel(sign=self.current_sign, mainwindow=self, parent=self)
 
         self.signsummary_panel = SignSummaryPanel(mainwindow=self, sign=self.current_sign, parent=self)
+        self.signsummary_panel.action_selected.connect(self.handle_moduleaction_selected)
         self.signlevel_panel.sign_updated.connect(self.flag_and_refresh)
         self.signlevel_panel.corpus_updated.connect(lambda sign: self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign))
 
@@ -425,6 +431,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_mdi)
 
         self.open_initialization_window()
+
+    @property
+    def clipboard(self):
+        return self._clipboard  #  if isinstance(self._clipboard, list) else [self.clipboard]
+
+    @clipboard.setter
+    def clipboard(self, newcontents):
+        self._clipboard = newcontents if isinstance(newcontents, list) else [newcontents]
 
     # TODO this needs an overhaul - it's from the old (non-modular) version of SLPAA
     # GZ - missing compound sign attribute
@@ -657,14 +671,27 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.enable_module_buttons(selected_sign is not None)
         self.signsummary_panel.refreshsign(self.current_sign)
 
+    # action_str indicates the type of action selected from the Sign Summary R-click menu:
+    #   "copy", "paste", or "delete"
+    def handle_moduleaction_selected(self, action_str):
+        if action_str == "delete":
+            self.delete_modules()
+        elif action_str == "copy":
+            self.on_action_copy()
+        elif action_str == "paste":
+            self.on_action_paste()
+        elif action_str == "copy timing":
+            self.on_action_copytiming()
+        elif action_str == "paste timing":
+            self.on_action_pastetiming()
+
     # action_str indicates the type of action selected fom the Corpus View R-click menu:
     #   "copy", "paste", "edit" (sign-level info), or "delete"
     def handle_signaction_selected(self, action_str):
-
         if action_str == "edit":
             self.on_action_edit_signs()
         elif action_str == "delete":
-            self.on_action_delete_signs()
+            self.on_action_delete()
         elif action_str == "copy":
             self.on_action_copy()
         elif action_str == "paste":
@@ -1009,82 +1036,290 @@ class MainWindow(QMainWindow):
             corpus.path = path
             return corpus
 
+    def modules_fromselectedbuttons(self):
+        selectedmodulebuttons = self.signsummary_panel.selectedmodulebuttons()
+        # two buttons might point to the same module so make sure we don't report duplicated modules
+        selectedmodule_uids_types = list(set([(btn.module_uniqueid, btn.moduletype) for btn in selectedmodulebuttons]))
+        selectedmodules = []
+        for uid, mtype in selectedmodule_uids_types:
+            if mtype not in ModuleTypes.parametertypes:  # or if uid == 0
+                # then it's the signtype module
+                selectedmodules.append(self.current_sign.signtype)
+            else:
+                # it's one of the timed parameter modules
+                mod = self.current_sign.getmoduledict(mtype)[uid]
+                selectedmodules.append(mod)
+        return selectedmodules
+
     # copies the items currently selected in whichever panel has focus
     #   (corpus view has focus --> copy signs)
-    #   TODO (visual summary has focus --> copy modules)
+    #   (sign summary scene has focus --> copy modules)
     def on_action_copy(self, clicked=None):
+        self.copypaste_referencesign = self.current_sign
+
         if self.corpus_display.corpus_view.hasFocus():
             self.clipboard = self.corpus_display.getselectedsigns()
+        elif self.signsummary_panel.scene.hasFocus():
+            self.clipboard = self.modules_fromselectedbuttons()
         else:
-            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
 
-    def on_action_paste(self, clicked=None):
-        listfromclipboard = self.clipboard if isinstance(self.clipboard, list) else [self.clipboard]
+    # copies timing info from the module (there can only be one) currently selected in the sign summary window
+    def on_action_copytiming(self):
+        self.copypaste_referencesign = self.current_sign
 
-        if self.corpus_display.corpus_view.hasFocus():
-            # focus is on the Corpus View, so we need to make sure we only paste clipboard object if they're Signs
-            signstopaste = [Sign(serializedsign=itemtopaste.serialize(), makedeepcopy=True)  # can't use deepcopy with Models
-                            for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
-            duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
-            duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
+        if self.signsummary_panel.scene.hasFocus():
+            # timing will be copy/pasted from one and only one selected parametermodule
+            selectedmodules = self.modules_fromselectedbuttons()
+            if len(selectedmodules) == 1 and isinstance(selectedmodules[0], ParameterModule):
+                self.clipboard = selectedmodules[0].timingintervals
 
-            result = None
-            if len(duplicatedinfostrings) == 0:
-                # there were no duplicates; just paste everything
+    # pastes timing info from the clipboard to whichever non-Signtype module(s) are currently selected in the sign summary window
+    def on_action_pastetiming(self):
+        if not islistoftimingintervals(self.clipboard):
+            # at least some of clipboard contents is not timing info; don't attempt to paste
+            return
+
+        # check x-slot structure of source vs destination signs
+        xslots_src = self.copypaste_referencesign.xslotstructure
+        xslots_dest = self.current_sign.xslotstructure
+        differences = []
+        if xslots_src.number != xslots_dest.number:
+            differences.append("number of whole x-slots")
+        if xslots_src.additionalfraction != xslots_dest.additionalfraction:
+            differences.append("additional fraction of an x-slot")
+        if set(xslots_src.fractionalpoints) != set(xslots_dest.fractionalpoints):
+            differences.append("fractional divisions within x-slots")
+        if differences:
+            # if x-slot structure doesn't match between source module and destination module(s), don't let user paste
+            diff_str = "\n".join([" - " + diff for diff in differences])
+            QMessageBox.critical(self, "X-slot mismatch",
+                                 "Cannot paste timing: the x-slot structures of the source and destination signs do not match."
+                                 + "\nThey differ with respect to:"
+                                 + "\n" + diff_str)
+            return
+
+        # everything looks ok so far; get ready to paste timing into selected module(s)
+        destinationmodules = [mod for mod in self.modules_fromselectedbuttons() if isinstance(mod, ParameterModule)]
+        for destmod in destinationmodules:
+            # check for overwriting timing
+            destmoduletiming = destmod.timingintervals
+            timingmismatches = [ti for ti in destmoduletiming if ti not in self.clipboard] \
+                               + [ti for ti in self.clipboard if ti not in destmoduletiming]
+            if destmoduletiming and timingmismatches:
+                response = QMessageBox.question(self, "Overwrite timing",
+                                                "You are about to overwrite the existing timing for "
+                                                + self.current_sign.getmoduleabbreviation(destmod) + ". "
+                                                + "Do you still want to paste the copied timing into this module?",
+                                                QMessageBox.Ok | QMessageBox.Cancel)
+                if response == QMessageBox.Cancel:
+                    # don't paste timing into this current module
+                    continue
+                else:
+                    # go ahead and paste
+                    destmod.timingintervals = self.clipboard
+
+        self.signsummary_panel.refreshsign()
+
+    # paste any modules that are on the clipboard
+    def paste_modules(self, listfromclipboard):
+        # deal with copy/pasting signtype, if applicable
+        signtypemodules = [mod for mod in listfromclipboard if isinstance(mod, Signtype)]
+        for signtypemod in signtypemodules:
+            # if it's the same one as the sign we're already in (ie trying to copy/paste in same sign), do nothing
+            if self.current_sign.signtype == signtypemod or self.current_sign.signtype is None:
+                pass
+            else:
+                # otherwise paste, once we've confirmed that the user is ok with overwriting
+                signtype_q = "You are about to overwrite the existing sign type for this sign."
+                signtype_q += "\n\nNote also that you must check for compatibility between modules "
+                signtype_q += "(e.g. one-handed sign type vs two-handed modules) yourself; "
+                signtype_q += "SLP-AA has not done it for you."
+                signtype_q += "\n\nDo you still want to paste the copied sign type into this sign?"
+                response = QMessageBox.question(self, "Overwrite sign type", signtype_q,
+                                                QMessageBox.Yes | QMessageBox.No)
+                if response == QMessageBox.Yes:
+                    self.current_sign.signtype = deepcopy(signtypemod)
+                    self.signsummary_panel.refreshsign()
+
+        # deal with copy/pasting other modules, if applicable
+        parametermodules = [mod for mod in listfromclipboard if isinstance(mod, ParameterModule)]
+        parameteruids = [mod.uniqueid for mod in parametermodules]
+
+        # confirm that the user is ok with timing being reset to whole sign, in case of x-slot structure mismatch
+        mismatchedxslots_q = "The x-slot structures of the source and destination signs do not match."
+        mismatchedxslots_q += " If you proceed, each pasted module will have have its timing reset to the whole sign; "
+        mismatchedxslots_q += "you should manually check the timing options in the pasted module(s)."
+        reset_xslots = False
+
+        if len(parametermodules) > 0 and self.app_settings['signdefaults']['xslot_generation'] != 'none':
+            # check x-slot structure of source vs destination signs, assuming that x-slot structure is relevant at all
+            xslots_src = self.copypaste_referencesign.xslotstructure
+            xslots_dest = self.current_sign.xslotstructure
+            if xslots_src != xslots_dest:
+                response = QMessageBox.question(self, "X-slot mismatch", mismatchedxslots_q,
+                                                QMessageBox.Ok | QMessageBox.Cancel)
+                if response == QMessageBox.Ok:
+                    # set a flag to reset all xslotstructures to whole-sign
+                    reset_xslots = True
+                else:
+                    # cancel the rest of the paste operation
+                    return
+
+        # when copy/pasting a linked module but not its partner (mov or loc vs rel),
+        #   ask user if they want to paste the partner(s) too
+        associatedmods_q = "You are pasting {mod_abbrev} without its associated module{suffix}: {linked_abbrevs}. "
+        associatedmods_q += "Do you want to paste the associated module{suffix} too?"
+
+        i = 0
+        while i < len(parametermodules):
+            module = parametermodules[i]
+
+            if module.moduletype == ModuleTypes.RELATION and module.relationy.existingmodule:
+                linked_type = module.relationy.linkedmoduletype
+                if linked_type is not None:
+                    moduledict = self.copypaste_referencesign.getmoduledict(linked_type)
+                    missinganchors = [moduledict[linked_uid] for linked_uid in module.relationy.linkedmoduleids if
+                                      linked_uid > 0 and linked_uid not in parameteruids]
+                    if len(missinganchors) > 0:
+                        rel_abbrev = ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(
+                            self.copypaste_referencesign.relationmodulenumbers[module.uniqueid])
+                        suffix = "s" if len(missinganchors) > 1 else ""
+                        anchor_abbrevs_list = [self.copypaste_referencesign.getmoduleabbreviation(module=m) for m in missinganchors]
+                        anchor_abbrevs = ", ".join(anchor_abbrevs_list)
+                        response = QMessageBox.question(self, "Paste associated module" + suffix,
+                                                        associatedmods_q.format(mod_abbrev=rel_abbrev,
+                                                                         suffix=suffix,
+                                                                         linked_abbrevs=anchor_abbrevs),
+                                                        QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+                        if response == QMessageBox.Cancel:
+                            # cancel the rest of the paste operation
+                            return
+                        elif response == QMessageBox.Yes:
+                            for m in missinganchors:
+                                parametermodules.append(m)
+                                parameteruids.append(m.uniqueid)
+
+            elif module.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                missingrels = list(self.copypaste_referencesign.relationmodules.values())
+                missingrels = [rel for rel in missingrels if
+                               (rel.relationy.existingmodule and
+                                module.uniqueid in rel.relationy.linkedmoduleids and
+                                rel.uniqueid not in parameteruids)]
+                if len(missingrels) > 0:
+                    anchor_abbrev = self.copypaste_referencesign.getmoduleabbreviation(module=module)
+                    suffix = "s" if len(missingrels) > 1 else ""
+                    rel_abbrevs_list = [ModuleTypes.abbreviations[ModuleTypes.RELATION] + str(
+                        self.copypaste_referencesign.relationmodulenumbers[m.uniqueid]) for m in missingrels]
+                    rel_abbrevs = ", ".join(rel_abbrevs_list)
+                    response = QMessageBox.question(self, "Paste associated module" + suffix,
+                                                    associatedmods_q.format(mod_abbrev=anchor_abbrev,
+                                                                     suffix=suffix,
+                                                                     linked_abbrevs=rel_abbrevs),
+                                                    QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+                    if response == QMessageBox.Cancel:
+                        return
+                    elif response == QMessageBox.Yes:
+                        for m in missingrels:
+                            parametermodules.append(m)
+                            parameteruids.append(m.uniqueid)
+
+            i += 1
+
+        # dict of float --> float where the keys are the original modules' uids,
+        #   and the values are their pasted deep-copied versions' new uids
+        uid_updates = {}
+        parametermodulestopaste = []
+        for mod in parametermodules:
+            copiedmod = deepcopymodule(mod)
+            if reset_xslots:
+                # set to "whole sign"
+                copiedmod.timingintervals = [TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1))]
+            parametermodulestopaste.append(copiedmod)
+            uid_updates[mod.uniqueid] = copiedmod.uniqueid
+        for mod in parametermodulestopaste:
+            if mod.moduletype == ModuleTypes.RELATION and mod.relationy.existingmodule:
+                linked_type = mod.relationy.linkedmoduletype
+                if linked_type is not None:
+                    anchor_uids = mod.relationy.linkedmoduleids
+                    mod.relationy.linkedmoduleids = [(uid_updates[a_uid] if a_uid in uid_updates.keys() else a_uid) for a_uid in anchor_uids]
+
+        self.current_sign.addmodules(parametermodulestopaste)
+        self.signsummary_panel.refreshsign()
+
+    # paste any signs that are on the clipboard
+    def paste_signs(self, listfromclipboard):
+        signstopaste = [deepcopysign(itemtopaste)
+                        # can't use deepcopy with Models
+                        for itemtopaste in listfromclipboard if isinstance(itemtopaste, Sign)]
+        duplicatedinfoflags = [self.corpus.getsigninfoduplicatedincorpus(sign, allof=False) for sign in signstopaste]
+        duplicatedinfostrings = self.getduplicatedinfostrings(signstopaste, duplicatedinfoflags)
+
+        result = None
+        if len(duplicatedinfostrings) == 0:
+            # there were no duplicates; just paste everything
+            if len(signstopaste) > 0:
                 for signtopaste in signstopaste:
                     signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
                     self.corpus.add_sign(signtopaste)
                 self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
+            return
+        else:  # there were some duplicates; what does the user want to do?
+            duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
+            duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
+            result = duplicateinfodialog.exec_()
+
+            # do what the user decided
+            if result == QDialog.Rejected:
+                # user canceled; do not paste signs
                 return
-            else:  # there were some duplicates; what does the user want to do?
-                duplicateinfodialog = PastingDuplicateInfoDialog(duplicatedinfoflags, duplicatedinfostrings, parent=self)
-                duplicateinfodialog.edit_SLI.connect(self.handle_edit_SLI)
-                result = duplicateinfodialog.exec_()
+            elif result == QDialog.Accepted:
+                # user has decided what to do about the duplicates
+                for signidx, signtopaste in enumerate(signstopaste):
+                    signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
 
-                # do what the user decided
-                if result == QDialog.Rejected:
-                    # user canceled; do not paste signs
-                    return
-                elif result == QDialog.Accepted:
-                    # user has decided what to do about the duplicates
-                    for signidx, signtopaste in enumerate(signstopaste):
-                        signtopaste.signlevel_information.entryid.counter = self.corpus.highestID + 1
+                    # open SLIs or not, as selected by user
+                    glossesduplicated, lemmaduplicated, idglossduplicated = duplicatedinfoflags[signidx]
+                    if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
+                        # user wants duplicated ID-glosses to be tagged to differentiate
+                        thisidgloss = signtopaste.signlevel_information.idgloss
+                        suffixmatches = re.match('.*-copy(\d+)$', thisidgloss)
+                        if not suffixmatches:
+                            # this one hasn't been tagged yet
+                            thisidgloss += "-copy1"
+                        # set the tag to be one higher than the max currently existing tag for this idgloss
+                        currentmax = self.corpus.highestIDglossindex(thisidgloss)
+                        nextnum = str(currentmax + 1)
+                        indexofnum = thisidgloss.index("-copy") + 5
+                        thisidgloss = thisidgloss[:indexofnum] + nextnum
 
-                        # open SLIs or not, as selected by user
-                        glossesduplicated, lemmaduplicated, idglossduplicated = duplicatedinfoflags[signidx]
-                        if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
-                            # user wants duplicated ID-glosses to be tagged to differentiate
-                            thisidgloss = signtopaste.signlevel_information.idgloss
-                            suffixmatches = re.match('.*-copy(\d+)$', thisidgloss)
-                            if not suffixmatches:
-                                # this one hasn't been tagged yet
-                                thisidgloss += "-copy1"
-                            # set the tag to be one higher than the max currently existing tag for this idgloss
-                            currentmax = self.corpus.highestIDglossindex(thisidgloss)
-                            nextnum = str(currentmax + 1)
-                            indexofnum = thisidgloss.index("-copy") + 5
-                            thisidgloss = thisidgloss[:indexofnum] + nextnum
+                        signtopaste.signlevel_information.idgloss = thisidgloss
 
-                            signtopaste.signlevel_information.idgloss = thisidgloss
+                    if (
+                            (glossesduplicated and self.edit_SLI["gloss"] == "edit")
+                            or (lemmaduplicated and self.edit_SLI["lemma"] == "edit")
+                            or (idglossduplicated and self.edit_SLI["idgloss"] == "edit")
+                    ):
+                        # user wants to view/edit at least one of the duplicated infos; open SLI dialog
+                        self.current_sign = None
+                        self.signlevel_panel.sign = signtopaste
+                        # SLI dialog is already able to deal with duplication of existing lemmas & idglosses
+                        self.signlevel_panel.handle_signlevelbutton_click()
+                    else:
+                        # user didn't want to view/edit any of the signs with duplicated infos; just paste
+                        self.corpus.add_sign(signtopaste)
+                        self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
 
-                        if (
-                                (glossesduplicated and self.edit_SLI["gloss"] == "edit")
-                                or (lemmaduplicated and self.edit_SLI["lemma"] == "edit")
-                                or (idglossduplicated and self.edit_SLI["idgloss"] == "edit")
-                        ):
-                            # user wants to view/edit at least one of the duplicated infos; open SLI dialog
-                            self.current_sign = None
-                            self.signlevel_panel.sign = signtopaste
-                            # SLI dialog is already able to deal with duplication of existing lemmas & idglosses
-                            self.signlevel_panel.handle_signlevelbutton_click()
-                        else:
-                            # user didn't want to view/edit any of the signs with duplicated infos; just paste
-                            self.corpus.add_sign(signtopaste)
-                            self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=signtopaste)
-
+    def on_action_paste(self, clicked=None):
+        if self.corpus_display.corpus_view.hasFocus():
+            # focus is on the Corpus View, so we need to make sure we only paste clipboard objects if they're Signs
+            self.paste_signs(self.clipboard)
+        elif self.signsummary_panel.scene.hasFocus():
+            # focus is on the Sign Summary Panel, so we need to make sure we only paste clipboard objects if they're modules
+            self.paste_modules(self.clipboard)
         else:
-            # TODO: implement for other panels/objects (not just Corpus View / Signs)
+            # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
 
     def handle_edit_SLI(self, edit_glosses, edit_lemmas, edit_idglosses):
@@ -1194,9 +1429,62 @@ class MainWindow(QMainWindow):
             # edit the sign-level info
             self.signlevel_panel.handle_signlevelbutton_click()
 
+    # deletes the items currently selected in whichever panel has focus
+    #   (corpus view has focus --> delete signs)
+    #   (sign summary scene has focus --> delete modules)
+    def on_action_delete(self, clicked=None):
+        if self.corpus_display.corpus_view.hasFocus():
+            self.delete_signs()
+        elif self.signsummary_panel.scene.hasFocus():
+            self.delete_modules()
+        else:
+            # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
+            pass
+
+    # optionally provide a list of modules to delete, referenced by tuples of (uniqueid, moduletype)
+    # if uids_types argument is not used, then the function deletes the modules currently selected in the sign summary panel
+    def delete_modules(self, uids_types=None):
+        if uids_types is None:
+            selectedmodulebuttons = self.signsummary_panel.selectedmodulebuttons()
+            # two buttons might point to the same module so make sure we don't report duplicated modules
+            uids_types = list(set([(btn.module_uniqueid, btn.moduletype) for btn in selectedmodulebuttons]))
+
+        modulenames = []
+        for uid, mtype in uids_types:
+            if mtype == ModuleTypes.SIGNTYPE:  # or if uid == 0
+                modulenames.append("Sign Type")
+            else:
+                # it's one of the timed parameter modules
+                module_abbrev = self.current_sign.getmoduleabbreviation(mod_type=mtype, mod_uid=uid)
+                associated_relation_comment = ""
+                # if it's loc or mov check if there's an associated relation module(s)
+                if mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                    relationslist = list(self.current_sign.relationmodules.values())
+                    relationslist = [rel for rel in relationslist if (
+                            rel.relationy.existingmodule and uid in rel.relationy.linkedmoduleids)]
+                    if len(relationslist) > 0:
+                        rel_abbrevs = [ModuleTypes.abbreviations[ModuleTypes.RELATION] +
+                                       str(self.current_sign.relationmodulenumbers[relmod.uniqueid])
+                                           for relmod in relationslist]
+                        associated_relation_comment = " (has associated module" + ("s " if len(relationslist) > 1 else " ") + ", ".join(rel_abbrevs) + ")"
+
+                modulenames.append(module_abbrev + associated_relation_comment)
+
+        modulenamesstring = "\n".join(modulenames)
+
+        question1 = "Do you want to delete the following selected module"
+        question2 = "s" if len(modulenames) > 1 else ""
+        question3 = "?"
+        response = QMessageBox.question(self, "Delete the selected module" + question2,
+                                        question1 + question2 + question3 + "\n" + modulenamesstring)
+        if response == QMessageBox.Yes:
+            for uid, mtype in uids_types:
+                self.current_sign.removemodule(uid, mtype)
+            self.flag_and_refresh(self.current_sign)
+
     # optionally provide a list of Signs to delete
     # if signs argument is not used, then the function deletes the signs currently selected in the corpus view
-    def on_action_delete_signs(self, clicked=None, signs=None):
+    def delete_signs(self, clicked=None, signs=None):
         if signs is None:
             signs = self.corpus_display.getselectedsigns()
 

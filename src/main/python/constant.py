@@ -373,7 +373,94 @@ SIGN_TYPE = {
 }
 
 
-treepathdelimiter = ">" # define here or in module_classes?
+class ModuleTypes:
+    MOVEMENT = 'movement'
+    LOCATION = 'location'
+    HANDCONFIG = 'handconfig'
+    RELATION = 'relation'
+    ORIENTATION = 'orientation'
+    NONMANUAL = 'nonmanual'
+    SIGNTYPE = 'signtype'
+
+    abbreviations = {
+        MOVEMENT: 'Mov',
+        LOCATION: 'Loc',
+        HANDCONFIG: 'Config',
+        RELATION: 'Rel',
+        ORIENTATION: 'Ori',
+        NONMANUAL: 'NonMan'
+    }
+
+    parametertypes = list(abbreviations.keys())
+    parametertypes_relationfirst = [RELATION] + [mtype for mtype in parametertypes if mtype != 'relation']
+
+
+class UserDefinedRoles(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+userdefinedroles = UserDefinedRoles({
+    'selectedrole': 0,
+        # selectedrole:
+        # Used by MovementTreeItem, LocationTreeItem, MovementListItem, LocationListItem to indicate
+        # whether they are selected by the user. Not exactly the same as ...Item.checkState() because:
+        #   (1) selectedrole only uses True & False whereas checkstate has none/partial/full, and
+        #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
+    'pathdisplayrole': 1,
+        # pathdisplayrole:
+        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
+        # the full path (node names, separated by delimiters) of the model Item in question,
+        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
+    'mutuallyexclusiverole': 2,
+        # mutuallyexclusiverole:
+        # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
+        # which also involves its display as a radio button vs a checkbox.
+    'nocontrolrole': 3,
+        # nocontrolrole:
+        # used by MovementTreeItemDelegate when a MovementTreeItem is never a selectable item
+        # so text may be displayed, but no checkbox or radiobutton
+    'firstingrouprole': 4,
+        # firstingrouprole:
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the first
+        # in its subgroup, which affects how it is painted in the movement tree
+        # (eg, whether the item will be preceded by a horizontal line)
+    'firstsubgrouprole': 5,
+        # firstsubgrouprole:
+        # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
+        # also in the *first* subgroup in its section. Such a subgroup will not have a horizontal line drawn before it.
+    'subgroupnamerole': 6,
+        # subgroupnamerole:
+        # Used by MovementTreeItem & LocationTreeItem to identify which items are grouped together. Such
+        # subgroups are separated from other siblings by a horizontal line in the tree, and item selection
+        # is often (always?) mutually exclusive within the subgroup.
+    'nodedisplayrole': 7,
+        # nodedisplayrole:
+        # Used by MovementListItem & LocationListItem to store just the corresponding treeitem's node name
+        # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
+    'timestamprole': 8,
+        # timestamprole:
+        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
+    'isuserspecifiablerole': 9,
+        # isuserspecifiablerole:
+        # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
+        # If 0, the corresponding QStandardItem (ie, the "editable part") is marked not editable; the user cannot change its value;
+        # If 1, the corresponding QStandardItem is marked editable but must be a number, >= 1, and a multiple of 0.5;
+        # If 2, the corrresponding QStandardItem is marked editable but must be a number;
+        # If 3, the corrresponding QStandardItem is marked editable with no restrictions.
+        # This kind of editable functionality was formerly achieved via a separate (subsidiary) editable MovementTreeItem.
+    'userspecifiedvaluerole': 10,
+        # userspecifiedvaluerole:
+        # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
+
+})
+
+
+# TODO KV - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
+treepathdelimiter = ">"
+
+
 DEFAULT_LOC_1H = {"Horizontal axis" + treepathdelimiter + "Ipsi": None, 
                 "Vertical axis" + treepathdelimiter + "Mid": None,
                 "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}

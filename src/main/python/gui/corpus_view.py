@@ -14,7 +14,9 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QAbstractItemView,
     QRadioButton,
-    QButtonGroup
+    QButtonGroup,
+    QMenu,
+    QAction
 )
 
 from PyQt5.QtCore import (
@@ -24,7 +26,6 @@ from PyQt5.QtCore import (
 
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
-from gui.modulespecification_widgets import SignEntryContextMenu
 
 
 class CorpusDisplay(QWidget):
@@ -235,6 +236,37 @@ class CorpusDisplay(QWidget):
         filteredlines = self.getrowcount()
         totallines = self.corpus_model.rowCount()
         self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " glosses shown")
+
+
+# menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
+class SignEntryContextMenu(QMenu):
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
+
+    # individual menu items are enabled/disabled based on whether any signs are currently selected
+    #   and/or whether there are any signs on the clipboard
+    def __init__(self, has_selectedsigns, has_clipboardsigns):
+        super().__init__()
+
+        self.copy_action = QAction("Copy Sign(s)")
+        self.copy_action.setEnabled(has_selectedsigns)
+        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
+        self.addAction(self.copy_action)
+
+        self.paste_action = QAction("Paste Sign(s)")
+        self.paste_action.setEnabled(has_clipboardsigns)
+        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
+        self.addAction(self.paste_action)
+
+        self.edit_action = QAction("Edit Sign-level Info(s)")
+        self.edit_action.setEnabled(has_selectedsigns)
+        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
+        self.addAction(self.edit_action)
+
+        self.delete_action = QAction("Delete Sign(s)")
+        self.delete_action.setEnabled(has_selectedsigns)
+        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
+        self.addAction(self.delete_action)
+
 
 class CorpusTableView(QTableView):
     newcurrentindex = pyqtSignal(QModelIndex)

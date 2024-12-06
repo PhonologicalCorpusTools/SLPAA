@@ -23,11 +23,11 @@ from PyQt5.QtCore import (
     QItemSelectionModel
 )
 
-from lexicon.module_classes import userdefinedroles as udr, MovementModule
+from lexicon.module_classes import MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel, MovementTreeItem
 from serialization_classes import MovementTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
-from constant import HAND
+from constant import HAND, userdefinedroles as udr
 
 
 class MovementTreeView(QTreeView):

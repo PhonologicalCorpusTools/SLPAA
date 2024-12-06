@@ -7,9 +7,9 @@ from PyQt5.QtCore import (
     Qt
 )
 
-from lexicon.module_classes import PhonLocations, userdefinedroles as udr, AddedInfo
+from lexicon.module_classes import PhonLocations, AddedInfo
 from models.movement_models import fx
-from constant import HAND
+from constant import HAND, userdefinedroles as udr
 import logging
 
 class ParameterModuleSerializable:
@@ -68,7 +68,6 @@ class LocationModuleSerializable(ParameterModuleSerializable):
 
         # creates a full serializable copy of the location module, eg for saving to disk
         self._inphase = locnmodule.inphase
-        self.phonlocs = locnmodule.phonlocs
         self.locationtree = LocationTreeSerializable(locnmodule.locationtreemodel)
 
     @property
@@ -201,12 +200,6 @@ class LocationTreeSerializable:
                     self.addedinfos[pathtext] = copy(addedinfo)
                     self.detailstables[pathtext] = LocationTableSerializable(locntable)
                     self.checkstates[pathtext] = checkstate
-                    # editable = treechild.isEditable()  # TODO KV do this the same way as movement tree
-                    # if editable:
-                    #     pathsteps = pathtext.split(delimiter)
-                    #     parentpathtext = delimiter.join(pathsteps[:-1])
-                    #     numericstring = pathsteps[-1]  # pathtext[lastdelimindex + 1:]
-                    #     self.numvals[parentpathtext] = numericstring
                     iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
                     userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
                     # if iseditable:

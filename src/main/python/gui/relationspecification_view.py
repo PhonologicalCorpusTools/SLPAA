@@ -11,12 +11,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton
 )
 
 from PyQt5.QtCore import (
-    Qt,
-    QEvent,
     pyqtSignal,
     QItemSelectionModel
 )
@@ -30,7 +27,6 @@ from lexicon.module_classes import (
     Direction,
     RelationX,
     RelationY,
-    ModuleTypes,
     ContactRelation,
     ContactType,
     BodypartInfo
@@ -40,7 +36,7 @@ from models.location_models import BodypartTreeModel
 from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, ModuleTypes
 
 
 # This panel contains all the relation-specific options for users to define an instance of a Relation module.
@@ -153,7 +149,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.disver_box.setLayout(dis_ver_layout)
         
 
-        # create layout for sagittal direction options
+        # create layout for sagittal distance options
         self.dissag_box = QGroupBox()
         self.dissag_label = QLabel("Sagittal")
         self.dissagclose_rb = RelationRadioButton("Close")
@@ -168,7 +164,20 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                                  axis_label=self.dissag_label)
         self.dissag_box.setLayout(dis_sag_layout)
         
-
+        # create layout for generic distance options
+        self.disgen_box = QGroupBox()
+        self.disgen_label = QLabel("Generic")
+        self.disgenclose_rb = RelationRadioButton("Close")
+        self.disgenmed_rb = RelationRadioButton("Med.")
+        self.disgenfar_rb = RelationRadioButton("Far")
+        self.disgen_group = RelationButtonGroup()
+        self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
+                                                 self.disgenmed_rb,
+                                                 self.disgenfar_rb,
+                                                 self.disgen_group,
+                                                 axis_label=self.disgen_label)
+        self.disgen_box.setLayout(dis_gen_layout)
         distance_box.setLayout(self.populate_distance_layout())
         return distance_box
 
@@ -177,6 +186,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         distance_layout.addWidget(self.dishor_box)
         distance_layout.addWidget(self.disver_box)
         distance_layout.addWidget(self.dissag_box)
+        distance_layout.addWidget(self.disgen_box)
         return distance_layout
 
 
@@ -210,7 +220,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # Contact, Manner, or Distance (i.e., returning False means
     # that at least one has a button checked)
     def contactmannerdistance_empty(self):
-        for grp in [self.manner_group, self.dishor_group, self.disver_group, self.dissag_group]:
+        for grp in [self.manner_group, self.dishor_group, self.disver_group, self.dissag_group, self.disgen_group]:
             if grp.checkedButton() is not None:
                 return False
         if self.contact_group.checkedButton() is not None:
@@ -232,7 +242,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                           self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT
 
         enable_distance = (meetscondition1 or meetscondition2) and not meetscondition3
-        for box in [self.dishor_box, self.disver_box, self.dissag_box]:
+        for box in [self.dishor_box, self.disver_box, self.dissag_box, self.disgen_box]:
             box.setEnabled(enable_distance)
 
     # if 'movement' is selected for Y,
@@ -814,9 +824,9 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # update the list of existing modules according to which module type was selected
     def update_existingmodule_list(self, selection_dict):
         if selection_dict[1]:
-            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums, ModuleTypes.LOCATION)
+            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums)
         elif selection_dict[2]:
-            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums, ModuleTypes.MOVEMENT)
+            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums)
         else:
             self.existingmodule_listmodel.setmoduleslist(None)
 
@@ -1026,7 +1036,11 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                 close=self.dissagclose_rb.isChecked(),
                                 medium=self.dissagmed_rb.isChecked(),
                                 far=self.dissagfar_rb.isChecked())
-        distances = [distance_hor, distance_ver, distance_sag]
+        distance_gen = Distance(axis=Direction.GENERIC,
+                                close=self.disgenclose_rb.isChecked(),
+                                medium=self.disgenmed_rb.isChecked(),
+                                far=self.disgenfar_rb.isChecked())
+        distances = [distance_hor, distance_ver, distance_sag, distance_gen]
         return distances
 
     # set the GUI values for contact selection from the given input
@@ -1084,12 +1098,15 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                 self.dirsagdist_rb.setChecked(sag_direction.minus)
                 self.dirsaginline_rb.setChecked(sag_direction.inline)
 
-    # set the GUI values for directions selection from the given input
+    # set the GUI values for distances selection from the given input
     def setcurrentdistances(self, distances_list):
         if distances_list is not None:
             hor_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.HORIZONTAL][0]
             ver_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.VERTICAL][0]
             sag_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.SAGITTAL][0]
+            # generic distance was added later for issue 387 (oct 2024)
+            gen_distance_list = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.GENERIC]
+            gen_distance = gen_distance_list[0] if len(gen_distance_list) != 0 else Distance(axis=Direction.GENERIC)
 
             self.dishorclose_rb.setChecked(hor_distance.close)
             self.dishormed_rb.setChecked(hor_distance.medium)
@@ -1102,6 +1119,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             self.dissagclose_rb.setChecked(sag_distance.close)
             self.dissagmed_rb.setChecked(sag_distance.medium)
             self.dissagfar_rb.setChecked(sag_distance.far)
+
+            self.disgenclose_rb.setChecked(gen_distance.close)
+            self.disgenmed_rb.setChecked(gen_distance.medium)
+            self.disgenfar_rb.setChecked(gen_distance.far)
 
     # return the type of the "existing module" currently selected in the GUI
     def getcurrentlinkedmoduletype(self):
@@ -1187,10 +1208,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     # clear and enable all GUI elements for distance selection
     def clear_distance_buttons(self):
-        for grp in [self.dishor_group, self.disver_group, self.dissag_group]:
+        for grp in [self.dishor_group, self.disver_group, self.dissag_group, self.disgen_group]:
             self.clear_group_buttons(grp)
 
-        for grpbox in [self.dishor_box, self.disver_box, self.dissag_box]:
+        for grpbox in [self.dishor_box, self.disver_box, self.dissag_box, self.disgen_box]:
             grpbox.setEnabled(True)
 
     # clear and enable all GUI elements for direction selection
