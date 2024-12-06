@@ -134,9 +134,7 @@ class ModuleSelectorDialog(QDialog):
             self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
 
         if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
-            self.associatedrelations_widget = AssociatedRelationsPanel(parent=self)
-            if self.existingkey is not None:
-                self.associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
+            self.associatedrelations_widget = self.create_associatedrelations_widget()
             self.check_enable_saveaddrelation()
 
             self.associatedrelations_widget.save_anchor.connect(self.handle_save_anchor)
@@ -196,6 +194,12 @@ class ModuleSelectorDialog(QDialog):
                                                   parent=self)
             self.moduleselector_layout.addWidget(self.xslot_widget)
 
+    def create_associatedrelations_widget(self):
+        associatedrelations_widget = AssociatedRelationsPanel(parent=self)
+        if self.existingkey is not None:
+            associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
+        return associatedrelations_widget
+    
     def assign_module_widget(self, moduletype, moduletoload):
         if self.moduletype == ModuleTypes.MOVEMENT:
             self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
