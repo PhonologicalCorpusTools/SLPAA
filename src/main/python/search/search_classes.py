@@ -689,7 +689,23 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
                                                  axis_cb=self.dissag_cb,
                                                  axis_label=self.dissag_label)
         self.dissag_box.setLayout(dis_sag_layout)
-        
+            
+        # create layout for generic distance options
+        self.disgen_box = QGroupBox()
+        self.disgen_label = QLabel("Generic")
+        self.disgenclose_rb = RelationRadioButton("Close")
+        self.disgenmed_rb = RelationRadioButton("Med.")
+        self.disgenfar_rb = RelationRadioButton("Far")
+        self.disgen_cb = QCheckBox(self.disgen_label.text())
+        self.disgen_group = RelationButtonGroup()
+        self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
+                                                 self.disgenmed_rb,
+                                                 self.disgenfar_rb,
+                                                 self.disgen_group,
+                                                 axis_cb=self.disgen_cb,
+                                                 axis_label=self.disgen_label)
+        self.disgen_box.setLayout(dis_gen_layout)
 
         distance_box.setLayout(self.populate_distance_layout())
         return distance_box
@@ -764,6 +780,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         distance_layout.addWidget(self.dishor_box)
         distance_layout.addWidget(self.disver_box)
         distance_layout.addWidget(self.dissag_box)
+        distance_layout.addWidget(self.disgen_box)
 
         layout.addLayout(distance_layout)
         layout.addWidget(self.any_distance_cb)
@@ -771,7 +788,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         return layout
     
     def handle_any_distance_cb_toggled(self, btn):
-        distancegrp = self.dishor_group.buttons() + self.dissag_group.buttons() + self.disver_group.buttons() + [self.dissag_cb, self.dishor_cb, self.disver_cb]
+        distancegrp = self.dishor_group.buttons() + self.dissag_group.buttons() + self.disver_group.buttons() + self.disgen_group.buttons() + [self.dissag_cb, self.dishor_cb, self.disver_cb, self.disgen_cb]
         hascheckedbtn = False
         for b in distancegrp:
             b.setDisabled(btn)
@@ -787,9 +804,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
 
     def clear_distance_buttons(self):
         super().clear_distance_buttons()
-        for b in [self.any_distance_cb, self.dishor_cb, self.disver_cb, self.dissag_cb]:
+        for b in [self.any_distance_cb, self.dishor_cb, self.disver_cb, self.dissag_cb, self.disgen_cb]:
             b.setChecked(False)
             b.setEnabled(True)
+    
+
 
 
     # 1. The 'distance' section is only available if 'no contact' is selected
@@ -807,7 +826,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
                           self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT
 
         enable_distance = (meetscondition1 or meetscondition2) and not meetscondition3
-        for box in [self.dishor_box, self.disver_box, self.dissag_box]:
+        for box in [self.dishor_box, self.disver_box, self.dissag_box, self.disgen_box]:
             box.setEnabled(enable_distance)
         self.any_distance_cb.setEnabled(enable_distance)
 

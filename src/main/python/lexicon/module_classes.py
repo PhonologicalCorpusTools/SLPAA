@@ -1710,7 +1710,7 @@ class RelationModule(ParameterModule):
         return paths
 
     def has_any_distance(self):
-        for i in range(3):
+        for i in range(4):
             dis = self.contactrel.distances[i]
             if dis.has_selection():
                 return True

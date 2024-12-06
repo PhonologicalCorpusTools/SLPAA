@@ -314,7 +314,7 @@ def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
         if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
             modulelist = [m for m in modulelist if m.has_any_distance()]
         else:
-            for i in range(3):
+            for i in range(4):
                 dist = target_module.contactrel.distances[i]
                 if dist.has_selection():
                     modulelist = [m for m in modulelist if m.contactrel.distances[i].has_selection()]
