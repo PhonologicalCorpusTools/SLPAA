@@ -163,19 +163,11 @@ class CompareSignsDialog(QDialog):
         layout.addLayout(sign_tree_and_counters_layout)
 
         # Add OK and Cancel buttons
-        button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK")
-        cancel_button = QPushButton("Cancel")
-        ok_button.clicked.connect(self.accept)
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(ok_button)
-        button_layout.addWidget(cancel_button)
+        button_layout = self.gen_bottom_btns()
         layout.addLayout(button_layout)
 
+        # -- finalize creating main layout
         self.setLayout(layout)
-        # -- done creating main layout
-
-        self.update_trees()
 
         # Connect expand/collapse events
         self.tree1.itemExpanded.connect(lambda item: self.on_item_expanded(item, self.tree2))
@@ -192,6 +184,9 @@ class CompareSignsDialog(QDialog):
 
         # flag to prevent infinite recursion of the `sync_scrollbars` method...
         self.syncing_scrollbars = False
+
+        # finally, update trees, including colour counter updates.
+        self.update_trees()
 
     def initialize_sign_counters(self):
         # generate a dictionary of ColourCounters for a sign
@@ -266,6 +261,17 @@ class CompareSignsDialog(QDialog):
             self.syncing_scrollbars = True
             target_scrollbar.setValue(scrolled_value)
             self.syncing_scrollbars = False
+
+    def gen_bottom_btns(self):
+        # generate Ok and Cancel buttons
+        button_layout = QHBoxLayout()
+        ok_button = QPushButton("OK")
+        cancel_button = QPushButton("Cancel")
+        ok_button.clicked.connect(self.accept)
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        return button_layout
 
     def populate_trees(self, tree1, tree2, data1, data2):
         # this really really needs refactoring.
@@ -478,19 +484,12 @@ class CompareSignsDialog(QDialog):
         self.populate_trees(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
 
         # Update counters, now as the trees are all populated.
-        colour_counts_sign1, root_colour_counts_sign1 = self.count_coloured_lines(self.tree1)
-        colour_counts_sign2, root_colour_counts_sign2 = self.count_coloured_lines(self.tree2)
-
-        self.expanded_colour_counter_1.update_counter(colour_counts_sign1)  # update 'all expanded' for 1
-        self.expanded_colour_counter_2.update_counter(colour_counts_sign2)  # update 'all expanded' for 2
-        self.collapsed_colour_counter_1.update_counter(root_colour_counts_sign1)
-        self.collapsed_colour_counter_2.update_counter(root_colour_counts_sign2)
-
-        self.update_current_counters()
+        self.update_expand_collapse_counters()  # all collapsed / all expanded
+        self.update_current_counters()          # current
 
     def update_current_counters(self):
-        counts_current_sign1, _ = self.count_coloured_lines(tree=self.tree1, only_visible_now=True)
-        counts_current_sign2, _ = self.count_coloured_lines(tree=self.tree2, only_visible_now=True)
+        counts_current_sign1 = self.count_coloured_lines(tree=self.tree1)
+        counts_current_sign2 = self.count_coloured_lines(tree=self.tree2)
 
         self.current_colour_counter_1.update_counter(counts_current_sign1)
         self.current_colour_counter_2.update_counter(counts_current_sign2)
@@ -603,13 +602,24 @@ class CompareSignsDialog(QDialog):
                 return None  # Return None if the item in the path doesn't exist
         return current  # Return the found corresponding item
 
-    def count_coloured_lines(self, tree, only_visible_now=False):
+    def update_expand_collapse_counters(self):
+        # count colours for both 'all expanded' and 'all collapsed'
+        counter_types = {'expanded': True, 'collapsed': False}
+
+        for counter_type, expand_bool in counter_types.items():
+            self.toggle_all_trees(expand=expand_bool)  # programmatically expand and then collapse all trees
+
+            # and then count colours at the given moment and update the counter
+            getattr(self, f'{counter_type}_colour_counter_1').update_counter(
+                self.count_coloured_lines(tree=self.tree1))
+            getattr(self, f'{counter_type}_colour_counter_2').update_counter(
+                self.count_coloured_lines(tree=self.tree2))
+
+    def count_coloured_lines(self, tree):
         # traverse the trees and count the number of colours (both all collapsed and all expanded)
-        # only_visible_now: bool. count only colours that are currently visible
 
         # initialize counters
-        counts = {'red': 0, 'yellow': 0, 'blue': 0}  # for 'all expanded'
-        counts_roots = {'red': 0, 'yellow': 0, 'blue': 0}  # for 'all collapsed'
+        counts = {'red': 0, 'yellow': 0, 'blue': 0}
 
         def walk_tree(item, tree, fully_visible=True):
             # this conditional decides whether the current item is visible (item_visible)
@@ -621,25 +631,9 @@ class CompareSignsDialog(QDialog):
                 parent_expanded = tree.isExpanded(parent_index)  # check if parent is expanded. (i.e., am i visible)
                 item_visible = fully_visible and parent_expanded
 
-            bg_color = None
-
-            if not only_visible_now:   # if not counting lines visible now, meaning counting all
-                if hasattr(item, 'underlying_bg'):
-                    print(f'item: {item}, bg:{item.underlying_bg}')
-                    bg_color = item.underlying_bg
-
-            elif item_visible:
-                if hasattr(item, 'current_bg'):
-                    bg_color = item.current_bg
-
-            if bg_color in counts:
-
-                if item.is_root:
-                    # if the line is root (e.g., movement, relation ...) count its colour for 'all collapsed'
-                    counts_roots[bg_color] += 1
-                elif not item.is_label:
-                    # update 'all expanded' counter (when all expanded labels are transparent -- should not be counted)
-                    counts[bg_color] += 1
+            if item_visible:
+                bg_color = item.current_bg
+                counts[bg_color] = counts.get(bg_color, 0) + 1
 
             # recursively apply walk_tree to the children
             for i in range(item.childCount()):
@@ -649,5 +643,4 @@ class CompareSignsDialog(QDialog):
         root = tree.invisibleRootItem()
         for i in range(root.childCount()):
             walk_tree(root.child(i), tree, fully_visible=True)
-
-        return counts, counts_roots
+        return counts
