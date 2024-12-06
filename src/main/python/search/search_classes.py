@@ -791,6 +791,58 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
             b.setChecked(False)
             b.setEnabled(True)
 
+
+    # 1. The 'distance' section is only available if 'no contact' is selected
+    # 2. OR Can also be available if
+    #   (a) neither 'contact' nor 'no contact' is selected AND
+    #   (b) there are no selections in manner or distance
+    # 3. BUT if 'movement' is selected for Y,
+    #   then Contact, Manner, Direction, and Distance menus are all inactive below
+    def check_enable_distance(self):
+        meetscondition1 = self.nocontact_rb.isChecked()
+
+        meetscondition2 = self.contactmannerdistance_empty()
+
+        meetscondition3 = self.y_existingmod_radio.isChecked() and \
+                          self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT
+
+        enable_distance = (meetscondition1 or meetscondition2) and not meetscondition3
+        for box in [self.dishor_box, self.disver_box, self.dissag_box]:
+            box.setEnabled(enable_distance)
+        self.any_distance_cb.setEnabled(enable_distance)
+
+    # if 'movement' is selected for Y,
+    #  then Contact, Manner, Direction (including crossed/linked), and Distance menus are all inactive below
+    def check_enable_direction(self):
+        enable_direction = not (self.y_existingmod_radio.isChecked() and
+                                self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT)
+        for box in [self.dirhor_box, self.dirver_box, self.dirsag_box]:
+            box.setEnabled(enable_direction)
+        self.crossed_cb.setEnabled(enable_direction)
+        self.linked_cb.setEnabled(enable_direction)
+        self.any_direction_cb.setEnabled(enable_direction)
+
+    def handle_contactgroup_toggled(self, btn, checked):
+        # if the user has selected and deselected a contact option, then...
+        #   if no subsidiary choices (eg in distance or manner) were made, then leave those subsections available
+        #   else if one or more subsidiary choices were made, then (as per default behaviour)
+        #       both of those subsections should be disabled
+
+        # make sure contact type options are un/available as applicable
+        for b in self.contacttype_group.buttons():
+            b.setEnabled(not self.nocontact_rb.isChecked())
+
+            self.contacttype_group.setExclusive(False)
+            if not self.contact_rb.isChecked() and not self.nocontact_rb.isChecked():
+                b.setChecked(False)
+            self.contacttype_group.setExclusive(True)
+
+        self.contact_other_text.setEnabled(not self.nocontact_rb.isChecked())
+        self.any_contacttype_cb.setEnabled(not self.nocontact_rb.isChecked())
+
+        # check whether submenus (contact, manner, direction, distance) should be enabled
+        self.check_enable_allsubmenus()
+
 class Search_AssociatedRelationsDialog(AssociatedRelationsDialog):
     def __init__(self, anchormodule=None, **kwargs):
         super().__init__(anchormodule, **kwargs)
