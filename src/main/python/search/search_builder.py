@@ -574,7 +574,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             self.sign.addmodule(module_to_save, moduletype)
         else:
             row = self.mainwindow.current_row
-            self.sign.updatemodule(existingkey, module_to_save, moduletype)
+            self.sign.updatemodule(existingkey, module_to_save)
 
         self.emit_signal(target, row)
 

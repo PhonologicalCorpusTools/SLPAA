@@ -84,7 +84,7 @@ class SearchModel(QStandardItemModel):
 
             target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, module_id=module_id, negative=negative, include=include, associatedrelnmodule=assocrelnmodule, associatedrelnmodule_id=assocrelnmodule_id)
             
-            logging.warning(f"{ttype}. setting value of module id: {module_id}")
+            # logging.warning(f"{ttype}. setting value of module id: {module_id}")
             row = self.create_row_from_target(target)
             self.appendRow(row)
     
@@ -519,7 +519,8 @@ class SearchModel(QStandardItemModel):
                 inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
                 timingintervals = serialmodule.timingintervals
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-                unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+                phonlocs = serialmodule.phonlocs
+                unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
                 
                 return unserialized
             elif type in [ModuleTypes.LOCATION, LOC_REL_TARGET]:
@@ -687,7 +688,7 @@ class SearchModelSerializable:
                 row_data[TargetHeaders.ASSOCRELNMODULE_ID] = searchmodel.target_associatedrelnmodule_id(r)
                 model[name] = row_data  
 
-                logging.warning(f"Saving: {name}, {ttype}, module: {row_data[TargetHeaders.MODULE_ID]},  associatedrelnmodule: {row_data[TargetHeaders.ASSOCRELNMODULE_ID]} ")
+                # logging.warning(f"Saving: {name}, {ttype}, module: {row_data[TargetHeaders.MODULE_ID]},  associatedrelnmodule: {row_data[TargetHeaders.ASSOCRELNMODULE_ID]} ")
         return model
     
     def get_serialized_parameter_module(self, type, module):
