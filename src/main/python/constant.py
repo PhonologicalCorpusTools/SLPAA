@@ -393,6 +393,7 @@ class ModuleTypes:
 
     parametertypes = list(abbreviations.keys())
     parametertypes_relationfirst = [RELATION] + [mtype for mtype in parametertypes if mtype != 'relation']
+    alltypes = [SIGNTYPE] + parametertypes
 
 
 class UserDefinedRoles(dict):

@@ -100,7 +100,9 @@ def alignmodules(sign1, sign2, moduletype):
             return alignbyarticulator(modulesbysign, moduletype)
         elif moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL]:
             # TODO - waiting for further intructions from Kathleen
-            return alignmodules_helper(modulesbysign, moduletype)
+            matched1, unmatched = alignmodules_helper(modulesbysign, moduletype)
+            matched2, unmatched = alignbycodingorder(unmatched, matchwithnone=True)
+            return matched1 + matched2
 
 
 def alignmodules_helper(modulesbysign, moduletype):
@@ -241,7 +243,7 @@ def alignbyhandshapename(configmodsbysign):
 
 
 def alignbyjointspecificmvmt(jointspecmodsbysign):
-    return alignbymvmttype_helper(jointspecmodsbysign, 'Joint-specific movement')
+    return alignbymvmttype_helper(jointspecmodsbysign, 'Joint-specific movements')
 
 def alignbyperceptualshape(perceptualshapemodsbysign):
     return alignbymvmttype_helper(perceptualshapemodsbysign, 'Perceptual shape')
@@ -255,6 +257,7 @@ def alignbymvmttype_helper(movmodsbysign, typename):
     sign2mods = [mod for mod in movmodsbysign[2]]
 
     matchedmods = []
+    unmatched = {1: [], 2: []}
 
     index1 = 0
     while index1 < len(sign1mods):
@@ -274,19 +277,29 @@ def alignbymvmttype_helper(movmodsbysign, typename):
                 index2 += 1
         index1 += 1
 
-    return matchedmods, {1: sign1mods, 2: sign2mods}
+    if sign1mods or sign2mods:
+        # if there are still some of this type of module left unmatched, it's because there were no sub-type matches
+        #   e.g., maybe we had two Perceptual shape movement modules, but one was Straight and the other was Arc
+        # so just go ahead and match these types by coding order
+        matchedbycodingorder, unmatched = alignbycodingorder({1: sign1mods, 2: sign2mods}, matchwithnone=False)
+        matchedmods.extend(matchedbycodingorder)
+
+    return matchedmods, unmatched
 
 
 def getmvmtsubtypes(movtreemodel, typename):
     subtypenodes = []
 
     # typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.nodedisplayrole, [typename])[0]
-    typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.pathdisplayrole, [typename])[0]
+    # typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.pathdisplayrole, [typename])[0]
+    typeitem = movtreemodel.findItemsByRoleValues(Qt.DisplayRole, [typename])[0]
 
     for r in range(typeitem.rowCount()):  # top level only
         child = typeitem.child(r, 0)
         if child is not None:
-            nodetext = child.data(Qt.UserRole + udr.nodedisplayrole)
+            # nodetext = child.data(Qt.UserRole + udr.nodedisplayrole)
+            # nodetext = child.data(Qt.UserRole + udr.pathdisplayrole)
+            nodetext = child.data(Qt.DisplayRole)
             checkstate = child.checkState()
             if checkstate in [Qt.Checked, Qt.PartiallyChecked]:
                 subtypenodes.append(nodetext)
@@ -322,7 +335,7 @@ def alignbymovementtype(movmodsbysign):
     perceptualshapemods = {1: [], 2: []}
     jointspecificmods = {1: [], 2: []}
     handshapechangemods = {1: [], 2: []}
-    othermods =  {1: [], 2: []}
+    othermods = {1: [], 2: []}
 
     for snum in snums:
         for movmod in movmodsbysign[snum]:
@@ -349,11 +362,16 @@ def alignbymovementtype(movmodsbysign):
         else:
             for snum in snums:
                 rematchmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any perceptual shape modules; add them back to the rematch list
+        for snum in snums:
+            rematchmods[snum].extend(perceptualshapemods[snum])
+
 
     if jointspecificmods[1] and jointspecificmods[2]:
         # match up joint-specific modules
         matchedpairs, unmatchedmodsbysign = alignbyjointspecificmvmt(jointspecificmods)
-        toreturn.extend(matchedpairs)
+        toreturn.extend(matchedpairs)  # unmatchedmodsbysign randomly empties at this point
 
         if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
             # there should not be unmatched joint-specific movement module(s) in both signs at this point
@@ -361,6 +379,10 @@ def alignbymovementtype(movmodsbysign):
         else:
             for snum in snums:
                 rematchmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any joint-specific modules; add them back to the rematch list
+        for snum in snums:
+            rematchmods[snum].extend(jointspecificmods[snum])
 
     if handshapechangemods[1] and handshapechangemods[2]:
         # match up handshape change modules
@@ -373,6 +395,10 @@ def alignbymovementtype(movmodsbysign):
         else:
             for snum in snums:
                 rematchmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any handshape-change modules; add them back to the rematch list
+        for snum in snums:
+            rematchmods[snum].extend(handshapechangemods[snum])
 
     if othermods[1] and othermods[2]:
         # match up modules without a movement type specified
@@ -385,6 +411,10 @@ def alignbymovementtype(movmodsbysign):
         else:
             for snum in snums:
                 rematchmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any other modules; add them back to the rematch list
+        for snum in snums:
+            rematchmods[snum].extend(othermods[snum])
 
     # if rematchmods[1] and rematchmods[2]:
     #     # there is at least one pair of potentially-matchable movement modules of various movement types
@@ -444,6 +474,10 @@ def alignbylocationtype(locmodsbysign):
         else:
             for snum in snums:
                 rematchbodymods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any body modules; add them back to the rematch list
+        for snum in snums:
+            rematchbodymods[snum].extend(bodymods[snum])
 
     if bodyanchoredmods[1] and bodyanchoredmods[2]:
         # match up body-anchored modules
@@ -456,6 +490,10 @@ def alignbylocationtype(locmodsbysign):
         else:
             for snum in snums:
                 rematchbodymods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any body-anchored modules; add them back to the rematch list
+        for snum in snums:
+            rematchbodymods[snum].extend(bodyanchoredmods[snum])
 
     if purelyspatialmods[1] and purelyspatialmods[2]:
         # match up purely spatial modules
@@ -468,6 +506,10 @@ def alignbylocationtype(locmodsbysign):
         else:
             for snum in snums:
                 rematchallmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any purely-spatial modules; add them back to the rematch list
+        for snum in snums:
+            rematchallmods[snum].extend(purelyspatialmods[snum])
 
     if signingspaceonlymods[1] and signingspaceonlymods[2]:
         # match up general signing space modules
@@ -482,6 +524,10 @@ def alignbylocationtype(locmodsbysign):
         else:
             for snum in snums:
                 rematchallmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any signing-space-only modules; add them back to the rematch list
+        for snum in snums:
+            rematchallmods[snum].extend(signingspaceonlymods[snum])
 
     if noloctypemods[1] and noloctypemods[2]:
         # match up modules with no specified location type
@@ -494,6 +540,10 @@ def alignbylocationtype(locmodsbysign):
         else:
             for snum in snums:
                 rematchallmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any no-location-type modules; add them back to the rematch list
+        for snum in snums:
+            rematchallmods[snum].extend(noloctypemods[snum])
 
     if rematchbodymods[1] and rematchbodymods[2]:
         # there is at least one pair of potentially-matchable body-based location modules,
@@ -507,6 +557,10 @@ def alignbylocationtype(locmodsbysign):
         else:
             for snum in snums:
                 rematchallmods[snum].extend(unmatchedmodsbysign[snum])
+    else:
+        # there was only one sign with any body-based modules to rematch; add them back to the rematch-all list
+        for snum in snums:
+            rematchallmods[snum].extend(rematchbodymods[snum])
 
     # if rematchallmods[1] and rematchallmods[2]:
     #     # there is at least one pair of potentially-matchable location modules of various location types
@@ -535,6 +589,7 @@ def alignbyloctreeitems_helper(locmodsybsign):
     sign2mods = [mod for mod in locmodsybsign[2]]
 
     matchedmods = []
+    unmatched = {1: [], 2: []}
 
     index1 = 0
     while index1 < len(sign1mods):
@@ -555,7 +610,14 @@ def alignbyloctreeitems_helper(locmodsybsign):
                 index2 += 1
         index1 += 1
 
-    return matchedmods, {1: sign1mods, 2: sign2mods}
+    if sign1mods or sign2mods:
+        # if there are still some of this type of module left unmatched, it's because there were no sub-type matches
+        #   e.g., maybe we had two body-based location modules, but one was Head and the other was Torso
+        # so just go ahead and match these types by coding order
+        matchedbycodingorder, unmatched = alignbycodingorder({1: sign1mods, 2: sign2mods}, matchwithnone=False)
+        matchedmods.extend(matchedbycodingorder)
+
+    return matchedmods, unmatched
 
 
 def locationtreetoplevelnodes(locationtreemodel):
@@ -598,7 +660,7 @@ def alignbycodingorder(modulesbysign, matchwithnone=False):
         if lendiff > 0:  # there are more sign1 than sign2 modules
             unmatchedmods[1] = modulesbysign[1][-lendiff:]
         elif lendiff < 0:  # there are more sign2 than sign1 modules
-            unmatchedmods[2] = modulesbysign[2][-lendiff:]
+            unmatchedmods[2] = modulesbysign[2][lendiff:]
         # else they're equal so there are no unmatched modules
 
     # pair up the modules in the sign1 & sign2 lists
@@ -606,6 +668,8 @@ def alignbycodingorder(modulesbysign, matchwithnone=False):
     return matchedmods, unmatchedmods
 
 def alignbyarticulator(modulesbysign, moduletype):
+    if moduletype == ModuleTypes.MOVEMENT:
+        temp = 1
 
     matchedmods = []
 
@@ -730,21 +794,34 @@ def alignbyarticulator(modulesbysign, moduletype):
                     sign1modsbyarticulator[arttype1][3] = unmatched[1]
                     sign2modsbyarticulator[arttype2][artnum] = unmatched[2]
 
-        # and then we'll align any leftovers within an articulator pair (eg A1 with L2)
+            # and then we'll align any leftovers within an articulator pair (eg A1 with L2)
 
-        stillunmatchedwithinarticulatorpair = {
-            1: sign1modsbyarticulator[arttype1][1] + sign1modsbyarticulator[arttype1][2] + sign1modsbyarticulator[arttype1][3],
-            2: sign2modsbyarticulator[arttype2][1] + sign2modsbyarticulator[arttype2][2] + sign2modsbyarticulator[arttype2][3],
-        }
+            stillunmatchedwithinarticulatorpair = {
+                1: sign1modsbyarticulator[arttype1][1] + sign1modsbyarticulator[arttype1][2] + sign1modsbyarticulator[arttype1][3],
+                2: sign2modsbyarticulator[arttype2][1] + sign2modsbyarticulator[arttype2][2] + sign2modsbyarticulator[arttype2][3],
+            }
 
-        alignedmodules, unmatched = alignmodules_helper(stillunmatchedwithinarticulatorpair, moduletype)
-        # save aligned modules to be returned at the end of the function
-        matchedmods.extend(alignedmodules)
+            alignedmodules, unmatched = alignmodules_helper(stillunmatchedwithinarticulatorpair, moduletype)
+            # save aligned modules to be returned at the end of the function
+            matchedmods.extend(alignedmodules)
+            # put unmatched mods back into the pot
+            sign1modsbyarticulator[arttype1] = {1: [], 2: [], 3: []}
+            sign2modsbyarticulator[arttype2] = {1: [], 2: [], 3: []}
+            # works in place
+            arrangemodsbyarticulator(unmatched, sign1modsbyarticulator, sign2modsbyarticulator)
 
-        # TODO at this point any unmatched modules should be... aligned by coding order? left unmatched? ... it is tres confusing
-        # TODO at this point will as much be aligned as possible? I think so... but just in case should we try by coding order?
-        alignedmodules, unmatched = alignbycodingorder(unmatched, matchwithnone=True)
-        matchedmods.extend(alignedmodules)
+    allremainingunmatchedmods = {1: [], 2: []}
+    for articulatordict in sign1modsbyarticulator.values():
+        for artnumlist in articulatordict.values():
+            allremainingunmatchedmods[1].extend(artnumlist)
+    for articulatordict in sign2modsbyarticulator.values():
+        for artnumlist in articulatordict.values():
+            allremainingunmatchedmods[2].extend(artnumlist)
+
+    # TODO at this point any unmatched modules should be... aligned by coding order? left unmatched? ... it is tres confusing
+    # TODO at this point will as much be aligned as possible? I think so... but just in case should we try by coding order?
+    alignedmodules, unmatched = alignbycodingorder(allremainingunmatchedmods, matchwithnone=True)
+    matchedmods.extend(alignedmodules)
 
     return matchedmods  # all the aligned modules, some possibly with 'none'
 
@@ -771,7 +848,7 @@ def arrangemodsbyarticulator(modulesbysign, sign1modsbyart, sign2modsbyart):
                 elif snum == 2:
                     sign2modsbyart[artname][2].append(mod)
 
-    return sign1modsbyart, sign2modsbyart
+    # return sign1modsbyart, sign2modsbyart
 
 
 def whichsignshavemodulesoftype(modulesbysign):
