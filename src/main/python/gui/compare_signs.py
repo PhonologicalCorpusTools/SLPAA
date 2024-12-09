@@ -284,7 +284,7 @@ class CompareSignsDialog(QDialog):
             # Get the union of all keys in both data1 and data2
             data1_keys = set(data1.keys()) if isinstance(data1, dict) else set()
             data2_keys = set(data2.keys()) if isinstance(data2, dict) else set()
-            all_keys = data1_keys.union(data2_keys)
+            all_keys = sorted(data1_keys.union(data2_keys), reverse=True)
 
             # special case: terminal node
             if len(data1_keys) == len(data2_keys) == 1:
