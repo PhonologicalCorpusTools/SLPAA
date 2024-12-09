@@ -338,12 +338,7 @@ class CompareSignsDialog(QDialog):
 
                         return should_paint_red, should_paint_yellow
 
-
             for key in reversed(list(all_keys)):
-                # Create tree items for both trees
-                item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
-                item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
-
                 value1, value2 = None, None
                 try:
                     value1 = data1.get(key, None)
@@ -351,6 +346,18 @@ class CompareSignsDialog(QDialog):
                 except AttributeError:
                     # when data1 or data2 is bool
                     pass
+
+                # non-terminal match, button_type node should not be visible
+                if key in {"match", "button_type"}:
+                    # needs to decide 'which parent' should be yellow
+                    index = 0 if value1 is not None else 1
+                    should_paint_yellow[index] = True
+                    continue
+
+                # Create tree items for both trees
+                item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
+                item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
+
 
                 # Set the color of missing nodes
                 if value1 is None and value2 is not None:
