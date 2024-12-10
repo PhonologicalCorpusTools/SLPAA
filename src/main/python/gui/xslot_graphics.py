@@ -351,7 +351,7 @@ class ModuleButtonContextMenu(QMenu):
 
         if "delete" in whichactions:
             self.delete_action = QAction("Delete module(s)")
-            self.delete_action.setEnabled(len(clipboardlist) > 0 and islistofmodules(clipboardlist))
+            self.delete_action.setEnabled(len(selected_modules) > 0 and islistofmodules(selected_modules))
             self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
             self.addAction(self.delete_action)
 
