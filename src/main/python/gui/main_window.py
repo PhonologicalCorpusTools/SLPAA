@@ -70,7 +70,8 @@ from lexicon.module_classes import ParameterModule, TimingPoint, TimingInterval
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 from constant import ModuleTypes
-from lexicon.module_utils import deepcopymodule, deepcopysign, alignmodules
+from lexicon.module_utils import deepcopymodule, deepcopysign
+from compare_signs.align_modules import alignmodules
 from gui.modulespecification_widgets import StatusDisplay
 
 
