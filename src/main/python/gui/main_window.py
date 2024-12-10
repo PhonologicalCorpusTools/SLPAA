@@ -1742,13 +1742,74 @@ class AlignTestDialog(QDialog):
                     mod1string = "Sign type"
                 else:
                     mod1string = sign1.getmoduleabbreviation(mod1)
+
             mod2string = "no match"
             if mod2 is not None:
                 if mod2.moduletype == ModuleTypes.SIGNTYPE:
                     mod2string = "Sign type"
                 else:
                     mod2string = sign2.getmoduleabbreviation(mod2)
-            resultstring += "S1: " + mod1string + "\n" + "S2: " + mod2string + "\n\n"
+            resultstring += "S1: " + mod1string + "\n" + self.gethackymoduleabbreviation(mod1) + "S2: " + mod2string + "\n" + self.gethackymoduleabbreviation(mod2) + "\n"
 
         self.aligndisplay.setText(resultstring)
 
+    def gethackymoduleabbreviation(self, module):
+        if module is None:
+            return ""
+
+        mtype = module.moduletype
+
+        if mtype == ModuleTypes.MOVEMENT:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            mlm = module.movementtreemodel.listmodel
+            rootnode = mlm.invisibleRootItem()
+            for r in range(rootnode.rowCount()):
+                child = rootnode.child(r, 0)
+                if child.treeitem.checkState() == Qt.Checked:
+                    abbrevstr += "     " + child.text() + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.LOCATION:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            abbrevstr += "     " + repr(module.locationtreemodel.locationtype) + "\n"
+            llm = module.locationtreemodel.listmodel
+            rootnode = llm.invisibleRootItem()
+            for r in range(rootnode.rowCount()):
+                child = rootnode.child(r, 0)
+                if child.treeitem.checkState() == Qt.Checked:
+                    abbrevstr += "     " + child.text() + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.HANDCONFIG:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            return abbrevstr + "     " + module.getabbreviation() + "\n"
+        elif mtype == ModuleTypes.SIGNTYPE:
+            return "     " + module.getabbreviation() + "\n"
+        elif mtype == ModuleTypes.RELATION:
+            abbrevstr = ""
+            abbrevstr += "     " + module.relationx.displaystr() + "\n"
+            abbrevstr += "     " + module.relationy.displaystr() + "\n"
+            abbrevstr += "     " + repr(module.contactrel) + "\n"
+            abbrevstr += "     " + repr(module.directions) + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.NONMANUAL:
+            abbrevstr = ""
+            for k in module._nonmanual.keys():
+                subdict = self.nonmanualdictreducer(module._nonmanual[k])
+                if subdict:
+                    abbrevstr += "     " + k + ": " + str(subdict) + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.ORIENTATION:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            abbrevstr += "     " + "palm: " + repr(module.palm) + "\n"
+            abbrevstr += "     " + "root: " + repr(module.root) + "\n"
+            return abbrevstr
+
+    def nonmanualdictreducer(self, nonmandict):
+        reduceddict = {}
+        for k in nonmandict.keys():
+            if isinstance(nonmandict[k], dict):
+                subdict = self.nonmanualdictreducer(nonmandict[k])
+                if subdict:
+                    reduceddict[k] = subdict
+            elif nonmandict[k]:
+                reduceddict[k] = nonmandict[k]
+        return reduceddict
