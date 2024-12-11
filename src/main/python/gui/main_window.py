@@ -211,7 +211,7 @@ class MainWindow(QMainWindow):
         action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
         action_search.setCheckable(False)
 
-        # align modules (TODO temporary)
+        # align modules (TODO temporary - remove before merging with main)
         action_align = QAction("Align modules", parent=self)
         action_align.triggered.connect(self.on_action_align)
         action_align.setCheckable(False)
@@ -908,7 +908,7 @@ class MainWindow(QMainWindow):
         self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
         self.search_window.show()
 
-    # test module alignment  TODO temporary
+    # test module alignment  TODO temporary - remove before merging with main
     def on_action_align(self):
         self.align_test_window = AlignTestDialog(self.app_settings, corpus=self.corpus, parent=self)
         self.align_test_window.show()
@@ -1684,7 +1684,7 @@ class MinCounterDialog(QDialog):
             self.accept()
 
 
-# test module alignment TODO temporary
+# test module alignment TODO temporary - remove before merging with main
 class AlignTestDialog(QDialog):
 
     def __init__(self, app_settings, corpus, **kwargs):

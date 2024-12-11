@@ -231,6 +231,8 @@ def alignbymvmttype_helper(movmodsbysign, typename):
 
 def getmvmtsubtypes(movtreemodel, typename):
     subtypenodes = []
+    if not typename:
+        return subtypenodes
 
     # typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.nodedisplayrole, [typename])[0]
     # typeitem = movtreemodel.findItemsByRoleValues(Qt.UserRole + udr.pathdisplayrole, [typename])[0]
@@ -274,100 +276,34 @@ def getmvmtsubtypes(movtreemodel, typename):
 #   and align ones that match at that level. If things can't be aligned based on any of the above, align by coding order
 #   (e.g. align sign 1’s H1.Mov3 with sign 2’s H1.Mov3, regardless of content).
 def alignbymovementtype(movmodsbysign):
-    perceptualshapemods = {1: [], 2: []}
-    jointspecificmods = {1: [], 2: []}
-    handshapechangemods = {1: [], 2: []}
-    othermods = {1: [], 2: []}
+    modsbymovementtypebysign = {}
 
     for snum in snums:
         for movmod in movmodsbysign[snum]:
             movtype = getmvmtsubtypes(movmod.movementtreemodel, 'Movement type')
-            if "Perceptual shape" in movtype:
-                perceptualshapemods[snum].append(movmod)
-            elif "Joint-specific movements" in movtype:
-                jointspecificmods[snum].append(movmod)
-            elif "Handshape change" in movtype:
-                handshapechangemods[snum].append(movmod)
-            else:  # no movement type selected
-                othermods[snum].append(movmod)
+            movtype = movtype[0] if movtype else ""
+            if movtype not in modsbymovementtypebysign.keys():
+                modsbymovementtypebysign[movtype] = {1: [], 2: []}
+            modsbymovementtypebysign[movtype][snum].append(movmod)
 
     toreturn = []
     rematchmods = {1: [], 2: []}
-    if perceptualshapemods[1] and perceptualshapemods[2]:
-        # match up perceptual shape modules
-        matchedpairs, unmatchedmodsbysign = alignbyperceptualshape(perceptualshapemods)
-        toreturn.extend(matchedpairs)
+    for movementtype, movementtypemodsbysign in modsbymovementtypebysign.items():
+        if movementtypemodsbysign[1] and movementtypemodsbysign[2]:
+            # match up the modules of this movement type
+            matchedpairs, unmatchedmodsbysign = alignbymvmttype_helper(movementtypemodsbysign, movementtype)
+            toreturn.extend(matchedpairs)
 
-        if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
-            # there should not be unmatched perceptual shape module(s) in both signs at this point
-            print("error: why are there unmatched perceptual shape module(s) in both signs?", unmatchedmodsbysign)
+            if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
+                # there should not be unmatched movement module(s) of this movement type in both signs at this point
+                print("error: why are there unmatched " + movementtype + " module(s) in both signs?", unmatchedmodsbysign)
+            else:
+                for snum in snums:
+                    rematchmods[snum].extend(unmatchedmodsbysign[snum])
         else:
+            # there was only one sign with any modules of this movement type; add them back to the rematch list
             for snum in snums:
-                rematchmods[snum].extend(unmatchedmodsbysign[snum])
-    else:
-        # there was only one sign with any perceptual shape modules; add them back to the rematch list
-        for snum in snums:
-            rematchmods[snum].extend(perceptualshapemods[snum])
-
-
-    if jointspecificmods[1] and jointspecificmods[2]:
-        # match up joint-specific modules
-        matchedpairs, unmatchedmodsbysign = alignbyjointspecificmvmt(jointspecificmods)
-        toreturn.extend(matchedpairs)  # unmatchedmodsbysign randomly empties at this point
-
-        if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
-            # there should not be unmatched joint-specific movement module(s) in both signs at this point
-            print("error: why are there unmatched joint-specific movement module(s) in both signs?", unmatchedmodsbysign)
-        else:
-            for snum in snums:
-                rematchmods[snum].extend(unmatchedmodsbysign[snum])
-    else:
-        # there was only one sign with any joint-specific modules; add them back to the rematch list
-        for snum in snums:
-            rematchmods[snum].extend(jointspecificmods[snum])
-
-    if handshapechangemods[1] and handshapechangemods[2]:
-        # match up handshape change modules
-        matchedpairs, unmatchedmodsbysign = alignbyhandshapechange(handshapechangemods)
-        toreturn.extend(matchedpairs)
-
-        if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
-            # there should not be unmatched handshape change module(s) in both signs at this point
-            print("error: why are there unmatched handshape change module(s) in both signs?", unmatchedmodsbysign)
-        else:
-            for snum in snums:
-                rematchmods[snum].extend(unmatchedmodsbysign[snum])
-    else:
-        # there was only one sign with any handshape-change modules; add them back to the rematch list
-        for snum in snums:
-            rematchmods[snum].extend(handshapechangemods[snum])
-
-    if othermods[1] and othermods[2]:
-        # match up modules without a movement type specified
-        matchedpairs, unmatchedmodsbysign = alignbycodingorder(othermods, matchwithnone=False)
-        toreturn.extend(matchedpairs)
-
-        if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
-            # there should not be unmatched other movement module(s) in both signs at this point
-            print("error: why are there unmatched other movement module(s) in both signs?", unmatchedmodsbysign)
-        else:
-            for snum in snums:
-                rematchmods[snum].extend(unmatchedmodsbysign[snum])
-    else:
-        # there was only one sign with any other modules; add them back to the rematch list
-        for snum in snums:
-            rematchmods[snum].extend(othermods[snum])
-
-    # if rematchmods[1] and rematchmods[2]:
-    #     # there is at least one pair of potentially-matchable movement modules of various movement types
-    #     matchedpairs, unmatchedmodsbysign = alignbycodingorder(rematchmods, matchwithnone=True)
-    #     toreturn.extend(matchedpairs)
-    #
-    #     if unmatchedmodsbysign[1] or unmatchedmodsbysign[2]:
-    #         # there should not be unmatched movement module(s) in both signs at this point
-    #         print("error: why are there unmatched movement module(s) in both signs?", unmatchedmodsbysign)
-    #
-    # return toreturn
+                rematchmods[snum].extend(movementtypemodsbysign[snum])
 
     return toreturn, rematchmods
 
