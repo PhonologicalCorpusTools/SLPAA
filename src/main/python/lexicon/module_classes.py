@@ -2216,6 +2216,9 @@ class Distance:
 
     @property
     def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
         return self._any
 
     @any.setter
