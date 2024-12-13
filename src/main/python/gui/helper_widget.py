@@ -218,6 +218,11 @@ class OptionSwitch(QWidget):
         buttons_layout.addWidget(self.right_btn)
 
         self.setLayout(buttons_layout)
+    
+    def freezeOption(self, label):
+        self.left_btn.setEnabled(label==self.left_btn.text())
+        self.right_btn.setEnabled(label==self.right_btn.text())
+
 
     def setlabels(self, label1=None, label2=None):
         if label1 is not None:

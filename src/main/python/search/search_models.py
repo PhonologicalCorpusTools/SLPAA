@@ -16,14 +16,15 @@ from PyQt5.QtWidgets import QStyledItemDelegate, QMessageBox
 from PyQt5.QtCore import QModelIndex, Qt
 from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
-from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, HAND, ARM, LEG
+from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, LOC_REL_TARGET, MOV_REL_TARGET, HAND, ARM, LEG
 import logging
 
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
-
+from search.helper_functions import (relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, 
+                                     signtypedisplaytext, module_matches_xslottype, reln_module_matches, locn_module_matches, mvmt_module_matches)
+from search.search_classes import SearchTargetItem
 
 
 
@@ -35,12 +36,17 @@ class TargetHeaders:
     INCLUDE = 3
     NEGATIVE = 4
     XSLOTS = 5
+    MODULE = 6
+    MODULE_ID = 7
+    ASSOCRELNMODULE = 8
+    ASSOCRELNMODULE_ID = 9
+    
 
 
 
 
 class SearchModel(QStandardItemModel):
-    def __init__(self, serializedsearchmodel=None,**kwargs):
+    def __init__(self, sign=None, serializedsearchmodel=None,**kwargs):
         super().__init__(**kwargs)
         self.name = None
         self.path = None
@@ -48,12 +54,16 @@ class SearchModel(QStandardItemModel):
         self._matchdegree = None # any / all
         self._searchtype = None # new / add
 
+        self.sign = sign
+
         self.headers = ["Name", "Type", "Value", "Include?", "Negative?",  "X-slots"]
         self.setHorizontalHeaderLabels(self.headers)
         self.serializedsearchmodel = None
         if serializedsearchmodel is not None:
             self.serializedsearchmodel = serializedsearchmodel.serializedmodel
             self.setvaluesfromserializedmodel()
+    
+
 
     def setvaluesfromserializedmodel(self):
         
@@ -64,19 +74,32 @@ class SearchModel(QStandardItemModel):
             svi = row_data[TargetHeaders.VALUE]
             include = row_data[TargetHeaders.INCLUDE] 
             negative = row_data[TargetHeaders.NEGATIVE] 
-            module = self.unserialize(ttype, row_data["module"]) 
 
-            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, negative=negative, include=include)
+            module_id = row_data[TargetHeaders.MODULE_ID]
+            module = self.unserialize(ttype, row_data[TargetHeaders.MODULE]) 
+            
+            assocrelnmodule_id = row_data[TargetHeaders.ASSOCRELNMODULE_ID]
+            assocrelnmodule = self.unserialize(ModuleTypes.RELATION, row_data[TargetHeaders.ASSOCRELNMODULE]) 
+            
+
+            target = SearchTargetItem(name, targettype=ttype, xslottype=xtype, searchvaluesitem=svi, module=module, module_id=module_id, negative=negative, include=include, associatedrelnmodule=assocrelnmodule, associatedrelnmodule_id=assocrelnmodule_id)
+            
+            # logging.warning(f"{ttype}. setting value of module id: {module_id}")
             row = self.create_row_from_target(target)
             self.appendRow(row)
     
     def serialize(self):
+        # return self.sign.serialize()
         return SearchModelSerializable(self)
  
     def create_row_from_target(self, t):
 
         name = QStandardItem(t.name)
         name.setData(t.module, Qt.UserRole)
+        name.setData(t.associatedrelnmodule, Qt.UserRole+1)
+        name.setData(t.module_id, Qt.UserRole+2)
+        name.setData(t.associatedrelnmodule_id, Qt.UserRole+3)
+
 
         ttype = QStandardItem(t.targettype)
 
@@ -104,7 +127,7 @@ class SearchModel(QStandardItemModel):
         for col, data in enumerate(row_data):
             self.setItem(row, col, data)
 
-    
+
     def add_target(self, t):     
         self.appendRow(self.create_row_from_target(t))
 
@@ -180,8 +203,39 @@ class SearchModel(QStandardItemModel):
             if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign):
                 return False
         if ModuleTypes.RELATION in target_dict: 
-            if not self.sign_matches_reln(target_dict[ModuleTypes.RELATION], sign):
-                return False
+            modulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
+            if not modulelist: return False
+
+            for row in target_dict[ModuleTypes.RELATION]:
+                target_module = self.target_module(row)
+                if not reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
+                    return False
+        for ttype in [LOC_REL_TARGET, MOV_REL_TARGET]:
+            if ttype in target_dict:
+                anchortype = ModuleTypes.LOCATION if ttype == LOC_REL_TARGET else MOV_REL_TARGET
+                relationmodulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
+                if not relationmodulelist: return False
+                
+                for row in target_dict[ttype]:  
+                    target_reln_module = self.target_associatedrelnmodule(row)
+                    logging.warning(f"target module: {self.target_module_id(row)}; assoc module: {self.target_associatedrelnmodule_id(row)}; ")
+                    if not reln_module_matches(relationmodulelist, target_reln_module, target_is_assoc_reln=True):
+                        return False    
+                    anchormodulelist = []
+                    for m in relationmodulelist:
+                        anchormod = sign.getmoduledict(anchortype)[m.relationy.linkedmoduleids[0]]
+                        anchormodulelist.append(anchormod)
+
+                    if ttype == LOC_REL_TARGET:
+                        if not locn_module_matches(anchormodulelist, self.target_module(row)): return False
+                    elif ttype == MOV_REL_TARGET:
+                        if not mvmt_module_matches(anchormodulelist, self.target_module(row)): return False
+                return True
+
+                    
+
+            
+
 
         return True
     
@@ -289,11 +343,13 @@ class SearchModel(QStandardItemModel):
             return False
         return True
 
+
+
+
     def sign_matches_reln(self, rows, sign):
-        # TODO think about issue where target matches a sign, but matches are split across multiple modules
-        # eg module 1 matches relation_x, module 2 matches contact
-        # instead of using any(), could keep a list of matching modules, and trim the list as modules no longer match successive target specs
-        modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
+        matching_modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
+        if len(matching_modules) == 0:
+            return False
         for row in rows:
             svi = self.target_values(row) 
             xslottype = self.target_xslottype(row)
@@ -302,63 +358,67 @@ class SearchModel(QStandardItemModel):
             # All relation_x possibilities are mutually exclusive, so check if target relation_x matches at least one of sign's relation_xs
             target_relationx = target_module.relationx.displaystr()
             if target_relationx != "":
-                if not any(target_relationx == m.relationx.displaystr() for m in modules):
-                    return False
+                matching_modules = [m for m in matching_modules if target_relationx == m.relationx.displaystr()]
+                if len(matching_modules) == 0: return False
+
             # If target relation_y is "Existing module", this can also match "existing module - locn" or "existing module - mvmt".
             # Otherwise, relation_y possibilities are mutually exclusive.
             target_relationy = target_module.relationy.displaystr()
             if target_relationy != "": 
                 if target_relationy == "Y: existing module":
-                    if not any(target_relationy in m.relationy.displaystr() for m in modules): # match locn and mvmt existing modules
-                        return False
+                    matching_modules = [m for m in matching_modules if target_relationy in m.relationy.displaystr()]
                 else:
-                    if not any(target_relationy == m.relationy.displaystr() for m in modules):
-                        return False
+                    matching_modules = [m for m in matching_modules if target_relationy == m.relationy.displaystr()]
+                if len(matching_modules) == 0: return False
             # If target contact is only "Contact", this needs to match contact type suboptions (light, firm, other)
             # If target contact is "No contact", must match signs where contact is not specified or empty (?)
             # Manner options are mutually exclusive.
             if target_module.contactrel.contact is False: # if False, then "no contact" specified
-                if not any (m.contactrel.contact == False for m in modules):
-                    return False
+                matching_modules = [m for m in matching_modules if m.contactrel.contact == False]
             elif target_module.contactrel.contact is not None:
-                if target_module.contactrel.has_manner() and target_module.contactrel.has_contacttype(): # module must match manner AND contacttype exactly
-                    if not any (m.contactrel.manner == target_module.contactrel.manner and
-                                m.contactrel.contacttype == target_module.contactrel.contacttype 
-                                for m in modules):
-                        return False
-                elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
-                    if not any (m.contactrel.manner == target_module.contactrel.manner for m in modules):
-                        return False
+                if target_module.contactrel.contacttype.any:
+                    matching_modules = [m for m in matching_modules if m.contactrel.has_contacttype()]
+                    if len(matching_modules) == 0: return False   
                 elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
-                    if not any (m.contactrel.contacttype == target_module.contactrel.contacttype for m in modules):
-                        return False
+                    matching_modules = [m for m in matching_modules if m.contactrel.contacttype == target_module.contactrel.contacttype]
+                    if len(matching_modules) == 0: return False 
+                if target_module.contactrel.manner.any:
+                    matching_modules = [m for m in matching_modules if m.contactrel.has_manner()]
+                    if len(matching_modules) == 0: return False  
+                elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
+                    matching_modules = [m for m in matching_modules if m.contactrel.manner == target_module.contactrel.manner]
+                    if len(matching_modules) == 0: return False 
                 else: # only "contact" specified, so module must have some contact / contacttype
-                    if not any (m.contactrel.contact for m in modules):
-                        return False
+                    matching_modules = [m for m in matching_modules if m.contactrel.contact]
+            if len(matching_modules) == 0: return False 
             
             # direction:
-            matching_modules = modules
-            if target_module.xy_linked:
-                matching_modules = [m for m in matching_modules if m.xy_linked]
-            if target_module.xy_crossed:
-                matching_modules = [m for m in matching_modules if m.xy_crossed]
-            for i in range(3):
-                if target_module.directions[i].axisselected:
-                    if target_module.has_direction(i): # match exactly because suboption is selected
-                        matching_modules = [m for m in matching_modules if m.directions[i] == target_module.directions[i]]
-                    else: # only axis is selected, so match if any suboption is selected
-                        matching_modules = [m for m in matching_modules if m.has_direction(i)]
+            if len(target_module.directions) == 1 and target_module.directions[0].any: 
+                matching_modules = [m for m in matching_modules if m.has_any_direction()]
+            else:
+                if target_module.xy_linked:
+                    matching_modules = [m for m in matching_modules if m.xy_linked]
+                if target_module.xy_crossed:
+                    matching_modules = [m for m in matching_modules if m.xy_crossed]
+                for i in range(3):
+                    if target_module.directions[i].axisselected:
+                        if target_module.has_direction(i): # match exactly because suboption is selected
+                            matching_modules = [m for m in matching_modules if m.directions[i] == target_module.directions[i]]
+                        else: # only axis is selected, so match if any suboption is selected
+                            matching_modules = [m for m in matching_modules if m.has_direction(i)]
             if len(matching_modules) == 0:
                 return False
             
             # Distance:
-            matching_modules = modules
             if not target_module.contactrel.contact:
-                for i in range(3):
-                    dist = target_module.contactrel.distances[i]
-                    if dist.has_selection():
-                        matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]
-                            
+                if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
+                    matching_modules = [m for m in matching_modules if m.has_any_distance()]
+                else:
+                    for i in range(4):
+                        dist = target_module.contactrel.distances[i]
+                        if dist.has_selection():
+                            matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]
+                                
                 if len(matching_modules) == 0:
                     return False
             
@@ -379,12 +439,12 @@ class SearchModel(QStandardItemModel):
                     return False
 
         return True
-            
 
 
-    
     def sign_matches_mvmt(self, mvmt_rows, sign):
         modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
+        if len(modules) == 0:
+            return False
         for row in mvmt_rows:
             xslottype = self.target_xslottype(row).type
             target_module = self.target_module(row)
@@ -410,6 +470,8 @@ class SearchModel(QStandardItemModel):
 
     def sign_matches_locn(self, locn_rows, sign):
         modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
+        if len(modules) == 0:
+            return False
         for row in locn_rows:
             svi = self.target_values(row)
             xslottype = self.target_xslottype(row).type
@@ -451,15 +513,17 @@ class SearchModel(QStandardItemModel):
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
-            if type == ModuleTypes.MOVEMENT:
+            if type in [ModuleTypes.MOVEMENT, MOV_REL_TARGET]:
                 mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
                 articulators = serialmodule.articulators
                 inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
                 timingintervals = serialmodule.timingintervals
                 addedinfo = serialmodule.addedinfo if hasattr(serialmodule, 'addedinfo') else AddedInfo()  # for backward compatibility with pre-20230208 movement modules
-                unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, addedinfo, inphase)
+                phonlocs = serialmodule.phonlocs
+                unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
+                
                 return unserialized
-            elif type == ModuleTypes.LOCATION:
+            elif type in [ModuleTypes.LOCATION, LOC_REL_TARGET]:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
                 articulators = serialmodule.articulators
                 inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
@@ -532,6 +596,15 @@ class SearchModel(QStandardItemModel):
     def target_module(self, row):
         return self.index(row, TargetHeaders.NAME).data(Qt.UserRole)
     
+    def target_associatedrelnmodule(self, row):
+        return self.index(row, TargetHeaders.NAME).data(Qt.UserRole+1)
+    
+    def target_module_id(self, row):
+        return self.index(row, TargetHeaders.NAME).data(Qt.UserRole+2)
+    
+    def target_associatedrelnmodule_id(self, row):
+        return self.index(row, TargetHeaders.NAME).data(Qt.UserRole+3)
+    
     def target_type(self, row):
         return self.index(row, TargetHeaders.TYPE).data(Qt.DisplayRole)
     
@@ -577,62 +650,6 @@ class SearchModel(QStandardItemModel):
     def searchtype(self, value):
         self._searchtype = value
 
-# TODO move the methods above into here?
-class SearchTargetItem(QStandardItem):
-    def __init__(self, name=None, targettype=None, xslottype=None, searchvaluesitem=None, module=None, negative=False, include=False, **kwargs):
-        super().__init__(**kwargs)
-        self._name = name
-        self._targettype = targettype
-        self._xslottype = xslottype 
-        self._searchvaluesitem = searchvaluesitem
-        self._module = module
-        self.negative = negative
-        self.include = include
-
-    def __repr__(self):
-        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\ntargettype " + str(self.targettype)  
-        msg += "\nValues: " + repr(self.values)
-        return msg
-    
-    @property
-    def targettype(self):
-        return self._targettype
-
-    @targettype.setter
-    def targettype(self, value):
-        self._targettype = value
-
-    @property
-    def searchvaluesitem(self):
-        return self._searchvaluesitem
-
-    @searchvaluesitem.setter
-    def searchvaluesitem(self, v):
-        self._searchvaluesitem = v
-    
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
-
-    @property
-    def xslottype(self):
-        return self._xslottype
-
-    @xslottype.setter
-    def xslottype(self, value):
-        self._xslottype = value
-
-    @property
-    def module(self):
-        return self._module
-    
-    @module.setter
-    def module(self, m):
-        self._module = m
 
 
 # This class is a serializable form of the class SearchModel, which is itself not pickleable.
@@ -641,10 +658,10 @@ class SearchTargetItem(QStandardItem):
 class SearchModelSerializable:
 
     def __init__(self, searchmodel):
+        # self.sign = searchmodel.sign
         self.serializedmodel = self.collectdatafromSearchModel(searchmodel)
         
 
-    # collect data from the LocationTreeModel to store in this LocationTreeSerializable
     def collectdatafromSearchModel(self, searchmodel):
         model = {}
         if searchmodel is not None:
@@ -652,15 +669,26 @@ class SearchModelSerializable:
                 row_data = {} 
                 name = searchmodel.target_name(r)
                 ttype = searchmodel.target_type(r)
-                module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
                 row_data[TargetHeaders.TYPE] = ttype
                 row_data[TargetHeaders.VALUE] = searchmodel.target_values(r)
                 row_data[TargetHeaders.INCLUDE] = searchmodel.is_included(r)
                 row_data[TargetHeaders.NEGATIVE] = searchmodel.is_negative(r)
                 row_data[TargetHeaders.XSLOTS] = searchmodel.target_xslottype(r)
-                row_data["module"] = module
 
+                if ttype == LOC_REL_TARGET:
+                    module = self.get_serialized_parameter_module(ModuleTypes.LOCATION, searchmodel.target_module(r))
+                elif ttype == MOV_REL_TARGET:
+                    module = self.get_serialized_parameter_module(ModuleTypes.MOVEMENT, searchmodel.target_module(r))
+                else:                    
+                    module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
+                row_data[TargetHeaders.MODULE] = module
+                row_data[TargetHeaders.MODULE_ID] = searchmodel.target_module_id(r)
+                associatedrelnmodule = searchmodel.target_associatedrelnmodule(r)
+                row_data[TargetHeaders.ASSOCRELNMODULE] = self.get_serialized_parameter_module(ModuleTypes.RELATION, associatedrelnmodule) if associatedrelnmodule is not None else None
+                row_data[TargetHeaders.ASSOCRELNMODULE_ID] = searchmodel.target_associatedrelnmodule_id(r)
                 model[name] = row_data  
+
+                # logging.warning(f"Saving: {name}, {ttype}, module: {row_data[TargetHeaders.MODULE_ID]},  associatedrelnmodule: {row_data[TargetHeaders.ASSOCRELNMODULE_ID]} ")
         return model
     
     def get_serialized_parameter_module(self, type, module):
@@ -715,8 +743,6 @@ class SearchValuesItem:
             else: # relation
                 paths = module.get_paths()
                 todisplay.extend(relationdisplaytext(module))
-
-                
 
             if len(paths) > 0:
                 self.paths = paths

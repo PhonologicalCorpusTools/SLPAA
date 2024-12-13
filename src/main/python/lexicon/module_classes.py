@@ -54,6 +54,9 @@ class ParameterModule:
         if moduletype in ModuleTypes.parametertypes:
             self._moduletype = moduletype
 
+    def has_articulators(self):
+        return self.articulators[1][1] or self.articulators[1][2] # between articulator 1 and articulator 2, at least one is True
+
     @property
     def addedinfo(self):
         return self._addedinfo
@@ -1705,6 +1708,23 @@ class RelationModule(ParameterModule):
             treemodel = bodypartinfo.bodyparttreemodel
             paths.update({arts[i]: treemodel.get_checked_items()})
         return paths
+
+    def has_any_distance(self):
+        for i in range(4):
+            dis = self.contactrel.distances[i]
+            if dis.has_selection():
+                return True
+        return False
+    
+    def has_any_direction(self): # returns true if anything in direction is selected, including axis checkboxes or crossed/linked
+        if self.xy_crossed or self.xy_linked:
+            return True
+        for i in range(3):
+            dir = self.directions[i]
+            if dir.axisselected:
+                return True
+        return False
+
     
     def has_direction(self, axisnum): # returns true if suboptions of direction are selected
         dir = self.directions[axisnum]
@@ -1765,10 +1785,11 @@ class RelationModule(ParameterModule):
 
 
 class MannerRelation:
-    def __init__(self, holding=False, continuous=False, intermittent=False):
+    def __init__(self, holding=False, continuous=False, intermittent=False, any=False):
         self._holding = holding
         self._continuous = continuous
         self._intermittent = intermittent
+        self._any = any
 
     def __eq__(self, other):
         if isinstance(other, MannerRelation):
@@ -1827,6 +1848,17 @@ class MannerRelation:
             self._continuous = False
             self._holding = False
 
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
+
 
 class ContactRelation:
     def __init__(self, contact=None, contacttype=None, mannerrel=None, distance_list=None):
@@ -1867,10 +1899,15 @@ class ContactRelation:
         return '<ContactRelation: ' + repr(repr_str) + '>'
 
     def has_manner(self):
-        return self.manner.holding or self.manner.intermittent or self.manner.continuous
+        if self.manner is not None:
+            return self.manner.holding or self.manner.intermittent or self.manner.continuous
+        return False
 
     def has_contacttype(self):
-        return self.contacttype.light or self.contacttype.firm or self.contacttype.other
+        if self.contacttype is not None:
+            return self.contacttype.light or self.contacttype.firm or self.contacttype.other
+        return False
+    
     @property
     def contact(self):
         return self._contact
@@ -1905,11 +1942,12 @@ class ContactRelation:
 
 
 class ContactType:
-    def __init__(self, light=False, firm=False, other=False, othertext=""):
+    def __init__(self, light=False, firm=False, other=False, othertext="", any=False):
         self._light = light
         self._firm = firm
         self._other = other
         self._othertext = othertext
+        self._any = any # Used by search targets to match any contact type selection
 
     def __eq__(self, other):
         if isinstance(other, ContactType):
@@ -1980,6 +2018,17 @@ class ContactType:
     def othertext(self, othertext):
         self._othertext = othertext
 
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
+
 
 # This class is used by the Relation Module to track the axis on which to measure the relation between
 # two elements (X and Y), as well as the direction of X relative to Y.
@@ -1989,12 +2038,13 @@ class Direction:
     SAGITTAL = "sagittal"
     GENERIC = "generic"
 
-    def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False):
+    def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False, any=False):
         self._axis = axis
         self._axisselected = axisselected
         self._plus = plus  # ipsi for horizontal, above for vertical, distal for sagittal
         self._minus = minus  # contra for horizontal, below for vertical, proximal for sagittal
         self._inline = inline  # in line with (for all axes)
+        self._any = any # Used by search targets to match any direction selection (crossed / linked / hor / ver / sag)
 
     def __eq__(self, other):
         if isinstance(other, Direction):
@@ -2040,6 +2090,17 @@ class Direction:
     @axis.setter
     def axis(self, axis):
         self._axis = axis
+
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
 
     @property
     def axisselected(self):
@@ -2090,11 +2151,12 @@ class Direction:
 # two elements (X and Y), as well as the relative distance between those two elements.
 class Distance:
 
-    def __init__(self, axis, close=False, medium=False, far=False):
+    def __init__(self, axis, close=False, medium=False, far=False, any=False):
         self._axis = axis
         self._close = close
         self._medium = medium
         self._far = far
+        self._any = any # Used by search targets to match any specified distance
 
     def __eq__(self, other):
         if isinstance(other, Distance):
@@ -2151,6 +2213,17 @@ class Distance:
         if isfar:
             self._close = False
             self._medium = False
+
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
 
     def __repr__(self):
         repr_str = self._axis

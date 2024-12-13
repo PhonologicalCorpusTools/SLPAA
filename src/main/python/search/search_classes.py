@@ -5,14 +5,17 @@ from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInfoPanel
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
-from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS
+from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS, MOV_REL_TARGET, LOC_REL_TARGET
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
-from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule
+from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule, Direction, Distance
 from lexicon.lexicon_classes import Sign, SignLevelInformation
 from gui.modulespecification_dialog import ModuleSelectorDialog
+
 from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScene, XslotEllipseModuleButton
+from PyQt5.Qt import QStandardItem
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QSize
 from PyQt5.QtWidgets import (
+    QListView,
     QLineEdit,
     QDialog,
     QFrame,
@@ -28,14 +31,15 @@ from PyQt5.QtWidgets import (
     QWidget,
     QMessageBox,
     QSpacerItem,
-    QSizePolicy
-)
+    QSizePolicy,
+    QGroupBox,
 
+)
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
-from gui.relationspecification_view import RelationSpecificationPanel
-from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene
+from gui.relationspecification_view import RelationSpecificationPanel, RelationRadioButton, RelationButtonGroup, ModuleLinkingListModel
+from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene, AssociatedRelationsDialog, AssociatedRelationsPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
 
@@ -307,9 +311,23 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
 
     def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
+        self.targettype = moduletype
+        if self.targettype in [LOC_REL_TARGET, MOV_REL_TARGET]:
+            moduletype = ModuleTypes.LOCATION if moduletype == LOC_REL_TARGET else ModuleTypes.MOVEMENT
+        self.moduletype = moduletype
+
+        
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, incl_articulators, incl_articulator_subopts, **kwargs)
 
+    def create_associatedrelations_widget(self):
+        associatedrelations_widget = Search_AssociatedRelationsPanel(parent=self)
+        if self.existingkey is not None:
+            associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
+        return associatedrelations_widget
+    
 
+
+    
     def add_button_box(self, new_instance=False):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
@@ -329,8 +347,13 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             self.module_widget = Search_LocationSpecPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.HANDCONFIG:
             QMessageBox.critical(self, "Warning", "hand config not impl")
-        elif self.moduletype == ModuleTypes.RELATION:
+        elif moduletype == ModuleTypes.RELATION:
             self.module_widget = Search_RelationSpecPanel(moduletoload=moduletoload, parent=self)
+            if self.usexslots:
+                self.xslot_widget.selection_changed.connect(self.module_widget.timinglinknotification)
+                self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
+                self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
+            self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         self.moduleselector_layout.addWidget(self.module_widget)
     
     def handle_xslot_widget(self, xslotstructure, timingintervals):
@@ -399,7 +422,10 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
                 # we can add an associated relation module, then closedialog will be False)
                 self.accept()
 
+
         return savedmodule
+    
+
 
 
 class CustomRBGrp(QButtonGroup):
@@ -458,6 +484,106 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
 
+    # If an associated relation module is being created, then the linked module box should only show this target's anchor module.
+    # If we use the parent class's method, all location or movement search targets in this search file will appear, 
+    # since they all belong to the same "current_sign"
+    def create_linked_module_box(self):
+        self.existingmod_listview = QListView()
+        # Check if this is an associated relation module
+        curr_row = self.mainwindow.current_row
+        target_type = self.mainwindow.searchmodel.target_type(curr_row)
+
+        # Anchor modules are saved before assoc reln modules are added, so target_type will not be none if this is a connected target
+        # However, if this is a new Relation target, the target will not have been saved yet, so target_type will be None.
+        if target_type not in [ModuleTypes.RELATION, None]:
+            anchor_module = self.mainwindow.searchmodel.target_module(curr_row)
+            anchor_module_id = self.mainwindow.searchmodel.target_module_id(curr_row)
+
+            self.locmodslist = []
+            self.locmodnums = {}
+            self.movmodslist = []
+            self.movmodnums = {}
+            if target_type in [ModuleTypes.LOCATION, LOC_REL_TARGET]: 
+                self.locmodslist = [anchor_module]
+                self.locmodnums[anchor_module_id] = 1
+                label = 'Location'
+            elif target_type in [ModuleTypes.MOVEMENT, MOV_REL_TARGET]:
+                self.movmodslist = [anchor_module]
+                self.movmodnums[anchor_module_id] = 1
+                label = 'Movement'
+
+            self.existingmodule_listmodel = ModuleLinkingListModel()
+            self.existingmod_listview.setModel(self.existingmodule_listmodel)
+
+            # disable y options
+            for b in self.y_group.buttons():
+                b.setChecked(False)
+                b.setEnabled(False)
+            self.y_existingmod_radio.setEnabled(True)
+            self.y_existingmod_switch.freezeOption(label)     
+            
+        else: 
+            super().create_linked_module_box()
+
+
+
+
+
+    def setcurrentmanner(self, mannerrel):
+        if mannerrel is not None and mannerrel.any:
+            self.any_manner_cb.setChecked(True)
+        else:
+            super().setcurrentmanner(mannerrel)
+
+    # return the current contact-manner specification as per the GUI values
+    def getcurrentmanner(self):
+        reln = super().getcurrentmanner()
+        reln.any = self.any_manner_cb.isChecked()
+        return reln
+
+
+    def setcurrentcontacttype(self, contacttype):
+        if contacttype is not None and contacttype.any:
+            self.any_contacttype_cb.setChecked(True)
+        else:
+            super().setcurrentcontacttype(contacttype)
+
+    def getcurrentcontacttype(self):
+        reln = super().getcurrentcontacttype()
+        reln.any = self.any_contacttype_cb.isChecked()
+        return reln
+
+    def setcurrentdirection(self, directions_list):
+        if directions_list is not None and len(directions_list) == 1: # only the case when "any" was selected
+            self.any_direction_cb.setChecked(True)
+        else:
+            super().setcurrentdirection(directions_list)
+
+    def getcurrentdirections(self):
+        if self.any_direction_cb.isChecked():
+            return[Direction(axis=None, any=True)]
+        else:
+            dirs = super().getcurrentdirections()
+            for d in dirs:
+                d.any = False
+            return dirs
+        
+    def setcurrentdistances(self, distances_list):
+        if distances_list is not None and len(distances_list) == 1: # only the case when "any" was selected
+            self.any_distance_cb.setChecked(True)
+        else:
+            super().setcurrentdistances(distances_list)
+
+    def getcurrentdistances(self):
+        if self.any_distance_cb.isChecked():
+            return[Distance(axis=None, any=True)]
+        else:
+            dists = super().getcurrentdistances()
+            for d in dists:
+                d.any = False
+            return dists
+
+
     # Differs from mainwindow in that a generic contact type cb is present
     def populate_contacttype_layout(self):
         self.any_contacttype_cb = QCheckBox("Search for any contact type")
@@ -476,11 +602,10 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
 
     # Differs from mainwindow in that a generic contact manner cb is available
     def handle_any_contacttype_cb_toggled(self, btn):
-        # TODO this doesnt work the first time contacttype_rb is clicked, why?
         for b in self.contacttype_group.buttons():
             b.setDisabled(btn)
         self.contact_other_text.setEnabled(not btn and self.contactother_rb.isChecked())
-        # self.contact_rb.setChecked(btn or self.contacttype_group.checkedButton() is not None) # this also doesnt work
+        self.contact_rb.setChecked(btn or self.contacttype_group.checkedButton() is not None) # TODO fix
 
     def populate_manner_layout(self):
         self.any_manner_cb = QCheckBox("Search for any contact manner")
@@ -497,6 +622,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
     def handle_any_manner_cb_clicked(self, btn):
         for b in self.manner_group.buttons():
             b.setDisabled(btn)
+        self.contact_rb.setChecked(btn or self.manner_group.checkedButton() is not None)  # TODO fix
 
 
     def clear_contact_options(self):
@@ -506,23 +632,100 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         self.any_manner_cb.setEnabled(True)
         super().clear_contact_options()
 
+    # differs from main GUI in that hor, ver, and sag distance checkboxes are available
+    # create side-by-side layout for specifying distance
+    def create_distance_box(self):
+        distance_box = QGroupBox("Distance between X and Y")
+            
+        # create layout for horizontal distance options
+        self.dishor_box = QGroupBox()
+        self.dishor_label = QLabel("Horizontal")
+        self.dishorclose_rb = RelationRadioButton("Close")
+        self.dishormed_rb = RelationRadioButton("Med.")
+        self.dishorfar_rb = RelationRadioButton("Far")
+        self.dishor_cb = QCheckBox(self.dishor_label.text())
+        self.dishor_group = RelationButtonGroup()
+        self.dishor_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_hor_layout = self.create_axis_layout(self.dishorclose_rb,
+                                                 self.dishormed_rb,
+                                                 self.dishorfar_rb,
+                                                 self.dishor_group,
+                                                 axis_cb=self.dishor_cb,
+                                                 axis_label=self.dishor_label)
+        self.dishor_box.setLayout(dis_hor_layout)
+        
+
+        # create layout for vertical distance options
+        self.disver_box = QGroupBox()
+        self.disver_label = QLabel("Vertical")
+        self.disverclose_rb = RelationRadioButton("Close")
+        self.disvermed_rb = RelationRadioButton("Med.")
+        self.disverfar_rb = RelationRadioButton("Far")
+        self.disver_cb = QCheckBox(self.disver_label.text())
+        self.disver_group = RelationButtonGroup()
+        self.disver_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_ver_layout = self.create_axis_layout(self.disverclose_rb,
+                                                 self.disvermed_rb,
+                                                 self.disverfar_rb,
+                                                 self.disver_group,
+                                                 axis_cb=self.disver_cb,
+                                                 axis_label=self.disver_label)
+        self.disver_box.setLayout(dis_ver_layout)
+        
+
+        # create layout for sagittal direction options
+        self.dissag_box = QGroupBox()
+        self.dissag_label = QLabel("Sagittal")
+        self.dissagclose_rb = RelationRadioButton("Close")
+        self.dissagmed_rb = RelationRadioButton("Med.")
+        self.dissagfar_rb = RelationRadioButton("Far")
+        self.dissag_cb = QCheckBox(self.dissag_label.text())
+        self.dissag_group = RelationButtonGroup()
+        self.dissag_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_sag_layout = self.create_axis_layout(self.dissagclose_rb,
+                                                 self.dissagmed_rb,
+                                                 self.dissagfar_rb,
+                                                 self.dissag_group,
+                                                 axis_cb=self.dissag_cb,
+                                                 axis_label=self.dissag_label)
+        self.dissag_box.setLayout(dis_sag_layout)
+            
+        # create layout for generic distance options
+        self.disgen_box = QGroupBox()
+        self.disgen_label = QLabel("Generic")
+        self.disgenclose_rb = RelationRadioButton("Close")
+        self.disgenmed_rb = RelationRadioButton("Med.")
+        self.disgenfar_rb = RelationRadioButton("Far")
+        self.disgen_cb = QCheckBox(self.disgen_label.text())
+        self.disgen_group = RelationButtonGroup()
+        self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
+                                                 self.disgenmed_rb,
+                                                 self.disgenfar_rb,
+                                                 self.disgen_group,
+                                                 axis_cb=self.disgen_cb,
+                                                 axis_label=self.disgen_label)
+        self.disgen_box.setLayout(dis_gen_layout)
+
+        distance_box.setLayout(self.populate_distance_layout())
+        return distance_box
 
     # create layout for distance or direction options on a particular axis
-    def create_axis_layout(self, radio1, radio2, radio3, radiogroup, axis_cb=None, axis_label=None):
+    def create_axis_layout(self, radio1, radio2, radio3, radiogroup, axis_cb, axis_label=None):
         axis_layout = QVBoxLayout()
         axisoptions_spacedlayout = QHBoxLayout()
         axisoptions_layout = QVBoxLayout()
         radiogroup.addButton(radio1)
         radiogroup.addButton(radio2)
         radiogroup.addButton(radio3)
-        if axis_cb is not None:
+        if axis_label is not None:
             # then we are setting up direction rather than distance
-            radiogroup.buttonToggled.connect(lambda rb, ischecked: self.handle_directiongroup_toggled(ischecked, axis_cb))
+            radiogroup.buttonToggled.connect(lambda ischecked: self.handle_directiongroup_toggled(ischecked, axis_cb))
             axis_cb.toggled.connect(lambda ischecked: self.handle_directioncb_toggled(ischecked, radiogroup))
             axis_layout.addWidget(axis_cb)
-        elif axis_label is not None:
+        else:
             # Set up checkboxes for distance as well, since we want to be able to search for them
-            axis_cb = QCheckBox(axis_label.text())
+            radiogroup.buttonToggled.connect(lambda ischecked: self.handle_distancegroup_toggled(ischecked, axis_cb))
             axis_cb.toggled.connect(lambda ischecked: self.handle_distancecb_toggled(ischecked, radiogroup))
             axis_layout.addWidget(axis_cb)
         axisoptions_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
@@ -533,9 +736,6 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         axis_layout.addLayout(axisoptions_spacedlayout)
 
         return axis_layout
-    
-    def handle_distancecb_toggled(ischecked, radiogroup):
-        pass
 
     def populate_direction_layout(self, direction_crossedlinked_layout, direction_sublayout):
         self.any_direction_cb = QCheckBox("Search for any direction of relation")
@@ -548,8 +748,28 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         
         return direction_layout
     
+    # if user checks one of the distance axis radio buttons, ensure that its parent checkbox is
+    #   also checked
+    # Only exists in search GUI, since parent checkboxes are not present in main GUI
+    def handle_distancegroup_toggled(self, ischecked, axis_cb):
+        if not ischecked:
+            # don't need to do anything special
+            return
+
+        # ensure the parent is checked
+        axis_cb.setChecked(True)
+
+    def handle_distancecb_toggled(self, ischecked, radiogroup):
+        self.nocontact_rb.setChecked(ischecked or radiogroup.checkedButton() is not None) # todo fix
+        for btn in radiogroup.buttons():
+            btn.setEnabled(ischecked or radiogroup.checkedButton() is None)
+
+    
     def handle_any_direction_cb_toggled(self, btn):
-        pass
+        for b in self.dirhor_group.buttons() + self.dirsag_group.buttons() + self.dirver_group.buttons():
+            b.setDisabled(btn)
+        for b in [self.dirsag_cb, self.dirhor_cb, self.dirver_cb, self.crossed_cb, self.linked_cb]:
+            b.setDisabled(btn)
 
     def populate_distance_layout(self):
         self.any_distance_cb = QCheckBox("Search for any distance between X and Y")
@@ -560,6 +780,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         distance_layout.addWidget(self.dishor_box)
         distance_layout.addWidget(self.disver_box)
         distance_layout.addWidget(self.dissag_box)
+        distance_layout.addWidget(self.disgen_box)
 
         layout.addLayout(distance_layout)
         layout.addWidget(self.any_distance_cb)
@@ -567,9 +788,164 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         return layout
     
     def handle_any_distance_cb_toggled(self, btn):
-        for b in self.dishor_group.buttons() + self.dissag_group.buttons() + self.disver_group.buttons():
+        distancegrp = self.dishor_group.buttons() + self.dissag_group.buttons() + self.disver_group.buttons() + self.disgen_group.buttons() + [self.dissag_cb, self.dishor_cb, self.disver_cb, self.disgen_cb]
+        hascheckedbtn = False
+        for b in distancegrp:
             b.setDisabled(btn)
+            if b.isChecked():
+                hascheckedbtn = True
+        self.nocontact_rb.setChecked(btn or hascheckedbtn) # TODO fix
+
+    def clear_direction_buttons(self):
+        super().clear_direction_buttons()
+        for b in [self.any_direction_cb, self.dirhor_cb, self.dirver_cb, self.dirsag_cb]:
+            b.setChecked(False)
+            b.setEnabled(True)
+
+    def clear_distance_buttons(self):
+        super().clear_distance_buttons()
+        for b in [self.any_distance_cb, self.dishor_cb, self.disver_cb, self.dissag_cb, self.disgen_cb]:
+            b.setChecked(False)
+            b.setEnabled(True)
     
+
+
+
+    # 1. The 'distance' section is only available if 'no contact' is selected
+    # 2. OR Can also be available if
+    #   (a) neither 'contact' nor 'no contact' is selected AND
+    #   (b) there are no selections in manner or distance
+    # 3. BUT if 'movement' is selected for Y,
+    #   then Contact, Manner, Direction, and Distance menus are all inactive below
+    def check_enable_distance(self):
+        meetscondition1 = self.nocontact_rb.isChecked()
+
+        meetscondition2 = self.contactmannerdistance_empty()
+
+        meetscondition3 = self.y_existingmod_radio.isChecked() and \
+                          self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT
+
+        enable_distance = (meetscondition1 or meetscondition2) and not meetscondition3
+        for box in [self.dishor_box, self.disver_box, self.dissag_box, self.disgen_box]:
+            box.setEnabled(enable_distance)
+        self.any_distance_cb.setEnabled(enable_distance)
+
+    # if 'movement' is selected for Y,
+    #  then Contact, Manner, Direction (including crossed/linked), and Distance menus are all inactive below
+    def check_enable_direction(self):
+        enable_direction = not (self.y_existingmod_radio.isChecked() and
+                                self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT)
+        for box in [self.dirhor_box, self.dirver_box, self.dirsag_box]:
+            box.setEnabled(enable_direction)
+        self.crossed_cb.setEnabled(enable_direction)
+        self.linked_cb.setEnabled(enable_direction)
+        self.any_direction_cb.setEnabled(enable_direction)
+
+    def handle_contactgroup_toggled(self, btn, checked):
+        # if the user has selected and deselected a contact option, then...
+        #   if no subsidiary choices (eg in distance or manner) were made, then leave those subsections available
+        #   else if one or more subsidiary choices were made, then (as per default behaviour)
+        #       both of those subsections should be disabled
+
+        # make sure contact type options are un/available as applicable
+        for b in self.contacttype_group.buttons():
+            b.setEnabled(not self.nocontact_rb.isChecked())
+
+            self.contacttype_group.setExclusive(False)
+            if not self.contact_rb.isChecked() and not self.nocontact_rb.isChecked():
+                b.setChecked(False)
+            self.contacttype_group.setExclusive(True)
+
+        self.contact_other_text.setEnabled(not self.nocontact_rb.isChecked())
+        self.any_contacttype_cb.setEnabled(not self.nocontact_rb.isChecked())
+
+        # check whether submenus (contact, manner, direction, distance) should be enabled
+        self.check_enable_allsubmenus()
+
+class Search_AssociatedRelationsDialog(AssociatedRelationsDialog):
+    def __init__(self, anchormodule=None, **kwargs):
+        super().__init__(anchormodule, **kwargs)
+
+
+
+
+    def handle_relationmod_clicked(self, relmod):
+
+        module_selector = Search_ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
+                                               xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                               xslottype=self.mainwindow.current_sign.xslottype,
+                                               moduletoload=relmod,
+                                               incl_articulators=[],
+                                               incl_articulator_subopts=0,
+                                               parent=self)
+        module_selector.module_saved.connect(self.module_saved.emit)
+        # module_selector.module_deleted.connect(lambda: self.handle_moduledeleted(relmod.uniqueid))
+        module_selector.module_deleted.connect(lambda: self.mainwindow.signlevel_panel.handle_delete_module(
+            existingkey=relmod.uniqueid, moduletype=ModuleTypes.RELATION))
+        module_selector.exec_()
+        self.refresh_listmodel()
+        
+
+
+
+class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
+    def __init__(self, anchormodule=None, **kwargs):
+        super().__init__(anchormodule, **kwargs)
+
+    def handle_see_relationmodules(self):
+        associatedrelations_dialog = Search_AssociatedRelationsDialog(anchormodule=self.anchormodule, parent=self)
+        associatedrelations_dialog.module_saved.connect(self.module_saved.emit)
+        associatedrelations_dialog.exec_()
+        self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
+
+
+
+    def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
+        enable_addrelation = True
+
+        # if hastiming is None and hasarticulators is None and bodyloc is None:
+        #     enable_addrelation = False
+
+        # # only use arguments if they have a boolean value (ie, are not None)
+        # if hastiming is not None:
+        #     # make sure the anchor has a valid timing selection
+        #     enable_addrelation = enable_addrelation and hastiming
+            # timingvalid, timingintervals = self.parent().validate_timingintervals()
+        if bodyloc is not None:
+            # make sure the anchor is not a purely spatial location
+            enable_addrelation = enable_addrelation and bodyloc
+        # if hasarticulators is not None:
+        #     # make sure the anchor has a valid hand(s) selection
+        #     enable_addrelation = enable_addrelation and hasarticulators
+
+        self.addrelation_button.setEnabled(enable_addrelation)
+
+    def handle_save_add_relationmodule(self):
+        # save the current anchor module before trying to link a relation module to it
+        self.save_anchor.emit()
+        if self.anchormodule is not None:  # the save above was successful; continue
+
+            module_selector = Search_ModuleSelectorDialog(moduletype=ModuleTypes.RELATION,
+                                                   xslotstructure=self.mainwindow.current_sign.xslotstructure,
+                                                   xslottype=self.mainwindow.current_sign.xslottype,
+                                                   moduletoload=None,
+                                                   linkedfrommoduleid=self.anchormodule.uniqueid,
+                                                   linkedfrommoduletype=self.parent().moduletype,
+                                                   incl_articulators=[],
+                                                   incl_articulator_subopts=0,
+                                                   parent=self)
+            # module_selector.module_saved.connect(lambda module_to_save:
+            #                                      self.mainwindow.build_search_target_view.handle_add_associated_relation_module(
+            #                                          self.anchormodule, module_to_save
+            #                                      ))
+            module_selector.module_saved.connect(lambda module_to_save: self.handle_modulesaved(module_to_save=module_to_save))
+            module_selector.exec_()
+
+    def handle_modulesaved(self, module_to_save):
+        
+        self.mainwindow.build_search_target_view.handle_add_associated_relation_module(self.anchormodule, module_to_save)
+        self.style_seeassociatedrelations()
+
 
 class XslotTypeItem:
     def __init__(self, type=None, num=None, frac=None):
@@ -607,3 +983,71 @@ class XslotTypeItem:
 
 
 
+
+# TODO move the methods above into here?
+class SearchTargetItem(QStandardItem):
+    def __init__(self, name=None, targettype=None, xslottype=None, searchvaluesitem=None, module=None, module_id = None, negative=False, include=False, associatedrelnmodule=None, associatedrelnmodule_id = None, **kwargs):
+        super().__init__(**kwargs)
+        self._name = name
+        self._targettype = targettype
+        self._xslottype = xslottype 
+        self._searchvaluesitem = searchvaluesitem
+        self._module = module
+        self.module_id = module_id
+        self._associatedrelnmodule = associatedrelnmodule
+        self.associatedrelnmodule_id = associatedrelnmodule_id
+        self.negative = negative
+        self.include = include
+
+    def __repr__(self):
+        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\ntargettype " + str(self.targettype)  
+        msg += "\nValues: " + repr(self.values)
+        return msg
+    
+    @property
+    def targettype(self):
+        return self._targettype
+
+    @targettype.setter
+    def targettype(self, value):
+        self._targettype = value
+
+    @property
+    def searchvaluesitem(self):
+        return self._searchvaluesitem
+
+    @searchvaluesitem.setter
+    def searchvaluesitem(self, v):
+        self._searchvaluesitem = v
+    
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
+    def xslottype(self):
+        return self._xslottype
+
+    @xslottype.setter
+    def xslottype(self, value):
+        self._xslottype = value
+
+    @property
+    def module(self):
+        return self._module
+    
+    @module.setter
+    def module(self, m):
+        self._module = m
+
+    @property
+    def associatedrelnmodule(self):
+        return self._associatedrelnmodule
+    
+    @associatedrelnmodule.setter
+    def associatedrelnmodule(self, m):
+        self._associatedrelnmodule = m
