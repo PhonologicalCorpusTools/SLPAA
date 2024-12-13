@@ -1893,7 +1893,7 @@ class ContactRelation:
         elif not self._contact:
             repr_str = "no"
             if self._distances:
-                distance_str_list = [repr(axis_dist for axis_dist in self._distances)]
+                distance_str_list = [repr(axis_dist) for axis_dist in self._distances]
                 repr_str += ", ".join([""] + distance_str_list)
 
         return '<ContactRelation: ' + repr(repr_str) + '>'
@@ -2224,6 +2224,19 @@ class Distance:
     @any.setter
     def any(self, any):
         self._any = any
+
+    def __repr__(self):
+        repr_str = self._axis
+        if self._close:
+            repr_str += " / " + "close"
+        elif self._medium:
+            repr_str += " / " + "medium"
+        elif self._far:
+            repr_str += " / " + "far"
+        else:
+            repr_str += " unselected"
+
+        return '<Distance: ' + repr(repr_str) + '>'
 
 
 # This module stores the absolute orientation of a particular hand/s.
