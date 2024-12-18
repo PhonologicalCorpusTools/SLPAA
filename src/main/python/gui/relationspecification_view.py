@@ -11,12 +11,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton
 )
 
 from PyQt5.QtCore import (
-    Qt,
-    QEvent,
     pyqtSignal,
     QItemSelectionModel
 )
@@ -30,7 +27,6 @@ from lexicon.module_classes import (
     Direction,
     RelationX,
     RelationY,
-    ModuleTypes,
     ContactRelation,
     ContactType,
     BodypartInfo
@@ -40,7 +36,7 @@ from models.location_models import BodypartTreeModel
 from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, ModuleTypes
 
 
 # This panel contains all the relation-specific options for users to define an instance of a Relation module.
@@ -120,8 +116,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # create side-by-side layout for specifying distance
     def create_distance_box(self):
         distance_box = QGroupBox("Distance between X and Y")
-        distance_layout = QHBoxLayout()
-
+            
         # create layout for horizontal distance options
         self.dishor_box = QGroupBox()
         self.dishor_label = QLabel("Horizontal")
@@ -136,7 +131,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                                  self.dishor_group,
                                                  axis_label=self.dishor_label)
         self.dishor_box.setLayout(dis_hor_layout)
-        distance_layout.addWidget(self.dishor_box)
+        
 
         # create layout for vertical distance options
         self.disver_box = QGroupBox()
@@ -152,9 +147,9 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                                  self.disver_group,
                                                  axis_label=self.disver_label)
         self.disver_box.setLayout(dis_ver_layout)
-        distance_layout.addWidget(self.disver_box)
+        
 
-        # create layout for sagittal direction options
+        # create layout for sagittal distance options
         self.dissag_box = QGroupBox()
         self.dissag_label = QLabel("Sagittal")
         self.dissagclose_rb = RelationRadioButton("Close")
@@ -168,10 +163,32 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                                  self.dissag_group,
                                                  axis_label=self.dissag_label)
         self.dissag_box.setLayout(dis_sag_layout)
-        distance_layout.addWidget(self.dissag_box)
-
-        distance_box.setLayout(distance_layout)
+        
+        # create layout for generic distance options
+        self.disgen_box = QGroupBox()
+        self.disgen_label = QLabel("Generic")
+        self.disgenclose_rb = RelationRadioButton("Close")
+        self.disgenmed_rb = RelationRadioButton("Med.")
+        self.disgenfar_rb = RelationRadioButton("Far")
+        self.disgen_group = RelationButtonGroup()
+        self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
+        dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
+                                                 self.disgenmed_rb,
+                                                 self.disgenfar_rb,
+                                                 self.disgen_group,
+                                                 axis_label=self.disgen_label)
+        self.disgen_box.setLayout(dis_gen_layout)
+        distance_box.setLayout(self.populate_distance_layout())
         return distance_box
+
+    def populate_distance_layout(self):
+        distance_layout = QHBoxLayout()
+        distance_layout.addWidget(self.dishor_box)
+        distance_layout.addWidget(self.disver_box)
+        distance_layout.addWidget(self.dissag_box)
+        distance_layout.addWidget(self.disgen_box)
+        return distance_layout
+
 
     # if 'movement' is selected for Y,
     #  then Contact, Manner, Direction, and Distance menus are all inactive below
@@ -203,7 +220,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # Contact, Manner, or Distance (i.e., returning False means
     # that at least one has a button checked)
     def contactmannerdistance_empty(self):
-        for grp in [self.manner_group, self.dishor_group, self.disver_group, self.dissag_group]:
+        for grp in [self.manner_group, self.dishor_group, self.disver_group, self.dissag_group, self.disgen_group]:
             if grp.checkedButton() is not None:
                 return False
         if self.contact_group.checkedButton() is not None:
@@ -225,7 +242,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                           self.getcurrentlinkedmoduletype() == ModuleTypes.MOVEMENT
 
         enable_distance = (meetscondition1 or meetscondition2) and not meetscondition3
-        for box in [self.dishor_box, self.disver_box, self.dissag_box]:
+        for box in [self.dishor_box, self.disver_box, self.dissag_box, self.disgen_box]:
             box.setEnabled(enable_distance)
 
     # if 'movement' is selected for Y,
@@ -289,7 +306,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # create side-by-side layout for specifying direction of relation
     def create_direction_box(self):
         direction_box = QGroupBox("Direction of relation")
-        direction_layout = QVBoxLayout()
         direction_crossedlinked_layout = QHBoxLayout()
         direction_sublayout = QHBoxLayout()
 
@@ -298,7 +314,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.linked_cb = QCheckBox("X and Y are linked")
         direction_crossedlinked_layout.addWidget(self.crossed_cb)
         direction_crossedlinked_layout.addWidget(self.linked_cb)
-        direction_layout.addLayout(direction_crossedlinked_layout)
 
         # create layout for horizontal direction options
         self.dirhor_box = QGroupBox()
@@ -345,9 +360,16 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.dirsag_box.setLayout(dir_sag_layout)
         direction_sublayout.addWidget(self.dirsag_box)
 
-        direction_layout.addLayout(direction_sublayout)
+        direction_layout = self.populate_direction_layout(direction_crossedlinked_layout, direction_sublayout)
         direction_box.setLayout(direction_layout)
         return direction_box
+
+    def populate_direction_layout(self, direction_crossedlinked_layout, direction_sublayout):
+        direction_layout = QVBoxLayout()
+        direction_layout.addLayout(direction_crossedlinked_layout)
+        direction_layout.addLayout(direction_sublayout)
+        return direction_layout
+
 
     # create nested layout for specifying contact and contact manner
     def create_contactandmanner_layout(self):
@@ -357,8 +379,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         contact_box_layout = QHBoxLayout()
         contact_layout = QVBoxLayout()
         contacttype_spacedlayout = QHBoxLayout()
-        contacttype_layout = QVBoxLayout()
-        contactother_layout = QHBoxLayout()
 
         self.contact_rb = RelationRadioButton("Contact")
         self.nocontact_rb = RelationRadioButton("No contact")
@@ -378,11 +398,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.contact_other_text = QLineEdit()
         self.contact_other_text.setPlaceholderText("Specify")
         self.contact_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.contactother_rb))
-        contactother_layout.addWidget(self.contactother_rb)
-        contactother_layout.addWidget(self.contact_other_text)
-        contacttype_layout.addWidget(self.contactlight_rb)
-        contacttype_layout.addWidget(self.contactfirm_rb)
-        contacttype_layout.addLayout(contactother_layout)
+        
+        contacttype_layout = self.populate_contacttype_layout()
         contacttype_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         contacttype_spacedlayout.addLayout(contacttype_layout)
 
@@ -398,6 +415,17 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.contact_box.setLayout(contact_box_layout)
         contactandmanner_layout.addWidget(self.contact_box)
         return contactandmanner_layout
+    
+    def populate_contacttype_layout(self):
+        contacttype_layout = QVBoxLayout()
+        contactother_layout = QHBoxLayout()
+        contactother_layout.addWidget(self.contactother_rb)
+        contactother_layout.addWidget(self.contact_other_text)
+
+        contacttype_layout.addWidget(self.contactlight_rb)
+        contacttype_layout.addWidget(self.contactfirm_rb)
+        contacttype_layout.addLayout(contactother_layout)
+        return contacttype_layout
 
     # check dependencies/requirements and enable/disable all subsections as appropriate
     def check_enable_allsubmenus(self):
@@ -438,7 +466,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # create layout for specifying contact manner
     def create_manner_box(self):
         manner_box = QGroupBox("Contact manner")
-        manner_layout = QVBoxLayout()
         self.holding_rb = RelationRadioButton("Holding")
         self.continuous_rb = RelationRadioButton("Continuous")
         self.intermittent_rb = RelationRadioButton("Intermittent")
@@ -447,12 +474,19 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.manner_group.addButton(self.holding_rb)
         self.manner_group.addButton(self.continuous_rb)
         self.manner_group.addButton(self.intermittent_rb)
+        
+        manner_layout = self.populate_manner_layout()
+        manner_box.setLayout(manner_layout)
+        return manner_box
+    
+    def populate_manner_layout(self):
+        manner_layout = QVBoxLayout()
         manner_layout.addWidget(self.holding_rb)
         manner_layout.addWidget(self.continuous_rb)
         manner_layout.addWidget(self.intermittent_rb)
         manner_layout.addStretch()
-        manner_box.setLayout(manner_layout)
-        return manner_box
+        return manner_layout
+
 
     # if user clicks one of the contact-manner radio buttons, the contact radio button should also be checked
     def handle_mannerbutton_toggled(self, btn, ischecked):
@@ -728,17 +762,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_l2_radio = RelationRadioButton("Leg2")
         self.y_existingmod_radio = RelationRadioButton("Existing module:")
         self.y_existingmod_switch = OptionSwitch("Location", "Movement")
-        self.existingmod_listview = QListView()
-        self.locmodslist = list(self.mainwindow.current_sign.locationmodules.values())
-        self.locmodslist = [loc for loc in self.locmodslist if loc.locationtreemodel.locationtype.usesbodylocations()]
-        self.locmodnums = self.mainwindow.current_sign.locationmodulenumbers
-        self.movmodslist = list(self.mainwindow.current_sign.movementmodules.values())
-        self.movmodnums = self.mainwindow.current_sign.movementmodulenumbers
-        self.existingmodule_listmodel = ModuleLinkingListModel()
-        self.existingmod_listview.setModel(self.existingmodule_listmodel)
-        self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
-        self.existingmod_listview.setSelectionMode(QAbstractItemView.MultiSelection)
-        self.existingmod_listview.clicked.connect(self.handle_existingmod_clicked)
+
         self.y_other_radio = RelationRadioButton("Other")
         self.y_other_text = QLineEdit()
         self.y_other_text.setPlaceholderText("Specify")
@@ -749,6 +773,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_group.addButton(self.y_l2_radio)
         self.y_group.addButton(self.y_existingmod_radio)
         self.y_group.addButton(self.y_other_radio)
+
+        self.create_linked_module_box()
 
         y_layout_left.addWidget(self.y_h2_radio)
         y_layout_left.addWidget(self.y_a2_radio)
@@ -771,6 +797,19 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         y_box.setLayout(y_layout)
         return y_box
 
+    def create_linked_module_box(self):
+        self.existingmod_listview = QListView()
+        self.locmodslist = list(self.mainwindow.current_sign.locationmodules.values())
+        self.locmodslist = [loc for loc in self.locmodslist if loc.locationtreemodel.locationtype.usesbodylocations()]
+        self.locmodnums = self.mainwindow.current_sign.locationmodulenumbers
+        self.movmodslist = list(self.mainwindow.current_sign.movementmodules.values())
+        self.movmodnums = self.mainwindow.current_sign.movementmodulenumbers
+        self.existingmodule_listmodel = ModuleLinkingListModel()
+        self.existingmod_listview.setModel(self.existingmodule_listmodel)
+        self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
+        self.existingmod_listview.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.existingmod_listview.clicked.connect(self.handle_existingmod_clicked)
+
     # if user toggles the switch for selecting an existing module (movement or location),
     #   ensure the parent ("existing module") radio button is checked, that the list of
     #   existing modules is updated as per the selected module type, and that related
@@ -785,9 +824,9 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # update the list of existing modules according to which module type was selected
     def update_existingmodule_list(self, selection_dict):
         if selection_dict[1]:
-            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums, ModuleTypes.LOCATION)
+            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums)
         elif selection_dict[2]:
-            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums, ModuleTypes.MOVEMENT)
+            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums)
         else:
             self.existingmodule_listmodel.setmoduleslist(None)
 
@@ -997,7 +1036,11 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                                 close=self.dissagclose_rb.isChecked(),
                                 medium=self.dissagmed_rb.isChecked(),
                                 far=self.dissagfar_rb.isChecked())
-        distances = [distance_hor, distance_ver, distance_sag]
+        distance_gen = Distance(axis=Direction.GENERIC,
+                                close=self.disgenclose_rb.isChecked(),
+                                medium=self.disgenmed_rb.isChecked(),
+                                far=self.disgenfar_rb.isChecked())
+        distances = [distance_hor, distance_ver, distance_sag, distance_gen]
         return distances
 
     # set the GUI values for contact selection from the given input
@@ -1055,12 +1098,15 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
                 self.dirsagdist_rb.setChecked(sag_direction.minus)
                 self.dirsaginline_rb.setChecked(sag_direction.inline)
 
-    # set the GUI values for directions selection from the given input
+    # set the GUI values for distances selection from the given input
     def setcurrentdistances(self, distances_list):
         if distances_list is not None:
             hor_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.HORIZONTAL][0]
             ver_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.VERTICAL][0]
             sag_distance = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.SAGITTAL][0]
+            # generic distance was added later for issue 387 (oct 2024)
+            gen_distance_list = [axis_dist for axis_dist in distances_list if axis_dist.axis == Direction.GENERIC]
+            gen_distance = gen_distance_list[0] if len(gen_distance_list) != 0 else Distance(axis=Direction.GENERIC)
 
             self.dishorclose_rb.setChecked(hor_distance.close)
             self.dishormed_rb.setChecked(hor_distance.medium)
@@ -1073,6 +1119,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             self.dissagclose_rb.setChecked(sag_distance.close)
             self.dissagmed_rb.setChecked(sag_distance.medium)
             self.dissagfar_rb.setChecked(sag_distance.far)
+
+            self.disgenclose_rb.setChecked(gen_distance.close)
+            self.disgenmed_rb.setChecked(gen_distance.medium)
+            self.disgenfar_rb.setChecked(gen_distance.far)
 
     # return the type of the "existing module" currently selected in the GUI
     def getcurrentlinkedmoduletype(self):
@@ -1158,10 +1208,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     # clear and enable all GUI elements for distance selection
     def clear_distance_buttons(self):
-        for grp in [self.dishor_group, self.disver_group, self.dissag_group]:
+        for grp in [self.dishor_group, self.disver_group, self.dissag_group, self.disgen_group]:
             self.clear_group_buttons(grp)
 
-        for grpbox in [self.dishor_box, self.disver_box, self.dissag_box]:
+        for grpbox in [self.dishor_box, self.disver_box, self.dissag_box, self.disgen_box]:
             grpbox.setEnabled(True)
 
     # clear and enable all GUI elements for direction selection

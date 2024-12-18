@@ -19,7 +19,7 @@ The sample corpus is provided as a means of helping new users orient themselves 
  
 * Open the software and select “Load sample,” either from the initial pop-up window that appears when starting the software or by going to File / Load sample
 * Go to Python / Preferences (on a Mac) or Settings / Preferences (on a PC) and go to the “Sign” tab. Change “x-slot generation” from “None” to “Manual” to allow the specific timing characteristics of signs to be visible. Click “Save.” (This will now be your default for all corpora until you change it again manually.)
-* Look at the signs in the sample corpus and compare them to their original source forms. The signs are listed below in a suggested order of perusal with some of their key characteristics. Clicking on any of the modules in the summary window will open up the details of the transcription.
+* Look at the signs in the sample corpus and compare them to their original source forms. The signs are listed below in a suggested order of perusal with some of their key characteristics. Double-clicking on any of the modules in the summary window will open up the details of the transcription.
 
 **Overview of the SLP-AA interface with the sample corpus loaded:**
 

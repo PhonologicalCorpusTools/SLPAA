@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
     QStyle,
     QStyleOptionButton,
+    QStyleOptionViewItem,
     QApplication,
     QHeaderView,
     QStyleOptionFrame,
@@ -22,11 +23,11 @@ from PyQt5.QtCore import (
     QItemSelectionModel
 )
 
-from lexicon.module_classes import userdefinedroles as udr, MovementModule
+from lexicon.module_classes import MovementModule
 from models.movement_models import MovementTreeModel, MovementPathsProxyModel, MovementTreeItem
 from serialization_classes import MovementTreeSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
-from constant import HAND
+from constant import HAND, userdefinedroles as udr
 
 
 class MovementTreeView(QTreeView):
@@ -61,11 +62,11 @@ class MovementTreeView(QTreeView):
         for treeitem in nodes:
             self.setExpanded(treeitem.index(), True)
 
-
 # Ref: https://stackoverflow.com/questions/48575298/pyqt-qtreewidget-how-to-add-radiobutton-for-items
 class MvmtTreeItemDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
+        
         if index.data(Qt.UserRole+udr.mutuallyexclusiverole):
             widget = option.widget
             style = widget.style() if widget else QApplication.style()
@@ -74,14 +75,21 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
             opt.text = index.data()
             opt.state |= QStyle.State_On if index.data(Qt.CheckStateRole) else QStyle.State_Off
             style.drawControl(QStyle.CE_RadioButton, opt, painter, widget)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+            if index.data(Qt.UserRole+udr.firstingrouprole) and not index.data(Qt.UserRole+udr.firstsubgrouprole):
+                painter.drawLine(opt.rect.topLeft(), opt.rect.topRight())
+        elif index.data(Qt.UserRole+udr.nocontrolrole): 
+            widget = option.widget
+            style = widget.style() if widget else QApplication.style()
+            opt = QStyleOptionViewItem(option)
+            self.initStyleOption(opt, index)  
+            opt.features &= ~QStyleOptionViewItem.HasCheckIndicator # Turn off HasCheckIndicator
+            style.drawControl(QStyle.CE_ItemViewItem, opt, painter, widget)
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-            if index.data(Qt.UserRole+udr.lastingrouprole) and not index.data(Qt.UserRole+udr.finalsubgrouprole):
+            if index.data(Qt.UserRole+udr.firstingrouprole) and not index.data(Qt.UserRole+udr.firstsubgrouprole):
                 opt = QStyleOptionFrame()
                 opt.rect = option.rect
-                painter.drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight())
+                painter.drawLine(opt.rect.topLeft(), opt.rect.topRight())
 
 
 class MovementSpecificationPanel(ModuleSpecificationPanel):
@@ -170,7 +178,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         self.pathslistview = TreeListView()
         self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
-        self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.pathslistview.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(400)
         self.pathslistview.installEventFilter(self)

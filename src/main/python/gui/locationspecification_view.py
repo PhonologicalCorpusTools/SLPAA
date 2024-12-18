@@ -87,8 +87,8 @@ class LocationOptionsSelectionPanel(QFrame):
         self.listproxymodel.setSourceModel(self.listmodel)
 
         # create layout with combobox for searching location items
-        search_layout = self.create_search_layout()
-        main_layout.addLayout(search_layout)
+        self.search_layout = self.create_search_layout()
+        main_layout.addLayout(self.search_layout)
 
         # create layout with image-based selection widget (if applicable) and list view for selected location options
         selection_layout = self.create_selection_layout()
@@ -206,6 +206,10 @@ class LocationOptionsSelectionPanel(QFrame):
         self.pathslistview.selectionModel().select(listproxyindex, QItemSelectionModel.ClearAndSelect)
         if locationtreeitem.text() == "Default neutral space" and self.mainwindow.app_settings['location']['autocheck_neutral_on_locn_selected']:
             self.default_neutral_reqd.emit()
+        if hasattr(self, "terminal_node_cb"):
+            self.terminal_node_cb.setEnabled(True)
+        
+                    
 
 
     def create_selection_layout(self):
@@ -274,7 +278,7 @@ class LocationOptionsSelectionPanel(QFrame):
 
         self.pathslistview = TreeListView()
         self.pathslistview.setItemDelegate(TreePathsListItemDelegate())
-        self.pathslistview.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.pathslistview.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.pathslistview.setModel(self.listproxymodel)
         self.pathslistview.setMinimumWidth(300)
         self.pathslistview.installEventFilter(self)
@@ -482,6 +486,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         return loctype_layout
 
     def getcurrenttreemodel(self):
+        
         if self.getcurrentlocationtype().usesbodylocations():
             # distinguish between body and body_anchored
             self.treemodel_body.locationtype = self.getcurrentlocationtype()

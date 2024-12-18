@@ -28,7 +28,8 @@ from PyQt5.QtGui import (
     QStandardItem,
 )
 
-from lexicon.module_classes import AddedInfo, treepathdelimiter, PhonLocations
+from lexicon.module_classes import AddedInfo, PhonLocations, TimingInterval, Signtype, ParameterModule
+from constant import treepathdelimiter, userdefinedroles as udr, ModuleTypes
 
 
 class ModuleSpecificationPanel(QFrame):
@@ -90,6 +91,8 @@ class SpecifyBodypartPushButton(QPushButton):
         self.updateStyle()
 
 
+# Styled QPushButton whose text is bolded iff the associated AddedInfo object's _hascontent attribute is true
+# clicking this type of button spawns an AddedInfoContextMenu
 class AddedInfoPushButton(QPushButton):
 
     def __init__(self, title, **kwargs):
@@ -134,7 +137,8 @@ class AddedInfoPushButton(QPushButton):
     def clear(self):
         self.addedinfo = AddedInfo()
 
-
+# menu allowing user to specify whether the relevant object/module/etc is
+#   uncertain, estimated, not specified, variable, etc (and add notes for each)
 class AddedInfoContextMenu(QMenu):
     info_added = pyqtSignal(AddedInfo)
 
@@ -422,11 +426,11 @@ class TreeSearchComboBox(QComboBox):
                     for item in itemstoselect:
                         if item.checkState() == Qt.Unchecked:
                             item.setCheckState(Qt.PartiallyChecked)
-
                     targetitem = itemstoselect[-1]
-                    targetitem.setCheckState(Qt.Checked)
-                    self.item_selected.emit(targetitem)
-                    self.setCurrentIndex(-1)
+                    if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
+                        targetitem.setCheckState(Qt.Checked)
+                        self.item_selected.emit(targetitem)
+                        self.setCurrentIndex(-1)
 
         super().keyPressEvent(event)
 
@@ -490,9 +494,12 @@ class PhonLocSelection(QWidget):
 
     def __init__(self, isLocationModule=False): 
         super().__init__() 
-        phonloc_layout  = QVBoxLayout()
+        phonloc_layout = QHBoxLayout()
+
+        phonological_layout = QVBoxLayout()
         self.phonological_cb = QCheckBox("Phonological")
-        phonloc_layout.addWidget(self.phonological_cb)
+        phonological_layout.addWidget(self.phonological_cb)
+        phonological_layout.setAlignment(self.phonological_cb, Qt.AlignTop)
 
         if (isLocationModule):
             phonological_sublayout = QGridLayout()
@@ -509,12 +516,15 @@ class PhonLocSelection(QWidget):
             self.minorphonloc_cb.setEnabled(False)
             self.majorphonloc_cb.setChecked(False)
             self.minorphonloc_cb.setChecked(False)
-            phonloc_layout.addLayout(phonological_sublayout)
+            phonological_layout.addLayout(phonological_sublayout)
+
+        phonloc_layout.addLayout(phonological_layout)
 
 
         self.phonetic_cb = QCheckBox("Phonetic")
         phonloc_layout.addWidget(self.phonetic_cb)
-        phonloc_layout.addStretch()
+        phonloc_layout.setAlignment(self.phonetic_cb, Qt.AlignTop)
+
         self.setLayout(phonloc_layout)
 
         # Set default state

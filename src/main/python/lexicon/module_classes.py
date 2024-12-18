@@ -1,6 +1,8 @@
 from datetime import datetime
 from fractions import Fraction
 from itertools import chain
+import functools
+import time
 import logging
 
 from PyQt5.QtCore import (
@@ -8,93 +10,25 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
-treepathdelimiter = ">"  # TODO KV - should this be user-defined in global settings? or maybe even in the module window(s)?
+
+# Resetting a module's uniqueid can come so quickly on the heels of another
+#   (e.g. if copy/pasting several modules that aren't treemodel-based)
+#   that they end up getting reassigned the exact same timestamp as uniqueid;
+#   this decorator ensures that there is at least a brief pause before reassigning,
+#   so that we avoid accidentally duplicate uniqueids
+def delay_uniqueid_reset(func):
+    @functools.wraps(func)
+    def wrapper_delay_uniqueid_reset(self, *args, **kwargs):
+        time.sleep(1/1000000)
+        func(self, *args, **kwargs)
+
+    return wrapper_delay_uniqueid_reset
 
 
-class ModuleTypes:
-    MOVEMENT = 'movement'
-    LOCATION = 'location'
-    HANDCONFIG = 'handconfig'
-    RELATION = 'relation'
-    ORIENTATION = 'orientation'
-    NONMANUAL = 'nonmanual'
-
-    abbreviations = {
-        MOVEMENT: 'Mov',
-        LOCATION: 'Loc',
-        HANDCONFIG: 'Config',
-        RELATION: 'Rel',
-        ORIENTATION: 'Ori',
-        NONMANUAL: 'NonMan'
-    }
-
-
-class UserDefinedRoles(dict):
-    __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
-
-userdefinedroles = UserDefinedRoles({
-    'selectedrole': 0,
-        # selectedrole:
-        # Used by MovementTreeItem, LocationTreeItem, MovementListItem, LocationListItem to indicate
-        # whether they are selected by the user. Not exactly the same as ...Item.checkState() because:
-        #   (1) selectedrole only uses True & False whereas checkstate has none/partial/full, and
-        #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
-    'pathdisplayrole': 1,
-        # pathdisplayrole:
-        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
-        # the full path (node names, separated by delimiters) of the model Item in question,
-        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
-    'mutuallyexclusiverole': 2,
-        # mutuallyexclusiverole:
-        # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
-        # which also involves its display as a radio button vs a checkbox.
-    # 'unusedrole': 3,
-        # unusedrole:
-        # currently unused; can repurpose if needed
-    'lastingrouprole': 4,
-        # lastingrouprole:
-        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the last
-        # in its subgroup, which affects how it is painted in the movement tree
-        # (eg, whether the item will be followed by a horizontal line)
-    'finalsubgrouprole': 5,
-        # finalsubgrouprole:
-        # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
-        # also in the *last* subgroup in its section. Such a subgroup will not have a horizontal line drawn after it.
-    'subgroupnamerole': 6,
-        # subgroupnamerole:
-        # Used by MovementTreeItem & LocationTreeItem to identify which items are grouped together. Such
-        # subgroups are separated from other siblings by a horizontal line in the tree, and item selection
-        # is often (always?) mutually exclusive within the subgroup.
-    'nodedisplayrole': 7,
-        # nodedisplayrole:
-        # Used by MovementListItem & LocationListItem to store just the corresponding treeitem's node name
-        # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
-    'timestamprole': 8,
-        # timestamprole:
-        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
-    'isuserspecifiablerole': 9,
-        # isuserspecifiablerole:
-        # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
-        # If 0, the corresponding QStandardItem (ie, the "editable part") is marked not editable; the user cannot change its value;
-        # If 1, the corresponding QStandardItem is marked editable but must be a number, >= 1, and a multiple of 0.5;
-        # If 2, the corrresponding QStandardItem is marked editable but must be a number;
-        # If 3, the corrresponding QStandardItem is marked editable with no restrictions.
-        # This kind of editable functionality was formerly achieved via a separate (subsidiary) editable MovementTreeItem.
-    'userspecifiedvaluerole': 10,
-        # userspecifiedvaluerole:
-        # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
-})
-
-
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
-# common ancestor for (eg) HandshapeModule, MovementModule, etc
+# common ancestor for timed parameter modules such as HandConfigurationModule, MovementModule, etc
 class ParameterModule:
 
     def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
@@ -105,6 +39,23 @@ class ParameterModule:
             self.timingintervals = timingintervals
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
+        self._moduletype = ""
+
+    @property
+    def moduletype(self):
+        if not hasattr(self, '_moduletype'):
+            # for backward compatibility with pre-20241018 parameter modules
+            self._moduletype = ""
+        return self._moduletype
+
+    @moduletype.setter
+    def moduletype(self, moduletype):
+        # validate the input string
+        if moduletype in ModuleTypes.parametertypes:
+            self._moduletype = moduletype
+
+    def has_articulators(self):
+        return self.articulators[1][1] or self.articulators[1][2] # between articulator 1 and articulator 2, at least one is True
 
     @property
     def addedinfo(self):
@@ -146,6 +97,10 @@ class ParameterModule:
     @uniqueid.setter
     def uniqueid(self, uniqueid):
         self._uniqueid = uniqueid
+
+    @delay_uniqueid_reset
+    def uniqueid_reset(self):
+        self.uniqueid = datetime.timestamp(datetime.now())
 
     @property
     def timingintervals(self):
@@ -459,8 +414,12 @@ class SignLevelInformation:
 class MovementModule(ParameterModule):
     def __init__(self, movementtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
-        self._inphase = inphase    # TODO KV is "inphase" actually the best name for this attribute?
+        self._inphase = inphase    # TODO is "inphase" actually the best name for this attribute?
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.MOVEMENT
 
     @property
     def movementtreemodel(self):
@@ -482,7 +441,6 @@ class MovementModule(ParameterModule):
         
         wordlist = []
 
-        udr = userdefinedroles
         listmodel = self._movementtreemodel.listmodel
         abbrevs = {
             "Perceptual shape": "Perceptual",
@@ -725,8 +683,7 @@ class LocationType:
         return changed
 
 
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
+# Represents one specific point in time in an x-slot timing structure
 class TimingPoint:
 
     def __init__(self, wholepart, fractionalpart):
@@ -765,6 +722,7 @@ class TimingPoint:
     # def __hash__(self):
     #     pass
 
+    # returns True iff this timing point occurs earlier in the x-slot structure than the other
     def __lt__(self, other):
         if isinstance(other, TimingPoint):
             if self._wholepart < other.wholepart:
@@ -774,30 +732,37 @@ class TimingPoint:
                     return True
         return False
 
+    # returns True iff this and the other point are at effectively the same point in time, whether
+    #   because they are in fact equal OR because they are adjacent (see function adjacent())
     def equivalent(self, other):
         if isinstance(other, TimingPoint):
             return self.adjacent(other) or self.__eq__(other)
 
+    # returns True iff this and the other point are directly adjacent to one another
+    #   for example, if this point is at the end of x1 and the other is at the beginning of x2
     def adjacent(self, other):
         if isinstance(other, TimingPoint):
             if self.fractionalpart == 1 and other.fractionalpart == 0 and (self.wholepart + 1 == other.wholepart):
                 return True
             elif other.fractionalpart == 1 and self.fractionalpart == 0 and (other.wholepart + 1 == self.wholepart):
                 return True
-            else:
-                return False
+        return False
 
+    # returns True iff this timing point occurs later in the x-slot structure than the other
     def __gt__(self, other):
         if isinstance(other, TimingPoint):
             return other.__lt__(self)
         return False
 
+    # returns True iff this timing point occurs at the same time or earlier in the x-slot structure vs the other
     def __le__(self, other):
         return not self.__gt__(other)
 
+    # returns True iff this timing point occurs at the same time or later in the x-slot structure vs the other
     def __ge__(self, other):
         return not self.__lt__(other)
 
+    # returns True iff this timing point occurs strictly earlier in the x-slot structure vs the other point or interval
     def before(self, other):
         if isinstance(other, TimingPoint):
             return self.__lt__(other)
@@ -805,6 +770,7 @@ class TimingPoint:
             return other.after(self)
         return False
 
+    # returns True iff this timing point occurs strictly later in the x-slot structure vs the other point or interval
     def after(self, other):
         if isinstance(other, TimingPoint):
             return self.__gt__(other)
@@ -813,8 +779,9 @@ class TimingPoint:
         return False
 
 
-# TODO KV comments
-# TODO KV - for parameter modules and x-slots
+# Represents an interval in time (from one TimingPoint to another) in an x-slot timing structure
+# In order to represent a "whole sign" timing interval (no matter how many x-slots long), use
+#   TimingInterval(TimingPoint(0, 0), TimingPoint(0, 1))
 class TimingInterval:
 
     # startpt (type TimingPoint) = the point at which this xslot interval begins
@@ -830,20 +797,26 @@ class TimingInterval:
     def endpoint(self):
         return self._endpoint
 
+    # returns the start and end points of the interval as a tuple of (TimingPoint, TimingPoint)
     def points(self):
         return self.startpoint(), self.endpoint()
 
+    # set the value of the interval to the given start and end points
+    # startpt and endpt must both be of type TimingPoint
     def setinterval(self, startpt, endpt):
-        if startpt <= endpt:
+        if not (isinstance(startpt, TimingPoint) and isinstance(endpt, TimingPoint)):
+            raise TypeError("Inputs must both be of type TimingPoint.")
+        elif startpt <= endpt:
             self._startpoint = startpt
             self._endpoint = endpt
         else:
-            print("error: start point is larger than endpoint", startpt, endpt)
-            # TODO KV throw an error?
+            raise ValueError("Start point greater than end point.")
 
+    # returns True iff this is a degenerate interval; ie, its beginning and end points are the same
     def ispoint(self):
         return self._startpoint == self._endpoint
 
+    # returns True iff the entirety of this timing interval occurs strictly earlier in the x-slot structure vs the other point or interval
     def before(self, other):
         if isinstance(other, TimingPoint):
             return self.endpoint < other
@@ -856,6 +829,7 @@ class TimingInterval:
                 return other.after(self)
         return False
 
+    # returns True iff the entirety of this timing interval occurs strictly later in the x-slot structure vs the other point or interval
     def after(self, other):
         if isinstance(other, TimingPoint):
             return self.startpoint > other
@@ -868,16 +842,21 @@ class TimingInterval:
                 return other.before(self)
         return False
 
+    # returns True iff this interval is directly adjacent to the other
+    #   ie, the end point of one is equivalent to the start point of the other
     def adjacent(self, other):
         if isinstance(other, TimingInterval):
             return self.endpoint.equivalent(other.startpoint) or other.endpoint.equivalent(self.startpoint)
         return False
 
+    # returns True iff the start and end points of this and the other interval are equal
     def __eq__(self, other):
         if isinstance(other, TimingInterval):
             return self.startpoint == other.startpoint and self.endpoint == other.endpoint
         return False
 
+    # returns True iff the intersection of this and the other interval is nonempty
+    #   and in fact contains more than just, eg, one point of adjacency
     def overlapsinterval(self, other):
         if isinstance(other, TimingInterval):
             if self.iswholesign() or other.iswholesign():
@@ -887,25 +866,25 @@ class TimingInterval:
                 return True
         return False
     
-    
+    # returns True iff the other interval is a subset (not necessarily proper) of this one
     def includesinterval(self, other):
         if isinstance(other, TimingInterval):
-            if self.iswholesign() or other.iswholesign():
+            if self.iswholesign():
                 return True
-            elif (self.startpoint <= other.startpoint and self.endpoint > other.startpoint):
+            elif self.startpoint <= other.startpoint and self.endpoint >= other.endpoint:
                 return True
         return False
 
-
+    # returns True iff this interval covers the entire timing duration of the sign
     def iswholesign(self):
         return self.startpoint == TimingPoint(0, 0) and self.endpoint == TimingPoint(0, 1)
-
-    # TODO KV - overlapping and/or containing checking methods?
 
     def __repr__(self):
         return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
 
 
+# This class represents additional information that can be appended to many different types of entries in SLP-AA,
+#   such as to an entire module, one selection in a movement module, one surface selection in a location module, etc
 class AddedInfo:
 
     def __init__(self,
@@ -1092,6 +1071,7 @@ class AddedInfo:
         reprstr += '>'
         return reprstr
 
+    # returns True iff this AddedInfo instance has at least flag set or at least one note with non-whitespace text
     def hascontent(self):
         hasflag = self.iconic_flag or self.uncertain_flag or self.estimated_flag or self.notspecified_flag or self.variable_flag or self.exceptional_flag or self.incomplete_flag or self.other_flag
         noteslength = len(
@@ -1116,6 +1096,23 @@ class Signtype:
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._moduletype = ModuleTypes.SIGNTYPE
+
+    # == check compares all content (equality does not require references to be to the same spot in memory)
+    def __eq__(self, other):
+        if isinstance(other, Signtype):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    @property
+    def moduletype(self):
+        if not hasattr(self, '_moduletype'):
+            # for backward compatibility with pre-20241018 sign type
+            print("signtype backward compatibility")
+            self._moduletype = ModuleTypes.SIGNTYPE
+        return self._moduletype
 
     @property
     def addedinfo(self):
@@ -1226,7 +1223,7 @@ class BodypartInfo:
         return not self.__eq__(other)
 
     def getabbreviation(self):
-        # TODO KV implement
+        # TODO implement
         return "Bodypart abbreviations not yet implemented"
 
 
@@ -1238,8 +1235,12 @@ class BodypartInfo:
 class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._locationtreemodel = locationtreemodel
-        self._inphase = inphase  # TODO KV is "inphase" actually the best name for this attribute?
+        self._inphase = inphase  # TODO is "inphase" actually the best name for this attribute?
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.LOCATION
 
     @property
     def locationtreemodel(self):
@@ -1284,6 +1285,22 @@ class RelationX:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def displaystr(self):
+        relX_str = ""
+        if self.connected:
+            relX_str = "X: both connected"
+        elif self.other:
+            relX_str = "X: other"
+            if len(self.othertext) > 0:
+                relX_str += " (" + self.othertext + ")"
+        else:
+            rel_dict = self.__dict__
+            for attr in rel_dict:
+                if rel_dict[attr]:
+                    relX_str = "X: " + attr[1:] # attributes are prepended with _
+                    break
+        return relX_str
 
     @property
     def h1(self):
@@ -1463,6 +1480,27 @@ class RelationY:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def displaystr(self):
+        relY_str = ""
+        if self.existingmodule:
+            relY_str = "Y: existing module"
+            if self.linkedmoduletype is not None:
+                if self.linkedmoduletype == ModuleTypes.MOVEMENT:
+                    relY_str += " (mvmt)"
+                else:
+                    relY_str += " (locn)"
+        elif self.other: 
+            relY_str = "Y: other"
+            if len(self.othertext) > 0:
+                relY_str += " (" + self.othertext + ")"
+        else:
+            rel_dict = self.__dict__
+            for attr in "_h2", "_arm2", "_leg1", "_leg2":
+                if rel_dict[attr]:
+                    relY_str = "Y: " + attr[1:] # attributes are prepended with _
+                    break    
+        return relY_str
+
     @property
     def h2(self):
         return self._h2
@@ -1544,8 +1582,10 @@ class RelationY:
 
     @linkedmoduletype.setter
     def linkedmoduletype(self, linkedmoduletype):
-        # TODO KV validate?
-        self._linkedmoduletype = linkedmoduletype
+        if linkedmoduletype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT]:
+            self._linkedmoduletype = linkedmoduletype
+        else:
+            raise TypeError("Linked module type must be either LOCATION or MOVEMENT.")
 
     @property
     def linkedmoduleids(self):
@@ -1553,7 +1593,6 @@ class RelationY:
 
     @linkedmoduleids.setter
     def linkedmoduleids(self, linkedmoduleids):
-        # TODO KV validate?
         self._linkedmoduleids = linkedmoduleids
 
     @property
@@ -1600,6 +1639,10 @@ class RelationModule(ParameterModule):
             Direction(axis=Direction.SAGITTAL),
         ]
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.RELATION
 
     @property
     def relationx(self):
@@ -1656,7 +1699,37 @@ class RelationModule(ParameterModule):
     @directions.setter
     def directions(self, directions):
         self._directions = directions
+    
+    def get_paths(self):
+        paths = {}
+        arts, nums = self.get_articulators_in_use()
+        for i in range(len(arts)):
+            bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
+            treemodel = bodypartinfo.bodyparttreemodel
+            paths.update({arts[i]: treemodel.get_checked_items()})
+        return paths
 
+    def has_any_distance(self):
+        for i in range(4):
+            dis = self.contactrel.distances[i]
+            if dis.has_selection():
+                return True
+        return False
+    
+    def has_any_direction(self): # returns true if anything in direction is selected, including axis checkboxes or crossed/linked
+        if self.xy_crossed or self.xy_linked:
+            return True
+        for i in range(3):
+            dir = self.directions[i]
+            if dir.axisselected:
+                return True
+        return False
+
+    
+    def has_direction(self, axisnum): # returns true if suboptions of direction are selected
+        dir = self.directions[axisnum]
+        return dir.plus or dir.minus or dir.inline
+    
     def usesarticulator(self, articulator, artnum=None):
         articulators_in_use = {1: False, 2: False}
         if articulator == HAND:
@@ -1712,10 +1785,11 @@ class RelationModule(ParameterModule):
 
 
 class MannerRelation:
-    def __init__(self, holding=False, continuous=False, intermittent=False):
+    def __init__(self, holding=False, continuous=False, intermittent=False, any=False):
         self._holding = holding
         self._continuous = continuous
         self._intermittent = intermittent
+        self._any = any
 
     def __eq__(self, other):
         if isinstance(other, MannerRelation):
@@ -1736,6 +1810,7 @@ class MannerRelation:
             repr_str = "intermittent"
 
         return '<MannerRelation: ' + repr(repr_str) + '>'
+    
 
     @property
     def holding(self):
@@ -1773,6 +1848,17 @@ class MannerRelation:
             self._continuous = False
             self._holding = False
 
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
+
 
 class ContactRelation:
     def __init__(self, contact=None, contacttype=None, mannerrel=None, distance_list=None):
@@ -1782,7 +1868,8 @@ class ContactRelation:
         self._distances = distance_list or [
             Distance(Direction.HORIZONTAL),
             Distance(Direction.VERTICAL),
-            Distance(Direction.SAGITTAL)
+            Distance(Direction.SAGITTAL),
+            Distance(Direction.GENERIC)
         ]
 
     def __eq__(self, other):
@@ -1806,11 +1893,21 @@ class ContactRelation:
         elif not self._contact:
             repr_str = "no"
             if self._distances:
-                distance_str_list = [repr(axis_dist for axis_dist in self._distances)]
+                distance_str_list = [repr(axis_dist) for axis_dist in self._distances]
                 repr_str += ", ".join([""] + distance_str_list)
 
         return '<ContactRelation: ' + repr(repr_str) + '>'
 
+    def has_manner(self):
+        if self.manner is not None:
+            return self.manner.holding or self.manner.intermittent or self.manner.continuous
+        return False
+
+    def has_contacttype(self):
+        if self.contacttype is not None:
+            return self.contacttype.light or self.contacttype.firm or self.contacttype.other
+        return False
+    
     @property
     def contact(self):
         return self._contact
@@ -1845,11 +1942,12 @@ class ContactRelation:
 
 
 class ContactType:
-    def __init__(self, light=False, firm=False, other=False, othertext=""):
+    def __init__(self, light=False, firm=False, other=False, othertext="", any=False):
         self._light = light
         self._firm = firm
         self._other = other
         self._othertext = othertext
+        self._any = any # Used by search targets to match any contact type selection
 
     def __eq__(self, other):
         if isinstance(other, ContactType):
@@ -1920,6 +2018,17 @@ class ContactType:
     def othertext(self, othertext):
         self._othertext = othertext
 
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
+
 
 # This class is used by the Relation Module to track the axis on which to measure the relation between
 # two elements (X and Y), as well as the direction of X relative to Y.
@@ -1927,13 +2036,15 @@ class Direction:
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
     SAGITTAL = "sagittal"
+    GENERIC = "generic"
 
-    def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False):
+    def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False, any=False):
         self._axis = axis
         self._axisselected = axisselected
         self._plus = plus  # ipsi for horizontal, above for vertical, distal for sagittal
         self._minus = minus  # contra for horizontal, below for vertical, proximal for sagittal
         self._inline = inline  # in line with (for all axes)
+        self._any = any # Used by search targets to match any direction selection (crossed / linked / hor / ver / sag)
 
     def __eq__(self, other):
         if isinstance(other, Direction):
@@ -1979,6 +2090,17 @@ class Direction:
     @axis.setter
     def axis(self, axis):
         self._axis = axis
+
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
 
     @property
     def axisselected(self):
@@ -2029,11 +2151,12 @@ class Direction:
 # two elements (X and Y), as well as the relative distance between those two elements.
 class Distance:
 
-    def __init__(self, axis, close=False, medium=False, far=False):
+    def __init__(self, axis, close=False, medium=False, far=False, any=False):
         self._axis = axis
         self._close = close
         self._medium = medium
         self._far = far
+        self._any = any # Used by search targets to match any specified distance
 
     def __eq__(self, other):
         if isinstance(other, Distance):
@@ -2043,6 +2166,9 @@ class Distance:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def has_selection(self):
+        return self.close or self.medium or self.far
 
     @property
     def axis(self):
@@ -2088,6 +2214,30 @@ class Distance:
             self._close = False
             self._medium = False
 
+    @property
+    def any(self):
+        if not hasattr(self, '_any'):
+            # for backward compatibility with pre-20241205 relation modules
+            self._any = False
+        return self._any
+
+    @any.setter
+    def any(self, any):
+        self._any = any
+
+    def __repr__(self):
+        repr_str = self._axis
+        if self._close:
+            repr_str += " / " + "close"
+        elif self._medium:
+            repr_str += " / " + "medium"
+        elif self._far:
+            repr_str += " / " + "far"
+        else:
+            repr_str += " unselected"
+
+        return '<Distance: ' + repr(repr_str) + '>'
+
 
 # This module stores the absolute orientation of a particular hand/s.
 # It includes specifications for palm and root directions.
@@ -2106,6 +2256,10 @@ class OrientationModule(ParameterModule):
         ]
 
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.ORIENTATION
 
     @property
     def palm(self):
@@ -2137,6 +2291,10 @@ class HandConfigurationModule(ParameterModule):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.HANDCONFIG
 
     @property
     def handconfiguration(self):
@@ -2214,6 +2372,10 @@ class NonManualModule(ParameterModule):
         self._nonmanual = nonman_specs
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
         pass
+
+    @property
+    def moduletype(self):
+        return super().moduletype or ModuleTypes.NONMANUAL
 
 
 # This class consists of 34 slots; each instance of a HandConfigurationField corresponds to a certain subset
@@ -2354,3 +2516,14 @@ class XslotStructure:
     @additionalfraction.setter
     def additionalfraction(self, additionalfraction):
         self._additionalfraction = additionalfraction
+
+    def __eq__(self, other):
+        if isinstance(other, XslotStructure):
+            return self.number == other.number \
+                and self.additionalfraction == other.additionalfraction \
+                and set(self.fractionalpoints) == set(other.fractionalpoints)
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
