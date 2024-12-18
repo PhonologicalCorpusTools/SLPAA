@@ -693,7 +693,7 @@ class MainWindow(QMainWindow):
             self.on_action_pastetiming()
 
     # action_str indicates the type of action selected fom the Corpus View R-click menu:
-    #   "copy", "paste", "edit" (sign-level info), or "delete"
+    #   "copy", "paste", "edit" (sign-level info), "compare", or "delete"
     def handle_signaction_selected(self, action_str):
         if action_str == "edit":
             self.on_action_edit_signs()
@@ -703,6 +703,8 @@ class MainWindow(QMainWindow):
             self.on_action_copy()
         elif action_str == "paste":
             self.on_action_paste()
+        elif action_str == "compare":
+            self.on_action_compare_signs()
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -893,7 +895,10 @@ class MainWindow(QMainWindow):
         count_xslots_window.exec_()
 
     def on_action_compare_signs(self):
-        compare_signs_window = CompareSignsDialog(parent=self)
+        selected_signs = None
+        if len(self.corpus_display.getselectedsigns()) == 2:
+            selected_signs = self.corpus_display.getselectedsigns()
+        compare_signs_window = CompareSignsDialog(parent=self, selected_signs=selected_signs)
         compare_signs_window.exec_()
 
     @check_unsaved_change

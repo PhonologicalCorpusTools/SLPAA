@@ -119,7 +119,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
 
 
 class CompareSignsDialog(QDialog):
-    def __init__(self, **kwargs):
+    def __init__(self, selected_signs, **kwargs):
         super().__init__(**kwargs)
 
         self.corpus = self.parent().corpus
@@ -137,7 +137,7 @@ class CompareSignsDialog(QDialog):
         # Dropdown menus for selecting signs
         self.sign1_dropdown = QComboBox()
         self.sign2_dropdown = QComboBox()
-        dropdown_layout = self.initialize_dropdown()
+        dropdown_layout = self.initialize_dropdown(selected_signs)
         layout.addLayout(dropdown_layout)
 
         # Tree widgets for hierarchical variables
@@ -194,7 +194,7 @@ class CompareSignsDialog(QDialog):
         counter_kinds = ['all collapsed', 'current', 'all expanded']
         return {key: ColourCounter(palette=palette) for key in counter_kinds}
 
-    def initialize_dropdown(self):
+    def initialize_dropdown(self, selected=None):
         idgloss_list = self.corpus.get_all_idglosses()
 
         self.sign1_dropdown.addItems(idgloss_list)
@@ -208,6 +208,12 @@ class CompareSignsDialog(QDialog):
         layout.addWidget(self.sign1_dropdown)
         layout.addWidget(QLabel("Select Sign 2:"))
         layout.addWidget(self.sign2_dropdown)
+
+        if selected:
+            # if two signs are selected on the 'Corpus' panel, update two dropdowns accordingly
+            given_idglosses = [sign.signlevel_information.idgloss for sign in selected]
+            self.sign1_dropdown.setCurrentText(given_idglosses[0])
+            self.sign2_dropdown.setCurrentText(given_idglosses[1])
         return layout
 
     def initialize_signs_layout(self, counters_1, counters_2):

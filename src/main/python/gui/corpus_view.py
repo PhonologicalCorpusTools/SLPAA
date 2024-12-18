@@ -31,7 +31,7 @@ from lexicon.lexicon_classes import Sign
 class CorpusDisplay(QWidget):
     selected_sign = pyqtSignal(Sign)
     selection_cleared = pyqtSignal()
-    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), "compare", or "delete"
 
     def __init__(self, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
@@ -176,7 +176,7 @@ class CorpusDisplay(QWidget):
                     if isinstance(copieditem, Sign):
                         clipboardsigns.append(copieditem)
 
-            menu = SignEntryContextMenu(selectedsigns != [], clipboardsigns != [])
+            menu = SignEntryContextMenu(selectedsigns != [], clipboardsigns != [], len(selectedsigns) == 2)
             menu.action_selected.connect(self.action_selected.emit)
             menu.exec_(event.globalPos())
 
@@ -238,13 +238,13 @@ class CorpusDisplay(QWidget):
         self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " glosses shown")
 
 
-# menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
+# menu associated with a sign entry/entries in the corpus view, offering copy/paste/compare/edit/delete functions
 class SignEntryContextMenu(QMenu):
-    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), "compare", or "delete"
 
     # individual menu items are enabled/disabled based on whether any signs are currently selected
-    #   and/or whether there are any signs on the clipboard
-    def __init__(self, has_selectedsigns, has_clipboardsigns):
+    #   whether there are any signs on the clipboard and/or whether two signs are selected.
+    def __init__(self, has_selectedsigns, has_clipboardsigns, is_couple):
         super().__init__()
 
         self.copy_action = QAction("Copy Sign(s)")
@@ -256,6 +256,11 @@ class SignEntryContextMenu(QMenu):
         self.paste_action.setEnabled(has_clipboardsigns)
         self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
         self.addAction(self.paste_action)
+
+        self.compare_action = QAction("Compare Signs")
+        self.compare_action.setEnabled(is_couple)
+        self.compare_action.triggered.connect(lambda checked: self.action_selected.emit("compare"))
+        self.addAction(self.compare_action)
 
         self.edit_action = QAction("Edit Sign-level Info(s)")
         self.edit_action.setEnabled(has_selectedsigns)
