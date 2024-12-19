@@ -281,7 +281,24 @@ class CompareSignsDialog(QDialog):
 
     def populate_trees(self, tree1, tree2, data1, data2):
         # this really really needs refactoring.
-        def add_items(parent1, parent2, data1, data2):
+        def parse_button_type(node_data):
+            # helper function that parses 'button_type' information
+            if not isinstance(node_data, dict):
+                return []
+            if 'button_type' in node_data:
+                return node_data['button_type'].split('>')
+            for k, v in node_data.items():
+                if isinstance(v, dict):
+                    deeper = parse_button_type(v)
+                    if deeper:
+                        return deeper
+
+        def add_items(parent1, parent2, data1, data2, depth=-1):
+            # this actually does the heavy lifting
+            # debug:
+            if data1 == {'Repetition': {'Single': {'button_type': 'checkbox>checkbox>radio button', 'match': False}}} or data2 == {'Repetition': {'Single': {'button_type': 'checkbox>checkbox>radio button', 'match': False}}}:
+                print("debug point")
+
             should_paint_red = [False, False]     # paint tree 1 node / tree 2 node red
             should_paint_yellow = [False, False]  # yellow to tree 1 node / tree 2 node
             red_brush = self.palette['red']   # red when mismatch
@@ -292,13 +309,14 @@ class CompareSignsDialog(QDialog):
             data2_keys = set(data2.keys()) if isinstance(data2, dict) else set()
             all_keys = sorted(data1_keys.union(data2_keys), reverse=True)
 
-            # special case: terminal node
+            # either terminal node or highest node
             if len(data1_keys) == len(data2_keys) == 1:
                 _, value1 = next(iter(data1.items()))
                 _, value2 = next(iter(data2.items()))
                 value1_match = value1.get('match', "NA")
                 value2_match = value2.get('match', "NA")
                 if "NA" not in [value1_match, value2_match]:
+                    # both are same length and so hit terminal at the same time
                     btn_types1_final = value1['button_type'].split('>')[-1]
                     btn_types2_final = value2['button_type'].split('>')[-1]
                     if btn_types1_final == 'radio button' and btn_types2_final == 'radio button' and parent1 == parent2:
@@ -344,7 +362,39 @@ class CompareSignsDialog(QDialog):
 
                         return should_paint_red, should_paint_yellow
 
-            for key in reversed(list(all_keys)):
+            for key in reversed(all_keys):
+                if parent1 == parent2 and key not in (data1_keys & data2_keys):
+                    # scenario: same parents, different children. But the children are both radio buttons
+                    data1_btn_types = parse_button_type(data1)
+                    data2_btn_types = parse_button_type(data2)
+
+                    is_data1_rb = data1_btn_types[depth] == 'radio button'
+                    is_data2_rb = data2_btn_types[depth] == 'radio button'
+
+                    if is_data1_rb and is_data2_rb:
+                        item_labels = []
+                        for k, btn_t in [(data1_keys, data1_btn_types), (data2_keys, data2_btn_types)]:
+                            label = str(list(k)[0])
+                            trunc_n = len(btn_t[depth + 1:])
+                            if trunc_n > 0:
+                                label = f"{label} (+ {trunc_n} truncated)"
+                            item_labels.append(label)
+
+                        item1 = CompareTreeWidgetItem(labels=[item_labels[0]], palette=self.palette)
+                        item2 = CompareTreeWidgetItem(labels=[item_labels[1]], palette=self.palette)
+
+                        item1.initilize_bg_color('red')  # red
+                        item2.initilize_bg_color('red')
+                        should_paint_red[0] = True
+                        should_paint_red[1] = True
+                        if parent1.background(0).color() != yellow_brush:
+                            parent1.initilize_bg_color('red')
+                        if parent2.background(0).color() != yellow_brush:
+                            parent2.initilize_bg_color('red')
+                        parent1.addChild(item1)
+                        parent2.addChild(item2)
+                        return should_paint_red, should_paint_yellow
+
                 value1, value2 = None, None
                 try:
                     value1 = data1.get(key, None)
@@ -363,7 +413,6 @@ class CompareSignsDialog(QDialog):
                 # Create tree items for both trees
                 item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
                 item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
-
 
                 # Set the color of missing nodes
                 if value1 is None and value2 is not None:
@@ -388,9 +437,9 @@ class CompareSignsDialog(QDialog):
                 child_r = [False, False]  # flag marking whether a child node is coloured red
                 child_y = [False, False]  # flag marking whether a child node is coloured yellow
 
-                # If both values are dicts, recurse into them
+                # If either of the two values are dicts, recurse into them
                 if isinstance(value1, dict) or isinstance(value2, dict):
-                    child_r, child_y = add_items(item1, item2, value1 if value1 else {}, value2 if value2 else {})
+                    child_r, child_y = add_items(item1, item2, data1.get(key, {}), data2.get(key, {}), depth+1)
                 else:
                     # Set color for false values
                     if value1 is False and not should_paint_yellow[0]:
@@ -461,7 +510,7 @@ class CompareSignsDialog(QDialog):
 
             return should_paint_red, should_paint_yellow
 
-        # Add each top-level key as a root item in the tree
+        # Add each top-level key (e.g., movement, location, relation, ...) as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
             top_item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
             top_item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
@@ -470,7 +519,11 @@ class CompareSignsDialog(QDialog):
             tree2.addTopLevelItem(top_item2)
 
             # Recursively add children under the top-level item
-            add_items(top_item1, top_item2, data1.get(key, {}), data2.get(key, {}))
+            add_items(parent1=top_item1,
+                      parent2=top_item2,
+                      data1=data1.get(key, {}),  # sign1 child dictionary
+                      data2=data2.get(key, {})   # sign2 child dictionary
+                      )
 
             # expand the root item by default
             #top_item1.setExpanded(True)
