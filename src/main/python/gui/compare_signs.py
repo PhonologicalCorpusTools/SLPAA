@@ -4,7 +4,7 @@ from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 
 from compare_signs.compare_models import CompareModel
-from compare_signs.compare_helpers import qcolor_to_rgba_str
+from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons
 
 
 class ColourCounter(QWidget):
@@ -281,24 +281,8 @@ class CompareSignsDialog(QDialog):
 
     def populate_trees(self, tree1, tree2, data1, data2):
         # this really really needs refactoring.
-        def parse_button_type(node_data):
-            # helper function that parses 'button_type' information
-            if not isinstance(node_data, dict):
-                return []
-            if 'button_type' in node_data:
-                return node_data['button_type'].split('>')
-            for k, v in node_data.items():
-                if isinstance(v, dict):
-                    deeper = parse_button_type(v)
-                    if deeper:
-                        return deeper
-
         def add_items(parent1, parent2, data1, data2, depth=-1):
             # this actually does the heavy lifting
-            # debug:
-            if data1 == {'Repetition': {'Single': {'button_type': 'checkbox>checkbox>radio button', 'match': False}}} or data2 == {'Repetition': {'Single': {'button_type': 'checkbox>checkbox>radio button', 'match': False}}}:
-                print("debug point")
-
             should_paint_red = [False, False]     # paint tree 1 node / tree 2 node red
             should_paint_yellow = [False, False]  # yellow to tree 1 node / tree 2 node
             red_brush = self.palette['red']   # red when mismatch
@@ -309,68 +293,16 @@ class CompareSignsDialog(QDialog):
             data2_keys = set(data2.keys()) if isinstance(data2, dict) else set()
             all_keys = sorted(data1_keys.union(data2_keys), reverse=True)
 
-            # either terminal node or highest node
-            if len(data1_keys) == len(data2_keys) == 1:
-                _, value1 = next(iter(data1.items()))
-                _, value2 = next(iter(data2.items()))
-                value1_match = value1.get('match', "NA")
-                value2_match = value2.get('match', "NA")
-                if "NA" not in [value1_match, value2_match]:
-                    # both are same length and so hit terminal at the same time
-                    btn_types1_final = value1['button_type'].split('>')[-1]
-                    btn_types2_final = value2['button_type'].split('>')[-1]
-                    if btn_types1_final == 'radio button' and btn_types2_final == 'radio button' and parent1 == parent2:
-                        item1 = CompareTreeWidgetItem(labels=[str(list(data1_keys)[0])], palette=self.palette)
-                        item2 = CompareTreeWidgetItem(labels=[str(list(data2_keys)[0])], palette=self.palette)
-                        if not item1 == item2:
-                            item1.initilize_bg_color('red')  # red
-                            item2.initilize_bg_color('red')
-                            should_paint_red[0] = True
-                            should_paint_red[1] = True
-                            if parent1.background(0).color() != yellow_brush:
-                                parent1.initilize_bg_color('red')
-                            if parent2.background(0).color() != yellow_brush:
-                                parent2.initilize_bg_color('red')
-                        else:
-                            item1.initilize_bg_color('blue')
-                            item2.initilize_bg_color('blue')
-                        parent1.addChild(item1)
-                        parent2.addChild(item2)
-
-                        should_paint_red = [should_paint_red[0], should_paint_red[1]]
-                        # color of the parent node: red wins over yellow
-                        if should_paint_red[0]:
-                            # red should not override already painted yellow
-                            if parent1.background(0).color() != yellow_brush:
-                                parent1.initilize_bg_color('red')
-                        elif should_paint_yellow[0] and parent1 == parent2:
-                            parent1.initilize_bg_color('red')
-                        elif should_paint_yellow[0]:
-                            parent1.initilize_bg_color('yellow')
-                        elif not parent1.flags() == Qt.NoItemFlags:
-                            parent1.initilize_bg_color('blue')
-
-                        if should_paint_red[1]:
-                            if parent2.background(0).color() != yellow_brush:
-                                parent2.initilize_bg_color('red')
-                        elif should_paint_yellow[1] and parent1 == parent2:
-                            parent2.initilize_bg_color('red')
-                        elif should_paint_yellow[1]:
-                            parent2.initilize_bg_color('yellow')
-                        elif not parent2.flags() == Qt.NoItemFlags:
-                            parent2.initilize_bg_color('blue')
-
-                        return should_paint_red, should_paint_yellow
-
             for key in reversed(all_keys):
-                if parent1 == parent2 and key not in (data1_keys & data2_keys):
-                    # scenario: same parents, different children. But the children are both radio buttons
-                    data1_btn_types = parse_button_type(data1)
-                    data2_btn_types = parse_button_type(data2)
+                data1_btn_types = parse_button_type(data1)
+                data2_btn_types = parse_button_type(data2)
 
+                # case: same parents, different children.
+                if parent1 == parent2 and key not in (data1_keys & data2_keys):
                     is_data1_rb = data1_btn_types[depth] == 'radio button'
                     is_data2_rb = data2_btn_types[depth] == 'radio button'
 
+                    # Same parents, different radio button children
                     if is_data1_rb and is_data2_rb:
                         item_labels = []
                         for k, btn_t in [(data1_keys, data1_btn_types), (data2_keys, data2_btn_types)]:
@@ -383,16 +315,8 @@ class CompareSignsDialog(QDialog):
                         item1 = CompareTreeWidgetItem(labels=[item_labels[0]], palette=self.palette)
                         item2 = CompareTreeWidgetItem(labels=[item_labels[1]], palette=self.palette)
 
-                        item1.initilize_bg_color('red')  # red
-                        item2.initilize_bg_color('red')
-                        should_paint_red[0] = True
-                        should_paint_red[1] = True
-                        if parent1.background(0).color() != yellow_brush:
-                            parent1.initilize_bg_color('red')
-                        if parent2.background(0).color() != yellow_brush:
-                            parent2.initilize_bg_color('red')
-                        parent1.addChild(item1)
-                        parent2.addChild(item2)
+                        should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
+                                                          should_paint_red, yellow_brush)
                         return should_paint_red, should_paint_yellow
 
                 value1, value2 = None, None
@@ -403,11 +327,12 @@ class CompareSignsDialog(QDialog):
                     # when data1 or data2 is bool
                     pass
 
-                # non-terminal match, button_type node should not be visible
+                # case: a tree hit the terminal. button_type node should not be visible
                 if key in {"match", "button_type"}:
-                    # needs to decide 'which parent' should be yellow
-                    index = 0 if value1 is not None else 1
-                    should_paint_yellow[index] = True
+                    if len(data1_btn_types) != len(data2_btn_types):
+                        # needs to decide 'which parent' should be yellow
+                        index = 0 if value1 is not None else 1
+                        should_paint_yellow[index] = True
                     continue
 
                 # Create tree items for both trees
@@ -428,7 +353,6 @@ class CompareSignsDialog(QDialog):
                     item2.setForeground(0, QBrush(background_colour))  # node in tree 2 greyed out
                     item2.setFlags(Qt.NoItemFlags)
                     item1.initilize_bg_color('yellow')
-                    print(f"terminal node {key} gets painted yellow because no corresponding node")
                     should_paint_yellow[0] = True
                 parent1.addChild(item1)
                 parent2.addChild(item2)
@@ -443,7 +367,6 @@ class CompareSignsDialog(QDialog):
                 else:
                     # Set color for false values
                     if value1 is False and not should_paint_yellow[0]:
-                        print(f"terminal node {key} gets painted red because false")
                         item1.initilize_bg_color('red')  # red
                         should_paint_red[0] = True
                     elif item1.flags() == Qt.NoItemFlags:
@@ -460,7 +383,6 @@ class CompareSignsDialog(QDialog):
                         item2.initilize_bg_color()
                     elif item1.flags() != Qt.NoItemFlags:
                         item2.initilize_bg_color('blue')
-                        print(f"{key} in item1 becomes blue")
                     else:
                         item2.initilize_bg_color('yellow')
 
@@ -471,38 +393,24 @@ class CompareSignsDialog(QDialog):
                 if child_r[1] or child_y[1]:
                     should_paint_red[1] = True
                 should_paint_red = [should_paint_red[0], should_paint_red[1]]
+
             # color of the parent node: red wins over yellow
             if should_paint_red[0]:
                 # red should not override already painted yellow
                 if parent1.background(0).color() != yellow_brush:
-                    print(f"node={key}'s parent is not yellow\n{parent1.background(0).color()}")
                     parent1.initilize_bg_color('red')
-                    print(f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
-                else:
-                    print(f"node={key}'s parent is yellow\n{parent1.background(0).color()}")
             elif should_paint_yellow[0] and parent1 == parent2:
                 parent1.initilize_bg_color('red')
-                print(
-                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent red\n")
             elif should_paint_yellow[0]:
                 parent1.initilize_bg_color('yellow')
-                print(
-                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
             elif not parent1.flags() == Qt.NoItemFlags:
                 parent1.initilize_bg_color('blue')
 
             if should_paint_red[1]:
                 if parent2.background(0).color() != yellow_brush:
-                    print(f"node={key}'s parent is not yellow")
                     parent2.initilize_bg_color('red')
-                    print(
-                        f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}.\n Painting the parent red\n")
-                else:
-                    print(f"node={key}'s parent is yellow")
             elif should_paint_yellow[1] and parent1 == parent2:
                 parent2.initilize_bg_color('red')
-                print(
-                    f"node={key}\nshould_paint_yellow:{should_paint_yellow}\nshould_paint_red:{should_paint_red}\n Painting the parent yellow\n")
             elif should_paint_yellow[1]:
                 parent2.initilize_bg_color('yellow')
             elif not parent2.flags() == Qt.NoItemFlags:

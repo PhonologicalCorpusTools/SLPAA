@@ -163,3 +163,40 @@ def get_btn_type_for_mvmtpath(path, root_node):
         return ">".join(btn_types)
     else:
         return "Path not found"
+
+
+def parse_button_type(node_data):
+    # helper function that parses 'button_type' information created by get_btn_type_for_mvmtpath()
+    if not isinstance(node_data, dict):
+        return []
+    if 'button_type' in node_data:
+        return node_data['button_type'].split('>')
+    for k, v in node_data.items():
+        if isinstance(v, dict):
+            deeper = parse_button_type(v)
+            if deeper:
+                return deeper
+
+
+def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush):
+    # helper function that colours of children and their parents which are all CompareTreeWidgetItem objects
+    # children, parents: lists of CompareTreeWidgetItem
+    # should_paint_red: list.
+    # yellow_brush: QBrush object to check for parent's colour
+    # called only if
+    # - both item in children are radiobuttons but not identical
+    # - itentical parents
+    item1, item2 = children
+    parent1, parent2 = parents
+
+    item1.initilize_bg_color('red')  # red
+    item2.initilize_bg_color('red')
+    should_paint_red[0] = True
+    should_paint_red[1] = True
+    if parent1.background(0).color() != yellow_brush:
+        parent1.initilize_bg_color('red')
+    if parent2.background(0).color() != yellow_brush:
+        parent2.initilize_bg_color('red')
+    parent1.addChild(item1)
+    parent2.addChild(item2)
+    return [should_paint_red[0], should_paint_red[1]]
