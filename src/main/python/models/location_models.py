@@ -671,7 +671,6 @@ class LocationTreeModel(QStandardItemModel):
                         treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[pathtext])
 
                     self.setvaluesfromserializedtree(treechild)
-                    
 
     def get_checked_from_serialized_tree(self):
         checked = []
@@ -693,7 +692,26 @@ class LocationTreeModel(QStandardItemModel):
         # print("   Serialized locn:" + str(len(serialized)) + "; Listed locn:" + str(len(self.checked)))
                 
         return differences
-                
+
+    def findItemsByRoleValues(self, role, possiblevalues, parentnode=None):
+        if not isinstance(possiblevalues, list):
+            possiblevalues = [possiblevalues]
+        if parentnode is None:
+            parentnode = self.invisibleRootItem()
+
+        items = []
+        numchildren = parentnode.rowCount()
+        for i in range(numchildren):
+            child = parentnode.child(i, 0)
+            roledata = child.data(role)
+            matches = [roledata == pv for pv in possiblevalues]
+            if True in matches:
+                items.append(child)
+
+            subresults = self.findItemsByRoleValues(role, possiblevalues, parentnode=child)
+            items.extend(subresults)
+        return items
+
     
 
 
