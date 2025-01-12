@@ -468,11 +468,13 @@ DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None,
                 "Vertical axis" + treepathdelimiter + "Mid": None,
                 "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
 
-SIGNLEVELINFO_TARGET = "sign level info"
-XSLOT_TARGET = "xslot"
-SIGNTYPEINFO_TARGET = "sign type info"
-MOV_REL_TARGET = "mvmt + reln"
-LOC_REL_TARGET = "locn + reln"
+class TargetTypes:
+    SIGNLEVELINFO = "sign level info"
+    XSLOT = "xslot"
+    SIGNTYPEINFO = "sign type info"
+    MOV_REL = "mvmt + reln"
+    LOC_REL = "locn + reln"
+    EXTENDEDFINGERS  = "extended fingers"
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

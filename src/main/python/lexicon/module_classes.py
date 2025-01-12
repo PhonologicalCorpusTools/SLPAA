@@ -10,7 +10,7 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, TargetTypes
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 
@@ -2281,6 +2281,46 @@ class OrientationModule(ParameterModule):
         # TODO implement
         return "Orientation abbreviations not yet implemented"
 
+# This module is only used in the search window. 
+# Used instead of the usual HandConfigurationModule when the user wants to do an extended-fingers search.
+class ExtendedFingersModule(ParameterModule):
+    def __init__(self, i_extended, finger_selections, num_extended_selections, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+        self._i_extended = i_extended
+        self._finger_selections = finger_selections
+        self._num_extended_selections = num_extended_selections
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+    
+    @property
+    def moduletype(self):
+        return super().moduletype or TargetTypes.EXTENDEDFINGERS
+
+    @property
+    def i_extended(self):
+        return self._i_extended
+
+    @i_extended.setter
+    def i_extended(self, value):
+        self._i_extended = value
+
+    @property
+    def finger_selections(self):
+        return self._finger_selections
+
+    @finger_selections.setter
+    def finger_selections(self, value):
+        self._finger_selections = value
+
+    @property
+    def num_extended_selections(self):
+        return self._num_extended_selections
+
+    @num_extended_selections.setter
+    def num_extended_selections(self, value):
+        self._num_extended_selections = value
+
+    # TODO
+    def getabbreviation(self):
+        return ""
 
 # This module stores the transcription of one hand's configuration.
 # It includes specifications for each slot in each field, as well as whether the forearm is involved.

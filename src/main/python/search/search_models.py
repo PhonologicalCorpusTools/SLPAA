@@ -15,8 +15,10 @@ from PyQt5.QtWidgets import QStyledItemDelegate, QMessageBox
 
 from PyQt5.QtCore import QModelIndex, Qt
 from gui.panel import SignLevelMenuPanel
-from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
-from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, LOC_REL_TARGET, MOV_REL_TARGET, HAND, ARM, LEG
+from lexicon.module_classes import (AddedInfo, TimingInterval, TimingPoint, ParameterModule, 
+                                    ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule,
+                                    HandConfigurationHand, PREDEFINED_MAP)
+from constant import TargetTypes, HAND, ARM, LEG
 import logging
 
 from models.movement_models import MovementTreeModel
@@ -184,16 +186,31 @@ class SearchModel(QStandardItemModel):
 
     def sign_matches_target(self, sign, target_dict=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
-        if XSLOT_TARGET in target_dict:
-            if not self.sign_matches_xslot(target_dict[XSLOT_TARGET], sign):
+        if TargetTypes.XSLOT in target_dict:
+            if not self.sign_matches_xslot(target_dict[TargetTypes.XSLOT], sign):
                 return False
             
-        if SIGNLEVELINFO_TARGET in target_dict:
-            if not self.sign_matches_SLI(target_dict[SIGNLEVELINFO_TARGET], sign):
+        if TargetTypes.SIGNLEVELINFO in target_dict:
+            if not self.sign_matches_SLI(target_dict[TargetTypes.SIGNLEVELINFO], sign):
                 return False
 
-        if SIGNTYPEINFO_TARGET in target_dict:
-            if not self.sign_matches_ST(target_dict[SIGNTYPEINFO_TARGET], sign):
+        if TargetTypes.SIGNTYPEINFO in target_dict:
+            if not self.sign_matches_ST(target_dict[TargetTypes.SIGNTYPEINFO], sign):
+                return False
+        
+        if ModuleTypes.HANDCONFIG in target_dict:
+            hc_rows, ef_rows = [], []
+            for r in target_dict[ModuleTypes.HANDCONFIG]:
+                module_type = self.target_module(r).moduletype
+                if module_type == ModuleTypes.HANDCONFIG:
+                    hc_rows.append(r)
+                elif module_type == TargetTypes.EXTENDEDFINGERS:
+                    ef_rows.append(r)
+
+            if hc_rows and not self.sign_matches_handconfig(hc_rows, sign):
+                return False
+
+            if ef_rows and not self.sign_matches_extendedfingers(ef_rows, sign):
                 return False
 
         if ModuleTypes.MOVEMENT in target_dict:
@@ -210,9 +227,9 @@ class SearchModel(QStandardItemModel):
                 target_module = self.target_module(row)
                 if not reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
                     return False
-        for ttype in [LOC_REL_TARGET, MOV_REL_TARGET]:
+        for ttype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
             if ttype in target_dict:
-                anchortype = ModuleTypes.LOCATION if ttype == LOC_REL_TARGET else MOV_REL_TARGET
+                anchortype = ModuleTypes.LOCATION if ttype == TargetTypes.LOC_REL else TargetTypes.MOV_REL
                 relationmodulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
                 if not relationmodulelist: return False
                 
@@ -226,9 +243,9 @@ class SearchModel(QStandardItemModel):
                         anchormod = sign.getmoduledict(anchortype)[m.relationy.linkedmoduleids[0]]
                         anchormodulelist.append(anchormod)
 
-                    if ttype == LOC_REL_TARGET:
+                    if ttype == TargetTypes.LOC_REL:
                         if not locn_module_matches(anchormodulelist, self.target_module(row)): return False
-                    elif ttype == MOV_REL_TARGET:
+                    elif ttype == TargetTypes.MOV_REL:
                         if not mvmt_module_matches(anchormodulelist, self.target_module(row)): return False
                 return True
 
@@ -343,6 +360,56 @@ class SearchModel(QStandardItemModel):
             return False
         return True
 
+    def sign_matches_handconfig(self, rows, sign):
+        
+        
+        matching_modules = [m for m in sign.getmoduledict(ModuleTypes.HANDCONFIG).values()]
+
+        for row in rows:
+            matches_this_row = []
+            target_module = self.target_module(row)
+            target_forearm = target_module.overalloptions['forearm']
+            # TODO: overalloptions['overall_addedinfo'], overalloptions['forearm_addedinfo']
+            target_tuple = tuple(HandConfigurationHand(target_module.handconfiguration).get_hand_transcription_list())
+
+            for m in matching_modules:
+                sign_forearm = m.overalloptions['forearm']
+                if sign_forearm == target_forearm: # Don't bother checking hand config if forearm doesn't match.
+                    sign_tuple = tuple(HandConfigurationHand(m.handconfiguration).get_hand_transcription_list())
+                    
+                    # Searching for a custom tuple (not a predefined shape)
+                    if target_tuple not in PREDEFINED_MAP: 
+                        # items in certain positions are hardcoded for all tuples.
+                        positions_to_check = [i for i in range(33) if i not in [6,7,14,19,24,29] and target_tuple[i] != ""]
+                        # logging.warning(positions_to_check)
+                        if all([target_tuple[i] == sign_tuple[i] for i in positions_to_check]):
+                            matches_this_row.append(m)
+
+
+
+                    # Searching for a predefined shape
+                    else:
+                        target_predefined_shape = PREDEFINED_MAP[target_tuple].name
+                        if sign_tuple in PREDEFINED_MAP:
+                            sign_shape = PREDEFINED_MAP[sign_tuple].name
+                            logging.warning("checking: ")
+                            # logging.warning(sign_shape)
+                            if target_predefined_shape == sign_shape:
+                                matches_this_row.append(m)   
+            if len(matches_this_row) == 0:
+                return False
+            matching_modules = matches_this_row
+
+
+
+
+        return True
+        
+
+
+
+    def sign_matches_extendedfingers(self, rows, signs):
+        return False
 
 
 
@@ -513,7 +580,7 @@ class SearchModel(QStandardItemModel):
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
-            if type in [ModuleTypes.MOVEMENT, MOV_REL_TARGET]:
+            if type in [ModuleTypes.MOVEMENT, TargetTypes.MOV_REL]:
                 mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
                 articulators = serialmodule.articulators
                 inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
@@ -523,7 +590,7 @@ class SearchModel(QStandardItemModel):
                 unserialized = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
                 
                 return unserialized
-            elif type in [ModuleTypes.LOCATION, LOC_REL_TARGET]:
+            elif type in [ModuleTypes.LOCATION, TargetTypes.LOC_REL]:
                 locntreemodel = LocationTreeModel(serialmodule.locationtree)
                 articulators = serialmodule.articulators
                 inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
@@ -581,8 +648,9 @@ class SearchModel(QStandardItemModel):
                                              articulators=articulators, timingintervals=timingintervals,
                                              addedinfo=addedinfo)
                 return unserialized
-            elif type == SIGNTYPEINFO_TARGET:
+            elif type in [TargetTypes.SIGNTYPEINFO, ModuleTypes.HANDCONFIG, TargetTypes.EXTENDEDFINGERS]:
                 return serialmodule
+
         else:
             return None
 
@@ -675,9 +743,9 @@ class SearchModelSerializable:
                 row_data[TargetHeaders.NEGATIVE] = searchmodel.is_negative(r)
                 row_data[TargetHeaders.XSLOTS] = searchmodel.target_xslottype(r)
 
-                if ttype == LOC_REL_TARGET:
+                if ttype == TargetTypes.LOC_REL:
                     module = self.get_serialized_parameter_module(ModuleTypes.LOCATION, searchmodel.target_module(r))
-                elif ttype == MOV_REL_TARGET:
+                elif ttype == TargetTypes.MOV_REL:
                     module = self.get_serialized_parameter_module(ModuleTypes.MOVEMENT, searchmodel.target_module(r))
                 else:                    
                     module = self.get_serialized_parameter_module(ttype, searchmodel.target_module(r))
@@ -749,7 +817,7 @@ class SearchValuesItem:
                 todisplay.extend(self.paths)
 
         
-        elif self.type == SIGNTYPEINFO_TARGET:
+        elif self.type == TargetTypes.SIGNTYPEINFO:
             todisplay.extend(signtypedisplaytext(module.specslist))
         else:
             if self.values is not None:
