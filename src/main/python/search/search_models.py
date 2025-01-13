@@ -362,7 +362,6 @@ class SearchModel(QStandardItemModel):
 
     def sign_matches_handconfig(self, rows, sign):
         
-        
         matching_modules = [m for m in sign.getmoduledict(ModuleTypes.HANDCONFIG).values()]
 
         for row in rows:
@@ -385,8 +384,6 @@ class SearchModel(QStandardItemModel):
                         if all([target_tuple[i] == sign_tuple[i] for i in positions_to_check]):
                             matches_this_row.append(m)
 
-
-
                     # Searching for a predefined shape
                     else:
                         target_predefined_shape = PREDEFINED_MAP[target_tuple].name
@@ -399,9 +396,6 @@ class SearchModel(QStandardItemModel):
             if len(matches_this_row) == 0:
                 return False
             matching_modules = matches_this_row
-
-
-
 
         return True
         

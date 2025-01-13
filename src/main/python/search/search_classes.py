@@ -411,12 +411,11 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         # validate module selections
         modulevalid, modulemessage = self.module_widget.validity_check()
 
-        messagestring = ""
 
         savedmodule = None
-        if messagestring != "":
+        if modulemessage != "":
             # warn user that there's missing and/or invalid info and don't let them save
-            QMessageBox.critical(self, "Warning", messagestring)
+            QMessageBox.critical(self, "Warning", modulemessage)
         else:
             # save info
             savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
@@ -582,8 +581,6 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
     def handle_search_type_toggled(self, btn):
         self.enable_extended_options(btn == self.extendedfinger_rb)
 
-
-
     def make_extended_finger_search_layout(self):
         self.includeIbutton = QCheckBox('Treat "i" as extended')
         self.includeIbutton.setChecked(False)
@@ -618,6 +615,8 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
 
     def make_num_fingers_layout(self):
         self.numfingers_grp = QButtonGroup()
+        self.numfingers_grp.setExclusive(False)
+
         layout = QVBoxLayout()
         group_box = QGroupBox("Number of extended fingers")
         numlayout = QHBoxLayout()
@@ -628,6 +627,28 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
         group_box.setLayout(numlayout)
         layout.addWidget(group_box)
         return layout
+
+    def validity_check(self):
+        selectionsvalid = True
+        warningmessage = ""
+
+        # (number of extended fingers) <= 5 - (number of fingers marked "Not extended")
+        # (number of extended fingers) >= (number of fingers marked "Extended")
+        num_marked_not_extended = sum(grp.button(Search_HandConfigSpecPanel.OPTIONS["Not extended"]).isChecked() for grp in self.fingerconfiggrps.values())
+        num_marked_extended = sum(grp.button(Search_HandConfigSpecPanel.OPTIONS["Extended"]).isChecked() for grp in self.fingerconfiggrps.values())
+        for i in range(num_marked_extended):
+            if self.numfingers_grp.button(i).isChecked():
+                warningmessage = f"{i} extended finger(s) not compatible with {num_marked_extended} finger(s) marked extended"
+                selectionsvalid = False
+                return selectionsvalid, warningmessage
+        for i in range(6-num_marked_not_extended, 6):
+            if self.numfingers_grp.button(i).isChecked():
+                warningmessage = f"{i} extended finger(s) not compatible with {num_marked_not_extended } finger(s) marked not extended"
+                selectionsvalid = False
+                return selectionsvalid, warningmessage
+
+
+        return selectionsvalid, warningmessage
 
 
 
