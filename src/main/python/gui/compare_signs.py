@@ -136,12 +136,6 @@ class CompareSignsDialog(QDialog):
         # the main layout
         layout = QVBoxLayout()
 
-        # Dropdown menus for selecting signs
-        self.sign1_dropdown = QComboBox()
-        self.sign2_dropdown = QComboBox()
-        dropdown_layout = self.initialize_dropdown(selected_signs)
-        layout.addLayout(dropdown_layout)
-
         # Tree widgets for hierarchical variables
         self.tree1 = QTreeWidget()
         self.tree2 = QTreeWidget()
@@ -162,13 +156,19 @@ class CompareSignsDialog(QDialog):
 
         # Vertical tree layout for signs 1 and 2 (tree, expand/collapse btns, and counters)
         sign_tree_and_counters_layout = self.initialize_signs_layout(sign1_counters, sign2_counters)
-        layout.addLayout(sign_tree_and_counters_layout)
 
         # Add OK and Cancel buttons
         button_layout = self.gen_bottom_btns()
-        layout.addLayout(button_layout)
+
+        # Dropdown menus for selecting signs
+        self.sign1_dropdown = QComboBox()
+        self.sign2_dropdown = QComboBox()
+        dropdown_layout = self.initialize_dropdown(selected_signs)
 
         # -- finalize creating main layout
+        layout.addLayout(dropdown_layout)
+        layout.addLayout(sign_tree_and_counters_layout)
+        layout.addLayout(button_layout)
         self.setLayout(layout)
 
         # Connect expand/collapse events
