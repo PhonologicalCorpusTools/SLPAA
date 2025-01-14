@@ -7,8 +7,8 @@ from compare_signs.compare_models import CompareModel
 from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons
 
 
+# This class represents one row consisting of three counters
 class ColourCounter(QWidget):
-    # ColourCounter shows the number of colours in the tree
     def __init__(self, palette):
         super().__init__()
 
@@ -20,9 +20,9 @@ class ColourCounter(QWidget):
 
         # what we mean by each colour
         colour_mapping = [
-            ('red', 'Mismatch'),
-            ('yellow', 'No\nCorrespondence'),
-            ('blue', 'Match')
+            ('red', "Mismatch"),
+            ('yellow', "No\nCorrespondence"),
+            ('blue', "Match")
         ]
 
         # create a set of colour counters ('all expanded', 'current' and 'all collapsed')
@@ -30,7 +30,7 @@ class ColourCounter(QWidget):
 
         for colour_key, meaning in colour_mapping:
             counter_layout, count_label = self.gen_colour_counter_label(text=meaning,
-                                                                        count='999',  # just a random number
+                                                                        count="999",  # just a random number
                                                                         color=rgba_dict[colour_key])
             self.layout.addLayout(counter_layout)
             setattr(self, f'{colour_key}_counter', counter_layout)
@@ -44,7 +44,7 @@ class ColourCounter(QWidget):
 
         # label. should have background in the given colour
         label = QLabel(text)
-        label.setStyleSheet(f"background-color: {color}; color: black;")
+        label.setStyleSheet(f'background-color: {color}; color: black;')
         label.setFixedWidth(100)
         label.setAlignment(Qt.AlignLeft)
 
@@ -65,7 +65,6 @@ class ColourCounter(QWidget):
         if isinstance(label, dict):
             # updating all colours and label is given something like {'red': 4, 'yellow': 2, 'blue': 1}
             for label, count in label.items():
-                print(f'label: {label}, count: {count}')
                 self.update_counter(label=label, new_count=count)
             return
 
@@ -149,17 +148,17 @@ class CompareSignsDialog(QDialog):
         self.tree1.setHeaderLabel("Sign 1")
         self.tree2.setHeaderLabel("Sign 2")
 
-        # Gen colour counters for two signs
+        # Gen 3 x 3 colour counters for each of two signs
         sign1_counters = self.initialize_sign_counters()
         sign2_counters = self.initialize_sign_counters()
 
-        self.expanded_colour_counter_1 = sign1_counters['all expanded']
-        self.current_colour_counter_1 = sign1_counters['current']
-        self.collapsed_colour_counter_1 = sign1_counters['all collapsed']
+        self.expanded_colour_counter_1 = sign1_counters["all expanded"]
+        self.current_colour_counter_1 = sign1_counters["current"]
+        self.collapsed_colour_counter_1 = sign1_counters["all collapsed"]
 
-        self.expanded_colour_counter_2 = sign2_counters['all expanded']
-        self.current_colour_counter_2 = sign2_counters['current']
-        self.collapsed_colour_counter_2 = sign2_counters['all collapsed']
+        self.expanded_colour_counter_2 = sign2_counters["all expanded"]
+        self.current_colour_counter_2 = sign2_counters["current"]
+        self.collapsed_colour_counter_2 = sign2_counters["all collapsed"]
 
         # Vertical tree layout for signs 1 and 2 (tree, expand/collapse btns, and counters)
         sign_tree_and_counters_layout = self.initialize_signs_layout(sign1_counters, sign2_counters)
@@ -194,7 +193,7 @@ class CompareSignsDialog(QDialog):
     def initialize_sign_counters(self):
         # generate a dictionary of ColourCounters for a sign
         palette = self.palette
-        counter_kinds = ['all collapsed', 'current', 'all expanded']
+        counter_kinds = ["all collapsed", "current", "all expanded"]
         return {key: ColourCounter(palette=palette) for key in counter_kinds}
 
     def initialize_dropdown(self, selected=None):
@@ -344,10 +343,7 @@ class CompareSignsDialog(QDialog):
                     pass
 
                 # case: a tree hit the terminal. button_type node should not be visible
-                if key in {"match", "button_type"}:
-                    print(data1_btn_types)
-                    print(data2_btn_types)
-                    print(depth)
+                if key in {'match', 'button_type'}:
                     if len(data1_btn_types) != len(data2_btn_types):
 
                         # needs to decide 'which parent' should be yellow
@@ -473,7 +469,6 @@ class CompareSignsDialog(QDialog):
         self.tree1.clear()
         self.tree2.clear()
 
-        print(compare_res)
         # Populate trees hierarchically
         self.populate_trees(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
 

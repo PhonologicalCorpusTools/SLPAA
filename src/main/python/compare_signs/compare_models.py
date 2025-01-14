@@ -11,7 +11,7 @@ class CompareModel:
 
     def compare(self) -> dict:
         # list of modules to compare
-        module_attributes = [attr for attr in dir(self.sign1) if attr.endswith("modules")]
+        module_attributes = [attr for attr in dir(self.sign1) if attr.endswith('modules')]
         module_attributes = [attr for attr in module_attributes if not callable(getattr(self.sign1, attr))]
 
         result = {'sign1': {}, 'sign2': {}}
@@ -31,7 +31,6 @@ class CompareModel:
                     for k, v in mvmt_res['sign2'].items()
                 }
 
-                print(f'movement_compare:{mvmt_res}')
             elif 'location' in module:
                 #loc_res = self.compare_locations()
                 #result['location'] = loc_res
@@ -42,7 +41,6 @@ class CompareModel:
                 #result['relation'] = reln_res
                 #print(f'relation_compare:{reln_res}')
                 pass
-
             elif 'orientation' in module:
                 pass
         return result

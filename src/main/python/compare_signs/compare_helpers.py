@@ -128,10 +128,9 @@ def analyze_modules(modules: list, module_numbers: dict, module_abbrev: str):
         })
     return r
 
+
+#  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
 def get_btn_type_for_mvmtpath(path, root_node):
-    """
-    Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
-    """
     parts = path.split('>')
     btn_types = []
 
@@ -160,9 +159,9 @@ def get_btn_type_for_mvmtpath(path, root_node):
     found = traverse(root_node, parts)
 
     if found:
-        return ">".join(btn_types)
+        return '>'.join(btn_types)
     else:
-        return "Path not found"
+        return 'Path not found'
 
 
 def parse_button_type(node_data):
