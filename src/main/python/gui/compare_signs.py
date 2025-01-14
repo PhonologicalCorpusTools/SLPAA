@@ -74,12 +74,15 @@ class ColourCounter(QWidget):
             label_txt.setText(f"{new_count}")
 
 
+# This class represents one line in the compare tree
 class CompareTreeWidgetItem(QTreeWidgetItem):
-    # each line in the tree
-    def __init__(self, labels, palette):
+    def __init__(self, labels, palette, truncated_count=0):
         super().__init__(labels)
 
         self._text = self.text(0)
+
+        # number of truncated lines -- for printing out and updating the colour counters.
+        self.truncated_count = truncated_count
 
         # underlying and current background colours are unspecified by default, but may be blue red or yellow!
         self.underlying_bg = None
@@ -305,15 +308,28 @@ class CompareSignsDialog(QDialog):
                     # Same parents, different radio button children
                     if is_data1_rb and is_data2_rb:
                         item_labels = []
+                        trunc_counts = []
+
                         for k, btn_t in [(data1_keys, data1_btn_types), (data2_keys, data2_btn_types)]:
                             label = str(list(k)[0])
                             trunc_n = len(btn_t[depth + 1:])
                             if trunc_n > 0:
-                                label = f"{label} (+ {trunc_n} truncated)"
+                                label += f" (+ {trunc_n} truncated)"
                             item_labels.append(label)
+                            trunc_counts.append(trunc_n)
 
-                        item1 = CompareTreeWidgetItem(labels=[item_labels[0]], palette=self.palette)
-                        item2 = CompareTreeWidgetItem(labels=[item_labels[1]], palette=self.palette)
+                        item1 = CompareTreeWidgetItem(
+                            labels=[item_labels[0]],
+                            palette=self.palette,
+                            truncated_count=trunc_counts[0],
+                        )
+                        item2 = CompareTreeWidgetItem(
+                            labels=[item_labels[1]],
+                            palette=self.palette,
+                            truncated_count=trunc_counts[1],
+                        )
+
+
 
                         should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
                                                           should_paint_red, yellow_brush)
@@ -329,7 +345,11 @@ class CompareSignsDialog(QDialog):
 
                 # case: a tree hit the terminal. button_type node should not be visible
                 if key in {"match", "button_type"}:
+                    print(data1_btn_types)
+                    print(data2_btn_types)
+                    print(depth)
                     if len(data1_btn_types) != len(data2_btn_types):
+
                         # needs to decide 'which parent' should be yellow
                         index = 0 if value1 is not None else 1
                         should_paint_yellow[index] = True
@@ -589,14 +609,12 @@ class CompareSignsDialog(QDialog):
             getattr(self, f'{counter_type}_colour_counter_2').update_counter(
                 self.count_coloured_lines(tree=self.tree2))
 
+    # traverse the trees and count colours (called by functions for current, all collapsed and all expanded)
     def count_coloured_lines(self, tree):
-        # traverse the trees and count the number of colours (both all collapsed and all expanded)
-
-        # initialize counters
-        counts = {'red': 0, 'yellow': 0, 'blue': 0}
+        counts = {'red': 0, 'yellow': 0, 'blue': 0}  # initialize counters
 
         def walk_tree(item, tree, fully_visible=True):
-            # this conditional decides whether the current item is visible (item_visible)
+            # this conditional decides item_visible:bool (whether the current item is visible)
             if item.parent() is None:
                 # no parent means the item is the root.
                 item_visible = fully_visible
@@ -606,8 +624,12 @@ class CompareSignsDialog(QDialog):
                 item_visible = fully_visible and parent_expanded
 
             if item_visible:
+                # regular colour counting
                 bg_color = item.current_bg
                 counts[bg_color] = counts.get(bg_color, 0) + 1
+
+                # count truncated lines toward 'yellow'
+                counts['yellow'] += item.truncated_count
 
             # recursively apply walk_tree to the children
             for i in range(item.childCount()):
@@ -617,4 +639,5 @@ class CompareSignsDialog(QDialog):
         root = tree.invisibleRootItem()
         for i in range(root.childCount()):
             walk_tree(root.child(i), tree, fully_visible=True)
+
         return counts
