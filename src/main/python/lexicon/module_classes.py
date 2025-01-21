@@ -10,7 +10,7 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, TargetTypes
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, TargetTypes, HandConfigSlots
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 
@@ -2351,6 +2351,24 @@ class HandConfigurationModule(ParameterModule):
     @overalloptions.setter
     def overalloptions(self, new_overalloptions):
         self._overalloptions = new_overalloptions
+    
+    def config_tuple(self):
+        return tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
+
+    def thumb_is_unopposed(self, config_tuple):
+        if config_tuple[HandConfigSlots.THUMB_OPPOSITION] in ['L', 'U']:
+            return True
+        return False
+        
+    def finger_is_extended(self, config_tuple, extended_symbols, finger):
+        if finger == 0: # thumb
+            if not self.thumb_is_unopposed(config_tuple):
+                return False
+        if config_tuple[HandConfigSlots.MCP[finger]] in extended_symbols:
+            return True
+        return False
+
+
 
     def getabbreviation(self):
         handconfighand = HandConfigurationHand(self.handconfiguration)
