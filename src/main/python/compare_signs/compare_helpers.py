@@ -178,13 +178,13 @@ def parse_button_type(node_data):
     return []
 
 def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush):
-    # helper function that colours of children and their parents which are all CompareTreeWidgetItem objects
+    # helper function that colours children and their parents which are all CompareTreeWidgetItem objects
     # children, parents: lists of CompareTreeWidgetItem
     # should_paint_red: list.
     # yellow_brush: QBrush object to check for parent's colour
     # called only if
-    # - both item in children are radiobuttons but not identical
-    # - itentical parents
+    # - both items in children are radiobuttons but not identical
+    # - identical parents
     item1, item2 = children
     parent1, parent2 = parents
 

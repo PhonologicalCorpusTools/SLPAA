@@ -299,9 +299,8 @@ class CompareSignsDialog(QDialog):
                 data1_btn_types = parse_button_type(data1)
                 data2_btn_types = parse_button_type(data2)
 
-                """
                 # case: same parents, different children.
-                if parent1 == parent2 and key not in (data1_keys & data2_keys):
+                if parent1 == parent2 and key not in (data1_keys & data2_keys) and not parent1.is_root and not parent2.is_root:
                     try:
                         is_data1_rb = data1_btn_types[depth] == 'radio button'
                         is_data2_rb = data2_btn_types[depth] == 'radio button'
@@ -336,7 +335,6 @@ class CompareSignsDialog(QDialog):
                         should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
                                                           should_paint_red, yellow_brush)
                         return should_paint_red, should_paint_yellow
-                """
                 value1, value2 = None, None
                 try:
                     value1 = data1.get(key, None)
