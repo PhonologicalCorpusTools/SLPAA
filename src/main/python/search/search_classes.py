@@ -618,7 +618,7 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
         self.numfingers_grp.setExclusive(False)
 
         layout = QVBoxLayout()
-        group_box = QGroupBox("Number of extended fingers")
+        group_box = QGroupBox("Number of extended fingers. (Leave all unchecked for any number of extended fingers.)")
         numlayout = QHBoxLayout()
         for i in range(6):
             btn = QCheckBox(str(i))
