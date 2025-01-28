@@ -413,10 +413,24 @@ class CompareSignsDialog(QDialog):
                     should_paint_red[1] = True
                 should_paint_red = [should_paint_red[0], should_paint_red[1]]
 
+            # Check parent1's children for empty (greyed out) lines
+            for i in range(parent1.childCount()):
+                c = parent1.child(i)
+                if c.flags() == Qt.NoItemFlags:  # means c is "missing" on this side
+                    should_paint_red[0] = True
+                    break  # no need to keep checking
+
+            # ... and parent2
+            for j in range(parent2.childCount()):
+                c = parent2.child(j)
+                if c.flags() == Qt.NoItemFlags:
+                    should_paint_red[1] = True
+                    break
+
             # color of the parent node: red wins over yellow
             if should_paint_red[0]:
                 # red should not override already painted yellow
-                if parent1.background(0).color() != yellow_brush:
+                if parent1.background(0).color() != yellow_brush and not parent1.flags() == Qt.NoItemFlags:
                     parent1.initilize_bg_color('red')
             elif should_paint_yellow[0] and parent1 == parent2:
                 parent1.initilize_bg_color('red')
@@ -426,7 +440,7 @@ class CompareSignsDialog(QDialog):
                 parent1.initilize_bg_color('blue')
 
             if should_paint_red[1]:
-                if parent2.background(0).color() != yellow_brush:
+                if parent2.background(0).color() != yellow_brush and not parent2.flags() == Qt.NoItemFlags:
                     parent2.initilize_bg_color('red')
             elif should_paint_yellow[1] and parent1 == parent2:
                 parent2.initilize_bg_color('red')
