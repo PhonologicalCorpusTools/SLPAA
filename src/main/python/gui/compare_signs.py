@@ -299,10 +299,15 @@ class CompareSignsDialog(QDialog):
                 data1_btn_types = parse_button_type(data1)
                 data2_btn_types = parse_button_type(data2)
 
+                """
                 # case: same parents, different children.
                 if parent1 == parent2 and key not in (data1_keys & data2_keys):
-                    is_data1_rb = data1_btn_types[depth] == 'radio button'
-                    is_data2_rb = data2_btn_types[depth] == 'radio button'
+                    try:
+                        is_data1_rb = data1_btn_types[depth] == 'radio button'
+                        is_data2_rb = data2_btn_types[depth] == 'radio button'
+                    except IndexError:  # same parents, one does not have a child
+                        is_data1_rb = False
+                        is_data2_rb = False
 
                     # Same parents, different radio button children
                     if is_data1_rb and is_data2_rb:
@@ -313,7 +318,7 @@ class CompareSignsDialog(QDialog):
                             label = str(list(k)[0])
                             trunc_n = len(btn_t[depth + 1:])
                             if trunc_n > 0:
-                                label += f" (+ {trunc_n} truncated)"
+                                label += f" (+ {trunc_n} truncated for lack of correspondence)"
                             item_labels.append(label)
                             trunc_counts.append(trunc_n)
 
@@ -328,12 +333,10 @@ class CompareSignsDialog(QDialog):
                             truncated_count=trunc_counts[1],
                         )
 
-
-
                         should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
                                                           should_paint_red, yellow_brush)
                         return should_paint_red, should_paint_yellow
-
+                """
                 value1, value2 = None, None
                 try:
                     value1 = data1.get(key, None)

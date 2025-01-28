@@ -175,7 +175,7 @@ def parse_button_type(node_data):
             deeper = parse_button_type(v)
             if deeper:
                 return deeper
-
+    return []
 
 def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush):
     # helper function that colours of children and their parents which are all CompareTreeWidgetItem objects
