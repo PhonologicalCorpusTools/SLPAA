@@ -409,6 +409,7 @@ class SearchModel(QStandardItemModel):
         for row in rows:
             matches_this_row = []
             target_module = self.target_module(row)
+            print(sign)
             extended_symbols = ['H', 'E', 'e', 'i'] if target_module.i_extended else ['H', 'E', 'e']
             # get lists of target extended vs nonextended fingers, where thumb=0, index=1, etc
             target_extended_fingers, target_nonextended_fingers = [], [] 
@@ -425,14 +426,14 @@ class SearchModel(QStandardItemModel):
             for m in matching_modules:
                 sign_tuple = tuple(HandConfigurationHand(m.handconfiguration).get_hand_transcription_list())
                 sign_ext_fingers = [finger for finger in range(5) if m.finger_is_extended(sign_tuple, extended_symbols, finger)]
-                logging.warning(f"target ext: {target_extended_fingers}. target not ext: {target_nonextended_fingers}. sign ext: {sign_ext_fingers}")
+                # logging.warning(f"target ext: {target_extended_fingers}. target not ext: {target_nonextended_fingers}. sign ext: {sign_ext_fingers}")
 
 
                 if ((len(sign_ext_fingers) in target_extended_numbers or target_extended_numbers == [])  # TODO
                     and all(finger in sign_ext_fingers for finger in target_extended_fingers)
                     and all(finger not in sign_ext_fingers for finger in target_nonextended_fingers)):
                     matches_this_row.append(m)
-                    logging.warning("this module matches.")
+                    # logging.warning("this module matches.")
             
             if len(matches_this_row) == 0:
                 return False
