@@ -77,6 +77,43 @@ tip = "Tip"
 dorsum = "Dorsum"
 blade = "Blade"
 
+
+
+SURFACE_SUBAREA_ABBREVS = {
+    anterior: '[ant]',
+    posterior: '[post]',
+    lateral: '[lat]',
+    medial: '[med]',
+    top: '[top]',
+    bottom: '[bottom]',
+    contra_half: '[contra]',
+    upper_half: '[upper]',
+    whole: '[whole]',
+    centre: '[centre]',
+    lower_half: '[lower]',
+    ipsi_half: '[ipsi]',
+    finger_side: '[finger side]',
+    wrist_side: '[wrist side]',
+    ulnar_side: '[ulnar side]',
+    radial_side: '[radial side]',
+    back: '[b]',
+    friction: '[fr]',
+    radial: '[r]',
+    ulnar: '[u]',
+    tip: '[t]',
+    front_half: '[ant]',
+    back_half: '[post]',
+    dorsum: '[dors]',
+    blade: '[blade]',
+    metacarpophalangeal_joint: '[MCP]',
+    proximal_interphalangeal_joint: '[PIP]',
+    distal_interphalangeal_joint: '[DIP]',
+    proximal_bone: '[p]',
+    medial_bone: '[m]',
+    distal_bone: '[d]'
+
+}
+
 hand_surfaces = "default hand surfaces" # [back, friction, radial, ulnar]
 nonhand_surfaces = "default nonhand surfaces" # [anterior, posterior, lateral, medial, top, bottom]
 nonhand_surfaces_2 = "default except top, bottom" # [anterior, posterior, lateral, medial]
@@ -739,7 +776,13 @@ class LocationTreeModel(QStandardItemModel):
     def nodes_are_terminal(self, terminal):
         self._nodes_are_terminal = terminal    
 
-    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True):
+    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True, include_details=False):
+        ''' Returns a list of strings denoting paths
+            If include_details, returns a list of dicts: 
+            'path' = path,
+            'abbrev' = abbrev,
+            'details' = detailstable
+            '''
         checked_values = []
         for row in range(self.rowCount(parent_index)):
             index = self.index(row, 0, parent_index)
@@ -748,10 +791,17 @@ class LocationTreeModel(QStandardItemModel):
             else:
                 checkstate_to_match = Qt.PartiallyChecked # 1
             if index.data(Qt.CheckStateRole) >= checkstate_to_match:
-                checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
-            
-            checked_values.extend(self.get_checked_items(index, only_fully_checked))
+                path = index.data(Qt.UserRole+udr.pathdisplayrole)
+                if include_details:
+                    checked_values.append({
+                        'path': path,
+                        'abbrev': index.data(Qt.UserRole+udr.pathabbrevrole),
+                        'details': self.itemFromIndex(index).detailstable})
+                else:
+                    checked_values.append(path)
+            checked_values.extend(self.get_checked_items(index, only_fully_checked, include_details))
         return checked_values
+    
     
     
     def updateCheckState(self, item):
@@ -793,6 +843,7 @@ class LocationTreeModel(QStandardItemModel):
                 ishandloc = child.location
                 surfaces = child.surfaces
                 subareas = child.subareas
+                abbrev = child.tooltip
 
                 if label == subgroup:
                     # make the tree items in the subgroup and whatever nested structure they have
@@ -806,6 +857,7 @@ class LocationTreeModel(QStandardItemModel):
                 else:
                     thistreenode = LocationTreeItem(label, mutuallyexclusive=ismutuallyexclusive, ishandloc=ishandloc, surfaces=surfaces, subareas=subareas)
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole+udr.pathdisplayrole)
+                    thistreenode.setData(abbrev, role=Qt.UserRole+udr.pathabbrevrole)
                     thistreenode.setEditable(iseditable)
                     thistreenode.setCheckState(Qt.Unchecked)
                     if issubgroup:
@@ -1035,6 +1087,15 @@ class LocationTableModel(QAbstractTableModel):
             return str(section + 1)
 
         return None
+    
+    def get_checked_values(self):
+        details_dict = {key: [] for key in self.col_labels}
+        for i, detail in enumerate(self.col_labels):
+            for surface, checked in self.col_contents[i]:
+                if checked: # if the surface or subarea is checked
+                    details_dict[detail].append(surface)
+        return details_dict
+
 
     def __repr__(self):
         return '<LocationTableModel: ' + repr(self.col_labels) + ' / ' + repr(self.col_contents) + '>'
