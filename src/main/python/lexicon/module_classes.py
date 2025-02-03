@@ -10,9 +10,15 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
+def get_path_lowest_node(path):
+    '''Return the lowest node of a path. 
+        e.g. 'Whole hand>Finger 1' returns 'Finger 1'
+            'Whole hand' returns 'Whole hand'
+    '''
+    return path.split(treepathdelimiter)[-1]
 
 # Resetting a module's uniqueid can come so quickly on the heels of another
 #   (e.g. if copy/pasting several modules that aren't treemodel-based)
@@ -109,6 +115,27 @@ class ParameterModule:
     @timingintervals.setter
     def timingintervals(self, timingintervals):
         self._timingintervals = [t for t in timingintervals]
+
+    def get_art_abbrev(self): # articulator abbreviation
+        print(f"arts: {self.articulators}")
+        todisplay = ""
+        k = self.articulators[0] # hand, arm, or leg
+        if self.articulators[1][1] and not self.articulators[1][2]:
+            todisplay = k + " " + str(1)
+        elif self.articulators[1][2] and not self.articulators[1][1]:
+            todisplay = k + " " + str(2)
+        # elif self.articulators[1][1] and self.articulators[1][2]:
+            
+        #     todisplay = "Both " + k.lower() + "s"
+        #     if self.inphase == 1:
+        #         todisplay += " in phase"
+        #     elif self.inphase == 2:
+        #         todisplay += " out of phase"
+        #     elif self.inphase == 3:
+        #         todisplay += " connected"
+        #     elif self.inphase == 4:
+        #         todisplay += " connected, in phase"
+        return todisplay
 
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
@@ -1289,16 +1316,18 @@ class RelationX:
     def displaystr(self):
         relX_str = ""
         if self.connected:
-            relX_str = "X: both connected"
+            relX_str = "both hands connected"
+        elif self.both:
+            relX_str = "both hands"
         elif self.other:
-            relX_str = "X: other"
+            relX_str = "other"
             if len(self.othertext) > 0:
                 relX_str += " (" + self.othertext + ")"
         else:
             rel_dict = self.__dict__
             for attr in rel_dict:
                 if rel_dict[attr]:
-                    relX_str = "X: " + attr[1:] # attributes are prepended with _
+                    relX_str = attr[1:] # attributes are prepended with _
                     break
         return relX_str
 
@@ -1483,21 +1512,22 @@ class RelationY:
     def displaystr(self):
         relY_str = ""
         if self.existingmodule:
-            relY_str = "Y: existing module"
+            # print(self.linkedmoduleids)
+            relY_str = "existing module"
             if self.linkedmoduletype is not None:
                 if self.linkedmoduletype == ModuleTypes.MOVEMENT:
                     relY_str += " (mvmt)"
                 else:
                     relY_str += " (locn)"
         elif self.other: 
-            relY_str = "Y: other"
+            relY_str = "other"
             if len(self.othertext) > 0:
                 relY_str += " (" + self.othertext + ")"
         else:
             rel_dict = self.__dict__
             for attr in "_h2", "_arm2", "_leg1", "_leg2":
                 if rel_dict[attr]:
-                    relY_str = "Y: " + attr[1:] # attributes are prepended with _
+                    relY_str = attr[1:] # attributes are prepended with _
                     break    
         return relY_str
 
@@ -1704,9 +1734,10 @@ class RelationModule(ParameterModule):
         paths = {}
         arts, nums = self.get_articulators_in_use()
         for i in range(len(arts)):
+            label = arts[i] if arts[i] != 'Hand' else 'H'
             bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
             treemodel = bodypartinfo.bodyparttreemodel
-            paths.update({arts[i]: treemodel.get_checked_items()})
+            paths.update({label + str(i+1) : treemodel.get_checked_items(include_details=True)})
         return paths
 
     def has_any_distance(self):
@@ -1780,9 +1811,41 @@ class RelationModule(ParameterModule):
         }
 
     def getabbreviation(self):
-        # TODO implement
-        return "Relation abbreviations not yet implemented"
+        X_str, Y_str = '', ''
+        
+        # returns a dict. Keys are articulators: H1, H2, Arm1, Arm2, Leg1, Leg2. 
+        # Values are lists of dicts {'path' = path, 'abbrev' = abbrev,'details' = detailstable}
+        paths = self.get_paths() 
 
+        X_art = self.relationx.displaystr().capitalize()
+        if X_art == 'Both hands':
+            X_str += f'{X_art}: '
+            X_str += ', '.join([self.get_path_abbrev(paths, a) for a in ['H1', 'H2']])
+        elif X_art == 'Both hands connected':
+            X_str += f'{X_art}: {self.get_path_abbrev(paths, "H1")}'
+        elif X_art.startswith('Other'):
+            X_str += X_art
+        else:
+            X_str += self.get_path_abbrev(paths, X_art)
+
+        if self.relationy.existingmodule:
+            # TODO
+            Y_str = "existing module"
+        else:
+            Y_art = self.relationy.displaystr().capitalize()
+            Y_str = self.get_path_abbrev(paths, Y_art)
+
+        return f"X = {X_str}, Y = {Y_str}"
+
+    def get_path_abbrev(self, paths, art): # abbreviation for paths and details tables
+        path_strings = []
+        for path in paths[art]:
+            path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
+            details_dict = path['details'].get_checked_values()
+            for val in details_dict.values(): # list of surfaces, list of subareas/handjoints
+                path_str += f'[{", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
+            path_strings.append(path_str)
+        return f'{art}[{", ".join(path_strings)}]'
 
 class MannerRelation:
     def __init__(self, holding=False, continuous=False, intermittent=False, any=False):
