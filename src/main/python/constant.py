@@ -38,7 +38,7 @@ from lexicon.predefined_handshape import (
 
 # system info
 FROZEN = hasattr(sys, 'frozen')
-VERSION = (0, 0, 0)  # (major, minor, patch)
+VERSION = (0, 1, 0)  # (major, minor, patch)
 
 # symbols
 X_IN_BOX = '\u2327'
