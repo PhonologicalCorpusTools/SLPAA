@@ -1,6 +1,7 @@
 # helper functions for compare signs
 from collections import defaultdict
-from constant import ARTICULATOR_ABBREVS
+from constant import ARTICULATOR_ABBREVS, userdefinedroles as udr
+from PyQt5.QtCore import Qt
 
 
 def summarize_path_comparison(ld):
@@ -129,6 +130,21 @@ def analyze_modules(modules: list, module_numbers: dict, module_abbrev: str):
     return r
 
 
+def get_checked_paths_from_list(mvmt_module):
+    # Each MovementModule has a .movementtreemodel, which in turn has a .listmodel
+    list_model = mvmt_module.movementtreemodel.listmodel
+
+    selected_paths = []
+    for row in range(list_model.rowCount()):
+        item = list_model.item(row)
+        if item:
+            is_selected = item.data(Qt.UserRole + udr.selectedrole)  # True if checked in the tree
+            if is_selected:
+                # item.text() is something like "Movement type>Perceptual shape>Shape>Other [this shape]"
+                selected_paths.append(item.text())
+    return selected_paths
+
+
 #  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
 def get_btn_type_for_mvmtpath(path, root_node):
     parts = path.split('>')
@@ -137,7 +153,8 @@ def get_btn_type_for_mvmtpath(path, root_node):
     def traverse(node, path_parts):
         if not path_parts:
             return True  # Reached the end successfully
-        part = path_parts[0]
+        # .partition splits at the ' [' juncture, effectively removing any '[....]' part i.e., user's lineEdit input
+        part = path_parts[0].partition(' [')[0]
 
         # First, check if the current node's children have the desired part
         matching_child = None

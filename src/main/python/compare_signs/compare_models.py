@@ -2,13 +2,14 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
                                            compare_elements, summarize_path_comparison,
-                                           get_btn_type_for_mvmtpath)
+                                           get_btn_type_for_mvmtpath, get_checked_paths_from_list)
 
 class CompareModel:
     def __init__(self, sign1, sign2):
         self.sign1 = sign1
         self.sign2 = sign2
 
+    # this is the main compare function that dispatches each module comparison!
     def compare(self) -> dict:
         # list of modules to compare
         module_attributes = [attr for attr in dir(self.sign1) if attr.endswith('modules')]
@@ -80,8 +81,13 @@ class CompareModel:
             #    r_sign2['articulator'] = True
 
             # path comparison
+            s1path = get_checked_paths_from_list(pair[0])
+            s2path = get_checked_paths_from_list(pair[1])
+
+            """ old version
             s1path = pair[0].movementtreemodel.get_checked_items()
             s2path = pair[1].movementtreemodel.get_checked_items()
+            """
 
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
