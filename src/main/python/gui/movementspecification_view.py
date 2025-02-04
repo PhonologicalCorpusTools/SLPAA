@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QComboBox,
     QLabel,
-    QCompleter,
     QAbstractItemView,
     QStyledItemDelegate,
     QStyle,
@@ -24,9 +23,11 @@ from PyQt5.QtCore import (
 )
 
 from lexicon.module_classes import MovementModule
-from models.movement_models import MovementTreeModel, MovementPathsProxyModel, MovementTreeItem
+from models.movement_models import MovementTreeModel, MovementTreeItem
+from models.shared_models import TreePathsProxyModel
 from serialization_classes import MovementTreeSerializable
-from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
+from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, TreeListView, \
+    TreePathsListItemDelegate, TreeSearchComboBox
 from constant import HAND, userdefinedroles as udr
 
 
@@ -82,7 +83,7 @@ class MvmtTreeItemDelegate(QStyledItemDelegate):
             style = widget.style() if widget else QApplication.style()
             opt = QStyleOptionViewItem(option)
             self.initStyleOption(opt, index)  
-            opt.features &= ~QStyleOptionViewItem.HasCheckIndicator # Turn off HasCheckIndicator
+            opt.features &= ~QStyleOptionViewItem.HasCheckIndicator  # Turn off HasCheckIndicator
             style.drawControl(QStyle.CE_ItemViewItem, opt, painter, widget)
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
@@ -111,10 +112,10 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
 
         self.listmodel = self.treemodel.listmodel
 
-        self.comboproxymodel = MovementPathsProxyModel(wantselected=False)
+        self.comboproxymodel = TreePathsProxyModel(wantselected=False)
         self.comboproxymodel.setSourceModel(self.listmodel)
 
-        self.listproxymodel = MovementPathsProxyModel(wantselected=True)
+        self.listproxymodel = TreePathsProxyModel(wantselected=True)
         self.listproxymodel.setSourceModel(self.listmodel)
 
         # create layout with combobox for searching movement items
@@ -142,13 +143,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
-        self.combobox.setEditable(True)
-        self.combobox.setInsertPolicy(QComboBox.NoInsert)
-        self.combobox.setFocusPolicy(Qt.StrongFocus)
         self.combobox.setEnabled(True)
-        self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
-        self.combobox.completer().setFilterMode(Qt.MatchContains)
-        self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
         self.combobox.item_selected.connect(self.selectlistitem)
         search_layout.addWidget(self.combobox)
 
@@ -280,8 +275,6 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         self.pathslistview.setModel(self.listproxymodel)
 
         self.sortcombo.setCurrentIndex(0)  # change 'sort by' option to the first item of the list.
-
-        # self.combobox.clear()
 
     def clearlist(self, button):
         numtoplevelitems = self.treemodel.invisibleRootItem().rowCount()

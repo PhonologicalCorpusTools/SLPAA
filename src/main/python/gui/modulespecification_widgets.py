@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QLabel,
     QComboBox,
+    QCompleter,
     QListView,
     QStyledItemDelegate,
     QSpacerItem,
@@ -412,30 +413,31 @@ class TreeSearchComboBox(QComboBox):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.setEditable(True)
+        self.setInsertPolicy(QComboBox.NoInsert)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.completer().setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer().setFilterMode(Qt.MatchContains)
+        self.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.textActivated.connect(self.on_textactivated)
 
-    def keyPressEvent(self, event):
-        key = event.key()
-
-        if key == Qt.Key_Right:
-
-            if self.currentText():
-                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
-                                                   self.currentText(),
-                                                   delim=treepathdelimiter)
-                if itemstoselect:
-                    for item in itemstoselect:
-                        if item.checkState() == Qt.Unchecked:
-                            item.setCheckState(Qt.PartiallyChecked)
-                    targetitem = itemstoselect[-1]
-                    if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
-                        targetitem.setCheckState(Qt.Checked)
-                        self.item_selected.emit(targetitem)
-                        self.setCurrentIndex(-1)
-
-        super().keyPressEvent(event)
+    def on_textactivated(self, activatedtext):
+        if activatedtext:
+            itemstoselect = gettreeitemsinpath(self.parent().treemodel,
+                                               activatedtext,
+                                               treepathdelimiter)
+            if itemstoselect:
+                for item in itemstoselect:
+                    if item.checkState() == Qt.Unchecked:
+                        item.setCheckState(Qt.PartiallyChecked)
+                targetitem = itemstoselect[-1]
+                if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
+                    targetitem.setCheckState(Qt.Checked)
+                    self.item_selected.emit(targetitem)
+                    self.setCurrentIndex(-1)
 
 
-def gettreeitemsinpath(treemodel, pathstring, delim="/"):
+def gettreeitemsinpath(treemodel, pathstring, delim):
     pathlist = pathstring.split(delim)
     pathitemslists = []
     for level in pathlist:
