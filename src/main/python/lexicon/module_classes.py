@@ -117,7 +117,6 @@ class ParameterModule:
         self._timingintervals = [t for t in timingintervals]
 
     def get_art_abbrev(self): # articulator abbreviation
-        print(f"arts: {self.articulators}")
         todisplay = ""
         k = self.articulators[0] # hand, arm, or leg
         if self.articulators[1][1] and not self.articulators[1][2]:
@@ -1661,6 +1660,9 @@ class RelationModule(ParameterModule):
             for n in bodyparts_dict[bodypart].keys():
                 self._bodyparts_dict[bodypart][n] = bodyparts_dict[bodypart][n] or BodypartInfo(bodyparttype=bodypart, bodyparttreemodel=None)
         self._contactrel = contactrel or ContactRelation()
+        # backwards compatibility for generic distance axis (issue 387)
+        if len(self._contactrel.distances) == 3:
+            self._contactrel.distances.append(Distance(axis=Direction.GENERIC))
         self._xy_crossed = xy_crossed
         self._xy_linked = xy_linked
         self._directions = directionslist or [
@@ -1737,7 +1739,8 @@ class RelationModule(ParameterModule):
             label = arts[i] if arts[i] != 'Hand' else 'H'
             bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
             treemodel = bodypartinfo.bodyparttreemodel
-            paths.update({label + str(i+1) : treemodel.get_checked_items(include_details=True)})
+            paths.update({label + str(nums[i]) : treemodel.get_checked_items(include_details=True)})
+        
         return paths
 
     def has_any_distance(self):
@@ -1750,6 +1753,11 @@ class RelationModule(ParameterModule):
     def has_any_direction(self): # returns true if anything in direction is selected, including axis checkboxes or crossed/linked
         if self.xy_crossed or self.xy_linked:
             return True
+        if self.has_any_direction_axis():
+            return True
+        return False
+
+    def has_any_direction_axis(self): # returns true if any direction checkbox is selected
         for i in range(3):
             dir = self.directions[i]
             if dir.axisselected:
@@ -1810,6 +1818,7 @@ class RelationModule(ParameterModule):
             2: self.relationx.leg2 or self.relationy.leg2
         }
 
+    # relation abbreviation
     def getabbreviation(self):
         X_str, Y_str = '', ''
         
@@ -1818,11 +1827,9 @@ class RelationModule(ParameterModule):
         paths = self.get_paths() 
 
         X_art = self.relationx.displaystr().capitalize()
-        if X_art == 'Both hands':
+        if X_art in ['Both hands', 'Both hands connected']:
             X_str += f'{X_art}: '
             X_str += ', '.join([self.get_path_abbrev(paths, a) for a in ['H1', 'H2']])
-        elif X_art == 'Both hands connected':
-            X_str += f'{X_art}: {self.get_path_abbrev(paths, "H1")}'
         elif X_art.startswith('Other'):
             X_str += X_art
         else:
@@ -1830,12 +1837,65 @@ class RelationModule(ParameterModule):
 
         if self.relationy.existingmodule:
             # TODO
-            Y_str = "existing module"
+            Y_str = f'linked {self.relationy.linkedmoduletype} module'
         else:
             Y_art = self.relationy.displaystr().capitalize()
+
             Y_str = self.get_path_abbrev(paths, Y_art)
 
-        return f"X = {X_str}, Y = {Y_str}"
+        X_str = "X = " + X_str
+        Y_str = "Y = " + Y_str
+
+        contact, link_cross_label, relative_label = "", "", ""
+        if self.contactrel.contact == False: # if None, then no contact has been specified.
+            contact = "No contact"
+        elif self.contactrel.contact:
+            contacttype, contactmanner = "", ""
+            # contact type
+            if self.contactrel.has_contacttype:
+                if self.contactrel.contacttype.light:
+                    contacttype += "light"
+                elif self.contactrel.contacttype.firm:
+                    contacttype += "firm"
+                elif self.contactrel.contacttype.other:
+                    contacttype += "other"
+                    if len(self.contactrel.contacttype.othertext) > 0:
+                        contacttype += f" ({self.contactrel.contacttype.othertext})"
+            # contact manner
+            if self.contactrel.has_manner:
+                if self.contactrel.manner.holding:
+                    contactmanner += "holding"
+                elif self.contactrel.manner.continuous:
+                    contactmanner += "continuous"
+                elif self.contactrel.manner.intermittent:
+                    contactmanner += "intermittent"
+            # create full contact, manner, type string
+            to_append = f" ({'; '.join(filter(None, [contacttype, contactmanner]))})" if contacttype or contactmanner else ""
+            contact = "Contact" + to_append
+
+        if self.xy_linked or self.xy_crossed:
+            linked = "linked" if self.xy_linked else ""
+            crossed = "crossed" if self.xy_crossed else ""
+            link_cross_label += f"X/Y {', '.join(filter(None, [linked, crossed]))}"
+
+        # direction
+        if self.has_any_direction_axis() or self.has_any_distance():
+            to_append = []
+            for i, label in enumerate(["Hor", "Ver", "Sag"]):
+                dir_abbrev = self.directions[i].getabbreviation()
+                dir_abbrev = f"[{dir_abbrev}]" if dir_abbrev else ""
+                dist_abbrev = self.contactrel.distances[i].getabbreviation()
+                dist_abbrev = f"[{dist_abbrev}]" if dist_abbrev else ""
+                if dir_abbrev or dist_abbrev:
+                    to_append.append(f"{label} {''.join(filter(None, [dir_abbrev, dist_abbrev]))}")
+            # if a generic distance is specified
+            generic_dist_label = f"Gen [{self.contactrel.distances[3].getabbreviation()}]" if self.contactrel.distances[3].getabbreviation() else ""
+            to_append.append(generic_dist_label)
+            relative_label += f"X is {', '.join(filter(None, to_append))} to Y"
+        
+        print("; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label])))
+        return "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))
+    
 
     def get_path_abbrev(self, paths, art): # abbreviation for paths and details tables
         path_strings = []
@@ -1915,7 +1975,7 @@ class MannerRelation:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = False
+            self._any = self._holding or self._continuous or self._intermittent
         return self._any
 
     @any.setter
@@ -1934,6 +1994,8 @@ class ContactRelation:
             Distance(Direction.SAGITTAL),
             Distance(Direction.GENERIC)
         ]
+        if len(self._distances) == 3:
+            self._distances.append(Distance(Direction.GENERIC))
 
     def __eq__(self, other):
         if isinstance(other, ContactRelation):
@@ -2085,7 +2147,7 @@ class ContactType:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = False
+            self._any = self._light or self._firm or self._other
         return self._any
 
     @any.setter
@@ -2208,6 +2270,17 @@ class Direction:
         if isinline:
             self._plus = False
             self._minus = False
+    
+    def getabbreviation(self):
+        # returns the abbreviated label of the selected direction depending on this Direction's axis
+        if self.axis == Direction.HORIZONTAL:
+            return "ipsi" if self.plus else "contra" if self.minus else "in line" if self.inline else ""
+        elif self.axis == Direction.VERTICAL:
+            return "above" if self.plus else "below" if self.minus else "in line" if self.inline else ""
+        elif self.axis == Direction.SAGITTAL:
+            return "dist" if self.plus else "prox" if self.minus else "in line" if self.inline else ""
+
+
 
 
 # This class is used by the Relation Module to track the axis on which to measure the relation between
@@ -2281,7 +2354,7 @@ class Distance:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = False
+            self._any = self._far or self._close or self._medium
         return self._any
 
     @any.setter
@@ -2300,6 +2373,10 @@ class Distance:
             repr_str += " unselected"
 
         return '<Distance: ' + repr(repr_str) + '>'
+
+    def getabbreviation(self):
+        # returns the abbreviated label of the selected distance 
+        return "close" if self.close else "med" if self.medium else "far" if self.far else "" 
 
 
 # This module stores the absolute orientation of a particular hand/s.
