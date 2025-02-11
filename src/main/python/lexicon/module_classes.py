@@ -2166,8 +2166,8 @@ class Direction:
     def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False, any=False):
         self._axis = axis
         self._axisselected = axisselected
-        self._plus = plus  # ipsi for horizontal, above for vertical, distal for sagittal
-        self._minus = minus  # contra for horizontal, below for vertical, proximal for sagittal
+        self._plus = plus  # ipsi for horizontal, above for vertical, proximal for sagittal
+        self._minus = minus  # contra for horizontal, below for vertical, distal for sagittal
         self._inline = inline  # in line with (for all axes)
         self._any = any # Used by search targets to match any direction selection (crossed / linked / hor / ver / sag)
 
@@ -2191,8 +2191,8 @@ class Direction:
             plus_label = "above"
             minus_label = "below"
         elif self._axis == Direction.SAGITTAL:
-            plus_label = "distal"
-            minus_label = "proximal"
+            plus_label = "proximal"
+            minus_label = "distal"
 
         repr_str = self._axis
         if self._axisselected:
@@ -2278,7 +2278,7 @@ class Direction:
         elif self.axis == Direction.VERTICAL:
             return "above" if self.plus else "below" if self.minus else "in line" if self.inline else ""
         elif self.axis == Direction.SAGITTAL:
-            return "dist" if self.plus else "prox" if self.minus else "in line" if self.inline else ""
+            return "prox" if self.plus else "dist" if self.minus else "in line" if self.inline else ""
 
 
 
