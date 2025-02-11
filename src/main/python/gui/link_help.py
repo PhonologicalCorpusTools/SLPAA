@@ -25,9 +25,8 @@ help_map = {
 }
 
 
+# Open the relevant readthedocs page on a web browser. Called when clicking a 'help' btn.
 def show_help(functionality: str) -> None:
-    # activate when the user clicks 'help' btn. launch the web browser and open a relevant readthedocs page
-
     # special case: help > about is the exception. instead of readthedocs, show github repo
     if functionality == 'about':
         webbrowser.open('https://github.com/PhonologicalCorpusTools/SLPAA?tab=readme-ov-file#readme')
@@ -35,7 +34,9 @@ def show_help(functionality: str) -> None:
 
     # in other cases, open readthedocs
     base_url = 'https://slp-aa.readthedocs.io/en/'
-    version = 'latest/' if not FROZEN else "v{}.{}.{}/".format(*VERSION)
+    # version = 'latest/' if not FROZEN else "v{}.{}.{}/".format(*VERSION)
+    # make sure to uncomment the above (and delete the below) if (i) releasing and (ii) readthedocs is done
+    version = 'latest/'  # temporarily disable directing to a frozen version help page
 
     if functionality not in help_map:
         # do not have an individual readthedocs page. land on the main page
