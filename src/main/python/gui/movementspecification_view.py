@@ -234,12 +234,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         #     # return true here to bypass default behaviour
         # return super().eventFilter(source, event)
 
-        if event.type() == QEvent.KeyPress:
-            key = event.key()
-            if key == Qt.Key_Enter:
-                print("enter pressed")
-            # TODO KV return true??
-        elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
+        if event.type() == QEvent.ContextMenu and source == self.pathslistview:
             proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
             # proxyindex = self.pathslistview.selectedIndexes()[0]
             listindex = proxyindex.model().mapToSource(proxyindex)

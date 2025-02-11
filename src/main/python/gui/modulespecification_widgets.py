@@ -408,11 +408,18 @@ class StatusDisplay(QTextEdit):
         separator = "" if curtext == "" else ("\n" if joinwithnewline else (" " if joinwithspace else ""))
         self.setPlainText(curtext + separator + texttoappend)
 
+
 class TreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(QStandardItem)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.refresh_userinput()
+
+    def refresh_userinput(self):
+        # It seems silly to do this every time an item is selected, but it's the only way I could
+        # figure out getting the user-entered text to clear after selecting a list item
+        self.setEditable(False)
         self.setEditable(True)
         self.setInsertPolicy(QComboBox.NoInsert)
         self.setFocusPolicy(Qt.StrongFocus)
@@ -420,6 +427,8 @@ class TreeSearchComboBox(QComboBox):
         self.completer().setFilterMode(Qt.MatchContains)
         self.completer().setCompletionMode(QCompleter.PopupCompletion)
         self.textActivated.connect(self.on_textactivated)
+        # this does need to happen both here AND in the class where the combobox is initially created
+        self.setCurrentIndex(-1)
 
     def on_textactivated(self, activatedtext):
         if activatedtext:
@@ -427,14 +436,17 @@ class TreeSearchComboBox(QComboBox):
                                                activatedtext,
                                                treepathdelimiter)
             if itemstoselect:
-                for item in itemstoselect:
-                    if item.checkState() == Qt.Unchecked:
-                        item.setCheckState(Qt.PartiallyChecked)
                 targetitem = itemstoselect[-1]
                 if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
+                    # as long as the target is selectable, ensure that it's fully checked
+                    # and that its ancestors are (at least) partially checked
                     targetitem.setCheckState(Qt.Checked)
+                    for item in itemstoselect:
+                        if item.checkState() == Qt.Unchecked:
+                            item.setCheckState(Qt.PartiallyChecked)
                     self.item_selected.emit(targetitem)
-                    self.setCurrentIndex(-1)
+                # either way, clear the combobox text
+                self.refresh_userinput()
 
 
 def gettreeitemsinpath(treemodel, pathstring, delim):
