@@ -1893,7 +1893,6 @@ class RelationModule(ParameterModule):
             to_append.append(generic_dist_label)
             relative_label += f"X is {', '.join(filter(None, to_append))} to Y"
         
-        print("; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label])))
         return "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))
     
 
