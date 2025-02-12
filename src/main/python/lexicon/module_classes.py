@@ -1840,8 +1840,12 @@ class RelationModule(ParameterModule):
             Y_str = f'linked {self.relationy.linkedmoduletype} module'
         else:
             Y_art = self.relationy.displaystr().capitalize()
+            if Y_art.startswith('Other'):
+                Y_str += Y_art
+            else:
+                Y_art = self.relationy.displaystr().capitalize()
 
-            Y_str = self.get_path_abbrev(paths, Y_art)
+                Y_str = self.get_path_abbrev(paths, Y_art)
 
         X_str = "X = " + X_str
         Y_str = "Y = " + Y_str
