@@ -182,7 +182,6 @@ class LocationOptionsSelectionPanel(QFrame):
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
-        self.combobox.setEnabled(False)
         self.combobox.item_selected.connect(self.selectlistitem)
         search_layout.addWidget(self.combobox)
 
