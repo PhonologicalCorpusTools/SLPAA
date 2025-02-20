@@ -16,6 +16,7 @@ import logging
 
 from lexicon.module_classes import LocationType, AddedInfo
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
+from models.shared_models import TreePathsProxyModel
 from constant import HAND, ARM, LEG, CONTRA, IPSI, userdefinedroles as udr, treepathdelimiter
 
 
@@ -801,9 +802,7 @@ class LocationTreeModel(QStandardItemModel):
                     checked_values.append(path)
             checked_values.extend(self.get_checked_items(index, only_fully_checked, include_details))
         return checked_values
-    
-    
-    
+
     def updateCheckState(self, item):
         thestate = item.checkState()
         if thestate == Qt.Checked:
@@ -1137,38 +1136,6 @@ class LocationListItem(QStandardItem):
     def selectpath(self):
         self.treeitem.check(fully=True)
 
-
-class LocationPathsProxyModel(QSortFilterProxyModel):
-
-    def __init__(self, parent=None, wantselected=None):
-        super(LocationPathsProxyModel, self).__init__(parent)
-        self.wantselected = wantselected
-        self.setSortCaseSensitivity(Qt.CaseInsensitive)
-
-    def filterAcceptsRow(self, source_row, source_parent):
-        if self.wantselected is None:
-            source_index = self.sourceModel().index(source_row, 0, source_parent)
-            text = self.sourceModel().index(source_row, 0, source_parent).data()
-            return True
-        else:
-            source_index = self.sourceModel().index(source_row, 0, source_parent)
-            isselected = source_index.data(role=Qt.UserRole+udr.selectedrole)
-            path = source_index.data(role=Qt.UserRole+udr.pathdisplayrole)
-            text = self.sourceModel().index(source_row, 0, source_parent).data()
-            return self.wantselected == isselected
-
-    def updatesorttype(self, sortbytext=""):
-        if "alpha" in sortbytext and "path" in sortbytext:
-            self.setSortRole(Qt.DisplayRole)
-            self.sort(0)
-        elif "alpha" in sortbytext and "node" in sortbytext:
-            self.setSortRole(Qt.UserRole+udr.nodedisplayrole)
-            self.sort(0)
-        elif "tree" in sortbytext:
-            self.sort(-1)  # returns to sort order of underlying model
-        elif "select" in sortbytext:
-            self.setSortRole(Qt.UserRole+udr.timestamprole)
-            self.sort(0)
 
 class LocationTreeItem(QStandardItem):
 
