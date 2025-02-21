@@ -567,20 +567,24 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     # enable the button for selecting handparts iff there is at least one hand selected in either X or Y
     def check_enable_handpartbutton(self):
-        h1_selected = self.x_h1_radio.isChecked() or self.x_both_radio.isChecked()
-        h2_selected = self.x_h2_radio.isChecked() or self.x_both_radio.isChecked() or self.y_h2_radio.isChecked()
+        h1_selected = self.x_h1_radio.isChecked() or self.x_hboth_radio.isChecked()
+        h2_selected = self.x_h2_radio.isChecked() or self.x_hboth_radio.isChecked() or self.y_h2_radio.isChecked()
         self.handpart_button.setEnabled(h1_selected or h2_selected)
 
     # enable the button for selecting armparts iff there is at least one arm selected in either X or Y
     def check_enable_armpartbutton(self):
-        a1_selected = self.x_a1_radio.isChecked()
-        a2_selected = self.x_a2_radio.isChecked() or self.y_a2_radio.isChecked()
+        a1_selected = self.x_a1_radio.isChecked() or self.x_aboth_radio.isChecked() or \
+                      self.y_a1_radio.isChecked() or self.y_aboth_radio.isChecked()
+        a2_selected = self.x_a2_radio.isChecked() or self.x_aboth_radio.isChecked() or \
+                      self.y_a2_radio.isChecked() or self.y_aboth_radio.isChecked()
         self.armpart_button.setEnabled(a1_selected or a2_selected)
 
     # enable the button for selecting legparts iff there is at least one leg selected in either X or Y
     def check_enable_legpartbutton(self):
-        l1_selected = self.x_l1_radio.isChecked() or self.y_l1_radio.isChecked()
-        l2_selected = self.x_l2_radio.isChecked() or self.y_l2_radio.isChecked()
+        l1_selected = self.x_l1_radio.isChecked() or self.x_lboth_radio.isChecked() or \
+                      self.y_l1_radio.isChecked() or self.y_lboth_radio.isChecked()
+        l2_selected = self.x_l2_radio.isChecked() or self.x_lboth_radio.isChecked() or \
+                      self.y_l2_radio.isChecked() or self.y_lboth_radio.isChecked()
         self.legpart_button.setEnabled(l1_selected or l2_selected)
 
     # prepare labels and open the dialog to select the handpart(s) involved in the relation
@@ -592,7 +596,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             h1label = "X"
         elif self.x_h2_radio.isChecked():
             h2label = "X"
-        elif self.x_both_radio.isChecked():
+        elif self.x_hboth_radio.isChecked():
             h1label = "part of X"
             h2label = "part of X"
         if self.y_h2_radio.isChecked():
@@ -610,8 +614,16 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             a1label = "X"
         elif self.x_a2_radio.isChecked():
             a2label = "X"
-        if self.y_a2_radio.isChecked():
+        elif self.x_aboth_radio.isChecked():
+            a1label = "part of X"
+            a2label = "part of X"
+        if self.y_a1_radio.isChecked():
+            a1label = "Y"
+        elif self.y_a2_radio.isChecked():
             a2label = "Y"
+        elif self.y_aboth_radio.isChecked():
+            a1label = "part of Y"
+            a2label = "part of Y"
         armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label, bodypart2label=a2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], forrelationmodule=True,parent=self)
         armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
         armpart_selector.exec_()
@@ -625,10 +637,16 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             l1label = "X"
         elif self.x_l2_radio.isChecked():
             l2label = "X"
+        elif self.x_lboth_radio.isChecked():
+            l1label = "part of X"
+            l2label = "part of X"
         if self.y_l1_radio.isChecked():
             l1label = "Y"
         elif self.y_l2_radio.isChecked():
             l2label = "Y"
+        elif self.y_lboth_radio.isChecked():
+            l1label = "part of Y"
+            l2label = "part of Y"
         legpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=l1label, bodypart2label=l2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2],  forrelationmodule=True, parent=self)
         legpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.legpart_button))
         legpart_selector.exec_()
@@ -647,40 +665,46 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         x_layout_right = QVBoxLayout()
         x_layout_leftandright = QHBoxLayout()
         x_other_layout = QHBoxLayout()
-        x_bothconnected_layout = QHBoxLayout()
+        x_hbothconnected_layout = QHBoxLayout()
         self.x_group = QButtonGroup()
         self.x_group.buttonToggled.connect(self.handle_xgroup_toggled)
         self.x_h1_radio = RelationRadioButton("H1")
         self.x_h2_radio = RelationRadioButton("H2")
-        self.x_both_radio = RelationRadioButton("Both hands")
-        self.x_bothconnected_cb = QCheckBox("As a connected unit")
-        self.x_bothconnected_cb.toggled.connect(self.handle_xconnected_toggled)
+        self.x_hboth_radio = RelationRadioButton("Both hands")
+        self.x_hbothconnected_cb = QCheckBox("As a connected unit")
+        self.x_hbothconnected_cb.toggled.connect(self.handle_xconnected_toggled)
         self.x_a1_radio = RelationRadioButton("Arm1")
         self.x_a2_radio = RelationRadioButton("Arm2")
+        self.x_aboth_radio = RelationRadioButton("Both arms")
         self.x_l1_radio = RelationRadioButton("Leg1")
         self.x_l2_radio = RelationRadioButton("Leg2")
+        self.x_lboth_radio = RelationRadioButton("Both legs")
         self.x_other_radio = RelationRadioButton("Other")
         self.x_other_text = QLineEdit()
         self.x_other_text.setPlaceholderText("Specify")
         self.x_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.x_other_radio))
         self.x_group.addButton(self.x_h1_radio)
         self.x_group.addButton(self.x_h2_radio)
-        self.x_group.addButton(self.x_both_radio)
+        self.x_group.addButton(self.x_hboth_radio)
         self.x_group.addButton(self.x_a1_radio)
         self.x_group.addButton(self.x_a2_radio)
+        self.x_group.addButton(self.x_aboth_radio)
         self.x_group.addButton(self.x_l1_radio)
         self.x_group.addButton(self.x_l2_radio)
+        self.x_group.addButton(self.x_lboth_radio)
         self.x_group.addButton(self.x_other_radio)
         x_layout_left.addWidget(self.x_h1_radio)
         x_layout_left.addWidget(self.x_h2_radio)
-        x_layout_left.addWidget(self.x_both_radio)
-        x_bothconnected_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        x_bothconnected_layout.addWidget(self.x_bothconnected_cb)
-        x_layout_left.addLayout(x_bothconnected_layout)
+        x_layout_left.addWidget(self.x_hboth_radio)
+        x_hbothconnected_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        x_hbothconnected_layout.addWidget(self.x_hbothconnected_cb)
+        x_layout_left.addLayout(x_hbothconnected_layout)
         x_layout_right.addWidget(self.x_a1_radio)
         x_layout_right.addWidget(self.x_a2_radio)
+        x_layout_right.addWidget(self.x_aboth_radio)
         x_layout_right.addWidget(self.x_l1_radio)
         x_layout_right.addWidget(self.x_l2_radio)
+        x_layout_right.addWidget(self.x_lboth_radio)
         x_other_layout.addWidget(self.x_other_radio)
         x_other_layout.addWidget(self.x_other_text)
         x_layout_leftandright.addLayout(x_layout_left)
@@ -695,7 +719,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         selectedbutton = self.x_group.checkedButton()
 
         # enable "as a connected unit" iff the checked button is "both hands"
-        self.x_bothconnected_cb.setEnabled(selectedbutton == self.x_both_radio)
+        self.x_hbothconnected_cb.setEnabled(selectedbutton == self.x_hboth_radio)
 
         # enable "specify" text box iff the checked button is "other"
         self.x_other_text.setEnabled(selectedbutton == self.x_other_radio)
@@ -732,7 +756,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             return
 
         # ensure the parent is checked
-        self.x_both_radio.setChecked(True)
+        self.x_hboth_radio.setChecked(True)
 
     # if user specifies text for an "other" selection, ensure the parent ("other") radio button is checked
     def handle_othertext_edited(self, txt, parentradiobutton):
@@ -757,9 +781,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_group = QButtonGroup()
         self.y_group.buttonToggled.connect(self.handle_ygroup_toggled)
         self.y_h2_radio = RelationRadioButton("H2")
+        self.y_a1_radio = RelationRadioButton("Arm1")
         self.y_a2_radio = RelationRadioButton("Arm2")
+        self.y_aboth_radio = RelationRadioButton("Both arms")
         self.y_l1_radio = RelationRadioButton("Leg1")
         self.y_l2_radio = RelationRadioButton("Leg2")
+        self.y_lboth_radio = RelationRadioButton("Both legs")
         self.y_existingmod_radio = RelationRadioButton("Existing module:")
         self.y_existingmod_switch = OptionSwitch("Location", "Movement")
 
@@ -768,18 +795,24 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_other_text.setPlaceholderText("Specify")
         self.y_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.y_other_radio))
         self.y_group.addButton(self.y_h2_radio)
+        self.y_group.addButton(self.y_a1_radio)
         self.y_group.addButton(self.y_a2_radio)
+        self.y_group.addButton(self.y_aboth_radio)
         self.y_group.addButton(self.y_l1_radio)
         self.y_group.addButton(self.y_l2_radio)
+        self.y_group.addButton(self.y_lboth_radio)
         self.y_group.addButton(self.y_existingmod_radio)
         self.y_group.addButton(self.y_other_radio)
 
         self.create_linked_module_box()
 
         y_layout_left.addWidget(self.y_h2_radio)
+        y_layout_left.addWidget(self.y_a1_radio)
         y_layout_left.addWidget(self.y_a2_radio)
+        y_layout_left.addWidget(self.y_aboth_radio)
         y_layout_left.addWidget(self.y_l1_radio)
         y_layout_left.addWidget(self.y_l2_radio)
+        y_layout_left.addWidget(self.y_lboth_radio)
         y_existingmodule_layout.addWidget(self.y_existingmod_radio)
         y_existingmodule_layout.addWidget(self.y_existingmod_switch)
         y_existingmodule_layout.addStretch()
@@ -859,20 +892,24 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             articulator, articulator_dict = linkedfrommodule.articulators
             if articulator == HAND:
                 if articulator_dict[1] and articulator_dict[2]:
-                    self.x_both_radio.setChecked(True)
+                    self.x_hboth_radio.setChecked(True)
                     if linkedfrommodule.inphase >= 3:
-                        self.x_bothconnected_cb.setChecked(True)
+                        self.x_hbothconnected_cb.setChecked(True)
                 elif articulator_dict[1]:
                     self.x_h1_radio.setChecked(True)
                 elif articulator_dict[2]:
                     self.x_h2_radio.setChecked(True)
             elif articulator == ARM:
-                if articulator_dict[1]:
+                if articulator_dict[1] and articulator_dict[2]:
+                    self.x_aboth_radio.setChecked(True)
+                elif articulator_dict[1]:
                     self.x_a1_radio.setChecked(True)
                 elif articulator_dict[2]:
                     self.x_a2_radio.setChecked(True)
             elif articulator == LEG:
-                if articulator_dict[1]:
+                if articulator_dict[1] and articulator_dict[2]:
+                    self.x_lboth_radio.setChecked(True)
+                elif articulator_dict[1]:
                     self.x_l1_radio.setChecked(True)
                 elif articulator_dict[2]:
                     self.x_l2_radio.setChecked(True)
@@ -916,25 +953,29 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             self.x_other_text.setText(relationx.othertext)
             self.x_h1_radio.setChecked(relationx.h1)
             self.x_h2_radio.setChecked(relationx.h2)
-            self.x_both_radio.setChecked(relationx.both)
-            if relationx.both:
-                self.x_bothconnected_cb.setChecked(relationx.connected)
+            self.x_hboth_radio.setChecked(relationx.hboth)
+            if relationx.hboth:
+                self.x_hbothconnected_cb.setChecked(relationx.connected)
             self.x_a1_radio.setChecked(relationx.arm1)
             self.x_a2_radio.setChecked(relationx.arm2)
+            self.x_aboth_radio.setChecked(relationx.aboth)
             self.x_l1_radio.setChecked(relationx.leg1)
             self.x_l2_radio.setChecked(relationx.leg2)
+            self.x_lboth_radio.setChecked(relationx.lboth)
             self.x_other_radio.setChecked(relationx.other)
 
     # return the current X element specification as per the GUI values
     def getcurrentx(self):
         return RelationX(h1=self.x_h1_radio.isChecked(),
                          h2=self.x_h2_radio.isChecked(),
-                         both=self.x_both_radio.isChecked(),
-                         connected=self.x_bothconnected_cb.isChecked(),
+                         handboth=self.x_hboth_radio.isChecked(),
+                         connected=self.x_hbothconnected_cb.isChecked(),
                          arm1=self.x_a1_radio.isChecked(),
                          arm2=self.x_a2_radio.isChecked(),
+                         armboth=self.x_aboth_radio.isChecked(),
                          leg1=self.x_l1_radio.isChecked(),
                          leg2=self.x_l2_radio.isChecked(),
+                         legboth=self.x_lboth_radio.isChecked(),
                          other=self.x_other_radio.isChecked(),
                          othertext=self.x_other_text.text())
 
@@ -943,9 +984,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         if relationy is not None:
             self.y_other_text.setText(relationy.othertext)
             self.y_h2_radio.setChecked(relationy.h2)
+            self.y_a1_radio.setChecked(relationy.arm1)
             self.y_a2_radio.setChecked(relationy.arm2)
+            self.y_aboth_radio.setChecked(relationy.aboth)
             self.y_l1_radio.setChecked(relationy.leg1)
             self.y_l2_radio.setChecked(relationy.leg2)
+            self.y_lboth_radio.setChecked(relationy.lboth)
             self.y_existingmod_radio.setChecked(relationy.existingmodule)
             if relationy.existingmodule:
                 self.setcurrentlinkedmoduleinfo(relationy.linkedmoduleids, relationy.linkedmoduletype)
@@ -954,9 +998,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # return the current Y element specification as per the GUI values
     def getcurrenty(self):
         return RelationY(h2=self.y_h2_radio.isChecked(),
+                         arm1=self.y_a1_radio.isChecked(),
                          arm2=self.y_a2_radio.isChecked(),
+                         armboth=self.y_aboth_radio.isChecked(),
                          leg1=self.y_l1_radio.isChecked(),
                          leg2=self.y_l2_radio.isChecked(),
+                         legboth=self.y_lboth_radio.isChecked(),
                          existingmodule=self.y_existingmod_radio.isChecked(),
                          linkedmoduletype=self.getcurrentlinkedmoduletype(),
                          linkedmoduleids=self.getcurrentlinkedmoduleids(),
@@ -1184,14 +1231,14 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     def clear_x_options(self):
         self.clear_group_buttons(self.x_group)
         self.x_other_text.clear()
-        self.x_bothconnected_cb.setChecked(False)
+        self.x_hbothconnected_cb.setChecked(False)
 
         self.enable_x_options(True)
 
     # enable all GUI elements for X selection
     def enable_x_options(self, doenable):
         self.x_other_text.setEnabled(doenable)
-        self.x_bothconnected_cb.setEnabled(doenable)
+        self.x_hbothconnected_cb.setEnabled(doenable)
 
     # clear and enable all GUI elements for Y selection
     def clear_y_options(self):
