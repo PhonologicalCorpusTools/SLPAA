@@ -78,42 +78,6 @@ dorsum = "Dorsum"
 blade = "Blade"
 
 
-
-SURFACE_SUBAREA_ABBREVS = {
-    anterior: '[ant]',
-    posterior: '[post]',
-    lateral: '[lat]',
-    medial: '[med]',
-    top: '[top]',
-    bottom: '[bottom]',
-    contra_half: '[contra]',
-    upper_half: '[upper]',
-    whole: '[whole]',
-    centre: '[centre]',
-    lower_half: '[lower]',
-    ipsi_half: '[ipsi]',
-    finger_side: '[finger side]',
-    wrist_side: '[wrist side]',
-    ulnar_side: '[ulnar side]',
-    radial_side: '[radial side]',
-    back: '[b]',
-    friction: '[fr]',
-    radial: '[r]',
-    ulnar: '[u]',
-    tip: '[t]',
-    front_half: '[ant]',
-    back_half: '[post]',
-    dorsum: '[dors]',
-    blade: '[blade]',
-    metacarpophalangeal_joint: '[MCP]',
-    proximal_interphalangeal_joint: '[PIP]',
-    distal_interphalangeal_joint: '[DIP]',
-    proximal_bone: '[p]',
-    medial_bone: '[m]',
-    distal_bone: '[d]'
-
-}
-
 hand_surfaces = "default hand surfaces" # [back, friction, radial, ulnar]
 nonhand_surfaces = "default nonhand surfaces" # [anterior, posterior, lateral, medial, top, bottom]
 nonhand_surfaces_2 = "default except top, bottom" # [anterior, posterior, lateral, medial]
@@ -564,8 +528,8 @@ locn_options_purelyspatial = LocnOptionsNode("purelyspatial_options_root", child
         LocnOptionsNode("Mid", fx, rb, tooltip="[mid]"),
         LocnOptionsNode("Low", fx, rb, tooltip="[low]"),
     ]),
-    LocnOptionsNode("Sagittal axis", fx, cb, "sag", children=[
-        LocnOptionsNode("In front", fx, rb, "[front]", children=[
+    LocnOptionsNode("Sagittal axis", fx, cb, tooltip="sag", children=[
+        LocnOptionsNode("In front", fx, rb, tooltip="[front]", children=[
             LocnOptionsNode("Far", fx, rb, tooltip="[far]"),
             LocnOptionsNode("Med.", fx, rb, tooltip="[med]"),
             LocnOptionsNode("Close", fx, rb, tooltip="[close]"),
@@ -777,11 +741,11 @@ class LocationTreeModel(QStandardItemModel):
         self._nodes_are_terminal = terminal    
 
     def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True, include_details=False):
-        ''' Returns a list of strings denoting paths
+        ''' Returns: a list of strings denoting paths \n
             If include_details, returns a list of dicts: 
-            'path' = path,
-            'abbrev' = abbrev,
-            'details' = detailstable
+            - 'path': the full path
+            - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated
+            - 'details': detailstable
             '''
         checked_values = []
         for row in range(self.rowCount(parent_index)):
