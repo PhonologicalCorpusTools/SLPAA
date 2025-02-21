@@ -491,6 +491,15 @@ class PhonLocSelection(QWidget):
         )
         return phonlocs
 
+    def clear(self):
+        if (hasattr(self, "majorphonloc_cb") and hasattr(self, "minorphonloc_cb")):
+            self.majorphonloc_cb.setChecked(False)
+            self.minorphonloc_cb.setChecked(False)
+            self.majorphonloc_cb.setEnabled(False)
+            self.minorphonloc_cb.setEnabled(False)
+        self.phonological_cb.setChecked(False)
+        self.phonetic_cb.setChecked(False)
+
 
     def __init__(self, isLocationModule=False): 
         super().__init__() 

@@ -409,6 +409,7 @@ class ModuleSelectorDialog(QDialog):
             self.validate_and_save(addanother=False, closedialog=True)
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
+            self.phonloc_selection.clear()
             if self.usearticulators:
                 self.articulators_widget.clear()
             self.addedinfobutton.clear()
