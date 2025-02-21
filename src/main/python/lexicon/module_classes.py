@@ -1923,6 +1923,7 @@ class RelationModule(ParameterModule):
 
     # relation abbreviation
     def getabbreviation(self):
+        phonphon_str = self.phonlocs.getabbreviation()
         X_str, Y_str = '', ''
         
         paths = self.get_paths() 
@@ -1997,7 +1998,7 @@ class RelationModule(ParameterModule):
             to_append.append(generic_dist_label)
             relative_label += f"X is {', '.join(filter(None, to_append))} to Y"
         
-        return "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))
+        return ": ".join(filter(None, [phonphon_str, "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))]))
     
 
 
