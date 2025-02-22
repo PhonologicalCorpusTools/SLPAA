@@ -1320,6 +1320,10 @@ class RelationX:
             relX_str = "both hands connected"
         elif self.hboth:
             relX_str = "both hands"
+        elif self.aboth:
+            relX_str = "both arms"
+        elif self.lboth:
+            relX_str = "both legs"
         elif self.other:
             relX_str = "other"
             if len(self.othertext) > 0:
@@ -1467,13 +1471,13 @@ class RelationX:
     def resetalltoplevelbooleans(self):
         self._h1 = False
         self._h2 = False
-        self._hboth = False  # TODO KV changed
+        self._hboth = False
         self._arm1 = False
         self._arm2 = False
-        self._aboth = False  # TODO KV added
+        self._aboth = False
         self._leg1 = False
         self._leg2 = False
-        self._lboth = False  # TODO KV added
+        self._lboth = False
         self._other = False
 
 class RelationY:
@@ -1504,7 +1508,11 @@ class RelationY:
 
     def displaystr(self):
         relY_str = ""
-        if self.existingmodule:
+        if self.aboth:
+            relY_str = "both arms"
+        if self.lboth:
+            relY_str = "both legs"
+        elif self.existingmodule:
             # print(self.linkedmoduleids)
             relY_str = "existing module"
             if self.linkedmoduletype is not None:
@@ -1518,10 +1526,10 @@ class RelationY:
                 relY_str += " (" + self.othertext + ")"
         else:
             rel_dict = self.__dict__
-            for attr in "_h2", "_arm2", "_leg1", "_leg2":
+            for attr in rel_dict:
                 if rel_dict[attr]:
-                    relY_str = attr[1:] # attributes are prepended with _
-                    break    
+                    relY_str = attr[1:]  # attributes are prepended with _
+                    break
         return relY_str
 
     @property
@@ -1823,14 +1831,14 @@ class RelationModule(ParameterModule):
 
     def arms_in_use(self):
         return {
-            1: self.relationx.arm1,
-            2: self.relationx.arm2 or self.relationy.arm2
+            1: self.relationx.aboth or self.relationy.aboth or self.relationx.arm1 or self.relationy.arm1,
+            2: self.relationx.aboth or self.relationy.aboth or self.relationx.arm2 or self.relationy.arm2
         }
 
     def legs_in_use(self):
         return {
-            1: self.relationx.leg1 or self.relationy.leg1,
-            2: self.relationx.leg2 or self.relationy.leg2
+            1: self.relationx.lboth or self.relationy.lboth or self.relationx.leg1 or self.relationy.leg1,
+            2: self.relationx.lboth or self.relationy.lboth or self.relationx.leg2 or self.relationy.leg2
         }
 
     # relation abbreviation
@@ -1842,9 +1850,10 @@ class RelationModule(ParameterModule):
         paths = self.get_paths() 
 
         X_art = self.relationx.displaystr().capitalize()
-        if X_art in ['Both hands', 'Both hands connected']:
+        if X_art.startswith("Both"):
+            art1, art2 = ('H1', 'H2') if "hands" in X_art else (('Arm1', 'Arm2') if "arms" in X_art else ('Leg1', 'Leg2'))
             X_str += f'{X_art}: '
-            X_str += ', '.join([self.get_path_abbrev(paths, a) for a in ['H1', 'H2']])
+            X_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
         elif X_art.startswith('Other'):
             X_str += X_art
         else:
@@ -1855,11 +1864,13 @@ class RelationModule(ParameterModule):
             Y_str = f'linked {self.relationy.linkedmoduletype} module'
         else:
             Y_art = self.relationy.displaystr().capitalize()
-            if Y_art.startswith('Other'):
+            if Y_art.startswith("Both"):
+                art1, art2 = ('H1', 'H2') if "hands" in Y_art else (('Arm1', 'Arm2') if "arms" in Y_art else ('Leg1', 'Leg2'))
+                Y_str += f'{Y_art}: '
+                Y_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
+            elif Y_art.startswith('Other'):
                 Y_str += Y_art
             else:
-                Y_art = self.relationy.displaystr().capitalize()
-
                 Y_str = self.get_path_abbrev(paths, Y_art)
 
         X_str = "X = " + X_str
