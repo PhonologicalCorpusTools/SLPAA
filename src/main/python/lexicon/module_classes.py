@@ -10,7 +10,7 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 def get_path_lowest_node(path):
@@ -1326,10 +1326,13 @@ class LocationModule(ParameterModule):
         loctype_str = self.locationtreemodel.locationtype.getabbreviation()
         is_neutral_str = "neutral" if self.locationtreemodel.defaultneutralselected else ""
 
+        # don't list paths if neutral checkbox is checked or "default neutral space" is a selected path
+        if is_neutral_str:
+            return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
+        
         path_strings = []
-
         # purely spatial locations don't have surfaces / subareas; we handle the abbrev differently
-        if loctype_str == "Signing space(spatial)":
+        if loctype_str == "Signing space(spatial)" and not is_neutral_str:
             # setting only_fully_checked False returns each individual node in the path (eg 'Sagittal axis', 'Sagittal axis>In front)
             # so that we can get the abbreviations of intermediate nodes
             paths = self.locationtreemodel.get_checked_items(only_fully_checked=False, include_details=True) 
@@ -1339,6 +1342,7 @@ class LocationModule(ParameterModule):
             for curr_node in paths:
                 if curr_node['path'] == 'Default neutral space':
                     is_neutral_str = "neutral"
+                    return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
                 else:
                     curr_abbrev = (get_path_lowest_node(curr_node['path']) if curr_node['abbrev'] is None else curr_node['abbrev']).lower()
                     if last_node in curr_node['path']:
@@ -1352,7 +1356,7 @@ class LocationModule(ParameterModule):
             if len(curr_abbrev_list) > 0: # in case the list only contains Default neutral space
                 path_strings.append(''.join(curr_abbrev_list) + ''.join(['[ ]' for _ in range(3 - len(curr_abbrev_list))]))
 
-        else:
+        elif loctype_str != "Signing space(spatial)" :
             # each 'path' is a dict. Keys are 'path', 'abbrev', 'details'
             for path in self.locationtreemodel.get_checked_items(include_details=True):
                 path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
