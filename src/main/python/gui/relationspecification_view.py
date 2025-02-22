@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
+    QMessageBox,
 )
 
 from PyQt5.QtCore import (
@@ -590,6 +591,14 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # prepare labels and open the dialog to select the handpart(s) involved in the relation
     def handle_handpartbutton_clicked(self):
         bodyparttype = HAND
+        # h1conflict = not possible because Y only has h2 as a hand option
+        h2conflict = (self.x_h2_radio.isChecked() or self.x_hboth_radio.isChecked()) and self.y_h2_radio.isChecked()
+
+        if h2conflict:
+            # refuse to open the hand part specification if there is a conflict in X vs Y hand selections
+            QMessageBox.critical(self, "Warning", "X and Y overlap in hand selection. Ensure that X and Y selections are mutually exclusive before attempting to specify hand parts.")
+            return
+
         h1label = ""
         h2label = ""
         if self.x_h1_radio.isChecked():
@@ -608,6 +617,16 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # prepare labels and open the dialog to select the armpart(s) involved in the relation
     def handle_armpartbutton_clicked(self):
         bodyparttype = ARM
+        a1conflict = (self.x_a1_radio.isChecked() or self.x_aboth_radio.isChecked()) and \
+                     (self.y_a1_radio.isChecked() or self.y_aboth_radio.isChecked())
+        a2conflict = (self.x_a2_radio.isChecked() or self.x_aboth_radio.isChecked()) and \
+                     (self.y_a2_radio.isChecked() or self.y_aboth_radio.isChecked())
+
+        if a1conflict or a2conflict:
+            # refuse to open the arm part specification if there is a conflict in X vs Y arm selections
+            QMessageBox.critical(self, "Warning", "X and Y overlap in arm selection. Ensure that X and Y selections are mutually exclusive before attempting to specify arm parts.")
+            return
+
         a1label = ""
         a2label = ""
         if self.x_a1_radio.isChecked():
@@ -631,6 +650,16 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # prepare labels and open the dialog to select the legpart(s) involved in the relation
     def handle_legpartbutton_clicked(self):
         bodyparttype = LEG
+        l1conflict = (self.x_l1_radio.isChecked() or self.x_lboth_radio.isChecked()) and \
+                     (self.y_l1_radio.isChecked() or self.y_lboth_radio.isChecked())
+        l2conflict = (self.x_l2_radio.isChecked() or self.x_lboth_radio.isChecked()) and \
+                     (self.y_l2_radio.isChecked() or self.y_lboth_radio.isChecked())
+
+        if l1conflict or l2conflict:
+            # refuse to open the leg part specification if there is a conflict in X vs Y leg selections
+            QMessageBox.critical(self, "Warning", "X and Y overlap in leg selection. Ensure that X and Y selections are mutually exclusive before attempting to specify leg parts.")
+            return
+
         l1label = ""
         l2label = ""
         if self.x_l1_radio.isChecked():

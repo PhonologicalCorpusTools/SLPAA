@@ -1318,7 +1318,7 @@ class RelationX:
         relX_str = ""
         if self.connected:
             relX_str = "both hands connected"
-        elif self.both:
+        elif self.hboth:
             relX_str = "both hands"
         elif self.other:
             relX_str = "other"
@@ -1356,7 +1356,10 @@ class RelationX:
     def hboth(self):
         if not hasattr(self, '_hboth'):
             # backward compatibility for attribute changed 20250220
-            self._hboth = self._both if hasattr(self, '_both') else False
+            self._hboth = False
+            if hasattr(self, '_both'):
+                self._hboth = self._both
+                del self._both
         return self._hboth
 
     @hboth.setter
@@ -1921,6 +1924,7 @@ class RelationModule(ParameterModule):
                 path_str += f'[{", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
             path_strings.append(path_str)
         return f'{art}[{", ".join(path_strings)}]'
+
 
 class MannerRelation:
     def __init__(self, holding=False, continuous=False, intermittent=False, any=False):
