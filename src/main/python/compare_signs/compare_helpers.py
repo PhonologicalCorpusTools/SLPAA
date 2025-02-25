@@ -35,7 +35,7 @@ def update_path_text(has_usr_text: str, path_text: str) -> str:
     if len(has_usr_text) < 1 or has_usr_text == path_text:
         return path_text
 
-    match = re.match(r'(.+?) (\[\d+\])$', has_usr_text)  # e.g., has_usr_text = 'a>b [3]'
+    match = re.match(r'(.+?) (\[.+\])$', has_usr_text)  # e.g., has_usr_text = 'a>b [3]'
     base_path, usr_specified_value = match.groups()  # e.g., base_path = 'a>b', usr_s... = '[3]'
 
     base_parts = base_path.split('>')  # e.g., ['a', 'b']
