@@ -147,9 +147,9 @@ def analyze_modules(modules: list, module_numbers: dict, module_abbrev: str):
     return r
 
 
-def get_checked_paths_from_list(mvmt_module):
+def get_checked_paths_from_list(treemodel):
     # Each MovementModule has a .movementtreemodel, which in turn has a .listmodel
-    list_model = mvmt_module.movementtreemodel.listmodel
+    list_model = treemodel.listmodel
 
     selected_paths = []  # this will be the output
     has_usr_text = ''  # to remember the most recent 'user text' temporarily
