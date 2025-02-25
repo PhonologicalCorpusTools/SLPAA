@@ -2,7 +2,7 @@
 from collections import defaultdict
 from constant import ARTICULATOR_ABBREVS, userdefinedroles as udr
 from PyQt5.QtCore import Qt
-
+import re
 
 def summarize_path_comparison(ld):
     def fuse_two_dicts(d1, d2):
@@ -29,6 +29,23 @@ def summarize_path_comparison(ld):
         result_dict = fuse_two_dicts(result_dict, d)
 
     return [result_dict]
+
+
+def update_path_text(has_usr_text: str, path_text: str) -> str:
+    if len(has_usr_text) < 1 or has_usr_text == path_text:
+        return path_text
+
+    match = re.match(r'(.+?) (\[\d+\])$', has_usr_text)  # e.g., has_usr_text = 'a>b [3]'
+    base_path, usr_specified_value = match.groups()  # e.g., base_path = 'a>b', usr_s... = '[3]'
+
+    base_parts = base_path.split('>')  # e.g., ['a', 'b']
+    path_parts = path_text.split('>')  # e.g., ['a', 'b', 'c']
+
+    # check if path_text is a proper superset of base_path
+    if path_parts[:len(base_parts)] == base_parts and usr_specified_value:
+        path_parts[len(base_parts) - 1] += f' {usr_specified_value}'  # if so, append user-specified value to path_text
+
+    return '>'.join(path_parts)  # reassemble path_text and return
 
 
 def get_informative_elements(l: list) -> list:
@@ -134,14 +151,20 @@ def get_checked_paths_from_list(mvmt_module):
     # Each MovementModule has a .movementtreemodel, which in turn has a .listmodel
     list_model = mvmt_module.movementtreemodel.listmodel
 
-    selected_paths = []
+    selected_paths = []  # this will be the output
+    has_usr_text = ''  # to remember the most recent 'user text' temporarily
+
+    # The following iterates over each possible mvmt model path and check if selected
     for row in range(list_model.rowCount()):
         item = list_model.item(row)
         if item:
             is_selected = item.data(Qt.UserRole + udr.selectedrole)  # True if checked in the tree
             if is_selected:
                 # item.text() is something like "Movement type>Perceptual shape>Shape>Other [this shape]"
-                selected_paths.append(item.text())
+                path_text = item.text()
+                has_usr_text = path_text if '[' in path_text else has_usr_text
+                path_text = update_path_text(has_usr_text, path_text)
+                selected_paths.append(path_text)
     return selected_paths
 
 
@@ -164,7 +187,11 @@ def get_btn_type_for_mvmtpath(path, root_node):
                 break
 
         if matching_child:
-            btn_types.append(matching_child.button_type)
+            # temporary solution: if user specified, just return radiobutton
+            if part != path_parts[0]:
+                btn_types.append('radio button')
+            else:
+                btn_types.append(matching_child.button_type)
             return traverse(matching_child, path_parts[1:])
         else:
             # Recursively search in all children
