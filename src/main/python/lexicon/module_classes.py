@@ -10,12 +10,12 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 def get_path_lowest_node(path):
     '''Return the lowest node of a path. 
-        e.g. 'Whole hand>Finger 1' returns 'Finger 1'
+        e.g. 'Whole hand>Finger 1' returns 'Finger 1'\n
             'Whole hand' returns 'Whole hand'
     '''
     return path.split(treepathdelimiter)[-1]
@@ -118,23 +118,25 @@ class ParameterModule:
 
     def get_art_abbrev(self): # articulator abbreviation
         todisplay = ""
+        # self.articulators is (Articulator, {1: bool, 2: bool})
         k = self.articulators[0] # hand, arm, or leg
-        if self.articulators[1][1] and not self.articulators[1][2]:
+        if self.articulators[1][1] and not self.articulators[1][2]: # articulator 1
             todisplay = k + " " + str(1)
-        elif self.articulators[1][2] and not self.articulators[1][1]:
+        elif self.articulators[1][2] and not self.articulators[1][1]: # articulator 2
             todisplay = k + " " + str(2)
-        # elif self.articulators[1][1] and self.articulators[1][2]:
-            
-        #     todisplay = "Both " + k.lower() + "s"
-        #     if self.inphase == 1:
-        #         todisplay += " in phase"
-        #     elif self.inphase == 2:
-        #         todisplay += " out of phase"
-        #     elif self.inphase == 3:
-        #         todisplay += " connected"
-        #     elif self.inphase == 4:
-        #         todisplay += " connected, in phase"
+        elif self.articulators[1][1] and self.articulators[1][2]: # both articulators
+            todisplay = "Both " + k.lower() + "s"
+            if self.inphase == 1:
+                todisplay += " in phase"
+            elif self.inphase == 2:
+                todisplay += " out of phase"
+            elif self.inphase == 3:
+                todisplay += " connected"
+            elif self.inphase == 4:
+                todisplay += " connected, in phase"
         return todisplay
+
+
 
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
@@ -617,6 +619,27 @@ class PhonLocations:
 
     def allfalse(self):
         return not (self._phoneticloc or self._phonologicalloc or self._majorphonloc or self._minorphonloc)
+    
+    def getabbreviation(self):
+        if self.allfalse():
+            return ""
+        to_return = []
+        if self.phonologicalloc:
+            if self.majorphonloc and not self.minorphonloc:
+                to_return.append("maj. phonol")
+            elif self.minorphonloc and not self.majorphonloc:
+                to_return.append("min. phonol")
+            else:
+                to_return.append("phonol")
+        if self.phoneticloc:
+            to_return.append("phonet")
+        if self.phonologicalloc and self.phoneticloc:
+            return (f"{to_return[0]} and {to_return[1]}").capitalize()
+        return to_return[0].capitalize()
+
+
+
+        
 
 
 # this class stores info about what kind of location type (body or signing space)
@@ -707,7 +730,19 @@ class LocationType:
         changed = changed or (previous.usesbodylocations() or previous.purelyspatial)
         changed = changed or (previous.allfalse() and not self.allfalse())
         return changed
-
+    
+    def getabbreviation(self):
+        if self.allfalse():
+            return ""
+        if self._body:
+            return "Body"
+        elif self._signingspace:
+            if self._bodyanchored:
+                return "Signing space(body-anch)"
+            elif self._purelyspatial:
+                return "Signing space(spatial)"
+            return "Signing space"
+        return "Other loctype"
 
 # Represents one specific point in time in an x-slot timing structure
 class TimingPoint:
@@ -1283,9 +1318,60 @@ class LocationModule(ParameterModule):
     @inphase.setter
     def inphase(self, inphase):
         self._inphase = inphase
+    
+
 
     def getabbreviation(self):
-        return "Location abbreviations not yet implemented"
+        phonphon_str = self.phonlocs.getabbreviation()
+        loctype_str = self.locationtreemodel.locationtype.getabbreviation()
+        is_neutral_str = "neutral" if self.locationtreemodel.defaultneutralselected else ""
+
+        # don't list paths if neutral checkbox is checked or "default neutral space" is a selected path
+        if is_neutral_str:
+            return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
+        
+        path_strings = []
+        # purely spatial locations don't have surfaces / subareas; we handle the abbrev differently
+        if loctype_str == "Signing space(spatial)" and not is_neutral_str:
+            # setting only_fully_checked False returns each individual node in the path (eg 'Sagittal axis', 'Sagittal axis>In front)
+            # so that we can get the abbreviations of intermediate nodes
+            paths = self.locationtreemodel.get_checked_items(only_fully_checked=False, include_details=True) 
+            last_node = ""
+            curr_abbrev_list = []
+            # Each 'curr_node' is a dict. Keys are 'path', 'abbrev', 'details'
+            for curr_node in paths:
+                if curr_node['path'] == 'Default neutral space':
+                    is_neutral_str = "neutral"
+                    return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
+                else:
+                    curr_abbrev = (get_path_lowest_node(curr_node['path']) if curr_node['abbrev'] is None else curr_node['abbrev']).lower()
+                    if last_node in curr_node['path']:
+                        curr_abbrev_list.append(curr_abbrev)
+                    else:
+                        # append [ ] if axis / distance is not specified
+                        # eg hor[ipsi][ ]; ver[ ][ ]; sag[front][med] 
+                        path_strings.append(''.join(curr_abbrev_list) + ''.join(['[ ]' for _ in range(3 - len(curr_abbrev_list))]))
+                        curr_abbrev_list = [curr_node['abbrev']]  
+                    last_node = curr_node['path']
+            if len(curr_abbrev_list) > 0: # in case the list only contains Default neutral space
+                path_strings.append(''.join(curr_abbrev_list) + ''.join(['[ ]' for _ in range(3 - len(curr_abbrev_list))]))
+
+        elif loctype_str != "Signing space(spatial)" :
+            # each 'path' is a dict. Keys are 'path', 'abbrev', 'details'
+            for path in self.locationtreemodel.get_checked_items(include_details=True):
+                path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
+                # details_dict: keys are the subarea types ('surface', 'sub-area', or ''); 
+                # values are lists of checked subareas
+                details_dict = path['details'].get_checked_values()
+                # add surfaces and subareas in square brackets, eg [ant][centre]; if unspecified, leave square brackets with a space [ ]
+                for key, val in details_dict.items(): 
+                    if key:
+                        path_str += f'[{" " if len(val) == 0 else ", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
+                path_strings.append(path_str)
+        path_strings = '; '.join(filter(None, path_strings))
+        
+
+        return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str, path_strings]))
 
 
 class RelationX:
@@ -1733,6 +1819,17 @@ class RelationModule(ParameterModule):
         self._directions = directions
     
     def get_paths(self):
+        """
+        Returns a dict mapping articulators to their selected path details.
+
+        Returns:
+            dict:
+                - Keys (str): Articulators ('H1', 'H2', 'Arm1', 'Arm2', 'Leg1', 'Leg2').
+                - Values (list[dict]): Lists of dictionaries (output from treemodel.get_checked_items())
+                    - 'path': the full path
+                    - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated
+                    - 'details': The details table.
+        """
         paths = {}
         arts, nums = self.get_articulators_in_use()
         for i in range(len(arts)):
@@ -1742,6 +1839,16 @@ class RelationModule(ParameterModule):
             paths.update({label + str(nums[i]) : treemodel.get_checked_items(include_details=True)})
         
         return paths
+    
+    def get_path_abbrev(self, paths, art): # abbreviation for paths and details tables
+        path_strings = []
+        for path in paths[art]:
+            path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
+            details_dict = path['details'].get_checked_values()
+            for val in details_dict.values(): # list of surfaces, list of subareas/handjoints
+                path_str += f'[{" " if len(val) == 0 else ", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
+            path_strings.append(path_str)
+        return f'{art}[{" " if len(path_strings) == 0 else ", ".join(path_strings)}]'
 
     def has_any_distance(self):
         for i in range(4):
@@ -1820,10 +1927,9 @@ class RelationModule(ParameterModule):
 
     # relation abbreviation
     def getabbreviation(self):
+        phonphon_str = self.phonlocs.getabbreviation()
         X_str, Y_str = '', ''
         
-        # returns a dict. Keys are articulators: H1, H2, Arm1, Arm2, Leg1, Leg2. 
-        # Values are lists of dicts {'path' = path, 'abbrev' = abbrev,'details' = detailstable}
         paths = self.get_paths() 
 
         X_art = self.relationx.displaystr().capitalize()
@@ -1836,7 +1942,6 @@ class RelationModule(ParameterModule):
             X_str += self.get_path_abbrev(paths, X_art)
 
         if self.relationy.existingmodule:
-            # TODO
             Y_str = f'linked {self.relationy.linkedmoduletype} module'
         else:
             Y_art = self.relationy.displaystr().capitalize()
@@ -1897,18 +2002,9 @@ class RelationModule(ParameterModule):
             to_append.append(generic_dist_label)
             relative_label += f"X is {', '.join(filter(None, to_append))} to Y"
         
-        return "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))
+        return ": ".join(filter(None, [phonphon_str, "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))]))
     
 
-    def get_path_abbrev(self, paths, art): # abbreviation for paths and details tables
-        path_strings = []
-        for path in paths[art]:
-            path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
-            details_dict = path['details'].get_checked_values()
-            for val in details_dict.values(): # list of surfaces, list of subareas/handjoints
-                path_str += f'[{", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
-            path_strings.append(path_str)
-        return f'{art}[{", ".join(path_strings)}]'
 
 class MannerRelation:
     def __init__(self, holding=False, continuous=False, intermittent=False, any=False):

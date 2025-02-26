@@ -638,6 +638,9 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.locationoptionsselectionpanel.update_detailstable()
         self.locationoptionsselectionpanel.detailstableview.setEnabled(enabledetailstable)
 
+        self.locationoptionsselectionpanel.treemodel.defaultneutralselected = self.markneutral_cb.checkState()
+        
+
     def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
         # phonlocs = self.getcurrentphonlocs()
         locmod = LocationModule(self.getcurrenttreemodel(),
