@@ -13,9 +13,7 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QComboBox,
     QMessageBox,
-    QAbstractButton,
     QLabel,
-    QCompleter,
     QButtonGroup,
     QGroupBox,
     QAbstractItemView,
@@ -43,7 +41,8 @@ from PyQt5.QtCore import (
 
 from lexicon.module_classes import LocationModule
 from models.location_models import LocationTreeItem, LocationTableModel, LocationTreeModel, \
-    LocationType, LocationPathsProxyModel, locn_options_body
+    LocationType, locn_options_body
+from models.shared_models import TreePathsProxyModel
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, \
     TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
@@ -81,9 +80,9 @@ class LocationOptionsSelectionPanel(QFrame):
 
         # create list proxies (for search and for selected options list)
         # and set them to refer to list model for current location type
-        self.comboproxymodel = LocationPathsProxyModel(wantselected=False)
+        self.comboproxymodel = TreePathsProxyModel(wantselected=False)
         self.comboproxymodel.setSourceModel(self.listmodel)
-        self.listproxymodel = LocationPathsProxyModel(wantselected=True)
+        self.listproxymodel = TreePathsProxyModel(wantselected=True)
         self.listproxymodel.setSourceModel(self.listmodel)
 
         # create layout with combobox for searching location items
@@ -140,12 +139,7 @@ class LocationOptionsSelectionPanel(QFrame):
         #     # return true here to bypass default behaviour
         # return super().eventFilter(source, event)
 
-        if event.type() == QEvent.KeyPress:
-            key = event.key()
-            if key == Qt.Key_Enter:
-                print("enter pressed")
-            # TODO KV return true??
-        elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
+        if event.type() == QEvent.ContextMenu and source == self.pathslistview:
             proxyindex = self.pathslistview.currentIndex()  # TODO what if multiple are selected?
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
@@ -173,7 +167,6 @@ class LocationOptionsSelectionPanel(QFrame):
         self._listmodel = listmodel
 
     def refresh_listproxies(self):
-
         self.comboproxymodel.setSourceModel(self.listmodel)
         self.listproxymodel.setSourceModel(self.listmodel)
         self.combobox.setModel(self.comboproxymodel)
@@ -189,12 +182,6 @@ class LocationOptionsSelectionPanel(QFrame):
         self.combobox.setModel(self.comboproxymodel)
         self.combobox.setCurrentIndex(-1)
         self.combobox.adjustSize()
-        self.combobox.setEditable(True)
-        self.combobox.setInsertPolicy(QComboBox.NoInsert)
-        self.combobox.setFocusPolicy(Qt.StrongFocus)
-        self.combobox.completer().setCaseSensitivity(Qt.CaseInsensitive)
-        self.combobox.completer().setFilterMode(Qt.MatchContains)
-        self.combobox.completer().setCompletionMode(QCompleter.PopupCompletion)
         self.combobox.item_selected.connect(self.selectlistitem)
         search_layout.addWidget(self.combobox)
 
@@ -208,9 +195,6 @@ class LocationOptionsSelectionPanel(QFrame):
             self.default_neutral_reqd.emit()
         if hasattr(self, "terminal_node_cb"):
             self.terminal_node_cb.setEnabled(True)
-        
-                    
-
 
     def create_selection_layout(self):
         selection_layout = QHBoxLayout()
@@ -682,12 +666,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         #     # return true here to bypass default behaviour
         # return super().eventFilter(source, event)
 
-        if event.type() == QEvent.KeyPress:
-            key = event.key()
-            if key == Qt.Key_Enter:
-                print("enter pressed")
-            # TODO KV return true??
-        elif event.type() == QEvent.ContextMenu and source == self.pathslistview:
+        if event.type() == QEvent.ContextMenu and source == self.pathslistview:
             proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
