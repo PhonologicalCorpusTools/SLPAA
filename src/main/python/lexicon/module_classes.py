@@ -1376,15 +1376,17 @@ class LocationModule(ParameterModule):
 
 class RelationX:
 
-    def __init__(self, h1=False, h2=False, both=False, connected=False, arm1=False, arm2=False, leg1=False, leg2=False, other=False, othertext=""):
+    def __init__(self, h1=False, h2=False, handboth=False, connected=False, arm1=False, arm2=False, armboth=False, leg1=False, leg2=False, legboth=False, other=False, othertext=""):
         self._h1 = h1
         self._h2 = h2
-        self._both = both
+        self._hboth = handboth  # changed 20250220 - used to be self._both
         self._connected = connected
         self._arm1 = arm1
         self._arm2 = arm2
+        self._aboth = armboth  # added 20250220
         self._leg1 = leg1
         self._leg2 = leg2
+        self._lboth = legboth  # added 20250220
         self._other = other
         self._othertext = othertext
 
@@ -1402,8 +1404,12 @@ class RelationX:
         relX_str = ""
         if self.connected:
             relX_str = "both hands connected"
-        elif self.both:
+        elif self.hboth:
             relX_str = "both hands"
+        elif self.aboth:
+            relX_str = "both arms"
+        elif self.lboth:
+            relX_str = "both legs"
         elif self.other:
             relX_str = "other"
             if len(self.othertext) > 0:
@@ -1422,16 +1428,9 @@ class RelationX:
 
     @h1.setter
     def h1(self, h1):
-        self._h1 = h1
-
         if h1:
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._h1 = h1
 
     @property
     def h2(self):
@@ -1439,33 +1438,25 @@ class RelationX:
 
     @h2.setter
     def h2(self, h2):
-        self._h2 = h2
-
         if h2:
-            self._h1 = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._both = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._h2 = h2
 
     @property
-    def both(self):
-        return self._both
+    def hboth(self):
+        if not hasattr(self, '_hboth'):
+            # backward compatibility for attribute changed 20250220
+            self._hboth = False
+            if hasattr(self, '_both'):
+                self._hboth = self._both
+                del self._both
+        return self._hboth
 
-    @both.setter
-    def both(self, both):
-        self._both = both
-
-        if both:
-            self._h1 = False
-            self._h2 = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+    @hboth.setter
+    def hboth(self, hboth):
+        if hboth:
+            self.resetalltoplevelbooleans()
+            self._hboth = hboth
 
     @property
     def connected(self):
@@ -1476,7 +1467,7 @@ class RelationX:
         self._connected = connected
 
         if connected:
-            self.both = True
+            self.hboth = True
 
     @property
     def arm1(self):
@@ -1484,16 +1475,9 @@ class RelationX:
 
     @arm1.setter
     def arm1(self, arm1):
-        self._arm1 = arm1
-
         if arm1:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._arm1 = arm1
 
     @property
     def arm2(self):
@@ -1501,16 +1485,22 @@ class RelationX:
 
     @arm2.setter
     def arm2(self, arm2):
-        self._arm2 = arm2
-
         if arm2:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._arm2 = arm2
+
+    @property
+    def aboth(self):
+        if not hasattr(self, '_aboth'):
+            # backward compatibility for attribute added 20250220
+            self._aboth = False
+        return self._aboth
+
+    @aboth.setter
+    def aboth(self, aboth):
+        if aboth:
+            self.resetalltoplevelbooleans()
+            self._aboth = aboth
 
     @property
     def leg1(self):
@@ -1518,16 +1508,9 @@ class RelationX:
 
     @leg1.setter
     def leg1(self, leg1):
-        self._leg1 = leg1
-
         if leg1:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._leg1 = leg1
 
     @property
     def leg2(self):
@@ -1535,16 +1518,22 @@ class RelationX:
 
     @leg2.setter
     def leg2(self, leg2):
-        self._leg2 = leg2
-
         if leg2:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._leg2 = leg2
+
+    @property
+    def lboth(self):
+        if not hasattr(self, '_lboth'):
+            # backward compatibility for attribute added 20250220
+            self._lboth = False
+        return self._lboth
+
+    @lboth.setter
+    def lboth(self, lboth):
+        if lboth:
+            self.resetalltoplevelbooleans()
+            self._lboth = lboth
 
     @property
     def other(self):
@@ -1552,16 +1541,9 @@ class RelationX:
 
     @other.setter
     def other(self, other):
-        self._other = other
-
         if other:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
+            self.resetalltoplevelbooleans()
+            self._other = other
 
     @property
     def othertext(self):
@@ -1571,13 +1553,29 @@ class RelationX:
     def othertext(self, othertext):
         self._othertext = othertext
 
+    # helper function for all setters, that resets all (main) boolean attributes to False
+    def resetalltoplevelbooleans(self):
+        self._h1 = False
+        self._h2 = False
+        self._hboth = False
+        self._arm1 = False
+        self._arm2 = False
+        self._aboth = False
+        self._leg1 = False
+        self._leg2 = False
+        self._lboth = False
+        self._other = False
+
 class RelationY:
 
-    def __init__(self, h2=False, arm2=False, leg1=False, leg2=False, existingmodule=False, linkedmoduletype=None, linkedmoduleids=None, other=False, othertext=""):
+    def __init__(self, h2=False, arm1=False, arm2=False, armboth=False, leg1=False, leg2=False, legboth=False, existingmodule=False, linkedmoduletype=None, linkedmoduleids=None, other=False, othertext=""):
         self._h2 = h2
+        self._arm1 = arm1
         self._arm2 = arm2
+        self._aboth = armboth
         self._leg1 = leg1
         self._leg2 = leg2
+        self._lboth = legboth
         self._existingmodule = existingmodule
         self._linkedmoduletype = linkedmoduletype
         self._linkedmoduleids = linkedmoduleids or [0.0]
@@ -1596,7 +1594,11 @@ class RelationY:
 
     def displaystr(self):
         relY_str = ""
-        if self.existingmodule:
+        if self.aboth:
+            relY_str = "both arms"
+        if self.lboth:
+            relY_str = "both legs"
+        elif self.existingmodule:
             # print(self.linkedmoduleids)
             relY_str = "existing module"
             if self.linkedmoduletype is not None:
@@ -1610,10 +1612,10 @@ class RelationY:
                 relY_str += " (" + self.othertext + ")"
         else:
             rel_dict = self.__dict__
-            for attr in "_h2", "_arm2", "_leg1", "_leg2":
+            for attr in rel_dict:
                 if rel_dict[attr]:
-                    relY_str = attr[1:] # attributes are prepended with _
-                    break    
+                    relY_str = attr[1:]  # attributes are prepended with _
+                    break
         return relY_str
 
     @property
@@ -1622,14 +1624,22 @@ class RelationY:
 
     @h2.setter
     def h2(self, h2):
-        self._h2 = h2
-
         if h2:
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._h2 = h2
+
+    @property
+    def arm1(self):
+        if not hasattr(self, '_arm1'):
+            # backward compatibility for attribute added 20250220
+            self._arm1 = False
+        return self._arm1
+
+    @arm1.setter
+    def arm1(self, arm1):
+        if arm1:
+            self.resetallbooleans()
+            self._arm1 = arm1
 
     @property
     def arm2(self):
@@ -1637,14 +1647,22 @@ class RelationY:
 
     @arm2.setter
     def arm2(self, arm2):
-        self._arm2 = arm2
-
         if arm2:
-            self._h2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._arm2 = arm2
+
+    @property
+    def aboth(self):
+        if not hasattr(self, '_aboth'):
+            # backward compatibility for attribute added 20250220
+            self._aboth = False
+        return self._aboth
+
+    @aboth.setter
+    def aboth(self, aboth):
+        if aboth:
+            self.resetallbooleans()
+            self._aboth = aboth
 
     @property
     def leg1(self):
@@ -1652,14 +1670,9 @@ class RelationY:
 
     @leg1.setter
     def leg1(self, leg1):
-        self._leg1 = leg1
-
         if leg1:
-            self._h2 = False
-            self._arm2 = False
-            self._leg2 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._leg1 = leg1
 
     @property
     def leg2(self):
@@ -1667,14 +1680,22 @@ class RelationY:
 
     @leg2.setter
     def leg2(self, leg2):
-        self._leg2 = leg2
-
         if leg2:
-            self._h2 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._leg2 = leg2
+
+    @property
+    def lboth(self):
+        if not hasattr(self, '_lboth'):
+            # backward compatibility for attribute added 20250220
+            self._lboth = False
+        return self._lboth
+
+    @lboth.setter
+    def lboth(self, lboth):
+        if lboth:
+            self.resetallbooleans()
+            self._lboth = lboth
 
     @property
     def existingmodule(self):
@@ -1682,14 +1703,9 @@ class RelationY:
 
     @existingmodule.setter
     def existingmodule(self, existingmodule):
-        self._existingmodule = existingmodule
-
         if existingmodule:
-            self._h2 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetallbooleans()
+            self._existingmodule = existingmodule
 
     @property
     def linkedmoduletype(self):
@@ -1716,14 +1732,9 @@ class RelationY:
 
     @other.setter
     def other(self, other):
-        self._other = other
-
         if other:
-            self._h2 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._existingmodule = False
+            self.resetallbooleans()
+            self._other = other
 
     @property
     def othertext(self):
@@ -1732,6 +1743,18 @@ class RelationY:
     @othertext.setter
     def othertext(self, othertext):
         self._othertext = othertext
+
+    # helper function for all setters, that resets all boolean attributes to False
+    def resetalltoplevelbooleans(self):
+        self._h2 = False
+        self._arm1 = False
+        self._arm2 = False
+        self._aboth = False
+        self._leg1 = False
+        self._leg2 = False
+        self._lboth = False
+        self._existingmodule = False
+        self._other = False
 
 
 class RelationModule(ParameterModule):
@@ -1909,20 +1932,20 @@ class RelationModule(ParameterModule):
 
     def hands_in_use(self):
         return {
-            1: self.relationx.both or self.relationx.h1,
-            2: self.relationx.both or self.relationx.h2 or self.relationy.h2
+            1: self.relationx.hboth or self.relationx.h1,
+            2: self.relationx.hboth or self.relationx.h2 or self.relationy.h2
         }
 
     def arms_in_use(self):
         return {
-            1: self.relationx.arm1,
-            2: self.relationx.arm2 or self.relationy.arm2
+            1: self.relationx.aboth or self.relationy.aboth or self.relationx.arm1 or self.relationy.arm1,
+            2: self.relationx.aboth or self.relationy.aboth or self.relationx.arm2 or self.relationy.arm2
         }
 
     def legs_in_use(self):
         return {
-            1: self.relationx.leg1 or self.relationy.leg1,
-            2: self.relationx.leg2 or self.relationy.leg2
+            1: self.relationx.lboth or self.relationy.lboth or self.relationx.leg1 or self.relationy.leg1,
+            2: self.relationx.lboth or self.relationy.lboth or self.relationx.leg2 or self.relationy.leg2
         }
 
     # relation abbreviation
@@ -1933,9 +1956,10 @@ class RelationModule(ParameterModule):
         paths = self.get_paths() 
 
         X_art = self.relationx.displaystr().capitalize()
-        if X_art in ['Both hands', 'Both hands connected']:
+        if "both" in X_art.lower():
+            art1, art2 = ('H1', 'H2') if "hands" in X_art else (('Arm1', 'Arm2') if "arms" in X_art else ('Leg1', 'Leg2'))
             X_str += f'{X_art}: '
-            X_str += ', '.join([self.get_path_abbrev(paths, a) for a in ['H1', 'H2']])
+            X_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
         elif X_art.startswith('Other'):
             X_str += X_art
         else:
@@ -1945,11 +1969,13 @@ class RelationModule(ParameterModule):
             Y_str = f'linked {self.relationy.linkedmoduletype} module'
         else:
             Y_art = self.relationy.displaystr().capitalize()
-            if Y_art.startswith('Other'):
+            if "both" in Y_art.lower():
+                art1, art2 = ('H1', 'H2') if "hands" in Y_art else (('Arm1', 'Arm2') if "arms" in Y_art else ('Leg1', 'Leg2'))
+                Y_str += f'{Y_art}: '
+                Y_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
+            elif Y_art.startswith('Other'):
                 Y_str += Y_art
             else:
-                Y_art = self.relationy.displaystr().capitalize()
-
                 Y_str = self.get_path_abbrev(paths, Y_art)
 
         X_str = "X = " + X_str
@@ -2004,6 +2030,7 @@ class RelationModule(ParameterModule):
         
         return ": ".join(filter(None, [phonphon_str, "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))]))
     
+
 
 
 class MannerRelation:
