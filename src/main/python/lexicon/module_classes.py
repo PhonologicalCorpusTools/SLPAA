@@ -11,6 +11,7 @@ from PyQt5.QtCore import (
 )
 
 from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from constant import (specifytotalcycles_str, numberofreps_str, custom_abbrev)
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 def get_path_lowest_node(path):
@@ -466,104 +467,91 @@ class MovementModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        
-        wordlist = []
-
-        listmodel = self._movementtreemodel.listmodel
-        abbrevs = {
-            "Perceptual shape": "Perceptual",
-            "Straight": "Straight",
-            # "Interacts with subsequent straight movement": "interacts with subseq. straight mov.",
-            "Movement contours cross (e.g. X)": "crosses subseq. mov.",
-            "Subsequent movement starts at end of first (e.g. ↘↗)": "ends where subseq. mov starts",
-            "Subsequent movement starts in same location as start of first (e.g. ↖↗)": "starts where subseq. mov starts",
-            "Subsequent movement ends in same location as end of first (e.g. ↘↙)": "ends where subseq. mov. ends",
-            "Arc": "Arc",
-            "Circle": "Circle",
-            "Zigzag": "Zigzag",
-            "Loop (travelling circles)": "Loop",
-            "Joint-specific movements": "Joint-specific",
-            "Nodding/un-nodding": "Nod/Un-",
-            "Nodding": "nod",
-            "Un-nodding": "un-nod",
-            "Pivoting": "Pivot",
-            "Radial": "radial pivot",
-            "Ulnar": "ulnar pivot",
-            "Twisting": "Twist",
-            "Pronation": "pronation",
-            "Supination": "supination",
-            "Closing/Opening": "Close/Open",
-            "Closing": "close",
-            "Opening": "open",
-            "Pinching/unpinching": "Pinch/Un-",
-            "Pinching (Morgan 2017)": "pinch",
-            "Unpinching": "unpinch",
-            "Flattening/Straightening": "Flatten/Straighten",
-            "Flattening/hinging": "flatten",
-            "Straightening": "straighten",
-            "Hooking/Unhooking": "Hook/Un-",
-            "Hooking/clawing": "hook",
-            "Unhooking": "unhook",
-            "Spreading/Unspreading": "Spread/Un-",
-            "Spreading": "spread",
-            "Unspreading": "unspread",
-            "Rubbing": "Rub",
-            "Wiggling/Fluttering": "Wiggle",
-            "Up": "up",
-            "Down": "down",
-            "Distal": "dist",
-            "Proximal": "prox",
-            "Ipsilateral": "ipsi",
-            "Contralateral": "contra",
-            "Right": "right",
-            "Left": "left",
-            "Mid-sagittal": "mid-sag",
-            "Clockwise": "clockwise",
-            "Counterclockwise": "counter-clockwise",
-            "Horizontal": "Hor",
-            "Vertical": "Ver",
-            "Single": "1x",
-            "2": "2x",
-            "3": "3x",
-            "4": "4x",  # TODO automate the abbreviations for integers
-            ""
-            "Same location": "same loc",
-            "Different location": "diff. loc",
-            "Trilled": "Trilled",
-            "Bidirectional": "Bidirec"
+        mvmt_type_arr, mvmt_char_arr = [], []
+        perceptual_info = {
+            "Shape": [],
+            "Axis direction": {},
+            "Plane": {},
         }
-        # 
-        numrows = listmodel.rowCount()
-        for rownum in range(numrows):
-            item = listmodel.item(rownum)
-            text = item.text()
-            id = item.nodeID
-            # logging.warn(rownum)
-            # logging.warn(item)
-            # logging.warn(id)
-            selected = item.data(Qt.UserRole+udr.selectedrole)
-            if selected:
-                # logging.warn(text)
-                # logging.warn(id)
-                pathelements = text.split(treepathdelimiter)
-                # thisentrytext = ""
-                # firstonedone = False
-                # morethanone = False
-                for pathelement in pathelements:
-                    if pathelement in abbrevs.keys():  #  and abbrevs[pathelement] not in thisentrytext:
-                        wordlist.append(abbrevs[pathelement])
-                #         if not firstonedone:
-                #             thisentrytext += abbrevs[pathelement]
-                #             firstonedone = True
-                #         else:
-                #             if not morethanone:
-                #                 thisentrytext += " (" + abbrevs[pathelement] + ", "
-                #                 morethanone = True
-                #     if morethanone:  # and thisentrytext.endswith(")"):
-                #         thisentrytext += ")"  # = thisentrytext[:-2] + ")"
-                # wordlist.append(thisentrytext)
+        joint_specific_info = {"Type": None, "Direction": {}}
+        paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
+        # leaf_paths = []
+        # last_path = paths[0] if paths else None
+        # for path in paths: 
+        #     # we'll mainly work with the leaf nodes, although we might need to access the abbreviations of other nodes as well.
+        #     if last_path["path"] in path["path"]: # this is a child of last_path
+        #         last_path = path
+        #     else:
+        #         leaf_paths.append(last_path)
+        #         last_path = path
+        # if last_path is not None: leaf_paths.append(last_path) 
+        
+        for path in paths: # each path contains keys "path", "abbrev", "usv"
+            path_nodes = path["path"].split(treepathdelimiter)
+            abbrev = path["abbrev"] if path["abbrev"] is not None else path_nodes[-1]
+            if len(path_nodes) > 1 and path_nodes[0] == "Movement type":
+                if path_nodes[1] == "Perceptual shape":
+                    # node[2] is either Shape, Axis direction, or Plane
+                    # node[3] is the specified shape or axis or plane
+                    # so we need min 4 nodes for a fully specified Shape, or min 5 for fully specified axis direction / plane
+                    if len(path_nodes) >= 4:
+                        shape_type = path_nodes[2] 
+                        if shape_type == 'Shape':
+                            perceptual_info[shape_type].append(abbrev)
+                        elif len(path_nodes) >= 4:
+                            direction = path_nodes[4] if path_nodes[3] in ['Absolute', 'Relative'] and len(path_nodes) > 4 else path_nodes[3] if path_nodes[3] not in ['Absolute', 'Relative'] else None
+                            if not direction: pass
+                            elif direction in perceptual_info[shape_type]:
+                                perceptual_info[shape_type][direction].append(abbrev)
+                            elif direction not in perceptual_info[shape_type]:
+                                perceptual_info[shape_type][direction] = [abbrev]
 
-        return "; ".join(wordlist)
+                elif path_nodes[1] == "Joint-specific movements":
+                    # node[2] is movement type, node[3] is direction, so need 3 or 4 nodes depending on whether direction is specified.
+                    # except when node[2] is "rubbing", which requires 4 or 5 nodes
+                    if len(path_nodes) == 3 and not joint_specific_info['Type']: joint_specific_info['Type'] = abbrev # 3rd path node is always movement type
+                    elif len(path_nodes) >= 4:
+                        if path_nodes[2] != "Rubbing" or (path_nodes[2] == "Rubbing" and path_nodes[3] not in ['Articulator(s):', 'Location:']):
+                            if path_nodes[3] not in joint_specific_info['Direction']: joint_specific_info['Direction'][path_nodes[3]] = []
+                            joint_specific_info['Direction'][path_nodes[3]].append(abbrev)
+
+                elif path_nodes[1] == "Handshape change":
+                    pass
+            elif len(path_nodes) > 1 and path_nodes[0] == "Movement characteristics":
+                if len(path_nodes) < 2:
+                    mvmt_char_arr.append("Unspecified mvmt char") 
+                elif path_nodes[1] == "Repetition":
+                    pass
+                else: # directionality or additional characteristics.
+                    mvmt_char_arr.append(path_nodes[-1] if path["abbrev"] is None else path["abbrev"] if path["abbrev"] != custom_abbrev else None)
+            elif len(path_nodes) > 1 and path_nodes[0] == "Joint activity": # TODO eventually
+                pass
+            elif path_nodes[0] == "No movement":
+                return "No movement"
+        # print(perceptual_info)
+        # print(joint_specific_info)
+
+        perceptual_strs, joint_specific_strs = [], []
+        shape_info = perceptual_info['Shape'][0] if perceptual_info['Shape'] else None
+        shape_other_info = None if len(perceptual_info['Shape']) < 2 or perceptual_info['Shape'][-1] == '' else f" ({perceptual_info['Shape'][-1]})"
+        perceptual_strs.append(''.join(filter(None, [shape_info, shape_other_info])))
+        for perceptual_type in [perceptual_info['Axis direction'], perceptual_info['Plane']]:
+            direction_arrs = list(perceptual_type.values())
+            perceptual_strs.append(' + '.join(filter(None, [f"{arr[0]}({', '.join(filter(None, arr[1:]))})" for arr in direction_arrs])))
+        perceptual_strs = "; ".join(filter(None,perceptual_strs))
+        shape_str = joint_specific_info['Type']
+        direction_list = list(joint_specific_info['Direction'].values())
+        direction_str = ""
+        for arr in direction_list: # only more than one in case of "rubbing"
+            direction_str += f"({' '.join(arr)})"
+        joint_specific_str = ' '.join(filter(None, [shape_str, direction_str]))
+        to_return = []
+        if perceptual_strs: to_return.append(f'Perceptual ({perceptual_strs})')
+        if joint_specific_str: to_return.append(f"Joint-specific ({joint_specific_str})")
+        print ("; ".join(to_return))
+        return "; ".join(to_return)
+        # return to_return
+        
 
 
 # this class stores info about whether an instance of the Location module represents a phonetic/phonological location

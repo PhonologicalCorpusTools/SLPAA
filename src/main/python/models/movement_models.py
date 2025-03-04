@@ -22,20 +22,10 @@ from PyQt5.QtWidgets import (
 from lexicon.module_classes import AddedInfo
 from models.shared_models import TreePathsProxyModel
 from constant import CONTRA, IPSI, userdefinedroles as udr, treepathdelimiter
+from constant import (specifytotalcycles_str, numberofreps_str, rb, cb, nc, ed_1, ed_2, ed_3, fx, subgroup, custom_abbrev)
 
-# for backwards compatibility
 specifytotalcycles_str = "Specify total number of cycles"
 numberofreps_str = "Number of repetitions"
-
-rb = "radio button"  # ie mutually exclusive in group / at this level
-cb = "checkbox"  # ie not mutually exlusive
-nc = "no control" # no radio button or checkbox should be shown
-ed_1 = "editable level 1"  # ie value is editable but restricted to numbers that are >= 1 and multiples of 0.5
-ed_2 = "editable level 2"  # ie value is editable but restricted to numbers
-ed_3 = "editable level 3"  # ie value is editable and unrestricted
-fx = "fixed"  # ie value is not editable
-subgroup = "subgroup"
-custom_abbrev = "custom abbreviation" # for tooltip abbreviations which depend on user entry
 
 c = True  # checked
 u = False  # unchecked
@@ -477,13 +467,13 @@ defaultMvmtTree = MvmtOptionsNode(children=[
                     MvmtOptionsNode("Palm", fx, rb, ""),
                     MvmtOptionsNode("Other", ed_3, rb, custom_abbrev)
                 ]),
-                MvmtOptionsNode("Across", fx, cb, "", children=[
-                    MvmtOptionsNode("to radial side", fx, rb, ""),
-                    MvmtOptionsNode("to ulnar side", fx, rb, ""),
+                MvmtOptionsNode("Across", fx, cb, "across", children=[
+                    MvmtOptionsNode("to radial side", fx, rb, "to radial"),
+                    MvmtOptionsNode("to ulnar side", fx, rb, "to ulnar"),
                 ]),
-                MvmtOptionsNode("Along", fx, cb, "", children=[
-                    MvmtOptionsNode("to fingertip end", fx, rb, ""),
-                    MvmtOptionsNode("to base end", fx, rb, ""),
+                MvmtOptionsNode("Along", fx, cb, "along", children=[
+                    MvmtOptionsNode("to fingertip end", fx, rb, "to tip"),
+                    MvmtOptionsNode("to base end", fx, rb, "to base"),
                 ])
             ]),
             MvmtOptionsNode("Wiggling/Fluttering", fx, rb, "Wiggle"),  # TODO autofills to both flexion and extension of selected finger base joints
@@ -1500,6 +1490,7 @@ class MovementTreeModel(QStandardItemModel):
                 ismutuallyexclusive = child.button_type == rb
                 nocontrol = child.button_type == nc
                 iseditable = child.user_specifiability != fx
+                abbrev = child.tooltip
 
                 if child.display_name == subgroup:
 
@@ -1512,6 +1503,7 @@ class MovementTreeModel(QStandardItemModel):
                     thistreenode = MovementTreeItem(label, child.id, mutuallyexclusive=ismutuallyexclusive, nocontrol=nocontrol)
                     thistreenode.setData(child.user_specifiability, Qt.UserRole+udr.isuserspecifiablerole)
                     thistreenode.setData(nocontrol, Qt.UserRole+udr.nocontrolrole)
+                    thistreenode.setData(abbrev, role=Qt.UserRole+udr.pathabbrevrole)
                     editablepart = QStandardItem()
                     editablepart.setEditable(iseditable)
                     editablepart.setText("specify" if iseditable else "")
@@ -1527,14 +1519,38 @@ class MovementTreeModel(QStandardItemModel):
                     parentnode.appendRow([thistreenode, editablepart])
 
 
-    def get_checked_items(self, parent_index=QModelIndex()):
+    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=False, include_details=False):
+        ''' 
+        Returns: a list of strings denoting paths \n
+        If include_details, returns a list of dicts: 
+        - 'path': the full path
+        - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated \n
+        The default value for only_fully_checked is False (in contrast to Location module) because
+        ancestors of a selected path should be considered as checked nodes when searching.
+        For example, a search for "Repetition" should return movement modules that contain "Repetition>Repeated>2x",
+        but a search for "Face" should not return location modules that only contain "Face>Cheek/nose".
+        '''
         checked_values = []
         for row in range(self.rowCount(parent_index)):
             index = self.index(row, 0, parent_index)
-            if index.data(Qt.CheckStateRole) != Qt.Unchecked:
-                checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
-            checked_values.extend(self.get_checked_items(index))
+            if only_fully_checked:
+                checkstate_to_match = Qt.Checked # 2
+            else:
+                checkstate_to_match = Qt.PartiallyChecked # 1
+            if index.data(Qt.CheckStateRole) >= checkstate_to_match:
+                path = index.data(Qt.UserRole+udr.pathdisplayrole)
+                if include_details:
+                    checked_values.append({
+                        'path': path,
+                        'abbrev': index.data(Qt.UserRole+udr.pathabbrevrole),
+                        'usv': index.data(Qt.UserRole+udr.userspecifiedvaluerole)}
+                    ),
+                else:
+                    checked_values.append(path)
+            checked_values.extend(self.get_checked_items(index, only_fully_checked, include_details))
         return checked_values
+    
+    
 
     @property
     def listmodel(self):
