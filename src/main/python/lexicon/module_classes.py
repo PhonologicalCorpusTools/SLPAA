@@ -1850,7 +1850,7 @@ class RelationModule(ParameterModule):
         paths = self.get_paths() 
 
         X_art = self.relationx.displaystr().capitalize()
-        if X_art.startswith("Both"):
+        if "both" in X_art.lower():
             art1, art2 = ('H1', 'H2') if "hands" in X_art else (('Arm1', 'Arm2') if "arms" in X_art else ('Leg1', 'Leg2'))
             X_str += f'{X_art}: '
             X_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
@@ -1864,7 +1864,7 @@ class RelationModule(ParameterModule):
             Y_str = f'linked {self.relationy.linkedmoduletype} module'
         else:
             Y_art = self.relationy.displaystr().capitalize()
-            if Y_art.startswith("Both"):
+            if "both" in Y_art.lower():
                 art1, art2 = ('H1', 'H2') if "hands" in Y_art else (('Arm1', 'Arm2') if "arms" in Y_art else ('Leg1', 'Leg2'))
                 Y_str += f'{Y_art}: '
                 Y_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
