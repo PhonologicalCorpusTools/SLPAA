@@ -9,8 +9,16 @@ PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP
 snums = [1, 2]
 
 
-# TODO description
-# return format - checked with Stanley 20241122: [(s1mod1,s2mod2),(s1mod2,s2mod1),(s1mod3,None)]
+# given two signs, this function aligns the s1 modules of the specified type with their s2 counterparts,
+#   based first on their articulators, then on the module contents, and finally (as a fallback) the relative order
+#   in which the modules were coded
+# inputs:
+#   sign1 = an object of type Sign
+#   sign2 = an object of type Sign
+#   moduletype = a string (from class ModuleTypes) indicating the module type to be aligned
+# returns a list of pairs of aligned modules of this type, the first element from sign1 and the second from sign2
+#   if there are unaligned modules then the other member of the pair will be None
+#   return format example: [(s1mod1,s2mod2),(s1mod2,s2mod1),(s1mod3,None)]
 def alignmodules(sign1, sign2, moduletype):
     if moduletype == ModuleTypes.SIGNTYPE:
         return [(sign1.signtype, sign2.signtype)]
