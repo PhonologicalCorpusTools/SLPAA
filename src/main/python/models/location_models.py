@@ -682,7 +682,12 @@ class LocationTreeModel(QStandardItemModel):
                     checked.append(k)
         return checked
 
-        # Compare what was serialized with what the current tree actually shows
+    # returns True iff input `other` is also a LocationTreeModel, and it has the exact same checked items as this one
+    # note that this function ignores any potential surface/subarea selection
+    def matches(self, other):
+        return isinstance(other, LocationTreeModel) and (self.listmodel.matches(other.listmodel))
+
+    # Compare what was serialized with what the current tree actually shows
     def compare_checked_lists(self):
         differences = []
         serialized = self.get_checked_from_serialized_tree()
@@ -954,6 +959,24 @@ class LocationListModel(QStandardItemModel):
 
     def setTreemodel(self, treemod):
         self.treemodel = treemod
+
+    # returns True iff input `other` is also a LocationListModel, and it has the exact same checked items as this one
+    # note that this function ignores any potential surface/subarea selection
+    def matches(self, other):
+        return isinstance(other, LocationListModel) and (self.get_checked_items() == other.get_checked_items())
+
+    # returns a list of strings, where each is the (tree) path of one of the checked items in this list
+    def get_checked_items(self, parent_item=None):
+        if parent_item is None:
+            parent_item = self.invisibleRootItem()
+
+        checked_values = []
+        for row in range(parent_item.rowCount()):
+            child_item = parent_item.child(row, 0)
+            if child_item.data(Qt.UserRole+udr.selectedrole):
+                checked_values.append(child_item.text())
+            checked_values.extend(self.get_checked_items(child_item))
+        return checked_values
 
 
 # This class stores specific details about body locations; e.g. surfaces and/or subareas involved

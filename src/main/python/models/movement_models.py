@@ -1129,6 +1129,24 @@ class MovementListModel(QStandardItemModel):
     def setTreemodel(self, treemod):
         self.treemodel = treemod
 
+    # returns True iff input `other` is also a MovementListModel, and it has the exact same checked items as this one
+    # note that this function ignores any potential surface/subarea selection
+    def matches(self, other):
+        return isinstance(other, MovementListModel) and (self.get_checked_items() == other.get_checked_items())
+
+    # returns a list of strings, where each is the (tree) path of one of the checked items in this list
+    def get_checked_items(self, parent_item=None):
+        if parent_item is None:
+            parent_item = self.invisibleRootItem()
+
+        checked_values = []
+        for row in range(parent_item.rowCount()):
+            child_item = parent_item.child(row, 0)
+            if child_item.data(Qt.UserRole+udr.selectedrole):
+                checked_values.append(child_item.text())
+            checked_values.extend(self.get_checked_items(child_item))
+        return checked_values
+
 
 class MovementTreeModel(QStandardItemModel):
 
@@ -1171,6 +1189,10 @@ class MovementTreeModel(QStandardItemModel):
 
                     self.update_currently_checked(treechild)
 
+    # returns True iff input `other` is also a MovementTreeModel, and it has the exact same checked items as this one
+    def matches(self, other):
+        return isinstance(other, MovementTreeModel) and (self.listmodel.matches(other.listmodel))
+
     # Compare what was serialized with what the current tree actually shows
     # Also updates the list
     def compare_checked_lists(self, verbose=False):
@@ -1184,7 +1206,7 @@ class MovementTreeModel(QStandardItemModel):
         # print("   Serialized mvmt:" + str(len(serialized)) + "; Listed mvmt:" + str(len(self.checked)))
 
         return differences
-    
+
     def get_usv(self):
         if hasattr(self.serializedmvmttree, 'userspecifiedvalues'):
             return self.serializedmvmttree.userspecifiedvalues
@@ -1525,7 +1547,6 @@ class MovementTreeModel(QStandardItemModel):
                     self.populate(thistreenode, structure=child, pathsofar=pathsofar + label + treepathdelimiter, idsequence=idsequence)
                     # self.populate(thistreenode, structure=child, pathsofar=pathsofar+label+delimiter, idsequence=idsequence.append(node_id))
                     parentnode.appendRow([thistreenode, editablepart])
-
 
     def get_checked_items(self, parent_index=QModelIndex()):
         checked_values = []
