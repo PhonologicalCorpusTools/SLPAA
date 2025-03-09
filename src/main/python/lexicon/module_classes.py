@@ -2270,6 +2270,12 @@ class Direction:
         self._inline = inline  # in line with (for all axes)
         self._any = any # Used by search targets to match any direction selection (crossed / linked / hor / ver / sag)
 
+    def sameaxisselection(self, other):
+        if isinstance(other, Direction):
+            if self._axis == other.axis and self._axisselected == other.axisselected:
+                return True
+        return False
+
     def __eq__(self, other):
         if isinstance(other, Direction):
             if self._axis == other.axis and self._axisselected == other.axisselected and self._plus == other.plus and self._minus == other.minus and self._inline == other.inline:

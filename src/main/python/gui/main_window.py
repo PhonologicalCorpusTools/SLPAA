@@ -39,7 +39,9 @@ from PyQt5.QtWidgets import (
     QApplication,
     QRadioButton,
     QButtonGroup,
-    QSpacerItem
+    QSpacerItem,
+    QComboBox,
+    QPushButton
 )
 
 from PyQt5.QtGui import (
@@ -69,6 +71,8 @@ from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 from constant import ModuleTypes
 from lexicon.module_utils import deepcopymodule, deepcopysign
+from compare_signs.align_modules import alignmodules
+from gui.modulespecification_widgets import StatusDisplay
 
 
 class SubWindow(QMdiSubWindow):
@@ -206,6 +210,11 @@ class MainWindow(QMainWindow):
         action_search.triggered.connect(self.on_action_search)
         action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
         action_search.setCheckable(False)
+
+        # align modules (TODO temporary - remove before merging with main)
+        action_align = QAction("Align modules", parent=self)
+        action_align.triggered.connect(self.on_action_align)
+        action_align.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -388,6 +397,7 @@ class MainWindow(QMainWindow):
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
         menu_analysis_beta.addAction(action_search)
+        menu_analysis_beta.addAction(action_align)
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
         menu_help.addAction(action_help_main)
         menu_help.addAction(action_help_about)
@@ -897,6 +907,12 @@ class MainWindow(QMainWindow):
     def on_action_search(self):
         self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
         self.search_window.show()
+
+    # test module alignment  TODO temporary - remove before merging with main
+    def on_action_align(self):
+        self.align_test_window = AlignTestDialog(self.app_settings, corpus=self.corpus, parent=self)
+        self.align_test_window.show()
+
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
@@ -1666,3 +1682,135 @@ class MinCounterDialog(QDialog):
         if standard == QDialogButtonBox.Save:
             self.parent().corpus.increaseminID(countervalue)
             self.accept()
+
+
+# test module alignment TODO temporary - remove before merging with main
+class AlignTestDialog(QDialog):
+
+    def __init__(self, app_settings, corpus, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+        self.corpus = corpus
+        self.sign1 = None
+        self.sign2 = None
+
+        main_layout = QVBoxLayout()
+
+        sign1layout = QHBoxLayout()
+        self.sign1label = QLabel("Sign 1:")
+        self.sign1combo = QComboBox(parent=self)
+        self.sign1combo.addItems(
+            [str(s.signlevel_information.entryid.counter) + ": " + " / ".join(s.signlevel_information.gloss) for s in self.corpus.signs])
+        sign1layout.addWidget(self.sign1label)
+        sign1layout.addWidget(self.sign1combo)
+
+        sign2layout = QHBoxLayout()
+        self.sign2label = QLabel("Sign 2:")
+        self.sign2combo = QComboBox(parent=self)
+        self.sign2combo.addItems(
+            [str(s.signlevel_information.entryid.counter) + ": " + " / ".join(s.signlevel_information.gloss) for s in self.corpus.signs])
+        sign2layout.addWidget(self.sign2label)
+        sign2layout.addWidget(self.sign2combo)
+
+        main_layout.addLayout(sign1layout)
+        main_layout.addLayout(sign2layout)
+
+        self.alignbutton = QPushButton("Align modules")
+        self.alignbutton.clicked.connect(self.handle_alignmodules)
+        main_layout.addWidget(self.alignbutton)
+
+        self.aligndisplay = StatusDisplay(parent=self)
+        main_layout.addWidget(self.aligndisplay)
+
+        self.setLayout(main_layout)
+
+    def handle_alignmodules(self, checked):
+        self.aligndisplay.setText("aligning...")
+
+        allalignedmodules = []
+
+        sign1 = [s for s in self.corpus.signs if s.signlevel_information.entryid.counter == int(self.sign1combo.currentText()[:self.sign1combo.currentText().index(":")])][0]
+        sign2 = [s for s in self.corpus.signs if s.signlevel_information.entryid.counter == int(self.sign2combo.currentText()[:self.sign2combo.currentText().index(":")])][0]
+        for modtype in ModuleTypes.alltypes:
+            alignedmodulesthistype = alignmodules(sign1, sign2, modtype)
+            allalignedmodules.extend(alignedmodulesthistype)
+
+        resultstring = ""
+        for mod1, mod2 in allalignedmodules:
+            mod1string = "no match"
+            if mod1 is not None:
+                if mod1.moduletype == ModuleTypes.SIGNTYPE:
+                    mod1string = "Sign type"
+                else:
+                    mod1string = sign1.getmoduleabbreviation(mod1)
+
+            mod2string = "no match"
+            if mod2 is not None:
+                if mod2.moduletype == ModuleTypes.SIGNTYPE:
+                    mod2string = "Sign type"
+                else:
+                    mod2string = sign2.getmoduleabbreviation(mod2)
+            resultstring += "S1: " + mod1string + "\n" + self.gethackymoduleabbreviation(mod1) + "S2: " + mod2string + "\n" + self.gethackymoduleabbreviation(mod2) + "\n"
+
+        self.aligndisplay.setText(resultstring)
+
+    def gethackymoduleabbreviation(self, module):
+        if module is None:
+            return ""
+
+        mtype = module.moduletype
+
+        if mtype == ModuleTypes.MOVEMENT:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            mlm = module.movementtreemodel.listmodel
+            rootnode = mlm.invisibleRootItem()
+            for r in range(rootnode.rowCount()):
+                child = rootnode.child(r, 0)
+                if child.treeitem.checkState() == Qt.Checked:
+                    abbrevstr += "     " + child.text() + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.LOCATION:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            abbrevstr += "     " + repr(module.locationtreemodel.locationtype) + "\n"
+            llm = module.locationtreemodel.listmodel
+            rootnode = llm.invisibleRootItem()
+            for r in range(rootnode.rowCount()):
+                child = rootnode.child(r, 0)
+                if child.treeitem.checkState() == Qt.Checked:
+                    abbrevstr += "     " + child.text() + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.HANDCONFIG:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            return abbrevstr + "     " + module.getabbreviation() + "\n"
+        elif mtype == ModuleTypes.SIGNTYPE:
+            return "     " + module.getabbreviation() + "\n"
+        elif mtype == ModuleTypes.RELATION:
+            abbrevstr = ""
+            abbrevstr += "     " + module.relationx.displaystr() + "\n"
+            abbrevstr += "     " + module.relationy.displaystr() + "\n"
+            abbrevstr += "     " + repr(module.contactrel) + "\n"
+            abbrevstr += "     " + repr(module.directions) + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.NONMANUAL:
+            abbrevstr = ""
+            for k in module._nonmanual.keys():
+                subdict = self.nonmanualdictreducer(module._nonmanual[k])
+                if subdict:
+                    abbrevstr += "     " + k + ": " + str(subdict) + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.ORIENTATION:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            abbrevstr += "     " + "palm: " + repr(module.palm) + "\n"
+            abbrevstr += "     " + "root: " + repr(module.root) + "\n"
+            return abbrevstr
+
+    def nonmanualdictreducer(self, nonmandict):
+        reduceddict = {}
+        for k in nonmandict.keys():
+            if isinstance(nonmandict[k], dict):
+                subdict = self.nonmanualdictreducer(nonmandict[k])
+                if subdict:
+                    reduceddict[k] = subdict
+            elif nonmandict[k]:
+                reduceddict[k] = nonmandict[k]
+        return reduceddict

@@ -1,8 +1,8 @@
 from copy import deepcopy
 
 from lexicon.lexicon_classes import unserializemovementmodules, unserializelocationmodules, unserializerelationmodules, Sign, SignLevelInformation
-from constant import ModuleTypes
 from serialization_classes import MovementModuleSerializable, LocationModuleSerializable, RelationModuleSerializable
+from constant import ModuleTypes
 
 
 def deepcopysignlevelinfo(sli_orig):
@@ -57,4 +57,3 @@ def deepcopymodule(module_orig):
     # create a new unique ID for the copied module
     module_copy.uniqueid_reset()
     return module_copy
-
