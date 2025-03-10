@@ -180,26 +180,20 @@ class MainWindow(QMainWindow):
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
 
-        # define locations
-        action_define_location = QAction('Define locations...', parent=self)
-        action_define_location.setStatusTip('Open define location window')
-        action_define_location.triggered.connect(self.on_action_define_location)
-        action_define_location.setCheckable(False)
+        # this menu/item is for an older way of interacting & defining Locations
+        # I've kept the content & relevant classes for now, but just commented out the access
+        # TODO consider at some point whether we want to trash the relevant classes
+        # or if there's some code in there worth saving/reusing in an updated location definition UI
+        # # define locations
+        # action_define_location = QAction('Define locations...', parent=self)
+        # action_define_location.setStatusTip('Open define location window')
+        # action_define_location.triggered.connect(self.on_action_define_location)
+        # action_define_location.setCheckable(False)
 
         # count x-slots
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
-
-        # merge corpora
-        action_merge_corpora = QAction("Merge corpora...", parent=self)
-        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
-        action_merge_corpora.setCheckable(False)
-
-        # export corpus in human-readable form
-        action_export_corpus = QAction("Export corpus...", parent=self)
-        action_export_corpus.triggered.connect(self.on_action_export_corpus)
-        action_export_corpus.setCheckable(False)
 
         # search
         action_search = QAction("Search", parent=self)
@@ -235,6 +229,8 @@ class MainWindow(QMainWindow):
 
         # export corpus in human-readable form
         action_export_corpus = QAction("Export corpus... (beta)", parent=self)
+        action_export_corpus.setStatusTip("Export corpus in human-readable form")
+        # action_export_corpus.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_E))
         action_export_corpus.triggered.connect(self.on_action_export_corpus)
         action_export_corpus.setCheckable(False)
 
@@ -872,14 +868,18 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('autocheck_neutral_on_locn_selected', self.app_settings['location']['autocheck_neutral_on_locn_selected'])
         self.app_qsettings.endGroup()  # location
 
-    def on_action_define_location(self):
-        location_definer = LocationDefinerDialog(self.system_default_locations,
-                                                 self.corpus.location_definition,
-                                                 self.app_settings,
-                                                 self.app_ctx,
-                                                 parent=self)
-        location_definer.saved_locations.connect(self.save_new_locations)
-        location_definer.exec_()
+    # this menu/item is for an older way of interacting & defining Locations
+    # I've kept the content & relevant classes for now, but just commented out the access
+    # TODO consider at some point whether we want to trash the relevant classes
+    # or if there's some code in there worth saving/reusing in an updated location definition UI
+    # def on_action_define_location(self):
+    #     location_definer = LocationDefinerDialog(self.system_default_locations,
+    #                                              self.corpus.location_definition,
+    #                                              self.app_settings,
+    #                                              self.app_ctx,
+    #                                              parent=self)
+    #     location_definer.saved_locations.connect(self.save_new_locations)
+    #     location_definer.exec_()
 
     def on_action_count_xslots(self):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
