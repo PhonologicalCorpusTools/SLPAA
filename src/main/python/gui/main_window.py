@@ -54,6 +54,7 @@ from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
+from gui.importcorpus_dialog import ImportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
@@ -227,6 +228,14 @@ class MainWindow(QMainWindow):
         action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
         action_merge_corpora.setCheckable(False)
 
+        # import corpus from human-readable form
+        action_import_corpus = QAction("Import corpus... (beta)", parent=self)
+        action_import_corpus.setStatusTip("Import corpus from human-readable form")
+        # action_import_corpus.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_I))
+        action_import_corpus.triggered.connect(self.on_action_import_corpus)
+        action_import_corpus.setCheckable(False)
+
+
         # export corpus in human-readable form
         action_export_corpus = QAction("Export corpus... (beta)", parent=self)
         action_export_corpus.setStatusTip("Export corpus in human-readable form")
@@ -347,6 +356,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(action_load_corpus)
         menu_file.addAction(action_load_sample)
         menu_file.addAction(action_merge_corpora)
+        menu_file.addAction(action_import_corpus)
         menu_file.addAction(action_export_corpus)
         menu_file.addSeparator()
         # TODO this needs an overhaul
@@ -889,6 +899,10 @@ class MainWindow(QMainWindow):
     def on_action_merge_corpora(self, clicked):
         merge_corpora_wizard = MergeCorporaWizard(self.app_settings, parent=self)
         merge_corpora_wizard.exec_()
+
+    def on_action_import_corpus(self):
+        import_corpus_window = ImportCorpusDialog(self.app_settings, parent=self)
+        import_corpus_window.exec_()
 
     def on_action_export_corpus(self):
         export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
