@@ -2,8 +2,7 @@ from datetime import datetime
 from fractions import Fraction
 from itertools import chain
 import functools
-import time
-import logging
+import time, os, re
 
 from PyQt5.QtCore import (
     Qt,
@@ -467,89 +466,117 @@ class MovementModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        mvmt_type_arr, mvmt_char_arr = [], []
+        def refactor_list(strings):
+            if not strings:
+                return ""
+            prefix = os.path.commonprefix(strings)
+             # eg factor Hand (across), Hand (away), Hand (to wrist) into Hand (across + away + to wrist)
+            if len(strings) > 1 and prefix and '(' in prefix: 
+                prefix = prefix[:prefix.find('(')+1] 
+                unique_parts = [re.sub(f"^{re.escape(prefix)}", "", s).strip(" ()") for s in strings]
+                return f"{prefix}{' + '.join(unique_parts)})"
+            else:
+                return f"{' + '.join(filter(None, strings))}"
         perceptual_info = {
             "Shape": [],
-            "Axis direction": {},
-            "Plane": {},
+            "Axis direction": [],
+            "Plane": [],
         }
-        joint_specific_info = {"Type": None, "Direction": {}}
+        joint_specific_info, handshape_change_str, mvmtchar_info = [], "", []
+        axis_other, plane_other = "", ""
+        h1h2 = {"Axis direction": "", "Plane": ""}
+        rep_info = {"abbrev": "", "num": None, "min": False, "locn": []}
         paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
-        # leaf_paths = []
-        # last_path = paths[0] if paths else None
-        # for path in paths: 
-        #     # we'll mainly work with the leaf nodes, although we might need to access the abbreviations of other nodes as well.
-        #     if last_path["path"] in path["path"]: # this is a child of last_path
-        #         last_path = path
-        #     else:
-        #         leaf_paths.append(last_path)
-        #         last_path = path
-        # if last_path is not None: leaf_paths.append(last_path) 
-        
-        for path in paths: # each path contains keys "path", "abbrev", "usv"
+        leaf_paths = []
+        last_path = paths[0] if paths else None
+        for path in paths: 
+            # we'll mainly work with the leaf nodes, but occasionally we need to access the abbreviations of other nodes as well.
+            if last_path["path"] in path["path"]: # this is a child of last_path
+                last_path = path
+            else:
+                leaf_paths.append(last_path)
+                last_path = path
+        if last_path is not None: leaf_paths.append(last_path) 
+        paths_dict = {}
+        for d in paths: # convert to dict for quick lookup
+            paths_dict[d['path']] = d
+        for path in leaf_paths: # each path contains keys "path", "abbrev", "usv"
             path_nodes = path["path"].split(treepathdelimiter)
-            abbrev = path["abbrev"] if path["abbrev"] is not None else path_nodes[-1]
-            if len(path_nodes) > 1 and path_nodes[0] == "Movement type":
+            # distinguish between None and "". If "", the path shouldn't appear in the abbreviation (eg for "Not relevant")
+            abbrev = path["abbrev"] if path["abbrev"] is not None else path_nodes[-1] 
+            if len(path_nodes) == 1: return abbrev
+            if path_nodes[0] == "Movement type":
                 if path_nodes[1] == "Perceptual shape":
+                    if path["abbrev"] == custom_abbrev: abbrev = "" 
                     # node[2] is either Shape, Axis direction, or Plane
                     # node[3] is the specified shape or axis or plane
-                    # so we need min 4 nodes for a fully specified Shape, or min 5 for fully specified axis direction / plane
-                    if len(path_nodes) >= 4:
+                    if len(path_nodes) >= 3:
                         shape_type = path_nodes[2] 
-                        if shape_type == 'Shape':
-                            perceptual_info[shape_type].append(abbrev)
-                        elif len(path_nodes) >= 4:
-                            direction = path_nodes[4] if path_nodes[3] in ['Absolute', 'Relative'] and len(path_nodes) > 4 else path_nodes[3] if path_nodes[3] not in ['Absolute', 'Relative'] else None
-                            if not direction: pass
-                            elif direction in perceptual_info[shape_type]:
-                                perceptual_info[shape_type][direction].append(abbrev)
-                            elif direction not in perceptual_info[shape_type]:
-                                perceptual_info[shape_type][direction] = [abbrev]
+                        if shape_type == "Shape" and path["usv"] and path_nodes[-1] == "Other":
+                            abbrev = path['usv']
+                        elif shape_type == "Axis direction" and len(path_nodes) > 4 and path_nodes[4] == "Other":
+                            axis_other = paths_dict[treepathdelimiter.join(path_nodes[0:5])]["usv"] + " "
+                        elif shape_type == "Plane":
+                            if (not plane_other) and len(path_nodes) > 4 and path_nodes[4] == "Other":
+                                plane_other = f"{paths_dict[treepathdelimiter.join(path_nodes[0:5])]['usv']} " 
+                            if len(path_nodes) > 5 and path_nodes[5] == "Specify top of area:":
+                                top = paths_dict[path["path"]]['usv']
+                                plane_other += f"(top: {top}) "
+                        if abbrev.startswith("H1 & H2"):
+                            h1h2[shape_type] = abbrev 
+                        else:
+                            perceptual_info[shape_type].append(abbrev) 
 
                 elif path_nodes[1] == "Joint-specific movements":
                     # node[2] is movement type, node[3] is direction, so need 3 or 4 nodes depending on whether direction is specified.
                     # except when node[2] is "rubbing", which requires 4 or 5 nodes
-                    if len(path_nodes) == 3 and not joint_specific_info['Type']: joint_specific_info['Type'] = abbrev # 3rd path node is always movement type
-                    elif len(path_nodes) >= 4:
-                        if path_nodes[2] != "Rubbing" or (path_nodes[2] == "Rubbing" and path_nodes[3] not in ['Articulator(s):', 'Location:']):
-                            if path_nodes[3] not in joint_specific_info['Direction']: joint_specific_info['Direction'][path_nodes[3]] = []
-                            joint_specific_info['Direction'][path_nodes[3]].append(abbrev)
+                    if len(path_nodes) >= 4 and path_nodes[2] == "Rubbing":
+                        if path_nodes[3] not in ['Articulator(s):', 'Location:']:
+                            joint_specific_info.append(abbrev)
+                    else:
+                        if path['usv']: abbrev = path['usv']
+                        joint_specific_info.append(abbrev)
 
                 elif path_nodes[1] == "Handshape change":
-                    pass
-            elif len(path_nodes) > 1 and path_nodes[0] == "Movement characteristics":
-                if len(path_nodes) < 2:
-                    mvmt_char_arr.append("Unspecified mvmt char") 
-                elif path_nodes[1] == "Repetition":
-                    pass
-                else: # directionality or additional characteristics.
-                    mvmt_char_arr.append(path_nodes[-1] if path["abbrev"] is None else path["abbrev"] if path["abbrev"] != custom_abbrev else None)
+                    handshape_change_str = abbrev
+            elif path_nodes[0] == "Movement characteristics":
+                if path_nodes[1] == "Repetition":
+                    if len(path_nodes) >= 4 and path_nodes[3] == 'Specify total number of cycles':
+                        rep_info['abbrev'] = abbrev
+                        rep_info["num"] = paths_dict[treepathdelimiter.join(path_nodes[0:4])]["usv"]
+                        if not rep_info["num"]:
+                            print("unspecified num reps")
+                        if len(path_nodes) == 5: # "this number is a minimum" 
+                            rep_info["min"] = True 
+                    elif len(path_nodes) >= 6 and path_nodes[3] == 'Location of repetition': # if location is specified, path is at least 6 nodes long
+                        rep_info["locn"].append(abbrev)
+                    else: # single
+                        rep_info['abbrev'] = abbrev
+
+
+                else: # directionality or additional characteristics
+                    mvmtchar_info.append(abbrev)
             elif len(path_nodes) > 1 and path_nodes[0] == "Joint activity": # TODO eventually
                 pass
-            elif path_nodes[0] == "No movement":
-                return "No movement"
-        # print(perceptual_info)
-        # print(joint_specific_info)
+        
+        perceptual_info['Axis direction'] = f"{axis_other}({refactor_list(perceptual_info['Axis direction'])})" if axis_other else refactor_list(perceptual_info['Axis direction'])
+        perceptual_info['Plane'] = f"{plane_other}({refactor_list(perceptual_info['Plane'])})" if plane_other else refactor_list(perceptual_info['Plane'])
+        perceptual_info_str = '; '.join(filter(None, (['; '.join(filter(None, perceptual_info['Shape'])), h1h2['Axis direction'], perceptual_info['Axis direction'], h1h2['Plane'], perceptual_info['Plane']])))
+        
+        perceptual_str = None if not perceptual_info_str else f"Perceptual ({perceptual_info_str})" 
+        joint_specific_info_str = None if not joint_specific_info else f"Joint-specific ({refactor_list(joint_specific_info)})" 
+        if rep_info['abbrev']:
+            if not rep_info["num"]: rep_str = rep_info['abbrev']
+            else: 
+                rep_str = f"{'min ' if rep_info['min'] else ''}{rep_info['num']}x"
+                # rep_info['abbrev'] if not rep_info['min'] else f"{'min '}{rep_info['num']}x"
+            if rep_info['locn']: rep_str += f" (Different loc: {' + '.join(rep_info['locn'])})"
+        else: rep_str = ""
+        mvmtchar_str = None if not mvmtchar_info else '; '.join(filter(None, mvmtchar_info))
 
-        perceptual_strs, joint_specific_strs = [], []
-        shape_info = perceptual_info['Shape'][0] if perceptual_info['Shape'] else None
-        shape_other_info = None if len(perceptual_info['Shape']) < 2 or perceptual_info['Shape'][-1] == '' else f" ({perceptual_info['Shape'][-1]})"
-        perceptual_strs.append(''.join(filter(None, [shape_info, shape_other_info])))
-        for perceptual_type in [perceptual_info['Axis direction'], perceptual_info['Plane']]:
-            direction_arrs = list(perceptual_type.values())
-            perceptual_strs.append(' + '.join(filter(None, [f"{arr[0]}({', '.join(filter(None, arr[1:]))})" for arr in direction_arrs])))
-        perceptual_strs = "; ".join(filter(None,perceptual_strs))
-        shape_str = joint_specific_info['Type']
-        direction_list = list(joint_specific_info['Direction'].values())
-        direction_str = ""
-        for arr in direction_list: # only more than one in case of "rubbing"
-            direction_str += f"({' '.join(arr)})"
-        joint_specific_str = ' '.join(filter(None, [shape_str, direction_str]))
-        to_return = []
-        if perceptual_strs: to_return.append(f'Perceptual ({perceptual_strs})')
-        if joint_specific_str: to_return.append(f"Joint-specific ({joint_specific_str})")
-        print ("; ".join(to_return))
-        return "; ".join(to_return)
+
+        to_return = '; '.join(filter(None, [perceptual_str, joint_specific_info_str, handshape_change_str, rep_str, mvmtchar_str]))
+        return to_return
         # return to_return
         
 
