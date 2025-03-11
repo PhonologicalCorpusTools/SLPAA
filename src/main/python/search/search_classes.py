@@ -316,7 +316,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
             moduletype = ModuleTypes.LOCATION if moduletype == LOC_REL_TARGET else ModuleTypes.MOVEMENT
         self.moduletype = moduletype
 
-        
+
         super().__init__(moduletype, xslotstructure, moduletoload, linkedfrommoduleid, linkedfrommoduletype, incl_articulators, incl_articulator_subopts, **kwargs)
 
     def create_associatedrelations_widget(self):
@@ -324,10 +324,10 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         if self.existingkey is not None:
             associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
         return associatedrelations_widget
-    
 
 
-    
+
+
     def add_button_box(self, new_instance=False):
         buttons = QDialogButtonBox.RestoreDefaults | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         self.button_box = QDialogButtonBox(buttons, parent=self)
@@ -355,7 +355,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
                 self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
             self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
         self.moduleselector_layout.addWidget(self.module_widget)
-    
+
     def handle_xslot_widget(self, xslotstructure, timingintervals):
         self.xslot_widget = None
         self.usexslots = False
@@ -424,7 +424,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
 
 
         return savedmodule
-    
+
 
 
 
@@ -446,7 +446,7 @@ class Search_MovementSpecPanel(MovementSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
 
-    
+
 
 
 
@@ -457,7 +457,7 @@ class Search_LocationSpecPanel(LocationSpecificationPanel):
         self.make_terminal_node_cb()
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.locationoptionsselectionpanel.terminal_node_cb.setChecked(self.getcurrenttreemodel().nodes_are_terminal)
-    
+
     def make_terminal_node_cb(self):
         # used in search window
         self.locationoptionsselectionpanel.terminal_node_cb = QCheckBox("Interpret selections as terminal nodes")
@@ -470,7 +470,7 @@ class Search_LocationSpecPanel(LocationSpecificationPanel):
     def handle_toggle_terminal_node(self):
         self.getcurrenttreemodel().nodes_are_terminal = self.locationoptionsselectionpanel.terminal_node_cb.isChecked()
 
-    
+
     def clear(self):
         super().clear()
         self.locationoptionsselectionpanel.terminal_node_cb.setChecked(False)
@@ -485,7 +485,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         super().__init__(moduletoload, **kwargs)
 
     # If an associated relation module is being created, then the linked module box should only show this target's anchor module.
-    # If we use the parent class's method, all location or movement search targets in this search file will appear, 
+    # If we use the parent class's method, all location or movement search targets in this search file will appear,
     # since they all belong to the same "current_sign"
     def create_linked_module_box(self):
         self.existingmod_listview = QListView()
@@ -503,7 +503,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
             self.locmodnums = {}
             self.movmodslist = []
             self.movmodnums = {}
-            if target_type in [ModuleTypes.LOCATION, LOC_REL_TARGET]: 
+            if target_type in [ModuleTypes.LOCATION, LOC_REL_TARGET]:
                 self.locmodslist = [anchor_module]
                 self.locmodnums[anchor_module_id] = 1
                 label = 'Location'
@@ -520,9 +520,9 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
                 b.setChecked(False)
                 b.setEnabled(False)
             self.y_existingmod_radio.setEnabled(True)
-            self.y_existingmod_switch.freezeOption(label)     
-            
-        else: 
+            self.y_existingmod_switch.freezeOption(label)
+
+        else:
             super().create_linked_module_box()
 
 
@@ -567,7 +567,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
             for d in dirs:
                 d.any = False
             return dirs
-        
+
     def setcurrentdistances(self, distances_list):
         if distances_list is not None and len(distances_list) == 1: # only the case when "any" was selected
             self.any_distance_cb.setChecked(True)
@@ -618,7 +618,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         manner_layout.addWidget(self.any_manner_cb)
         manner_layout.addStretch()
         return manner_layout
-    
+
     def handle_any_manner_cb_clicked(self, btn):
         for b in self.manner_group.buttons():
             b.setDisabled(btn)
@@ -636,7 +636,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
     # create side-by-side layout for specifying distance
     def create_distance_box(self):
         distance_box = QGroupBox("Distance between X and Y")
-            
+
         # create layout for horizontal distance options
         self.dishor_box = QGroupBox()
         self.dishor_label = QLabel("Horizontal")
@@ -653,7 +653,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
                                                  axis_cb=self.dishor_cb,
                                                  axis_label=self.dishor_label)
         self.dishor_box.setLayout(dis_hor_layout)
-        
+
 
         # create layout for vertical distance options
         self.disver_box = QGroupBox()
@@ -671,7 +671,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
                                                  axis_cb=self.disver_cb,
                                                  axis_label=self.disver_label)
         self.disver_box.setLayout(dis_ver_layout)
-        
+
 
         # create layout for sagittal direction options
         self.dissag_box = QGroupBox()
@@ -689,7 +689,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
                                                  axis_cb=self.dissag_cb,
                                                  axis_label=self.dissag_label)
         self.dissag_box.setLayout(dis_sag_layout)
-            
+
         # create layout for generic distance options
         self.disgen_box = QGroupBox()
         self.disgen_label = QLabel("Generic")
@@ -745,9 +745,9 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         direction_layout.addLayout(direction_crossedlinked_layout)
         direction_layout.addLayout(direction_sublayout)
         direction_layout.addWidget(self.any_direction_cb)
-        
+
         return direction_layout
-    
+
     # if user checks one of the distance axis radio buttons, ensure that its parent checkbox is
     #   also checked
     # Only exists in search GUI, since parent checkboxes are not present in main GUI
@@ -764,7 +764,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         for btn in radiogroup.buttons():
             btn.setEnabled(ischecked or radiogroup.checkedButton() is None)
 
-    
+
     def handle_any_direction_cb_toggled(self, btn):
         for b in self.dirhor_group.buttons() + self.dirsag_group.buttons() + self.dirver_group.buttons():
             b.setDisabled(btn)
@@ -786,7 +786,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         layout.addWidget(self.any_distance_cb)
 
         return layout
-    
+
     def handle_any_distance_cb_toggled(self, btn):
         distancegrp = self.dishor_group.buttons() + self.dissag_group.buttons() + self.disver_group.buttons() + self.disgen_group.buttons() + [self.dissag_cb, self.dishor_cb, self.disver_cb, self.disgen_cb]
         hascheckedbtn = False
@@ -807,7 +807,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         for b in [self.any_distance_cb, self.dishor_cb, self.disver_cb, self.dissag_cb, self.disgen_cb]:
             b.setChecked(False)
             b.setEnabled(True)
-    
+
 
 
 
@@ -884,7 +884,7 @@ class Search_AssociatedRelationsDialog(AssociatedRelationsDialog):
             existingkey=relmod.uniqueid, moduletype=ModuleTypes.RELATION))
         module_selector.exec_()
         self.refresh_listmodel()
-        
+
 
 
 
@@ -942,7 +942,7 @@ class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
             module_selector.exec_()
 
     def handle_modulesaved(self, module_to_save):
-        
+
         self.mainwindow.build_search_target_view.handle_add_associated_relation_module(self.anchormodule, module_to_save)
         self.style_seeassociatedrelations()
 
@@ -990,7 +990,7 @@ class SearchTargetItem(QStandardItem):
         super().__init__(**kwargs)
         self._name = name
         self._targettype = targettype
-        self._xslottype = xslottype 
+        self._xslottype = xslottype
         self._searchvaluesitem = searchvaluesitem
         self._module = module
         self.module_id = module_id
@@ -1000,10 +1000,10 @@ class SearchTargetItem(QStandardItem):
         self.include = include
 
     def __repr__(self):
-        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\ntargettype " + str(self.targettype)  
+        msg =  "Name: " + str(self.name) + "\nxslottype: " + str(self.xslottype) + "\ntargettype " + str(self.targettype)
         msg += "\nValues: " + repr(self.values)
         return msg
-    
+
     @property
     def targettype(self):
         return self._targettype
@@ -1019,7 +1019,7 @@ class SearchTargetItem(QStandardItem):
     @searchvaluesitem.setter
     def searchvaluesitem(self, v):
         self._searchvaluesitem = v
-    
+
     @property
     def name(self):
         return self._name
@@ -1039,7 +1039,7 @@ class SearchTargetItem(QStandardItem):
     @property
     def module(self):
         return self._module
-    
+
     @module.setter
     def module(self, m):
         self._module = m
@@ -1047,7 +1047,7 @@ class SearchTargetItem(QStandardItem):
     @property
     def associatedrelnmodule(self):
         return self._associatedrelnmodule
-    
+
     @associatedrelnmodule.setter
     def associatedrelnmodule(self, m):
         self._associatedrelnmodule = m

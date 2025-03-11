@@ -54,6 +54,7 @@ from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
+from gui.compare_signs import CompareSignsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.location_definer import LocationDefinerDialog
@@ -194,6 +195,11 @@ class MainWindow(QMainWindow):
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
+
+        # compare signs
+        action_compare_signs = QAction("Compare signs", parent=self)
+        action_compare_signs.triggered.connect(self.on_action_compare_signs)
+        action_compare_signs.setCheckable(False)
 
         # merge corpora
         action_merge_corpora = QAction("Merge corpora...", parent=self)
@@ -396,6 +402,7 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
+        menu_analysis_beta.addAction(action_compare_signs)
         menu_analysis_beta.addAction(action_search)
         menu_analysis_beta.addAction(action_align)
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
@@ -696,7 +703,7 @@ class MainWindow(QMainWindow):
             self.on_action_pastetiming()
 
     # action_str indicates the type of action selected fom the Corpus View R-click menu:
-    #   "copy", "paste", "edit" (sign-level info), or "delete"
+    #   "copy", "paste", "edit" (sign-level info), "compare", or "delete"
     def handle_signaction_selected(self, action_str):
         if action_str == "edit":
             self.on_action_edit_signs()
@@ -706,6 +713,8 @@ class MainWindow(QMainWindow):
             self.on_action_copy()
         elif action_str == "paste":
             self.on_action_paste()
+        elif action_str == "compare":
+            self.on_action_compare_signs()
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -803,9 +812,9 @@ class MainWindow(QMainWindow):
         self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
         self.app_settings['location']['default_loctype_1h'] = self.app_qsettings.value('default_loctype_1h', defaultValue="purely spatial", type=str)
         self.app_settings['location']['default_loctype_2h'] = self.app_qsettings.value('default_loctype_2h', defaultValue='purely spatial', type=str)
-        self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h', 
+        self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h',
                                                                                    DEFAULT_LOC_1H)
-        self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h', 
+        self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h',
                                                                                    DEFAULT_LOC_2H)
         self.app_settings['location']['autocheck_neutral'] = self.app_qsettings.value('autocheck_neutral', defaultValue=True, type=bool)
         self.app_settings['location']['autocheck_neutral_on_locn_selected'] = self.app_qsettings.value('autocheck_neutral_on_locn_selected', defaultValue=True, type=bool)
@@ -894,6 +903,13 @@ class MainWindow(QMainWindow):
     def on_action_count_xslots(self):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
+
+    def on_action_compare_signs(self):
+        selected_signs = None
+        if len(self.corpus_display.getselectedsigns()) == 2:
+            selected_signs = self.corpus_display.getselectedsigns()
+        compare_signs_window = CompareSignsDialog(parent=self, selected_signs=selected_signs)
+        compare_signs_window.exec_()
 
     @check_unsaved_change
     def on_action_merge_corpora(self, clicked):
