@@ -2397,12 +2397,16 @@ class Direction:
             self._plus = False
             self._minus = False
     
-    def getabbreviation(self):
+    def getabbreviation(self, sourcemodule=None):
         # returns the abbreviated label of the selected direction depending on this Direction's axis
+        # abbreviations might differ depending on the source module, e.g. for Relation we use above/below but for Orientation we use up/down
+        vert_plus = "up" if sourcemodule == ModuleTypes.ORIENTATION else "above"
+        vert_minus = "down" if sourcemodule == ModuleTypes.ORIENTATION else "below"
+
         if self.axis == Direction.HORIZONTAL:
             return "ipsi" if self.plus else "contra" if self.minus else "in line" if self.inline else ""
         elif self.axis == Direction.VERTICAL:
-            return "above" if self.plus else "below" if self.minus else "in line" if self.inline else ""
+            return vert_plus if self.plus else vert_minus if self.minus else "in line" if self.inline else ""
         elif self.axis == Direction.SAGITTAL:
             return "prox" if self.plus else "dist" if self.minus else "in line" if self.inline else ""
 
@@ -2544,8 +2548,28 @@ class OrientationModule(ParameterModule):
         self._root = root
 
     def getabbreviation(self):
-        # TODO implement
-        return "Orientation abbreviations not yet implemented"
+        phonphon_str = self.phonlocs.getabbreviation()
+        palm_arr, root_arr = [], []
+        
+        for i, label in enumerate(["Hor", "Ver", "Sag"]):
+            if self.palm[i].axisselected:
+                palm_abbrev = label
+                dir_abbrev = self.palm[i].getabbreviation(sourcemodule = ModuleTypes.ORIENTATION)
+                palm_abbrev += f" ({dir_abbrev})" if dir_abbrev else ""
+                palm_arr.append(palm_abbrev)
+            if self.root[i].axisselected:
+                root_abbrev = label
+                dir_abbrev = self.root[i].getabbreviation(sourcemodule = ModuleTypes.ORIENTATION)
+                root_abbrev += f" ({dir_abbrev})" if dir_abbrev else ""
+                root_arr.append(root_abbrev)
+        
+        palm_str = f"Palm direction: {' & '.join(palm_arr)}" if palm_arr else ""
+        root_str = f"Finger direction: {' & '.join(root_arr)}" if root_arr else ""
+        return ': '.join(filter(None, [phonphon_str, '; '.join(filter(None, [palm_str, root_str]))]))
+
+
+        
+        
 
 
 # This module stores the transcription of one hand's configuration.
