@@ -3,6 +3,7 @@ from search.helper_functions import relationdisplaytext, articulatordisplaytext,
 from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
                                            compare_elements, summarize_path_comparison,
                                            get_btn_type_for_mvmtpath, get_checked_paths_from_list)
+from compare_signs.align_modules import alignmodules
 
 class CompareModel:
     def __init__(self, sign1, sign2):
@@ -65,6 +66,18 @@ class CompareModel:
 
         return modules_pair
 
+    def get_module_labels(self, module_pair: tuple) -> (str, str):
+        try:
+            module1_label = self.sign1.getmoduleabbreviation(module_pair[0])
+        except KeyError:
+            module1_label = None
+        try:
+            module2_label = self.sign2.getmoduleabbreviation(module_pair[1])
+        except KeyError:
+            module2_label = None
+
+        return module1_label, module2_label
+
     def compare_mvmts(self) -> dict:
         def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
             # pair = pair of movementModule
@@ -122,14 +135,32 @@ class CompareModel:
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        sign1_modules, sign2_modules = self.get_module_ids(module_type='movement')
+        # old compare (i.e., before align function)
+        # sign1_modules, sign2_modules = self.get_module_ids(module_type='movement')
+        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype='movement')
 
         #if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
         #        len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
         #    return {'X-slots not matching': False}
 
-        pair_comparison = {'sign1': {}, 'sign2': {}}
+        pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
 
+        for i, module in enumerate(aligned_modules):
+            sign1_module_label, sign2_module_label = self.get_module_labels(module)
+
+            if all(module):  # pair of modules
+                r_sign1, r_sign2 = compare_module_pair(module)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
+            elif module[0]:  # only sign 1 has this module
+                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
+            else:            # only sign 2 has this module
+                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
+
+
+        """
         for module_id in sign1_modules:  # module_id is something like H1.Mov1
             if module_id in sign2_modules:
                 r_sign1, r_sign2 = compare_module_pair((sign1_modules[module_id], sign2_modules[module_id]))
@@ -146,10 +177,12 @@ class CompareModel:
                 # the module_id exists in sign2 but not in sign1
                 _, r_sign2 = compare_module_pair((sign2_modules[module_id], sign2_modules[module_id]), pairwise=False)
                 pair_comparison['sign2'][module_id] = r_sign2
+        """
 
         return pair_comparison
 
     def compare_locations(self) -> [bool]:
+        return  # compare locations not implemented yet
         def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
             # pair = tuple of LocationModules
             # pairwise = False if not comparing one pair

@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, 
     QLabel, QHBoxLayout, QPushButton, QWidget, QFrame
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
+import re
 
 from compare_signs.compare_models import CompareModel
 from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons
@@ -281,18 +282,41 @@ class CompareSignsDialog(QDialog):
         button_layout.addWidget(cancel_button)
         return button_layout
 
+    # clean keys like '0:Mov1' to '0'
+    def clean_data_keys(self, k_set_1, k_set_2):
+        data1_keys = {match.group(1) if (match := re.match(r'^(\d+):', item)) else item for item in k_set_1}
+        data2_keys = {match.group(1) if (match := re.match(r'^(\d+):', item)) else item for item in k_set_2}
+        return data1_keys, data2_keys
+
+    # get '0:Mov1' from '0'
+    def get_original_key(self, many_keys, int_key):
+        try:
+            int(int_key)
+            for item in many_keys:
+                if ':' in item and item.split(':')[0] == int_key:
+                    return item
+        except ValueError:
+            pass
+        return int_key
+
     def populate_trees(self, tree1, tree2, data1, data2):
-        # this really really needs refactoring.
+        # this really really really needs refactoring.
+        # 'add_items' actually does the heavy lifting
         def add_items(parent1, parent2, data1, data2, depth=-1):
-            # this actually does the heavy lifting
+            data1 = data1 or {}   # empty dict if data1 is given None
+            data2 = data2 or {}
+
             should_paint_red = [False, False]     # paint tree 1 node / tree 2 node red
             should_paint_yellow = [False, False]  # yellow to tree 1 node / tree 2 node
             red_brush = self.palette['red']   # red when mismatch
             yellow_brush = self.palette['yellow']  # yellow when no counterpart
 
             # Get the union of all keys in both data1 and data2
-            data1_keys = set(data1.keys()) if isinstance(data1, dict) else set()
-            data2_keys = set(data2.keys()) if isinstance(data2, dict) else set()
+            data1_keys_original = set(data1.keys()) if isinstance(data1, dict) else set()
+            data2_keys_original = set(data2.keys()) if isinstance(data2, dict) else set()
+
+            data1_keys, data2_keys = self.clean_data_keys(data1_keys_original, data2_keys_original)
+
             all_keys = sorted(data1_keys.union(data2_keys), reverse=True)
 
             for key in reversed(all_keys):
@@ -337,8 +361,8 @@ class CompareSignsDialog(QDialog):
                         return should_paint_red, should_paint_yellow
                 value1, value2 = None, None
                 try:
-                    value1 = data1.get(key, None)
-                    value2 = data2.get(key, None)
+                    value1 = data1.get(self.get_original_key(data1_keys_original, key), None)
+                    value2 = data2.get(self.get_original_key(data2_keys_original, key), None)
                 except AttributeError:
                     # when data1 or data2 is bool
                     pass
@@ -353,8 +377,10 @@ class CompareSignsDialog(QDialog):
                     continue
 
                 # Create tree items for both trees
-                item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
-                item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
+                item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, key)],
+                                              palette=self.palette)
+                item2 = CompareTreeWidgetItem(labels=[self.get_original_key(data2_keys_original, key)],
+                                              palette=self.palette)
 
                 # Set the color of missing nodes
                 if value1 is None and value2 is not None:
@@ -380,7 +406,7 @@ class CompareSignsDialog(QDialog):
 
                 # If either of the two values are dicts, recurse into them
                 if isinstance(value1, dict) or isinstance(value2, dict):
-                    child_r, child_y = add_items(item1, item2, data1.get(key, {}), data2.get(key, {}), depth+1)
+                    child_r, child_y = add_items(item1, item2, value1, value2, depth+1)
                 else:
                     # Set color for false values
                     if value1 is False and not should_paint_yellow[0]:
@@ -566,7 +592,7 @@ class CompareSignsDialog(QDialog):
 
     def toggle_all_trees(self, expand=True):
         # expand or collapse all lines in tree1, effectively doing so for tree2 due to syncing
-        # called by the 'expand all' or 'collapse all' buttons
+        # called by either 'expand all' or 'collapse all' button ('expand' parameter)
         def recursive_toggle(root, should_expand):
             # recursively expand or collapse
             for i in range(root.childCount()):
@@ -594,11 +620,14 @@ class CompareSignsDialog(QDialog):
         current = tree.invisibleRootItem()
 
         # Iterate through the path (line) to find the corresponding item
-        for part in line:
+        for label in line:
             found = False
+            match = re.match(r"^(\d+):", label)
+            part = match.group(1) if match else label
+
             for i in range(current.childCount()):
                 child = current.child(i)
-                if child.text(0) == part:
+                if child.text(0).startswith(part):
                     current = child
                     found = True
                     break
