@@ -17,7 +17,8 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QAbstractButton,
     QTabWidget,
-    QWidget
+    QWidget,
+    QProxyStyle
 )
 
 from PyQt5.QtCore import (
@@ -57,7 +58,7 @@ class SigntypeSpecificationPanel(QFrame):
         # buttons and groups for highest level
         self.handstype_group = SigntypeButtonGroup(prt=self)
         self.handstype_unspec_radio = SigntypeRadioButton("Unspecified", parentbutton=None)
-        self.handstype_unspec_radio.setProperty('abbreviation.path', 'Unspecified')
+        self.handstype_unspec_radio.setProperty('abbreviation.path', 'Unspecified_hands')
         self.handstype_unspec_radio.setProperty('abbreviation.include', True)
         self.addedinfobutton_hands = AddedInfoPushButton("Notes")
         self.handstype_1h_radio = SigntypeRadioButton("1 hand", parentbutton=None)
@@ -302,7 +303,7 @@ class SigntypeSpecificationPanel(QFrame):
         # Arms tab controls
         self.armstype_group = SigntypeButtonGroup(prt=self)
         self.armstype_unspec_radio = SigntypeRadioButton("Unspecified", parentbutton=None)
-        self.armstype_unspec_radio.setProperty('abbreviation.path', 'Unspecified')
+        self.armstype_unspec_radio.setProperty('abbreviation.path', 'Unspecified_arms')
         self.armstype_unspec_radio.setProperty('abbreviation.include', True)
         self.addedinfobutton_arms = AddedInfoPushButton("Notes")
         self.armstype_1a_radio = SigntypeRadioButton("1 arm", parentbutton=None)
@@ -523,7 +524,7 @@ class SigntypeSpecificationPanel(QFrame):
         # Legs tab controls
         self.legstype_group = SigntypeButtonGroup(prt=self)
         self.legstype_unspec_radio = SigntypeRadioButton("Unspecified", parentbutton=None)
-        self.legstype_unspec_radio.setProperty('abbreviation.path', 'Unspecified')
+        self.legstype_unspec_radio.setProperty('abbreviation.path', 'Unspecified_legs')
         self.legstype_unspec_radio.setProperty('abbreviation.include', True)
         self.addedinfobutton_legs = AddedInfoPushButton("Notes")  # Separate addedinfo button for legs
         self.legstype_1l_radio = SigntypeRadioButton("1 leg", parentbutton=None)
