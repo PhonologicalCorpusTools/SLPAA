@@ -60,5 +60,9 @@ Check the box if this is a compound sign.
 
 Choose from one of the options L or R for the signer. Global settings for hand dominance can be specified by the user in :ref:`setting_preferences`.
 
-sign_level_info_example.png
+
+.. image:: images/sign_level_info_example.png
+   :width: 90%
+   :align: center
+
 **insert image of sign_level_information box: give it filled out as an example sign** 
