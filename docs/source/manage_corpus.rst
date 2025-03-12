@@ -54,7 +54,7 @@ Type in a file name for your new corpus, specify a saving location, and click "S
 
 Exporting a corpus (beta)
 ``````````````````
-If just working within SLP-AA, the regular saving of a corpus as an .slpaa file is all that is needed; these files can be re-opened within the software. However, it may be useful to have a more text-readable version of the corpus, so we currently have preliminary ability to export a corpus as a .json file. Note that currently (March 2025), these files cannot yet be re-imported into SLP-AA; they are simply for use outside of the program. 
+If just working within SLP-AA, the regular saving of a corpus as an .slpaa file is all that is needed; these files can be re-opened within the software. However, it may be useful to have a more text-readable version of the corpus, so we currently have preliminary ability to export a corpus as a .json file. Note that as of v. 0.1.0, these files cannot yet be re-imported into SLP-AA; they are simply for use outside of the program. 
 
 To export a corpus, go to "File" and select "Export corpus..." A new window will appear:
 
