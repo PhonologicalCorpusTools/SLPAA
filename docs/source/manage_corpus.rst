@@ -1,3 +1,7 @@
+.. todo::
+    Discuss what happens when you first open the software
+    Update image for duplicating a corpus  
+
 .. _manage_corpus:
 
 *****************
