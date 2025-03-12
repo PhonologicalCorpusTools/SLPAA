@@ -10,23 +10,27 @@ This module provides a place to tag the particular corpus entry with relevant in
 
 - **Entry ID**
 
-The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`global_settings` for how to set preferences.
+The :ref:`entry_ID` will be generated automatically by SLP-AA. See :ref:`setting_preferences` for how to set preferences.
 
 - **Gloss**
 
-Write the :ref:`gloss` for the sign. 
+Write the :ref:`gloss` for the sign. Note: multiple glosses per sign are allowed. Double click in the location indicated to add an additional gloss. The process is iterative; once one gloss is entered, a new double-click location is added. Do not separate multiple glosses with commas, etc.
 
 - **Lemma**
 
-Write the :ref:`lemma` for the sign.
+Write the :ref:`lemma` for the sign. 
+
+- **ID-Gloss**
+
+Write the :ref:`id-gloss` for the sign.
 
 - **Source**
 
-Select source from dropdown menu after they have been specified in :ref:`source_info_entry`**(to link to metadata documentation when created)**
+Select source from dropdown menu after they have been specified in :ref:`source_info_entry` **(to link to metadata documentation when created)**
 
 - **Signer**
 
-Select source from dropdown menu after they have been specified in :ref:`signer_info_entry`**(to link to metadata documentation when created)**
+Select source from dropdown menu after they have been specified in :ref:`signer_info_entry` **(to link to metadata documentation when created)**
 
 - **Frequency**
 
@@ -44,9 +48,17 @@ This will be filled in automatically when you change any element of the sign.
 
 These notes will be attached to the particular sign in the corpus.
 
+- **Fingerspelled**
+
+Check the box if this is a fingerspelled sign.
+
+- **Compound**
+
+Check the box if this is a compound sign.
+
 - **Hand Dominance**
 
-Choose from one of the options L or R for the signer. Global settings for hand dominance can be specified by the user in :ref:`global_settings`.
+Choose from one of the options L or R for the signer. Global settings for hand dominance can be specified by the user in :ref:`setting_preferences`.
 
-
+sign_level_info_example.png
 **insert image of sign_level_information box: give it filled out as an example sign** 
