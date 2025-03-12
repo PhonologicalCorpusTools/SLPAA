@@ -12,6 +12,9 @@
 Hand Part Module
 ****************
 
+.. warning::
+    This is no longer a separate module; it has been incorporated into the :ref:`relation_module`. Documentation needs to be updated.
+
 This :ref:`module` is used to code the **hand part** involved in approaching or contacting another part of the body or the opposite hand. As many :ref:`instances<instance>` of this module as necessary can be called for any given sign coding. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
 
 Select the hand(s) involved in this instance of the module. 
