@@ -7,6 +7,8 @@ Sign Level Information
 
 This module provides a place to tag the particular corpus entry with relevant information, including information about the signer, the coder, the video, and the sign. This information may be used in searches to identify and group together signs based on shared sign level information.
 
+NB: There is slightly more detailed information about how glosses, lemmas, and ID-glosses relate to each other in :ref:`sample_corpus.rst`. 
+
 
 - **Entry ID**
 
