@@ -199,7 +199,7 @@ class ToggleSwitch(QPushButton):
 class OptionSwitch(QWidget):
     toggled = pyqtSignal(dict)
 
-    def __init__(self, label1, label2, **kwargs):
+    def __init__(self, label1, label2, initialselection=None, **kwargs):
         super().__init__(**kwargs)
 
         buttons_layout = QHBoxLayout()
@@ -211,8 +211,10 @@ class OptionSwitch(QWidget):
         self.left_btn.clicked.connect(lambda checked: self.buttonclicked(self.left_btn, checked))
         self.right_btn = QPushButton(label2)
         self.right_btn.setCheckable(True)
-
         self.right_btn.clicked.connect(lambda checked: self.buttonclicked(self.right_btn, checked))
+
+        if initialselection is not None:
+            self.setwhichbuttonselected(initialselection)
 
         buttons_layout.addWidget(self.left_btn)
         buttons_layout.addWidget(self.right_btn)
@@ -222,7 +224,6 @@ class OptionSwitch(QWidget):
     def freezeOption(self, label):
         self.left_btn.setEnabled(label==self.left_btn.text())
         self.right_btn.setEnabled(label==self.right_btn.text())
-
 
     def setlabels(self, label1=None, label2=None):
         if label1 is not None:
