@@ -10,9 +10,15 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, TargetTypes, HandConfigSlots
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
+def get_path_lowest_node(path):
+    '''Return the lowest node of a path. 
+        e.g. 'Whole hand>Finger 1' returns 'Finger 1'\n
+            'Whole hand' returns 'Whole hand'
+    '''
+    return path.split(treepathdelimiter)[-1]
 
 # Resetting a module's uniqueid can come so quickly on the heels of another
 #   (e.g. if copy/pasting several modules that aren't treemodel-based)
@@ -109,6 +115,28 @@ class ParameterModule:
     @timingintervals.setter
     def timingintervals(self, timingintervals):
         self._timingintervals = [t for t in timingintervals]
+
+    def get_art_abbrev(self): # articulator abbreviation
+        todisplay = ""
+        # self.articulators is (Articulator, {1: bool, 2: bool})
+        k = self.articulators[0] # hand, arm, or leg
+        if self.articulators[1][1] and not self.articulators[1][2]: # articulator 1
+            todisplay = k + " " + str(1)
+        elif self.articulators[1][2] and not self.articulators[1][1]: # articulator 2
+            todisplay = k + " " + str(2)
+        elif self.articulators[1][1] and self.articulators[1][2]: # both articulators
+            todisplay = "Both " + k.lower() + "s"
+            if self.inphase == 1:
+                todisplay += " in phase"
+            elif self.inphase == 2:
+                todisplay += " out of phase"
+            elif self.inphase == 3:
+                todisplay += " connected"
+            elif self.inphase == 4:
+                todisplay += " connected, in phase"
+        return todisplay
+
+
 
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
@@ -591,6 +619,27 @@ class PhonLocations:
 
     def allfalse(self):
         return not (self._phoneticloc or self._phonologicalloc or self._majorphonloc or self._minorphonloc)
+    
+    def getabbreviation(self):
+        if self.allfalse():
+            return ""
+        to_return = []
+        if self.phonologicalloc:
+            if self.majorphonloc and not self.minorphonloc:
+                to_return.append("maj. phonol")
+            elif self.minorphonloc and not self.majorphonloc:
+                to_return.append("min. phonol")
+            else:
+                to_return.append("phonol")
+        if self.phoneticloc:
+            to_return.append("phonet")
+        if self.phonologicalloc and self.phoneticloc:
+            return (f"{to_return[0]} and {to_return[1]}").capitalize()
+        return to_return[0].capitalize()
+
+
+
+        
 
 
 # this class stores info about what kind of location type (body or signing space)
@@ -681,7 +730,19 @@ class LocationType:
         changed = changed or (previous.usesbodylocations() or previous.purelyspatial)
         changed = changed or (previous.allfalse() and not self.allfalse())
         return changed
-
+    
+    def getabbreviation(self):
+        if self.allfalse():
+            return ""
+        if self._body:
+            return "Body"
+        elif self._signingspace:
+            if self._bodyanchored:
+                return "Signing space(body-anch)"
+            elif self._purelyspatial:
+                return "Signing space(spatial)"
+            return "Signing space"
+        return "Other loctype"
 
 # Represents one specific point in time in an x-slot timing structure
 class TimingPoint:
@@ -1257,22 +1318,75 @@ class LocationModule(ParameterModule):
     @inphase.setter
     def inphase(self, inphase):
         self._inphase = inphase
+    
+
 
     def getabbreviation(self):
-        return "Location abbreviations not yet implemented"
+        phonphon_str = self.phonlocs.getabbreviation()
+        loctype_str = self.locationtreemodel.locationtype.getabbreviation()
+        is_neutral_str = "neutral" if self.locationtreemodel.defaultneutralselected else ""
+
+        # don't list paths if neutral checkbox is checked or "default neutral space" is a selected path
+        if is_neutral_str:
+            return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
+        
+        path_strings = []
+        # purely spatial locations don't have surfaces / subareas; we handle the abbrev differently
+        if loctype_str == "Signing space(spatial)" and not is_neutral_str:
+            # setting only_fully_checked False returns each individual node in the path (eg 'Sagittal axis', 'Sagittal axis>In front)
+            # so that we can get the abbreviations of intermediate nodes
+            paths = self.locationtreemodel.get_checked_items(only_fully_checked=False, include_details=True) 
+            last_node = ""
+            curr_abbrev_list = []
+            # Each 'curr_node' is a dict. Keys are 'path', 'abbrev', 'details'
+            for curr_node in paths:
+                if curr_node['path'] == 'Default neutral space':
+                    is_neutral_str = "neutral"
+                    return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
+                else:
+                    curr_abbrev = (get_path_lowest_node(curr_node['path']) if curr_node['abbrev'] is None else curr_node['abbrev']).lower()
+                    if last_node in curr_node['path']:
+                        curr_abbrev_list.append(curr_abbrev)
+                    else:
+                        # append [ ] if axis / distance is not specified
+                        # eg hor[ipsi][ ]; ver[ ][ ]; sag[front][med] 
+                        path_strings.append(''.join(curr_abbrev_list) + ''.join(['[ ]' for _ in range(3 - len(curr_abbrev_list))]))
+                        curr_abbrev_list = [curr_node['abbrev']]  
+                    last_node = curr_node['path']
+            if len(curr_abbrev_list) > 0: # in case the list only contains Default neutral space
+                path_strings.append(''.join(curr_abbrev_list) + ''.join(['[ ]' for _ in range(3 - len(curr_abbrev_list))]))
+
+        elif loctype_str != "Signing space(spatial)" :
+            # each 'path' is a dict. Keys are 'path', 'abbrev', 'details'
+            for path in self.locationtreemodel.get_checked_items(include_details=True):
+                path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
+                # details_dict: keys are the subarea types ('surface', 'sub-area', or ''); 
+                # values are lists of checked subareas
+                details_dict = path['details'].get_checked_values()
+                # add surfaces and subareas in square brackets, eg [ant][centre]; if unspecified, leave square brackets with a space [ ]
+                for key, val in details_dict.items(): 
+                    if key:
+                        path_str += f'[{" " if len(val) == 0 else ", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
+                path_strings.append(path_str)
+        path_strings = '; '.join(filter(None, path_strings))
+        
+
+        return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str, path_strings]))
 
 
 class RelationX:
 
-    def __init__(self, h1=False, h2=False, both=False, connected=False, arm1=False, arm2=False, leg1=False, leg2=False, other=False, othertext=""):
+    def __init__(self, h1=False, h2=False, handboth=False, connected=False, arm1=False, arm2=False, armboth=False, leg1=False, leg2=False, legboth=False, other=False, othertext=""):
         self._h1 = h1
         self._h2 = h2
-        self._both = both
+        self._hboth = handboth  # changed 20250220 - used to be self._both
         self._connected = connected
         self._arm1 = arm1
         self._arm2 = arm2
+        self._aboth = armboth  # added 20250220
         self._leg1 = leg1
         self._leg2 = leg2
+        self._lboth = legboth  # added 20250220
         self._other = other
         self._othertext = othertext
 
@@ -1289,16 +1403,22 @@ class RelationX:
     def displaystr(self):
         relX_str = ""
         if self.connected:
-            relX_str = "X: both connected"
+            relX_str = "both hands connected"
+        elif self.hboth:
+            relX_str = "both hands"
+        elif self.aboth:
+            relX_str = "both arms"
+        elif self.lboth:
+            relX_str = "both legs"
         elif self.other:
-            relX_str = "X: other"
+            relX_str = "other"
             if len(self.othertext) > 0:
                 relX_str += " (" + self.othertext + ")"
         else:
             rel_dict = self.__dict__
             for attr in rel_dict:
                 if rel_dict[attr]:
-                    relX_str = "X: " + attr[1:] # attributes are prepended with _
+                    relX_str = attr[1:] # attributes are prepended with _
                     break
         return relX_str
 
@@ -1308,16 +1428,9 @@ class RelationX:
 
     @h1.setter
     def h1(self, h1):
-        self._h1 = h1
-
         if h1:
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._h1 = h1
 
     @property
     def h2(self):
@@ -1325,33 +1438,25 @@ class RelationX:
 
     @h2.setter
     def h2(self, h2):
-        self._h2 = h2
-
         if h2:
-            self._h1 = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._both = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._h2 = h2
 
     @property
-    def both(self):
-        return self._both
+    def hboth(self):
+        if not hasattr(self, '_hboth'):
+            # backward compatibility for attribute changed 20250220
+            self._hboth = False
+            if hasattr(self, '_both'):
+                self._hboth = self._both
+                del self._both
+        return self._hboth
 
-    @both.setter
-    def both(self, both):
-        self._both = both
-
-        if both:
-            self._h1 = False
-            self._h2 = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+    @hboth.setter
+    def hboth(self, hboth):
+        if hboth:
+            self.resetalltoplevelbooleans()
+            self._hboth = hboth
 
     @property
     def connected(self):
@@ -1362,7 +1467,7 @@ class RelationX:
         self._connected = connected
 
         if connected:
-            self.both = True
+            self.hboth = True
 
     @property
     def arm1(self):
@@ -1370,16 +1475,9 @@ class RelationX:
 
     @arm1.setter
     def arm1(self, arm1):
-        self._arm1 = arm1
-
         if arm1:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._arm1 = arm1
 
     @property
     def arm2(self):
@@ -1387,16 +1485,22 @@ class RelationX:
 
     @arm2.setter
     def arm2(self, arm2):
-        self._arm2 = arm2
-
         if arm2:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._arm2 = arm2
+
+    @property
+    def aboth(self):
+        if not hasattr(self, '_aboth'):
+            # backward compatibility for attribute added 20250220
+            self._aboth = False
+        return self._aboth
+
+    @aboth.setter
+    def aboth(self, aboth):
+        if aboth:
+            self.resetalltoplevelbooleans()
+            self._aboth = aboth
 
     @property
     def leg1(self):
@@ -1404,16 +1508,9 @@ class RelationX:
 
     @leg1.setter
     def leg1(self, leg1):
-        self._leg1 = leg1
-
         if leg1:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg2 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._leg1 = leg1
 
     @property
     def leg2(self):
@@ -1421,16 +1518,22 @@ class RelationX:
 
     @leg2.setter
     def leg2(self, leg2):
-        self._leg2 = leg2
-
         if leg2:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._other = False
+            self.resetalltoplevelbooleans()
+            self._leg2 = leg2
+
+    @property
+    def lboth(self):
+        if not hasattr(self, '_lboth'):
+            # backward compatibility for attribute added 20250220
+            self._lboth = False
+        return self._lboth
+
+    @lboth.setter
+    def lboth(self, lboth):
+        if lboth:
+            self.resetalltoplevelbooleans()
+            self._lboth = lboth
 
     @property
     def other(self):
@@ -1438,16 +1541,9 @@ class RelationX:
 
     @other.setter
     def other(self, other):
-        self._other = other
-
         if other:
-            self._h1 = False
-            self._h2 = False
-            self._both = False
-            self._arm1 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
+            self.resetalltoplevelbooleans()
+            self._other = other
 
     @property
     def othertext(self):
@@ -1457,13 +1553,29 @@ class RelationX:
     def othertext(self, othertext):
         self._othertext = othertext
 
+    # helper function for all setters, that resets all (main) boolean attributes to False
+    def resetalltoplevelbooleans(self):
+        self._h1 = False
+        self._h2 = False
+        self._hboth = False
+        self._arm1 = False
+        self._arm2 = False
+        self._aboth = False
+        self._leg1 = False
+        self._leg2 = False
+        self._lboth = False
+        self._other = False
+
 class RelationY:
 
-    def __init__(self, h2=False, arm2=False, leg1=False, leg2=False, existingmodule=False, linkedmoduletype=None, linkedmoduleids=None, other=False, othertext=""):
+    def __init__(self, h2=False, arm1=False, arm2=False, armboth=False, leg1=False, leg2=False, legboth=False, existingmodule=False, linkedmoduletype=None, linkedmoduleids=None, other=False, othertext=""):
         self._h2 = h2
+        self._arm1 = arm1
         self._arm2 = arm2
+        self._aboth = armboth
         self._leg1 = leg1
         self._leg2 = leg2
+        self._lboth = legboth
         self._existingmodule = existingmodule
         self._linkedmoduletype = linkedmoduletype
         self._linkedmoduleids = linkedmoduleids or [0.0]
@@ -1482,23 +1594,28 @@ class RelationY:
 
     def displaystr(self):
         relY_str = ""
-        if self.existingmodule:
-            relY_str = "Y: existing module"
+        if self.aboth:
+            relY_str = "both arms"
+        if self.lboth:
+            relY_str = "both legs"
+        elif self.existingmodule:
+            # print(self.linkedmoduleids)
+            relY_str = "existing module"
             if self.linkedmoduletype is not None:
                 if self.linkedmoduletype == ModuleTypes.MOVEMENT:
                     relY_str += " (mvmt)"
                 else:
                     relY_str += " (locn)"
         elif self.other: 
-            relY_str = "Y: other"
+            relY_str = "other"
             if len(self.othertext) > 0:
                 relY_str += " (" + self.othertext + ")"
         else:
             rel_dict = self.__dict__
-            for attr in "_h2", "_arm2", "_leg1", "_leg2":
+            for attr in rel_dict:
                 if rel_dict[attr]:
-                    relY_str = "Y: " + attr[1:] # attributes are prepended with _
-                    break    
+                    relY_str = attr[1:]  # attributes are prepended with _
+                    break
         return relY_str
 
     @property
@@ -1507,14 +1624,22 @@ class RelationY:
 
     @h2.setter
     def h2(self, h2):
-        self._h2 = h2
-
         if h2:
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._h2 = h2
+
+    @property
+    def arm1(self):
+        if not hasattr(self, '_arm1'):
+            # backward compatibility for attribute added 20250220
+            self._arm1 = False
+        return self._arm1
+
+    @arm1.setter
+    def arm1(self, arm1):
+        if arm1:
+            self.resetallbooleans()
+            self._arm1 = arm1
 
     @property
     def arm2(self):
@@ -1522,14 +1647,22 @@ class RelationY:
 
     @arm2.setter
     def arm2(self, arm2):
-        self._arm2 = arm2
-
         if arm2:
-            self._h2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._arm2 = arm2
+
+    @property
+    def aboth(self):
+        if not hasattr(self, '_aboth'):
+            # backward compatibility for attribute added 20250220
+            self._aboth = False
+        return self._aboth
+
+    @aboth.setter
+    def aboth(self, aboth):
+        if aboth:
+            self.resetallbooleans()
+            self._aboth = aboth
 
     @property
     def leg1(self):
@@ -1537,14 +1670,9 @@ class RelationY:
 
     @leg1.setter
     def leg1(self, leg1):
-        self._leg1 = leg1
-
         if leg1:
-            self._h2 = False
-            self._arm2 = False
-            self._leg2 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._leg1 = leg1
 
     @property
     def leg2(self):
@@ -1552,14 +1680,22 @@ class RelationY:
 
     @leg2.setter
     def leg2(self, leg2):
-        self._leg2 = leg2
-
         if leg2:
-            self._h2 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._existingmodule = False
-            self._other = False
+            self.resetallbooleans()
+            self._leg2 = leg2
+
+    @property
+    def lboth(self):
+        if not hasattr(self, '_lboth'):
+            # backward compatibility for attribute added 20250220
+            self._lboth = False
+        return self._lboth
+
+    @lboth.setter
+    def lboth(self, lboth):
+        if lboth:
+            self.resetallbooleans()
+            self._lboth = lboth
 
     @property
     def existingmodule(self):
@@ -1567,14 +1703,9 @@ class RelationY:
 
     @existingmodule.setter
     def existingmodule(self, existingmodule):
-        self._existingmodule = existingmodule
-
         if existingmodule:
-            self._h2 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._other = False
+            self.resetallbooleans()
+            self._existingmodule = existingmodule
 
     @property
     def linkedmoduletype(self):
@@ -1601,14 +1732,9 @@ class RelationY:
 
     @other.setter
     def other(self, other):
-        self._other = other
-
         if other:
-            self._h2 = False
-            self._arm2 = False
-            self._leg1 = False
-            self._leg2 = False
-            self._existingmodule = False
+            self.resetallbooleans()
+            self._other = other
 
     @property
     def othertext(self):
@@ -1617,6 +1743,18 @@ class RelationY:
     @othertext.setter
     def othertext(self, othertext):
         self._othertext = othertext
+
+    # helper function for all setters, that resets all boolean attributes to False
+    def resetalltoplevelbooleans(self):
+        self._h2 = False
+        self._arm1 = False
+        self._arm2 = False
+        self._aboth = False
+        self._leg1 = False
+        self._leg2 = False
+        self._lboth = False
+        self._existingmodule = False
+        self._other = False
 
 
 class RelationModule(ParameterModule):
@@ -1631,6 +1769,9 @@ class RelationModule(ParameterModule):
             for n in bodyparts_dict[bodypart].keys():
                 self._bodyparts_dict[bodypart][n] = bodyparts_dict[bodypart][n] or BodypartInfo(bodyparttype=bodypart, bodyparttreemodel=None)
         self._contactrel = contactrel or ContactRelation()
+        # backwards compatibility for generic distance axis (issue 387)
+        if len(self._contactrel.distances) == 3:
+            self._contactrel.distances.append(Distance(axis=Direction.GENERIC))
         self._xy_crossed = xy_crossed
         self._xy_linked = xy_linked
         self._directions = directionslist or [
@@ -1701,13 +1842,36 @@ class RelationModule(ParameterModule):
         self._directions = directions
     
     def get_paths(self):
+        """
+        Returns a dict mapping articulators to their selected path details.
+
+        Returns:
+            dict:
+                - Keys (str): Articulators ('H1', 'H2', 'Arm1', 'Arm2', 'Leg1', 'Leg2').
+                - Values (list[dict]): Lists of dictionaries (output from treemodel.get_checked_items())
+                    - 'path': the full path
+                    - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated
+                    - 'details': The details table.
+        """
         paths = {}
         arts, nums = self.get_articulators_in_use()
         for i in range(len(arts)):
+            label = arts[i] if arts[i] != 'Hand' else 'H'
             bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
             treemodel = bodypartinfo.bodyparttreemodel
-            paths.update({arts[i]: treemodel.get_checked_items()})
+            paths.update({label + str(nums[i]) : treemodel.get_checked_items(include_details=True)})
+        
         return paths
+    
+    def get_path_abbrev(self, paths, art): # abbreviation for paths and details tables
+        path_strings = []
+        for path in paths[art]:
+            path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
+            details_dict = path['details'].get_checked_values()
+            for val in details_dict.values(): # list of surfaces, list of subareas/handjoints
+                path_str += f'[{" " if len(val) == 0 else ", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
+            path_strings.append(path_str)
+        return f'{art}[{" " if len(path_strings) == 0 else ", ".join(path_strings)}]'
 
     def has_any_distance(self):
         for i in range(4):
@@ -1719,6 +1883,11 @@ class RelationModule(ParameterModule):
     def has_any_direction(self): # returns true if anything in direction is selected, including axis checkboxes or crossed/linked
         if self.xy_crossed or self.xy_linked:
             return True
+        if self.has_any_direction_axis():
+            return True
+        return False
+
+    def has_any_direction_axis(self): # returns true if any direction checkbox is selected
         for i in range(3):
             dir = self.directions[i]
             if dir.axisselected:
@@ -1763,25 +1932,105 @@ class RelationModule(ParameterModule):
 
     def hands_in_use(self):
         return {
-            1: self.relationx.both or self.relationx.h1,
-            2: self.relationx.both or self.relationx.h2 or self.relationy.h2
+            1: self.relationx.hboth or self.relationx.h1,
+            2: self.relationx.hboth or self.relationx.h2 or self.relationy.h2
         }
 
     def arms_in_use(self):
         return {
-            1: self.relationx.arm1,
-            2: self.relationx.arm2 or self.relationy.arm2
+            1: self.relationx.aboth or self.relationy.aboth or self.relationx.arm1 or self.relationy.arm1,
+            2: self.relationx.aboth or self.relationy.aboth or self.relationx.arm2 or self.relationy.arm2
         }
 
     def legs_in_use(self):
         return {
-            1: self.relationx.leg1 or self.relationy.leg1,
-            2: self.relationx.leg2 or self.relationy.leg2
+            1: self.relationx.lboth or self.relationy.lboth or self.relationx.leg1 or self.relationy.leg1,
+            2: self.relationx.lboth or self.relationy.lboth or self.relationx.leg2 or self.relationy.leg2
         }
 
+    # relation abbreviation
     def getabbreviation(self):
-        # TODO implement
-        return "Relation abbreviations not yet implemented"
+        phonphon_str = self.phonlocs.getabbreviation()
+        X_str, Y_str = '', ''
+        
+        paths = self.get_paths() 
+
+        X_art = self.relationx.displaystr().capitalize()
+        if "both" in X_art.lower():
+            art1, art2 = ('H1', 'H2') if "hands" in X_art else (('Arm1', 'Arm2') if "arms" in X_art else ('Leg1', 'Leg2'))
+            X_str += f'{X_art}: '
+            X_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
+        elif X_art.startswith('Other'):
+            X_str += X_art
+        else:
+            X_str += self.get_path_abbrev(paths, X_art)
+
+        if self.relationy.existingmodule:
+            Y_str = f'linked {self.relationy.linkedmoduletype} module'
+        else:
+            Y_art = self.relationy.displaystr().capitalize()
+            if "both" in Y_art.lower():
+                art1, art2 = ('H1', 'H2') if "hands" in Y_art else (('Arm1', 'Arm2') if "arms" in Y_art else ('Leg1', 'Leg2'))
+                Y_str += f'{Y_art}: '
+                Y_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
+            elif Y_art.startswith('Other'):
+                Y_str += Y_art
+            else:
+                Y_str = self.get_path_abbrev(paths, Y_art)
+
+        X_str = "X = " + X_str
+        Y_str = "Y = " + Y_str
+
+        contact, link_cross_label, relative_label = "", "", ""
+        if self.contactrel.contact == False: # if None, then no contact has been specified.
+            contact = "No contact"
+        elif self.contactrel.contact:
+            contacttype, contactmanner = "", ""
+            # contact type
+            if self.contactrel.has_contacttype:
+                if self.contactrel.contacttype.light:
+                    contacttype += "light"
+                elif self.contactrel.contacttype.firm:
+                    contacttype += "firm"
+                elif self.contactrel.contacttype.other:
+                    contacttype += "other"
+                    if len(self.contactrel.contacttype.othertext) > 0:
+                        contacttype += f" ({self.contactrel.contacttype.othertext})"
+            # contact manner
+            if self.contactrel.has_manner:
+                if self.contactrel.manner.holding:
+                    contactmanner += "holding"
+                elif self.contactrel.manner.continuous:
+                    contactmanner += "continuous"
+                elif self.contactrel.manner.intermittent:
+                    contactmanner += "intermittent"
+            # create full contact, manner, type string
+            to_append = f" ({'; '.join(filter(None, [contacttype, contactmanner]))})" if contacttype or contactmanner else ""
+            contact = "Contact" + to_append
+
+        if self.xy_linked or self.xy_crossed:
+            linked = "linked" if self.xy_linked else ""
+            crossed = "crossed" if self.xy_crossed else ""
+            link_cross_label += f"X/Y {', '.join(filter(None, [linked, crossed]))}"
+
+        # direction
+        if self.has_any_direction_axis() or self.has_any_distance():
+            to_append = []
+            for i, label in enumerate(["Hor", "Ver", "Sag"]):
+                dir_abbrev = self.directions[i].getabbreviation()
+                dir_abbrev = f"[{dir_abbrev}]" if dir_abbrev else ""
+                dist_abbrev = self.contactrel.distances[i].getabbreviation()
+                dist_abbrev = f"[{dist_abbrev}]" if dist_abbrev else ""
+                if dir_abbrev or dist_abbrev:
+                    to_append.append(f"{label} {''.join(filter(None, [dir_abbrev, dist_abbrev]))}")
+            # if a generic distance is specified
+            generic_dist_label = f"Gen [{self.contactrel.distances[3].getabbreviation()}]" if self.contactrel.distances[3].getabbreviation() else ""
+            to_append.append(generic_dist_label)
+            relative_label += f"X is {', '.join(filter(None, to_append))} to Y"
+        
+        return ": ".join(filter(None, [phonphon_str, "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))]))
+    
+
 
 
 class MannerRelation:
@@ -1852,7 +2101,7 @@ class MannerRelation:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = False
+            self._any = self._holding or self._continuous or self._intermittent
         return self._any
 
     @any.setter
@@ -1871,6 +2120,8 @@ class ContactRelation:
             Distance(Direction.SAGITTAL),
             Distance(Direction.GENERIC)
         ]
+        if len(self._distances) == 3:
+            self._distances.append(Distance(Direction.GENERIC))
 
     def __eq__(self, other):
         if isinstance(other, ContactRelation):
@@ -2022,7 +2273,7 @@ class ContactType:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = False
+            self._any = self._light or self._firm or self._other
         return self._any
 
     @any.setter
@@ -2041,8 +2292,8 @@ class Direction:
     def __init__(self, axis, axisselected=False, plus=False, minus=False, inline=False, any=False):
         self._axis = axis
         self._axisselected = axisselected
-        self._plus = plus  # ipsi for horizontal, above for vertical, distal for sagittal
-        self._minus = minus  # contra for horizontal, below for vertical, proximal for sagittal
+        self._plus = plus  # ipsi for horizontal, above for vertical, proximal for sagittal
+        self._minus = minus  # contra for horizontal, below for vertical, distal for sagittal
         self._inline = inline  # in line with (for all axes)
         self._any = any # Used by search targets to match any direction selection (crossed / linked / hor / ver / sag)
 
@@ -2066,8 +2317,8 @@ class Direction:
             plus_label = "above"
             minus_label = "below"
         elif self._axis == Direction.SAGITTAL:
-            plus_label = "distal"
-            minus_label = "proximal"
+            plus_label = "proximal"
+            minus_label = "distal"
 
         repr_str = self._axis
         if self._axisselected:
@@ -2145,6 +2396,21 @@ class Direction:
         if isinline:
             self._plus = False
             self._minus = False
+    
+    def getabbreviation(self, sourcemodule=None):
+        # returns the abbreviated label of the selected direction depending on this Direction's axis
+        # abbreviations might differ depending on the source module, e.g. for Relation we use above/below but for Orientation we use up/down
+        vert_plus = "up" if sourcemodule == ModuleTypes.ORIENTATION else "above"
+        vert_minus = "down" if sourcemodule == ModuleTypes.ORIENTATION else "below"
+
+        if self.axis == Direction.HORIZONTAL:
+            return "ipsi" if self.plus else "contra" if self.minus else "in line" if self.inline else ""
+        elif self.axis == Direction.VERTICAL:
+            return vert_plus if self.plus else vert_minus if self.minus else "in line" if self.inline else ""
+        elif self.axis == Direction.SAGITTAL:
+            return "prox" if self.plus else "dist" if self.minus else "in line" if self.inline else ""
+
+
 
 
 # This class is used by the Relation Module to track the axis on which to measure the relation between
@@ -2218,7 +2484,7 @@ class Distance:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = False
+            self._any = self._far or self._close or self._medium
         return self._any
 
     @any.setter
@@ -2237,6 +2503,10 @@ class Distance:
             repr_str += " unselected"
 
         return '<Distance: ' + repr(repr_str) + '>'
+
+    def getabbreviation(self):
+        # returns the abbreviated label of the selected distance 
+        return "close" if self.close else "med" if self.medium else "far" if self.far else "" 
 
 
 # This module stores the absolute orientation of a particular hand/s.
@@ -2277,9 +2547,29 @@ class OrientationModule(ParameterModule):
     def root(self, root):
         self._root = root
 
+
     def getabbreviation(self):
-        # TODO implement
-        return "Orientation abbreviations not yet implemented"
+        phonphon_str = self.phonlocs.getabbreviation()
+        palm_arr, root_arr = [], []
+        
+        for i, label in enumerate(["Hor", "Ver", "Sag"]):
+            if self.palm[i].axisselected:
+                palm_abbrev = label
+                dir_abbrev = self.palm[i].getabbreviation(sourcemodule = ModuleTypes.ORIENTATION)
+                palm_abbrev += f" ({dir_abbrev})" if dir_abbrev else ""
+                palm_arr.append(palm_abbrev)
+            if self.root[i].axisselected:
+                root_abbrev = label
+                dir_abbrev = self.root[i].getabbreviation(sourcemodule = ModuleTypes.ORIENTATION)
+                root_abbrev += f" ({dir_abbrev})" if dir_abbrev else ""
+                root_arr.append(root_abbrev)
+        
+        palm_str = f"Palm direction: {' & '.join(palm_arr)}" if palm_arr else ""
+        root_str = f"Finger direction: {' & '.join(root_arr)}" if root_arr else ""
+        return ': '.join(filter(None, [phonphon_str, '; '.join(filter(None, [palm_str, root_str]))]))
+
+
+        
 
 # This module is only used in the search window. 
 # Used instead of the usual HandConfigurationModule when the user wants to do an extended-fingers search.

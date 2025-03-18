@@ -24,6 +24,7 @@ from PyQt5.QtCore import (
 )
 
 
+from gui.helper_widget import OptionSwitch
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
 
@@ -75,6 +76,11 @@ class CorpusDisplay(QWidget):
         filter_layout.addWidget(self.numlines_label)
         main_layout.addLayout(filter_layout)
 
+        # show only unique entries (ie, even if a sign has 3 glosses, just grant it one row in the table, displaying the first gloss)
+        self.byglossorsign_switch = OptionSwitch("One gloss per row", "One sign per row", initialselection=1)
+        self.byglossorsign_switch.toggled.connect(self.toggle_uniqueentries)
+        main_layout.addWidget(self.byglossorsign_switch)
+
         main_layout.addWidget(self.corpus_view)
 
         sort_layout = QHBoxLayout()
@@ -100,11 +106,25 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
+    def toggle_uniqueentries(self, switchvalue):
+        if switchvalue[1]:
+            # one gloss per row
+            self.corpus_model.bysignorgloss = "gloss"
+        elif switchvalue[2]:
+            # one sign per row
+            self.corpus_model.bysignorgloss = "sign"
+        self.update_summarylabels()
+
     def handle_selection(self, proxyindex=None, sign=None):
         if proxyindex is not None and proxyindex.model() is not None:
             sourceindex = self.corpus_sortproxy.mapToSource(proxyindex)
-            sign = self.corpus_model.itemFromIndex(sourceindex).sign
-            self.selected_sign.emit(sign)
+            item = self.corpus_model.itemFromIndex(sourceindex)
+            if item:
+                sign = self.corpus_model.itemFromIndex(sourceindex).sign
+                self.selected_sign.emit(sign)
+            else:
+                # index points to a row that no longer exists
+                self.selection_cleared.emit()
         elif sign is not None:
             self.selected_sign.emit(sign)
         else:
@@ -232,10 +252,12 @@ class CorpusDisplay(QWidget):
 
     def update_summarylabels(self):
         totalsigns = len(self.mainwindow.corpus.signs)
-        self.numentries_label.setText(str(totalsigns) + " signs")
+        self.numentries_label.setText("{} signs".format(totalsigns))
         filteredlines = self.getrowcount()
         totallines = self.corpus_model.rowCount()
-        self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " glosses shown")
+        self.numlines_label.setText("{} of {} {} shown".format(filteredlines,
+                                                               totallines,
+                                                               ("glosses" if self.byglossorsign_switch.getvalue()[1] else "signs")))
 
 
 # menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions

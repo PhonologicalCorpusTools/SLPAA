@@ -16,6 +16,7 @@ import logging
 
 from lexicon.module_classes import LocationType, AddedInfo
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
+from models.shared_models import TreePathsProxyModel
 from constant import HAND, ARM, LEG, CONTRA, IPSI, userdefinedroles as udr, treepathdelimiter
 
 
@@ -76,6 +77,7 @@ distal_bone = "Distal bone"
 tip = "Tip"
 dorsum = "Dorsum"
 blade = "Blade"
+
 
 hand_surfaces = "default hand surfaces" # [back, friction, radial, ulnar]
 nonhand_surfaces = "default nonhand surfaces" # [anterior, posterior, lateral, medial, top, bottom]
@@ -527,8 +529,8 @@ locn_options_purelyspatial = LocnOptionsNode("purelyspatial_options_root", child
         LocnOptionsNode("Mid", fx, rb, tooltip="[mid]"),
         LocnOptionsNode("Low", fx, rb, tooltip="[low]"),
     ]),
-    LocnOptionsNode("Sagittal axis", fx, cb, "sag", children=[
-        LocnOptionsNode("In front", fx, rb, "[front]", children=[
+    LocnOptionsNode("Sagittal axis", fx, cb, tooltip="sag", children=[
+        LocnOptionsNode("In front", fx, rb, tooltip="[front]", children=[
             LocnOptionsNode("Far", fx, rb, tooltip="[far]"),
             LocnOptionsNode("Med.", fx, rb, tooltip="[med]"),
             LocnOptionsNode("Close", fx, rb, tooltip="[close]"),
@@ -739,7 +741,13 @@ class LocationTreeModel(QStandardItemModel):
     def nodes_are_terminal(self, terminal):
         self._nodes_are_terminal = terminal    
 
-    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True):
+    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True, include_details=False):
+        ''' Returns: a list of strings denoting paths \n
+            If include_details, returns a list of dicts: 
+            - 'path': the full path
+            - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated
+            - 'details': detailstable
+            '''
         checked_values = []
         for row in range(self.rowCount(parent_index)):
             index = self.index(row, 0, parent_index)
@@ -748,12 +756,17 @@ class LocationTreeModel(QStandardItemModel):
             else:
                 checkstate_to_match = Qt.PartiallyChecked # 1
             if index.data(Qt.CheckStateRole) >= checkstate_to_match:
-                checked_values.append(index.data(Qt.UserRole+udr.pathdisplayrole))
-            
-            checked_values.extend(self.get_checked_items(index, only_fully_checked))
+                path = index.data(Qt.UserRole+udr.pathdisplayrole)
+                if include_details:
+                    checked_values.append({
+                        'path': path,
+                        'abbrev': index.data(Qt.UserRole+udr.pathabbrevrole),
+                        'details': self.itemFromIndex(index).detailstable})
+                else:
+                    checked_values.append(path)
+            checked_values.extend(self.get_checked_items(index, only_fully_checked, include_details))
         return checked_values
-    
-    
+
     def updateCheckState(self, item):
         thestate = item.checkState()
         if thestate == Qt.Checked:
@@ -793,6 +806,7 @@ class LocationTreeModel(QStandardItemModel):
                 ishandloc = child.location
                 surfaces = child.surfaces
                 subareas = child.subareas
+                abbrev = child.tooltip
 
                 if label == subgroup:
                     # make the tree items in the subgroup and whatever nested structure they have
@@ -806,6 +820,7 @@ class LocationTreeModel(QStandardItemModel):
                 else:
                     thistreenode = LocationTreeItem(label, mutuallyexclusive=ismutuallyexclusive, ishandloc=ishandloc, surfaces=surfaces, subareas=subareas)
                     thistreenode.setData(pathsofar + label, role=Qt.UserRole+udr.pathdisplayrole)
+                    thistreenode.setData(abbrev, role=Qt.UserRole+udr.pathabbrevrole)
                     thistreenode.setEditable(iseditable)
                     thistreenode.setCheckState(Qt.Unchecked)
                     if issubgroup:
@@ -1035,6 +1050,15 @@ class LocationTableModel(QAbstractTableModel):
             return str(section + 1)
 
         return None
+    
+    def get_checked_values(self):
+        details_dict = {key: [] for key in self.col_labels}
+        for i, detail in enumerate(self.col_labels):
+            for surface, checked in self.col_contents[i]:
+                if checked: # if the surface or subarea is checked
+                    details_dict[detail].append(surface)
+        return details_dict
+
 
     def __repr__(self):
         return '<LocationTableModel: ' + repr(self.col_labels) + ' / ' + repr(self.col_contents) + '>'
@@ -1076,38 +1100,6 @@ class LocationListItem(QStandardItem):
     def selectpath(self):
         self.treeitem.check(fully=True)
 
-
-class LocationPathsProxyModel(QSortFilterProxyModel):
-
-    def __init__(self, parent=None, wantselected=None):
-        super(LocationPathsProxyModel, self).__init__(parent)
-        self.wantselected = wantselected
-        self.setSortCaseSensitivity(Qt.CaseInsensitive)
-
-    def filterAcceptsRow(self, source_row, source_parent):
-        if self.wantselected is None:
-            source_index = self.sourceModel().index(source_row, 0, source_parent)
-            text = self.sourceModel().index(source_row, 0, source_parent).data()
-            return True
-        else:
-            source_index = self.sourceModel().index(source_row, 0, source_parent)
-            isselected = source_index.data(role=Qt.UserRole+udr.selectedrole)
-            path = source_index.data(role=Qt.UserRole+udr.pathdisplayrole)
-            text = self.sourceModel().index(source_row, 0, source_parent).data()
-            return self.wantselected == isselected
-
-    def updatesorttype(self, sortbytext=""):
-        if "alpha" in sortbytext and "path" in sortbytext:
-            self.setSortRole(Qt.DisplayRole)
-            self.sort(0)
-        elif "alpha" in sortbytext and "node" in sortbytext:
-            self.setSortRole(Qt.UserRole+udr.nodedisplayrole)
-            self.sort(0)
-        elif "tree" in sortbytext:
-            self.sort(-1)  # returns to sort order of underlying model
-        elif "select" in sortbytext:
-            self.setSortRole(Qt.UserRole+udr.timestamprole)
-            self.sort(0)
 
 class LocationTreeItem(QStandardItem):
 

@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QLabel,
     QComboBox,
+    QCompleter,
     QListView,
     QStyledItemDelegate,
     QSpacerItem,
@@ -407,35 +408,48 @@ class StatusDisplay(QTextEdit):
         separator = "" if curtext == "" else ("\n" if joinwithnewline else (" " if joinwithspace else ""))
         self.setPlainText(curtext + separator + texttoappend)
 
+
 class TreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(QStandardItem)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.refresh_userinput()
 
-    def keyPressEvent(self, event):
-        key = event.key()
+    def refresh_userinput(self):
+        # It seems silly to do this every time an item is selected, but it's the only way I could
+        # figure out getting the user-entered text to clear after selecting a list item
+        self.setEditable(False)
+        self.setEditable(True)
+        self.setInsertPolicy(QComboBox.NoInsert)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.completer().setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer().setFilterMode(Qt.MatchContains)
+        self.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.textActivated.connect(self.on_textactivated)
+        # this does need to happen both here AND in the class where the combobox is initially created
+        self.setCurrentIndex(-1)
 
-        if key == Qt.Key_Right:
-
-            if self.currentText():
-                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
-                                                   self.currentText(),
-                                                   delim=treepathdelimiter)
-                if itemstoselect:
+    def on_textactivated(self, activatedtext):
+        if activatedtext:
+            itemstoselect = gettreeitemsinpath(self.parent().treemodel,
+                                               activatedtext,
+                                               treepathdelimiter)
+            if itemstoselect:
+                targetitem = itemstoselect[-1]
+                if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
+                    # as long as the target is selectable, ensure that it's fully checked
+                    # and that its ancestors are (at least) partially checked
+                    targetitem.setCheckState(Qt.Checked)
                     for item in itemstoselect:
                         if item.checkState() == Qt.Unchecked:
                             item.setCheckState(Qt.PartiallyChecked)
-                    targetitem = itemstoselect[-1]
-                    if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
-                        targetitem.setCheckState(Qt.Checked)
-                        self.item_selected.emit(targetitem)
-                        self.setCurrentIndex(-1)
-
-        super().keyPressEvent(event)
+                    self.item_selected.emit(targetitem)
+                # either way, clear the combobox text
+                self.refresh_userinput()
 
 
-def gettreeitemsinpath(treemodel, pathstring, delim="/"):
+def gettreeitemsinpath(treemodel, pathstring, delim):
     pathlist = pathstring.split(delim)
     pathitemslists = []
     for level in pathlist:
@@ -490,6 +504,15 @@ class PhonLocSelection(QWidget):
             phoneticloc=self.phonetic_cb.isChecked()
         )
         return phonlocs
+
+    def clear(self):
+        if (hasattr(self, "majorphonloc_cb") and hasattr(self, "minorphonloc_cb")):
+            self.majorphonloc_cb.setChecked(False)
+            self.minorphonloc_cb.setChecked(False)
+            self.majorphonloc_cb.setEnabled(False)
+            self.minorphonloc_cb.setEnabled(False)
+        self.phonological_cb.setChecked(False)
+        self.phonetic_cb.setChecked(False)
 
 
     def __init__(self, isLocationModule=False): 

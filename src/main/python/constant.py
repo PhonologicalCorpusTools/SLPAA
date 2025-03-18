@@ -38,7 +38,7 @@ from lexicon.predefined_handshape import (
 
 # system info
 FROZEN = hasattr(sys, 'frozen')
-VERSION = (0, 0, 0)  # (major, minor, patch)
+VERSION = (0, 1, 0)  # (major, minor, patch)
 
 # symbols
 X_IN_BOX = '\u2327'
@@ -349,6 +349,86 @@ CONTRA = "contra"
 IPSI = "ipsi"
 
 
+# location types (and related types of surfaces, subareas, bones/joints, etc)
+hb = "hand - bone/joint type"  # "hand"
+hs = "hand - subarea type"
+nh = "nonhand"
+tongue = "tongue"
+heel = "heel of hand"
+
+anterior = "Anterior"
+posterior = "Posterior"
+lateral = "Lateral"
+medial = "Medial"
+top = "Top"
+bottom = "Bottom"
+contra_half = "Contra half"
+upper_half = "Upper half"
+whole = "Whole"
+centre = "Centre"
+lower_half = "Lower half"
+ipsi_half = "Ipsi half"
+ipsi_side = "Ipsi side"
+contra_side = "Contra side"
+front_half = "Front half"
+back_half = "Back half"
+back = "Back"
+friction = "Friction"
+radial = "Radial"
+ulnar = "Ulnar"
+wrist = "Wrist"
+finger_side = "Finger side"
+wrist_side = "Wrist side"
+radial_side = "Radial side"
+ulnar_side = "Ulnar side"
+centre = "Centre"
+metacarpophalangeal_joint = "Metacarpophalangeal joint"
+proximal_bone = "Proximal bone"
+proximal_interphalangeal_joint = "Proximal interphalangeal joint"
+medial_bone = "Medial bone"
+distal_interphalangeal_joint = "Distal interphalangeal joint"
+distal_bone = "Distal bone"
+tip = "Tip"
+dorsum = "Dorsum"
+blade = "Blade"
+
+
+
+SURFACE_SUBAREA_ABBREVS = {
+
+    anterior: 'ant',
+    posterior: 'post',
+    lateral: 'lat',
+    medial: 'med',
+    top: 'top',
+    bottom: 'bottom',
+    contra_half: 'contra',
+    upper_half: 'upper',
+    whole: 'whole',
+    centre: 'centre',
+    lower_half: 'lower',
+    ipsi_half: 'ipsi',
+    finger_side: 'finger side',
+    wrist_side: 'wrist side',
+    ulnar_side: 'ulnar side',
+    radial_side: 'radial side',
+    back: 'b',
+    friction: 'fr',
+    radial: 'r',
+    ulnar: 'u',
+    tip: 't',
+    front_half: 'ant',
+    back_half: 'post',
+    dorsum: 'dors',
+    blade: 'blade',
+    metacarpophalangeal_joint: 'MCP',
+    proximal_interphalangeal_joint: 'PIP',
+    distal_interphalangeal_joint: 'DIP',
+    proximal_bone: 'p',
+    medial_bone: 'm',
+    distal_bone: 'd'
+}
+
 # Sign type constants
 SIGN_TYPE = {
     "ONE_HAND": "1h",
@@ -453,6 +533,9 @@ userdefinedroles = UserDefinedRoles({
     'userspecifiedvaluerole': 10,
         # userspecifiedvaluerole:
         # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
+    'pathabbrevrole': 11,
+        # pathabbrevrole:
+        # used by MovementTreeItem and LocationTreeItem for accessing path abbreviations for tooltips
 
 })
 

@@ -1,7 +1,8 @@
 #!/bin/sh
-# first create an .app executable for Mac and then run this shell script
-# to create a DMG distribution.
-# prerequisite: create SLPAA.app in ./dist/
+# This shell script creates a DMG packaging of SLPAA.app
+# DMG packaging is a good way to distribute a .app over the internet, but not a must.
+# Before running this script, first create SLPAA.app in ./dist/
+# To run this script, you need to set the permission. Use "chmod 755 ./build_dmg.sh" (without "")
 
 # Create a folder 'dmg' under dist and use it to prepare the DMG.
 mkdir -p dist/dmg
