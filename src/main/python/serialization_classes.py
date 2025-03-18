@@ -133,10 +133,7 @@ class MovementModuleSerializable(ParameterModuleSerializable):
 # and from saveable form.
 class MovementTreeSerializable:
 
-    def __init__(self, mvmttreemodel):
-
-        # creates a full serializable copy of the movement tree, eg for saving to disk
-        treenode = mvmttreemodel.invisibleRootItem()
+    def __init__(self, mvmttreemodel=None, infodicts=None):
 
         self.numvals = {}  # deprecated
         self.stringvals = {}  # deprecated
@@ -144,7 +141,14 @@ class MovementTreeSerializable:
         self.addedinfos = {}
         self.userspecifiedvalues = {}
 
-        self.collectdatafromMovementTreeModel(treenode)
+        if mvmttreemodel is None and infodicts is not None:
+            # just import the dicts directly-- not from an existing MovementTreeModel
+            self.__dict__.update(infodicts)
+
+        else:
+            # creates a full serializable copy of the movement tree, eg for saving to disk
+            treenode = mvmttreemodel.invisibleRootItem()
+            self.collectdatafromMovementTreeModel(treenode)
 
     def collectdatafromMovementTreeModel(self, treenode):
         if treenode is not None:

@@ -900,7 +900,8 @@ class MainWindow(QMainWindow):
         merge_corpora_wizard = MergeCorporaWizard(self.app_settings, parent=self)
         merge_corpora_wizard.exec_()
 
-    def on_action_import_corpus(self):
+    @check_unsaved_change
+    def on_action_import_corpus(self, clicked):
         import_corpus_window = ImportCorpusDialog(self.app_settings, parent=self)
         import_corpus_window.exec_()
 
@@ -1398,9 +1399,12 @@ class MainWindow(QMainWindow):
         return self.corpus is not None
 
     # load corpus info from given path
-    def load_corpus_info(self, corpuspath):
-        self.corpus = self.load_corpus_binary(corpuspath)
-        self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
+    def load_corpus_info(self, corpuspath, preloadedcorpus=None):
+        if preloadedcorpus:
+            self.corpus = preloadedcorpus
+        else:
+            self.corpus = self.load_corpus_binary(corpuspath)
+            self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(signs=self.corpus.signs)
         if len(self.corpus.signs) > 0:
             self.corpus_display.selectfirstrow()
@@ -1410,7 +1414,12 @@ class MainWindow(QMainWindow):
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
 
-        self.unsaved_changes = False
+        if preloadedcorpus:
+            self.unsaved_changes = True
+        else:
+            self.unsaved_changes = False
+
+
 
     def on_action_close(self, clicked):
         self.close()

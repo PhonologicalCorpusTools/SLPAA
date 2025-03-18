@@ -1,6 +1,7 @@
 import io
 import json
 from datetime import datetime
+from fractions import Fraction
 
 from PyQt5.QtWidgets import (
     QVBoxLayout,
@@ -15,7 +16,12 @@ from PyQt5.QtWidgets import (
 )
 
 from gui.modulespecification_widgets import StatusDisplay
-from lexicon.lexicon_classes import Corpus, Sign, SignLevelInformation
+from lexicon.lexicon_classes import Corpus, Sign
+from lexicon.module_classes import SignLevelInformation, Signtype, AddedInfo, XslotStructure, MovementModule, \
+    LocationModule, RelationModule, OrientationModule, HandConfigurationModule, NonManualModule, \
+    TimingInterval, TimingPoint
+from serialization_classes import MovementTreeSerializable
+from models.movement_models import MovementTreeModel
 from gui.helper_widget import OptionSwitch
 
 
@@ -107,11 +113,17 @@ class ImportCorpusDialog(QDialog):
             corpus = Corpus()
             data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
             glosses = []
-            if 'signs' in data:
+            if 'signs' in data.keys():
                 for signdict in data['signs']:
                     sign = self.read_sign(signdict)
                     corpus.add_sign(sign)
                     glosses.append(str(sign))
+            # if 'path' in data.keys():
+            #     corpus.path = data['path']
+            if 'minimum id' in data.keys():
+                corpus.minimumID = data['minimum id']
+            if 'highest id' in data.keys():
+                corpus.highestID = data['highest id']
             returnmessage = "read " + str(len(glosses)) + " signs:\n" + "\n".join(glosses)  # TODO imported
             temp = ""
             # may need to reset or re-confirm corpus path
@@ -135,13 +147,118 @@ class ImportCorpusDialog(QDialog):
         #     except Exception:
         #         return "export failed"
         #
+        self.parent().load_corpus_info(corpus.path, preloadedcorpus=corpus)
         return "import completed\n\n" + returnmessage
 
     def read_sign(self, signdict):
         sli = self.read_sli(signdict['signlevel'])
         sign = Sign(signlevel_info=sli)
-        # TODO add rest of info
+        if 'type' in signdict.keys():
+            stype = self.read_signtype(signdict['type'])
+            sign.signtype = stype
+        if 'xslot structure' in signdict.keys():
+            xslotstruct = self.read_xslotstructure(signdict['xslot structure'])
+            sign.xslotstructure = xslotstruct
+        if 'specified xslots' in signdict.keys():
+            sign.specifiedxslots = bool(signdict['specified xslots'])  # could be True, False, or None
+        if 'mov modules' in signdict.keys() and signdict['mov modules'] is not None:
+            for uid in signdict['mov modules']:
+                movmod = self.read_movmod(float(uid), signdict['mov modules'][uid])
+                sign.addmodule(movmod)
+            if 'mov module numbers' in signdict.keys() and signdict['mov module numbers'] is not None:
+                sign.movementmodulenumbers = {float(uid):num for uid, num in signdict['mov module numbers'].items()}
+        if 'loc modules' in signdict.keys() and signdict['loc modules'] is not None:
+            # TODO
+
+            if 'loc module numbers' in signdict.keys() and signdict['loc module numbers'] is not None:
+                sign.locationmodulenumbers = {float(uid):num for uid, num in signdict['loc module numbers'].items()}
+        if 'rel modules' in signdict.keys() and signdict['rel modules'] is not None:
+            # TODO
+            # TODO double check order from unserialization code, for whether rel or loc goes first
+
+            if 'rel module numbers' in signdict.keys() and signdict['rel module numbers'] is not None:
+                sign.relationmodulenumbers = {float(uid):num for uid, num in signdict['rel module numbers'].items()}
+        if 'ori modules' in signdict.keys() and signdict['ori modules'] is not None:
+            # TODO
+
+            if 'ori module numbers' in signdict.keys() and signdict['ori module numbers'] is not None:
+                sign.orientationmodulenumbers = {float(uid):num for uid, num in signdict['ori module numbers'].items()}
+        if 'nonman modules' in signdict.keys() and signdict['nonman modules'] is not None:
+            # TODO
+
+            if 'nonman module numbers' in signdict.keys() and signdict['nonman module numbers'] is not None:
+                sign.nonmanualmodulenumbers = {float(uid):num for uid, num in signdict['nonman module numbers'].items()}
+        if 'cfg modules' in signdict.keys() and signdict['cfg modules'] is not None:
+            # TODO
+
+            if 'cfg module numbers' in signdict.keys() and signdict['cfg module numbers'] is not None:
+                sign.handconfigmodulenumbers = {float(uid):num for uid, num in signdict['cfg module numbers'].items()}
+
         return sign
+
+    def read_articulators(self, articulatorsentry):
+        whicharticulator = articulatorsentry[0]
+        whichnums = {1: False, 2: False}
+        for k, v in articulatorsentry[1].items():
+            whichnums[int(k)] = v
+        return whicharticulator, whichnums
+
+    def read_timingintervals(self, timingintervalsentry):
+        timingintervals = []
+        for intervaldict in timingintervalsentry:
+            timinginterval = TimingInterval(TimingPoint(intervaldict['_startpoint']['_wholepart'],
+                                                        Fraction(intervaldict['_startpoint']['_fractionalpart'])),
+                                            TimingPoint(intervaldict['_endpoint']['_wholepart'],
+                                                        Fraction(intervaldict['_endpoint']['_fractionalpart'])))
+            timingintervals.append(timinginterval)
+        return timingintervals
+
+    def read_parameter_module(self, paramdict):
+        # articulators have to be specified in movement modules, so no need to check for existence
+        articulators = self.read_articulators(paramdict['_articulators'])
+        # timing intervals have to be specified in modules (even if xslots aren't on), so no need to check for existence
+        timingintervals = self.read_timingintervals(paramdict['timingintervals'])
+        return articulators, timingintervals
+
+    def read_movmod(self, uid, movdict):
+        # attributes common to all parameter modules
+        # added info TODO
+        articulators, timingintervals = self.read_parameter_module(movdict)
+        # movement tree
+        mtreeser = MovementTreeSerializable(infodicts=movdict['movementtree'])
+        mtree = MovementTreeModel(serializedmvmttree=mtreeser)
+
+        # phonlocs TODO
+        # inphase TODO
+
+        mmod = MovementModule(mtree, articulators, timingintervals=timingintervals, phonlocs=None, addedinfo=None, inphase=0)
+        mmod.uniqueid = uid
+        return mmod
+
+    def read_xslotstructure(self, xssdict):
+        xss = XslotStructure()
+        if xssdict is not None:
+            if '_number' in xssdict.keys() and xssdict['_number'] is not None:
+                xss.number = xssdict['_number']
+            if '_fractionalpoints' in xssdict.keys() and xssdict['_fractionalpoints'] is not None:
+                xss.fractionalpoints = [Fraction(f) for f in xssdict['_fractionalpoints']]
+            if '_additionalfraction' in xssdict.keys() and xssdict['_additionalfraction'] is not None:
+                xss.additionalfraction = Fraction(xssdict['_additionalfraction'])
+        return xss
+
+    def read_signtype(self, typedict):
+        if typedict is None:
+            return typedict
+
+        specslist = []
+        if '_specslist' in typedict.keys() and typedict['_specslist'] is not None:
+            specslist = [tuple(specpair) for specpair in typedict['_specslist']]
+
+        addedinfo = AddedInfo()
+        if '_addedinfo' in typedict.keys() and typedict['_addedinfo'] is not None:
+            addedinfo.__dict__.update(typedict['_addedinfo'])
+
+        return Signtype(specslist, addedinfo)
 
     def read_sli(self, slidict):
         # set up defaults for all attributes, just in case they don't all have values to import
