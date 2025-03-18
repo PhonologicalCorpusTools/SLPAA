@@ -1,3 +1,7 @@
+.. todo::
+    Discuss what happens when you first open the software
+    Update image for duplicating a corpus  
+
 .. _manage_corpus:
 
 *****************
@@ -9,21 +13,18 @@ Managing a corpus
 
 Adding signs to an existing corpus
 ``````````````````````````````````
-To add new signs to an existing corpus, go to "Menu" and select "Load corpus...". This allows you to search your
+To add new signs to an existing corpus, go to "File" and select "Load corpus...". This allows you to search your
 computer. Only files with the extension ".slpaa" are available for selection. Click on a corpus that you would like to
 work on, and click "Open".
 
-Alternatively, if you start transcribing a new sign without loading a corpus beforehand, you will get a warning message
-when you try to save the sign. You can load a corpus after the message (see :ref:`save_sign`).
+To add a sign, click on the green 'plus' sign in the upper left corner, go to "File" / "New sign," or use the keyboard shortcut Ctrl-N (Windows) or Cmd-N (Mac). The :ref:`sign_level_info` box will open; at least one of the 'gloss,' 'lemma,' or 'ID-gloss' fields must be filled in. Once the desired information is added, clicking "Save" will close that box and create an entry for the sign in the corpus list. If the setting for x-slots is set to 'None,' then modules can now be added. If the setting for x-slots is set to 'Manual,' then the number of x-slots must first be specified before any modules can be added. The x-slot setting is available through the :ref:`setting_preferences` menu. A general description of the x-slot functionality is available throguh :ref:`timing`.
 
 
 .. _delete_signs:
 
 Deleting a sign
 `````````````````
-To delete a sign from a corpus, click on the sign in the "Corpus" column on the right, and check the "Gloss" box to make sure
-that your intended sign is loaded. Then click the "Delete word from corpus" button. Note that this option does not give you
-a confirmation message and that a deleted sign cannot be recovered.
+To delete one or more signs from a corpus, click on the sign (or multi-click on multiple signs) in the "Corpus" and then click on the red 'x' sign in the upper left corner, go to "File" / "Delete," or right-click (ctrl-click on a Mac) on the sign in the corpus and select "Delete sign(s)." Note that while you will be asked to confirm deletion, a deleted sign cannot be recovered once the corpus is saved after deletion.
 
 
 .. _new_corpus:
@@ -39,8 +40,8 @@ sign listed in the "Corpus" column on the right. You can then load another corpu
 
 Duplicating a corpus
 ````````````````````
-To duplicate a corpus and save it with a different file name, go to "Menu" and select "Save corpus as...". A new window opens, 
-titled "Save Corpus File As". 
+To duplicate a corpus and save it with a different file name, go to "Menu" and select "Save as...". A new window opens, 
+titled "Save Corpus". 
 
 .. image:: images/save_corpus.png
    :width: 90%
@@ -51,40 +52,16 @@ Type in a file name for your new corpus, specify a saving location, and click "S
 
 .. _export_corpus:
 
-Exporting a corpus
+Exporting a corpus (beta)
 ``````````````````
-To export a corpus, go to Menu and select "Export corpus as csv..." A new window titled "Export corpus" will appear.
+If just working within SLP-AA, the regular saving of a corpus as an .slpaa file is all that is needed; these files can be re-opened within the software. However, it may be useful to have a more text-readable version of the corpus, so we currently have preliminary ability to export a corpus as a .json file. Note that as of v. 0.1.0, these files cannot yet be re-imported into SLP-AA; they are simply for use outside of the program. 
+
+To export a corpus, go to "File" and select "Export corpus..." A new window will appear:
 
 .. image:: images/export.png
    :width: 90%
    :align: center
 
-If you mouse over the check box next to "Include fields in transcription?", you can see what this means; "If checked, 
-transctiptions will be delimited by square brackets and numbers representing fields. If not checked, transcriptions will be one 
-long string." See also :ref:`field_and_slot`
-
-.. image:: images/mouse_over.png
-   :width: 90%
-   :align: center
-
-Under the question "How should empty slots be represented in your output?", you will see three options: 1. "Do not show empty 
-slots in the output"; 2. "Print a blank space"; and 3. Print this character". If you choose the third option, specify your 
-choice of character in the text box. See also :ref:`field_and_slot`
+Follow the prompts to select whether the export should be 'maximal' (i.e., include every line of text for each sign, even if those lines are not used / 'unspecified') or 'minimal' (i.e., only include specified values for each sign), set the export location, and complete the export. 
 
 
-Under the options for empty slots, you will find a description on special symbols. "Some programs have trouble displaying 
-the "ultracrossed symbol (x-in-a-box) and the empty set symbol. If you would like to use alternatives in the output file, you 
-can enter them below." As noted in the text boxes themselves, type in your choice of an alternative symbol for the 
-ultracrossed symbol (☒) in the first box and the one for the empty set symbol (∅) in the second box.
-
-
-If you click on the "Select save location..." button, another window will open, titled "Export Corpus as CSV". 
-Specify a file name and a saving location for your CSV file, and click "Save". This will take you back to 
-the "Export Corpus" window, and you will find that the saving location is automatically entered.
-
-.. image:: images/save_location.png
-   :width: 90%
-   :align: center
-
-Once you have specified the saving location, representation of empty slots, (and alternative symbols for ☒ and ∅ ), click "OK" 
-to create a CSV file.
