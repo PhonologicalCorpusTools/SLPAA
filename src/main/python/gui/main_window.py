@@ -401,7 +401,7 @@ class MainWindow(QMainWindow):
         self.signlevel_panel.corpus_updated.connect(lambda sign: self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=sign))
 
         corpusfilename = filenamefrompath(self.corpus.path) if self.corpus else ""
-        self.corpus_display = CorpusDisplay(corpusfilename=corpusfilename, parent=self)
+        self.corpus_display = CorpusDisplay(self.app_settings, corpusfilename=corpusfilename, parent=self)
         self.corpus_display.selected_sign.connect(self.handle_sign_selected)
         self.corpus_display.selection_cleared.connect(self.handle_sign_selected)
         self.corpus_display.action_selected.connect(self.handle_signaction_selected)
@@ -733,6 +733,7 @@ class MainWindow(QMainWindow):
         self.app_settings['display']['sub_corpus_show'] = self.app_qsettings.value('sub_corpus_show', defaultValue=True, type=bool)
         self.app_settings['display']['sub_corpus_pos'] = self.app_qsettings.value('sub_corpus_pos', defaultValue=QPoint(0, 355))
         self.app_settings['display']['sub_corpus_size'] = self.app_qsettings.value('sub_corpus_size', defaultValue=QSize(675, 565))
+        self.app_settings['display']['corpus_byglossorsign'] = self.app_qsettings.value('corpus_byglossorsign', defaultValue='gloss', type=str)
 
         self.app_settings['display']['sub_visualsummary_show'] = self.app_qsettings.value('sub_visualsummary_show', defaultValue=True, type=bool)
         self.app_settings['display']['sub_visualsummary_pos'] = self.app_qsettings.value('sub_visualsummary_pos', defaultValue=QPoint(675, 0))
@@ -824,6 +825,7 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('sub_corpus_show', not self.sub_corpus.isHidden())
         self.app_qsettings.setValue('sub_corpus_pos', self.sub_corpus.pos())
         self.app_qsettings.setValue('sub_corpus_size', self.sub_corpus.size())
+        self.app_qsettings.setValue('corpus_byglossorsign', 'gloss' if self.corpus_display.byglossorsign_switch.getwhichbuttonselected() == 1 else 'sign')
         self.app_qsettings.setValue('sub_signlevelmenu_show', not self.sub_signlevelmenu.isHidden())
         self.app_qsettings.setValue('sub_signlevelmenu_pos', self.sub_signlevelmenu.pos())
         self.app_qsettings.setValue('sub_signlevelmenu_size', self.sub_signlevelmenu.size())
