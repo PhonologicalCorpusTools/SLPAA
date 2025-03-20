@@ -551,11 +551,26 @@ DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None,
                 "Vertical axis" + treepathdelimiter + "Mid": None,
                 "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
 
-SIGNLEVELINFO_TARGET = "sign level info"
-XSLOT_TARGET = "xslot"
-SIGNTYPEINFO_TARGET = "sign type info"
-MOV_REL_TARGET = "mvmt + reln"
-LOC_REL_TARGET = "locn + reln"
+class TargetTypes:
+    SIGNLEVELINFO = "sign level info"
+    XSLOT = "xslot"
+    SIGNTYPEINFO = "sign type info"
+    MOV_REL = "mvmt + reln"
+    LOC_REL = "locn + reln"
+    EXTENDEDFINGERS  = "extended fingers"
+
+class HandConfigSlots:
+    # Used in Search window. Values are the indices of the hand configuration tuple returned by get_hand_transcription_list()
+    # i.e. two less than the actual slot number
+    THUMB_OPPOSITION = 0
+    MCP = {
+        0: 2, # Thumb MCP joint is at index 2
+        1: 15, # Index MCP at position 15
+        2: 20, # Middle finger MCP at index 20
+        3: 25, # Ring finger MCP at index 25
+        4: 30 # Pinky MCP at index 30
+    }
+
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

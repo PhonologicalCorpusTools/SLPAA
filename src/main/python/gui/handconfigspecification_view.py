@@ -1079,8 +1079,6 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
-        main_layout = QHBoxLayout()
-
         self.panel = HandTranscriptionPanel(self.mainwindow.app_ctx.predefined)
         self.panel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding) 
         self.illustration = HandIllustrationPanel(self.mainwindow.app_ctx, parent=self)
@@ -1090,14 +1088,24 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         self.panel.config.slot_leave.connect(self.panel.update_details_label)
         self.panel.config.slot_leave.connect(self.illustration.set_neutral_img)
         self.panel.config.slot_finish_edit.connect(self.handle_slot_edit)
+        layout = self.create_layout()
 
+        self.load_existing_module(moduletoload)
+        
+        self.setLayout(layout)
+    
+    def load_existing_module(self, moduletoload):
         if moduletoload:
             self.panel.set_value(deepcopy(moduletoload))
             self.existingkey = moduletoload.uniqueid
 
+    
+    def create_layout(self):
+        main_layout = QHBoxLayout()
         main_layout.addWidget(self.panel)
         main_layout.addWidget(self.illustration)
-        self.setLayout(main_layout)
+        return main_layout
+
 
     def handle_slot_edit(self, slot, old_prop, new_prop):
         undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
@@ -1107,6 +1115,7 @@ class HandConfigSpecificationPanel(ModuleSpecificationPanel):
         configdict = self.panel.config.get_value()
         handconfiguration = configdict['hand']
         overalloptions = {k: v for (k, v) in configdict.items() if k != 'hand'}
+
         hcfg = HandConfigurationModule(handconfiguration=handconfiguration,
                                        overalloptions=overalloptions,
                                        articulators=articulators,

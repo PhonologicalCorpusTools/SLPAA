@@ -5,9 +5,9 @@ from gui.signtypespecification_view import SigntypeSelectorDialog
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInfoPanel
 from gui.helper_widget import CollapsibleSection, ToggleSwitch
 # from gui.decorator import check_date_format, check_empty_gloss
-from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS, MOV_REL_TARGET, LOC_REL_TARGET
+from constant import DEFAULT_LOCATION_POINTS, HAND, ARM, LEG, ARTICULATOR_ABBREVS, TargetTypes
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
-from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule, Direction, Distance
+from lexicon.module_classes import TimingPoint, TimingInterval, ModuleTypes, LocationModule, Direction, Distance, ExtendedFingersModule
 from lexicon.lexicon_classes import Sign, SignLevelInformation
 from gui.modulespecification_dialog import ModuleSelectorDialog
 
@@ -18,10 +18,12 @@ from PyQt5.QtWidgets import (
     QListView,
     QLineEdit,
     QDialog,
+    QTabWidget,
     QFrame,
     QHBoxLayout,
     QFormLayout,
     QRadioButton,
+    QPushButton,
     QVBoxLayout,
     QDialogButtonBox,
     QPlainTextEdit,
@@ -307,13 +309,15 @@ class Search_SigntypeSelectorDialog(SigntypeSelectorDialog):
     def __init__(self, signtypetoload, **kwargs):
         super().__init__(signtypetoload, **kwargs)
 
+
+
 class Search_ModuleSelectorDialog(ModuleSelectorDialog):
 
     def __init__(self, moduletype, xslotstructure=None, xslottype=None, moduletoload=None, linkedfrommoduleid=None, linkedfrommoduletype=None, includephase=0, incl_articulators=HAND, incl_articulator_subopts=0, **kwargs):
         self.xslottype = xslottype
         self.targettype = moduletype
-        if self.targettype in [LOC_REL_TARGET, MOV_REL_TARGET]:
-            moduletype = ModuleTypes.LOCATION if moduletype == LOC_REL_TARGET else ModuleTypes.MOVEMENT
+        if self.targettype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
+            moduletype = ModuleTypes.LOCATION if moduletype == TargetTypes.LOC_REL else ModuleTypes.MOVEMENT
         self.moduletype = moduletype
 
         
@@ -346,7 +350,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         elif moduletype == ModuleTypes.LOCATION:
             self.module_widget = Search_LocationSpecPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.HANDCONFIG:
-            QMessageBox.critical(self, "Warning", "hand config not impl")
+            self.module_widget = Search_HandConfigSpecPanel(moduletoload=moduletoload, parent=self)
         elif moduletype == ModuleTypes.RELATION:
             self.module_widget = Search_RelationSpecPanel(moduletoload=moduletoload, parent=self)
             if self.usexslots:
@@ -407,12 +411,11 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         # validate module selections
         modulevalid, modulemessage = self.module_widget.validity_check()
 
-        messagestring = ""
 
         savedmodule = None
-        if messagestring != "":
+        if modulemessage != "":
             # warn user that there's missing and/or invalid info and don't let them save
-            QMessageBox.critical(self, "Warning", messagestring)
+            QMessageBox.critical(self, "Warning", modulemessage)
         else:
             # save info
             savedmodule = self.module_widget.getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
@@ -476,9 +479,178 @@ class Search_LocationSpecPanel(LocationSpecificationPanel):
         self.locationoptionsselectionpanel.terminal_node_cb.setChecked(False)
         self.locationoptionsselectionpanel.terminal_node_cb.setEnabled(False)
 
+
+
 class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
+    FINGERS = ["Thumb", "Index", "Middle", "Ring", "Pinky"]
+    OPTIONS = {"Extended": 0, "Not extended": 1, "Either": 2}
+    
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
+    
+    def clear(self):
+        super().clear() # clear hand config search options
+        # clear extended finger search options
+        
+        for b in self.numfingers_grp.buttons():
+            b.setChecked(False)
+        
+        for grp in self.fingerconfiggrps.values():
+            grp.button(Search_HandConfigSpecPanel.OPTIONS["Either"]).setChecked(True)
+        self.includeIbutton.setChecked(False)
+        self.handconfig_rb.setChecked(True)
+
+    def enable_extended_options(self, val):
+        for b in self.numfingers_grp.buttons():
+            b.setEnabled(val)
+        for grp in self.fingerconfiggrps.values():
+            for b in grp.buttons():
+                b.setEnabled(val)
+        self.includeIbutton.setEnabled(val)
+
+
+    def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
+        if self.handconfig_rb.isChecked():
+            return super().getsavedmodule(articulators, timingintervals, phonlocs, addedinfo, inphase)
+        elif self.extendedfinger_rb.isChecked():
+            i_extended = self.includeIbutton.isChecked()
+            num_extended_selections = {}
+            for i in range(6):
+                num_extended_selections[i] = self.numfingers_grp.button(i).isChecked()
+            finger_selections = {}
+            for finger, grp in self.fingerconfiggrps.items():
+                finger_selections[finger] = grp.checkedButton().text()
+            extfingersmodule = ExtendedFingersModule(i_extended=i_extended,
+                                                     finger_selections=finger_selections,
+                                                     num_extended_selections=num_extended_selections,
+                                                     articulators=articulators,
+                                                     timingintervals=timingintervals,
+                                                     phonlocs=phonlocs,
+                                                     addedinfo=addedinfo)
+                
+            if self.existingkey is not None:
+                extfingersmodule.uniqueid = self.existingkey
+            else:
+                self.existingkey = extfingersmodule.uniqueid
+            return extfingersmodule
+
+    def load_existing_module(self, moduletoload):
+        if moduletoload:
+            if moduletoload.moduletype == ModuleTypes.HANDCONFIG:
+                super().load_existing_module(moduletoload)
+                self.handconfig_rb.setChecked(True)
+            elif moduletoload.moduletype == TargetTypes.EXTENDEDFINGERS:
+                self.extendedfinger_rb.setChecked(True)
+                self.includeIbutton.setChecked(moduletoload.i_extended)
+                for i in range(6):
+                    self.numfingers_grp.button(i).setChecked(moduletoload.num_extended_selections[i])
+                for finger, value in moduletoload.finger_selections.items():
+                    for b in self.fingerconfiggrps[finger].buttons():
+                        b.setChecked(b.text()==value)
+                self.existingkey = moduletoload.uniqueid
+
+    def create_layout(self):
+        handconfig_box = QGroupBox()
+        handconfig_layout = QHBoxLayout()
+        handconfig_layout.addWidget(self.panel)
+        handconfig_layout.addWidget(self.illustration)
+        handconfig_box.setLayout(handconfig_layout)
+
+        extendedfinger_box = QGroupBox()
+        extendedfinger_layout = self.make_extended_finger_search_layout()
+        extendedfinger_box.setLayout(extendedfinger_layout) 
+
+        self.search_type_grp = QButtonGroup()
+        self.handconfig_rb = QRadioButton("Search by hand config")
+        self.extendedfinger_rb = QRadioButton("Search by extended fingers")
+        self.search_type_grp.addButton(self.handconfig_rb)
+        self.search_type_grp.addButton(self.extendedfinger_rb)
+        self.search_type_grp.buttonToggled.connect(self.handle_search_type_toggled)
+        self.handconfig_rb.setChecked(True)
+        
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.handconfig_rb)
+        main_layout.addWidget(handconfig_box)
+        main_layout.addWidget(self.extendedfinger_rb)
+        main_layout.addWidget(extendedfinger_box)
+
+
+        return main_layout
+
+    # TODO same for regular config
+    def handle_search_type_toggled(self, btn):
+        self.enable_extended_options(btn == self.extendedfinger_rb)
+
+    def make_extended_finger_search_layout(self):
+        self.includeIbutton = QCheckBox('Treat "i" as extended')
+        self.includeIbutton.setChecked(False)
+
+        fingerconfiglayout = self.make_finger_config_layout()
+        numfingerslayout = self.make_num_fingers_layout()
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.includeIbutton)
+        layout.addLayout(fingerconfiglayout)
+        layout.addLayout(numfingerslayout)
+        return layout
+
+    def make_finger_config_layout(self):
+        self.fingerconfiggrps = {}
+        fingerconfiglayout = QHBoxLayout()
+        for finger in Search_HandConfigSpecPanel.FINGERS:
+            group_box = QGroupBox(finger)
+            buttonlayout = QVBoxLayout()
+            buttongroup = QButtonGroup()
+            for option in Search_HandConfigSpecPanel.OPTIONS.keys():
+                btn = QRadioButton(option)
+                buttongroup.addButton(btn, id=Search_HandConfigSpecPanel.OPTIONS[option])
+                buttonlayout.addWidget(btn)
+            buttongroup.button(Search_HandConfigSpecPanel.OPTIONS["Either"]).setChecked(True)
+            self.fingerconfiggrps[finger] = buttongroup
+
+            group_box.setLayout(buttonlayout)
+            fingerconfiglayout.addWidget(group_box)
+
+        return fingerconfiglayout
+
+    def make_num_fingers_layout(self):
+        self.numfingers_grp = QButtonGroup()
+        self.numfingers_grp.setExclusive(False)
+
+        layout = QVBoxLayout()
+        group_box = QGroupBox("Number of extended fingers. (Leave all unchecked for any number of extended fingers.)")
+        numlayout = QHBoxLayout()
+        for i in range(6):
+            btn = QCheckBox(str(i))
+            self.numfingers_grp.addButton(btn, id=i)
+            numlayout.addWidget(btn)
+        group_box.setLayout(numlayout)
+        layout.addWidget(group_box)
+        return layout
+
+    def validity_check(self):
+        selectionsvalid = True
+        warningmessage = ""
+
+        # (number of extended fingers) <= 5 - (number of fingers marked "Not extended")
+        # (number of extended fingers) >= (number of fingers marked "Extended")
+        num_marked_not_extended = sum(grp.button(Search_HandConfigSpecPanel.OPTIONS["Not extended"]).isChecked() for grp in self.fingerconfiggrps.values())
+        num_marked_extended = sum(grp.button(Search_HandConfigSpecPanel.OPTIONS["Extended"]).isChecked() for grp in self.fingerconfiggrps.values())
+        for i in range(num_marked_extended):
+            if self.numfingers_grp.button(i).isChecked():
+                warningmessage = f"{i} extended finger(s) not compatible with {num_marked_extended} finger(s) marked extended"
+                selectionsvalid = False
+                return selectionsvalid, warningmessage
+        for i in range(6-num_marked_not_extended, 6):
+            if self.numfingers_grp.button(i).isChecked():
+                warningmessage = f"{i} extended finger(s) not compatible with {num_marked_not_extended } finger(s) marked not extended"
+                selectionsvalid = False
+                return selectionsvalid, warningmessage
+
+
+        return selectionsvalid, warningmessage
+
+
 
 class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
@@ -503,11 +675,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
             self.locmodnums = {}
             self.movmodslist = []
             self.movmodnums = {}
-            if target_type in [ModuleTypes.LOCATION, LOC_REL_TARGET]: 
+            if target_type in [ModuleTypes.LOCATION, TargetTypes.LOC_REL]: 
                 self.locmodslist = [anchor_module]
                 self.locmodnums[anchor_module_id] = 1
                 label = 'Location'
-            elif target_type in [ModuleTypes.MOVEMENT, MOV_REL_TARGET]:
+            elif target_type in [ModuleTypes.MOVEMENT, TargetTypes.MOV_REL]:
                 self.movmodslist = [anchor_module]
                 self.movmodnums[anchor_module_id] = 1
                 label = 'Movement'
