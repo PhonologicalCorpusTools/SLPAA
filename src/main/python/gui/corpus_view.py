@@ -34,7 +34,7 @@ class CorpusDisplay(QWidget):
     selection_cleared = pyqtSignal()
     action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
 
-    def __init__(self, corpusfilename="", **kwargs):
+    def __init__(self, app_settings, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent()
 
@@ -76,9 +76,10 @@ class CorpusDisplay(QWidget):
         filter_layout.addWidget(self.numlines_label)
         main_layout.addLayout(filter_layout)
 
-        # show only unique entries (ie, even if a sign has 3 glosses, just grant it one row in the table, displaying the first gloss)
+        # allow user to toggle between one gloss per row (default) vs one sign per row (displaying concatenated glosses, if multiple)
         self.byglossorsign_switch = OptionSwitch("One gloss per row", "One sign per row", initialselection=1)
-        self.byglossorsign_switch.toggled.connect(self.toggle_uniqueentries)
+        self.byglossorsign_switch.toggled.connect(self.toggle_byglossorsign)
+        self.byglossorsign_switch.setwhichbuttonselected(1 if app_settings['display']['corpus_byglossorsign'] == 'gloss' else 2)
         main_layout.addWidget(self.byglossorsign_switch)
 
         main_layout.addWidget(self.corpus_view)
@@ -106,13 +107,13 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
-    def toggle_uniqueentries(self, switchvalue):
+    def toggle_byglossorsign(self, switchvalue):
         if switchvalue[1]:
             # one gloss per row
-            self.corpus_model.bysignorgloss = "gloss"
+            self.corpus_model.byglossorsign = "gloss"
         elif switchvalue[2]:
             # one sign per row
-            self.corpus_model.bysignorgloss = "sign"
+            self.corpus_model.byglossorsign = "sign"
         self.update_summarylabels()
 
     def handle_selection(self, proxyindex=None, sign=None):
