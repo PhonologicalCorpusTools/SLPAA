@@ -30,8 +30,9 @@ class ImportCorpusDialog(QDialog):
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
         self.app_settings = app_settings
-        self.importfilepath = ""
+        self.importsourcepath = ""
         self.inputformat = "json"
+        self.destpath = ""
         # self.detaillevel = "max"
 
         main_layout = QVBoxLayout()
@@ -42,12 +43,17 @@ class ImportCorpusDialog(QDialog):
         # self.selectformatcombo.addItems(["JSON (.txt)"])
         # self.selectformatcombo.currentTextChanged.connect(self.formatcombo_changed)
         # form_layout.addRow(self.selectformatlabel, self.selectformatcombo)
-        self.chooseimportfilelabel = QLabel("1. Select the file to import: JSON (.txt) is currently the only importable format.")
-        self.chooseimportfilebutton = QPushButton("Select import file")
-        self.chooseimportfilebutton.setEnabled(True)
-        self.chooseimportfilebutton.clicked.connect(self.handle_select_importfile)
-        form_layout.addRow(self.chooseimportfilelabel, self.chooseimportfilebutton)
-        self.importcorpuslabel = QLabel("2. Import JSON to new .slpaa file.")
+        self.chooseimportsourcelabel = QLabel("1. Select the file to import: JSON (.txt) is currently the only importable format.")
+        self.chooseimportsourcebutton = QPushButton("Select import source")
+        self.chooseimportsourcebutton.setEnabled(True)
+        self.chooseimportsourcebutton.clicked.connect(self.handle_select_importsource)
+        form_layout.addRow(self.chooseimportsourcelabel, self.chooseimportsourcebutton)
+        self.choosedestlabel = QLabel("2. Choose the name and location to save the corpus file generated from the import.")
+        self.choosedestbutton = QPushButton("Select import destination")
+        self.choosedestbutton.setEnabled(False)
+        self.choosedestbutton.clicked.connect(self.handle_select_dest)
+        form_layout.addRow(self.choosedestlabel, self.choosedestbutton)
+        self.importcorpuslabel = QLabel("3. Import JSON to new .slpaa file.")
         self.importcorpusbutton = QPushButton("Import corpus")
         self.importcorpusbutton.setEnabled(False)
         self.importcorpusbutton.clicked.connect(self.handle_import_corpus)
@@ -88,16 +94,29 @@ class ImportCorpusDialog(QDialog):
     #         self.statusdisplay.setText(newoutputformat + " format selected")
     #     self.outputformat = newoutputformat
 
-    def handle_select_importfile(self):
+    def handle_select_dest(self):
+        file_name, file_type = QFileDialog.getSaveFileName(self,
+                                                           self.tr('Select import destination'),
+                                                           self.app_settings['storage']['recent_folder'],
+                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
+        if file_name != self.destpath:
+            self.statusdisplay.setText("destination selected")
+        self.destpath = file_name
+        if len(self.destpath) > 0 and len(self.importsourcepath) > 0:  #
+            self.importcorpusbutton.setEnabled(True)
+
+    def handle_select_importsource(self):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            caption=self.tr('Select import file'),
                                                            directory=self.app_settings['storage']['recent_folder'],
                                                            filter=self.tr('JSON file (*.txt)'))
-        if file_name != self.importfilepath:
+        if file_name != self.importsourcepath:
             self.statusdisplay.setText("source selected")
-        self.importfilepath = file_name
-        if len(self.importfilepath) > 0:  #  and self.parent().corpus is not None:
-            self.importcorpusbutton.setEnabled(True)
+        self.importsourcepath = file_name
+        if len(self.importsourcepath) > 0:
+            self.choosedestbutton.setEnabled(True)
+            if len(self.destpath) > 0:
+                self.importcorpusbutton.setEnabled(True)
 
     def handle_import_corpus(self):
         self.statusdisplay.setText("importing...")
@@ -108,7 +127,7 @@ class ImportCorpusDialog(QDialog):
     def import_corpus(self):
         # TODO
         returnmessage = ""
-        with io.open(self.importfilepath, "r") as imfile:
+        with io.open(self.importsourcepath, "r") as imfile:
             # try:
             corpus = Corpus()
             data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
@@ -120,6 +139,7 @@ class ImportCorpusDialog(QDialog):
                     glosses.append(str(sign))
             # if 'path' in data.keys():
             #     corpus.path = data['path']
+            corpus.path = self.destpath
             if 'minimum id' in data.keys():
                 corpus.minimumID = data['minimum id']
             if 'highest id' in data.keys():
