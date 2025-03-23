@@ -10,7 +10,7 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 def get_path_lowest_node(path):
@@ -2547,6 +2547,7 @@ class OrientationModule(ParameterModule):
     def root(self, root):
         self._root = root
 
+
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation()
         palm_arr, root_arr = [], []
@@ -2569,8 +2570,47 @@ class OrientationModule(ParameterModule):
 
 
         
-        
 
+# This module is only used in the search window. 
+# Used instead of the usual HandConfigurationModule when the user wants to do an extended-fingers search.
+class ExtendedFingersModule(ParameterModule):
+    def __init__(self, i_extended, finger_selections, num_extended_selections, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+        self._i_extended = i_extended
+        self._finger_selections = finger_selections
+        self._num_extended_selections = num_extended_selections
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+    
+    @property
+    def moduletype(self):
+        return super().moduletype or TargetTypes.EXTENDEDFINGERS
+
+    @property
+    def i_extended(self):
+        return self._i_extended
+
+    @i_extended.setter
+    def i_extended(self, value):
+        self._i_extended = value
+
+    @property
+    def finger_selections(self):
+        return self._finger_selections
+
+    @finger_selections.setter
+    def finger_selections(self, value):
+        self._finger_selections = value
+
+    @property
+    def num_extended_selections(self):
+        return self._num_extended_selections
+
+    @num_extended_selections.setter
+    def num_extended_selections(self, value):
+        self._num_extended_selections = value
+
+    # TODO
+    def getabbreviation(self):
+        return ""
 
 # This module stores the transcription of one hand's configuration.
 # It includes specifications for each slot in each field, as well as whether the forearm is involved.
@@ -2601,6 +2641,24 @@ class HandConfigurationModule(ParameterModule):
     @overalloptions.setter
     def overalloptions(self, new_overalloptions):
         self._overalloptions = new_overalloptions
+    
+    def config_tuple(self):
+        return tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
+
+    def thumb_is_unopposed(self, config_tuple):
+        if config_tuple[HandConfigSlots.THUMB_OPPOSITION] in ['L', 'U']:
+            return True
+        return False
+        
+    def finger_is_extended(self, config_tuple, extended_symbols, finger):
+        if finger == 0: # thumb
+            if not self.thumb_is_unopposed(config_tuple):
+                return False
+        if config_tuple[HandConfigSlots.MCP[finger]] in extended_symbols:
+            return True
+        return False
+
+
 
     def getabbreviation(self):
         handconfighand = HandConfigurationHand(self.handconfiguration)
