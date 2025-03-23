@@ -486,6 +486,7 @@ class MovementModule(ParameterModule):
         axis_other, plane_other = "", ""
         h1h2 = {"Axis direction": "", "Plane": ""}
         rep_info = {"abbrev": "", "num": None, "min": False, "locn": []}
+        
         paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
         leaf_paths = []
         last_path = paths[0] if paths else None
@@ -555,7 +556,19 @@ class MovementModule(ParameterModule):
 
 
                 else: # directionality or additional characteristics
-                    mvmtchar_info.append(abbrev)
+                    # Handle usv options for additional characteristics
+                    if path_nodes[-1] != "Relative to":  # ugly, but we handle this usv case separately
+                        if path_nodes[1] == "Additional characteristics" and path_nodes[-1] != "Relative to": 
+                            if len(path_nodes) >= 3:
+                                if path['usv']: 
+                                    parent_abbrev = path_nodes[-2]
+                                    abbrev = f"{parent_abbrev}: {path['usv']}"
+                                    # abbrev = paths[treepathdelimiter.join(path_nodes[0:-2])] + treepathdelimiter + path['usv']
+                                relativeto_path = treepathdelimiter.join(path_nodes[0:3]) + treepathdelimiter + "Relative to"
+                                if relativeto_path in paths_dict: # not great but does the trick
+                                    abbrev += f" (relative to {paths_dict[relativeto_path]['usv']})"
+
+                        mvmtchar_info.append(abbrev)
             elif len(path_nodes) > 1 and path_nodes[0] == "Joint activity": # TODO eventually
                 pass
         
