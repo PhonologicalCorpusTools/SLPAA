@@ -558,7 +558,7 @@ class MovementModule(ParameterModule):
                 else: # directionality or additional characteristics
                     # Handle usv options for additional characteristics
                     if path_nodes[-1] != "Relative to":  # ugly, but we handle this usv case separately
-                        if path_nodes[1] == "Additional characteristics" and path_nodes[-1] != "Relative to": 
+                        if path_nodes[1] == "Additional characteristics": 
                             if len(path_nodes) >= 3:
                                 if path['usv']: 
                                     parent_abbrev = path_nodes[-2]
