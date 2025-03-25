@@ -52,20 +52,20 @@ class CorpusModel(QStandardItemModel):
         self.signs = signs
         self.setsigns(signs)
         self.settings = settings
-        self._bysignorgloss = "gloss"
+        self._byglossorsign = self.settings['display']['corpus_byglossorsign']
         self.col_labels = ["Entry ID", "Gloss", "Lemma", "ID-Gloss"]
 
     @property
-    def bysignorgloss(self):
-        return self._bysignorgloss
+    def byglossorsign(self):
+        return self._byglossorsign
 
-    @bysignorgloss.setter
-    def bysignorgloss(self, bysignorgloss):
-        if bysignorgloss in ["gloss", "sign"]:
-            previous = self._bysignorgloss
-            self._bysignorgloss = bysignorgloss
+    @byglossorsign.setter
+    def byglossorsign(self, byglossorsign):
+        if byglossorsign in ["gloss", "sign"]:
+            previous = self._byglossorsign
+            self._byglossorsign = byglossorsign
 
-            if self._bysignorgloss != previous:
+            if self._byglossorsign != previous:
                 self.setsigns(self.signs)
                 self.modelupdated.emit()
 
@@ -84,8 +84,7 @@ class CorpusModel(QStandardItemModel):
             glosses = sign.signlevel_information.gloss
             if len(glosses) == 0:
                 glosses.append("")
-            elif self.bysignorgloss == "sign":
-                # glosses = glosses[:1]
+            elif self.byglossorsign == "sign":
                 glosses = [glossesdelimiter.join(glosses)]
             for gloss in glosses:
                 entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid.display_string()), isentryid=True, settings=self.settings)

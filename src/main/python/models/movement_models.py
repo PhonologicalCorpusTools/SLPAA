@@ -1326,7 +1326,7 @@ class MovementTreeModel(QStandardItemModel):
                     if pathtext in userspecifiedvalues.keys():
                         # this also updates the associated list item as well as its display
                         treechild.setData(userspecifiedvalues[pathtext], Qt.UserRole + udr.userspecifiedvaluerole)
-                        if treechild.checkState() == Qt.Checked:
+                        if treechild.checkState() != Qt.Unchecked:
                             treechild.editablepart().setText(userspecifiedvalues[pathtext])
 
                     self.setvaluesfromserializedtree(treechild, userspecifiedvalues)
