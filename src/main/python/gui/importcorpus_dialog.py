@@ -203,8 +203,6 @@ class ImportCorpusDialog(QDialog):
         # articulators have to be specified in movement modules, so no need to check for existence
         articulators = self.read_articulators(paramdict['_articulators'])
         # timing intervals have to be specified in modules (even if xslots aren't on), so no need to check for existence
-        timingintervals = self.read_timingintervals(paramdict['timingintervals'])
-        return articulators, timingintervals
         timingintervals = self.read_timingintervals(paramdict['_timingintervals'])
         # phonological/phonetic locations may or may not be present
         phonlocs = self.read_phonlocs(paramdict['_phonlocs']) if '_phonlocs' in paramdict.keys() else PhonLocations()
