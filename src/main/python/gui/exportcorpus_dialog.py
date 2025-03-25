@@ -162,7 +162,7 @@ def cleandictsforexport(serialstructure, detaillevel):
             return cleaned_list
         elif isinstance(serialstructure, str) or isinstance(serialstructure, float) or isinstance(serialstructure, int) or isinstance(serialstructure, bool) or serialstructure is None:
             if serialstructure and serialstructure != 0:
-                # if it's a pseudo-primite data type (even though yes, I know, that's not a thing for Python)
+                # if it's a pseudo-primitive data type (even though yes, I know, that's not a thing for Python)
                 # then just return it as is, as long as it's not empty/zero/false
                 return serialstructure
             return None
