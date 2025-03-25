@@ -2,10 +2,7 @@ from copy import copy
 import io
 import pickle
 
-
-from PyQt5.QtCore import (
-    Qt
-)
+from PyQt5.QtCore import Qt
 
 from lexicon.module_classes import PhonLocations, AddedInfo
 from models.movement_models import fx

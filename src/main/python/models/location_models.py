@@ -553,7 +553,7 @@ class LocationTreeModel(QStandardItemModel):
         self._nodes_are_terminal = False
         self.itemChanged.connect(self.updateCheckState)
         self._locationtype = LocationType()
-        self.checked=[]
+        self.checked = []
 
         self.defaultneutralselected = False
         self.defaultneutrallist = None

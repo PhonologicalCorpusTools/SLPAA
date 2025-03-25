@@ -19,9 +19,10 @@ from gui.modulespecification_widgets import StatusDisplay
 from lexicon.lexicon_classes import Corpus, Sign
 from lexicon.module_classes import SignLevelInformation, Signtype, AddedInfo, XslotStructure, MovementModule, \
     LocationModule, RelationModule, OrientationModule, HandConfigurationModule, NonManualModule, \
-    TimingInterval, TimingPoint
-from serialization_classes import MovementTreeSerializable
+    TimingInterval, TimingPoint, Direction, PhonLocations
+from serialization_classes import MovementTreeSerializable, LocationTreeSerializable
 from models.movement_models import MovementTreeModel
+from models.location_models import LocationTreeModel
 from gui.helper_widget import OptionSwitch
 
 
@@ -33,16 +34,10 @@ class ImportCorpusDialog(QDialog):
         self.importsourcepath = ""
         self.inputformat = "json"
         self.destpath = ""
-        # self.detaillevel = "max"
 
         main_layout = QVBoxLayout()
         form_layout = QFormLayout()
 
-        # self.selectformatlabel = QLabel("1a. Choose which format you'd like for the exported data: JSON (.txt) is currently the only option.")
-        # self.selectformatcombo = QComboBox()
-        # self.selectformatcombo.addItems(["JSON (.txt)"])
-        # self.selectformatcombo.currentTextChanged.connect(self.formatcombo_changed)
-        # form_layout.addRow(self.selectformatlabel, self.selectformatcombo)
         self.chooseimportsourcelabel = QLabel("1. Select the file to import: JSON (.txt) is currently the only importable format.")
         self.chooseimportsourcebutton = QPushButton("Select import source")
         self.chooseimportsourcebutton.setEnabled(True)
@@ -75,24 +70,6 @@ class ImportCorpusDialog(QDialog):
         main_layout.addWidget(self.button_box)
 
         self.setLayout(main_layout)
-
-    # def handle_detailswitch_toggled(self, selection_dict):
-    #     if selection_dict[1]:
-    #         self.detaillevel = "max"
-    #     else:
-    #         self.detaillevel = "min"
-    #     self.statusdisplay.setText(self.detaillevel + "imal detail selected")
-    #     self.chooseexportedfilebutton.setEnabled(True)
-    #
-    # def formatcombo_changed(self, txt):
-    #     if "json" in txt.lower():
-    #         newoutputformat = "json"
-    #     else:
-    #         newoutputformat = "something else"
-    #
-    #     if newoutputformat != self.outputformat:
-    #         self.statusdisplay.setText(newoutputformat + " format selected")
-    #     self.outputformat = newoutputformat
 
     def handle_select_dest(self):
         file_name, file_type = QFileDialog.getSaveFileName(self,
@@ -128,45 +105,23 @@ class ImportCorpusDialog(QDialog):
         # TODO
         returnmessage = ""
         with io.open(self.importsourcepath, "r") as imfile:
-            # try:
-            corpus = Corpus()
-            data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
-            glosses = []
-            if 'signs' in data.keys():
-                for signdict in data['signs']:
-                    sign = self.read_sign(signdict)
-                    corpus.add_sign(sign)
-                    glosses.append(str(sign))
-            # if 'path' in data.keys():
-            #     corpus.path = data['path']
-            corpus.path = self.destpath
-            if 'minimum id' in data.keys():
-                corpus.minimumID = data['minimum id']
-            if 'highest id' in data.keys():
-                corpus.highestID = data['highest id']
-            returnmessage = "read " + str(len(glosses)) + " signs:\n" + "\n".join(glosses)  # TODO imported
-            temp = ""
-            # may need to reset or re-confirm corpus path
-            # except Exception:
-            #     return "import failed"
-        # serialized_corpus = self.parent().corpus.serialize()
-        # with io.open(self.exportfilepath, "w") as exfile:
-        #     try:
-        #         # OK, this is a bit convoluted, but it seems like the most general way to be able to omit values
-        #         # that are empty/zero/false/null, is to convert everything to json format and read it back in so
-        #         # all of the data is in either dicts or lists (rather than objects).
-        #         # If we end up wanting to do something prettier or more customized in the future,
-        #         # this kind of cleaning might have to be done in the data classes themselves.
-        #
-        #         # for json.dumps, can also specify separators=(item_separator, key_separator)
-        #         # default is (', ', ': ') if indent is None and (',', ': ') otherwise
-        #         thestring = json.dumps(serialized_corpus, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
-        #         reloaded = json.loads(thestring)
-        #         cleaned = cleandictsforexport(reloaded, self.detaillevel)
-        #         json.dump(cleaned, exfile, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
-        #     except Exception:
-        #         return "export failed"
-        #
+            try:
+                corpus = Corpus()
+                data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
+                glosses = []
+                if 'signs' in data.keys():
+                    for signdict in data['signs']:
+                        sign = self.read_sign(signdict)
+                        corpus.add_sign(sign)
+                        glosses.append(str(sign))
+                corpus.path = self.destpath
+                if 'minimum id' in data.keys():
+                    corpus.minimumID = data['minimum id']
+                if 'highest id' in data.keys():
+                    corpus.highestID = data['highest id']
+                returnmessage = "imported " + str(len(glosses)) + " signs:\n" + "\n".join(glosses)
+            except Exception:
+                return "import failed"
         self.parent().load_corpus_info(corpus.path, preloadedcorpus=corpus)
         return "import completed\n\n" + returnmessage
 
@@ -199,8 +154,9 @@ class ImportCorpusDialog(QDialog):
             if 'rel module numbers' in signdict.keys() and signdict['rel module numbers'] is not None:
                 sign.relationmodulenumbers = {float(uid):num for uid, num in signdict['rel module numbers'].items()}
         if 'ori modules' in signdict.keys() and signdict['ori modules'] is not None:
-            # TODO
-
+            for uid in signdict['ori modules']:
+                orimod = self.read_orimod(float(uid), signdict['ori modules'][uid])
+                sign.addmodule(orimod)
             if 'ori module numbers' in signdict.keys() and signdict['ori module numbers'] is not None:
                 sign.orientationmodulenumbers = {float(uid):num for uid, num in signdict['ori module numbers'].items()}
         if 'nonman modules' in signdict.keys() and signdict['nonman modules'] is not None:
@@ -233,12 +189,67 @@ class ImportCorpusDialog(QDialog):
             timingintervals.append(timinginterval)
         return timingintervals
 
+    def read_addedinfo(self, addedinfodict):
+        addedinfo = AddedInfo()
+        addedinfo.__dict__.update(addedinfodict)
+        return addedinfo
+
+    def read_phonlocs(self, phonlocsdict):
+        phonlocs = PhonLocations()
+        phonlocs.__dict__.update(phonlocsdict)
+        return phonlocs
+
     def read_parameter_module(self, paramdict):
         # articulators have to be specified in movement modules, so no need to check for existence
         articulators = self.read_articulators(paramdict['_articulators'])
         # timing intervals have to be specified in modules (even if xslots aren't on), so no need to check for existence
         timingintervals = self.read_timingintervals(paramdict['timingintervals'])
         return articulators, timingintervals
+        timingintervals = self.read_timingintervals(paramdict['_timingintervals'])
+        # phonological/phonetic locations may or may not be present
+        phonlocs = self.read_phonlocs(paramdict['_phonlocs']) if '_phonlocs' in paramdict.keys() else PhonLocations()
+        # added info may or may not be present
+        addedinfo = self.read_addedinfo(paramdict['_addedinfo']) if '_addedinfo' in paramdict.keys() else AddedInfo()
+
+        return articulators, timingintervals, phonlocs, addedinfo
+    def read_overalloptions(self, overalloptionsdict):
+        options = {
+            'forearm': False,
+            'forearm_addedinfo': AddedInfo(),
+            'overall_addedinfo': AddedInfo()
+        }
+        if overalloptionsdict is not None:
+            if 'forearm' in overalloptionsdict:
+                options['forearm'] = overalloptionsdict['forearm']
+            if 'forearm_addedinfo' in overalloptionsdict:
+                options['forearm_addedinfo'] = self.read_addedinfo(overalloptionsdict['forearm_addedinfo'])
+            if 'overall_addedinfo' in overalloptionsdict:
+                options['overall_addedinfo'] = self.read_addedinfo(overalloptionsdict['overall_addedinfo'])
+        return options
+
+    def read_orimod(self, uid, oridict):
+        # attributes common to all parameter modules
+        articulators, timingintervals, phonlocs, addedinfo = self.read_parameter_module(oridict)
+
+        # update palm directions and finger root directions
+        palmlist = oridict['_palm']
+        palmdirs_list = []
+        for dirdict in palmlist:
+            dir = Direction(axis=dirdict['_axis'])
+            dir.__dict__.update(dirdict)
+            palmdirs_list.append(dir)
+        rootlist = oridict['_root']
+        rootdirs_list = []
+        for dirdict in rootlist:
+            dir = Direction(axis=dirdict['_axis'])
+            dir.__dict__.update(dirdict)
+            rootdirs_list.append(dir)
+
+        omod = OrientationModule(palmdirs_list=palmdirs_list, rootdirs_list=rootdirs_list, articulators=articulators,
+                                 timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        omod.uniqueid = uid
+        return omod
+
 
     def read_movmod(self, uid, movdict):
         # attributes common to all parameter modules
@@ -247,11 +258,18 @@ class ImportCorpusDialog(QDialog):
         # movement tree
         mtreeser = MovementTreeSerializable(infodicts=movdict['movementtree'])
         mtree = MovementTreeModel(serializedmvmttree=mtreeser)
+        articulators, timingintervals, phonlocs, addedinfo = self.read_parameter_module(movdict)
 
         # phonlocs TODO
         # inphase TODO
+        # movement-specific attributes
+        mtreeser = MovementTreeSerializable(infodicts=movdict['movementtree'])  # includes addedinfos for individual movement items
+        mtree = MovementTreeModel(serializedmvmttree=mtreeser)
+        inphase = movdict['inphase'] if 'inphase' in movdict.keys() else 0
 
         mmod = MovementModule(mtree, articulators, timingintervals=timingintervals, phonlocs=None, addedinfo=None, inphase=0)
+        mmod = MovementModule(mtree, articulators, timingintervals=timingintervals,
+                              phonlocs=phonlocs, addedinfo=addedinfo, inphase=inphase)
         mmod.uniqueid = uid
         return mmod
 
@@ -311,40 +329,3 @@ class ImportCorpusDialog(QDialog):
             # close dialog
             self.accept()
 
-
-def cleandictsforexport(serialstructure, detaillevel):
-    if detaillevel == "max":
-        return serialstructure
-    elif detaillevel == "min":
-        if isinstance(serialstructure, dict):
-            cleaned_dict = {}
-            for k, v in serialstructure.items():
-                if k in ["timingintervals", "_timingintervals"]:
-                    # do not omit any info from these items; it makes them hard to read
-                    cleaned_dict[k] = v
-                elif k == "col_labels":
-                    # don't worry about including the column labels for the location details;
-                    # it should be clear from the contents what we're looking at
-                    pass
-                else:
-                    cleaned_item = cleandictsforexport(v, detaillevel)
-                    if cleaned_item:
-                        cleaned_dict[k] = cleaned_item
-            return cleaned_dict
-        elif isinstance(serialstructure, list):
-            cleaned_list = []
-            if len(serialstructure) == 2 and isinstance(serialstructure[0], str) and isinstance(serialstructure[1], bool) and not serialstructure[1]:
-                # it's a key-value pair of some sort; if the second element is false we don't want the first one either
-                pass
-            else:
-                for v in serialstructure:
-                    cleaned_item = cleandictsforexport(v, detaillevel)
-                    if cleaned_item:
-                        cleaned_list.append(cleaned_item)
-            return cleaned_list
-        elif isinstance(serialstructure, str) or isinstance(serialstructure, float) or isinstance(serialstructure, int) or isinstance(serialstructure, bool) or serialstructure is None:
-            if serialstructure and serialstructure != 0:
-                # if it's a pseudo-primite data type (even though yes, I know, that's not a thing for Python)
-                # then just return it as is, as long as it's not empty/zero/false
-                return serialstructure
-            return None
