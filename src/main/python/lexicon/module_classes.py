@@ -1322,7 +1322,7 @@ class LocationModule(ParameterModule):
 
 
     def getabbreviation(self):
-        phonphon_str = self.phonlocs.getabbreviation()
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         loctype_str = self.locationtreemodel.locationtype.getabbreviation()
         is_neutral_str = "neutral" if self.locationtreemodel.defaultneutralselected else ""
 
@@ -1888,7 +1888,7 @@ class RelationModule(ParameterModule):
         return False
 
     def has_any_direction_axis(self): # returns true if any direction checkbox is selected
-        for i in range(3):
+        for i in range(len(self.directions)):
             dir = self.directions[i]
             if dir.axisselected:
                 return True
@@ -1950,7 +1950,8 @@ class RelationModule(ParameterModule):
 
     # relation abbreviation
     def getabbreviation(self):
-        phonphon_str = self.phonlocs.getabbreviation()
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
+
         X_str, Y_str = '', ''
         
         paths = self.get_paths() 
@@ -2549,7 +2550,7 @@ class OrientationModule(ParameterModule):
 
 
     def getabbreviation(self):
-        phonphon_str = self.phonlocs.getabbreviation()
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         palm_arr, root_arr = [], []
         
         for i, label in enumerate(["Hor", "Ver", "Sag"]):

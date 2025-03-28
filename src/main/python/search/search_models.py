@@ -118,8 +118,8 @@ class SearchModel(QStandardItemModel):
         xslottype.setData(t.xslottype, Qt.UserRole)
         
         value = QStandardItem()
-        value.setData(t.searchvaluesitem, Qt.UserRole+1)
-        value.setData(t.searchvaluesitem.displayval, Qt.DisplayRole)
+        value.setData(t.searchvaluesitem, Qt.UserRole+1) # TODO update
+        value.setData(t.displaystring(), Qt.DisplayRole)
         
 
         return [name, ttype, value, include_cb, negative_cb, xslottype]

@@ -1223,3 +1223,12 @@ class SearchTargetItem(QStandardItem):
     @associatedrelnmodule.setter
     def associatedrelnmodule(self, m):
         self._associatedrelnmodule = m
+
+    def displaystring(self):
+        if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+            print("?")
+            return(self.module.getabbreviation())
+        elif self.targettype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
+            return(f"{self.module.getabbreviation()} + Assoc. reln: {self.associatedrelnmodule.getabbreviation()}")
+        else:
+            return self.searchvaluesitem.displayval

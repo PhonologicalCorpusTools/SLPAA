@@ -584,7 +584,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                 if target.targettype == TargetTypes.LOC_REL:
                     moduletype = ModuleTypes.LOCATION
                 elif target.targettype == TargetTypes.MOV_REL:
-                    moduletype == ModuleTypes.MOVEMENT
+                    moduletype = ModuleTypes.MOVEMENT
                 target.module = module_to_save
                 target.module_id = existingkey
                 # logging.warning(f"anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
