@@ -552,14 +552,13 @@ class SearchModel(QStandardItemModel):
             xslottype = self.target_xslottype(row).type
             target_module = self.target_module(row)
             svi = self.target_values(row)
-            if hasattr(svi, "articulators"):
+            arts = articulatordisplaytext(svi.articulators, svi.inphase) if hasattr(svi, "articulators") else ""
+            if arts:
                 sign_arts = set()
                 for module in modules:
                     sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
-                for _ in mvmt_rows:
-                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
-                    if arts not in sign_arts:
-                        return False
+                if arts not in sign_arts:
+                    return False
             if hasattr(svi, "paths"):
                 sign_paths = set()
                 for module in modules:
@@ -579,35 +578,36 @@ class SearchModel(QStandardItemModel):
             svi = self.target_values(row)
             xslottype = self.target_xslottype(row).type
             target_module = self.target_module(row)
-            if hasattr(svi, "articulators"):
-                sign_arts = set("")
+            arts = articulatordisplaytext(svi.articulators, svi.inphase) if hasattr(svi, "articulators") else ""
+            loctype = loctypedisplaytext(svi.loctype) if hasattr(svi, "loctype") else ""
+            phonloc = phonlocsdisplaytext(svi.phonlocs) if hasattr(svi, "phonlocs") else ""
+            paths = svi.paths if hasattr(svi, "paths") else []
+            if arts:
+                sign_arts = set()
                 for module in modules:
                     sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
-                for _ in locn_rows:
-                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
-                    if arts not in sign_arts:
-                        return False
-            if hasattr(svi, "loctype"):
-                sign_loctypes = set("")
+                if arts not in sign_arts:
+                    return False
+            if loctype:
+                sign_loctypes = set()
                 for module in modules:
-                    sign_loctypes.update(loctypedisplaytext(module.locationtreemodel.locationtype))
-                for _ in locn_rows:
-                    lt = loctypedisplaytext(svi.loctype)
-                    if not all(loctype in sign_loctypes for loctype in lt):
-                        return False
-            if hasattr(svi, "phonlocs"):
-                sign_phonlocs = set("")
+                    sign_loctypes.add(loctypedisplaytext(module.locationtreemodel.locationtype))
+                if loctype not in sign_loctypes:
+                    return False
+            if phonloc:
+                sign_phonlocs = set()
                 for module in modules:
-                    sign_phonlocs.update(phonlocsdisplaytext(module.phonlocs))
-                for _ in locn_rows:
-                    pl = phonlocsdisplaytext(svi.phonlocs)
-                    if not all(phonloc in sign_phonlocs for phonloc in pl):
-                        return False
-            if hasattr(svi, "paths"):
-                print(f"target paths is {svi.paths}")
+                    sign_phonlocs.add(phonlocsdisplaytext(module.phonlocs))
+                if phonloc not in sign_phonlocs:
+                    return False
+            if paths:
                 sign_paths = set()
                 for module in modules:
-                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
+                    if (not arts or arts == articulatordisplaytext(module.articulators, module.inphase) 
+                        and (not loctype or loctype == loctypedisplaytext(module.locationtreemodel.locationtype))
+                        and (not phonloc or phonloc == phonlocsdisplaytext(module.phonlocs))
+                        and module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype)
+                        ):
                         fully_checked = target_module.locationtreemodel.nodes_are_terminal
                         # module_paths is a list of dicts {'path', 'abbrev', 'details'}. 
                         # To create a unique set of paths from all modules, convert the dicts to tuples.
@@ -623,7 +623,7 @@ class SearchModel(QStandardItemModel):
                 #     return False
 
                 # minimal match for details tables
-                if all(path in sign_paths for path in svi.paths):
+                if all(path in sign_paths for path in paths):
                     return True
                 else:
                     details_dict = defaultdict(set) # for faster lookup, sort by paths
@@ -858,7 +858,7 @@ class SearchValuesItem:
             if module.articulators[1][1] or module.articulators[1][2]: # between articulator 1 and articulator 2, at least one is True
                 self.articulators = module.articulators
                 self.inphase = module.inphase
-                todisplay.append(articulatordisplaytext(module.articulators, module.inphase))
+                # todisplay.append(articulatordisplaytext(module.articulators, module.inphase))
             if self.has_added_info(module):
                 pass
                 # todisplay.append("Additional info") # TODO could be more specific re type / contents of additional info
@@ -878,25 +878,25 @@ class SearchValuesItem:
                         self.paths.append((p['path'], details_tuple))
                 if not module.phonlocs.allfalse():
                     self.phonlocs = module.phonlocs
-                    todisplay.extend(phonlocsdisplaytext(self.phonlocs))
+                    # todisplay.extend(phonlocsdisplaytext(self.phonlocs))
                 if not module.locationtreemodel.locationtype.allfalse():
                     self.loctype = module.locationtreemodel.locationtype
-                    todisplay.extend(loctypedisplaytext(self.loctype))
+                    # todisplay.extend(loctypedisplaytext(self.loctype))
             else: # relation
                 # paths is a dict matching selected articulators to a list of dicts: "path", "abbrev", "details"
                 paths = module.get_paths()
                 if len(paths) > 0:
                     self.paths = paths # TODO
-                todisplay.extend(relationdisplaytext(module))
+                # todisplay.extend(relationdisplaytext(module))
 
         
-        elif self.type == TargetTypes.SIGNTYPEINFO:
-            todisplay.extend(signtypedisplaytext(module.specslist))
-        else:
-            if self.values is not None:
-                for k, v in self.values.items():
-                    if v not in [None, ""]:
-                        todisplay.append(str(k)+"="+str(v))
+        # elif self.type == TargetTypes.SIGNTYPEINFO:
+            # todisplay.extend(signtypedisplaytext(module.specslist))
+        # else:
+        #     if self.values is not None:
+        #         for k, v in self.values.items():
+        #             if v not in [None, ""]:
+        #                 todisplay.append(str(k)+"="+str(v))
         
         self.displayval = todisplay
     
