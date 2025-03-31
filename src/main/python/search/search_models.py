@@ -235,7 +235,7 @@ class SearchModel(QStandardItemModel):
                 
                 for row in target_dict[ttype]:  
                     target_reln_module = self.target_associatedrelnmodule(row)
-                    logging.warning(f"target module: {self.target_module_id(row)}; assoc module: {self.target_associatedrelnmodule_id(row)}; ")
+                    # logging.warning(f"target module: {self.target_module_id(row)}; assoc module: {self.target_associatedrelnmodule_id(row)}; ")
                     if not reln_module_matches(relationmodulelist, target_reln_module, target_is_assoc_reln=True):
                         return False    
                     anchormodulelist = []
@@ -389,7 +389,6 @@ class SearchModel(QStandardItemModel):
                         target_predefined_shape = PREDEFINED_MAP[target_tuple].name
                         if sign_tuple in PREDEFINED_MAP:
                             sign_shape = PREDEFINED_MAP[sign_tuple].name
-                            logging.warning("checking: ")
                             # logging.warning(sign_shape)
                             if target_predefined_shape == sign_shape:
                                 matches_this_row.append(m)   
@@ -409,7 +408,6 @@ class SearchModel(QStandardItemModel):
         for row in rows:
             matches_this_row = []
             target_module = self.target_module(row)
-            print(sign)
             extended_symbols = ['H', 'E', 'e', 'i'] if target_module.i_extended else ['H', 'E', 'e']
             # get lists of target extended vs nonextended fingers, where thumb=0, index=1, etc
             target_extended_fingers, target_nonextended_fingers = [], [] 
@@ -633,9 +631,7 @@ class SearchModel(QStandardItemModel):
                     for targetpath in svi.paths:
                         if targetpath[0] not in details_dict: 
                             return False
-                        print(f"target {targetpath}")
                         potential_details_matches = details_dict[targetpath[0]] # a set of nested tuples ((), ())
-                        print("potential", potential_details_matches, "\n\n")
                         targetdetails = [set(td) for td in targetpath[1]] # eg [set(surface1, surface2), set(bonejoint1)]
                         if not any(all(targetdetails[i] <= set(potential[i]) for i in range(len(targetdetails))) for potential in potential_details_matches):
                             return False
