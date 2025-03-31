@@ -604,13 +604,42 @@ class SearchModel(QStandardItemModel):
                     if not all(phonloc in sign_phonlocs for phonloc in pl):
                         return False
             if hasattr(svi, "paths"):
-                sign_paths = set("")
+                print(f"target paths is {svi.paths}")
+                sign_paths = set()
                 for module in modules:
                     if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
                         fully_checked = target_module.locationtreemodel.nodes_are_terminal
-                        sign_paths.update(module.locationtreemodel.get_checked_items(only_fully_checked=fully_checked))
-                if not all(path in sign_paths for path in svi.paths):
-                    return False
+                        # module_paths is a list of dicts {'path', 'abbrev', 'details'}. 
+                        # To create a unique set of paths from all modules, convert the dicts to tuples.
+                        module_paths = module.locationtreemodel.get_checked_items(only_fully_checked=fully_checked, include_details=True)
+                        for mp in module_paths:
+                            # details_tuple is tuple(tuple(), tuple())
+                            details_tuple = tuple(tuple(selecteddetails) for label, selecteddetails in mp['details'].get_checked_values().items())
+                            sign_paths.add((mp['path'], details_tuple))
+                
+
+                # exact match for details tables
+                # if not all(path in sign_paths for path in svi.paths):
+                #     return False
+
+                # minimal match for details tables
+                if all(path in sign_paths for path in svi.paths):
+                    return True
+                else:
+                    details_dict = defaultdict(set) # for faster lookup, sort by paths
+                    for p in sign_paths:
+                        details_dict[p[0]].add(p[1])
+
+                    for targetpath in svi.paths:
+                        if targetpath[0] not in details_dict: 
+                            return False
+                        print(f"target {targetpath}")
+                        potential_details_matches = details_dict[targetpath[0]] # a set of nested tuples ((), ())
+                        print("potential", potential_details_matches, "\n\n")
+                        targetdetails = [set(td) for td in targetpath[1]] # eg [set(surface1, surface2), set(bonejoint1)]
+                        if not any(all(targetdetails[i] <= set(potential[i]) for i in range(len(targetdetails))) for potential in potential_details_matches):
+                            return False
+
                     
         return True
 
@@ -836,8 +865,17 @@ class SearchValuesItem:
             paths = []
             if self.type == ModuleTypes.MOVEMENT:
                 paths = module.movementtreemodel.get_checked_items()
+                if len(paths) > 0: self.paths = paths
             elif self.type == ModuleTypes.LOCATION:
-                paths = module.locationtreemodel.get_checked_items(only_fully_checked=True)
+                # paths is a list of dicts: "path", "abbrev", "details"
+                paths = module.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True)
+                # convert to a list of tuples, since that's what we'll try to match when searching
+                if len(paths) > 0:
+                    self.paths = []
+                    for p in paths:
+                        # details_tuple is tuple([], [])
+                        details_tuple = tuple(tuple(selecteddetails) for label, selecteddetails in p['details'].get_checked_values().items())
+                        self.paths.append((p['path'], details_tuple))
                 if not module.phonlocs.allfalse():
                     self.phonlocs = module.phonlocs
                     todisplay.extend(phonlocsdisplaytext(self.phonlocs))
@@ -845,12 +883,11 @@ class SearchValuesItem:
                     self.loctype = module.locationtreemodel.locationtype
                     todisplay.extend(loctypedisplaytext(self.loctype))
             else: # relation
+                # paths is a dict matching selected articulators to a list of dicts: "path", "abbrev", "details"
                 paths = module.get_paths()
+                if len(paths) > 0:
+                    self.paths = paths # TODO
                 todisplay.extend(relationdisplaytext(module))
-
-            if len(paths) > 0:
-                self.paths = paths
-                todisplay.extend(self.paths)
 
         
         elif self.type == TargetTypes.SIGNTYPEINFO:
