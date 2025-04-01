@@ -1,8 +1,11 @@
 # helper functions for compare signs
 from collections import defaultdict
+
+from PyQt5.QtWidgets import QTreeWidgetItem
 from constant import ARTICULATOR_ABBREVS, userdefinedroles as udr
 from PyQt5.QtCore import Qt
 import re
+import itertools
 
 def summarize_path_comparison(ld):
     def fuse_two_dicts(d1, d2):
@@ -166,6 +169,55 @@ def get_checked_paths_from_list(treemodel):
                 path_text = update_path_text(has_usr_text, path_text)
                 selected_paths.append(path_text)
     return selected_paths
+
+# this method combines base path and surface/subarea/bonejoint
+def gen_detailed_paths(base, surfaces, subdetails):
+    if surfaces and subdetails:
+        # one than one surfaces and subdetails (i.e., subarea or bone/joint) selected.
+        return [f"{base}>{s}>{d}" for s, d in itertools.product(surfaces, subdetails)]
+    elif surfaces:
+        # only surface
+        return [f"{base}>{s}" for s in surfaces]
+    elif subdetails:
+        return [f"{base}>{d}" for d in subdetails]
+    else:
+        return [f"{base}"]
+
+
+# retrieve location path while treating surface and subarea as if they are paths
+def get_detailed_checked_paths_location(treemodel):
+    # Each LocationModule has a .locationtreemodel, which in turn has a .listmodel
+    list_model = treemodel.listmodel
+    detailed_paths = []  # this will be the output
+
+    has_usr_text = ''  # to remember the most recent 'user text' temporarily
+
+    # The following iterates over each possible location model path and check if selected
+    for row in range(list_model.rowCount()):
+        item = list_model.item(row)
+        if not item:
+            continue
+
+        if not item.data(Qt.UserRole + udr.selectedrole):  # False if not checked in the tree
+            continue
+
+        # item.text() is something like "Movement type>Perceptual shape>Shape>Other [this shape]"
+        path_text = item.text()
+        has_usr_text = path_text if '[' in path_text else has_usr_text
+        path_text = update_path_text(has_usr_text, path_text)
+
+        treeitem = item.treeitem
+        detailed_dict = treeitem.detailstable.get_checked_values()
+
+        surfaces = detailed_dict.get('Surface', [])
+        subdetails = (   # subdetails are either sub-area or bone/joint. they are mutually exclusive
+            detailed_dict.get('Sub-area', []) +
+            detailed_dict.get('Bone/joint', [])
+        )
+
+        detailed_paths.extend(gen_detailed_paths(path_text, surfaces, subdetails))
+
+    return detailed_paths
 
 
 #  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.

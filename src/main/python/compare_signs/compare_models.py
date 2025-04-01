@@ -2,7 +2,7 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
                                            compare_elements, summarize_path_comparison,
-                                           get_btn_type_for_mvmtpath, get_checked_paths_from_list)
+                                           get_btn_type_for_mvmtpath, get_checked_paths_from_list, get_detailed_checked_paths_location)
 from compare_signs.align_modules import alignmodules
 
 class CompareModel:
@@ -214,8 +214,8 @@ class CompareModel:
             #r.append(True) if set(s1pl) == set(slpl) else r.append(False)
 
             # paths
-            s1path = get_checked_paths_from_list(pair[0].locationtreemodel)
-            s2path = get_checked_paths_from_list(pair[1].locationtreemodel)
+            s1path = get_detailed_checked_paths_location(pair[0].locationtreemodel)
+            s2path = get_detailed_checked_paths_location(pair[1].locationtreemodel)
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
 
