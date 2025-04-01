@@ -144,9 +144,10 @@ def alignbyorientation(orimodsbysign, focus, level='specific'):
     return matchedmods, unmatchedmods
 
 
+# both lists of directions must be in this order: horizontal, vertical, sagittal
 def directionsmatch(sign1dirs, sign2dirs, level='specific'):
     if level == 'specific':
-        return set(sign1dirs) == set(sign2dirs)
+        return sign1dirs == sign2dirs
     elif level == 'general':
         for dir1 in sign1dirs:
             if len([dir2 for dir2 in sign2dirs if dir2.sameaxisselection(dir1)]) == 0:
