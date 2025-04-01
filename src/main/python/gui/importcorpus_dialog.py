@@ -105,23 +105,23 @@ class ImportCorpusDialog(QDialog):
         # TODO
         returnmessage = ""
         with io.open(self.importsourcepath, "r") as imfile:
-            try:
-                corpus = Corpus()
-                data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
-                glosses = []
-                if 'signs' in data.keys():
-                    for signdict in data['signs']:
-                        sign = self.read_sign(signdict)
-                        corpus.add_sign(sign)
-                        glosses.append(str(sign))
-                corpus.path = self.destpath
-                if 'minimum id' in data.keys():
-                    corpus.minimumID = data['minimum id']
-                if 'highest id' in data.keys():
-                    corpus.highestID = data['highest id']
-                returnmessage = "imported " + str(len(glosses)) + " signs:\n" + "\n".join(glosses)
-            except Exception:
-                return "import failed"
+            # try:
+            corpus = Corpus()
+            data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
+            glosses = []
+            if 'signs' in data.keys():
+                for signdict in data['signs']:
+                    sign = self.read_sign(signdict)
+                    corpus.add_sign(sign)
+                    glosses.append(str(sign))
+            corpus.path = self.destpath
+            if 'minimum id' in data.keys():
+                corpus.minimumID = data['minimum id']
+            if 'highest id' in data.keys():
+                corpus.highestID = data['highest id']
+            returnmessage = "imported " + str(len(glosses)) + " signs:\n" + "\n".join(glosses)
+            # except Exception:
+            #     return "import failed"
         self.parent().load_corpus_info(corpus.path, preloadedcorpus=corpus)
         return "import completed\n\n" + returnmessage
 
@@ -136,6 +136,12 @@ class ImportCorpusDialog(QDialog):
             sign.xslotstructure = xslotstruct
         if 'specified xslots' in signdict.keys():
             sign.specifiedxslots = bool(signdict['specified xslots'])  # could be True, False, or None
+        if 'cfg modules' in signdict.keys() and signdict['cfg modules'] is not None:
+            for uid in signdict['cfg modules']:
+                cfgmod = self.read_cfgmod(float(uid), signdict['cfg modules'][uid])
+                sign.addmodule(cfgmod)
+            if 'cfg module numbers' in signdict.keys() and signdict['cfg module numbers'] is not None:
+                sign.handconfigmodulenumbers = {float(uid):num for uid, num in signdict['cfg module numbers'].items()}
         if 'mov modules' in signdict.keys() and signdict['mov modules'] is not None:
             for uid in signdict['mov modules']:
                 movmod = self.read_movmod(float(uid), signdict['mov modules'][uid])
@@ -143,8 +149,9 @@ class ImportCorpusDialog(QDialog):
             if 'mov module numbers' in signdict.keys() and signdict['mov module numbers'] is not None:
                 sign.movementmodulenumbers = {float(uid):num for uid, num in signdict['mov module numbers'].items()}
         if 'loc modules' in signdict.keys() and signdict['loc modules'] is not None:
-            # TODO
-
+            for uid in signdict['loc modules']:
+                locmod = self.read_locmod(float(uid), signdict['loc modules'][uid])
+                sign.addmodule(locmod)
             if 'loc module numbers' in signdict.keys() and signdict['loc module numbers'] is not None:
                 sign.locationmodulenumbers = {float(uid):num for uid, num in signdict['loc module numbers'].items()}
         if 'rel modules' in signdict.keys() and signdict['rel modules'] is not None:
@@ -160,15 +167,11 @@ class ImportCorpusDialog(QDialog):
             if 'ori module numbers' in signdict.keys() and signdict['ori module numbers'] is not None:
                 sign.orientationmodulenumbers = {float(uid):num for uid, num in signdict['ori module numbers'].items()}
         if 'nonman modules' in signdict.keys() and signdict['nonman modules'] is not None:
-            # TODO
-
+            for uid in signdict['nonman modules']:
+                nonmanmod = self.read_nonmanmod(float(uid), signdict['nonman modules'][uid])
+                sign.addmodule(nonmanmod)
             if 'nonman module numbers' in signdict.keys() and signdict['nonman module numbers'] is not None:
                 sign.nonmanualmodulenumbers = {float(uid):num for uid, num in signdict['nonman module numbers'].items()}
-        if 'cfg modules' in signdict.keys() and signdict['cfg modules'] is not None:
-            # TODO
-
-            if 'cfg module numbers' in signdict.keys() and signdict['cfg module numbers'] is not None:
-                sign.handconfigmodulenumbers = {float(uid):num for uid, num in signdict['cfg module numbers'].items()}
 
         return sign
 
@@ -210,6 +213,15 @@ class ImportCorpusDialog(QDialog):
         addedinfo = self.read_addedinfo(paramdict['_addedinfo']) if '_addedinfo' in paramdict.keys() else AddedInfo()
 
         return articulators, timingintervals, phonlocs, addedinfo
+
+    def read_handconfig(self, fields_list):
+        for field_dict in fields_list:
+            for slot_dict in field_dict['slots']:
+                if 'symbol' not in slot_dict.keys():
+                    slot_dict['symbol'] = ""
+                slot_dict['addedinfo'] = self.read_addedinfo(slot_dict['addedinfo']) if 'addedinfo' in slot_dict.keys() else AddedInfo()
+        return fields_list
+
     def read_overalloptions(self, overalloptionsdict):
         options = {
             'forearm': False,
@@ -224,6 +236,29 @@ class ImportCorpusDialog(QDialog):
             if 'overall_addedinfo' in overalloptionsdict:
                 options['overall_addedinfo'] = self.read_addedinfo(overalloptionsdict['overall_addedinfo'])
         return options
+
+    def read_cfgmod(self, uid, cfgdict):
+        # attributes common to all parameter modules
+        articulators, timingintervals, phonlocs, addedinfo = self.read_parameter_module(cfgdict)
+
+        # handconfig-specific attributes
+        handconfig = self.read_handconfig(cfgdict['_handconfiguration'])
+        overalloptions = self.read_overalloptions(cfgdict['_overalloptions'] if '_overalloptions' in cfgdict.keys() else None)
+
+        cmod = HandConfigurationModule(handconfiguration=handconfig, overalloptions=overalloptions, articulators=articulators,
+                                       timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        cmod.uniqueid = uid
+        return cmod
+
+    def read_nonmanmod(self, uid, nonmandict):
+        # attributes common to all parameter modules
+        articulators, timingintervals, phonlocs, addedinfo = self.read_parameter_module(nonmandict)
+
+        # nonmanual-specific attributes
+        nonmanspecs = nonmandict['_nonmanual']
+        nmod = NonManualModule(nonman_specs=nonmanspecs, articulators=articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        nmod.uniqueid = uid
+        return nmod
 
     def read_orimod(self, uid, oridict):
         # attributes common to all parameter modules
@@ -248,24 +283,29 @@ class ImportCorpusDialog(QDialog):
         omod.uniqueid = uid
         return omod
 
+    def read_locmod(self, uid, locdict):
+        # attributes common to all parameter modules
+        articulators, timingintervals, phonlocs, addedinfo = self.read_parameter_module(locdict)
+
+        # location-specific attributes
+        ltreeser = LocationTreeSerializable(infodicts=locdict['locationtree'])  # includes addedinfos for individual location items
+        ltree = LocationTreeModel(serializedlocntree=ltreeser)
+        inphase = locdict['inphase'] if 'inphase' in locdict.keys() else 0
+
+        lmod = LocationModule(ltree, articulators, timingintervals=timingintervals,
+                              phonlocs=phonlocs, addedinfo=addedinfo, inphase=inphase)
+        lmod.uniqueid = uid
+        return lmod
 
     def read_movmod(self, uid, movdict):
         # attributes common to all parameter modules
-        # added info TODO
-        articulators, timingintervals = self.read_parameter_module(movdict)
-        # movement tree
-        mtreeser = MovementTreeSerializable(infodicts=movdict['movementtree'])
-        mtree = MovementTreeModel(serializedmvmttree=mtreeser)
         articulators, timingintervals, phonlocs, addedinfo = self.read_parameter_module(movdict)
 
-        # phonlocs TODO
-        # inphase TODO
         # movement-specific attributes
         mtreeser = MovementTreeSerializable(infodicts=movdict['movementtree'])  # includes addedinfos for individual movement items
         mtree = MovementTreeModel(serializedmvmttree=mtreeser)
         inphase = movdict['inphase'] if 'inphase' in movdict.keys() else 0
 
-        mmod = MovementModule(mtree, articulators, timingintervals=timingintervals, phonlocs=None, addedinfo=None, inphase=0)
         mmod = MovementModule(mtree, articulators, timingintervals=timingintervals,
                               phonlocs=phonlocs, addedinfo=addedinfo, inphase=inphase)
         mmod.uniqueid = uid

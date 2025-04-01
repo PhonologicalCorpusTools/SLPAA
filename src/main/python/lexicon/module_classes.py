@@ -40,10 +40,11 @@ class ParameterModule:
     def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._articulators = articulators
         self._phonlocs = phonlocs
-        self._timingintervals = []
-        if timingintervals is not None:
-            self.timingintervals = timingintervals
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._timingintervals = timingintervals or []
+        # if timingintervals is not None:
+        #     self.timingintervals = timingintervals
+        # self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._addedinfo = addedinfo or AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
         self._moduletype = ""
 
@@ -76,9 +77,11 @@ class ParameterModule:
         if not hasattr(self, '_articulators'):
             # backward compatibility pre-20230804 addition of arms and legs as articulators (issues #175 and #176)
             articulator_dict = {1: False, 2: False}
-            if hasattr(self, '_hands'):
+            if hasattr(self, '_hands') or hasattr(self, 'hands'):
                 articulator_dict[1] = self._hands['H1']
                 articulator_dict[2] = self._hands['H2']
+                # for backward compatibility with pre-20250325 parameter modules
+                del self._hands
             self._articulators = (HAND, articulator_dict)
         return self._articulators
 
@@ -89,7 +92,11 @@ class ParameterModule:
     @property
     def phonlocs(self):
         if not hasattr(self, '_phonlocs'):
-            self.phonlocs = PhonLocations()
+            self._phonlocs = PhonLocations()
+            # TODO remove? for backward compatibility with pre-20250325 parameter modules
+            # if hasattr(self, 'phonlocs'):
+            #     self._phonlocs = self.phonlocs
+            #     del self.phonlocs
         return self._phonlocs 
 
     @phonlocs.setter
@@ -135,8 +142,6 @@ class ParameterModule:
             elif self.inphase == 4:
                 todisplay += " connected, in phase"
         return todisplay
-
-
 
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"

@@ -1406,6 +1406,7 @@ class MainWindow(QMainWindow):
             self.corpus = self.load_corpus_binary(corpuspath)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(signs=self.corpus.signs)
+
         if len(self.corpus.signs) > 0:
             self.corpus_display.selectfirstrow()
         else:  # if loading a blank corpus

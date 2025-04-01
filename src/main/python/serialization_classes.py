@@ -4,7 +4,7 @@ import pickle
 
 from PyQt5.QtCore import Qt
 
-from lexicon.module_classes import PhonLocations, AddedInfo
+from lexicon.module_classes import PhonLocations, AddedInfo, LocationType
 from models.movement_models import fx
 from constant import HAND, userdefinedroles as udr
 import logging
@@ -13,7 +13,7 @@ class ParameterModuleSerializable:
 
     def __init__(self, parammod):
         self._articulators = parammod.articulators
-        self.timingintervals = parammod.timingintervals
+        self._timingintervals = parammod.timingintervals
         self._addedinfo = parammod.addedinfo
         self._phonlocs = parammod.phonlocs
 
@@ -40,13 +40,28 @@ class ParameterModuleSerializable:
         self._addedinfo = addedinfo
 
     @property
+    def timingintervals(self):
+        if not hasattr(self, '_timingintervals'):
+            # TODO remove? for backward compatibility with pre-20250325 parameter modules
+            self._timingintervals = []
+            if 'timingintervals' in self.__dict__.keys():
+                self._timingintervals = self.__dict__.pop('timingintervals')
+        return self._timingintervals
+
+    @timingintervals.setter
+    def timingintervals(self, timingintervals):
+        self._timingintervals = timingintervals
+
+    @property
     def articulators(self):
         if not hasattr(self, '_articulators'):
             # backward compatibility pre-20230804 addition of arms and legs as articulators (issues #175 and #176)
             articulator_dict = {1: False, 2: False}
-            if hasattr(self, 'hands'):
+            if hasattr(self, '_hands') or hasattr(self, 'hands'):
                 articulator_dict[1] = self.hands['H1']
                 articulator_dict[2] = self.hands['H2']
+                # for backward compatibility with pre-20250325 parameter modules
+                del self._hands
             self._articulators = (HAND, articulator_dict)
         return self._articulators
 
@@ -170,23 +185,45 @@ class MovementTreeSerializable:
 # and from saveable form.
 class LocationTreeSerializable:
 
-    def __init__(self, locntreemodel):
-
-        # creates a full serializable copy of the location tree, eg for saving to disk
-        treenode = locntreemodel.invisibleRootItem()
+    def __init__(self, locntreemodel=None, infodicts=None):
 
         self.numvals = {}  # deprecated
         self.checkstates = {}
         self.detailstables = {}
         self.addedinfos = {}
-        self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
-        self.defaultneutralselected = locntreemodel.defaultneutralselected
-        self.defaultneutrallist = locntreemodel.defaultneutrallist
-        self.nodes_are_terminal = locntreemodel.nodes_are_terminal
+        self.locationtype = None
+        self.multiple_selection_allowed = False
+        self.nodes_are_terminal = False
+        self.defaultneutralselected = False
+        self.defaultneutrallist = None
 
-        self.collectdatafromLocationTreeModel(treenode)
-        
-        self.locationtype = copy(locntreemodel.locationtype)
+        if locntreemodel is None and infodicts is not None:
+            # just import the dicts directly-- not from an existing LocationTreeModel
+            loctypedict = infodicts.pop('locationtype')
+            self.locationtype = LocationType()
+            self.locationtype.__dict__.update(loctypedict)
+
+            detailstables = infodicts.pop('detailstables')
+            for k, v in detailstables.items():
+                self.detailstables[k] = LocationTableSerializable(infodict=v)
+
+            addedinfos = infodicts.pop('addedinfos')
+            for k, v in addedinfos.items():
+                addedinfo = AddedInfo()
+                addedinfo.__dict__.update(v)
+                self.addedinfos[k] = addedinfo
+
+            self.__dict__.update(infodicts)  #  = deep_update_pydantic(self.__dict__, infodicts)
+
+        else:
+            # creates a full serializable copy of the location tree, eg for saving to disk
+            treenode = locntreemodel.invisibleRootItem()
+            self.collectdatafromLocationTreeModel(treenode)
+            self.locationtype = copy(locntreemodel.locationtype)
+            self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
+            self.nodes_are_terminal = locntreemodel.nodes_are_terminal
+            self.defaultneutralselected = locntreemodel.defaultneutralselected
+            self.defaultneutrallist = locntreemodel.defaultneutrallist
 
     # collect data from the LocationTreeModel to store in this LocationTreeSerializable
     def collectdatafromLocationTreeModel(self, treenode):
@@ -214,10 +251,18 @@ class LocationTreeSerializable:
 # LocationTableModel to convert to and from saveable form.
 class LocationTableSerializable:
 
-    def __init__(self, locntablemodel):
-        # creates a full serializable copy of the location table, eg for saving to disk
-        self.col_labels = locntablemodel.col_labels
-        self.col_contents = locntablemodel.col_contents
+    def __init__(self, locntablemodel=None, infodict=None):
+        self.col_labels = ["", ""]
+        self.col_contents = [[], []]
+
+        if locntablemodel is None and infodict is not None:
+            # just import the dicts directly-- not from an existing LocationTableModel
+            self.col_labels = infodict['col_labels']
+            self.col_contents = infodict['col_contents']
+        else:
+            # creates a full serializable copy of the location table, eg for saving to disk
+            self.col_labels = locntablemodel.col_labels
+            self.col_contents = locntablemodel.col_contents
 
     def isempty(self):
         labelsempty = self.col_labels == ["", ""]
@@ -295,3 +340,18 @@ def renamed_load(file_obj):
 def renamed_loads(pickled_bytes):
     file_obj = io.BytesIO(pickled_bytes)
     return renamed_load(file_obj)
+
+
+# copied instead of imported, to avoid yet another package requirement for RAs
+# from https://github.com/pydantic/pydantic/blob/fd2991fe6a73819b48c906e3c3274e8e47d0f761/pydantic/utils.py#L200
+# TODO consider actually importing the package once RAs have switched to using the executable
+# from pydantic.utils import deep_update
+def deep_update_pydantic(mapping, updating_mappings):
+    updated_mapping = mapping.copy()
+    # for updating_mapping in updating_mappings.items():  # I added .items()
+    for k, v in updating_mappings.items():  # I added the s at the end of updated_mapping
+        if k in updated_mapping and isinstance(updated_mapping[k], dict) and isinstance(v, dict):
+            updated_mapping[k] = deep_update_pydantic(updated_mapping[k], v)
+        else:
+            updated_mapping[k] = v
+    return updated_mapping
