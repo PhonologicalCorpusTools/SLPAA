@@ -452,6 +452,18 @@ SIGN_TYPE = {
     "TWO_HANDS_BOTH_MVMT_SIMU": "2h.both move.move similarly.simultaneous"
 }
 
+# for backwards compatibility
+specifytotalcycles_str = "Specify total number of cycles"
+numberofreps_str = "Number of repetitions"
+rb = "radio button"  # ie mutually exclusive in group / at this level
+cb = "checkbox"  # ie not mutually exlusive
+nc = "no control" # no radio button or checkbox should be shown
+ed_1 = "editable level 1"  # ie value is editable but restricted to numbers that are >= 1 and multiples of 0.5
+ed_2 = "editable level 2"  # ie value is editable but restricted to numbers
+ed_3 = "editable level 3"  # ie value is editable and unrestricted
+fx = "fixed"  # ie value is not editable
+subgroup = "subgroup"
+custom_abbrev = "custom abbreviation" # for tooltip abbreviations which depend on user entry
 
 class ModuleTypes:
     MOVEMENT = 'movement'
@@ -552,11 +564,26 @@ DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None,
                 "Vertical axis" + treepathdelimiter + "Mid": None,
                 "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
 
-SIGNLEVELINFO_TARGET = "sign level info"
-XSLOT_TARGET = "xslot"
-SIGNTYPEINFO_TARGET = "sign type info"
-MOV_REL_TARGET = "mvmt + reln"
-LOC_REL_TARGET = "locn + reln"
+class TargetTypes:
+    SIGNLEVELINFO = "sign level info"
+    XSLOT = "xslot"
+    SIGNTYPEINFO = "sign type info"
+    MOV_REL = "mvmt + reln"
+    LOC_REL = "locn + reln"
+    EXTENDEDFINGERS  = "extended fingers"
+
+class HandConfigSlots:
+    # Used in Search window. Values are the indices of the hand configuration tuple returned by get_hand_transcription_list()
+    # i.e. two less than the actual slot number
+    THUMB_OPPOSITION = 0
+    MCP = {
+        0: 2, # Thumb MCP joint is at index 2
+        1: 15, # Index MCP at position 15
+        2: 20, # Middle finger MCP at index 20
+        3: 25, # Ring finger MCP at index 25
+        4: 30 # Pinky MCP at index 30
+    }
+
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

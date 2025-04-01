@@ -17,7 +17,7 @@
 Timing & X-Slots
 ****************
 
-**Introduction.** Link to: :ref:`x_slot` glossary entry, :ref:`global_settings` (options with respect to generation of x-slots as well as subdivisions), :ref:`automated_processes`, and mention timing as relevant to selecting sign type options (simultaneous or sequential) and movement phasing options (in phase/out of phase).
+**Introduction.** Link to: :ref:`x_slot` glossary entry, :ref:`setting_preferences` (options with respect to generation of x-slots as well as subdivisions), :ref:`automated_processes`, and mention timing as relevant to selecting sign type options (simultaneous or sequential) and movement phasing options (in phase/out of phase).
 
 **New!** X-slots can represent either syllables or segments.
 
