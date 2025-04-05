@@ -2,7 +2,8 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
                                            compare_elements, summarize_path_comparison,
-                                           get_btn_type_for_mvmtpath, get_checked_paths_from_list, get_detailed_checked_paths_location)
+                                           get_btn_type_for_mvmtpath, get_checked_paths_from_list,
+                                           get_detailed_checked_paths_location, get_detailed_selections_orientation)
 from compare_signs.align_modules import alignmodules
 
 class CompareModel:
@@ -53,7 +54,18 @@ class CompareModel:
                 #print(f'relation_compare:{reln_res}')
                 pass
             elif 'orientation' in module:
-                pass
+                ori_res = self.compare_orientations()
+                # For 'sign1'
+                result['sign1']['orientation'] = {
+                    k: {key: value for d in v for key, value in d.items()}
+                    for k, v in ori_res['sign1'].items()
+                }
+                # and for 'sign2'
+                result['sign2']['orientation'] = {
+                    k: {key: value for d in v for key, value in d.items()}
+                    for k, v in ori_res['sign2'].items()
+
+                }
         return result
 
     def get_module_ids(self, module_type: str) -> (dict, dict):
@@ -251,6 +263,71 @@ class CompareModel:
             return results1, results2
 
         aligned_modules = alignmodules(self.sign1, self.sign2, moduletype='location')
+
+        pair_comparison = {'sign1': {}, 'sign2': {}}
+
+        for i, module in enumerate(aligned_modules):
+            sign1_module_label, sign2_module_label = self.get_module_labels(module)
+
+            if all(module):  # pair of modules
+                r_sign1, r_sign2 = compare_module_pair(module)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
+            elif module[0]:  # only sign 1 has this module
+                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
+            else:            # only sign 2 has this module
+                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
+
+        return pair_comparison
+
+    def compare_orientations(self) -> [bool]:
+        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+            # pair = tuple of OrientationModules
+            # pairwise = False if not comparing one pair
+            # return tuple of two dict each contains true or false at each level of granularity
+            results1 = []
+            results2 = []
+
+            # paths
+            s1path = get_detailed_selections_orientation(pair[0])
+            s2path = get_detailed_selections_orientation(pair[1])
+            s1_path_element = get_informative_elements(s1path)
+            s2_path_element = get_informative_elements(s2path)
+
+            """
+            s1_path_btn_types = {
+                path: get_btn_type_for_mvmtpath(path, pair[0].locationtreemodel.optionstree) for path in s1_path_element
+            }
+            s2_path_btn_types = {
+                path: get_btn_type_for_mvmtpath(path, pair[1].locationtreemodel.optionstree) for path in s2_path_element
+            }
+            """
+            for e1 in s1_path_element:
+                matched = False
+                for e2 in s2_path_element:
+                    if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                        matched = True
+                        res1, res2 = compare_elements(
+                            e1=e1,
+                            e2=e2,
+                            btn_types1={},
+                            btn_types2={},
+                            pairwise=pairwise
+                        )
+                        results1.append(res1)
+                        results2.append(res2)
+
+                if not matched:
+                    res1, _ = compare_elements(e1, '', {}, {}, pairwise=False)
+                    results1.append(res1)
+
+            results1 = summarize_path_comparison(results1)
+            results2 = summarize_path_comparison(results2)
+            return results1, results2
+
+        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype='orientation')
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
 

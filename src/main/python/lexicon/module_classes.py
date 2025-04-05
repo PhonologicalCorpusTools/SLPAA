@@ -2582,7 +2582,6 @@ class OrientationModule(ParameterModule):
     def root(self, root):
         self._root = root
 
-
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation()
         palm_arr, root_arr = [], []
@@ -2603,8 +2602,6 @@ class OrientationModule(ParameterModule):
         root_str = f"Finger direction: {' & '.join(root_arr)}" if root_arr else ""
         return ': '.join(filter(None, [phonphon_str, '; '.join(filter(None, [palm_str, root_str]))]))
 
-
-        
 
 # This module is only used in the search window. 
 # Used instead of the usual HandConfigurationModule when the user wants to do an extended-fingers search.

@@ -1,11 +1,11 @@
 # helper functions for compare signs
 from collections import defaultdict
-
-from PyQt5.QtWidgets import QTreeWidgetItem
-from constant import ARTICULATOR_ABBREVS, userdefinedroles as udr
 from PyQt5.QtCore import Qt
 import re
 import itertools
+
+from constant import ARTICULATOR_ABBREVS, userdefinedroles as udr
+from lexicon.module_classes import Direction
 
 def summarize_path_comparison(ld):
     def fuse_two_dicts(d1, d2):
@@ -219,6 +219,52 @@ def get_detailed_checked_paths_location(treemodel):
 
     return detailed_paths
 
+
+def get_detailed_selections_orientation(ori) -> list:
+    # ori: OrientationModule
+    # extract Each OrientationModule has palm and finger root specifications: .palm and .root, respectively.
+
+    # the nested function re-implements the logic of parsing Direction attributes
+    def parse_dir(direc) -> str:
+        # direc: Direction instance
+        axis = direc.axis
+        r = [axis]
+
+        axis_labels = {   # mapping between plus minus and their meaning by each axis
+            Direction.HORIZONTAL: ('ipsi', 'contra'),
+            Direction.VERTICAL:   ('above', 'below'),
+            Direction.SAGITTAL:   ('proximal', 'distal'),
+        }
+
+        plus_label, minus_label = axis_labels[axis]
+
+        if direc.plus:
+            r.append(plus_label)
+        elif direc.minus:
+            r.append(minus_label)
+
+        if direc.inline:
+            r.append("in line")
+
+        return '>'.join(r)
+
+    res = []
+    palm = ori.palm
+    root = ori.root
+
+    for p in palm:
+        if p.axisselected:
+            palm_text = 'Direction of palm'
+            this_selection = parse_dir(p)
+            res.append(f'{palm_text}>{this_selection}')
+
+    for ro in root:
+        if ro.axisselected:
+            root_text = 'Direction of finger root'
+            this_selection = parse_dir(ro)
+            res.append(f'{root_text}>{this_selection}')
+
+    return res
 
 #  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
 def get_btn_type_for_mvmtpath(path, root_node):
