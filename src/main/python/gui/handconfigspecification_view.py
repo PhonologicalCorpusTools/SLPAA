@@ -53,9 +53,14 @@ class ConfigSlot(QLineEdit):
         qss = """   
             QLineEdit {
                 background: white;
+                color: black;
                 text-align: center;
                 margin: 0;
                 padding: 0;
+            }
+
+            QLineEdit:disabled {
+                color: gray;
             }
 
             QLineEdit[AddedInfo=true] {
@@ -183,7 +188,6 @@ class ConfigField(QWidget):
         right_bracket.setFont(bracketfont)
         right_number = QLabel(str(self.field_number))
         right_number.setFont(bracketfont)
-        right_number.setStyleSheet('QLabel{border:1px solid rgb(0, 255, 0);}')
         right_bracket.setFixedSize(QSize(10, 30))
         right_number.setFixedSize(QSize(20, 30))
         right_bracket.setAlignment(Qt.AlignCenter)
