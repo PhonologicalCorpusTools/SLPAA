@@ -3,6 +3,7 @@ from search.search_classes import XslotTypes
 from lexicon.module_classes import TimingInterval, TimingPoint, ModuleTypes
 
 def articulatordisplaytext(arts, phase):
+    todisplay = ""
     k = arts[0] # hand, arm, or leg
     if arts[1][1] and not arts[1][2]:
         todisplay = k + " " + str(1)
@@ -93,19 +94,19 @@ def phonlocsdisplaytext(phonlocs):
             todisplay.append("Phonological locn")
     if phonlocs.phoneticloc:
         todisplay.append("Phonetic locn")
-    return todisplay
+    return ", ".join(todisplay)
 
 def loctypedisplaytext(loctype):
-    todisplay = []
+    todisplay = ""
     if loctype.body:
-       todisplay.append("Body")
+       todisplay = "Body"
     elif loctype.signingspace:
         txt = "Signing space"
         if loctype.bodyanchored:
             txt += " (body anchored)"
         elif loctype.purelyspatial:
             txt += " (purely spatial)"
-        todisplay.append(txt)
+        todisplay = txt
     return todisplay
 
 def signtypedisplaytext(specslist):

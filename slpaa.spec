@@ -7,6 +7,11 @@ sys.setrecursionlimit(5000)
 block_cipher = None
 slpaa_path = os.getcwd()
 
+# for version number
+sys.path.insert(0, './src/main/python')
+from constant import VERSION
+slpaa_version = '.'.join(map(str, VERSION))
+
 # setting the path to an icon. ignored on Linux
 icon_path = os.path.join(slpaa_path, 'src', 'main', 'icons', 'Icon.ico')
 if sys.platform == 'darwin':
@@ -36,7 +41,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='SLPAA',
+          name=f'SLPAA {slpaa_version}',
           debug=False,    # True if debugging
           strip=False,
           upx=True,
@@ -53,4 +58,4 @@ coll = COLLECT(exe,
                name='resources')
 
 if sys.platform == 'darwin':
-   app = BUNDLE(exe, name='SLPAA.app', icon=icon_path)
+   app = BUNDLE(exe, name=f'SLPAA {slpaa_version}.app', icon=icon_path)

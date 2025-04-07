@@ -142,6 +142,7 @@ CIRCUMSTANCE, OUTCOME
   * but in the case of HAPPEN, CIRCUMSTANCE, and OUTCOME, it’s a single entry with multiple unique glosses and yet a single ID-gloss (used to uniquely identify the form of the entry)
   * editing the transcription of any of them will change the transcription of the others (because there aren’t actually separate entries)
   * in the ‘Corpus’ window, note that the distinction between entries and glosses is noticeable by the existence of 8 signs (8 entries, each with a unique transcription), but 10 glosses shown (because the entry for HAPPEN is shown three times, once for each of its three glosses)
+  * selecting "One sign per row" will collapse all glosses into a single displayed row instead
   * the lines shown can be filtered by typing into the text box (all entries with text that is matched in any of the gloss, lemma, or ID-gloss will be shown)
   * the lines shown can also be sorted by different criteria using the selection box at the bottom of the window; this can help highlight how entries share or don’t share various information
 
