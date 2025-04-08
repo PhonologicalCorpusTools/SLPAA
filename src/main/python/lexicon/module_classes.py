@@ -2002,7 +2002,7 @@ class RelationModule(ParameterModule):
                     if len(self.contactrel.contacttype.othertext) > 0:
                         contacttype += f" ({self.contactrel.contacttype.othertext})"
             # contact manner
-            if self.contactrel.has_manner:
+            if self.contactrel.has_manner():
                 if self.contactrel.manner.holding:
                     contactmanner += "holding"
                 elif self.contactrel.manner.continuous:
