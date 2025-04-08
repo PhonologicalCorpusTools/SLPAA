@@ -382,6 +382,7 @@ class ImportCorpusDialog(QDialog):
 
         # location-specific attributes
         ltreeser = LocationTreeSerializable(infodicts=locdict['locationtree'])  # includes addedinfos for individual location items
+        # TODO missing detailstables
         ltree = LocationTreeModel(serializedlocntree=ltreeser)
         inphase = locdict.pop('inphase', 0)
 
@@ -422,6 +423,7 @@ class ImportCorpusDialog(QDialog):
         specslist = []
         if '_specslist' in typedict.keys() and typedict['_specslist'] is not None:
             specslist = [tuple(specpair) for specpair in typedict['_specslist']]
+            # TODO either import or export is missing some values
 
         addedinfo = AddedInfo()
         if '_addedinfo' in typedict.keys() and typedict['_addedinfo'] is not None:

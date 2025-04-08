@@ -197,6 +197,7 @@ class LocationTreeSerializable:
         self.defaultneutralselected = False
         self.defaultneutrallist = None
 
+        # reading from JSON
         if locntreemodel is None and infodicts is not None:
             # just import the dicts directly-- not from an existing LocationTreeModel
             loctypedict = infodicts.pop('locationtype', {})
