@@ -91,7 +91,7 @@ class ImportCorpusDialog(QDialog):
 
     def handle_select_importsource(self):
         file_name, file_type = QFileDialog.getOpenFileName(self,
-                                                           caption=self.tr('Select import file'),
+                                                           caption=self.tr('Select file to import'),
                                                            directory=self.app_settings['storage']['recent_folder'],
                                                            filter=self.tr('JSON file (*.txt)'))
         if file_name != self.importsourcepath:
