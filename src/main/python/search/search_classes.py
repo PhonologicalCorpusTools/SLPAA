@@ -435,7 +435,7 @@ class CustomRBGrp(QButtonGroup):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setExclusive(False)
-        self.buttonClicked.connect(self.on_button_click)
+        self.buttonToggled.connect(self.on_button_click)
     
     def on_button_click(self, button):
         if button.isChecked():
@@ -443,6 +443,12 @@ class CustomRBGrp(QButtonGroup):
                 b.setChecked(b==button)
         else:
             button.setChecked(False)
+    
+    def checkedButton(self):
+        for b in self.buttons():
+            if b.isChecked():
+                return b
+        return None
 
 # TODO possibly not necessary. can use base classes
 class Search_MovementSpecPanel(MovementSpecificationPanel):
@@ -655,6 +661,10 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
 class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
+    
+    def selections_valid(self):
+        # overloaded for validity_check: in Search, we don't need to ensure X and Y selections exist
+        return True
 
     # If an associated relation module is being created, then the linked module box should only show this target's anchor module.
     # If we use the parent class's method, all location or movement search targets in this search file will appear, 
@@ -697,10 +707,6 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         else: 
             super().create_linked_module_box()
 
-
-
-
-
     def setcurrentmanner(self, mannerrel):
         if mannerrel is not None and mannerrel.any:
             self.any_manner_cb.setChecked(True)
@@ -712,7 +718,6 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         reln = super().getcurrentmanner()
         reln.any = self.any_manner_cb.isChecked()
         return reln
-
 
     def setcurrentcontacttype(self, contacttype):
         if contacttype is not None and contacttype.any:
@@ -1226,9 +1231,12 @@ class SearchTargetItem(QStandardItem):
 
     def displaystring(self):
         if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
-            print("?")
             return(self.module.getabbreviation())
         elif self.targettype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
-            return(f"{self.module.getabbreviation()} + Assoc. reln: {self.associatedrelnmodule.getabbreviation()}")
+            moduletype = "movement" if self.targettype == TargetTypes.MOV_REL else "location"
+            moduleabbrev = self.module.getabbreviation()
+            relationabbrev = self.associatedrelnmodule.getabbreviation()
+            return relationabbrev.replace(f"linked {moduletype} module", moduleabbrev)
+            
         else:
             return self.searchvaluesitem.displayval
