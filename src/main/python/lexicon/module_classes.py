@@ -478,6 +478,7 @@ class MovementModule(ParameterModule):
                 return f"{prefix}{' + '.join(unique_parts)})"
             else:
                 return f"{' + '.join(filter(None, strings))}"
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         perceptual_info = {
             "Shape": [],
             "Axis direction": [],
@@ -589,7 +590,7 @@ class MovementModule(ParameterModule):
         mvmtchar_str = None if not mvmtchar_info else '; '.join(filter(None, mvmtchar_info))
 
 
-        to_return = '; '.join(filter(None, [perceptual_str, joint_specific_info_str, handshape_change_str, rep_str, mvmtchar_str]))
+        to_return = '; '.join(filter(None, [phonphon_str, perceptual_str, joint_specific_info_str, handshape_change_str, rep_str, mvmtchar_str]))
         return to_return
         # return to_return
         
