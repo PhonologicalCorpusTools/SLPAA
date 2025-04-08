@@ -1992,7 +1992,7 @@ class RelationModule(ParameterModule):
         elif self.contactrel.contact:
             contacttype, contactmanner = "", ""
             # contact type
-            if self.contactrel.has_contacttype:
+            if self.contactrel.has_contacttype():
                 if self.contactrel.contacttype.light:
                     contacttype += "light"
                 elif self.contactrel.contacttype.firm:
@@ -2203,7 +2203,7 @@ class ContactType:
         self._firm = firm
         self._other = other
         self._othertext = othertext
-        self._any = any # Used by search targets to match any contact type selection
+        self._any = any  # Used by search targets to match any contact type selection
 
     def __eq__(self, other):
         if isinstance(other, ContactType):

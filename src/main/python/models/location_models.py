@@ -866,7 +866,7 @@ class BodypartTreeModel(LocationTreeModel):
 
     def __init__(self, bodyparttype, serializedlocntree=None, forrelationmodule=False, **kwargs):
         self.bodyparttype = bodyparttype
-        self.forrelationmodule=forrelationmodule
+        self.forrelationmodule = forrelationmodule
         super().__init__(serializedlocntree=serializedlocntree, **kwargs)
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree

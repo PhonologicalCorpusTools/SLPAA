@@ -704,7 +704,7 @@ class XslotLinkingPanel(QFrame):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
-        self.timingintervals = [] if timingintervals is None else timingintervals
+        self.timingintervals = timingintervals or []
         self.partialxslots = partialxslots
         if xslotstructure is not None:
             self.xslotstruct = xslotstructure

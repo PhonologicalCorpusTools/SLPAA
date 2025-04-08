@@ -199,15 +199,15 @@ class LocationTreeSerializable:
 
         if locntreemodel is None and infodicts is not None:
             # just import the dicts directly-- not from an existing LocationTreeModel
-            loctypedict = infodicts.pop('locationtype')
+            loctypedict = infodicts.pop('locationtype', {})
             self.locationtype = LocationType()
             self.locationtype.__dict__.update(loctypedict)
 
-            detailstables = infodicts.pop('detailstables')
+            detailstables = infodicts.pop('detailstables', {})
             for k, v in detailstables.items():
                 self.detailstables[k] = LocationTableSerializable(infodict=v)
 
-            addedinfos = infodicts.pop('addedinfos')
+            addedinfos = infodicts.pop('addedinfos', {})
             for k, v in addedinfos.items():
                 addedinfo = AddedInfo()
                 addedinfo.__dict__.update(v)
@@ -257,8 +257,10 @@ class LocationTableSerializable:
 
         if locntablemodel is None and infodict is not None:
             # just import the dicts directly-- not from an existing LocationTableModel
-            self.col_labels = infodict['col_labels']
-            self.col_contents = infodict['col_contents']
+            if 'col_labels' in infodict.keys():
+                self.col_labels = infodict['col_labels']
+            if 'col_contents' in infodict.keys():
+                self.col_contents = infodict['col_contents']
         else:
             # creates a full serializable copy of the location table, eg for saving to disk
             self.col_labels = locntablemodel.col_labels
