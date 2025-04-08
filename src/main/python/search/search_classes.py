@@ -750,14 +750,22 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
             self.any_distance_cb.setChecked(True)
         else:
             super().setcurrentdistances(distances_list)
+            # set the parent axis checkbox if distance.any is True
+            for d, btn in zip(distances_list, [self.dishor_cb, self.disver_cb, self.dissag_cb, self.disgen_cb]):
+                if d.any:
+                    btn.setChecked(True)
 
     def getcurrentdistances(self):
         if self.any_distance_cb.isChecked():
             return[Distance(axis=None, any=True)]
         else:
             dists = super().getcurrentdistances()
-            for d in dists:
-                d.any = False
+            # set distance.any = True if only the parent axis checkbox is selected
+            for d, btn in zip(dists, [self.dishor_cb, self.disver_cb, self.dissag_cb, self.disgen_cb]):
+                if btn.isChecked() and not d.has_selection():
+                    d.any = True
+                else:
+                    d.any = False
             return dists
 
 
@@ -925,8 +933,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         
         return direction_layout
     
-    # if user checks one of the distance axis radio buttons, ensure that its parent checkbox is
-    #   also checked
+    # if user checks one of the distance axis radio buttons, ensure that its parent checkbox is also checked
     # Only exists in search GUI, since parent checkboxes are not present in main GUI
     def handle_distancegroup_toggled(self, ischecked, axis_cb):
         if not ischecked:
