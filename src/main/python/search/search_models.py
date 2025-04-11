@@ -155,7 +155,7 @@ class SearchModel(QStandardItemModel):
             display_vals = []
             for row in selected_rows:
                 target_dict[self.target_type(row)].append(row)
-                display_vals.append(repr(self.target_values(row)))
+                display_vals.append(self.target_display(row))
                 if self.is_negative(row):
                     negative_rows.append("Negative")
                 else:
@@ -180,7 +180,7 @@ class SearchModel(QStandardItemModel):
                 for sign in corpus.signs:
                     if self.sign_matches_target(sign, target_dict):
                         matchingsigns.append(sign.signlevel_information)
-                resultsdict[target_name] = {"corpus": corpusname, "display": repr(self.target_values(row)), "signs": matchingsigns, "negative": negative_rows}
+                resultsdict[target_name] = {"corpus": corpusname, "display": self.target_display(row), "signs": matchingsigns, "negative": negative_rows}
 
         return resultsdict
     
@@ -773,6 +773,9 @@ class SearchModel(QStandardItemModel):
     
     def target_xslottype(self, row):
         return self.index(row, TargetHeaders.XSLOTS).data(Qt.UserRole)
+
+    def target_display(self, row):
+        return self.index(row, TargetHeaders.VALUE).data(Qt.DisplayRole)
     
     def target_values(self, row):
         return self.index(row, TargetHeaders.VALUE).data(Qt.UserRole+1)
