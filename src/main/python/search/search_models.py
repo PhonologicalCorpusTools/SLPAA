@@ -25,7 +25,8 @@ from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from search.helper_functions import (relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, 
-                                     signtypedisplaytext, module_matches_xslottype, reln_module_matches, locn_module_matches, mvmt_module_matches)
+                                     signtypedisplaytext, module_matches_xslottype, reln_module_matches, locn_module_matches, mvmt_module_matches,
+                                     filter_modules_by_locn_paths)
 from search.search_classes import SearchTargetItem
 
 
@@ -182,8 +183,7 @@ class SearchModel(QStandardItemModel):
                 resultsdict[target_name] = {"corpus": corpusname, "display": repr(self.target_values(row)), "signs": matchingsigns, "negative": negative_rows}
 
         return resultsdict
-
-
+    
     def sign_matches_target(self, sign, target_dict=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if TargetTypes.XSLOT in target_dict:
@@ -229,7 +229,7 @@ class SearchModel(QStandardItemModel):
                     return False
         for ttype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
             if ttype in target_dict:
-                anchortype = ModuleTypes.LOCATION if ttype == TargetTypes.LOC_REL else TargetTypes.MOV_REL
+                anchortype = ModuleTypes.LOCATION if ttype == TargetTypes.LOC_REL else ModuleTypes.MOVEMENT
                 relationmodulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
                 if not relationmodulelist: return False
                 
@@ -248,11 +248,6 @@ class SearchModel(QStandardItemModel):
                     elif ttype == TargetTypes.MOV_REL:
                         if not mvmt_module_matches(anchormodulelist, self.target_module(row)): return False
                 return True
-
-                    
-
-            
-
 
         return True
     
@@ -439,13 +434,6 @@ class SearchModel(QStandardItemModel):
 
 
         return True
-    
-        
-
-
-        
-
-
 
     def sign_matches_reln(self, rows, sign):
         matching_modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
@@ -567,8 +555,54 @@ class SearchModel(QStandardItemModel):
                     return False
                     
         return True
-
+    
+    # locn_rows is not None
     def sign_matches_locn(self, locn_rows, sign):
+        
+        matching_modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
+        if len(matching_modules) == 0:
+            return False
+        
+        terminate_early = True if len(locn_rows) == 1 else False
+        for row in locn_rows:
+            # TODO match xslottype
+            target_module = self.target_module(row)
+            if target_module.has_articulators():
+                target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
+                matching_modules = [m for m in matching_modules if articulatordisplaytext(m.articulators, m.inphase) == target_art]
+                if not matching_modules: return False
+
+            if not target_module.locationtreemodel.locationtype.allfalse():
+                target_loctype = loctypedisplaytext(target_module.locationtreemodel.locationtype)
+                matching_modules = [m for m in matching_modules if loctypedisplaytext(m.locationtreemodel.locationtype) == target_loctype]
+                if not matching_modules: return False
+
+            if not target_module.phonlocs.allfalse():
+                target_phonlocs = phonlocsdisplaytext(target_module.phonlocs)
+                matching_modules = [m for m in matching_modules if phonlocsdisplaytext(m.locationtreemodel.locationtype) == target_phonlocs]
+                if not matching_modules: return False
+            
+            fully_checked = target_module.locationtreemodel.nodes_are_terminal
+            target_paths = target_module.locationtreemodel.get_checked_items(only_fully_checked=fully_checked, include_details=True)
+            if target_paths:
+                # convert to a list of tuples, since that's what we'll try to match when searching
+                target_path_tuples = []
+                for p in target_paths:
+                    # details_tuple is tuple([], [])
+                    details_tuple = tuple(tuple(selecteddetails) for selecteddetails in p['details'].get_checked_values().values())
+                    target_path_tuples.append((p['path'], details_tuple))
+
+                matching_modules = filter_modules_by_locn_paths(modules=matching_modules, 
+                                                                target_paths=target_path_tuples, 
+                                                                nodes_are_terminal=fully_checked, 
+                                                                matchtype=self.matchtype, 
+                                                                terminate_early=terminate_early)
+                if not matching_modules: return False     
+
+        return True
+    
+    def sign_matches_locn_old(self, locn_rows, sign):
+        
         modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
         if len(modules) == 0:
             return False

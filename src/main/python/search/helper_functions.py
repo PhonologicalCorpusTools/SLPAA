@@ -1,4 +1,5 @@
 import logging, fractions
+from collections import defaultdict
 from search.search_classes import XslotTypes
 from lexicon.module_classes import TimingInterval, TimingPoint, ModuleTypes
 
@@ -388,3 +389,64 @@ def locn_module_matches(modulelist, target_module):
 
     # TODO For final check, can break out of loop early if a match is found; don't have to filter the entire list.
     return True
+
+def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False):
+    """
+    Filter a list of location modules by selected paths. This doesn't check for matching loctypes (e.g. body vs body-anchored), phonlocs, articulators, xslottypes, etc.
+    Args:
+        modules: list of location modules
+        target_paths: target paths to match. This is a list of tuples where each tuple contains:
+            target_path[0]: str. The full path.
+            target_path[1]: tuple(tuple(), tuple()). The selected details (e.g. surfaces and subareas)
+        nodes_are_terminal: bool. True if a path should only be matched if fully checked.
+        matchtype: 'minimal' or 'exact'
+        terminate_early: bool. True if we only need to know whether `modules` has at least one matching module. 
+
+    Returns:
+        list. Returns the subset of `modules` with modules that contain all the paths and details tables in `paths`. If matchtype is `exact`, matching modules cannot contain any other paths or details tables.
+    """
+    matching_modules = []
+    for module in modules:
+        module_paths_to_check = module.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
+        if len(module_paths_to_check) < len(target_paths): # all paths specified in the target need to be present in the module for it to match, regardless of matchtype
+            continue
+        module_paths = set()
+        for mp in module_paths_to_check:
+            # module_paths is a list of dicts {'path', 'abbrev', 'details'}. 
+            # Convert the details to tuples to match the target_path format, and so that we can store them in a set later.
+            # details_tuple is tuple(tuple(), tuple())
+            details_tuple = tuple(tuple(selecteddetails) for selecteddetails in mp['details'].get_checked_values().values())
+            module_paths.add((mp['path'], details_tuple))
+
+        # to match exactly, a module must contain _only_ the target paths and no other paths
+        if matchtype == 'exact' and module_paths == target_paths: 
+            matching_modules.append(module)
+            
+        elif matchtype == 'minimal':
+            # create module_details as dict so we can sort by path for faster lookup.
+            # This is ok because we don't expect any repeated paths in module_paths, so keys are unique.
+            # This is NOT the case for target_paths 
+            # (we might have e.g. two instances of the same target path, but with different details)
+            module_details = {}
+            for p in module_paths:
+                module_details[p[0]] = p[1]
+            module_minimally_matches = True
+            for target_path in target_paths: 
+                # target_path is a tuple (path_name, ((surfaces),(subareas)))
+                # module_details is a dict: {path_name_1: ((surfaces), (subareas)), path_name_2: ((blah), (blah))}
+                target_path_name = target_path[0]
+                if target_path_name not in module_details:
+                    module_minimally_matches = False
+                    break # break out of this loop, as all target_paths need to match.
+                else:
+                    if target_path[1] != module_details[target_path_name]: # check for at least a minimal match
+                        target_details = [set(td) for td in target_path[1]] # eg [set(surface1, surface2), set(bonejoint1)]
+                        if not all(target_details[i] <= set(module_details[target_path_name][i]) for i in range(len(target_details))):
+                            module_minimally_matches = False
+                            break
+            if module_minimally_matches:
+                matching_modules.append(module)
+            if terminate_early and matching_modules:
+                return matching_modules
+    return matching_modules
+
