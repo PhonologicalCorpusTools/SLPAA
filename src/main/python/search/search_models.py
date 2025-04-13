@@ -118,8 +118,8 @@ class SearchModel(QStandardItemModel):
         xslottype.setData(t.xslottype, Qt.UserRole)
         
         value = QStandardItem()
-        value.setData(t.searchvaluesitem, Qt.UserRole+1)
-        value.setData(t.searchvaluesitem.displayval, Qt.DisplayRole)
+        value.setData(t.searchvaluesitem, Qt.UserRole+1) # TODO update
+        value.setData(t.displaystring(), Qt.DisplayRole)
         
 
         return [name, ttype, value, include_cb, negative_cb, xslottype]
@@ -515,7 +515,7 @@ class SearchModel(QStandardItemModel):
                 if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
                     matching_modules = [m for m in matching_modules if m.has_any_distance()]
                 else:
-                    for i in range(4):
+                    for i in range(len(target_module.contactrel.distances)):
                         dist = target_module.contactrel.distances[i]
                         if dist.has_selection():
                             matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]

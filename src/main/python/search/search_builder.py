@@ -584,7 +584,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                 if target.targettype == TargetTypes.LOC_REL:
                     moduletype = ModuleTypes.LOCATION
                 elif target.targettype == TargetTypes.MOV_REL:
-                    moduletype == ModuleTypes.MOVEMENT
+                    moduletype = ModuleTypes.MOVEMENT
                 target.module = module_to_save
                 target.module_id = existingkey
                 # logging.warning(f"anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
@@ -744,6 +744,8 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         self.xslot_type_button_group = CustomRBGrp()
         self.ignore_xslots_rb = QRadioButton('Ignore x-slots')
         self.ignore_xslots_rb.setProperty("name", XslotTypes.IGNORE)
+        self.ignore_xslots_rb.setChecked(True) # TODO specify default preference
+        self.xslot_type = self.ignore_xslots_rb
         self.abstract_xslot_rb = QRadioButton('Use an abstract x-slot') 
         self.abstract_xslot_rb.setProperty("name", XslotTypes.ABSTRACT_XSLOT)
         self.abstract_whole_sign_rb = QRadioButton('Use an abstract whole sign') 
@@ -794,7 +796,7 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         self.xslot_type_button_group.addButton(self.abstract_xslot_rb) 
         self.xslot_type_button_group.addButton(self.abstract_whole_sign_rb) 
         self.xslot_type_button_group.addButton(self.concrete_xslots_rb)
-        self.xslot_type_button_group.buttonClicked.connect(self.on_xslot_type_clicked)
+        self.xslot_type_button_group.buttonToggled.connect(self.on_xslot_type_clicked)
 
         layout.addWidget(self.ignore_xslots_rb)
         layout.addWidget(self.abstract_xslot_rb)

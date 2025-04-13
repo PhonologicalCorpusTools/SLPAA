@@ -80,6 +80,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         self.setLayout(main_layout)
         self.check_enable_allsubmenus()
+    
+    def selections_valid(self):
+        # are X and Y both specified at all? 
+        # This method is overloaded in the Search window, where it's not necessary for both to be specified.
+        hasselections = self.x_group.checkedButton() and self.y_group.checkedButton()
+        return hasselections
 
     # ensure that user has provided valid (minimum required, non-overlapping) X & Y information for the Relation module
     # returns two values:
@@ -87,7 +93,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     #   (2) a string: "" if selections are valid, or a warning message explaining the invalidity (if applicable)
     def validity_check(self):
         # are X and Y both specified at all?
-        hasselections = self.x_group.checkedButton() and self.y_group.checkedButton()
+        
+        hasselections = self.selections_valid()
         if not hasselections:
             return False, "Requires both an X and a Y selection."
 
