@@ -1904,11 +1904,11 @@ class RelationModule(ParameterModule):
         return f'{art}[{" " if len(path_strings) == 0 else ", ".join(path_strings)}]'
 
     def has_any_distance(self):
-        for i in range(len(self.contactrel.distances)):
-            dis = self.contactrel.distances[i]
+        for dis in self.contactrel.distances:
             if dis.has_selection():
                 return True
         return False
+
     
     def has_any_direction(self): # returns true if anything in direction is selected, including axis checkboxes or crossed/linked
         if self.xy_crossed or self.xy_linked:
@@ -1918,8 +1918,7 @@ class RelationModule(ParameterModule):
         return False
 
     def has_any_direction_axis(self): # returns true if any direction checkbox is selected
-        for i in range(len(self.directions)):
-            dir = self.directions[i]
+        for dir in self.directions:
             if dir.axisselected:
                 return True
         return False
