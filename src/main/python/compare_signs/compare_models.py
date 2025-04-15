@@ -156,13 +156,7 @@ class CompareModel:
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        # old compare (i.e., before align function)
-        # sign1_modules, sign2_modules = self.get_module_ids(module_type='movement')
         aligned_modules = alignmodules(self.sign1, self.sign2, moduletype='movement')
-
-        #if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
-        #        len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
-        #    return {'X-slots not matching': False}
 
         pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
 
@@ -238,12 +232,14 @@ class CompareModel:
             s2_path_btn_types = {
                 path: get_btn_type_for_mvmtpath(path, pair[1].locationtreemodel.optionstree) for path in s2_path_element
             }
-            """
+
+            finished_roots = []  # to track compared roots
             for e1 in s1_path_element:
                 matched = False
                 for e2 in s2_path_element:
                     if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
                         matched = True
+                        finished_roots.append(e2.split('>')[0])
                         res1, res2 = compare_elements(
                             e1=e1,
                             e2=e2,
@@ -257,6 +253,11 @@ class CompareModel:
                 if not matched:
                     res1, _ = compare_elements(e1, '', {}, {}, pairwise=False)
                     results1.append(res1)
+
+            for e2 in s2_path_element:
+                if e2.split('>')[0] not in finished_roots:
+                    _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
+                    results2.append(res2)
 
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
@@ -304,6 +305,7 @@ class CompareModel:
                 path: get_btn_type_for_mvmtpath(path, pair[1].locationtreemodel.optionstree) for path in s2_path_element
             }
             """
+            finished_roots = []  # to track compared roots
             for e1 in s1_path_element:
                 matched = False
                 for e2 in s2_path_element:
@@ -322,6 +324,11 @@ class CompareModel:
                 if not matched:
                     res1, _ = compare_elements(e1, '', {}, {}, pairwise=False)
                     results1.append(res1)
+
+            for e2 in s2_path_element:
+                if e2.split('>')[0] not in finished_roots:
+                    _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
+                    results2.append(res2)
 
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)

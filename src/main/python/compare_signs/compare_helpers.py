@@ -266,6 +266,7 @@ def get_detailed_selections_orientation(ori) -> list:
 
     return res
 
+
 #  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
 def get_btn_type_for_mvmtpath(path, root_node):
     parts = path.split('>')
