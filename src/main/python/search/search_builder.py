@@ -320,7 +320,7 @@ class SearchTargetsView(QWidget):
     def handle_rename_target(self, row):
         model = self.table_view.model()
         dialog = NameDialog(preexistingname=model.target_name(row))
-        dialog.continue_clicked.connect(lambda name: self.table_view.model().setItem(row, TargetHeaders.NAME, QStandardItem(name)))
+        dialog.continue_clicked.connect(lambda name: self.table_view.model().item(row, TargetHeaders.NAME).setText(name))
         dialog.exec_()
 
 
