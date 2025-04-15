@@ -315,8 +315,8 @@ class ImportCorpusDialog(QDialog):
         for articulator in [HAND, ARM, LEG]:
             bodyparts[articulator] = {}
             for artnum in [1, 2]:
-                if articulator in bodypartsdict.keys() and artnum in bodypartsdict[articulator].keys():
-                    onebodypart = bodypartsdict[articulator][artnum]
+                if articulator in bodypartsdict.keys() and str(artnum) in bodypartsdict[articulator].keys():
+                    onebodypart = bodypartsdict[articulator][str(artnum)]
                     # for one bodypart...
                     addedinfo = self.read_addedinfo(onebodypart.pop('addedinfo', {}))
                     ltreeser = LocationTreeSerializable(infodicts=onebodypart['bodyparttree'])

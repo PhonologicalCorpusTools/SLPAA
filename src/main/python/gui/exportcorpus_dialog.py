@@ -22,7 +22,7 @@ class ExportCorpusDialog(QDialog):
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
         self.app_settings = app_settings
-        self.exportfilepath = ""
+        self.exportfilepath = ''
         self.outputformat = "json"
         self.detaillevel = "max"
 
@@ -78,7 +78,7 @@ class ExportCorpusDialog(QDialog):
         if "json" in txt.lower():
             newoutputformat = "json"
         else:
-            newoutputformat = "something else"
+            newoutputformat = "unrecognized"
 
         if newoutputformat != self.outputformat:
             self.statusdisplay.setText(newoutputformat + " format selected")
@@ -86,9 +86,9 @@ class ExportCorpusDialog(QDialog):
 
     def handle_select_exportedfile(self):
         file_name, file_type = QFileDialog.getSaveFileName(self,
-                                                           self.tr('Select export destination'),
+                                                           self.tr("Select export destination"),
                                                            self.app_settings['storage']['recent_folder'],
-                                                           self.tr('JSON file (*.txt)'))
+                                                           self.tr("JSON file (*.txt)"))
         if file_name != self.exportfilepath:
             self.statusdisplay.setText("destination selected")
         self.exportfilepath = file_name
@@ -103,7 +103,7 @@ class ExportCorpusDialog(QDialog):
 
     def export_corpus(self):
         serialized_corpus = self.parent().corpus.serialize()
-        with io.open(self.exportfilepath, "w") as exfile:
+        with io.open(self.exportfilepath, 'w') as exfile:
             try:
                 # OK, this is a bit convoluted, but it seems like the most general way to be able to omit values
                 # that are empty/zero/false/null, is to convert everything to json format and read it back in so
@@ -137,12 +137,20 @@ def cleandictsforexport(serialstructure, detaillevel):
         if isinstance(serialstructure, dict):
             cleaned_dict = {}
             for k, v in serialstructure.items():
-                if k in ["timingintervals", "_timingintervals"]:
+                if k in ['timingintervals', '_timingintervals']:
                     # do not omit any info from these items; it makes them hard to read
                     cleaned_dict[k] = v
-                elif k == "col_labels":
-                    # don't worry about including the column labels for the location details;
-                    # it should be clear from the contents what we're looking at
+                elif k == 'col_labels' and 'col_contents' in serialstructure.keys():
+                    # Originally I didn't include the column labels for the location details, because it would be clear
+                    # to the user what they're looking at based on the contents. However, it is necessary to include
+                    # the column labels after all (assuming that the contents have any, well... content), for the
+                    # purpose of re-importing from a minimal export.
+                    col_contents_cleaned = cleandictsforexport(serialstructure['col_contents'], ("mid" if detaillevel == "min" else detaillevel))
+                    if col_contents_cleaned != [[], []]:
+                        cleaned_dict['col_labels'] = v
+                        cleaned_dict['col_contents'] = col_contents_cleaned
+                elif k == 'col_contents':
+                    # dealt with above
                     pass
                 else:
                     cleaned_item = cleandictsforexport(v, detaillevel)
@@ -166,3 +174,25 @@ def cleandictsforexport(serialstructure, detaillevel):
                 # then just return it as is, as long as it's not empty/zero/false
                 return serialstructure
             return None
+    elif detaillevel == "mid" and isinstance(serialstructure, list):
+        # The only way we should have gotten here is if we're doing a minimal export and we've got an entry in a
+        # location details (surfaces/subareas/etc) table. The column labels will be exported as a list of length 2,
+        # even though one might be the empty string. Which means that, in order to be imported again properly later,
+        # we need the column contents to also be a list of length 2, even though the default cleaning strategy for
+        # minimal detail would get rid of the first (empty) entry. So what we want is to have a list of length 2, but
+        # the only contents to be those with True appearing in their key-value pairs.
+
+        # assume it's col_contents
+        toreturn = [cleandictsforexport(cc, "min") for cc in serialstructure]
+        return [cleandictsforexport(cc, "min") for cc in serialstructure]
+
+
+def nestedlisthascontent(nestedlist):
+    thislevelhascontent = False
+    for listitem in nestedlist:
+        if isinstance(listitem, list):
+            if len(listitem) > 0:
+                thislevelhascontent = nestedlisthascontent(listitem)
+        else:
+            thislevelhascontent = True
+    return thislevelhascontent
