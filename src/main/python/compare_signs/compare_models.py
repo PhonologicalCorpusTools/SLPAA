@@ -1,8 +1,9 @@
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
+from models.location_models import locn_options_body, locn_options_hand, locn_options_purelyspatial
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
                                            compare_elements, summarize_path_comparison,
-                                           get_btn_type_for_mvmtpath, get_checked_paths_from_list,
+                                           get_btn_type_for_path, get_checked_paths_from_list,
                                            get_detailed_checked_paths_location, get_detailed_selections_orientation)
 from compare_signs.align_modules import alignmodules
 
@@ -127,10 +128,10 @@ class CompareModel:
             s2_path_element = get_informative_elements(s2path)
 
             s1_path_btn_types = {
-                path: get_btn_type_for_mvmtpath(path, pair[0].movementtreemodel.optionstree) for path in s1_path_element
+                path: get_btn_type_for_path('mvmt', path, pair[0].movementtreemodel.optionstree) for path in s1_path_element
             }
             s2_path_btn_types = {
-                path: get_btn_type_for_mvmtpath(path, pair[1].movementtreemodel.optionstree) for path in s2_path_element
+                path: get_btn_type_for_path('mvmt', path, pair[1].movementtreemodel.optionstree) for path in s2_path_element
             }
 
             for e1 in s1_path_element:
@@ -225,12 +226,25 @@ class CompareModel:
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
 
-            """
+            # get button types
+            s1_location_type = pair[0].locationtreemodel.locationtype
+            s2_location_type = pair[1].locationtreemodel.locationtype
+
+            if s1_location_type.usesbodylocations():
+                s1_root_node = locn_options_body
+            elif s1_location_type.purelyspatial:
+                s1_root_node = locn_options_purelyspatial
+
+            if s2_location_type.usesbodylocations():
+                s2_root_node = locn_options_body
+            elif s2_location_type.purelyspatial:
+                s2_root_node = locn_options_purelyspatial
+
             s1_path_btn_types = {
-                path: get_btn_type_for_mvmtpath(path, pair[0].locationtreemodel.optionstree) for path in s1_path_element
+                path: get_btn_type_for_path("locn", path, s1_root_node) for path in s1_path_element
             }
             s2_path_btn_types = {
-                path: get_btn_type_for_mvmtpath(path, pair[1].locationtreemodel.optionstree) for path in s2_path_element
+                path: get_btn_type_for_path("locn", path, s2_root_node) for path in s2_path_element
             }
 
             finished_roots = []  # to track compared roots
@@ -243,8 +257,8 @@ class CompareModel:
                         res1, res2 = compare_elements(
                             e1=e1,
                             e2=e2,
-                            btn_types1={},
-                            btn_types2={},
+                            btn_types1=s1_path_btn_types,
+                            btn_types2=s2_path_btn_types,
                             pairwise=pairwise
                         )
                         results1.append(res1)

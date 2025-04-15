@@ -268,11 +268,11 @@ def get_detailed_selections_orientation(ori) -> list:
 
 
 #  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
-def get_btn_type_for_mvmtpath(path, root_node):
+def get_btn_type_for_path(module_type, path, root_node):
     parts = path.split('>')
-    btn_types = []
+    btn_types = []  # this will be the output
 
-    def traverse(node, path_parts):
+    def traverse(path_parts: list, node):
         if not path_parts:
             return True  # Reached the end successfully
         # .partition splits at the ' [' juncture, effectively removing any '[....]' part i.e., user's lineEdit input
@@ -280,26 +280,26 @@ def get_btn_type_for_mvmtpath(path, root_node):
 
         # First, check if the current node's children have the desired part
         matching_child = None
-        for child in node.children:
+        for child in node.children:   # node: XXOptionsNode, node.children: list of XXOptionsNodes
             if child.display_name == part:
                 matching_child = child
                 break
 
-        if matching_child:
+        if matching_child:   # matching_children is a XXOptionsNode instance, with .button_type
             # temporary solution: if user specified, just return radiobutton
             if part != path_parts[0]:
                 btn_types.append('radio button')
             else:
                 btn_types.append(matching_child.button_type)
-            return traverse(matching_child, path_parts[1:])
+            return traverse(path_parts[1:], matching_child)
         else:
             # Recursively search in all children
             for child in node.children:
-                if traverse(child, path_parts):
+                if traverse(path_parts, child):
                     return True
             return False  # Not found in this branch
 
-    found = traverse(root_node, parts)
+    found = traverse(parts, root_node)
 
     if found:
         return '>'.join(btn_types)
@@ -319,6 +319,7 @@ def parse_button_type(node_data):
             if deeper:
                 return deeper
     return []
+
 
 def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush):
     # helper function that colours children and their parents which are all CompareTreeWidgetItem objects
