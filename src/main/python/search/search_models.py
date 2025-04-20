@@ -915,11 +915,11 @@ class SearchValuesItem:
                 if not module.locationtreemodel.locationtype.allfalse():
                     self.loctype = module.locationtreemodel.locationtype
                     # todisplay.extend(loctypedisplaytext(self.loctype))
-            else: # relation
-                # paths is a dict matching selected articulators to a list of dicts: "path", "abbrev", "details"
-                paths = module.get_paths()
-                if len(paths) > 0:
-                    self.paths = paths # TODO
+            # else: # relation
+            #     # paths is a dict matching selected articulators to a list of dicts: "path", "abbrev", "details"
+            #     paths = module.get_paths()
+            #     if len(paths) > 0:
+            #         self.paths = paths # TODO
                 # todisplay.extend(relationdisplaytext(module))
 
         

@@ -316,7 +316,7 @@ def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False, m
         if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
             modulelist = [m for m in modulelist if m.has_any_distance()]
         else:
-            for dist in target_module.contactrel.distances[i]:
+            for dist in target_module.contactrel.distances:
                 if dist.has_selection():
                     modulelist = [m for m in modulelist if m.contactrel.distances[i].has_selection()]
                         
@@ -324,11 +324,11 @@ def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False, m
             return False
     
     # Paths
-    fully_checked = target_module.locationtreemodel.nodes_are_terminal 
+    # fully_checked = target_module.locationtreemodel.nodes_are_terminal 
     # target_dict: 
     # Keys (str): Articulators ('H1', 'H2', 'Arm1', 'Arm2', 'Leg1', 'Leg2').
     # Values: list of dicts output from treemodel.get_checked_items(). Relevant keys are 'path', 'details'
-    target_dict = target_module.get_paths(only_fully_checked=fully_checked)
+    target_dict = target_module.get_paths()
     for m in modulelist:
         module_dict = m.get_paths()
         for articulator, target_paths in target_dict.items():
@@ -342,7 +342,9 @@ def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False, m
 
                 modulelist = filter_modules_by_locn_paths(modules=modulelist,
                                                           target_paths=target_path_tuples,
-                                                          nodes_are_terminal=fully_checked,
+                                                          nodes_are_terminal=True,
+                                                          is_relation=True,
+                                                          articulator=articulator,
                                                           matchtype=matchtype)
                 if not modulelist: return False     
 
@@ -397,7 +399,7 @@ def locn_module_matches(modulelist, target_module):
     # TODO For final check, can break out of loop early if a match is found; don't have to filter the entire list.
     return True
 
-def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False):
+def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False, is_relation=False, articulator=None):
     """
     Filter a list of location modules by selected paths. This doesn't check for matching loctypes (e.g. body vs body-anchored), phonlocs, articulators, xslottypes, etc.
     Args:
@@ -408,13 +410,19 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
         nodes_are_terminal: bool. True if a path should only be matched if fully checked.
         matchtype: 'minimal' or 'exact'
         terminate_early: bool. True if we only need to know whether `modules` has at least one matching module. 
+        is_relation: bool. True if we're filtering for location paths belonging to relation modules. In this case `articulator` must be specified.
+        articulator: string. A label such as "hand1" or "arm2"
 
     Returns:
         list. Returns the subset of `modules` with modules that contain all the paths and details tables in `paths`. If matchtype is `exact`, matching modules cannot contain any other paths or details tables.
     """
     matching_modules = []
     for module in modules:
-        module_paths_to_check = module.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
+        if is_relation:
+            treemodel = module.get_treemodel_from_articulator_label(articulator)
+            module_paths_to_check = treemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
+        else:
+            module_paths_to_check = module.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
         if len(module_paths_to_check) < len(target_paths): # all paths specified in the target need to be present in the module for it to match, regardless of matchtype
             continue
         module_paths = set()
