@@ -339,9 +339,10 @@ def filter_modules_by_target_reln(modulelist, target_module, target_is_assoc_rel
     # Values: list of dicts output from treemodel.get_checked_items(). Relevant keys are 'path', 'details'
     target_dict = target_module.get_paths()
     for m in modulelist:
-        module_dict = m.get_paths()
+        # module_dict = m.get_paths(nodes_are_terminal=False)]
+        module_articulators = m.get_articulators_in_use(as_string=True)
         for articulator, target_paths in target_dict.items():
-            if articulator in module_dict:
+            if articulator in module_articulators:
                 # convert to a list of tuples, since that's what we'll try to match when searching
                 target_path_tuples = []
                 for p in target_paths:
@@ -351,7 +352,7 @@ def filter_modules_by_target_reln(modulelist, target_module, target_is_assoc_rel
 
                 modulelist = filter_modules_by_locn_paths(modules=modulelist,
                                                           target_paths=target_path_tuples,
-                                                          nodes_are_terminal=True,
+                                                          nodes_are_terminal=False,
                                                           is_relation=True,
                                                           articulator=articulator,
                                                           matchtype=matchtype)
@@ -420,7 +421,7 @@ def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal'
         if not matching_modules: return []
     
     fully_checked = target_module.locationtreemodel.nodes_are_terminal
-    target_paths = target_module.locationtreemodel.get_checked_items(only_fully_checked=fully_checked, include_details=True)
+    target_paths = target_module.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True)
     if target_paths:
         # convert to a list of tuples, since that's what we'll try to match when searching
         target_path_tuples = []

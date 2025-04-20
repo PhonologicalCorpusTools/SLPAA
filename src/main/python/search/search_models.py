@@ -220,7 +220,6 @@ class SearchModel(QStandardItemModel):
                 target_rows = target_dict[ttype]
                 for row in target_rows:
                     terminate_early = True if row == target_rows[-1] else False
-                    print(f"{ttype}. terminating early: {terminate_early}")
                     # TODO match xslottype
                     target_module = self.target_module(row)
                     if ttype == ModuleTypes.LOCATION:
@@ -247,7 +246,7 @@ class SearchModel(QStandardItemModel):
                     for m in matching_relation_modules:
                         anchormod = sign.getmoduledict(anchortype)[m.relationy.linkedmoduleids[0]]
                         anchormodulelist.append(anchormod)
-
+                        # TODO: terminate early?
                         if ttype == TargetTypes.LOC_REL:
                             anchormodulelist = filter_modules_by_target_locn(anchormodulelist, self.target_module(row), matchtype=self.matchtype, terminate_early=False)
                         elif ttype == TargetTypes.MOV_REL:
