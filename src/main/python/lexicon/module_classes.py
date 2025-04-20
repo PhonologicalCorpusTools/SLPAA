@@ -1793,10 +1793,10 @@ class RelationModule(ParameterModule):
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
         self._bodyparts_dict = {}
-        for bodypart in bodyparts_dict.keys():
-            if bodypart not in self._bodyparts_dict.keys():
+        for bodypart in bodyparts_dict:
+            if bodypart not in self._bodyparts_dict:
                 self._bodyparts_dict[bodypart] = {}
-            for n in bodyparts_dict[bodypart].keys():
+            for n in bodyparts_dict[bodypart]:
                 self._bodyparts_dict[bodypart][n] = bodyparts_dict[bodypart][n] or BodypartInfo(bodyparttype=bodypart, bodyparttreemodel=None)
         self._contactrel = contactrel or ContactRelation()
         # backwards compatibility for generic distance axis (issue 387)
@@ -1870,6 +1870,22 @@ class RelationModule(ParameterModule):
     @directions.setter
     def directions(self, directions):
         self._directions = directions
+
+    def get_treemodel_from_articulator_label(self, label):
+        """
+        Returns self.bodyparts_dict[articulator][number].bodyparttreemodel,
+        where articulator and number are extracted from a string such as "hand1" or "H1"
+        """
+        number = 1 if label.endswith("1") else 2
+        art = ""
+        if label.startswith(("h", "H")): 
+            art = HAND
+        elif label.startswith(("a", "A")):
+            art = ARM
+        elif label.startswith(("l", "L")):
+            art = LEG
+
+        return(self.bodyparts_dict[art][number].bodyparttreemodel)
     
     def get_paths(self, only_fully_checked=True):
         """
