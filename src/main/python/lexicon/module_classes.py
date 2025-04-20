@@ -1965,7 +1965,7 @@ class RelationModule(ParameterModule):
             
         return (self.contactrel.contact == None and not self.xy_crossed and not self.xy_linked)
     
-    def get_articulators_in_use(self):
+    def get_articulators_in_use(self, as_string=False):
         a = []
         n = []
         for b in [HAND, ARM, LEG]:
@@ -1973,7 +1973,15 @@ class RelationModule(ParameterModule):
                 if self.usesarticulator(b,i):
                     a.append(b)
                     n.append(i)
-        return a, n
+        if as_string:
+            labels = []
+            for i in range(len(a)):
+                label = a[i] if a[i] != 'Hand' else 'H'
+                label += str(n[i])
+                labels.append(label)
+            return labels
+        else:
+            return a, n
 
     def hands_in_use(self):
         return {
