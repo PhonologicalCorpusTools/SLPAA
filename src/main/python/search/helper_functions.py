@@ -256,7 +256,7 @@ def collapsetimingintervals(timingintervals):
 
 #  Returns True if modulelist (list of relation modules) contains a module that matches target_module
 # If target_is_assoc_reln, then we assume modulelist also contains associated relation modules with anchor modules of the correct type
-def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
+def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False, matchtype='minimal'):
 
     # All relation_x possibilities are mutually exclusive, so check if target relation_x matches at least one relation_x in the list
     target_relationx = target_module.relationx.displaystr()
@@ -302,7 +302,7 @@ def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
             modulelist = [m for m in modulelist if m.xy_linked]
         if target_module.xy_crossed:
             modulelist = [m for m in modulelist if m.xy_crossed]
-        for i in range(3):
+        for i in range(len(target_module.directions)):
             if target_module.directions[i].axisselected:
                 if target_module.has_direction(i): # match exactly because suboption is selected
                     modulelist = [m for m in modulelist if m.directions[i] == target_module.directions[i]]
@@ -316,8 +316,7 @@ def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
         if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
             modulelist = [m for m in modulelist if m.has_any_distance()]
         else:
-            for i in range(4):
-                dist = target_module.contactrel.distances[i]
+            for dist in target_module.contactrel.distances[i]:
                 if dist.has_selection():
                     modulelist = [m for m in modulelist if m.contactrel.distances[i].has_selection()]
                         
@@ -325,19 +324,27 @@ def reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
             return False
     
     # Paths
-    target_dict = target_module.get_paths()
-    if target_dict:
-        flag = False
-        for m in modulelist:
-            sign_dict = m.get_paths()
-            matching_keys = [k for k in sign_dict.keys() if k in target_dict.keys()]
-            for k in matching_keys:
-                if all(p in sign_dict[k] for p in target_dict[k]):
-                    flag = True
-                    break
-        if not flag:
-            return False
+    fully_checked = target_module.locationtreemodel.nodes_are_terminal 
+    # target_dict: 
+    # Keys (str): Articulators ('H1', 'H2', 'Arm1', 'Arm2', 'Leg1', 'Leg2').
+    # Values: list of dicts output from treemodel.get_checked_items(). Relevant keys are 'path', 'details'
+    target_dict = target_module.get_paths(only_fully_checked=fully_checked)
+    for m in modulelist:
+        module_dict = m.get_paths()
+        for articulator, target_paths in target_dict.items():
+            if articulator in module_dict:
+                # convert to a list of tuples, since that's what we'll try to match when searching
+                target_path_tuples = []
+                for p in target_paths:
+                    # details_tuple is tuple([], [])
+                    details_tuple = tuple(tuple(selecteddetails) for selecteddetails in p['details'].get_checked_values().values())
+                    target_path_tuples.append((p['path'], details_tuple))
 
+                modulelist = filter_modules_by_locn_paths(modules=modulelist,
+                                                          target_paths=target_path_tuples,
+                                                          nodes_are_terminal=fully_checked,
+                                                          matchtype=matchtype)
+                if not modulelist: return False     
 
     return True    
 

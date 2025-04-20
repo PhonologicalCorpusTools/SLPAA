@@ -1871,7 +1871,7 @@ class RelationModule(ParameterModule):
     def directions(self, directions):
         self._directions = directions
     
-    def get_paths(self):
+    def get_paths(self, only_fully_checked=True):
         """
         Returns a dict mapping articulators to their selected path details.
 
@@ -1889,7 +1889,7 @@ class RelationModule(ParameterModule):
             label = arts[i] if arts[i] != 'Hand' else 'H'
             bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
             treemodel = bodypartinfo.bodyparttreemodel
-            paths.update({label + str(nums[i]) : treemodel.get_checked_items(include_details=True)})
+            paths.update({label + str(nums[i]) : treemodel.get_checked_items(only_fully_checked=only_fully_checked, include_details=True)})
         
         return paths
     
