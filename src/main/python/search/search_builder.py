@@ -7,40 +7,31 @@ from PyQt5.QtGui import (
 )
 from datetime import datetime
 from PyQt5.QtWidgets import (
-    QVBoxLayout,
-    QDialog,
+    QVBoxLayout,QMenu, QDialog,
     QWidget,
     QPushButton,
     QLabel,
-    QComboBox,
     QMdiArea,
     QMdiSubWindow,
-    QFormLayout,    
     QSpacerItem,
     QFrame,
-    QDialogButtonBox,
     QFileDialog,
-    QTextEdit,
     QVBoxLayout,
     QHBoxLayout,
     QRadioButton,
-    QScrollArea,
     QButtonGroup,
     QLineEdit,
     QMessageBox,
     QUndoStack,
     QCheckBox,
-    QListWidget,
-    QListWidgetItem,
     QTableView,
     QHeaderView,
     QSizePolicy,
     QMainWindow,
-    QItemDelegate,
     QStyledItemDelegate,
     QAction,
-    QTabWidget
 )
+from PyQt5.Qt import QStandardItem
 from gui.decorator import check_unsaved_search_targets
 from gui.undo_command import TranscriptionUndoCommand
 from search.results import ResultsView
@@ -292,7 +283,7 @@ class SearchTargetsView(QWidget):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
 
-        self.table_view = QTableView(parent=self)
+        self.table_view = SearchTargetsTableView(parent=self)
         self.table_view.setModel(searchmodel)
         self.set_table_ui()
 
@@ -301,8 +292,11 @@ class SearchTargetsView(QWidget):
         self.setLayout(layout)
 
         self.table_view.doubleClicked.connect(self.handle_target_doubleclicked) 
+        self.table_view.delete_target_selected.connect(self.handle_delete_target)
+        self.table_view.rename_target_selected.connect(self.handle_rename_target)
     
     def set_table_ui(self):
+        # TODO since we've created a custom table view class, maybe handle UI in there
         self.table_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.table_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         # self.table_view.setStyleSheet("QTableView {alignment: AlignCenter;}")
@@ -313,7 +307,25 @@ class SearchTargetsView(QWidget):
         self.table_view.setItemDelegateForColumn(2, self.list_del) # The "values" column contains lists
 
         self.table_view.setEditTriggers(QTableView.NoEditTriggers) # disable edit via clicking table
+    
+    def handle_delete_target(self, row):
+        result = QMessageBox.warning(self,
+                                        "Delete target",
+                                        "Confirm delete target?",
+                                        QMessageBox.Yes | QMessageBox.Cancel,
+                                        QMessageBox.Cancel)
+        if result == QMessageBox.Yes:
+            self.table_view.model().removeRow(row)
+
+    def handle_rename_target(self, row):
+        model = self.table_view.model()
+        dialog = NameDialog(preexistingname=model.target_name(row))
+        dialog.continue_clicked.connect(lambda name: self.table_view.model().item(row, TargetHeaders.NAME).setText(name))
+        dialog.exec_()
+
+
         
+
     
     def get_search_target_item(self, row):
         model = self.table_view.model()
@@ -360,7 +372,6 @@ class SearchTargetsView(QWidget):
         )
         module_selector.exec_()
 
-
     def handle_target_doubleclicked(self, index):
         row = index.row()
         item = self.get_search_target_item(row)
@@ -390,6 +401,30 @@ class SearchTargetsView(QWidget):
         else:
             QMessageBox.critical(self, "not implemented", "modify on double click not implemented for this target type")
 
+class SearchTargetsTableView(QTableView):
+    delete_target_selected = pyqtSignal(int) 
+    rename_target_selected = pyqtSignal(int)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def contextMenuEvent(self, event):
+        self.contextMenu = QMenu(self)
+        renameAction = QAction('Rename', self)
+        renameAction.triggered.connect(lambda _: self.handle_context_menu_clicked(action = "rename"))
+        self.contextMenu.addAction(renameAction)
+        deleteAction = QAction('Delete', self)
+        deleteAction.triggered.connect(lambda _: self.handle_context_menu_clicked(action = "delete"))
+        self.contextMenu.addAction(deleteAction)
+
+        self.contextMenu.popup(event.globalPos())
+    
+    def handle_context_menu_clicked(self, action):
+        row = self.currentIndex().row()
+        if action == "delete":
+            self.delete_target_selected.emit(int(row))
+        elif action == "rename":
+            self.rename_target_selected.emit(int(row))
 
 
 class ListDelegate(QStyledItemDelegate):

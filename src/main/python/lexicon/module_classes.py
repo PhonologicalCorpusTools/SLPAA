@@ -1447,7 +1447,7 @@ class RelationX:
         else:
             rel_dict = self.__dict__
             for attr in rel_dict:
-                if rel_dict[attr]:
+                if attr.endswith((str(1), str(2))) and rel_dict[attr]:
                     relX_str = attr[1:] # attributes are prepended with _
                     break
         return relX_str
@@ -1626,7 +1626,7 @@ class RelationY:
         relY_str = ""
         if self.aboth:
             relY_str = "both arms"
-        if self.lboth:
+        elif self.lboth:
             relY_str = "both legs"
         elif self.existingmodule:
             # print(self.linkedmoduleids)
@@ -1643,7 +1643,7 @@ class RelationY:
         else:
             rel_dict = self.__dict__
             for attr in rel_dict:
-                if rel_dict[attr]:
+                if attr.endswith((str(1), str(2))) and rel_dict[attr]:
                     relY_str = attr[1:]  # attributes are prepended with _
                     break
         return relY_str
@@ -1992,7 +1992,7 @@ class RelationModule(ParameterModule):
             X_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
         elif X_art.startswith('Other'):
             X_str += X_art
-        elif paths:
+        elif paths and X_art:
             X_str += self.get_path_abbrev(paths, X_art)
 
         if self.relationy.existingmodule:
@@ -2005,7 +2005,7 @@ class RelationModule(ParameterModule):
                 Y_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
             elif Y_art.startswith('Other'):
                 Y_str += Y_art
-            elif paths:
+            elif paths and Y_art:
                 Y_str = self.get_path_abbrev(paths, Y_art)
         if X_str:
             X_str = "X = " + X_str
