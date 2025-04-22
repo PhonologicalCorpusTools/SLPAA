@@ -119,11 +119,6 @@ class CompareModel:
             s1path = get_checked_paths_from_list(pair[0].movementtreemodel)
             s2path = get_checked_paths_from_list(pair[1].movementtreemodel)
 
-            """ old version
-            s1path = pair[0].movementtreemodel.get_checked_items()
-            s2path = pair[1].movementtreemodel.get_checked_items()
-            """
-
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
 
@@ -134,11 +129,14 @@ class CompareModel:
                 path: get_btn_type_for_path('mvmt', path, pair[1].movementtreemodel.optionstree) for path in s2_path_element
             }
 
+            finished_roots = []  # to track compared roots
+
             for e1 in s1_path_element:
                 matched = False
                 for e2 in s2_path_element:
                     if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
                         matched = True
+                        finished_roots.append(e2.split('>')[0])
                         res1, res2 = compare_elements(
                             e1=e1,
                             e2=e2,
@@ -152,6 +150,11 @@ class CompareModel:
                 if not matched:
                     res1, _ = compare_elements(e1, '', s1_path_btn_types, {}, pairwise=False)
                     results1.append(res1)
+
+            for e2 in s2_path_element:
+                if e2.split('>')[0] not in finished_roots:
+                    _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
+                    results2.append(res2)
 
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
