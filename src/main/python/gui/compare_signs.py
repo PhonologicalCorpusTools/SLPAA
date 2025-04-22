@@ -92,7 +92,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         self.palette = palette
 
         self.is_root: bool = False
-        if self._text in ['movement', 'relation']:
+        if self._text in ['movement', 'relation', 'orientation', 'location']:
             self.is_root = True
 
         self.is_label: bool = False
