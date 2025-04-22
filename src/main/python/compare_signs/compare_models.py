@@ -7,6 +7,10 @@ from compare_signs.compare_helpers import (analyze_modules, get_informative_elem
                                            get_detailed_checked_paths_location, get_detailed_selections_orientation)
 from compare_signs.align_modules import alignmodules
 
+# for temporarily showing debug info
+from PyQt5.QtWidgets import QMessageBox
+
+
 class CompareModel:
     def __init__(self, sign1, sign2):
         self.sign1 = sign1
@@ -232,6 +236,24 @@ class CompareModel:
             # get button types
             s1_location_type = pair[0].locationtreemodel.locationtype
             s2_location_type = pair[1].locationtreemodel.locationtype
+
+            # start debug just to identify the class selection
+            what_selected = []
+            if s1_location_type._body:
+                what_selected.append('Body')
+            elif s1_location_type._bodyanchored:
+                what_selected.append('Signing space > BodyAnchored')
+            elif s1_location_type._purelyspatial:
+                what_selected.append('Signing space > PurelySpatial')
+            if s2_location_type._body:
+                what_selected.append('Body')
+            elif s2_location_type._bodyanchored:
+                what_selected.append('Signing space > BodyAnchored')
+            elif s2_location_type._purelyspatial:
+                what_selected.append('Signing space > PurelySpatial')
+            QMessageBox.information(None, 'Loc selection', f'[DEBUG] Major location selection info\n\nSign1: {what_selected[0]}\nSign2: {what_selected[1]}')
+            del what_selected
+            # end debug
 
             if s1_location_type.usesbodylocations():
                 s1_root_node = locn_options_body

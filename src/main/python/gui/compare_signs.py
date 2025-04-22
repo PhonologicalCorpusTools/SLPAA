@@ -121,6 +121,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         self.current_bg = colour
 
 
+# This is the main class for compare trees dialog
 class CompareSignsDialog(QDialog):
     def __init__(self, selected_signs, **kwargs):
         super().__init__(**kwargs)
