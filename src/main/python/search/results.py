@@ -1,38 +1,18 @@
 from PyQt5.QtWidgets import (
-    QVBoxLayout,
-    QDialog,
+    QVBoxLayout, QToolBar, QFileDialog,
     QWidget,
-    QPushButton,
-    QLabel,
-    QComboBox,
-    QMdiArea,
-    QMdiSubWindow,
-    QFormLayout,
-    QFrame,
-    QDialogButtonBox,
-    QFileDialog,
-    QTextEdit,
     QVBoxLayout,
     QHBoxLayout,
-    QRadioButton,
-    QScrollArea,
-    QButtonGroup,
-    QLineEdit,
-    QMessageBox,
-    QCheckBox,
-    QListWidget,
-    QListWidgetItem,
     QTableView,
-    QHeaderView,
-    QSizePolicy,
-    QMainWindow,
-    QItemDelegate,
     QStyledItemDelegate,
     QAction,
     QTabWidget
 )
-
-from PyQt5.QtCore import QModelIndex, Qt
+from PyQt5.QtGui import (
+    QIcon,
+    QKeySequence
+)
+from PyQt5.QtCore import QModelIndex, Qt, QSize
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel, 
@@ -42,8 +22,8 @@ from PyQt5.Qt import (
     QDialog
 )
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
-
-import logging
+from collections import defaultdict
+import logging, os, json
 
 class ResultHeaders:
     CORPUS = 0
@@ -76,6 +56,7 @@ class ResultsView(QWidget):
         self.summary_table_view.setItemDelegate(self.listdelegate)
         self.summary_table_view.setEditTriggers(QTableView.NoEditTriggers)
         summarylayout = QVBoxLayout()
+        summarylayout.addWidget(self.create_toolbar("summary"))
         summarylayout.addWidget(self.summary_table_view)
         self.summarytab.setLayout(summarylayout)
         
@@ -89,20 +70,68 @@ class ResultsView(QWidget):
         self.individual_table_view.setEditTriggers(QTableView.NoEditTriggers) # disable edit via clicking table
  
         individuallayout = QVBoxLayout()
+        individuallayout.addWidget(self.create_toolbar("individual"))
         individuallayout.addWidget(self.individual_table_view)
         self.individualtab.setLayout(individuallayout)
 
+         # for both summary and individual tabs
         self.tab_widget.addTab(self.summarytab, "Summary")
         self.tab_widget.addTab(self.individualtab, "Individual results")
 
         self.showMaximized()
         main_layout.addWidget(self.tab_widget)
-        self.setLayout(main_layout)
+        self.setLayout(main_layout)    
 
-        self.popupresults = []
-    
+    def create_toolbar(self, label):
+        toolbar = QToolBar(f'{label} toolbar', parent=self)
+        toolbar.setIconSize(QSize(16, 16))
+        # actions
+        # save
+        action_save = QAction(QIcon(self.mainwindow.app_ctx.icons['save']), 'Save', parent=self)
+        action_save.setStatusTip('Save')
+        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
+        action_save.triggered.connect(lambda checked: self.on_action_save(checked, label))
+        action_save.setCheckable(False)
+
+        # save as
+        action_saveas = QAction(QIcon(self.mainwindow.app_ctx.icons['saveas']), 'Save As...', parent=self)
+        action_saveas.setStatusTip('Save As...')
+        action_saveas.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_A))
+        action_saveas.triggered.connect(lambda checked: self.on_action_save_as(checked, label))
+        action_saveas.setCheckable(False)
+
+        toolbar.addAction(action_save)
+        toolbar.addAction(action_saveas)
+        return toolbar
+
+    def on_action_save_as(self, clicked, tab_label): # tab_label is "summary" or "individual"
+        name = f"Search results ({tab_label})"
+        results_dir = self.mainwindow.app_settings['storage']['recent_folder'] # TODO
+        file_name, selected_filter = QFileDialog.getSaveFileName(
+            self,
+            caption=self.tr(f"Save {tab_label} results"),
+            directory=os.path.join(results_dir, f"{tab_label} results.json"), 
+            filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
+            initialFilter="JSON (*.json)")
+        if file_name:
+            print(f"saving as {file_name}")
+            print(f"selected filter {selected_filter}")
+            model = self.individualmodel if tab_label == "individual" else self.summarymodel
+            if "json" in selected_filter:
+                results_dict = model.create_dict()
+                directory = os.path.join(file_name)
+                with open(directory, 'w') as f:
+                    print(f" dumping to {directory}")
+                    json.dump(results_dict, f)
+            elif "xml" in selected_filter:
+                pass
+        
+
+    def on_action_save(self, clicked, tab_label): # tab is "summary" or "individual"
+        print(f"saving {tab_label}")
+
     def handle_result_doubleclicked(self, index):
-        entryid = self.individualmodel.get_entry_id_from_row(index.row())
+        entryid = self.individualmodel.entry_id(index.row())
         for s in self.corpus.signs:
             if s.signlevel_information.entryid == entryid:
                 thissign = s
@@ -142,7 +171,14 @@ class ResultSummaryModel(QStandardItemModel):
         self.headers = ["Corpus", "Target Name(s)", "Target Value(s)", "Result Type(s)", "Frequency"]
         self.setHorizontalHeaderLabels(self.headers)
     
-    def populate(self, resultsdict):
+    def entry(self, row, col):
+        return self.index(row, col).data(Qt.DisplayRole)
+
+    def create_dict(self):
+        pass
+
+    
+    def populate(self, resultsdict): 
         for targetname in resultsdict:
             resultrow = resultsdict[targetname]
             name = QStandardItem()
@@ -162,11 +198,65 @@ class IndividualSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss", "Lemma", "ID Gloss"]
+        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss(es)", "Lemma", "ID Gloss"]
         self.setHorizontalHeaderLabels(self.headers)
     
-    def get_entry_id_from_row(self, row):
+    def entry_id(self, row):
         return self.index(row, ResultHeaders.ID).data(Qt.UserRole)
+    
+    def entry(self, row, col):
+        return self.index(row, col).data(Qt.DisplayRole)
+    
+    def create_dict(self):
+        # first make an intermediate dict where keys are target names.
+        # TODO: what format should be used when searches span multiple corpora?
+        # {target_name: {corpus_name: [rows]}}
+        target_dict = defaultdict(lambda: defaultdict(list))
+        for row in range(self.rowCount()):
+            name, corpus = self.entry(row, ResultHeaders.NAME), self.entry(row, ResultHeaders.CORPUS)
+            target_dict[name][corpus].append(row)
+        # now, create an xml/json-friendly structure
+        formatted_results = [] 
+        for name in target_dict:
+            reference_row = target_dict[name][corpus][0] # just grab the first row under this target name so that we can get the target values and result types later
+            results = []
+            for corpus in target_dict[name]:
+                this_result = {
+                    self.headers[ResultHeaders.CORPUS]: corpus,
+                    "Matching Entries": []
+                }
+                matching_rows = target_dict[name][corpus]
+                for row in matching_rows:
+                    this_match = {}
+                    for ind in [ResultHeaders.ID, ResultHeaders.IDGLOSS, ResultHeaders.GLOSS, ResultHeaders.LEMMA]:
+                        this_match[self.headers[ind]] = self.entry(row, ind)
+                    this_result["Matching Entries"].append(this_match)
+                results.append(this_result)
+
+            values_arr = []
+            targetnames = (name,) if isinstance(name, str) else name
+            targetvalues =  self.entry(reference_row, ResultHeaders.VALUES)
+            if isinstance(targetvalues, str):
+                targetvalues = (targetvalues,)
+            searchtypes = self.entry(reference_row, ResultHeaders.TYPE)
+            if isinstance(searchtypes, str):
+                searchtypes = (searchtypes,)           
+            for targetname, targetvalue, searchtype in zip(targetnames, targetvalues, searchtypes):
+                values_arr.append({
+                    "Target Name": targetname,
+                    "Specifications": targetvalue,
+                    "Search Type": searchtype
+                })
+
+            formatted_results.append({
+                "Target(s)": values_arr,
+                "Results": results
+            })
+        # print(formatted_results)
+        return formatted_results
+
+
+
 
     def populate(self, resultsdict):
         for targetname in resultsdict:

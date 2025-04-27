@@ -123,26 +123,6 @@ class SearchWindow(QMainWindow):
         action_saveas.triggered.connect(self.on_action_save_as)
         file_menu.addAction(action_saveas)
 
-        # undo
-        action_undo = QAction(QIcon(self.app_ctx.icons['undo']), 'Undo', parent=self)
-        action_undo.setEnabled(False)
-        self.undostack.canUndoChanged.connect(lambda b: action_undo.setEnabled(b))
-        action_undo.setStatusTip('Undo')
-        action_undo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Z))
-        action_undo.triggered.connect(lambda: self.undostack.undo())
-        action_undo.setCheckable(False)
-
-        # redo
-        action_redo = QAction(QIcon(self.app_ctx.icons['redo']), 'Redo', parent=self)
-        action_redo.setEnabled(False)
-        self.undostack.canRedoChanged.connect(lambda b: action_redo.setEnabled(b))
-        action_redo.setStatusTip('Undo')
-        action_redo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Y))
-        action_redo.triggered.connect(lambda: self.undostack.redo())
-        action_redo.setCheckable(False)
-
-
-
         settings_menu = menu_bar.addMenu('Settings')
 
     def on_action_load(self):
@@ -179,7 +159,6 @@ class SearchWindow(QMainWindow):
                 self.app_settings['storage']['recent_folder'] = folder
 
             self.save_search_binary()
-        self.undostack.clear()
         self.unsaved_changes = False
 
     @check_unsaved_search_targets
@@ -188,7 +167,6 @@ class SearchWindow(QMainWindow):
             self.save_search_binary()
 
         self.unsaved_changes = False
-        self.undostack.clear()
             
     def init_ui(self):
         self.create_menu_bar()
