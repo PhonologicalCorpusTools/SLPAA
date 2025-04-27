@@ -128,16 +128,17 @@ class SearchWindow(QMainWindow):
     def on_action_load(self):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            self.tr('Load Targets'),
-                                                           self.app_settings['storage']['recent_folder'],
+                                                           self.app_settings['storage']['recent_searches'],
                                                            self.tr('SLP-AA SearchTargets (*.slpst)'))
         if not file_name:
             # the user cancelled out of the dialog
             return False
         folder, _ = os.path.split(file_name)
         if folder:
-            self.app_settings['storage']['recent_folder'] = folder
+            self.app_settings['storage']['recent_searches'] = folder
 
         self.searchmodel = self.load_search_binary(file_name)
+        self.searchmodel.name = os.path.splitext(os.path.basename(file_name))[0]
         self.search_targets_view.table_view.setModel(self.searchmodel)
         self.current_sign.addmodulesfrommodel(self.searchmodel)
         self.unsaved_changes = False
@@ -149,14 +150,14 @@ class SearchWindow(QMainWindow):
         name = self.searchmodel.name or "New search"
         file_name, _ = QFileDialog.getSaveFileName(self,
                                                    self.tr('Save Targets'),
-                                                   os.path.join(self.app_settings['storage']['recent_folder'],
+                                                   os.path.join(self.app_settings['storage']['recent_searches'],
                                                                 name + '.slpst'),  # 'corpus.slpaa'),
                                                    self.tr('SLP-AA Search Targets (*.slpst)'))
         if file_name:
             self.searchmodel.path = file_name
             folder, _ = os.path.split(file_name)
             if folder:
-                self.app_settings['storage']['recent_folder'] = folder
+                self.app_settings['storage']['recent_searches'] = folder
 
             self.save_search_binary()
         self.unsaved_changes = False

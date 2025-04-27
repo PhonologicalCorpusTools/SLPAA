@@ -105,12 +105,12 @@ class ResultsView(QWidget):
         return toolbar
 
     def on_action_save_as(self, clicked, tab_label): # tab_label is "summary" or "individual"
-        name = f"Search results ({tab_label})"
-        results_dir = self.mainwindow.app_settings['storage']['recent_folder'] # TODO
+        name = f"{self.mainwindow.searchmodel.name}_{tab_label}_results"
+        results_dir = self.mainwindow.app_settings['storage']['recent_results'] # TODO
         file_name, selected_filter = QFileDialog.getSaveFileName(
             self,
             caption=self.tr(f"Save {tab_label} results"),
-            directory=os.path.join(results_dir, f"{tab_label} results.json"), 
+            directory=os.path.join(results_dir, f"{name}.json"), 
             filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
             initialFilter="JSON (*.json)")
         if file_name:
@@ -121,12 +121,15 @@ class ResultsView(QWidget):
                 results_dict = model.create_dict()
                 directory = os.path.join(file_name)
                 with open(directory, 'w') as f:
-                    print(f" dumping to {directory}")
                     json.dump(results_dict, f)
             elif "xml" in selected_filter:
                 pass
+            folder, _ = os.path.split(file_name)
+            if folder:
+                self.mainwindow.app_settings['storage']['recent_results'] = folder
         
-
+    # TODO
+    #  @check_unsaved_search_targets decorator
     def on_action_save(self, clicked, tab_label): # tab is "summary" or "individual"
         print(f"saving {tab_label}")
 
