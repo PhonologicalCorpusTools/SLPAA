@@ -24,6 +24,8 @@ from PyQt5.Qt import (
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from collections import defaultdict
 import logging, os, json
+import xml.etree.ElementTree as ET
+
 
 class ResultHeaders:
     CORPUS = 0
@@ -31,6 +33,7 @@ class ResultHeaders:
     VALUES = 2
     TYPE = 3
     ID = 4
+    FREQUENCY = 4
     GLOSS = 5
     LEMMA = 6
     IDGLOSS = 7
@@ -114,20 +117,29 @@ class ResultsView(QWidget):
             filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
             initialFilter="JSON (*.json)")
         if file_name:
-            print(f"saving as {file_name}")
-            print(f"selected filter {selected_filter}")
+            # print(f"saving as {file_name}")
+            # print(f"selected filter {selected_filter}")
             model = self.individualmodel if tab_label == "individual" else self.summarymodel
+            directory = os.path.join(file_name)
             if "json" in selected_filter:
-                results_dict = model.create_dict()
-                directory = os.path.join(file_name)
+                formatted = model.format_results()
                 with open(directory, 'w') as f:
-                    json.dump(results_dict, f)
+                    json.dump(formatted, f)
             elif "xml" in selected_filter:
-                pass
+                xml = model.format_results_as_xml()
+                xml.write(directory, encoding="utf-8")
+
             folder, _ = os.path.split(file_name)
             if folder:
                 self.mainwindow.app_settings['storage']['recent_results'] = folder
-        
+
+
+
+
+
+                
+
+
     # TODO
     #  @check_unsaved_search_targets decorator
     def on_action_save(self, clicked, tab_label): # tab is "summary" or "individual"
@@ -177,9 +189,83 @@ class ResultSummaryModel(QStandardItemModel):
     def entry(self, row, col):
         return self.index(row, col).data(Qt.DisplayRole)
 
-    def create_dict(self):
-        pass
+    def format_results(self):
+        """
+        Format the results for converting to json or xml.
 
+        Returns:
+            formatted (list[dict]): Each element is a dictionary with keys:
+            
+            - "Targets" (list[dict]):
+                Each dictionary has keys:
+                - "Target Name": str
+                - "Specifications": str
+                - "Search Type": str
+            
+            - "Results" (list[dict]):
+                Each dictionary has keys:
+                - "Corpus": str
+                - "Frequency": int
+        """
+        # first make an intermediate dict where keys are target names.
+        # TODO: what format should be used when searches span multiple corpora?
+        # {target_name: {corpus_name: [rows]}}
+        target_dict = defaultdict(lambda: defaultdict(list))
+        for row in range(self.rowCount()):
+            name, corpus = self.entry(row, ResultHeaders.NAME), self.entry(row, ResultHeaders.CORPUS)
+            target_dict[name][corpus].append(row)
+        # now, create an xml/json-friendly structure
+        formatted_results = [] 
+        for name in target_dict:
+            reference_row = target_dict[name][corpus][0] # just grab the first row under this target name so that we can get the target values and result types later
+            results = []
+            for corpus in target_dict[name]:
+                this_result = {
+                    self.headers[ResultHeaders.CORPUS]: corpus,
+                    "Frequency": self.entry(row, ResultHeaders.FREQUENCY)
+                }
+                results.append(this_result)
+
+            values_arr = []
+            targetnames = (name,) if isinstance(name, str) else name
+            targetvalues =  self.entry(reference_row, ResultHeaders.VALUES)
+            if isinstance(targetvalues, str):
+                targetvalues = (targetvalues,)
+            searchtypes = self.entry(reference_row, ResultHeaders.TYPE)
+            if isinstance(searchtypes, str):
+                searchtypes = (searchtypes,)           
+            for targetname, targetvalue, searchtype in zip(targetnames, targetvalues, searchtypes):
+                values_arr.append({
+                    "Target Name": targetname,
+                    "Specifications": targetvalue,
+                    "Search Type": searchtype
+                })
+
+            formatted_results.append({
+                "Target(s)": values_arr,
+                "Results": results
+            })
+        # print(formatted_results)
+        return formatted_results
+    
+    def format_results_as_xml(self):
+        formatted = self.format_results()
+        root = ET.Element('ResultsSummary')
+        for result_dict in formatted:
+            result_elem = ET.SubElement(root, "SearchResult")
+            targets_elem = ET.SubElement(result_elem, "Targets")
+            results_elem = ET.SubElement(result_elem, "Results")
+            for target in result_dict["Target(s)"]:
+                target_elem = ET.SubElement(targets_elem, "Target")
+                for target_attr, value in target.items():
+                    attrib = target_attr.replace(" ", "")
+                    attrib = attrib[0].lower() + attrib[1:] # convert to camelCase (originally keys had spaces and other symbols)
+                    target_elem.set(attrib, value)
+            for result in result_dict["Results"]:
+                result_elem = ET.SubElement(results_elem, "CorpusResult")
+                result_elem.set("corpus", result["Corpus"])
+                result_elem.set("frequency", str(result["Frequency"]))
+        return ET.ElementTree(root)
     
     def populate(self, resultsdict): 
         for targetname in resultsdict:
@@ -210,7 +296,29 @@ class IndividualSummaryModel(QStandardItemModel):
     def entry(self, row, col):
         return self.index(row, col).data(Qt.DisplayRole)
     
-    def create_dict(self):
+    def format_results(self):
+        """
+        Format the results for converting to json or xml.
+
+        Returns:
+            formatted (list[dict]): Each element is a dictionary with keys:
+            
+            - "Targets" (list[dict]):
+                Each dictionary has keys:
+                - "Target Name" (str)
+                - "Specifications" (str)
+                - "Search Type" (str)
+            
+            - "Results" (list[dict]):
+                Each dictionary has keys:
+                - "Corpus" (str)
+                - "Matching Entries" (list[dict]):
+                    Each matching entry has keys:
+                    - "Entry ID" (str)
+                    - "ID Gloss" (str)
+                    - "Gloss(es)" (str)
+                    - "Lemma" (str)
+        """
         # first make an intermediate dict where keys are target names.
         # TODO: what format should be used when searches span multiple corpora?
         # {target_name: {corpus_name: [rows]}}
@@ -257,6 +365,29 @@ class IndividualSummaryModel(QStandardItemModel):
             })
         # print(formatted_results)
         return formatted_results
+
+    def format_results_as_xml(self):
+        formatted = self.format_results()
+        root = ET.Element('SearchResults')
+        for result_dict in formatted:
+            result_elem = ET.SubElement(root, "SearchResult")
+            targets_elem = ET.SubElement(result_elem, "Targets")
+            results_elem = ET.SubElement(result_elem, "Results")
+            for target in result_dict["Target(s)"]:
+                target_elem = ET.SubElement(targets_elem, "Target")
+                for target_attr, value in target.items():
+                    attrib = target_attr.replace(" ", "")
+                    attrib = attrib[0].lower() + attrib[1:] # convert to camelCase (originally keys had spaces and other symbols)
+                    target_elem.set(attrib, value)
+            for result in result_dict["Results"]:
+                result_elem = ET.SubElement(results_elem, "CorpusResult")
+                result_elem.set("corpus", result["Corpus"])
+                for match in result["Matching Entries"]:
+                    match_elem = ET.SubElement(result_elem, "Match")
+                    for v, attrib in zip(match.values(), ["entryID", "idGloss", "glosses", "lemma"]): # convert to camelCase (originally keys had spaces and other symbols)
+                        match_elem.set(attrib, v)
+        return ET.ElementTree(root)
+
 
 
 
