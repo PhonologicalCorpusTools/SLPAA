@@ -21,6 +21,8 @@ from PyQt5.Qt import (
     QVBoxLayout,
     QDialog
 )
+from gui.decorator import check_unsaved_search_results
+
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from collections import defaultdict
 import logging, os, json, csv
@@ -45,6 +47,8 @@ class ResultsView(QWidget):
         self.resultsdict = resultsdict
         self.mainwindow = mainwindow
         self.corpus = self.mainwindow.corpus
+        self.individualresultspath = None
+        self.summaryresultspath = None
 
         # Create a tab widget
         main_layout = QVBoxLayout()
@@ -106,51 +110,55 @@ class ResultsView(QWidget):
         toolbar.addAction(action_save)
         toolbar.addAction(action_saveas)
         return toolbar
+    
+    def save_results_to_file(self, file_name, tab_label, selected_filter):
+        # print(f"saving as {file_name}")
+        # print(f"selected filter {selected_filter}")
+        directory = os.path.join(file_name)
+        if tab_label == "individual":
+            model = self.individualmodel
+            self.individualresultspath = directory
+        elif tab_label == "summary":
+            model = self.summarymodel
+            self.summaryresultspath = directory
+        if ".json" in selected_filter:
+            formatted = model.format_results()
+            with open(directory, 'w') as f:
+                json.dump(formatted, f)
+        elif ".xml" in selected_filter:
+            xml = model.format_results_as_xml()
+            xml.write(directory, encoding="utf-8")
+        else:
+            with open(directory, 'w', newline='') as tsvfile:
+                writer = csv.writer(tsvfile, delimiter='\t', lineterminator='\n')
+                writer.writerow(model.headers)
+                for row in range(model.rowCount()):
+                    writer.writerow([model.entry(row, col) for col in range(model.columnCount())])
+
+        folder, _ = os.path.split(file_name)
+        if folder:
+            self.mainwindow.app_settings['storage']['recent_results'] = folder
+
 
     def on_action_save_as(self, clicked, tab_label): # tab_label is "summary" or "individual"
         name = f"{self.mainwindow.searchmodel.name}_{tab_label}_results"
-        results_dir = self.mainwindow.app_settings['storage']['recent_results'] # TODO
+        results_dir = self.mainwindow.app_settings['storage']['recent_results'] 
         file_name, selected_filter = QFileDialog.getSaveFileName(
             self,
             caption=self.tr(f"Save {tab_label} results"),
             directory=os.path.join(results_dir, f"{name}.json"), 
             filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
-            initialFilter="JSON (*.json)")
+            initialFilter="XML (*.xml)")
         if file_name:
-            # print(f"saving as {file_name}")
-            # print(f"selected filter {selected_filter}")
-            model = self.individualmodel if tab_label == "individual" else self.summarymodel
-            directory = os.path.join(file_name)
-            if ".json" in selected_filter:
-                formatted = model.format_results()
-                with open(directory, 'w') as f:
-                    json.dump(formatted, f)
-            elif ".xml" in selected_filter:
-                xml = model.format_results_as_xml()
-                xml.write(directory, encoding="utf-8")
-            else:
-                with open(directory, 'w', newline='') as tsvfile:
-                    writer = csv.writer(tsvfile, delimiter='\t', lineterminator='\n')
-                    writer.writerow(model.headers)
-                    for row in range(model.rowCount()):
-                        writer.writerow([model.entry(row, col) for col in range(model.columnCount())])
-
-
-            folder, _ = os.path.split(file_name)
-            if folder:
-                self.mainwindow.app_settings['storage']['recent_results'] = folder
-
-
-
-
-
-                
-
+            self.save_results_to_file(file_name, tab_label, selected_filter)
 
     # TODO
-    #  @check_unsaved_search_targets decorator
+    @check_unsaved_search_results
     def on_action_save(self, clicked, tab_label): # tab is "summary" or "individual"
-        print(f"saving {tab_label}")
+        file_name = self.individualresultspath if tab_label == "individual" else self.summaryresultspath if tab_label == "summary" else None
+        if file_name:
+            selected_filter = os.path.splitext(file_name)[1]
+            self.save_results_to_file(file_name, tab_label, selected_filter)
 
     def handle_result_doubleclicked(self, index):
         entryid = self.individualmodel.entry_id(index.row())
