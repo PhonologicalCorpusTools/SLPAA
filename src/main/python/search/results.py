@@ -23,7 +23,7 @@ from PyQt5.Qt import (
 )
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from collections import defaultdict
-import logging, os, json
+import logging, os, json, csv
 import xml.etree.ElementTree as ET
 
 
@@ -121,13 +121,20 @@ class ResultsView(QWidget):
             # print(f"selected filter {selected_filter}")
             model = self.individualmodel if tab_label == "individual" else self.summarymodel
             directory = os.path.join(file_name)
-            if "json" in selected_filter:
+            if ".json" in selected_filter:
                 formatted = model.format_results()
                 with open(directory, 'w') as f:
                     json.dump(formatted, f)
-            elif "xml" in selected_filter:
+            elif ".xml" in selected_filter:
                 xml = model.format_results_as_xml()
                 xml.write(directory, encoding="utf-8")
+            else:
+                with open(directory, 'w', newline='') as tsvfile:
+                    writer = csv.writer(tsvfile, delimiter='\t', lineterminator='\n')
+                    writer.writerow(model.headers)
+                    for row in range(model.rowCount()):
+                        writer.writerow([model.entry(row, col) for col in range(model.columnCount())])
+
 
             folder, _ = os.path.split(file_name)
             if folder:
