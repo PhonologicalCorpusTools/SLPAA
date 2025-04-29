@@ -260,7 +260,7 @@ class MainWindow(QMainWindow):
         self.action_delete_sign = QAction(QIcon(self.app_ctx.icons['delete']), 'Delete', parent=self)
         self.action_delete_sign.setEnabled(False)
         self.action_delete_sign.setStatusTip('Delete the selected sign(s) or module(s)')
-        self.action_delete_sign.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Delete))
+        self.action_delete_sign.setShortcuts([QKeySequence(Qt.CTRL + Qt.Key_Delete), QKeySequence(Qt.CTRL + Qt.Key_Backspace)])
         self.action_delete_sign.triggered.connect(self.on_action_delete)
         self.action_delete_sign.setCheckable(False)
 
