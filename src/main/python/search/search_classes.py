@@ -1240,7 +1240,7 @@ class SearchTargetItem(QStandardItem):
         if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             return(self.module.getabbreviation())
         elif self.targettype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
-            moduletype = ModuleTypes.MOVEMENT if self.targettype == TargetTypes.MOV_REL else ModuleTypes.MOVEMENT
+            moduletype = ModuleTypes.MOVEMENT if self.targettype == TargetTypes.MOV_REL else ModuleTypes.LOCATION
             moduleabbrev = self.module.getabbreviation()
             relationabbrev = self.associatedrelnmodule.getabbreviation()
             return relationabbrev.replace(f"linked {moduletype} module", moduleabbrev)
