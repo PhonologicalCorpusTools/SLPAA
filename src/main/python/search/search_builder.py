@@ -1166,6 +1166,14 @@ class SearchWindowSign(Sign):
         super().__init__(signlevel_info, serializedsign)
         self._xslotstructure = XslotStructure()
         self._xslottype = XslotTypeItem()
+    
+    @property
+    def xslottype(self):
+        return self._xslottype
+    
+    @xslottype.setter
+    def xslottype(self, val):
+        self._xslottype = val
 
         
     

@@ -1793,10 +1793,10 @@ class RelationModule(ParameterModule):
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
         self._bodyparts_dict = {}
-        for bodypart in bodyparts_dict.keys():
-            if bodypart not in self._bodyparts_dict.keys():
+        for bodypart in bodyparts_dict:
+            if bodypart not in self._bodyparts_dict:
                 self._bodyparts_dict[bodypart] = {}
-            for n in bodyparts_dict[bodypart].keys():
+            for n in bodyparts_dict[bodypart]:
                 self._bodyparts_dict[bodypart][n] = bodyparts_dict[bodypart][n] or BodypartInfo(bodyparttype=bodypart, bodyparttreemodel=None)
         self._contactrel = contactrel or ContactRelation()
         # backwards compatibility for generic distance axis (issue 387)
@@ -1870,8 +1870,24 @@ class RelationModule(ParameterModule):
     @directions.setter
     def directions(self, directions):
         self._directions = directions
+
+    def get_treemodel_from_articulator_label(self, label):
+        """
+        Returns self.bodyparts_dict[articulator][number].bodyparttreemodel,
+        where articulator and number are extracted from a string such as "hand1" or "H1"
+        """
+        number = 1 if label.endswith("1") else 2
+        art = ""
+        if label.startswith(("h", "H")): 
+            art = HAND
+        elif label.startswith(("a", "A")):
+            art = ARM
+        elif label.startswith(("l", "L")):
+            art = LEG
+
+        return(self.bodyparts_dict[art][number].bodyparttreemodel)
     
-    def get_paths(self):
+    def get_paths(self, only_fully_checked=True):
         """
         Returns a dict mapping articulators to their selected path details.
 
@@ -1889,7 +1905,7 @@ class RelationModule(ParameterModule):
             label = arts[i] if arts[i] != 'Hand' else 'H'
             bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
             treemodel = bodypartinfo.bodyparttreemodel
-            paths.update({label + str(nums[i]) : treemodel.get_checked_items(include_details=True)})
+            paths.update({label + str(nums[i]) : treemodel.get_checked_items(only_fully_checked=only_fully_checked, include_details=True)})
         
         return paths
     
@@ -1949,7 +1965,7 @@ class RelationModule(ParameterModule):
             
         return (self.contactrel.contact == None and not self.xy_crossed and not self.xy_linked)
     
-    def get_articulators_in_use(self):
+    def get_articulators_in_use(self, as_string=False):
         a = []
         n = []
         for b in [HAND, ARM, LEG]:
@@ -1957,7 +1973,15 @@ class RelationModule(ParameterModule):
                 if self.usesarticulator(b,i):
                     a.append(b)
                     n.append(i)
-        return a, n
+        if as_string:
+            labels = []
+            for i in range(len(a)):
+                label = a[i] if a[i] != 'Hand' else 'H'
+                label += str(n[i])
+                labels.append(label)
+            return labels
+        else:
+            return a, n
 
     def hands_in_use(self):
         return {

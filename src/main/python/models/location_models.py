@@ -742,12 +742,23 @@ class LocationTreeModel(QStandardItemModel):
         self._nodes_are_terminal = terminal    
 
     def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True, include_details=False):
-        ''' Returns: a list of strings denoting paths \n
-            If include_details, returns a list of dicts: 
-            - 'path': the full path
-            - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated
-            - 'details': detailstable
-            '''
+        """
+        Recursively traverses the location tree and returns a list of checked items.
+        Args:
+            only_fully_checked: bool. If True, then partially checked items are not considered checked. \
+                The default value for only_fully_checked is True (in contrast to Movement module) because a search for an ancestor should not by default return its checked descendants. \
+                For example, a search for "Repetition" should return movement modules that contain "Repetition>Repeated>2x", \
+                but a search for "Face" should not return location modules that only contain "Face>Cheek/nose".
+            include_details: bool. If True, also returns abbreviations and details tables of checked location paths.
+
+        Returns:
+            list. If `include_details`, returns a list of dicts of the form: 
+            {'path': [the full path], 
+            'abbrev': [the abbreviation, None if the path leaf should not be abbreviated],
+            'details': DetailsTable}
+            Otherwise returns a list of paths.
+            
+        """
         checked_values = []
         for row in range(self.rowCount(parent_index)):
             index = self.index(row, 0, parent_index)
