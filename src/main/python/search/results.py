@@ -21,7 +21,6 @@ from PyQt5.Qt import (
     QVBoxLayout,
     QDialog
 )
-from gui.decorator import check_unsaved_search_results
 
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from collections import defaultdict
@@ -92,23 +91,17 @@ class ResultsView(QWidget):
     def create_toolbar(self, label):
         toolbar = QToolBar(f'{label} toolbar', parent=self)
         toolbar.setIconSize(QSize(16, 16))
+        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         # actions
-        # save
-        action_save = QAction(QIcon(self.mainwindow.app_ctx.icons['save']), 'Save', parent=self)
-        action_save.setStatusTip('Save')
-        action_save.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_S))
-        action_save.triggered.connect(lambda checked: self.on_action_save(checked, label))
-        action_save.setCheckable(False)
 
-        # save as
-        action_saveas = QAction(QIcon(self.mainwindow.app_ctx.icons['saveas']), 'Save As...', parent=self)
-        action_saveas.setStatusTip('Save As...')
-        action_saveas.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_A))
-        action_saveas.triggered.connect(lambda checked: self.on_action_save_as(checked, label))
-        action_saveas.setCheckable(False)
-
-        toolbar.addAction(action_save)
-        toolbar.addAction(action_saveas)
+        # export
+        exportseq = QKeySequence(Qt.ALT + Qt.Key_E)
+        action_export = QAction(QIcon(self.mainwindow.app_ctx.icons['saveas']), 'Export', parent=self)
+        action_export.setShortcut(exportseq)
+        action_export.triggered.connect(lambda checked: self.on_action_export(checked, label))
+        action_export.setCheckable(False)
+        
+        toolbar.addAction(action_export)
         return toolbar
     
     def save_results_to_file(self, file_name, tab_label, selected_filter):
@@ -140,24 +133,16 @@ class ResultsView(QWidget):
             self.mainwindow.app_settings['storage']['recent_results'] = folder
 
 
-    def on_action_save_as(self, clicked, tab_label): # tab_label is "summary" or "individual"
+    def on_action_export(self, clicked, tab_label): # tab_label is "summary" or "individual"
         name = f"{self.mainwindow.searchmodel.name}_{tab_label}_results"
         results_dir = self.mainwindow.app_settings['storage']['recent_results'] 
         file_name, selected_filter = QFileDialog.getSaveFileName(
             self,
             caption=self.tr(f"Save {tab_label} results"),
-            directory=os.path.join(results_dir, f"{name}.json"), 
+            directory=os.path.join(results_dir, f"{name}.xml"), 
             filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
             initialFilter="XML (*.xml)")
         if file_name:
-            self.save_results_to_file(file_name, tab_label, selected_filter)
-
-    # TODO
-    @check_unsaved_search_results
-    def on_action_save(self, clicked, tab_label): # tab is "summary" or "individual"
-        file_name = self.individualresultspath if tab_label == "individual" else self.summaryresultspath if tab_label == "summary" else None
-        if file_name:
-            selected_filter = os.path.splitext(file_name)[1]
             self.save_results_to_file(file_name, tab_label, selected_filter)
 
     def handle_result_doubleclicked(self, index):

@@ -171,33 +171,3 @@ def check_unsaved_search_targets(func):
         return func(self, **kwargs)
 
     return wrapper_check_unsaved_search_targets
-
-
-def check_unsaved_search_results(func):
-    ''' This decorator is a fail-safe that is activated when saving a (new) search results file for the first time.
-    I.e., check (if we are dealing with an) unsaved search results file.
-    For example, it is active if the user creates a search results file from scratch and then saves it with the 'save' button.'''
-    @functools.wraps(func)
-    def wrapper_check_unsaved_search_results(self, *args, **kwargs):
-        path = None
-        if "summary" in args:
-            if self.summaryresultspath is None:
-                tab_label = "summary"
-                path = self.summaryresultspath
-        elif "individual" in args:
-            tab_label = "individual"
-            path = self.individualresultspath
-        if path is None:
-            name = f"{self.mainwindow.searchmodel.name}_{tab_label}_results"
-            results_dir = self.mainwindow.app_settings['storage']['recent_results'] 
-            file_name, selected_filter = QFileDialog.getSaveFileName(
-                self,
-                caption=self.tr(f"Save {tab_label} results"),
-                directory=os.path.join(results_dir, f"{name}.json"), 
-                filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
-                initialFilter="XML (*.xml)")
-            if file_name:
-                self.save_results_to_file(file_name, tab_label, selected_filter)
-            return func(self, *args, **kwargs)
-
-    return wrapper_check_unsaved_search_results
