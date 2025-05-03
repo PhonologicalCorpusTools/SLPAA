@@ -1520,16 +1520,22 @@ class MovementTreeModel(QStandardItemModel):
 
 
     def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=False, include_details=False):
-        ''' 
-        Returns: a list of strings denoting paths \n
-        If include_details, returns a list of dicts: 
-        - 'path': the full path
-        - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated \n
-        The default value for only_fully_checked is False (in contrast to Location module) because
-        ancestors of a selected path should be considered as checked nodes when searching.
-        For example, a search for "Repetition" should return movement modules that contain "Repetition>Repeated>2x",
-        but a search for "Face" should not return location modules that only contain "Face>Cheek/nose".
-        '''
+        """
+        Recursively traverses the movement tree and returns a list of checked items.
+        Args:
+            only_fully_checked: bool. If False, then partially checked items are considered checked. \
+                The default value for only_fully_checked is False (in contrast to Location module) because a search for an ancestor should return its checked descendants. \
+                For example, a search for "Repetition" should return movement modules that contain "Repetition>Repeated>2x", \
+                but a search for "Face" should not return location modules that only contain "Face>Cheek/nose".
+            include_details: bool. If True, also returns abbreviations of checked location paths.
+
+        Returns:
+            list. If `include_details`, returns a list of dicts of the form: 
+            {'path': [the full path], 
+            'abbrev': [the abbreviation, None if the path leaf should not be abbreviated]}
+            Otherwise returns a list of paths.
+            
+        """
         checked_values = []
         for row in range(self.rowCount(parent_index)):
             index = self.index(row, 0, parent_index)
