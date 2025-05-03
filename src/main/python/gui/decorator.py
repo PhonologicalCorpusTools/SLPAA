@@ -160,14 +160,14 @@ def check_unsaved_search_targets(func):
             name = self.searchmodel.name or "New search"
             file_name, _ = QFileDialog.getSaveFileName(self,
                                                     self.tr('Save Targets'),
-                                                    os.path.join(self.app_settings['storage']['recent_folder'],
+                                                    os.path.join(self.app_settings['storage']['recent_searches'],
                                                                     name + '.slpst'),  # 'corpus.slpaa'),
                                                     self.tr('SLP-AA Search Targets (*.slpst)'))
             if file_name:
                 self.searchmodel.path = file_name
                 folder, _ = os.path.split(file_name)
                 if folder:
-                    self.app_settings['storage']['recent_folder'] = folder
+                    self.app_settings['storage']['recent_searches'] = folder
         return func(self, **kwargs)
 
     return wrapper_check_unsaved_search_targets
