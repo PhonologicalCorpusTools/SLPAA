@@ -7,14 +7,12 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QGraphicsScene,
     QPushButton,
-    QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
     QGridLayout,
     QComboBox,
     QMessageBox,
     QLabel,
-    QButtonGroup,
     QGroupBox,
     QAbstractItemView,
     QHeaderView,
@@ -45,7 +43,7 @@ from models.location_models import LocationTreeItem, LocationTableModel, Locatio
 from models.shared_models import TreePathsProxyModel
 from serialization_classes import LocationTreeSerializable, LocationTableSerializable
 from gui.modulespecification_widgets import AddedInfoContextMenu, ModuleSpecificationPanel, \
-    TreeListView, TreePathsListItemDelegate, TreeSearchComboBox
+    TreeListView, TreePathsListItemDelegate, TreeSearchComboBox, DeselectableRadioButtonGroup, DeselectableRadioButton
 from constant import CONTRA, IPSI
 
 
@@ -415,7 +413,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         loctype_layout.addWidget(QLabel("Location:"), alignment=Qt.AlignVCenter)
 
         body_layout = QHBoxLayout()
-        self.body_radio = QRadioButton("Body")
+        self.body_radio = DeselectableRadioButton("Body")
         self.body_radio.setProperty('loctype', 'body')
         body_layout.addWidget(self.body_radio)
         body_layout.addSpacerItem(QSpacerItem(60, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
@@ -425,15 +423,15 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
 
         signingspace_layout = QGridLayout()
 
-        self.signingspace_radio = QRadioButton("Signing space  (")
+        self.signingspace_radio = DeselectableRadioButton("Signing space  (")
         self.signingspace_radio.setProperty('loctype', 'signingspace')
         signingspace_layout.addWidget(self.signingspace_radio, 0, 0)
 
-        self.signingspacebody_radio = QRadioButton("body-anchored  /")
+        self.signingspacebody_radio = DeselectableRadioButton("body-anchored  /")
         self.signingspacebody_radio.setProperty('loctype', 'signingspace_body')
         signingspace_layout.addWidget(self.signingspacebody_radio, 0, 1)
 
-        self.signingspacespatial_radio = QRadioButton("purely spatial  )")
+        self.signingspacespatial_radio = DeselectableRadioButton("purely spatial  )")
         self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
         signingspace_layout.addWidget(self.signingspacespatial_radio, 0, 2)
 
@@ -456,10 +454,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         loctype_layout.addWidget(signingspace_box, alignment=Qt.AlignVCenter)
         loctype_layout.addStretch()
 
-        self.loctype_subgroup = QButtonGroup()
+        self.loctype_subgroup = DeselectableRadioButtonGroup()
         self.loctype_subgroup.addButton(self.body_radio)
         self.loctype_subgroup.addButton(self.signingspace_radio)
-        self.signingspace_subgroup = QButtonGroup()
+        self.signingspace_subgroup = DeselectableRadioButtonGroup()
         self.signingspace_subgroup.addButton(self.signingspacebody_radio)
         self.signingspace_subgroup.addButton(self.signingspacespatial_radio)
         self.loctype_subgroup.buttonToggled.connect(lambda btn, wastoggled:
@@ -605,21 +603,21 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             return self.mainwindow.app_settings['location']['default_loctype_2h']
     
     def handle_toggle_locationtype(self, btn):
-        if btn is not None and btn.isChecked():
-            for b in self.signingspace_subgroup.buttons():
-                b.setEnabled(btn == self.signingspace_radio)
-            
-            if self.default_neutral_loctype() == "purely spatial":
-                enable_default_neutral = self.signingspacespatial_radio.isChecked() and self.signingspacespatial_radio.isEnabled()
-            else:
-                enable_default_neutral = self.signingspacebody_radio.isChecked() and self.signingspacebody_radio.isEnabled()
-            self.applyneutral_pb.setEnabled(enable_default_neutral)
-            
-            self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(
-                self.signingspacespatial_radio.isChecked() == False 
-                or self.signingspacespatial_radio.isEnabled() == False)
+        for b in self.signingspace_subgroup.buttons():
+            b.setEnabled(self.signingspace_radio.isEnabled() and self.signingspace_radio.isChecked())
 
-            self.enablelocationtools()
+        if self.default_neutral_loctype() == "purely spatial":
+            enable_default_neutral = self.signingspacespatial_radio.isChecked() and self.signingspacespatial_radio.isEnabled()
+        else:
+            enable_default_neutral = self.signingspacebody_radio.isChecked() and self.signingspacebody_radio.isEnabled()
+        self.applyneutral_pb.setEnabled(enable_default_neutral)
+
+        self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(
+            self.signingspacespatial_radio.isChecked() == False
+            or self.signingspacespatial_radio.isEnabled() == False)
+
+        self.enablelocationtools()
+
 
     def enablelocationtools(self):
         # self.refresh_listproxies()

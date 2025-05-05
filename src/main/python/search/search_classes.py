@@ -40,7 +40,8 @@ from PyQt5.QtWidgets import (
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
-from gui.relationspecification_view import RelationSpecificationPanel, RelationRadioButton, RelationButtonGroup, ModuleLinkingListModel
+from gui.relationspecification_view import RelationSpecificationPanel, ModuleLinkingListModel
+from gui.modulespecification_widgets import DeselectableRadioButton, DeselectableRadioButtonGroup
 from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene, AssociatedRelationsDialog, AssociatedRelationsPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
@@ -825,11 +826,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for horizontal distance options
         self.dishor_box = QGroupBox()
         self.dishor_label = QLabel("Horizontal")
-        self.dishorclose_rb = RelationRadioButton("Close")
-        self.dishormed_rb = RelationRadioButton("Med.")
-        self.dishorfar_rb = RelationRadioButton("Far")
+        self.dishorclose_rb = DeselectableRadioButton("Close")
+        self.dishormed_rb = DeselectableRadioButton("Med.")
+        self.dishorfar_rb = DeselectableRadioButton("Far")
         self.dishor_cb = QCheckBox(self.dishor_label.text())
-        self.dishor_group = RelationButtonGroup()
+        self.dishor_group = DeselectableRadioButtonGroup()
         self.dishor_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_hor_layout = self.create_axis_layout(self.dishorclose_rb,
                                                  self.dishormed_rb,
@@ -843,11 +844,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for vertical distance options
         self.disver_box = QGroupBox()
         self.disver_label = QLabel("Vertical")
-        self.disverclose_rb = RelationRadioButton("Close")
-        self.disvermed_rb = RelationRadioButton("Med.")
-        self.disverfar_rb = RelationRadioButton("Far")
+        self.disverclose_rb = DeselectableRadioButton("Close")
+        self.disvermed_rb = DeselectableRadioButton("Med.")
+        self.disverfar_rb = DeselectableRadioButton("Far")
         self.disver_cb = QCheckBox(self.disver_label.text())
-        self.disver_group = RelationButtonGroup()
+        self.disver_group = DeselectableRadioButtonGroup()
         self.disver_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_ver_layout = self.create_axis_layout(self.disverclose_rb,
                                                  self.disvermed_rb,
@@ -861,11 +862,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for sagittal direction options
         self.dissag_box = QGroupBox()
         self.dissag_label = QLabel("Sagittal")
-        self.dissagclose_rb = RelationRadioButton("Close")
-        self.dissagmed_rb = RelationRadioButton("Med.")
-        self.dissagfar_rb = RelationRadioButton("Far")
+        self.dissagclose_rb = DeselectableRadioButton("Close")
+        self.dissagmed_rb = DeselectableRadioButton("Med.")
+        self.dissagfar_rb = DeselectableRadioButton("Far")
         self.dissag_cb = QCheckBox(self.dissag_label.text())
-        self.dissag_group = RelationButtonGroup()
+        self.dissag_group = DeselectableRadioButtonGroup()
         self.dissag_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_sag_layout = self.create_axis_layout(self.dissagclose_rb,
                                                  self.dissagmed_rb,
@@ -878,11 +879,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for generic distance options
         self.disgen_box = QGroupBox()
         self.disgen_label = QLabel("Generic")
-        self.disgenclose_rb = RelationRadioButton("Close")
-        self.disgenmed_rb = RelationRadioButton("Med.")
-        self.disgenfar_rb = RelationRadioButton("Far")
+        self.disgenclose_rb = DeselectableRadioButton("Close")
+        self.disgenmed_rb = DeselectableRadioButton("Med.")
+        self.disgenfar_rb = DeselectableRadioButton("Far")
         self.disgen_cb = QCheckBox(self.disgen_label.text())
-        self.disgen_group = RelationButtonGroup()
+        self.disgen_group = DeselectableRadioButtonGroup()
         self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
                                                  self.disgenmed_rb,
@@ -1081,7 +1082,6 @@ class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
         associatedrelations_dialog.module_saved.connect(self.module_saved.emit)
         associatedrelations_dialog.exec_()
         self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
-
 
 
     def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
