@@ -592,9 +592,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         specslist = []
         if hasattr(self.parent().mainwindow.current_sign.signtype, "specslist"):
             specslist = self.parent().mainwindow.current_sign.signtype.specslist
-        if ('1h', True) in specslist:
-            return True
-        return False
+        return '1h' in specslist
         
     def default_neutral_loctype(self):
         if self.is_onehanded_sign():

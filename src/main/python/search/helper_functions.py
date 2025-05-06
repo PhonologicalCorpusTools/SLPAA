@@ -110,40 +110,39 @@ def loctypedisplaytext(loctype):
         todisplay = txt
     return todisplay
 
+
 def signtypedisplaytext(specslist):
-    
-    specs = [s[0] for s in specslist]
     disp = []
-    if 'Unspecified' in specs:
+    if 'Unspecified' in specslist:
         disp.append('Unspecified')
-    if '1h' in specs:
+    if '1h' in specslist:
         oneh = ['1h']
         for s in ['1h.moves', '1h.no mvmt']:
-            if s in specs:
+            if s in specslist:
                 oneh.append(s)
         if len(oneh) > 0:
             disp.extend(oneh)
         else:
             disp.append('1h')
 
-    if '2h' in specs:
+    if '2h' in specslist:
         twoh = ['2h']
         for s in ['same HCs', 'different HCs', 'maintain contact', 'contact not maintained', 'bilaterally symmetric', 'not bilaterally symmetric', 'neither moves']:
-            if ('2h.' + s) in specs:
+            if ('2h.' + s) in specslist:
                 twoh.append('2h.' + s)
-        if '2h.only 1 moves' in specs:
+        if '2h.only 1 moves' in specslist:
             only1moves = []
             for s in ['H1 moves', 'H2 moves']:
-                if ('2h.only 1 moves.' + s) in specs:
+                if ('2h.only 1 moves.' + s) in specslist:
                     only1moves.append('2h.only ' + s)
             if len(only1moves) > 0:
                 twoh.extend(only1moves)
             else:
                 twoh.append('2h.one hand moves')
-        if '2h.both move' in specs:
+        if '2h.both move' in specslist:
             bothmove = []
             for s in ['move differently', 'move similarly']:
-                if ('2h.both move.' + s) in specs:
+                if ('2h.both move.' + s) in specslist:
                     bothmove.append('2h.hands ' + s)
             if len(bothmove) > 0:
                 twoh.extend(bothmove)
