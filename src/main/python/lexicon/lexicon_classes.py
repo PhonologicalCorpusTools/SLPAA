@@ -79,6 +79,9 @@ class Sign:
             # these attributes don't need to be deep-copied
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
             self._signtype = serializedsign['type']
+            # backward compatibility with pre-20250505 signtype structure
+            if len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
+                self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
 

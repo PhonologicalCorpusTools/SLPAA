@@ -9,7 +9,8 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, \
+    SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots, SIGN_TYPE
 from constant import (specifytotalcycles_str, numberofreps_str, custom_abbrev)
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
@@ -1242,6 +1243,15 @@ class Signtype:
             return " (" + abbrevstr + ")"
 
     def convertspecstodict(self):
+        abbrevsdict = {}
+        for spec in self._specslist:
+            if spec not in [SIGN_TYPE["TWO_HANDS_NO_CONT"], SIGN_TYPE["TWO_HANDS_NO_BISYM"], SIGN_TYPE["TWO_HANDS_ONE_MVMT"], SIGN_TYPE["TWO_HANDS_BOTH_MVMT"]]:
+                # include the abbreviation for this option
+                pathlist = spec.split('.')  # this is the path of abbreviations to this particular setting
+                self.ensurepathindict(pathlist, abbrevsdict)
+        return abbrevsdict
+
+    def convertspecstodict_OLD(self):
         abbrevsdict = {}
         specscopy = [duple for duple in self._specslist]
         for duple in specscopy:
