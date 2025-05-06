@@ -205,6 +205,20 @@ class CompareModel:
         return pair_comparison
 
     def compare_locations(self) -> [bool]:
+        # ad hoc solution to add major location (e.g., Body > Body)
+        # on top of the hierarchical comparison results
+        def add_major_loc(compare_result_dict: dict, loc_type) -> dict:
+            # compare_result_dict: dict. hierarchical structure representing a Sign's loc modules
+            #   and its comparison to the other Sign
+            # loc_type: LocationType object. to specify between "Body," "BodyAnchored," "PurelySpacial"
+
+            if loc_type._body:
+                return {'Body': {'Body': compare_result_dict}}
+            elif loc_type._bodyanchored:
+                return {'Signing space': {'Body anchored': compare_result_dict}}
+            elif loc_type._purelyspatial:
+                return {'Signing space': {'Purely spacial': compare_result_dict}}
+
         def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
             # pair = tuple of LocationModules
             # pairwise = False if not comparing one pair
@@ -286,16 +300,20 @@ class CompareModel:
                             btn_types2=s2_path_btn_types,
                             pairwise=pairwise
                         )
+                        res1 = add_major_loc(res1, s1_location_type)
+                        res2 = add_major_loc(res2, s2_location_type)
                         results1.append(res1)
                         results2.append(res2)
 
                 if not matched:
                     res1, _ = compare_elements(e1, '', {}, {}, pairwise=False)
+                    res1 = add_major_loc(res1, s1_location_type)
                     results1.append(res1)
 
             for e2 in s2_path_element:
                 if e2.split('>')[0] not in finished_roots:
                     _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
+                    res2 = add_major_loc(res2, s2_location_type)
                     results2.append(res2)
 
             results1 = summarize_path_comparison(results1)
