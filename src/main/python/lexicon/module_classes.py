@@ -1245,19 +1245,9 @@ class Signtype:
     def convertspecstodict(self):
         abbrevsdict = {}
         for spec in self._specslist:
-            if spec not in [SIGN_TYPE["TWO_HANDS_NO_CONT"], SIGN_TYPE["TWO_HANDS_NO_BISYM"], SIGN_TYPE["TWO_HANDS_ONE_MVMT"], SIGN_TYPE["TWO_HANDS_BOTH_MVMT"]]:
-                # include the abbreviation for this option
-                pathlist = spec.split('.')  # this is the path of abbreviations to this particular setting
-                self.ensurepathindict(pathlist, abbrevsdict)
-        return abbrevsdict
-
-    def convertspecstodict_OLD(self):
-        abbrevsdict = {}
-        specscopy = [duple for duple in self._specslist]
-        for duple in specscopy:
-            if duple[1]:  # this is the flag to include the abbreviation in the concise form
-                pathlist = duple[0].split('.')  # this is the path of abbreviations to this particular setting
-                self.ensurepathindict(pathlist, abbrevsdict)
+            # include abbreviations for all options
+            pathlist = spec.split('.')  # this is the path of abbreviations to this particular setting
+            self.ensurepathindict(pathlist, abbrevsdict)
         return abbrevsdict
 
     def ensurepathindict(self, pathelements, abbrevsdict):
