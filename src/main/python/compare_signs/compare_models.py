@@ -212,12 +212,23 @@ class CompareModel:
             #   and its comparison to the other Sign
             # loc_type: LocationType object. to specify between "Body," "BodyAnchored," "PurelySpacial"
 
+            # Add major location to existing dict
             if loc_type._body:
-                return {'Body': {'Body': compare_result_dict}}
+                r = {'Body': {'Body': compare_result_dict}}
             elif loc_type._bodyanchored:
-                return {'Signing space': {'Body anchored': compare_result_dict}}
+                r = {'Signing space': {'Body anchored': compare_result_dict}}
             elif loc_type._purelyspatial:
-                return {'Signing space': {'Purely spacial': compare_result_dict}}
+                r = {'Signing space': {'Purely spacial': compare_result_dict}}
+            else:
+                return 0
+
+            # Add btn info
+            modify_button_type = lambda d: (
+                d.update({'button_type': f"major loc>major loc>{d['button_type']}"}) if 'button_type' in d else
+                [modify_button_type(v) for v in d.values() if isinstance(v, dict)]
+            )
+            modify_button_type(r)
+            return r
 
         def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
             # pair = tuple of LocationModules
