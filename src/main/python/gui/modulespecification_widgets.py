@@ -22,7 +22,9 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
     QSpacerItem,
     QGridLayout,
-    QTextEdit
+    QTextEdit,
+    QButtonGroup,
+    QRadioButton
 )
 
 from PyQt5.QtGui import (
@@ -554,3 +556,47 @@ class PhonLocSelection(QWidget):
         self.phonological_cb.setChecked(False)
         self.phonetic_cb.setChecked(False)
 
+
+# this radio button class tracks not only its current state
+#   (and, as usual, mutual exclusivity with buttons in the same group)
+#   but also, when a group button is toggled, updates the group with its identity
+#   for the purposes of being able to un-check when appropriate
+class DeselectableRadioButton(QRadioButton):
+
+    def __init__(self, text, **kwargs):
+        super().__init__(text, **kwargs)
+
+    def setChecked(self, checked):
+        # can deal with programmatically unselected btns as well
+        if self.group() is not None:
+            if checked:
+                self.group().previously_checked = self
+            else:
+                self.group().previously_checked = None
+        super().setChecked(checked)
+
+
+# this buttongroup allows for unchecking buttons even when the group is set to mutually exclusive
+class DeselectableRadioButtonGroup(QButtonGroup):
+
+    def __init__(self, buttonslist=None, **kwargs):
+        # buttonslist: list of QRadioButton to be included as a group
+        super().__init__(**kwargs)
+        if buttonslist is not None:
+            [self.addButton(button) for button in buttonslist]
+
+        # in order to compare new checked button with previously-checked button
+        self.previously_checked = None
+
+        self.buttonClicked.connect(self.handle_button_clicked)
+
+    def handle_button_clicked(self, btn):
+        if self.previously_checked == btn:
+            # user clicked an already-selected button; we'll uncheck it
+            self.setExclusive(False)
+            btn.setChecked(False)
+            self.setExclusive(True)
+            self.previously_checked = None
+        else:
+            # user clicked a previously-unselected button
+            self.previously_checked = btn

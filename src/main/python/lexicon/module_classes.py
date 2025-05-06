@@ -2,15 +2,17 @@ from datetime import datetime
 from fractions import Fraction
 from itertools import chain
 import functools
-import time
-import logging
+import time, os, re
 
 from PyQt5.QtCore import (
     Qt,
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, \
+    SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots, SIGN_TYPE
+from constant import (specifytotalcycles_str, numberofreps_str, custom_abbrev)
+
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 def get_path_lowest_node(path):
@@ -471,104 +473,133 @@ class MovementModule(ParameterModule):
         self._inphase = inphase
 
     def getabbreviation(self):
-        
-        wordlist = []
-
-        listmodel = self._movementtreemodel.listmodel
-        abbrevs = {
-            "Perceptual shape": "Perceptual",
-            "Straight": "Straight",
-            # "Interacts with subsequent straight movement": "interacts with subseq. straight mov.",
-            "Movement contours cross (e.g. X)": "crosses subseq. mov.",
-            "Subsequent movement starts at end of first (e.g. ↘↗)": "ends where subseq. mov starts",
-            "Subsequent movement starts in same location as start of first (e.g. ↖↗)": "starts where subseq. mov starts",
-            "Subsequent movement ends in same location as end of first (e.g. ↘↙)": "ends where subseq. mov. ends",
-            "Arc": "Arc",
-            "Circle": "Circle",
-            "Zigzag": "Zigzag",
-            "Loop (travelling circles)": "Loop",
-            "Joint-specific movements": "Joint-specific",
-            "Nodding/un-nodding": "Nod/Un-",
-            "Nodding": "nod",
-            "Un-nodding": "un-nod",
-            "Pivoting": "Pivot",
-            "Radial": "radial pivot",
-            "Ulnar": "ulnar pivot",
-            "Twisting": "Twist",
-            "Pronation": "pronation",
-            "Supination": "supination",
-            "Closing/Opening": "Close/Open",
-            "Closing": "close",
-            "Opening": "open",
-            "Pinching/unpinching": "Pinch/Un-",
-            "Pinching (Morgan 2017)": "pinch",
-            "Unpinching": "unpinch",
-            "Flattening/Straightening": "Flatten/Straighten",
-            "Flattening/hinging": "flatten",
-            "Straightening": "straighten",
-            "Hooking/Unhooking": "Hook/Un-",
-            "Hooking/clawing": "hook",
-            "Unhooking": "unhook",
-            "Spreading/Unspreading": "Spread/Un-",
-            "Spreading": "spread",
-            "Unspreading": "unspread",
-            "Rubbing": "Rub",
-            "Wiggling/Fluttering": "Wiggle",
-            "Up": "up",
-            "Down": "down",
-            "Distal": "dist",
-            "Proximal": "prox",
-            "Ipsilateral": "ipsi",
-            "Contralateral": "contra",
-            "Right": "right",
-            "Left": "left",
-            "Mid-sagittal": "mid-sag",
-            "Clockwise": "clockwise",
-            "Counterclockwise": "counter-clockwise",
-            "Horizontal": "Hor",
-            "Vertical": "Ver",
-            "Single": "1x",
-            "2": "2x",
-            "3": "3x",
-            "4": "4x",  # TODO automate the abbreviations for integers
-            ""
-            "Same location": "same loc",
-            "Different location": "diff. loc",
-            "Trilled": "Trilled",
-            "Bidirectional": "Bidirec"
+        def refactor_list(strings):
+            if not strings:
+                return ""
+            prefix = os.path.commonprefix(strings)
+             # eg factor Hand (across), Hand (away), Hand (to wrist) into Hand (across + away + to wrist)
+            if len(strings) > 1 and prefix and '(' in prefix: 
+                prefix = prefix[:prefix.find('(')+1] 
+                unique_parts = [re.sub(f"^{re.escape(prefix)}", "", s).strip(" ()") for s in strings]
+                return f"{prefix}{' + '.join(unique_parts)})"
+            else:
+                return f"{' + '.join(filter(None, strings))}"
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
+        perceptual_info = {
+            "Shape": [],
+            "Axis direction": [],
+            "Plane": [],
         }
-        # 
-        numrows = listmodel.rowCount()
-        for rownum in range(numrows):
-            item = listmodel.item(rownum)
-            text = item.text()
-            id = item.nodeID
-            # logging.warn(rownum)
-            # logging.warn(item)
-            # logging.warn(id)
-            selected = item.data(Qt.UserRole+udr.selectedrole)
-            if selected:
-                # logging.warn(text)
-                # logging.warn(id)
-                pathelements = text.split(treepathdelimiter)
-                # thisentrytext = ""
-                # firstonedone = False
-                # morethanone = False
-                for pathelement in pathelements:
-                    if pathelement in abbrevs.keys():  #  and abbrevs[pathelement] not in thisentrytext:
-                        wordlist.append(abbrevs[pathelement])
-                #         if not firstonedone:
-                #             thisentrytext += abbrevs[pathelement]
-                #             firstonedone = True
-                #         else:
-                #             if not morethanone:
-                #                 thisentrytext += " (" + abbrevs[pathelement] + ", "
-                #                 morethanone = True
-                #     if morethanone:  # and thisentrytext.endswith(")"):
-                #         thisentrytext += ")"  # = thisentrytext[:-2] + ")"
-                # wordlist.append(thisentrytext)
+        joint_specific_info, handshape_change_str, mvmtchar_info = [], "", []
+        axis_other, plane_other = "", ""
+        h1h2 = {"Axis direction": "", "Plane": ""}
+        rep_info = {"abbrev": "", "num": None, "min": False, "locn": []}
+        
+        paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
+        leaf_paths = []
+        last_path = paths[0] if paths else None
+        for path in paths: 
+            # we'll mainly work with the leaf nodes, but occasionally we need to access the abbreviations of other nodes as well.
+            if last_path["path"] in path["path"]: # this is a child of last_path
+                last_path = path
+            else:
+                leaf_paths.append(last_path)
+                last_path = path
+        if last_path is not None: leaf_paths.append(last_path) 
+        paths_dict = {}
+        for d in paths: # convert to dict for quick lookup
+            paths_dict[d['path']] = d
+        for path in leaf_paths: # each path contains keys "path", "abbrev", "usv"
+            path_nodes = path["path"].split(treepathdelimiter)
+            # distinguish between None and "". If "", the path shouldn't appear in the abbreviation (eg for "Not relevant")
+            abbrev = path["abbrev"] if path["abbrev"] is not None else path_nodes[-1] 
+            if len(path_nodes) == 1: return abbrev
+            if path_nodes[0] == "Movement type":
+                if path_nodes[1] == "Perceptual shape":
+                    if path["abbrev"] == custom_abbrev: abbrev = "" 
+                    # node[2] is either Shape, Axis direction, or Plane
+                    # node[3] is the specified shape or axis or plane
+                    if len(path_nodes) >= 3:
+                        shape_type = path_nodes[2] 
+                        if shape_type == "Shape" and path["usv"] and path_nodes[-1] == "Other":
+                            abbrev = path['usv']
+                        elif shape_type == "Axis direction" and len(path_nodes) > 4 and path_nodes[4] == "Other":
+                            axis_other = paths_dict[treepathdelimiter.join(path_nodes[0:5])]["usv"] + " "
+                        elif shape_type == "Plane":
+                            if (not plane_other) and len(path_nodes) > 4 and path_nodes[4] == "Other":
+                                plane_other = f"{paths_dict[treepathdelimiter.join(path_nodes[0:5])]['usv']} " 
+                            if len(path_nodes) > 5 and path_nodes[5] == "Specify top of area:":
+                                top = paths_dict[path["path"]]['usv']
+                                plane_other += f"(top: {top}) "
+                        if abbrev.startswith("H1 & H2"):
+                            h1h2[shape_type] = abbrev 
+                        else:
+                            perceptual_info[shape_type].append(abbrev) 
 
-        return "; ".join(wordlist)
+                elif path_nodes[1] == "Joint-specific movements":
+                    # node[2] is movement type, node[3] is direction, so need 3 or 4 nodes depending on whether direction is specified.
+                    # except when node[2] is "rubbing", which requires 4 or 5 nodes
+                    if len(path_nodes) >= 4 and path_nodes[2] == "Rubbing":
+                        if path_nodes[3] not in ['Articulator(s):', 'Location:']:
+                            joint_specific_info.append(abbrev)
+                    else:
+                        if path['usv']: abbrev = path['usv']
+                        joint_specific_info.append(abbrev)
+
+                elif path_nodes[1] == "Handshape change":
+                    handshape_change_str = abbrev
+            elif path_nodes[0] == "Movement characteristics":
+                if path_nodes[1] == "Repetition":
+                    if len(path_nodes) >= 4 and path_nodes[3] == 'Specify total number of cycles':
+                        rep_info['abbrev'] = abbrev
+                        rep_info["num"] = paths_dict[treepathdelimiter.join(path_nodes[0:4])]["usv"]
+                        if not rep_info["num"]:
+                            print("unspecified num reps")
+                        if len(path_nodes) == 5: # "this number is a minimum" 
+                            rep_info["min"] = True 
+                    elif len(path_nodes) >= 6 and path_nodes[3] == 'Location of repetition': # if location is specified, path is at least 6 nodes long
+                        rep_info["locn"].append(abbrev)
+                    else: # single
+                        rep_info['abbrev'] = abbrev
+
+
+                else: # directionality or additional characteristics
+                    # Handle usv options for additional characteristics
+                    if path_nodes[-1] != "Relative to":  # ugly, but we handle this usv case separately
+                        if path_nodes[1] == "Additional characteristics": 
+                            if len(path_nodes) >= 3:
+                                if path['usv']: 
+                                    parent_abbrev = path_nodes[-2]
+                                    abbrev = f"{parent_abbrev}: {path['usv']}"
+                                    # abbrev = paths[treepathdelimiter.join(path_nodes[0:-2])] + treepathdelimiter + path['usv']
+                                relativeto_path = treepathdelimiter.join(path_nodes[0:3]) + treepathdelimiter + "Relative to"
+                                if relativeto_path in paths_dict: # not great but does the trick
+                                    abbrev += f" (relative to {paths_dict[relativeto_path]['usv']})"
+
+                        mvmtchar_info.append(abbrev)
+            elif len(path_nodes) > 1 and path_nodes[0] == "Joint activity": # TODO eventually
+                pass
+        
+        perceptual_info['Axis direction'] = f"{axis_other}({refactor_list(perceptual_info['Axis direction'])})" if axis_other else refactor_list(perceptual_info['Axis direction'])
+        perceptual_info['Plane'] = f"{plane_other}({refactor_list(perceptual_info['Plane'])})" if plane_other else refactor_list(perceptual_info['Plane'])
+        perceptual_info_str = '; '.join(filter(None, (['; '.join(filter(None, perceptual_info['Shape'])), h1h2['Axis direction'], perceptual_info['Axis direction'], h1h2['Plane'], perceptual_info['Plane']])))
+        
+        perceptual_str = None if not perceptual_info_str else f"Perceptual ({perceptual_info_str})" 
+        joint_specific_info_str = None if not joint_specific_info else f"Joint-specific ({refactor_list(joint_specific_info)})" 
+        if rep_info['abbrev']:
+            if not rep_info["num"]: rep_str = rep_info['abbrev']
+            else: 
+                rep_str = f"{'min ' if rep_info['min'] else ''}{rep_info['num']}x"
+                # rep_info['abbrev'] if not rep_info['min'] else f"{'min '}{rep_info['num']}x"
+            if rep_info['locn']: rep_str += f" (Different loc: {' + '.join(rep_info['locn'])})"
+        else: rep_str = ""
+        mvmtchar_str = None if not mvmtchar_info else '; '.join(filter(None, mvmtchar_info))
+
+
+        to_return = '; '.join(filter(None, [phonphon_str, perceptual_str, joint_specific_info_str, handshape_change_str, rep_str, mvmtchar_str]))
+        return to_return
+        # return to_return
+        
 
 
 # this class stores info about whether an instance of the Location module represents a phonetic/phonological location
@@ -1218,11 +1249,10 @@ class Signtype:
 
     def convertspecstodict(self):
         abbrevsdict = {}
-        specscopy = [duple for duple in self._specslist]
-        for duple in specscopy:
-            if duple[1]:  # this is the flag to include the abbreviation in the concise form
-                pathlist = duple[0].split('.')  # this is the path of abbreviations to this particular setting
-                self.ensurepathindict(pathlist, abbrevsdict)
+        for spec in self._specslist:
+            # include abbreviations for all options
+            pathlist = spec.split('.')  # this is the path of abbreviations to this particular setting
+            self.ensurepathindict(pathlist, abbrevsdict)
         return abbrevsdict
 
     def ensurepathindict(self, pathelements, abbrevsdict):
@@ -1327,7 +1357,7 @@ class LocationModule(ParameterModule):
 
 
     def getabbreviation(self):
-        phonphon_str = self.phonlocs.getabbreviation()
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         loctype_str = self.locationtreemodel.locationtype.getabbreviation()
         is_neutral_str = "neutral" if self.locationtreemodel.defaultneutralselected else ""
 
@@ -1422,7 +1452,7 @@ class RelationX:
         else:
             rel_dict = self.__dict__
             for attr in rel_dict:
-                if rel_dict[attr]:
+                if attr.endswith((str(1), str(2))) and rel_dict[attr]:
                     relX_str = attr[1:] # attributes are prepended with _
                     break
         return relX_str
@@ -1601,7 +1631,7 @@ class RelationY:
         relY_str = ""
         if self.aboth:
             relY_str = "both arms"
-        if self.lboth:
+        elif self.lboth:
             relY_str = "both legs"
         elif self.existingmodule:
             # print(self.linkedmoduleids)
@@ -1618,7 +1648,7 @@ class RelationY:
         else:
             rel_dict = self.__dict__
             for attr in rel_dict:
-                if rel_dict[attr]:
+                if attr.endswith((str(1), str(2))) and rel_dict[attr]:
                     relY_str = attr[1:]  # attributes are prepended with _
                     break
         return relY_str
@@ -1768,10 +1798,10 @@ class RelationModule(ParameterModule):
         self._relationx = relationx or RelationX()
         self._relationy = relationy or RelationY()
         self._bodyparts_dict = {}
-        for bodypart in bodyparts_dict.keys():
-            if bodypart not in self._bodyparts_dict.keys():
+        for bodypart in bodyparts_dict:
+            if bodypart not in self._bodyparts_dict:
                 self._bodyparts_dict[bodypart] = {}
-            for n in bodyparts_dict[bodypart].keys():
+            for n in bodyparts_dict[bodypart]:
                 self._bodyparts_dict[bodypart][n] = bodyparts_dict[bodypart][n] or BodypartInfo(bodyparttype=bodypart, bodyparttreemodel=None)
         self._contactrel = contactrel or ContactRelation()
         # backwards compatibility for generic distance axis (issue 387)
@@ -1845,8 +1875,24 @@ class RelationModule(ParameterModule):
     @directions.setter
     def directions(self, directions):
         self._directions = directions
+
+    def get_treemodel_from_articulator_label(self, label):
+        """
+        Returns self.bodyparts_dict[articulator][number].bodyparttreemodel,
+        where articulator and number are extracted from a string such as "hand1" or "H1"
+        """
+        number = 1 if label.endswith("1") else 2
+        art = ""
+        if label.startswith(("h", "H")): 
+            art = HAND
+        elif label.startswith(("a", "A")):
+            art = ARM
+        elif label.startswith(("l", "L")):
+            art = LEG
+
+        return(self.bodyparts_dict[art][number].bodyparttreemodel)
     
-    def get_paths(self):
+    def get_paths(self, only_fully_checked=True):
         """
         Returns a dict mapping articulators to their selected path details.
 
@@ -1864,7 +1910,7 @@ class RelationModule(ParameterModule):
             label = arts[i] if arts[i] != 'Hand' else 'H'
             bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
             treemodel = bodypartinfo.bodyparttreemodel
-            paths.update({label + str(nums[i]) : treemodel.get_checked_items(include_details=True)})
+            paths.update({label + str(nums[i]) : treemodel.get_checked_items(only_fully_checked=only_fully_checked, include_details=True)})
         
         return paths
     
@@ -1879,11 +1925,11 @@ class RelationModule(ParameterModule):
         return f'{art}[{" " if len(path_strings) == 0 else ", ".join(path_strings)}]'
 
     def has_any_distance(self):
-        for i in range(4):
-            dis = self.contactrel.distances[i]
+        for dis in self.contactrel.distances:
             if dis.has_selection():
                 return True
         return False
+
     
     def has_any_direction(self): # returns true if anything in direction is selected, including axis checkboxes or crossed/linked
         if self.xy_crossed or self.xy_linked:
@@ -1893,8 +1939,7 @@ class RelationModule(ParameterModule):
         return False
 
     def has_any_direction_axis(self): # returns true if any direction checkbox is selected
-        for i in range(3):
-            dir = self.directions[i]
+        for dir in self.directions:
             if dir.axisselected:
                 return True
         return False
@@ -1925,7 +1970,7 @@ class RelationModule(ParameterModule):
             
         return (self.contactrel.contact == None and not self.xy_crossed and not self.xy_linked)
     
-    def get_articulators_in_use(self):
+    def get_articulators_in_use(self, as_string=False):
         a = []
         n = []
         for b in [HAND, ARM, LEG]:
@@ -1933,7 +1978,15 @@ class RelationModule(ParameterModule):
                 if self.usesarticulator(b,i):
                     a.append(b)
                     n.append(i)
-        return a, n
+        if as_string:
+            labels = []
+            for i in range(len(a)):
+                label = a[i] if a[i] != 'Hand' else 'H'
+                label += str(n[i])
+                labels.append(label)
+            return labels
+        else:
+            return a, n
 
     def hands_in_use(self):
         return {
@@ -1955,7 +2008,8 @@ class RelationModule(ParameterModule):
 
     # relation abbreviation
     def getabbreviation(self):
-        phonphon_str = self.phonlocs.getabbreviation()
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
+
         X_str, Y_str = '', ''
         
         paths = self.get_paths() 
@@ -1967,7 +2021,7 @@ class RelationModule(ParameterModule):
             X_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
         elif X_art.startswith('Other'):
             X_str += X_art
-        else:
+        elif paths and X_art:
             X_str += self.get_path_abbrev(paths, X_art)
 
         if self.relationy.existingmodule:
@@ -1980,11 +2034,12 @@ class RelationModule(ParameterModule):
                 Y_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
             elif Y_art.startswith('Other'):
                 Y_str += Y_art
-            else:
+            elif paths and Y_art:
                 Y_str = self.get_path_abbrev(paths, Y_art)
-
-        X_str = "X = " + X_str
-        Y_str = "Y = " + Y_str
+        if X_str:
+            X_str = "X = " + X_str
+        if Y_str:
+            Y_str = "Y = " + Y_str
 
         contact, link_cross_label, relative_label = "", "", ""
         if self.contactrel.contact == False: # if None, then no contact has been specified.
@@ -2018,22 +2073,38 @@ class RelationModule(ParameterModule):
             crossed = "crossed" if self.xy_crossed else ""
             link_cross_label += f"X/Y {', '.join(filter(None, [linked, crossed]))}"
 
-        # direction
-        if self.has_any_direction_axis() or self.has_any_distance():
-            to_append = []
+        # direction, distance
+        any_dir_dist = []
+        any_dir_dist_label = ""
+        dir_abbrev, dist_abbrev = "", ""
+        dirs, dists = ["", "", ""], ["", "", "", ""] # distance has Generic option
+        if len(self.directions) == 1:
+            any_dir_dist.append("any direction")
+        elif self.has_any_direction_axis(): 
             for i, label in enumerate(["Hor", "Ver", "Sag"]):
-                dir_abbrev = self.directions[i].getabbreviation()
-                dir_abbrev = f"[{dir_abbrev}]" if dir_abbrev else ""
-                dist_abbrev = self.contactrel.distances[i].getabbreviation()
-                dist_abbrev = f"[{dist_abbrev}]" if dist_abbrev else ""
-                if dir_abbrev or dist_abbrev:
-                    to_append.append(f"{label} {''.join(filter(None, [dir_abbrev, dist_abbrev]))}")
-            # if a generic distance is specified
+                dir_abbrev = self.directions[i].getabbreviation() 
+                dirs[i] = f"[{dir_abbrev}]" if dir_abbrev else ""
+        if len(self.contactrel.distances) == 1:
+            any_dir_dist.append("any distance")
+        elif self.has_any_distance():
+            for i, label in enumerate(["Hor", "Ver", "Sag", "Gen"]):
+                dist_abbrev = self.contactrel.distances[i].getabbreviation() 
+                dists[i] = f"[{dist_abbrev}]" if dist_abbrev else ""
+        if any_dir_dist:
+            any_dir_dist_label = f"{', '.join(filter(None, any_dir_dist))} between X and Y"
+        to_append = []
+        for i, label in enumerate(["Hor", "Ver", "Sag"]):
+            if dirs[i] or dists[i]:
+                to_append.append(f"{label} {''.join(filter(None, [dirs[i], dists[i]]))}")
+        # if a generic distance is specified
+        if len(self.contactrel.distances) > 1:
             generic_dist_label = f"Gen [{self.contactrel.distances[3].getabbreviation()}]" if self.contactrel.distances[3].getabbreviation() else ""
-            to_append.append(generic_dist_label)
+            if generic_dist_label:
+                to_append.append(generic_dist_label)
+        if to_append:
             relative_label += f"X is {', '.join(filter(None, to_append))} to Y"
         
-        return ": ".join(filter(None, [phonphon_str, "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, relative_label]))]))
+        return ": ".join(filter(None, [phonphon_str, "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, any_dir_dist_label, relative_label]))]))
     
 
 
@@ -2106,7 +2177,7 @@ class MannerRelation:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = self._holding or self._continuous or self._intermittent
+            self._any = False
         return self._any
 
     @any.setter
@@ -2278,7 +2349,7 @@ class ContactType:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = self._light or self._firm or self._other
+            self._any = False
         return self._any
 
     @any.setter
@@ -2300,7 +2371,9 @@ class Direction:
         self._plus = plus  # ipsi for horizontal, above for vertical, proximal for sagittal
         self._minus = minus  # contra for horizontal, below for vertical, distal for sagittal
         self._inline = inline  # in line with (for all axes)
-        self._any = any # Used by search targets to match any direction selection (crossed / linked / hor / ver / sag)
+        # Used by search targets to match any specified direction. 
+        # If axis is None, then match any direction selection (crossed / linked / hor / ver / sag). If axis is selected, then the axis checkbox is checked (hor/ver/sag).
+        self._any = any 
 
     def __eq__(self, other):
         if isinstance(other, Direction):
@@ -2409,11 +2482,13 @@ class Direction:
         vert_minus = "down" if sourcemodule == ModuleTypes.ORIENTATION else "below"
 
         if self.axis == Direction.HORIZONTAL:
-            return "ipsi" if self.plus else "contra" if self.minus else "in line" if self.inline else ""
+            return "ipsi" if self.plus else "contra" if self.minus else "in line" if self.inline else "any" if self.axisselected else ""
         elif self.axis == Direction.VERTICAL:
-            return vert_plus if self.plus else vert_minus if self.minus else "in line" if self.inline else ""
+            return vert_plus if self.plus else vert_minus if self.minus else "in line" if self.inline else "any" if self.axisselected else ""
         elif self.axis == Direction.SAGITTAL:
-            return "prox" if self.plus else "dist" if self.minus else "in line" if self.inline else ""
+            return "prox" if self.plus else "dist" if self.minus else "in line" if self.inline else "any" if self.axisselected else ""
+
+
 
 
 
@@ -2427,7 +2502,9 @@ class Distance:
         self._close = close
         self._medium = medium
         self._far = far
-        self._any = any # Used by search targets to match any specified distance
+        # Used by search targets to match any specified distance. 
+        # If axis is None, then "any distance between X and Y" is checked. If axis is selected, then the axis checkbox is checked.
+        self._any = any 
 
     def __eq__(self, other):
         if isinstance(other, Distance):
@@ -2489,7 +2566,7 @@ class Distance:
     def any(self):
         if not hasattr(self, '_any'):
             # for backward compatibility with pre-20241205 relation modules
-            self._any = self._far or self._close or self._medium
+            self._any = False
         return self._any
 
     @any.setter
@@ -2511,7 +2588,7 @@ class Distance:
 
     def getabbreviation(self):
         # returns the abbreviated label of the selected distance 
-        return "close" if self.close else "med" if self.medium else "far" if self.far else "" 
+        return "close" if self.close else "med" if self.medium else "far" if self.far else "any" if self.any else "" 
 
 
 # This module stores the absolute orientation of a particular hand/s.
@@ -2552,8 +2629,9 @@ class OrientationModule(ParameterModule):
     def root(self, root):
         self._root = root
 
+
     def getabbreviation(self):
-        phonphon_str = self.phonlocs.getabbreviation()
+        phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         palm_arr, root_arr = [], []
         
         for i, label in enumerate(["Hor", "Ver", "Sag"]):
@@ -2574,8 +2652,47 @@ class OrientationModule(ParameterModule):
 
 
         
-        
 
+# This module is only used in the search window. 
+# Used instead of the usual HandConfigurationModule when the user wants to do an extended-fingers search.
+class ExtendedFingersModule(ParameterModule):
+    def __init__(self, i_extended, finger_selections, num_extended_selections, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+        self._i_extended = i_extended
+        self._finger_selections = finger_selections
+        self._num_extended_selections = num_extended_selections
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+    
+    @property
+    def moduletype(self):
+        return super().moduletype or TargetTypes.EXTENDEDFINGERS
+
+    @property
+    def i_extended(self):
+        return self._i_extended
+
+    @i_extended.setter
+    def i_extended(self, value):
+        self._i_extended = value
+
+    @property
+    def finger_selections(self):
+        return self._finger_selections
+
+    @finger_selections.setter
+    def finger_selections(self, value):
+        self._finger_selections = value
+
+    @property
+    def num_extended_selections(self):
+        return self._num_extended_selections
+
+    @num_extended_selections.setter
+    def num_extended_selections(self, value):
+        self._num_extended_selections = value
+
+    # TODO
+    def getabbreviation(self):
+        return ""
 
 # This module stores the transcription of one hand's configuration.
 # It includes specifications for each slot in each field, as well as whether the forearm is involved.
@@ -2606,6 +2723,24 @@ class HandConfigurationModule(ParameterModule):
     @overalloptions.setter
     def overalloptions(self, new_overalloptions):
         self._overalloptions = new_overalloptions
+    
+    def config_tuple(self):
+        return tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
+
+    def thumb_is_unopposed(self, config_tuple):
+        if config_tuple[HandConfigSlots.THUMB_OPPOSITION] in ['L', 'U']:
+            return True
+        return False
+        
+    def finger_is_extended(self, config_tuple, extended_symbols, finger):
+        if finger == 0: # thumb
+            if not self.thumb_is_unopposed(config_tuple):
+                return False
+        if config_tuple[HandConfigSlots.MCP[finger]] in extended_symbols:
+            return True
+        return False
+
+
 
     def getabbreviation(self):
         handconfighand = HandConfigurationHand(self.handconfiguration)

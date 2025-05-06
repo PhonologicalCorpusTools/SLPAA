@@ -7,44 +7,37 @@ from PyQt5.QtGui import (
 )
 from datetime import datetime
 from PyQt5.QtWidgets import (
-    QVBoxLayout,
-    QDialog,
+    QVBoxLayout,QMenu, QDialog,
     QWidget,
     QPushButton,
     QLabel,
-    QComboBox,
     QMdiArea,
     QMdiSubWindow,
-    QFormLayout,    
     QSpacerItem,
     QFrame,
-    QDialogButtonBox,
     QFileDialog,
-    QTextEdit,
     QVBoxLayout,
     QHBoxLayout,
     QRadioButton,
-    QScrollArea,
     QButtonGroup,
     QLineEdit,
     QMessageBox,
+    QUndoStack,
     QCheckBox,
-    QListWidget,
-    QListWidgetItem,
     QTableView,
     QHeaderView,
     QSizePolicy,
     QMainWindow,
-    QItemDelegate,
     QStyledItemDelegate,
     QAction,
-    QTabWidget
 )
+from PyQt5.Qt import QStandardItem
 from gui.decorator import check_unsaved_search_targets
+from gui.undo_command import TranscriptionUndoCommand
 from search.results import ResultsView
 import logging
 from gui.xslotspecification_view import XslotSelectorDialog, XslotStructure
-from constant import XSLOT_TARGET, SIGNLEVELINFO_TARGET, SIGNTYPEINFO_TARGET, MOV_REL_TARGET, LOC_REL_TARGET, HAND, ARM, LEG
+from constant import TargetTypes, HAND, ARM, LEG
 import copy 
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, pyqtSlot
 from lexicon.lexicon_classes import Sign, SignLevelInformation
@@ -66,6 +59,7 @@ class SearchWindow(QMainWindow):
         self.current_sign = self.create_current_sign()
         self.current_row = None
         self.unsaved_changes = False
+        self.undostack = QUndoStack(parent=self)
 
         self.searchmodel = SearchModel(sign=self.current_sign)
 
@@ -129,6 +123,25 @@ class SearchWindow(QMainWindow):
         action_saveas.triggered.connect(self.on_action_save_as)
         file_menu.addAction(action_saveas)
 
+        # undo
+        action_undo = QAction(QIcon(self.app_ctx.icons['undo']), 'Undo', parent=self)
+        action_undo.setEnabled(False)
+        self.undostack.canUndoChanged.connect(lambda b: action_undo.setEnabled(b))
+        action_undo.setStatusTip('Undo')
+        action_undo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Z))
+        action_undo.triggered.connect(lambda: self.undostack.undo())
+        action_undo.setCheckable(False)
+
+        # redo
+        action_redo = QAction(QIcon(self.app_ctx.icons['redo']), 'Redo', parent=self)
+        action_redo.setEnabled(False)
+        self.undostack.canRedoChanged.connect(lambda b: action_redo.setEnabled(b))
+        action_redo.setStatusTip('Undo')
+        action_redo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Y))
+        action_redo.triggered.connect(lambda: self.undostack.redo())
+        action_redo.setCheckable(False)
+
+
 
         settings_menu = menu_bar.addMenu('Settings')
 
@@ -166,6 +179,8 @@ class SearchWindow(QMainWindow):
                 self.app_settings['storage']['recent_folder'] = folder
 
             self.save_search_binary()
+        self.undostack.clear()
+        self.unsaved_changes = False
 
     @check_unsaved_search_targets
     def on_action_save(self):
@@ -173,6 +188,7 @@ class SearchWindow(QMainWindow):
             self.save_search_binary()
 
         self.unsaved_changes = False
+        self.undostack.clear()
             
     def init_ui(self):
         self.create_menu_bar()
@@ -257,6 +273,9 @@ class SearchWindow(QMainWindow):
             searchmodel.path = path
             return searchmodel
     
+    def handle_slot_edit(self, slot, old_prop, new_prop):
+        undo_command = TranscriptionUndoCommand(slot, old_prop, new_prop)
+        self.undostack.push(undo_command)
 
             
 class SearchTargetsView(QWidget):
@@ -264,7 +283,7 @@ class SearchTargetsView(QWidget):
         super().__init__(**kwargs)
         self.mainwindow = mainwindow
 
-        self.table_view = QTableView(parent=self)
+        self.table_view = SearchTargetsTableView(parent=self)
         self.table_view.setModel(searchmodel)
         self.set_table_ui()
 
@@ -273,8 +292,11 @@ class SearchTargetsView(QWidget):
         self.setLayout(layout)
 
         self.table_view.doubleClicked.connect(self.handle_target_doubleclicked) 
+        self.table_view.delete_target_selected.connect(self.handle_delete_target)
+        self.table_view.rename_target_selected.connect(self.handle_rename_target)
     
     def set_table_ui(self):
+        # TODO since we've created a custom table view class, maybe handle UI in there
         self.table_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.table_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         # self.table_view.setStyleSheet("QTableView {alignment: AlignCenter;}")
@@ -285,7 +307,25 @@ class SearchTargetsView(QWidget):
         self.table_view.setItemDelegateForColumn(2, self.list_del) # The "values" column contains lists
 
         self.table_view.setEditTriggers(QTableView.NoEditTriggers) # disable edit via clicking table
+    
+    def handle_delete_target(self, row):
+        result = QMessageBox.warning(self,
+                                        "Delete target",
+                                        "Confirm delete target?",
+                                        QMessageBox.Yes | QMessageBox.Cancel,
+                                        QMessageBox.Cancel)
+        if result == QMessageBox.Yes:
+            self.table_view.model().removeRow(row)
+
+    def handle_rename_target(self, row):
+        model = self.table_view.model()
+        dialog = NameDialog(preexistingname=model.target_name(row))
+        dialog.continue_clicked.connect(lambda name: self.table_view.model().item(row, TargetHeaders.NAME).setText(name))
+        dialog.exec_()
+
+
         
+
     
     def get_search_target_item(self, row):
         model = self.table_view.model()
@@ -332,42 +372,59 @@ class SearchTargetsView(QWidget):
         )
         module_selector.exec_()
 
-
     def handle_target_doubleclicked(self, index):
         row = index.row()
         item = self.get_search_target_item(row)
 
 
-        if item.targettype == XSLOT_TARGET:
+        if item.targettype == TargetTypes.XSLOT:
             timing_selector = XSlotTargetDialog(parent=self, preexistingitem=item)
             timing_selector.target_saved.connect(lambda target_name, max_xslots, min_xslots: 
                                                  self.mainwindow.build_search_target_view.handle_save_xslottarget(target_name, max_xslots, min_xslots, preexistingitem=item, row=row))
             timing_selector.exec_()
-
-        elif item.targettype == SIGNLEVELINFO_TARGET:
-            initialdialog = NameDialog(parent=self, preexistingname=item.name)
-            initialdialog.continue_clicked.connect(lambda name: 
-                                                   self.mainwindow.build_search_target_view.show_next_dialog(SIGNLEVELINFO_TARGET, name, preexistingitem=item, row=row))
-            initialdialog.exec_()
         
-        elif item.targettype == SIGNTYPEINFO_TARGET:
+        elif item.targettype in [TargetTypes.SIGNLEVELINFO, TargetTypes.SIGNTYPEINFO]:
+            targettype = item.targettype
             initialdialog = NameDialog(parent=self, preexistingname=item.name)
             initialdialog.continue_clicked.connect(lambda name: 
-                                                   self.mainwindow.build_search_target_view.show_next_dialog(SIGNTYPEINFO_TARGET, name, preexistingitem=item, row=row))
+                                                   self.mainwindow.build_search_target_view.show_next_dialog(targettype, name, preexistingitem=item, row=row))
             initialdialog.exec_()
 
         
-        elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, LOC_REL_TARGET, MOV_REL_TARGET]:
+        elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, TargetTypes.LOC_REL, TargetTypes.MOV_REL, ModuleTypes.HANDCONFIG]:
             initialdialog = XSlotTypeDialog(parent=self, preexistingitem=item)
             initialdialog.continue_clicked.connect(lambda name, xslottype: 
             self.mainwindow.build_search_target_view.show_next_dialog(item.targettype, name, xslottype, preexistingitem=item, row=row))
             initialdialog.exec_()
 
 
-        
         else:
             QMessageBox.critical(self, "not implemented", "modify on double click not implemented for this target type")
 
+class SearchTargetsTableView(QTableView):
+    delete_target_selected = pyqtSignal(int) 
+    rename_target_selected = pyqtSignal(int)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def contextMenuEvent(self, event):
+        self.contextMenu = QMenu(self)
+        renameAction = QAction('Rename', self)
+        renameAction.triggered.connect(lambda _: self.handle_context_menu_clicked(action = "rename"))
+        self.contextMenu.addAction(renameAction)
+        deleteAction = QAction('Delete', self)
+        deleteAction.triggered.connect(lambda _: self.handle_context_menu_clicked(action = "delete"))
+        self.contextMenu.addAction(deleteAction)
+
+        self.contextMenu.popup(event.globalPos())
+    
+    def handle_context_menu_clicked(self, action):
+        row = self.currentIndex().row()
+        if action == "delete":
+            self.delete_target_selected.emit(int(row))
+        elif action == "rename":
+            self.rename_target_selected.emit(int(row))
 
 
 class ListDelegate(QStyledItemDelegate):
@@ -412,12 +469,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             negative = preexistingitem.negative
             include = preexistingitem.include
 
-        svi = SearchValuesItem(type=XSLOT_TARGET, 
+        svi = SearchValuesItem(type=TargetTypes.XSLOT, 
                                module=None, 
                                values={ "xslot min": min_xslots, 
                                        "xslot max": max_xslots })
         target = SearchTargetItem(name=target_name, 
-                                  targettype=XSLOT_TARGET, 
+                                  targettype=TargetTypes.XSLOT, 
                                   xslottype=None, 
                                   searchvaluesitem=svi,
                                   include=include,
@@ -429,12 +486,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
     def handle_signlevelbutton_click(self):
         initialdialog = NameDialog(parent=self)
-        initialdialog.continue_clicked.connect(lambda name: self.show_next_dialog(SIGNLEVELINFO_TARGET, name))
+        initialdialog.continue_clicked.connect(lambda name: self.show_next_dialog(TargetTypes.SIGNLEVELINFO, name))
         initialdialog.exec_()
     
     def handle_signtypebutton_click(self):
         initialdialog = NameDialog(parent=self)
-        initialdialog.continue_clicked.connect(lambda name: self.show_next_dialog(SIGNTYPEINFO_TARGET, name))
+        initialdialog.continue_clicked.connect(lambda name: self.show_next_dialog(TargetTypes.SIGNTYPEINFO, name))
         initialdialog.exec_()
 
     def handle_menumodulebtn_clicked(self, moduletype):
@@ -480,7 +537,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         )
         
 
-        if targettype == SIGNLEVELINFO_TARGET:
+        if targettype == TargetTypes.SIGNLEVELINFO:
             if preexistingitem is not None:
                 sli = SignLevelInformation(preexistingitem.searchvaluesitem.values)
             else:
@@ -489,14 +546,14 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo, row=row))
             signlevelinfo_selector.exec_()
         
-        elif targettype == SIGNTYPEINFO_TARGET:            
+        elif targettype == TargetTypes.SIGNTYPEINFO:            
             signtypeinfo_selector = Search_SigntypeSelectorDialog(signtypetoload=module, parent=self)
             signtypeinfo_selector.saved_signtype.connect(lambda signtype: self.handle_save_signtype(target, signtype, row=row))
             signtypeinfo_selector.exec_()
             
 
         
-        elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, LOC_REL_TARGET, MOV_REL_TARGET]:
+        elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
             includearticulators = [HAND, ARM, LEG] if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
             else ([] if targettype == ModuleTypes.RELATION else [HAND])
             includephase = 2 if targettype == ModuleTypes.MOVEMENT else (
@@ -526,7 +583,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         # This happens when user associates a relation module to an existing loc/mvmt search target
         curr_row = self.mainwindow.current_row
         if (target.targettype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT] 
-            and self.mainwindow.searchmodel.target_type(curr_row) in [LOC_REL_TARGET, MOV_REL_TARGET]):
+            and self.mainwindow.searchmodel.target_type(curr_row) in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]):
             row = curr_row
             moduletype = target.targettype if not isinstance(module_to_save, RelationModule) else ModuleTypes.RELATION
             target.targettype = self.mainwindow.searchmodel.target_type(row)
@@ -537,8 +594,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             
 
         # Default case: adding or modifying a target that is not and does not have an assoc. reln module
-        elif target.targettype not in [LOC_REL_TARGET, MOV_REL_TARGET]:
-            moduletype = target.targettype
+        elif target.targettype not in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
+            if target.targettype == ModuleTypes.HANDCONFIG:
+                # moduletype may differ - could be ExtendedFingers instead of HandConfig
+                moduletype = module_to_save.moduletype 
+            else:
+                moduletype = target.targettype
             target.module = module_to_save
             target.module_id = existingkey
             # logging.warning(f"{curr_row}. regular module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
@@ -555,10 +616,10 @@ class BuildSearchTargetView(SignLevelMenuPanel):
                 # logging.warning(f"assoc reln module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
                 
             else:
-                if target.targettype == LOC_REL_TARGET:
+                if target.targettype == TargetTypes.LOC_REL:
                     moduletype = ModuleTypes.LOCATION
-                elif target.targettype == MOV_REL_TARGET:
-                    moduletype == ModuleTypes.MOVEMENT
+                elif target.targettype == TargetTypes.MOV_REL:
+                    moduletype = ModuleTypes.MOVEMENT
                 target.module = module_to_save
                 target.module_id = existingkey
                 # logging.warning(f"anchor module. {target.module_id}. assoc: {target.associatedrelnmodule_id}")
@@ -586,7 +647,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
     
         # Replace the old anchor target with a new connected target
         name = self.mainwindow.searchmodel.target_name(row)
-        targettype = MOV_REL_TARGET if self.mainwindow.searchmodel.target_type(row) == ModuleTypes.MOVEMENT else LOC_REL_TARGET
+        targettype = TargetTypes.MOV_REL if self.mainwindow.searchmodel.target_type(row) == ModuleTypes.MOVEMENT else TargetTypes.LOC_REL
         xslottype = self.mainwindow.current_sign.xslottype
         searchvaluesitem = self.mainwindow.searchmodel.target_values(row)
         searchvaluesitem.type = targettype
@@ -611,7 +672,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
 
     
     def handle_save_signtype(self, target, signtype, row=None):
-        target.searchvaluesitem = SearchValuesItem(SIGNTYPEINFO_TARGET, signtype)
+        target.searchvaluesitem = SearchValuesItem(TargetTypes.SIGNTYPEINFO, signtype)
         target.module = signtype
         self.emit_signal(target, row)
 
@@ -718,6 +779,8 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         self.xslot_type_button_group = CustomRBGrp()
         self.ignore_xslots_rb = QRadioButton('Ignore x-slots')
         self.ignore_xslots_rb.setProperty("name", XslotTypes.IGNORE)
+        self.ignore_xslots_rb.setChecked(True) # TODO specify default preference
+        self.xslot_type = self.ignore_xslots_rb
         self.abstract_xslot_rb = QRadioButton('Use an abstract x-slot') 
         self.abstract_xslot_rb.setProperty("name", XslotTypes.ABSTRACT_XSLOT)
         self.abstract_whole_sign_rb = QRadioButton('Use an abstract whole sign') 
@@ -768,7 +831,7 @@ class XSlotTypeDialog(QDialog): # TODO maybe subclass the namedialog
         self.xslot_type_button_group.addButton(self.abstract_xslot_rb) 
         self.xslot_type_button_group.addButton(self.abstract_whole_sign_rb) 
         self.xslot_type_button_group.addButton(self.concrete_xslots_rb)
-        self.xslot_type_button_group.buttonClicked.connect(self.on_xslot_type_clicked)
+        self.xslot_type_button_group.buttonToggled.connect(self.on_xslot_type_clicked)
 
         layout.addWidget(self.ignore_xslots_rb)
         layout.addWidget(self.abstract_xslot_rb)
@@ -1124,6 +1187,14 @@ class SearchWindowSign(Sign):
         super().__init__(signlevel_info, serializedsign)
         self._xslotstructure = XslotStructure()
         self._xslottype = XslotTypeItem()
+    
+    @property
+    def xslottype(self):
+        return self._xslottype
+    
+    @xslottype.setter
+    def xslottype(self, val):
+        self._xslottype = val
 
         
     
@@ -1131,10 +1202,10 @@ class SearchWindowSign(Sign):
         for row in range(model.rowCount()):
             moduletype = model.target_type(row)
             
-            if moduletype in [LOC_REL_TARGET, MOV_REL_TARGET]:
-                if moduletype == LOC_REL_TARGET:
+            if moduletype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
+                if moduletype == TargetTypes.LOC_REL:
                     moduletype = ModuleTypes.LOCATION
-                elif moduletype == MOV_REL_TARGET:
+                elif moduletype == TargetTypes.MOV_REL:
                     moduletype = ModuleTypes.MOVEMENT
                 assoc_reln_to_add = model.target_associatedrelnmodule(row)
                 assoc_reln_to_add.uniqueid = model.target_associatedrelnmodule_id(row)

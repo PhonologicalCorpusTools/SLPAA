@@ -12,29 +12,14 @@ from PyQt5.QtCore import (Qt, pyqtSignal,)
 
 from lexicon.module_classes import NonManualModule
 from models.nonmanual_models import NonManualModel, nonmanual_root
-from gui.relationspecification_view import RelationRadioButton
-from gui.relationspecification_view import RelationButtonGroup
+from gui.modulespecification_widgets import DeselectableRadioButtonGroup, DeselectableRadioButton
 from gui.modulespecification_widgets import ModuleSpecificationPanel
 
 
-class SLPAARadioButton(RelationRadioButton):
-    def __init__(self, text, **kwargs):
-        super().__init__(text, **kwargs)
-
-    def setChecked(self, checked):
-        # override RelationRadioButton's setChecked() method to deal with programmatically unselected btns.
-        if self.group() is not None:
-            if checked:
-                self.group().previously_checked = self
-            else:
-                self.group().previously_checked = None
-        super().setChecked(checked)
-
-
-class MvmtCharRadioButton(SLPAARadioButton):
+class MvmtCharRadioButton(DeselectableRadioButton):
     def __init__(self, text, static_dynamic, **kwargs):
         # buttons for repetition, direction, ... groups (the third row of the spec window)
-        # subclassing SLPAARadioButton for on_toggled() that enable/disable its 'static' button.
+        # subclassing DeselectableRadioButton for on_toggled() that enable/disable its 'static' button.
         super().__init__(text, **kwargs)
 
         self.static_btn = [btn for btn in static_dynamic.buttons() if btn.text() == 'Static'][0]
@@ -47,21 +32,13 @@ class MvmtCharRadioButton(SLPAARadioButton):
             self.dynamic_btn.setChecked(checked)
 
 
-class SLPAAButtonGroup(RelationButtonGroup):
-    def __init__(self, buttonslist=None):
-        # buttonslist: list of QRadioButton to be included as a group
-        super().__init__()
-        if buttonslist is not None:
-            [self.addButton(button) for button in buttonslist]
-
-
 class SpecifyLayout(QHBoxLayout):
     # something like " ○ Other: ________" that consists of radiobutton + lineEdit
     def __init__(self, btn_label, text):
         super().__init__()
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # radio button
-        self.radio_btn = SLPAARadioButton(btn_label)
+        self.radio_btn = DeselectableRadioButton(btn_label)
         self.radio_btn.toggled.connect(self.radio_button_toggled)
         self.addWidget(self.radio_btn)
 
@@ -499,10 +476,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         row.setAlignment(Qt.AlignTop)
 
         # static / dynamic group
-        nonman.widget_rb_static = SLPAARadioButton("Static")
-        nonman.widget_rb_dynamic = SLPAARadioButton("Dynamic")
+        nonman.widget_rb_static = DeselectableRadioButton("Static")
+        nonman.widget_rb_dynamic = DeselectableRadioButton("Dynamic")
         static_dynamic_list = [nonman.widget_rb_static, nonman.widget_rb_dynamic]
-        nonman.static_dynamic_group = SLPAAButtonGroup(static_dynamic_list)
+        nonman.static_dynamic_group = DeselectableRadioButtonGroup(static_dynamic_list)
 
         vbox = QVBoxLayout()
         vbox.setAlignment(Qt.AlignTop)
@@ -522,7 +499,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             mvmt_type_box = QGroupBox("Type of mouth movement")
             mvmt_type_box_layout = QVBoxLayout()
             mvmt_type_box.setAlignment(Qt.AlignTop)
-            nonman.mvmt_type_group = SLPAAButtonGroup()
+            nonman.mvmt_type_group = DeselectableRadioButtonGroup()
             for m_type in nonman.subparts:
                 # since all options have the 'specify' line edit, just assume btn + lineEdit
                 rb_label, txt_line = m_type.split(';')
@@ -556,7 +533,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             description_box = QGroupBox("General description")
             description_box_layout = QVBoxLayout()
             description_box.setAlignment(Qt.AlignTop)
-            nonman.description_group = SLPAAButtonGroup()
+            nonman.description_group = DeselectableRadioButtonGroup()
             for mm_type in nonman.subparts:
                 if ';' in mm_type:
                     mm_type, txt_line = mm_type.split(';')
@@ -566,7 +543,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                     nonman.widget_le_specify = specify_layout.lineEdit
                     description_box_layout.addLayout(specify_layout)
                 else:
-                    rb_to_add = SLPAARadioButton(mm_type)
+                    rb_to_add = DeselectableRadioButton(mm_type)
                     description_box_layout.addWidget(rb_to_add)
                 nonman.description_group.addButton(rb_to_add)
             description_box.setLayout(description_box_layout)
@@ -589,20 +566,20 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             onepart_layout = QHBoxLayout()
             onepart_layout.setAlignment(Qt.AlignTop)
 
-            nonman.rb_subpart_both = SLPAARadioButton(f"Both {subpart_specs['specifier']}s")
-            nonman.rb_subpart_one = SLPAARadioButton(f"One {subpart_specs['specifier']}")
+            nonman.rb_subpart_both = DeselectableRadioButton(f"Both {subpart_specs['specifier']}s")
+            nonman.rb_subpart_one = DeselectableRadioButton(f"One {subpart_specs['specifier']}")
             subpart_list = [nonman.rb_subpart_both, nonman.rb_subpart_one]
 
-            nonman.subpart_group = SLPAAButtonGroup(subpart_list)
+            nonman.subpart_group = DeselectableRadioButtonGroup(subpart_list)
 
             nonman.subpart_group.buttonToggled.connect(lambda rb, ischecked:
                                                        self.handle_onepart_btn_toggled(rb, ischecked, nonman))
 
-            rb_onepart_one = SLPAARadioButton("H1")
-            rb_onepart_two = SLPAARadioButton("H2")
+            rb_onepart_one = DeselectableRadioButton("H1")
+            rb_onepart_two = DeselectableRadioButton("H2")
             onepart_list = [rb_onepart_one, rb_onepart_two]
 
-            nonman.onepart_group = SLPAAButtonGroup(onepart_list)  # radiobutton group for H1 and H2
+            nonman.onepart_group = DeselectableRadioButtonGroup(onepart_list)  # radiobutton group for H1 and H2
 
             nonman.onepart_group.buttonToggled.connect(lambda rb, ischecked:
                                                        self.handle_onepart_btn_toggled(rb, ischecked, nonman))
@@ -629,10 +606,10 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             visibility_box_layout = QVBoxLayout()
             visibility_box_layout.setAlignment(Qt.AlignTop)
 
-            nonman.widget_rb_visible = SLPAARadioButton("Visible")
+            nonman.widget_rb_visible = DeselectableRadioButton("Visible")
             visibility_box_layout.addWidget(nonman.widget_rb_visible)
 
-            nonman.widget_rb_visible_not = SLPAARadioButton("Not visible")
+            nonman.widget_rb_visible_not = DeselectableRadioButton("Not visible")
             visibility_box_layout.addWidget(nonman.widget_rb_visible_not)
 
             visibility_box.setLayout(visibility_box_layout)
@@ -727,7 +704,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         """
         if isinstance(options, str):
             # in shallow module
-            main_btn = SLPAARadioButton(options)
+            main_btn = DeselectableRadioButton(options)
             parent.as_btn_group.addButton(main_btn)
             parent.widget_grouplayout_actionstate.addWidget(main_btn)
             parent.widget_grouplayout_actionstate.setAlignment(main_btn, Qt.AlignTop)
@@ -738,14 +715,14 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # parse this node and its children
             options.widget_grouplayout_actionstate = QVBoxLayout()
             options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
-            options.as_btn_group = SLPAAButtonGroup()  # btn group to contain children
+            options.as_btn_group = DeselectableRadioButtonGroup()  # btn group to contain children
             options.as_cb_list = []  # checkbox list to contain children
 
             main_layout = QVBoxLayout()
             main_layout.setAlignment(Qt.AlignTop)
             if options.exclusive:
                 # create the button itself.
-                options.main_btn = SLPAARadioButton(options.label)
+                options.main_btn = DeselectableRadioButton(options.label)
                 parent.as_btn_group.addButton(options.main_btn)
 
                 # manage button behaviour -- (de)select parent/child as well.
@@ -795,7 +772,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                             # to reference dynamic btn
                             sub_rb = specify_layout.radio_btn
                         else:
-                            sub_rb = SLPAARadioButton(child)
+                            sub_rb = DeselectableRadioButton(child)
                             sub_layout.addWidget(sub_rb)
                         options.as_btn_group.addButton(sub_rb)
                         sub_spacedlayout.addLayout(sub_layout)
@@ -812,7 +789,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             # in the root. be ready to go deeper
             options.widget_grouplayout_actionstate = QHBoxLayout()
             options.widget_grouplayout_actionstate.setAlignment(Qt.AlignTop)
-            options.as_btn_group = SLPAAButtonGroup()
+            options.as_btn_group = DeselectableRadioButtonGroup()
             options.as_cb_list = []
             for child in options.options:
                 self.parse_actionstate(parent=options,
@@ -853,7 +830,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             widget_rb_rep_trill = MvmtCharRadioButton("Trilled", nonman.static_dynamic_group)
             rep_btn_list = [widget_rb_rep_single, nonman.layout_repetition.repeated_btn, widget_rb_rep_trill]
 
-            nonman.repetition_group = SLPAAButtonGroup(rep_btn_list)
+            nonman.repetition_group = DeselectableRadioButtonGroup(rep_btn_list)
 
             repetition_group_layout.addWidget(widget_rb_rep_single)
             repetition_group_layout.addLayout(nonman.layout_repetition)
@@ -873,7 +850,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                                                                 static_dynamic=nonman.static_dynamic_group)
             directionality_list = [nonman.widget_rb_direction_uni, nonman.widget_rb_direction_bi]
 
-            nonman.directionality_group = SLPAAButtonGroup(directionality_list)
+            nonman.directionality_group = DeselectableRadioButtonGroup(directionality_list)
 
             [directionality_group_layout.addWidget(widget) for widget in directionality_list]
             directionality_group.setLayout(directionality_group_layout)
@@ -907,7 +884,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                              nonman.widget_rb_eyegazedistance_normal,
                              nonman.widget_rb_eyegazedistance_proximal]
 
-            nonman.distance_group = SLPAAButtonGroup(distance_list)
+            nonman.distance_group = DeselectableRadioButtonGroup(distance_list)
 
             [distance_layout.addWidget(widget) for widget in distance_list]
             distance_group.setLayout(distance_layout)
@@ -929,7 +906,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         for group, levels in specs.items():
             groupbox = QGroupBox(group)
             groupbox_layout = QVBoxLayout()
-            buttongroup = SLPAAButtonGroup()
+            buttongroup = DeselectableRadioButtonGroup()
 
             levels.insert(1, 'Normal')
 
@@ -1379,7 +1356,7 @@ def get_value_from_saved_dict(key_to_find, input_dict, parent=None):
 
 
 def what_selected(group):
-    # input: SLPAAButtonGroup or list of QCheckBox objects
+    # input: DeselectableRadioButtonGroup or list of QCheckBox objects
     # helper function to get what user input among buttons/checkboxes in the group
     if isinstance(group, QButtonGroup):
         # get selected button (exclusive)
@@ -1392,8 +1369,8 @@ def what_selected(group):
 
 
 def select_this(btn_group, btn_txt):
-    # given SLPAAButtonGroup, select the button named 'btn_txt'
-    if not isinstance(btn_group, SLPAAButtonGroup):
+    # given DeselectableRadioButtonGroup, select the button named 'btn_txt'
+    if not isinstance(btn_group, DeselectableRadioButtonGroup):
         return None
 
     if btn_txt is None:

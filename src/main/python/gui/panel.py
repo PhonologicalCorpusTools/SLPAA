@@ -410,7 +410,7 @@ class SignSummaryPanel(QScrollArea):
         handtext.setPos(self.x_offset, self.current_y)
         self.scene.addItem(handtext)
 
-        for mtype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION]:
+        for mtype in [ModuleTypes.HANDCONFIG, ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.ORIENTATION]:
             self.addmodules_hands_arms(artnum=articulatornum, moduletype=mtype)
 
     def getxywh(self, timinginterval):
@@ -877,6 +877,11 @@ class SignLevelMenuPanel(QScrollArea):
         self.xslots_button.clicked.connect(self.handle_xslotsbutton_click)
         self.modulebuttons_untimed.append(self.xslots_button)
 
+        self.handshape_button = QPushButton("Add hand configuration module")
+        self.handshape_button.setProperty("existingmodule", False)
+        self.handshape_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.HANDCONFIG))
+        self.modulebuttons_timed.append(self.handshape_button)
+
         self.movement_button = QPushButton("Add movement module")
         self.movement_button.setProperty("existingmodule", False)
         self.movement_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.MOVEMENT))
@@ -896,11 +901,6 @@ class SignLevelMenuPanel(QScrollArea):
         self.orientation_button.setProperty("existingmodule", False)
         self.orientation_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.ORIENTATION))
         self.modulebuttons_timed.append(self.orientation_button)
-
-        self.handshape_button = QPushButton("Add hand configuration module")
-        self.handshape_button.setProperty("existingmodule", False)
-        self.handshape_button.clicked.connect(lambda: self.handle_menumodulebtn_clicked(ModuleTypes.HANDCONFIG))
-        self.modulebuttons_timed.append(self.handshape_button)
 
         self.nonmanual_button = QPushButton("Add non-manual module")
         self.nonmanual_button.setProperty("existingmodule", False)
