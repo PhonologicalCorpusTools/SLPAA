@@ -1231,6 +1231,13 @@ class Signtype:
         self._specslist = specslist
 
     def getabbreviation(self):
+        # TODO move include flags from specslist to here
+        abbrevsdict = self.convertspecstodict()
+        abbreviationtext = self.makeabbreviationstring(abbrevsdict)
+        abbreviationtext = abbreviationtext.strip()[1:-1]  # effectively remove the top-level ()'s
+        return abbreviationtext
+
+    def getabbreviation_OLD(self):
         abbrevsdict = self.convertspecstodict()
         abbreviationtext = self.makeabbreviationstring(abbrevsdict)
         abbreviationtext = abbreviationtext.strip()[1:-1]  # effectively remove the top-level ()'s
@@ -1248,6 +1255,18 @@ class Signtype:
             return " (" + abbrevstr + ")"
 
     def convertspecstodict(self):
+        # TODO populate / move out of this function??
+        DONOTINCLUDE = [SIGN_TYPE["TWO_HANDS_NO_CONT"], SIGN_TYPE["TWO_HANDS_NO_BISYM"], SIGN_TYPE["TWO_HANDS_ONE_MVMT"], SIGN_TYPE["TWO_HANDS_BOTH_MVMT"]]
+
+        abbrevsdict = {}
+        specscopy = [spec for spec in self._specslist]
+        for spec in specscopy:
+            if spec not in DONOTINCLUDE:
+                pathlist = spec.split('.')  # this is the path of abbreviations to this particular setting
+                self.ensurepathindict(pathlist, abbrevsdict)
+        return abbrevsdict
+
+    def convertspecstodict_OLD(self):
         abbrevsdict = {}
         for spec in self._specslist:
             # include abbreviations for all options

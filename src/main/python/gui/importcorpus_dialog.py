@@ -231,14 +231,17 @@ class ImportCorpusDialog(QDialog):
 
     def read_overalloptions(self, overalloptionsdict):
         if overalloptionsdict is None:
-            return overalloptionsdict
-
-        options = {
-            'forearm': bool(overalloptionsdict.pop('forearm', None)),  # could be True, False, or None
-            'forearm_addedinfo': self.read_addedinfo(overalloptionsdict.pop('forearm_addedinfo', {})),
-            'overall_addedinfo': self.read_addedinfo(overalloptionsdict.pop('overall_addedinfo', {}))
-        }
-        return options
+            return {
+                'forearm': False,
+                'forearm_addedinfo': AddedInfo(),
+                'overall_addedinfo': AddedInfo()
+            }
+        else:
+            return {
+                'forearm': bool(overalloptionsdict.pop('forearm', None)),  # could be True, False, or None
+                'forearm_addedinfo': self.read_addedinfo(overalloptionsdict.pop('forearm_addedinfo', {})),
+                'overall_addedinfo': self.read_addedinfo(overalloptionsdict.pop('overall_addedinfo', {}))
+            }
 
     def read_cfgmod(self, uid, cfgdict):
         # attributes common to all parameter modules
@@ -338,30 +341,32 @@ class ImportCorpusDialog(QDialog):
 
         if '_contact' in contactdict.keys():
             conrel.contact = contactdict['_contact']
+        else:
+            conrel.contact = False
 
+        contacttype = ContactType()
         if '_contacttype' in contactdict.keys() and contactdict['_contacttype'] is not None:
-            contacttype = ContactType()
             contacttype.__dict__.update(contactdict['_contacttype'])
-            conrel.contacttype = contacttype
+        conrel.contacttype = contacttype
 
+        manner = MannerRelation()
         if '_manner' in contactdict.keys() and contactdict['_manner'] is not None:
-            manner = MannerRelation()
             manner.__dict__.update(contactdict['_manner'])
-            conrel.manner = manner
+        conrel.manner = manner
 
+        distances = [
+            Distance(Direction.HORIZONTAL),
+            Distance(Direction.VERTICAL),
+            Distance(Direction.SAGITTAL),
+            Distance(Direction.GENERIC)
+        ]
         if '_distances' in contactdict.keys() and contactdict['_distances'] is not None:
-            distances = [
-                Distance(Direction.HORIZONTAL),
-                Distance(Direction.VERTICAL),
-                Distance(Direction.SAGITTAL),
-                Distance(Direction.GENERIC)
-            ]
             for dist in contactdict['_distances']:
                 distances_idx = 0 if dist['_axis'] == Direction.HORIZONTAL \
                     else (1 if dist['_axis'] == Direction.VERTICAL
                           else (2 if dist['_axis'] == Direction.SAGITTAL else 3))
                 distances[distances_idx].__dict__.update(dist)
-            conrel.distances = distances
+        conrel.distances = distances
 
         return conrel
 

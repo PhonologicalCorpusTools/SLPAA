@@ -56,6 +56,7 @@ from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.importcorpus_dialog import ImportCorpusDialog
+# from gui.compareexports_dialog import CompareExportsDialog
 from gui.location_definer import LocationDefinerDialog
 from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
@@ -202,6 +203,11 @@ class MainWindow(QMainWindow):
         action_search.triggered.connect(self.on_action_search)
         action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
         action_search.setCheckable(False)
+
+        # # compare exports
+        # action_compareexports = QAction("Compare exports", parent=self)
+        # action_compareexports.triggered.connect(self.on_action_compareexports)
+        # action_compareexports.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -400,6 +406,7 @@ class MainWindow(QMainWindow):
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
         menu_analysis_beta.addAction(action_search)
+        # menu_analysis_beta.addAction(action_compareexports)
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
         menu_help.addAction(action_help_main)
         menu_help.addAction(action_help_about)
@@ -902,6 +909,10 @@ class MainWindow(QMainWindow):
     def on_action_count_xslots(self):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
+
+    # def on_action_compareexports(self):
+    #     compareexports_window = CompareExportsDialog(self.app_settings, parent=self)
+    #     compareexports_window.exec_()
 
     @check_unsaved_change
     def on_action_merge_corpora(self, clicked):

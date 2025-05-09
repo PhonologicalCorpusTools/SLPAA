@@ -248,10 +248,10 @@ class OptionSwitch(QWidget):
         self.right_btn.setChecked(valuesdict[2])
 
     def buttonclicked(self, btn, checked):
-        if btn == self.right_btn and checked:
-            self.left_btn.setChecked(False)
-        elif btn == self.left_btn and checked:
-            self.right_btn.setChecked(False)
+        if btn == self.right_btn:
+            self.left_btn.setChecked(not checked)
+        elif btn == self.left_btn:
+            self.right_btn.setChecked(not checked)
 
         self.toggled.emit(self.getvalue())
 
