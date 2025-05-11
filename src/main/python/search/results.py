@@ -24,7 +24,7 @@ from PyQt5.Qt import (
 
 from gui.panel import SignLevelMenuPanel, SignSummaryPanel
 from collections import defaultdict
-import logging, os, json, csv
+import logging, os, json, csv, sys
 import xml.etree.ElementTree as ET
 
 
@@ -95,12 +95,13 @@ class ResultsView(QWidget):
         # actions
 
         # export
-        exportseq = QKeySequence(Qt.ALT + Qt.Key_E)
-        action_export = QAction(QIcon(self.mainwindow.app_ctx.icons['saveas']), 'Export', parent=self)
-        action_export.setShortcut(exportseq)
+        action_export = QAction(QIcon(self.mainwindow.app_ctx.icons['saveas']), 'Export current results', parent=self)
         action_export.triggered.connect(lambda checked: self.on_action_export(checked, label))
+        export_shortcuts = [QKeySequence.SaveAs, QKeySequence(Qt.CTRL+Qt.SHIFT+Qt.Key_S)]
+        action_export.setShortcuts(export_shortcuts)
+        export_num = 0 if sys.platform in ['darwin', 'ios'] else 1 # MacOS or iOS - Standard Shortcut for SaveAs is Command-Shift-S
+        action_export.setToolTip(QKeySequence.listToString(export_shortcuts[export_num], QKeySequence.NativeText))
         action_export.setCheckable(False)
-        
         toolbar.addAction(action_export)
         return toolbar
     
@@ -134,14 +135,29 @@ class ResultsView(QWidget):
 
 
     def on_action_export(self, clicked, tab_label): # tab_label is "summary" or "individual"
-        name = f"{self.mainwindow.searchmodel.name}_{tab_label}_results"
+        searchfile_name = self.mainwindow.searchmodel.name if self.mainwindow.searchmodel.name else "SLPAA"
+        name = f"{searchfile_name}_{tab_label}_results"
         results_dir = self.mainwindow.app_settings['storage']['recent_results'] 
-        file_name, selected_filter = QFileDialog.getSaveFileName(
-            self,
-            caption=self.tr(f"Save {tab_label} results"),
-            directory=os.path.join(results_dir, f"{name}.xml"), 
-            filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
-            initialFilter="XML (*.xml)")
+        dialog = QFileDialog(self)
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.setWindowTitle(self.tr(f"Save {tab_label} results"))
+        dialog.setDirectory(os.path.join(results_dir))
+        dialog.selectFile(f"{name}.tsv")
+        dialog.setNameFilters(["JSON (*.json)", "TSV (*.tsv)", "XML (*.xml)", "text (*.txt)"])
+        dialog.selectNameFilter("TSV (*.tsv)") # initial filter
+        dialog.setLabelText(QFileDialog.DialogLabel.FileType, "File format:")
+        if dialog.exec_() == QFileDialog.Accepted:
+            file_name = dialog.selectedFiles()[0]
+            selected_filter = dialog.selectedNameFilter()
+        else:
+            file_name = None
+            selected_filter = None
+        # file_name, selected_filter = QFileDialog.getSaveFileName(
+        #     self,
+        #     caption=self.tr(f"Save {tab_label} results"),
+        #     directory=os.path.join(results_dir, f"{name}.xml"), 
+        #     filter="JSON (*.json);;TSV (*.tsv);;XML (*.xml);;text (*.txt)",
+        #     initialFilter="TSV (*.tsv)"),
         if file_name:
             self.save_results_to_file(file_name, tab_label, selected_filter)
 
