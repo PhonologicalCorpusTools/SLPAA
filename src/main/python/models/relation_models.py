@@ -61,5 +61,7 @@ class ModuleLinkingListItem(QStandardItem):
             arts_list = [ARTICULATOR_ABBREVS[articulator] + str(a) for a in articulators_dict.keys() if articulators_dict[a]]
             arts_str = "+".join(arts_list)
             moduleabbrev = ModuleTypes.abbreviations[self.moduletype]
-            return moduleabbrev + str(self.modnum) + "(" + arts_str + "): " + self.module.getabbreviation()
+            return moduleabbrev
+
+            # return moduleabbrev + str(self.modnum) + "(" + arts_str + "): " + self.module.getabbreviation()
         # TODO KV any other roles to worry about?

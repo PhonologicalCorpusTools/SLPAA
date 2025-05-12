@@ -479,7 +479,8 @@ class SignSummaryPanel(QScrollArea):
                                                       text=modabbrev,
                                                       moduletype=moduletype,
                                                       sign=self.sign)
-                    paramabbrev = mod.getabbreviation()
+                    paramabbrev = "buh"
+                    # paramabbrev = mod.getabbreviation()
                     paramrect.setToolTip(paramabbrev)
                     paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
                     self.modulebuttons_timed.append(paramrect)
@@ -541,7 +542,8 @@ class SignSummaryPanel(QScrollArea):
                         paramrect = XslotRectModuleButton(self, module_uniqueid=m_id,  # parammodid,
                                                           text=ARTICULATOR_ABBREVS[articulator] + str(artnum) + "." + moduleabbrev, moduletype=moduletype,
                                                           sign=self.sign)
-                        paramabbrev = mod.getabbreviation()
+                        paramabbrev = "buh"
+                        # paramabbrev = mod.getabbreviation()
                         paramrect.setToolTip(paramabbrev)
                         paramrect.setRect(*self.getxywh(None))  # how big is it / where does it go?
                         self.modulebuttons_timed.append(paramrect)

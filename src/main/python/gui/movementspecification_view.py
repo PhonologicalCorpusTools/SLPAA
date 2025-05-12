@@ -104,7 +104,9 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         if moduletoload is not None:
             if isinstance(moduletoload, MovementModule):
                 self.existingkey = moduletoload.uniqueid
-                self.treemodel = MovementTreeModel(MovementTreeSerializable(moduletoload.movementtreemodel))
+                print(moduletoload.movementtreemodel)
+                self.treemodel = MovementTreeModel(moduletoload.movementtreemodel)
+                # self.treemodel = MovementTreeModel(MovementTreeSerializable(moduletoload.movementtreemodel))
             else:
                 print("moduletoload must be of type MovementModule")
         else:

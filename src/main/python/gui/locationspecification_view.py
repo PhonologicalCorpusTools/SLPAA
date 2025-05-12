@@ -345,7 +345,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             loctypetoload = moduletoload.locationtreemodel.locationtype
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
-            treemodeltoload = LocationTreeModel(LocationTreeSerializable(moduletoload.locationtreemodel))
+            treemodeltoload = LocationTreeModel(moduletoload.locationtreemodel)
+            # treemodeltoload = LocationTreeModel(LocationTreeSerializable(moduletoload.locationtreemodel))
       
         # create layout with buttons for location type (body, signing space, etc)
         # and for phonological locations (phonological, phonetic, etc)

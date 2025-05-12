@@ -80,8 +80,9 @@ class Sign:
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
             self._signtype = serializedsign['type']
             # backward compatibility with pre-20250505 signtype structure
-            if len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
-                self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
+            if self.signtype:
+                if len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
+                    self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
 
@@ -361,7 +362,8 @@ def unserializemovementmodules(serialized_mvmtmodules):
     unserialized = {}
     for k in serialized_mvmtmodules.keys():
         serialmodule = serialized_mvmtmodules[k]
-        mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
+        mvmttreemodel = serialmodule.movementtree
+        # mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
         articulators = serialmodule.articulators
         inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
         timingintervals = serialmodule.timingintervals
@@ -440,7 +442,8 @@ def unserializelocationmodules(serialized_locnmodules):
             # self.addmodule(convertedrelationmodule)
 
         else:
-            locntreemodel = LocationTreeModel(serialmodule.locationtree)
+            locntreemodel = serialtree
+            # locntreemodel = LocationTreeModel(serialmodule.locationtree)
             unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase=inphase)
             unserialized[k].uniqueid = k
     return unserialized, convertedrelationmodules
@@ -515,7 +518,7 @@ class Corpus:
             # check and make sure the highest ID saved is equivalent to the actual highest entry ID unless the corpus is empty 
             if len(self) > 0:
                 self.confirmhighestID("load")
-            self.add_missing_paths()  # Another backwards compatibility function for movement and location
+            # self.add_missing_paths()  # Another backwards compatibility function for movement and location
         else:
             self.signs = signs if signs else set()
             self.location_definition = location_definition
