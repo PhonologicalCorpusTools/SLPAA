@@ -24,9 +24,7 @@ import logging
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from search.helper_functions import (relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, 
-                                     signtypedisplaytext, module_matches_xslottype, filter_modules_by_target_locn, filter_modules_by_target_mvmt, filter_modules_by_target_reln,
-                                     )
+from search.helper_functions import *
 from search.search_classes import SearchTargetItem
 
 
@@ -396,9 +394,6 @@ class SearchModel(QStandardItemModel):
 
         return True
         
-
-
-
     def sign_matches_extendedfingers(self, rows, sign):
         matching_modules = [m for m in sign.getmoduledict(ModuleTypes.HANDCONFIG).values()]
         extended_symbols = ['H', 'E', 'e']
@@ -437,7 +432,6 @@ class SearchModel(QStandardItemModel):
 
 
         return True
-
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
