@@ -422,13 +422,10 @@ class ImportCorpusDialog(QDialog):
         return xss
 
     def read_signtype(self, typedict):
-        if typedict is None:
-            return typedict
-
         specslist = []
+
         if '_specslist' in typedict.keys() and typedict['_specslist'] is not None:
-            specslist = [tuple(specpair) for specpair in typedict['_specslist']]
-            # TODO either import or export is missing some values
+            specslist = [spec for spec in typedict['_specslist']]
 
         addedinfo = AddedInfo()
         if '_addedinfo' in typedict.keys() and typedict['_addedinfo'] is not None:
