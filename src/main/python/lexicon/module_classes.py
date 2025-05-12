@@ -1257,7 +1257,6 @@ class Signtype:
     def convertspecstodict(self):
         # TODO populate / move out of this function??
         DONOTINCLUDE = [SIGN_TYPE["TWO_HANDS_NO_CONT"], SIGN_TYPE["TWO_HANDS_NO_BISYM"], SIGN_TYPE["TWO_HANDS_ONE_MVMT"], SIGN_TYPE["TWO_HANDS_BOTH_MVMT"]]
-
         abbrevsdict = {}
         specscopy = [spec for spec in self._specslist]
         for spec in specscopy:
