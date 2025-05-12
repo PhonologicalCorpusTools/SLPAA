@@ -683,7 +683,7 @@ class LocationTreeModel(QStandardItemModel):
         return checked
 
     # returns True iff input `other` is also a LocationTreeModel, and it has the exact same checked items as this one
-    # note that this function ignores any potential surface/subarea selection
+    # note that this function ignores any potential surface/subarea selection or AddedInfo (right-click menu) info
     #   AND also ignores the location type associated with the tree (body, body-anchored, purely spatial, etc)
     def matches(self, other):
         return isinstance(other, LocationTreeModel) and (self.listmodel.matches(other.listmodel))
@@ -973,7 +973,7 @@ class LocationListModel(QStandardItemModel):
         self.treemodel = treemod
 
     # returns True iff input `other` is also a LocationListModel, and it has the exact same checked items as this one
-    # note that this function ignores any potential surface/subarea selection
+    # note that this function ignores any potential surface/subarea selection or AddedInfo (right-click menu) info
     def matches(self, other):
         return isinstance(other, LocationListModel) and (self.get_checked_items() == other.get_checked_items())
 
