@@ -97,11 +97,9 @@ class ResultsView(QWidget):
         # export
         action_export = QAction(QIcon(self.mainwindow.app_ctx.icons['saveas']), 'Export current results', parent=self)
         action_export.triggered.connect(lambda checked: self.on_action_export(checked, label))
-        export_shortcuts = [QKeySequence(QKeySequence.SaveAs), QKeySequence(Qt.CTRL+Qt.SHIFT+Qt.Key_S)]
-        action_export.setShortcuts(export_shortcuts)
-        
-        export_num = 0 if sys.platform in ['darwin', 'ios'] else 1 # MacOS or iOS - Standard Shortcut for SaveAs is Command-Shift-S
-        action_export.setToolTip(QKeySequence.listToString(export_shortcuts[export_num], QKeySequence.NativeText))
+        export_shortcut = QKeySequence(Qt.CTRL+Qt.SHIFT+Qt.Key_S)
+        action_export.setShortcut(export_shortcut)
+        action_export.setToolTip(QKeySequence.listToString(export_shortcut, QKeySequence.NativeText))
         action_export.setCheckable(False)
         toolbar.addAction(action_export)
         return toolbar

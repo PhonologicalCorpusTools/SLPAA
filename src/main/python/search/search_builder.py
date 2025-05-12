@@ -118,7 +118,7 @@ class SearchWindow(QMainWindow):
         file_menu.addAction(action_save)
 
         # save as
-        action_saveas = QAction(QIcon(self.app_ctx.icons['saveas']), 'Save As...', self)
+        action_saveas = QAction(QIcon(self.app_ctx.icons['saveas']), 'Save target file as...', self)
         action_saveas.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_A))
         action_saveas.triggered.connect(self.on_action_save_as)
         file_menu.addAction(action_saveas)
