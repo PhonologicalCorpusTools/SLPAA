@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import (
     QListView,
     QLineEdit,
-    QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
     QLabel,
@@ -34,7 +33,8 @@ from lexicon.module_classes import (
 )
 from models.relation_models import ModuleLinkingListModel
 from models.location_models import BodypartTreeModel
-from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton
+from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton, \
+    DeselectableRadioButtonGroup, DeselectableRadioButton
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
 from constant import HAND, ARM, LEG, ModuleTypes
@@ -80,6 +80,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         self.setLayout(main_layout)
         self.check_enable_allsubmenus()
+    
+    def selections_valid(self):
+        # are X and Y both specified at all? 
+        # This method is overloaded in the Search window, where it's not necessary for both to be specified.
+        hasselections = self.x_group.checkedButton() and self.y_group.checkedButton()
+        return hasselections
 
     # ensure that user has provided valid (minimum required, non-overlapping) X & Y information for the Relation module
     # returns two values:
@@ -87,7 +93,8 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     #   (2) a string: "" if selections are valid, or a warning message explaining the invalidity (if applicable)
     def validity_check(self):
         # are X and Y both specified at all?
-        hasselections = self.x_group.checkedButton() and self.y_group.checkedButton()
+        
+        hasselections = self.selections_valid()
         if not hasselections:
             return False, "Requires both an X and a Y selection."
 
@@ -139,10 +146,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for horizontal distance options
         self.dishor_box = QGroupBox()
         self.dishor_label = QLabel("Horizontal")
-        self.dishorclose_rb = RelationRadioButton("Close")
-        self.dishormed_rb = RelationRadioButton("Med.")
-        self.dishorfar_rb = RelationRadioButton("Far")
-        self.dishor_group = RelationButtonGroup()
+        self.dishorclose_rb = DeselectableRadioButton("Close")
+        self.dishormed_rb = DeselectableRadioButton("Med.")
+        self.dishorfar_rb = DeselectableRadioButton("Far")
+        self.dishor_group = DeselectableRadioButtonGroup()
         self.dishor_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_hor_layout = self.create_axis_layout(self.dishorclose_rb,
                                                  self.dishormed_rb,
@@ -155,10 +162,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for vertical distance options
         self.disver_box = QGroupBox()
         self.disver_label = QLabel("Vertical")
-        self.disverclose_rb = RelationRadioButton("Close")
-        self.disvermed_rb = RelationRadioButton("Med.")
-        self.disverfar_rb = RelationRadioButton("Far")
-        self.disver_group = RelationButtonGroup()
+        self.disverclose_rb = DeselectableRadioButton("Close")
+        self.disvermed_rb = DeselectableRadioButton("Med.")
+        self.disverfar_rb = DeselectableRadioButton("Far")
+        self.disver_group = DeselectableRadioButtonGroup()
         self.disver_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_ver_layout = self.create_axis_layout(self.disverclose_rb,
                                                  self.disvermed_rb,
@@ -171,10 +178,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for sagittal distance options
         self.dissag_box = QGroupBox()
         self.dissag_label = QLabel("Sagittal")
-        self.dissagclose_rb = RelationRadioButton("Close")
-        self.dissagmed_rb = RelationRadioButton("Med.")
-        self.dissagfar_rb = RelationRadioButton("Far")
-        self.dissag_group = RelationButtonGroup()
+        self.dissagclose_rb = DeselectableRadioButton("Close")
+        self.dissagmed_rb = DeselectableRadioButton("Med.")
+        self.dissagfar_rb = DeselectableRadioButton("Far")
+        self.dissag_group = DeselectableRadioButtonGroup()
         self.dissag_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_sag_layout = self.create_axis_layout(self.dissagclose_rb,
                                                  self.dissagmed_rb,
@@ -186,10 +193,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for generic distance options
         self.disgen_box = QGroupBox()
         self.disgen_label = QLabel("Generic")
-        self.disgenclose_rb = RelationRadioButton("Close")
-        self.disgenmed_rb = RelationRadioButton("Med.")
-        self.disgenfar_rb = RelationRadioButton("Far")
-        self.disgen_group = RelationButtonGroup()
+        self.disgenclose_rb = DeselectableRadioButton("Close")
+        self.disgenmed_rb = DeselectableRadioButton("Med.")
+        self.disgenfar_rb = DeselectableRadioButton("Far")
+        self.disgen_group = DeselectableRadioButtonGroup()
         self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
                                                  self.disgenmed_rb,
@@ -337,10 +344,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for horizontal direction options
         self.dirhor_box = QGroupBox()
         self.dirhor_cb = QCheckBox("Horizontal")
-        self.dirhoripsi_rb = RelationRadioButton("X ipsilateral to Y")
-        self.dirhorcontra_rb = RelationRadioButton("X contralateral to Y")
-        self.dirhorinline_rb = RelationRadioButton("X in line with Y")
-        self.dirhor_group = RelationButtonGroup()
+        self.dirhoripsi_rb = DeselectableRadioButton("X ipsilateral to Y")
+        self.dirhorcontra_rb = DeselectableRadioButton("X contralateral to Y")
+        self.dirhorinline_rb = DeselectableRadioButton("X in line with Y")
+        self.dirhor_group = DeselectableRadioButtonGroup()
         dir_hor_layout = self.create_axis_layout(self.dirhoripsi_rb,
                                                  self.dirhorcontra_rb,
                                                  self.dirhorinline_rb,
@@ -352,10 +359,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for vertical direction options
         self.dirver_box = QGroupBox()
         self.dirver_cb = QCheckBox("Vertical")
-        self.dirverabove_rb = RelationRadioButton("X above Y")
-        self.dirverbelow_rb = RelationRadioButton("X below Y")
-        self.dirverinline_rb = RelationRadioButton("X in line with Y")
-        self.dirver_group = RelationButtonGroup()
+        self.dirverabove_rb = DeselectableRadioButton("X above Y")
+        self.dirverbelow_rb = DeselectableRadioButton("X below Y")
+        self.dirverinline_rb = DeselectableRadioButton("X in line with Y")
+        self.dirver_group = DeselectableRadioButtonGroup()
         dir_ver_layout = self.create_axis_layout(self.dirverabove_rb,
                                                  self.dirverbelow_rb,
                                                  self.dirverinline_rb,
@@ -367,10 +374,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for sagittal direction options
         self.dirsag_box = QGroupBox()
         self.dirsag_cb = QCheckBox("Sagittal")
-        self.dirsagdist_rb = RelationRadioButton("X distal to Y")
-        self.dirsagprox_rb = RelationRadioButton("X proximal to Y")
-        self.dirsaginline_rb = RelationRadioButton("X in line with Y")
-        self.dirsag_group = RelationButtonGroup()
+        self.dirsagdist_rb = DeselectableRadioButton("X distal to Y")
+        self.dirsagprox_rb = DeselectableRadioButton("X proximal to Y")
+        self.dirsaginline_rb = DeselectableRadioButton("X in line with Y")
+        self.dirsag_group = DeselectableRadioButtonGroup()
         dir_sag_layout = self.create_axis_layout(self.dirsagdist_rb,
                                                  self.dirsagprox_rb,
                                                  self.dirsaginline_rb,
@@ -399,17 +406,17 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         contact_layout = QVBoxLayout()
         contacttype_spacedlayout = QHBoxLayout()
 
-        self.contact_rb = RelationRadioButton("Contact")
-        self.nocontact_rb = RelationRadioButton("No contact")
-        self.contact_group = RelationButtonGroup()
+        self.contact_rb = DeselectableRadioButton("Contact")
+        self.nocontact_rb = DeselectableRadioButton("No contact")
+        self.contact_group = DeselectableRadioButtonGroup()
         self.contact_group.addButton(self.contact_rb)
         self.contact_group.addButton(self.nocontact_rb)
         self.contact_group.buttonToggled.connect(self.handle_contactgroup_toggled)
 
-        self.contactlight_rb = RelationRadioButton("Light")
-        self.contactfirm_rb = RelationRadioButton("Firm")
-        self.contactother_rb = RelationRadioButton("Other")
-        self.contacttype_group = RelationButtonGroup()
+        self.contactlight_rb = DeselectableRadioButton("Light")
+        self.contactfirm_rb = DeselectableRadioButton("Firm")
+        self.contactother_rb = DeselectableRadioButton("Other")
+        self.contacttype_group = DeselectableRadioButtonGroup()
         self.contacttype_group.addButton(self.contactlight_rb)
         self.contacttype_group.addButton(self.contactfirm_rb)
         self.contacttype_group.addButton(self.contactother_rb)
@@ -485,10 +492,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # create layout for specifying contact manner
     def create_manner_box(self):
         manner_box = QGroupBox("Contact manner")
-        self.holding_rb = RelationRadioButton("Holding")
-        self.continuous_rb = RelationRadioButton("Continuous")
-        self.intermittent_rb = RelationRadioButton("Intermittent")
-        self.manner_group = RelationButtonGroup()
+        self.holding_rb = DeselectableRadioButton("Holding")
+        self.continuous_rb = DeselectableRadioButton("Continuous")
+        self.intermittent_rb = DeselectableRadioButton("Intermittent")
+        self.manner_group = DeselectableRadioButtonGroup()
         self.manner_group.buttonToggled.connect(self.handle_mannerbutton_toggled)
         self.manner_group.addButton(self.holding_rb)
         self.manner_group.addButton(self.continuous_rb)
@@ -726,18 +733,18 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         x_layout_handsconnected = QHBoxLayout()
         self.x_group = QButtonGroup()
         self.x_group.buttonToggled.connect(self.handle_xgroup_toggled)
-        self.x_h1_radio = RelationRadioButton("H1")
-        self.x_h2_radio = RelationRadioButton("H2")
-        self.x_hboth_radio = RelationRadioButton("Both hands")
+        self.x_h1_radio = DeselectableRadioButton("H1")
+        self.x_h2_radio = DeselectableRadioButton("H2")
+        self.x_hboth_radio = DeselectableRadioButton("Both hands")
         self.x_hbothconnected_cb = QCheckBox("As a connected unit")
         self.x_hbothconnected_cb.toggled.connect(self.handle_xconnected_toggled)
-        self.x_a1_radio = RelationRadioButton("Arm1")
-        self.x_a2_radio = RelationRadioButton("Arm2")
-        self.x_aboth_radio = RelationRadioButton("Both arms")
-        self.x_l1_radio = RelationRadioButton("Leg1")
-        self.x_l2_radio = RelationRadioButton("Leg2")
-        self.x_lboth_radio = RelationRadioButton("Both legs")
-        self.x_other_radio = RelationRadioButton("Other")
+        self.x_a1_radio = DeselectableRadioButton("Arm1")
+        self.x_a2_radio = DeselectableRadioButton("Arm2")
+        self.x_aboth_radio = DeselectableRadioButton("Both arms")
+        self.x_l1_radio = DeselectableRadioButton("Leg1")
+        self.x_l2_radio = DeselectableRadioButton("Leg2")
+        self.x_lboth_radio = DeselectableRadioButton("Both legs")
+        self.x_other_radio = DeselectableRadioButton("Other")
         self.x_other_text = QLineEdit()
         self.x_other_text.setPlaceholderText("Specify")
         self.x_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.x_other_radio))
@@ -844,17 +851,17 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         self.y_group = QButtonGroup()
         self.y_group.buttonToggled.connect(self.handle_ygroup_toggled)
-        self.y_h2_radio = RelationRadioButton("H2")
-        self.y_a1_radio = RelationRadioButton("Arm1")
-        self.y_a2_radio = RelationRadioButton("Arm2")
-        self.y_aboth_radio = RelationRadioButton("Both arms")
-        self.y_l1_radio = RelationRadioButton("Leg1")
-        self.y_l2_radio = RelationRadioButton("Leg2")
-        self.y_lboth_radio = RelationRadioButton("Both legs")
-        self.y_existingmod_radio = RelationRadioButton("Existing module:")
+        self.y_h2_radio = DeselectableRadioButton("H2")
+        self.y_a1_radio = DeselectableRadioButton("Arm1")
+        self.y_a2_radio = DeselectableRadioButton("Arm2")
+        self.y_aboth_radio = DeselectableRadioButton("Both arms")
+        self.y_l1_radio = DeselectableRadioButton("Leg1")
+        self.y_l2_radio = DeselectableRadioButton("Leg2")
+        self.y_lboth_radio = DeselectableRadioButton("Both legs")
+        self.y_existingmod_radio = DeselectableRadioButton("Existing module:")
         self.y_existingmod_switch = OptionSwitch("Location", "Movement")
 
-        self.y_other_radio = RelationRadioButton("Other")
+        self.y_other_radio = DeselectableRadioButton("Other")
         self.y_other_text = QLineEdit()
         self.y_other_text.setPlaceholderText("Specify")
         self.y_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.y_other_radio))
@@ -1381,40 +1388,3 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     def desiredheight(self):
         return 700
 
-
-# this radio button class tracks not only its current state
-#   (and, as usual, mutual exclusivity with buttons in the same group)
-#   but also, when a group button is toggled, updates the group with its identity
-#   for the purposes of being able to un-check when appropriate
-class RelationRadioButton(QRadioButton):
-
-    def __init__(self, text, **kwargs):
-        super().__init__(text, **kwargs)
-
-    def setChecked(self, checked):
-        if checked and self.group() is not None:
-            self.group().previously_checked = self
-        super().setChecked(checked)
-
-
-# this buttongroup allows for unchecking buttons even when the group is set to mutually exclusive
-class RelationButtonGroup(QButtonGroup):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        # in order to compare new checked button with previously-checked button
-        self.previously_checked = None
-
-        self.buttonClicked.connect(self.handle_button_clicked)
-
-    def handle_button_clicked(self, btn):
-        if self.previously_checked == btn:
-            # user clicked an already-selected button; we'll uncheck it
-            self.setExclusive(False)
-            btn.setChecked(False)
-            self.setExclusive(True)
-            self.previously_checked = None
-        else:
-            # user clicked a previously-unselected button
-            self.previously_checked = btn

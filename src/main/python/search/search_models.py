@@ -25,7 +25,8 @@ from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from search.helper_functions import (relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, 
-                                     signtypedisplaytext, module_matches_xslottype, reln_module_matches, locn_module_matches, mvmt_module_matches)
+                                     signtypedisplaytext, module_matches_xslottype, filter_modules_by_target_locn, filter_modules_by_target_mvmt, filter_modules_by_target_reln,
+                                     )
 from search.search_classes import SearchTargetItem
 
 
@@ -118,8 +119,8 @@ class SearchModel(QStandardItemModel):
         xslottype.setData(t.xslottype, Qt.UserRole)
         
         value = QStandardItem()
-        value.setData(t.searchvaluesitem, Qt.UserRole+1)
-        value.setData(t.searchvaluesitem.displayval, Qt.DisplayRole)
+        value.setData(t.searchvaluesitem, Qt.UserRole+1) # TODO update
+        value.setData(t.displaystring(), Qt.DisplayRole)
         
 
         return [name, ttype, value, include_cb, negative_cb, xslottype]
@@ -154,7 +155,7 @@ class SearchModel(QStandardItemModel):
             display_vals = []
             for row in selected_rows:
                 target_dict[self.target_type(row)].append(row)
-                display_vals.append(repr(self.target_values(row)))
+                display_vals.append(self.target_display(row))
                 if self.is_negative(row):
                     negative_rows.append("Negative")
                 else:
@@ -179,11 +180,10 @@ class SearchModel(QStandardItemModel):
                 for sign in corpus.signs:
                     if self.sign_matches_target(sign, target_dict):
                         matchingsigns.append(sign.signlevel_information)
-                resultsdict[target_name] = {"corpus": corpusname, "display": repr(self.target_values(row)), "signs": matchingsigns, "negative": negative_rows}
+                resultsdict[target_name] = {"corpus": corpusname, "display": self.target_display(row), "signs": matchingsigns, "negative": negative_rows}
 
         return resultsdict
-
-
+    
     def sign_matches_target(self, sign, target_dict=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if TargetTypes.XSLOT in target_dict:
@@ -212,48 +212,46 @@ class SearchModel(QStandardItemModel):
 
             if ef_rows and not self.sign_matches_extendedfingers(ef_rows, sign):
                 return False
-
-        if ModuleTypes.MOVEMENT in target_dict:
-            if not self.sign_matches_mvmt(target_dict[ModuleTypes.MOVEMENT], sign):
-                return False
-        if ModuleTypes.LOCATION in target_dict:
-            if not self.sign_matches_locn(target_dict[ModuleTypes.LOCATION], sign):
-                return False
-        if ModuleTypes.RELATION in target_dict: 
-            modulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
-            if not modulelist: return False
-
-            for row in target_dict[ModuleTypes.RELATION]:
-                target_module = self.target_module(row)
-                if not reln_module_matches(modulelist, target_module, target_is_assoc_reln=False):
+        for ttype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+            if ttype in target_dict:                
+                matching_modules = [m for m in sign.getmoduledict(ttype).values()]
+                if len(matching_modules) == 0:
                     return False
+                target_rows = target_dict[ttype]
+                for row in target_rows:
+                    terminate_early = True if row == target_rows[-1] else False
+                    # TODO match xslottype
+                    target_module = self.target_module(row)
+                    if ttype == ModuleTypes.LOCATION:
+                        matching_modules = filter_modules_by_target_locn(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
+                    elif ttype == ModuleTypes.MOVEMENT:
+                        matching_modules = filter_modules_by_target_mvmt(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
+                    elif ttype == ModuleTypes.RELATION:
+                        matching_modules = filter_modules_by_target_reln(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
+
+                    if not matching_modules: return False    
+
         for ttype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
             if ttype in target_dict:
-                anchortype = ModuleTypes.LOCATION if ttype == TargetTypes.LOC_REL else TargetTypes.MOV_REL
-                relationmodulelist = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
-                if not relationmodulelist: return False
-                
-                for row in target_dict[ttype]:  
+                anchortype = ModuleTypes.LOCATION if ttype == TargetTypes.LOC_REL else ModuleTypes.MOVEMENT
+                matching_relation_modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
+                if not matching_relation_modules: return False
+                target_rows = target_dict[ttype]
+                for row in target_rows:  
+                    terminate_early = True if row == target_rows[-1] else False
                     target_reln_module = self.target_associatedrelnmodule(row)
-                    logging.warning(f"target module: {self.target_module_id(row)}; assoc module: {self.target_associatedrelnmodule_id(row)}; ")
-                    if not reln_module_matches(relationmodulelist, target_reln_module, target_is_assoc_reln=True):
-                        return False    
+                    matching_relation_modules = filter_modules_by_target_reln(matching_relation_modules, target_reln_module, matchtype=self.matchtype, terminate_early=terminate_early)
+                    if not matching_relation_modules: return False
                     anchormodulelist = []
-                    for m in relationmodulelist:
+                    for m in matching_relation_modules:
                         anchormod = sign.getmoduledict(anchortype)[m.relationy.linkedmoduleids[0]]
                         anchormodulelist.append(anchormod)
-
-                    if ttype == TargetTypes.LOC_REL:
-                        if not locn_module_matches(anchormodulelist, self.target_module(row)): return False
-                    elif ttype == TargetTypes.MOV_REL:
-                        if not mvmt_module_matches(anchormodulelist, self.target_module(row)): return False
-                return True
-
-                    
-
-            
-
-
+                        # TODO: terminate early?
+                        if ttype == TargetTypes.LOC_REL:
+                            anchormodulelist = filter_modules_by_target_locn(anchormodulelist, self.target_module(row), matchtype=self.matchtype, terminate_early=False)
+                        elif ttype == TargetTypes.MOV_REL:
+                            anchormodulelist = filter_modules_by_target_mvmt(anchormodulelist, self.target_module(row), matchtype=self.matchtype, terminate_early=False)
+                        if not anchormodulelist: return False
         return True
     
     def sign_matches_xslot(self, rows, sign):
@@ -389,7 +387,6 @@ class SearchModel(QStandardItemModel):
                         target_predefined_shape = PREDEFINED_MAP[target_tuple].name
                         if sign_tuple in PREDEFINED_MAP:
                             sign_shape = PREDEFINED_MAP[sign_tuple].name
-                            logging.warning("checking: ")
                             # logging.warning(sign_shape)
                             if target_predefined_shape == sign_shape:
                                 matches_this_row.append(m)   
@@ -409,7 +406,6 @@ class SearchModel(QStandardItemModel):
         for row in rows:
             matches_this_row = []
             target_module = self.target_module(row)
-            print(sign)
             extended_symbols = ['H', 'E', 'e', 'i'] if target_module.i_extended else ['H', 'E', 'e']
             # get lists of target extended vs nonextended fingers, where thumb=0, index=1, etc
             target_extended_fingers, target_nonextended_fingers = [], [] 
@@ -441,178 +437,7 @@ class SearchModel(QStandardItemModel):
 
 
         return True
-    
-        
 
-
-        
-
-
-
-    def sign_matches_reln(self, rows, sign):
-        matching_modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values()]
-        if len(matching_modules) == 0:
-            return False
-        for row in rows:
-            svi = self.target_values(row) 
-            xslottype = self.target_xslottype(row)
-            target_module = self.target_module(row)
-
-            # All relation_x possibilities are mutually exclusive, so check if target relation_x matches at least one of sign's relation_xs
-            target_relationx = target_module.relationx.displaystr()
-            if target_relationx != "":
-                matching_modules = [m for m in matching_modules if target_relationx == m.relationx.displaystr()]
-                if len(matching_modules) == 0: return False
-
-            # If target relation_y is "Existing module", this can also match "existing module - locn" or "existing module - mvmt".
-            # Otherwise, relation_y possibilities are mutually exclusive.
-            target_relationy = target_module.relationy.displaystr()
-            if target_relationy != "": 
-                if target_relationy == "Y: existing module":
-                    matching_modules = [m for m in matching_modules if target_relationy in m.relationy.displaystr()]
-                else:
-                    matching_modules = [m for m in matching_modules if target_relationy == m.relationy.displaystr()]
-                if len(matching_modules) == 0: return False
-            # If target contact is only "Contact", this needs to match contact type suboptions (light, firm, other)
-            # If target contact is "No contact", must match signs where contact is not specified or empty (?)
-            # Manner options are mutually exclusive.
-            if target_module.contactrel.contact is False: # if False, then "no contact" specified
-                matching_modules = [m for m in matching_modules if m.contactrel.contact == False]
-            elif target_module.contactrel.contact is not None:
-                if target_module.contactrel.contacttype.any:
-                    matching_modules = [m for m in matching_modules if m.contactrel.has_contacttype()]
-                    if len(matching_modules) == 0: return False   
-                elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
-                    matching_modules = [m for m in matching_modules if m.contactrel.contacttype == target_module.contactrel.contacttype]
-                    if len(matching_modules) == 0: return False 
-                if target_module.contactrel.manner.any:
-                    matching_modules = [m for m in matching_modules if m.contactrel.has_manner()]
-                    if len(matching_modules) == 0: return False  
-                elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
-                    matching_modules = [m for m in matching_modules if m.contactrel.manner == target_module.contactrel.manner]
-                    if len(matching_modules) == 0: return False 
-                else: # only "contact" specified, so module must have some contact / contacttype
-                    matching_modules = [m for m in matching_modules if m.contactrel.contact]
-            if len(matching_modules) == 0: return False 
-            
-            # direction:
-            if len(target_module.directions) == 1 and target_module.directions[0].any: 
-                matching_modules = [m for m in matching_modules if m.has_any_direction()]
-            else:
-                if target_module.xy_linked:
-                    matching_modules = [m for m in matching_modules if m.xy_linked]
-                if target_module.xy_crossed:
-                    matching_modules = [m for m in matching_modules if m.xy_crossed]
-                for i in range(3):
-                    if target_module.directions[i].axisselected:
-                        if target_module.has_direction(i): # match exactly because suboption is selected
-                            matching_modules = [m for m in matching_modules if m.directions[i] == target_module.directions[i]]
-                        else: # only axis is selected, so match if any suboption is selected
-                            matching_modules = [m for m in matching_modules if m.has_direction(i)]
-            if len(matching_modules) == 0:
-                return False
-            
-            # Distance:
-            if not target_module.contactrel.contact:
-                if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
-                    matching_modules = [m for m in matching_modules if m.has_any_distance()]
-                else:
-                    for i in range(4):
-                        dist = target_module.contactrel.distances[i]
-                        if dist.has_selection():
-                            matching_modules = [m for m in matching_modules if m.contactrel.distances[i].has_selection()]
-                                
-                if len(matching_modules) == 0:
-                    return False
-            
-            
-            # Paths
-            if hasattr(svi, "paths"):
-                target_dict = target_module.get_paths()
-                
-                flag = False
-                for m in matching_modules:
-                    sign_dict = m.get_paths()
-                    matching_keys = [k for k in sign_dict.keys() if k in target_dict.keys()]
-                    for k in matching_keys:
-                        if all(p in sign_dict[k] for p in target_dict[k]):
-                            flag = True
-                            break
-                if not flag:
-                    return False
-
-        return True
-
-
-    def sign_matches_mvmt(self, mvmt_rows, sign):
-        modules = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
-        if len(modules) == 0:
-            return False
-        for row in mvmt_rows:
-            xslottype = self.target_xslottype(row).type
-            target_module = self.target_module(row)
-            svi = self.target_values(row)
-            if hasattr(svi, "articulators"):
-                sign_arts = set()
-                for module in modules:
-                    sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
-                for _ in mvmt_rows:
-                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
-                    if arts not in sign_arts:
-                        return False
-            if hasattr(svi, "paths"):
-                sign_paths = set()
-                for module in modules:
-                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
-                        for p in module.movementtreemodel.get_checked_items():
-                            sign_paths.add(p)
-                if not all(path in sign_paths for path in svi.paths):
-                    return False
-                    
-        return True
-
-    def sign_matches_locn(self, locn_rows, sign):
-        modules = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
-        if len(modules) == 0:
-            return False
-        for row in locn_rows:
-            svi = self.target_values(row)
-            xslottype = self.target_xslottype(row).type
-            target_module = self.target_module(row)
-            if hasattr(svi, "articulators"):
-                sign_arts = set("")
-                for module in modules:
-                    sign_arts.add(articulatordisplaytext(module.articulators, module.inphase))
-                for _ in locn_rows:
-                    arts = articulatordisplaytext(svi.articulators, svi.inphase)
-                    if arts not in sign_arts:
-                        return False
-            if hasattr(svi, "loctype"):
-                sign_loctypes = set("")
-                for module in modules:
-                    sign_loctypes.update(loctypedisplaytext(module.locationtreemodel.locationtype))
-                for _ in locn_rows:
-                    lt = loctypedisplaytext(svi.loctype)
-                    if not all(loctype in sign_loctypes for loctype in lt):
-                        return False
-            if hasattr(svi, "phonlocs"):
-                sign_phonlocs = set("")
-                for module in modules:
-                    sign_phonlocs.update(phonlocsdisplaytext(module.phonlocs))
-                for _ in locn_rows:
-                    pl = phonlocsdisplaytext(svi.phonlocs)
-                    if not all(phonloc in sign_phonlocs for phonloc in pl):
-                        return False
-            if hasattr(svi, "paths"):
-                sign_paths = set("")
-                for module in modules:
-                    if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
-                        fully_checked = target_module.locationtreemodel.nodes_are_terminal
-                        sign_paths.update(module.locationtreemodel.get_checked_items(only_fully_checked=fully_checked))
-                if not all(path in sign_paths for path in svi.paths):
-                    return False
-                    
-        return True
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
@@ -714,6 +539,9 @@ class SearchModel(QStandardItemModel):
     
     def target_xslottype(self, row):
         return self.index(row, TargetHeaders.XSLOTS).data(Qt.UserRole)
+
+    def target_display(self, row):
+        return self.index(row, TargetHeaders.VALUE).data(Qt.DisplayRole)
     
     def target_values(self, row):
         return self.index(row, TargetHeaders.VALUE).data(Qt.UserRole+1)
@@ -829,37 +657,45 @@ class SearchValuesItem:
             if module.articulators[1][1] or module.articulators[1][2]: # between articulator 1 and articulator 2, at least one is True
                 self.articulators = module.articulators
                 self.inphase = module.inphase
-                todisplay.append(articulatordisplaytext(module.articulators, module.inphase))
+                # todisplay.append(articulatordisplaytext(module.articulators, module.inphase))
             if self.has_added_info(module):
                 pass
                 # todisplay.append("Additional info") # TODO could be more specific re type / contents of additional info
             paths = []
             if self.type == ModuleTypes.MOVEMENT:
                 paths = module.movementtreemodel.get_checked_items()
+                if len(paths) > 0: self.paths = paths
             elif self.type == ModuleTypes.LOCATION:
-                paths = module.locationtreemodel.get_checked_items(only_fully_checked=True)
+                # paths is a list of dicts: "path", "abbrev", "details"
+                paths = module.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True)
+                # convert to a list of tuples, since that's what we'll try to match when searching
+                if len(paths) > 0:
+                    self.paths = []
+                    for p in paths:
+                        # details_tuple is tuple([], [])
+                        details_tuple = tuple(tuple(selecteddetails) for label, selecteddetails in p['details'].get_checked_values().items())
+                        self.paths.append((p['path'], details_tuple))
                 if not module.phonlocs.allfalse():
                     self.phonlocs = module.phonlocs
-                    todisplay.extend(phonlocsdisplaytext(self.phonlocs))
+                    # todisplay.extend(phonlocsdisplaytext(self.phonlocs))
                 if not module.locationtreemodel.locationtype.allfalse():
                     self.loctype = module.locationtreemodel.locationtype
-                    todisplay.extend(loctypedisplaytext(self.loctype))
-            else: # relation
-                paths = module.get_paths()
-                todisplay.extend(relationdisplaytext(module))
-
-            if len(paths) > 0:
-                self.paths = paths
-                todisplay.extend(self.paths)
+                    # todisplay.extend(loctypedisplaytext(self.loctype))
+            # else: # relation
+            #     # paths is a dict matching selected articulators to a list of dicts: "path", "abbrev", "details"
+            #     paths = module.get_paths()
+            #     if len(paths) > 0:
+            #         self.paths = paths # TODO
+                # todisplay.extend(relationdisplaytext(module))
 
         
-        elif self.type == TargetTypes.SIGNTYPEINFO:
-            todisplay.extend(signtypedisplaytext(module.specslist))
-        else:
-            if self.values is not None:
-                for k, v in self.values.items():
-                    if v not in [None, ""]:
-                        todisplay.append(str(k)+"="+str(v))
+        # elif self.type == TargetTypes.SIGNTYPEINFO:
+            # todisplay.extend(signtypedisplaytext(module.specslist))
+        # else:
+        #     if self.values is not None:
+        #         for k, v in self.values.items():
+        #             if v not in [None, ""]:
+        #                 todisplay.append(str(k)+"="+str(v))
         
         self.displayval = todisplay
     
