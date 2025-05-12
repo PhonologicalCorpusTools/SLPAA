@@ -25,6 +25,7 @@ class CompareModel:
         result = {'sign1': {}, 'sign2': {}}
 
         for module in module_attributes:
+            """
             if 'movement' in module:
                 mvmt_res = self.compare_movements()
                 # For 'sign1'
@@ -38,8 +39,9 @@ class CompareModel:
                     k: {key: value for d in v for key, value in d.items()}
                     for k, v in mvmt_res['sign2'].items()
                 }
-
-            elif 'location' in module:
+            """
+            # elif 'location' in module:
+            if 'location' in module:
                 loc_res = self.compare_locations()
                 # For 'sign1'
                 result['sign1']['location'] = {
@@ -52,7 +54,7 @@ class CompareModel:
                     k: {key: value for d in v for key, value in d.items()}
                     for k, v in loc_res['sign2'].items()
                 }
-
+            """
             elif 'relation' in module:
                 #reln_res = self.compare_relation()
                 #result['relation'] = reln_res
@@ -71,6 +73,7 @@ class CompareModel:
                     for k, v in ori_res['sign2'].items()
 
                 }
+            """
         return result
 
     def get_module_ids(self, module_type: str) -> (dict, dict):
@@ -220,7 +223,8 @@ class CompareModel:
             elif loc_type._purelyspatial:
                 r = {'Signing space': {'Purely spacial': compare_result_dict}}
             else:
-                return 0
+                print("[DEBUG] Major location type unspecified.")
+                return {}
 
             # Add btn info
             modify_button_type = lambda d: (
@@ -276,7 +280,7 @@ class CompareModel:
                 what_selected.append('Signing space > BodyAnchored')
             elif s2_location_type._purelyspatial:
                 what_selected.append('Signing space > PurelySpatial')
-            QMessageBox.information(None, 'Loc selection', f'[DEBUG] Major location selection info\n\nSign1: {what_selected[0]}\nSign2: {what_selected[1]}')
+            #QMessageBox.information(None, 'Loc selection', f'[DEBUG] Major location selection info\n\nSign1: {what_selected[0]}\nSign2: {what_selected[1]}')
             del what_selected
             # end debug
 

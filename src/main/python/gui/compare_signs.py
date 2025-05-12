@@ -312,100 +312,42 @@ class CompareSignsDialog(QDialog):
             red_brush = self.palette['red']   # red when mismatch
             yellow_brush = self.palette['yellow']  # yellow when no counterpart
 
+            # query button_type (major loc, rb, cb)
+            data1_btn_types = parse_button_type(data1)
+            data2_btn_types = parse_button_type(data2)
+
             # Get the union of all keys in both data1 and data2
             data1_keys_original = set(data1.keys()) if isinstance(data1, dict) else set()
             data2_keys_original = set(data2.keys()) if isinstance(data2, dict) else set()
 
             data1_keys, data2_keys = self.clean_data_keys(data1_keys_original, data2_keys_original)
 
-            all_keys = sorted(data1_keys.union(data2_keys), reverse=True)
+            # case: major location comparison → just align current keys and go down
+            try:
+                is_major_loc = data1_btn_types[depth] == 'major loc'
+            except IndexError:
+                is_major_loc = False
+            if is_major_loc:
+                data1_label = self.get_original_key(data1_keys_original, list(data1_keys_original)[0])
+                data2_label = self.get_original_key(data1_keys_original, list(data2_keys_original)[0])
 
-            for key in reversed(all_keys):
-                data1_btn_types = parse_button_type(data1)
-                data2_btn_types = parse_button_type(data2)
+                value1 = data1.get(data1_label, None)  # data1_keys_original is a set guaranteed to contain only one str element
+                value2 = data2.get(data2_label, None)
 
-                # case: same parents, different children.
-                if parent1 == parent2 and key not in (data1_keys & data2_keys) and not parent1.is_root and not parent2.is_root:
-                    try:
-                        is_data1_rb = data1_btn_types[depth] == 'radio button'
-                        is_data2_rb = data2_btn_types[depth] == 'radio button'
-                    except IndexError:  # same parents, one does not have a child
-                        is_data1_rb = False
-                        is_data2_rb = False
-
-                    # Same parents, different radio button children
-                    if is_data1_rb and is_data2_rb:
-                        item_labels = []
-                        trunc_counts = []
-
-                        for k, btn_t in [(data1_keys, data1_btn_types), (data2_keys, data2_btn_types)]:
-                            label = str(list(k)[0])
-                            trunc_n = len(btn_t[depth + 1:])
-                            if trunc_n > 0:
-                                label += f" (+ {trunc_n} truncated for lack of correspondence)"
-                            item_labels.append(label)
-                            trunc_counts.append(trunc_n)
-
-                        item1 = CompareTreeWidgetItem(
-                            labels=[item_labels[0]],
-                            palette=self.palette,
-                            truncated_count=trunc_counts[0],
-                        )
-                        item2 = CompareTreeWidgetItem(
-                            labels=[item_labels[1]],
-                            palette=self.palette,
-                            truncated_count=trunc_counts[1],
-                        )
-
-                        should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
-                                                          should_paint_red, yellow_brush)
-                        return should_paint_red, should_paint_yellow
-                value1, value2 = None, None
-                try:
-                    value1 = data1.get(self.get_original_key(data1_keys_original, key), None)
-                    value2 = data2.get(self.get_original_key(data2_keys_original, key), None)
-                except AttributeError:
-                    # when data1 or data2 is bool
-                    pass
-
-                # case: a tree hit the terminal. button_type node should not be visible
-                if key in {'match', 'button_type'}:
-                    if len(data1_btn_types) != len(data2_btn_types):
-
-                        # needs to decide 'which parent' should be yellow
-                        index = 0 if value1 is not None else 1
-                        should_paint_yellow[index] = True
-                    continue
-
-                # Create tree items for both trees
-                item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, key)],
+                item1 = CompareTreeWidgetItem(labels=[data1_label],
                                               palette=self.palette)
-                item2 = CompareTreeWidgetItem(labels=[self.get_original_key(data2_keys_original, key)],
+                item2 = CompareTreeWidgetItem(labels=[data2_label],
                                               palette=self.palette)
 
-                # Set the color of missing nodes
-                if value1 is None and value2 is not None:
-                    # only tree 2 has this node
-                    background_colour = tree1.palette().color(QPalette.Base)
-                    item1.setForeground(0, QBrush(background_colour))  # node in tree 1 greyed out
-                    item1.setFlags(Qt.NoItemFlags)
-                    item2.initilize_bg_color('yellow')
-                    should_paint_yellow[1] = True
-                elif value2 is None and value1 is not None:
-                    # only tree 1 has it
-                    background_colour = tree2.palette().color(QPalette.Base)
-                    item2.setForeground(0, QBrush(background_colour))  # node in tree 2 greyed out
-                    item2.setFlags(Qt.NoItemFlags)
-                    item1.initilize_bg_color('yellow')
-                    should_paint_yellow[0] = True
+                del data1_label
+                del data2_label
+
                 parent1.addChild(item1)
                 parent2.addChild(item2)
 
-                # initialize child color flags
                 child_r = [False, False]  # flag marking whether a child node is coloured red
                 child_y = [False, False]  # flag marking whether a child node is coloured yellow
 
-                # If either of the two values are dicts, recurse into them
                 if isinstance(value1, dict) or isinstance(value2, dict):
                     child_r, child_y = add_items(item1, item2, value1, value2, depth+1)
                 else:
@@ -429,7 +371,6 @@ class CompareSignsDialog(QDialog):
                         item2.initilize_bg_color('blue')
                     else:
                         item2.initilize_bg_color('yellow')
-
                 # color the node depending on children
                 # if a child is either yellow or red, the parent should be red
                 if child_r[0] or child_y[0]:
@@ -437,6 +378,123 @@ class CompareSignsDialog(QDialog):
                 if child_r[1] or child_y[1]:
                     should_paint_red[1] = True
                 should_paint_red = [should_paint_red[0], should_paint_red[1]]
+            else:
+                all_keys = sorted(data1_keys.union(data2_keys), reverse=True)
+
+                for key in reversed(all_keys):
+                    # case: same parents, different children.
+                    if parent1 == parent2 and key not in (data1_keys & data2_keys) and not parent1.is_root and not parent2.is_root:
+                        try:
+                            is_data1_rb = data1_btn_types[depth] == 'radio button'
+                            is_data2_rb = data2_btn_types[depth] == 'radio button'
+                        except IndexError:  # same parents, one does not have a child
+                            is_data1_rb = False
+                            is_data2_rb = False
+
+                        # Same parents, different radio button children
+                        if is_data1_rb and is_data2_rb:
+                            item_labels = []
+                            trunc_counts = []
+
+                            for k, btn_t in [(data1_keys, data1_btn_types), (data2_keys, data2_btn_types)]:
+                                label = str(list(k)[0])
+                                trunc_n = len(btn_t[depth + 1:])
+                                if trunc_n > 0:
+                                    label += f" (+ {trunc_n} truncated for lack of correspondence)"
+                                item_labels.append(label)
+                                trunc_counts.append(trunc_n)
+
+                            item1 = CompareTreeWidgetItem(
+                                labels=[item_labels[0]],
+                                palette=self.palette,
+                                truncated_count=trunc_counts[0],
+                            )
+                            item2 = CompareTreeWidgetItem(
+                                labels=[item_labels[1]],
+                                palette=self.palette,
+                                truncated_count=trunc_counts[1],
+                            )
+
+                            should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
+                                                              should_paint_red, yellow_brush)
+                            return should_paint_red, should_paint_yellow
+                    value1, value2 = None, None
+                    try:
+                        value1 = data1.get(self.get_original_key(data1_keys_original, key), None)
+                        value2 = data2.get(self.get_original_key(data2_keys_original, key), None)
+                    except AttributeError:
+                        # when data1 or data2 is bool
+                        pass
+
+                    # case: a tree hit the terminal. button_type node should not be visible
+                    if key in {'match', 'button_type'}:
+                        if len(data1_btn_types) != len(data2_btn_types):
+
+                            # needs to decide 'which parent' should be yellow
+                            index = 0 if value1 is not None else 1
+                            should_paint_yellow[index] = True
+                        continue
+
+                    # Create tree items for both trees
+                    item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, key)],
+                                                  palette=self.palette)
+                    item2 = CompareTreeWidgetItem(labels=[self.get_original_key(data2_keys_original, key)],
+                                                  palette=self.palette)
+
+                    # Set the color of missing nodes
+                    if value1 is None and value2 is not None:
+                        # only tree 2 has this node
+                        background_colour = tree1.palette().color(QPalette.Base)
+                        item1.setForeground(0, QBrush(background_colour))  # node in tree 1 greyed out
+                        item1.setFlags(Qt.NoItemFlags)
+                        item2.initilize_bg_color('yellow')
+                        should_paint_yellow[1] = True
+                    elif value2 is None and value1 is not None:
+                        # only tree 1 has it
+                        background_colour = tree2.palette().color(QPalette.Base)
+                        item2.setForeground(0, QBrush(background_colour))  # node in tree 2 greyed out
+                        item2.setFlags(Qt.NoItemFlags)
+                        item1.initilize_bg_color('yellow')
+                        should_paint_yellow[0] = True
+                    parent1.addChild(item1)
+                    parent2.addChild(item2)
+
+                    # initialize child color flags
+                    child_r = [False, False]  # flag marking whether a child node is coloured red
+                    child_y = [False, False]  # flag marking whether a child node is coloured yellow
+
+                    # If either of the two values are dicts, recurse into them
+                    if isinstance(value1, dict) or isinstance(value2, dict):
+                        child_r, child_y = add_items(item1, item2, value1, value2, depth+1)
+                    else:
+                        # Set color for false values
+                        if value1 is False and not should_paint_yellow[0]:
+                            item1.initilize_bg_color('red')  # red
+                            should_paint_red[0] = True
+                        elif item1.flags() == Qt.NoItemFlags:
+                            item1.initilize_bg_color()  # default case = transparent background
+                        elif item2.flags() != Qt.NoItemFlags:
+                            item1.initilize_bg_color('blue')
+                        else:
+                            item1.initilize_bg_color('yellow')
+
+                        if value2 is False and not should_paint_yellow[1]:
+                            item2.initilize_bg_color('red')  # red
+                            should_paint_red[1] = True
+                        elif item2.flags() == Qt.NoItemFlags:
+                            item2.initilize_bg_color()
+                        elif item1.flags() != Qt.NoItemFlags:
+                            item2.initilize_bg_color('blue')
+                        else:
+                            item2.initilize_bg_color('yellow')
+
+                    # color the node depending on children
+                    # if a child is either yellow or red, the parent should be red
+                    if child_r[0] or child_y[0]:
+                        should_paint_red[0] = True
+                    if child_r[1] or child_y[1]:
+                        should_paint_red[1] = True
+                    should_paint_red = [should_paint_red[0], should_paint_red[1]]
 
             # Check parent1's children for empty (greyed out) lines
             for i in range(parent1.childCount()):
