@@ -40,7 +40,8 @@ from PyQt5.QtWidgets import (
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
 from gui.handconfigspecification_view import HandConfigSpecificationPanel
-from gui.relationspecification_view import RelationSpecificationPanel, RelationRadioButton, RelationButtonGroup, ModuleLinkingListModel
+from gui.relationspecification_view import RelationSpecificationPanel, ModuleLinkingListModel
+from gui.modulespecification_widgets import DeselectableRadioButton, DeselectableRadioButtonGroup
 from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene, AssociatedRelationsDialog, AssociatedRelationsPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
 
@@ -435,7 +436,7 @@ class CustomRBGrp(QButtonGroup):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setExclusive(False)
-        self.buttonClicked.connect(self.on_button_click)
+        self.buttonToggled.connect(self.on_button_click)
     
     def on_button_click(self, button):
         if button.isChecked():
@@ -443,6 +444,12 @@ class CustomRBGrp(QButtonGroup):
                 b.setChecked(b==button)
         else:
             button.setChecked(False)
+    
+    def checkedButton(self):
+        for b in self.buttons():
+            if b.isChecked():
+                return b
+        return None
 
 # TODO possibly not necessary. can use base classes
 class Search_MovementSpecPanel(MovementSpecificationPanel):
@@ -655,6 +662,10 @@ class Search_HandConfigSpecPanel(HandConfigSpecificationPanel):
 class Search_RelationSpecPanel(RelationSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
+    
+    def selections_valid(self):
+        # overloaded for validity_check: in Search, we don't need to ensure X and Y selections exist
+        return True
 
     # If an associated relation module is being created, then the linked module box should only show this target's anchor module.
     # If we use the parent class's method, all location or movement search targets in this search file will appear, 
@@ -697,10 +708,6 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         else: 
             super().create_linked_module_box()
 
-
-
-
-
     def setcurrentmanner(self, mannerrel):
         if mannerrel is not None and mannerrel.any:
             self.any_manner_cb.setChecked(True)
@@ -712,7 +719,6 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         reln = super().getcurrentmanner()
         reln.any = self.any_manner_cb.isChecked()
         return reln
-
 
     def setcurrentcontacttype(self, contacttype):
         if contacttype is not None and contacttype.any:
@@ -745,14 +751,22 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
             self.any_distance_cb.setChecked(True)
         else:
             super().setcurrentdistances(distances_list)
+            # set the parent axis checkbox if distance.any is True
+            for d, btn in zip(distances_list, [self.dishor_cb, self.disver_cb, self.dissag_cb, self.disgen_cb]):
+                if d.any:
+                    btn.setChecked(True)
 
     def getcurrentdistances(self):
         if self.any_distance_cb.isChecked():
             return[Distance(axis=None, any=True)]
         else:
             dists = super().getcurrentdistances()
-            for d in dists:
-                d.any = False
+            # set distance.any = True if only the parent axis checkbox is selected
+            for d, btn in zip(dists, [self.dishor_cb, self.disver_cb, self.dissag_cb, self.disgen_cb]):
+                if btn.isChecked() and not d.has_selection():
+                    d.any = True
+                else:
+                    d.any = False
             return dists
 
 
@@ -812,11 +826,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for horizontal distance options
         self.dishor_box = QGroupBox()
         self.dishor_label = QLabel("Horizontal")
-        self.dishorclose_rb = RelationRadioButton("Close")
-        self.dishormed_rb = RelationRadioButton("Med.")
-        self.dishorfar_rb = RelationRadioButton("Far")
+        self.dishorclose_rb = DeselectableRadioButton("Close")
+        self.dishormed_rb = DeselectableRadioButton("Med.")
+        self.dishorfar_rb = DeselectableRadioButton("Far")
         self.dishor_cb = QCheckBox(self.dishor_label.text())
-        self.dishor_group = RelationButtonGroup()
+        self.dishor_group = DeselectableRadioButtonGroup()
         self.dishor_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_hor_layout = self.create_axis_layout(self.dishorclose_rb,
                                                  self.dishormed_rb,
@@ -830,11 +844,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for vertical distance options
         self.disver_box = QGroupBox()
         self.disver_label = QLabel("Vertical")
-        self.disverclose_rb = RelationRadioButton("Close")
-        self.disvermed_rb = RelationRadioButton("Med.")
-        self.disverfar_rb = RelationRadioButton("Far")
+        self.disverclose_rb = DeselectableRadioButton("Close")
+        self.disvermed_rb = DeselectableRadioButton("Med.")
+        self.disverfar_rb = DeselectableRadioButton("Far")
         self.disver_cb = QCheckBox(self.disver_label.text())
-        self.disver_group = RelationButtonGroup()
+        self.disver_group = DeselectableRadioButtonGroup()
         self.disver_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_ver_layout = self.create_axis_layout(self.disverclose_rb,
                                                  self.disvermed_rb,
@@ -848,11 +862,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for sagittal direction options
         self.dissag_box = QGroupBox()
         self.dissag_label = QLabel("Sagittal")
-        self.dissagclose_rb = RelationRadioButton("Close")
-        self.dissagmed_rb = RelationRadioButton("Med.")
-        self.dissagfar_rb = RelationRadioButton("Far")
+        self.dissagclose_rb = DeselectableRadioButton("Close")
+        self.dissagmed_rb = DeselectableRadioButton("Med.")
+        self.dissagfar_rb = DeselectableRadioButton("Far")
         self.dissag_cb = QCheckBox(self.dissag_label.text())
-        self.dissag_group = RelationButtonGroup()
+        self.dissag_group = DeselectableRadioButtonGroup()
         self.dissag_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_sag_layout = self.create_axis_layout(self.dissagclose_rb,
                                                  self.dissagmed_rb,
@@ -865,11 +879,11 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         # create layout for generic distance options
         self.disgen_box = QGroupBox()
         self.disgen_label = QLabel("Generic")
-        self.disgenclose_rb = RelationRadioButton("Close")
-        self.disgenmed_rb = RelationRadioButton("Med.")
-        self.disgenfar_rb = RelationRadioButton("Far")
+        self.disgenclose_rb = DeselectableRadioButton("Close")
+        self.disgenmed_rb = DeselectableRadioButton("Med.")
+        self.disgenfar_rb = DeselectableRadioButton("Far")
         self.disgen_cb = QCheckBox(self.disgen_label.text())
-        self.disgen_group = RelationButtonGroup()
+        self.disgen_group = DeselectableRadioButtonGroup()
         self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
                                                  self.disgenmed_rb,
@@ -920,8 +934,7 @@ class Search_RelationSpecPanel(RelationSpecificationPanel):
         
         return direction_layout
     
-    # if user checks one of the distance axis radio buttons, ensure that its parent checkbox is
-    #   also checked
+    # if user checks one of the distance axis radio buttons, ensure that its parent checkbox is also checked
     # Only exists in search GUI, since parent checkboxes are not present in main GUI
     def handle_distancegroup_toggled(self, ischecked, axis_cb):
         if not ischecked:
@@ -1069,7 +1082,6 @@ class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
         associatedrelations_dialog.module_saved.connect(self.module_saved.emit)
         associatedrelations_dialog.exec_()
         self.style_seeassociatedrelations()  # in case one/some were deleted and there are none left now
-
 
 
     def check_enable_saveaddrelation(self, hastiming=None, hasarticulators=None, bodyloc=None):
@@ -1223,3 +1235,15 @@ class SearchTargetItem(QStandardItem):
     @associatedrelnmodule.setter
     def associatedrelnmodule(self, m):
         self._associatedrelnmodule = m
+
+    def displaystring(self):
+        if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+            return(self.module.getabbreviation())
+        elif self.targettype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
+            moduletype = ModuleTypes.MOVEMENT if self.targettype == TargetTypes.MOV_REL else ModuleTypes.LOCATION
+            moduleabbrev = self.module.getabbreviation()
+            relationabbrev = self.associatedrelnmodule.getabbreviation()
+            return relationabbrev.replace(f"linked {moduletype} module", moduleabbrev)
+            
+        else:
+            return self.searchvaluesitem.displayval

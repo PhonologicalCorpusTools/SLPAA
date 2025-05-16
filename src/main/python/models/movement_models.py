@@ -1119,6 +1119,24 @@ class MovementListModel(QStandardItemModel):
     def setTreemodel(self, treemod):
         self.treemodel = treemod
 
+    # returns True iff input `other` is also a MovementListModel, and it has the exact same checked items as this one
+    # note that this function ignores any potential AddedInfo (right-click menu) info
+    def matches(self, other):
+        return isinstance(other, MovementListModel) and (self.get_checked_items() == other.get_checked_items())
+
+    # returns a list of strings, where each is the (tree) path of one of the checked items in this list
+    def get_checked_items(self, parent_item=None):
+        if parent_item is None:
+            parent_item = self.invisibleRootItem()
+
+        checked_values = []
+        for row in range(parent_item.rowCount()):
+            child_item = parent_item.child(row, 0)
+            if child_item.data(Qt.UserRole+udr.selectedrole):
+                checked_values.append(child_item.text())
+            checked_values.extend(self.get_checked_items(child_item))
+        return checked_values
+
 
 class MovementTreeModel(QStandardItemModel):
 
@@ -1160,6 +1178,11 @@ class MovementTreeModel(QStandardItemModel):
                             self.checked.append(pathtext)
 
                     self.update_currently_checked(treechild)
+
+    # returns True iff input `other` is also a MovementTreeModel, and it has the exact same checked items as this one
+    # note that this function ignores any potential AddedInfo (right-click menu) info
+    def matches(self, other):
+        return isinstance(other, MovementTreeModel) and (self.listmodel.matches(other.listmodel))
 
     # Compare what was serialized with what the current tree actually shows
     # Also updates the list
@@ -1520,16 +1543,22 @@ class MovementTreeModel(QStandardItemModel):
 
 
     def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=False, include_details=False):
-        ''' 
-        Returns: a list of strings denoting paths \n
-        If include_details, returns a list of dicts: 
-        - 'path': the full path
-        - 'abbrev': The abbreviation. None if the path leaf should not be abbreviated \n
-        The default value for only_fully_checked is False (in contrast to Location module) because
-        ancestors of a selected path should be considered as checked nodes when searching.
-        For example, a search for "Repetition" should return movement modules that contain "Repetition>Repeated>2x",
-        but a search for "Face" should not return location modules that only contain "Face>Cheek/nose".
-        '''
+        """
+        Recursively traverses the movement tree and returns a list of checked items.
+        Args:
+            only_fully_checked: bool. If False, then partially checked items are considered checked. \
+                The default value for only_fully_checked is False (in contrast to Location module) because a search for an ancestor should return its checked descendants. \
+                For example, a search for "Repetition" should return movement modules that contain "Repetition>Repeated>2x", \
+                but a search for "Face" should not return location modules that only contain "Face>Cheek/nose".
+            include_details: bool. If True, also returns abbreviations of checked location paths.
+
+        Returns:
+            list. If `include_details`, returns a list of dicts of the form: 
+            {'path': [the full path], 
+            'abbrev': [the abbreviation, None if the path leaf should not be abbreviated]}
+            Otherwise returns a list of paths.
+            
+        """
         checked_values = []
         for row in range(self.rowCount(parent_index)):
             index = self.index(row, 0, parent_index)

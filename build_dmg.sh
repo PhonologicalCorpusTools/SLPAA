@@ -19,12 +19,23 @@ else
   exit 1
 fi
 
+# Find the actual .app file
+APP_PATH=$(find "$DIST_DIR" -maxdepth 1 -type d -name "SLPAA*.app" | head -n 1)
+if [ -z "$APP_PATH" ]; then
+  echo "Error: No .app bundle found in $DIST_DIR"
+  exit 1
+fi
+
+APP_NAME=$(basename "$APP_PATH")
+DMG_NAME="${APP_NAME%.app}.dmg"  # e.g., SLPAA 1.0.0.dmg
+
 # Create a folder 'dmg' under dist and use it to prepare the DMG.
 mkdir -p "$DIST_DIR/dmg"
 # Empty the dmg folder.
 rm -rf "$DIST_DIR/dmg/*"
 # Copy the app bundle to the dmg folder.
-cp -r "$DIST_DIR/SLPAA.app" "$DIST_DIR/dmg"
+cp -r "$APP_PATH" "$DIST_DIR/dmg"
+
 # If the DMG already exists, delete it.
 test -f "$DIST_DIR/SLPAA.dmg" && rm "$DIST_DIR/SLPAA.dmg"
 
@@ -35,8 +46,8 @@ create-dmg \
   --window-pos 200 120 \
   --window-size 600 300 \
   --icon-size 100 \
-  --icon "SLPAA.app" 175 120 \
-  --hide-extension "SLPAA.app" \
+  --icon "$APP_NAME" 175 120 \
+  --hide-extension "$APP_NAME" \
   --app-drop-link 425 120 \
-  "$DIST_DIR/SLPAA.dmg" \
+  "$DIST_DIR/$DMG_NAME" \
   "$DIST_DIR/dmg/"
