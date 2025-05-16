@@ -109,6 +109,9 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
 
     def initilize_bg_color(self, colour: str = 'transparent'):
         # called when populating a tree. when a line gets created, same bg colours for underlying and current
+        if self.background(0).color().name() != self.palette['transparent'].color().name():
+            # if the line's colour has already been initialized, do nothing
+            return
         self.underlying_bg = colour
         self.current_bg = colour
         colour_brush = self.palette.get(colour, self.palette['transparent'])
@@ -339,6 +342,15 @@ class CompareSignsDialog(QDialog):
                 item2 = CompareTreeWidgetItem(labels=[data2_label],
                                               palette=self.palette)
 
+
+                # decide color depending on the labels if they are different, should colored red.
+                if data1_label != data2_label:
+                    item1.initilize_bg_color('red')
+                    item2.initilize_bg_color('red')
+                    should_paint_red[0] = True
+                    should_paint_red[1] = True
+
+                # delete labels because they are not needed anymore
                 del data1_label
                 del data2_label
 
