@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, 
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 import re
+import time  # for timestamping tree widget item
 
 from compare_signs.compare_models import CompareModel
 from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons
@@ -76,7 +77,7 @@ class ColourCounter(QWidget):
 
 # This class represents one line in the compare tree
 class CompareTreeWidgetItem(QTreeWidgetItem):
-    def __init__(self, labels, palette, truncated_count=0):
+    def __init__(self, labels, palette, truncated_count=0, pair_id=0):
         super().__init__(labels)
 
         self._text = self.text(0)
@@ -99,10 +100,13 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         if self._text.startswith(('H1', 'H2')) or self.is_root:
             self.is_label = True
 
+        # pair_id to help finding corresponding line in the other tree
+        self.pair_id = pair_id
+
     def __repr__(self):
         invisibility = self.flags() == Qt.NoItemFlags
         invisibility = 'in' if invisibility else ''
-        return f'<CompareTreeWidgetItem {self._text!r} ({invisibility}visible)>'
+        return f'<CompareTreeWidgetItem {self._text!r} id: {self.pair_id} ({invisibility}visible)>'
 
     def __eq__(self, other):
         return self._text == other._text and self.flags() == other.flags()
@@ -337,11 +341,14 @@ class CompareSignsDialog(QDialog):
                 value1 = data1.get(data1_label, None)  # data1_keys_original is a set guaranteed to contain only one str element
                 value2 = data2.get(data2_label, None)
 
+                timestamp_id = int(time.time() * 1000)
                 item1 = CompareTreeWidgetItem(labels=[data1_label],
-                                              palette=self.palette)
+                                              palette=self.palette,
+                                              pair_id=timestamp_id)
                 item2 = CompareTreeWidgetItem(labels=[data2_label],
-                                              palette=self.palette)
-
+                                              palette=self.palette,
+                                              pair_id=timestamp_id)
+                del timestamp_id
 
                 # decide color depending on the labels if they are different, should colored red.
                 if data1_label != data2_label:
@@ -416,16 +423,20 @@ class CompareSignsDialog(QDialog):
                                 item_labels.append(label)
                                 trunc_counts.append(trunc_n)
 
+                            timestamp_id = int(time.time() * 1000)
                             item1 = CompareTreeWidgetItem(
                                 labels=[item_labels[0]],
                                 palette=self.palette,
                                 truncated_count=trunc_counts[0],
+                                pair_id=timestamp_id
                             )
                             item2 = CompareTreeWidgetItem(
                                 labels=[item_labels[1]],
                                 palette=self.palette,
                                 truncated_count=trunc_counts[1],
+                                pair_id=timestamp_id
                             )
+                            del timestamp_id
 
                             should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
                                                               should_paint_red, yellow_brush)
@@ -448,10 +459,14 @@ class CompareSignsDialog(QDialog):
                         continue
 
                     # Create tree items for both trees
+                    timestamp_id = int(time.time() * 1000)
                     item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, key)],
-                                                  palette=self.palette)
+                                                  palette=self.palette,
+                                                  pair_id=timestamp_id)
                     item2 = CompareTreeWidgetItem(labels=[self.get_original_key(data2_keys_original, key)],
-                                                  palette=self.palette)
+                                                  palette=self.palette,
+                                                  pair_id=timestamp_id)
+                    del timestamp_id
 
                     # Set the color of missing nodes
                     if value1 is None and value2 is not None:
@@ -548,8 +563,10 @@ class CompareSignsDialog(QDialog):
 
         # Add each top-level key (e.g., movement, location, relation, ...) as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
-            top_item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
-            top_item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette)
+            timestamp_id = int(time.time() * 1000)
+            top_item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=timestamp_id)
+            top_item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=timestamp_id)
+            del timestamp_id
 
             tree1.addTopLevelItem(top_item1)
             tree2.addTopLevelItem(top_item2)
@@ -618,8 +635,7 @@ class CompareSignsDialog(QDialog):
         item_invisible = True if item.flags() == Qt.NoItemFlags else False  # check if item is invisible
 
         # Find and expand the corresponding item in the target tree
-        path = self.get_full_path(item)
-        corresponding_item = self.find_corresponding_line(path, target_tree)
+        corresponding_item = self.find_corresponding_line(item, target_tree)
         if corresponding_item:
             # check the corresponding line is invisible (i.e., if it does not really exist).
             corresponding_invisible = True if corresponding_item.flags() == Qt.NoItemFlags else False
@@ -649,8 +665,7 @@ class CompareSignsDialog(QDialog):
         # - update current colour counter
 
         # Find and collapse the corresponding item in the target tree
-        path = self.get_full_path(item)
-        corresponding_item = self.find_corresponding_line(path, target_tree)
+        corresponding_item = self.find_corresponding_line(item, target_tree)
         if corresponding_item and corresponding_item.isExpanded():
             # to prevent infinite recursions, collapse corresponding tree only when it is expanded
             target_tree.collapseItem(corresponding_item)
@@ -684,27 +699,24 @@ class CompareSignsDialog(QDialog):
             item = item.parent()
         return path[::-1]  # Reverse to get root-to-item order
 
-    def find_corresponding_line(self, line, tree):
+    def find_corresponding_line(self, twi, tree):
         # find line correspondences between trees,
+        # twi: CompareTreeWidgetItem representing the source compare tree line
+        # tree: the target tree on which twi is looking for its corresponding tree line
         # e.g., expanding 'movement' in tree1 should find 'movement' line in tree2
+        def recurse(item, pair_id):
+            if isinstance(item, CompareTreeWidgetItem) and getattr(item, "pair_id", None) == pair_id:
+                return item
+            for i in range(item.childCount()):
+                recurse(item.child(i), pair_id)
 
+        # Iterate through the path (line) to find the corresponding item, i.e., the one with the same pair_id value
+        pair_id = twi.pair_id
         current = tree.invisibleRootItem()
-
-        # Iterate through the path (line) to find the corresponding item
-        for label in line:
-            found = False
-            match = re.match(r"^(\d+):", label)
-            part = match.group(1) if match else label
-
-            for i in range(current.childCount()):
-                child = current.child(i)
-                if child.text(0).startswith(part):
-                    current = child
-                    found = True
-                    break
-            if not found:
-                return None  # Return None if the item in the path doesn't exist
-        return current  # Return the found corresponding item
+        for i in range(current.childCount()):
+            child = current.child(i)
+            recurse(child,pair_id)
+        return None  # Return None if the item in the path doesn't exist
 
     def update_expand_collapse_counters(self):
         # count colours for both 'all expanded' and 'all collapsed'
