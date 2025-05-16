@@ -2,8 +2,8 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, 
     QLabel, QHBoxLayout, QPushButton, QWidget, QFrame
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
+from random import randint  # for stamping tree widget item
 import re
-import time  # for timestamping tree widget item
 
 from compare_signs.compare_models import CompareModel
 from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons
@@ -341,14 +341,14 @@ class CompareSignsDialog(QDialog):
                 value1 = data1.get(data1_label, None)  # data1_keys_original is a set guaranteed to contain only one str element
                 value2 = data2.get(data2_label, None)
 
-                timestamp_id = int(time.time() * 1000)
+                stamp_id = randint(1, 1000)
                 item1 = CompareTreeWidgetItem(labels=[data1_label],
                                               palette=self.palette,
-                                              pair_id=timestamp_id)
+                                              pair_id=stamp_id)
                 item2 = CompareTreeWidgetItem(labels=[data2_label],
                                               palette=self.palette,
-                                              pair_id=timestamp_id)
-                del timestamp_id
+                                              pair_id=stamp_id)
+                del stamp_id
 
                 # decide color depending on the labels if they are different, should colored red.
                 if data1_label != data2_label:
@@ -423,20 +423,20 @@ class CompareSignsDialog(QDialog):
                                 item_labels.append(label)
                                 trunc_counts.append(trunc_n)
 
-                            timestamp_id = int(time.time() * 1000)
+                            stamp_id = randint(1, 500)
                             item1 = CompareTreeWidgetItem(
                                 labels=[item_labels[0]],
                                 palette=self.palette,
                                 truncated_count=trunc_counts[0],
-                                pair_id=timestamp_id
+                                pair_id=stamp_id
                             )
                             item2 = CompareTreeWidgetItem(
                                 labels=[item_labels[1]],
                                 palette=self.palette,
                                 truncated_count=trunc_counts[1],
-                                pair_id=timestamp_id
+                                pair_id=stamp_id
                             )
-                            del timestamp_id
+                            del stamp_id
 
                             should_paint_red = rb_red_buttons([item1, item2], [parent1, parent2],
                                                               should_paint_red, yellow_brush)
@@ -459,14 +459,14 @@ class CompareSignsDialog(QDialog):
                         continue
 
                     # Create tree items for both trees
-                    timestamp_id = int(time.time() * 1000)
+                    stamp_id = randint(1, 500)
                     item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, key)],
                                                   palette=self.palette,
-                                                  pair_id=timestamp_id)
+                                                  pair_id=stamp_id)
                     item2 = CompareTreeWidgetItem(labels=[self.get_original_key(data2_keys_original, key)],
                                                   palette=self.palette,
-                                                  pair_id=timestamp_id)
-                    del timestamp_id
+                                                  pair_id=stamp_id)
+                    del stamp_id
 
                     # Set the color of missing nodes
                     if value1 is None and value2 is not None:
@@ -563,10 +563,10 @@ class CompareSignsDialog(QDialog):
 
         # Add each top-level key (e.g., movement, location, relation, ...) as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
-            timestamp_id = int(time.time() * 1000)
-            top_item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=timestamp_id)
-            top_item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=timestamp_id)
-            del timestamp_id
+            stamp_id = randint(1, 500)
+            top_item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=stamp_id)
+            top_item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=stamp_id)
+            del stamp_id
 
             tree1.addTopLevelItem(top_item1)
             tree2.addTopLevelItem(top_item2)
@@ -708,7 +708,9 @@ class CompareSignsDialog(QDialog):
             if isinstance(item, CompareTreeWidgetItem) and getattr(item, "pair_id", None) == pair_id:
                 return item
             for i in range(item.childCount()):
-                recurse(item.child(i), pair_id)
+                found_in_children = recurse(item.child(i), pair_id)
+                if found_in_children:
+                    return found_in_children
 
         pair_id = twi.pair_id
         current = tree.invisibleRootItem()
