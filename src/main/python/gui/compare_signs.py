@@ -710,13 +710,17 @@ class CompareSignsDialog(QDialog):
             for i in range(item.childCount()):
                 recurse(item.child(i), pair_id)
 
-        # Iterate through the path (line) to find the corresponding item, i.e., the one with the same pair_id value
         pair_id = twi.pair_id
         current = tree.invisibleRootItem()
+
+        # Iterate through the path (line) to find the corresponding item, i.e., the one with the same pair_id value
+        found = None
         for i in range(current.childCount()):
             child = current.child(i)
-            recurse(child,pair_id)
-        return None  # Return None if the item in the path doesn't exist
+            found = recurse(child,pair_id)
+            if found:
+                break
+        return found  # Return None if the item in the path doesn't exist
 
     def update_expand_collapse_counters(self):
         # count colours for both 'all expanded' and 'all collapsed'
