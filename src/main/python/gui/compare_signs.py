@@ -88,6 +88,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         # underlying and current background colours are unspecified by default, but may be blue red or yellow!
         self.underlying_bg = None
         self.current_bg = None
+        self.force_underlying = False   # if True, expanding/collapsing does not change the background colour
 
         # imagine each tree item carries a palette and use it to change background colour
         self.palette = palette
@@ -106,7 +107,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
     def __repr__(self):
         invisibility = self.flags() == Qt.NoItemFlags
         invisibility = 'in' if invisibility else ''
-        return f'<CompareTreeWidgetItem {self._text!r} id: {self.pair_id} ({invisibility}visible)>'
+        return f'<CompareTreeWidgetItem {self._text!r}, pair_id: {self.pair_id} ({invisibility}visible)>'
 
     def __eq__(self, other):
         return self._text == other._text and self.flags() == other.flags()
@@ -329,7 +330,7 @@ class CompareSignsDialog(QDialog):
 
             data1_keys, data2_keys = self.clean_data_keys(data1_keys_original, data2_keys_original)
 
-            # case: major location comparison → just align current keys and go down
+            # case: major location comparison → align current keys and force background colour to be always red
             try:
                 is_major_loc = data1_btn_types[depth] == 'major loc' and data2_btn_types[depth] == 'major loc'
             except IndexError:
@@ -354,6 +355,8 @@ class CompareSignsDialog(QDialog):
                 if data1_label != data2_label:
                     item1.initilize_bg_color('red')
                     item2.initilize_bg_color('red')
+                    item1.force_underlying = True
+                    item2.force_underlying = True
                     should_paint_red[0] = True
                     should_paint_red[1] = True
 
@@ -650,9 +653,8 @@ class CompareSignsDialog(QDialog):
             item.set_bg_color('transparent')
         else:
             # if selection, check whether it matches with its correspondence
-            if not corresponding_item:
-                item.set_bg_color(item.underlying_bg)
-            elif not (corresponding_invisible or item_invisible):
+            item.set_bg_color(item.underlying_bg)
+            if item == corresponding_item:
                 item.set_bg_color('blue')
 
         # update current colour counter
