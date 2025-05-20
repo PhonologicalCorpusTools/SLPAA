@@ -331,12 +331,12 @@ class CompareSignsDialog(QDialog):
 
             # case: major location comparison → just align current keys and go down
             try:
-                is_major_loc = data1_btn_types[depth] == 'major loc'
+                is_major_loc = data1_btn_types[depth] == 'major loc' and data2_btn_types[depth] == 'major loc'
             except IndexError:
                 is_major_loc = False
             if is_major_loc:
                 data1_label = self.get_original_key(data1_keys_original, list(data1_keys_original)[0])
-                data2_label = self.get_original_key(data1_keys_original, list(data2_keys_original)[0])
+                data2_label = self.get_original_key(data2_keys_original, list(data2_keys_original)[0])
 
                 value1 = data1.get(data1_label, None)  # data1_keys_original is a set guaranteed to contain only one str element
                 value2 = data2.get(data2_label, None)
