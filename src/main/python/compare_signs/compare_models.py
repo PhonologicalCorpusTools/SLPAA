@@ -25,7 +25,6 @@ class CompareModel:
         result = {'sign1': {}, 'sign2': {}}
 
         for module in module_attributes:
-            """
             if 'movement' in module:
                 mvmt_res = self.compare_movements()
                 # For 'sign1'
@@ -39,9 +38,8 @@ class CompareModel:
                     k: {key: value for d in v for key, value in d.items()}
                     for k, v in mvmt_res['sign2'].items()
                 }
-            """
-            # elif 'location' in module:
-            if 'location' in module:
+
+            elif 'location' in module:
                 loc_res = self.compare_locations()
                 # For 'sign1'
                 result['sign1']['location'] = {
@@ -54,7 +52,7 @@ class CompareModel:
                     k: {key: value for d in v for key, value in d.items()}
                     for k, v in loc_res['sign2'].items()
                 }
-            """
+
             elif 'relation' in module:
                 #reln_res = self.compare_relation()
                 #result['relation'] = reln_res
@@ -73,7 +71,6 @@ class CompareModel:
                     for k, v in ori_res['sign2'].items()
 
                 }
-            """
         return result
 
     def get_module_ids(self, module_type: str) -> (dict, dict):
