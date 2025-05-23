@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
 )
 
 from gui.modulespecification_widgets import StatusDisplay
+from gui.helper_widget import OptionSwitch
 from lexicon.lexicon_classes import Corpus, Sign
 from lexicon.module_classes import SignLevelInformation, Signtype, AddedInfo, XslotStructure, MovementModule, \
     LocationModule, RelationModule, OrientationModule, HandConfigurationModule, NonManualModule, \
@@ -38,6 +39,7 @@ class ImportCorpusDialog(QDialog):
         self.importsourcepath = ""
         self.inputformat = "json"
         self.destpath = ""
+        self.keeporigtimestamps = True
 
         main_layout = QVBoxLayout()
         form_layout = QFormLayout()
@@ -52,7 +54,12 @@ class ImportCorpusDialog(QDialog):
         self.choosedestbutton.setEnabled(False)
         self.choosedestbutton.clicked.connect(self.handle_select_dest)
         form_layout.addRow(self.choosedestlabel, self.choosedestbutton)
-        self.importcorpuslabel = QLabel("3. Import JSON to new .slpaa file.")
+        self.timestamplabel = QLabel("3. Select which option you prefer for the 'last modified' timestamp on each sign:")
+        self.timestampswitch = OptionSwitch("keep original values as per exported file", "reset to now")
+        self.timestampswitch.toggled.connect(self.handle_timestampswitch_toggled)
+        self.timestampswitch.setEnabled(False)
+        form_layout.addRow(self.timestamplabel, self.timestampswitch)
+        self.importcorpuslabel = QLabel("4. Import JSON to new .slpaa file.")
         self.importcorpusbutton = QPushButton("Import corpus")
         self.importcorpusbutton.setEnabled(False)
         self.importcorpusbutton.clicked.connect(self.handle_import_corpus)
@@ -87,7 +94,11 @@ class ImportCorpusDialog(QDialog):
             self.statusdisplay.setText("destination selected")
         self.destpath = file_name
         if len(self.destpath) > 0 and len(self.importsourcepath) > 0:  #
-            self.importcorpusbutton.setEnabled(True)
+            self.timestampswitch.setEnabled(True)
+
+    def handle_timestampswitch_toggled(self, switchvalue):
+        self.keeporigtimestamps = switchvalue[1]
+        self.importcorpusbutton.setEnabled(True)
 
     def handle_select_importsource(self):
         file_name, file_type = QFileDialog.getOpenFileName(self,
@@ -133,6 +144,7 @@ class ImportCorpusDialog(QDialog):
 
     def read_sign(self, signdict):
         sli = self.read_sli(signdict.pop('signlevel', {}))
+        lastmodified_orig = sli.datelastmodified
         sign = Sign(signlevel_info=sli)
         sign.signtype = self.read_signtype(signdict.pop('type', None))
         sign.xslotstructure = self.read_xslotstructure(signdict.pop('xslot structure', None))
@@ -175,6 +187,7 @@ class ImportCorpusDialog(QDialog):
             if 'nonman module numbers' in signdict.keys() and signdict['nonman module numbers'] is not None:
                 sign.nonmanualmodulenumbers = {float(uid):num for uid, num in signdict['nonman module numbers'].items()}
 
+        sign.signlevel_information.datelastmodified = lastmodified_orig if self.keeporigtimestamps else datetime.now()
         return sign
 
     def read_articulators(self, articulatorsentry):
