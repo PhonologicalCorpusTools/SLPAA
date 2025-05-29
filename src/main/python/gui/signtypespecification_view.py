@@ -27,7 +27,7 @@ from PyQt5.QtCore import (
 )
 
 from gui.modulespecification_dialog import AddedInfoPushButton
-from gui.modulespecification_widgets import BoldableTabWidget, BoldTabBarStyle
+from gui.modulespecification_widgets import BoldableTabWidget
 from gui.link_help import show_help
 from lexicon.module_classes import Signtype
 from constant import SIGN_TYPE, ModuleTypes, HAND, ARM, LEG
@@ -38,6 +38,7 @@ class SigntypeSpecificationPanel(QFrame):
         super().__init__(**kwargs)
         self.buttongroups = []
         self.addedinfobuttons = {}
+        self.signtypebuttons_byarticulator = {HAND: {}, ARM: {}, LEG: {}}
 
         self.tabs = QTabWidget()
         self.tabs = BoldableTabWidget()
@@ -64,137 +65,139 @@ class SigntypeSpecificationPanel(QFrame):
 
         tab = QWidget()  # create the tab itself
         tab_layout = QVBoxLayout(tab)  # initialize this tab's layout
+        btns = {}
 
         # buttons and groups for highest level
         type_group = SigntypeButtonGroup(prt=self)
-        type_unspec_rb = SigntypeRadioButton("Unspecified", parentbtn=None)
-        type_unspec_rb.setProperty('abbreviation.path', 'Unspecified_{}s'.format(art_lower))
+        btns['type_unspec_rb'] = SigntypeRadioButton("Unspecified", parentbtn=None)
+        btns['type_unspec_rb'].setProperty('abbreviation.path', 'Unspecified_{}s'.format(art_lower))
         self.addedinfobuttons[articulator] = AddedInfoPushButton("Notes")
-        type_1_rb = SigntypeRadioButton("1 {}".format(art_lower), parentbtn=None)
-        type_1_rb.setProperty('abbreviation.path', SIGN_TYPE['ONE_{}'.format(art_upper)])
-        type_2_rb = SigntypeRadioButton("2 {}s".format(articulator.lower()), parentbtn=None)
-        type_2_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S'.format(art_upper)])
-        type_group.addButton(type_unspec_rb)
-        type_group.addButton(type_1_rb)
-        type_group.addButton(type_2_rb)
+        btns['type_1_rb'] = SigntypeRadioButton("1 {}".format(art_lower), parentbtn=None)
+        btns['type_1_rb'].setProperty('abbreviation.path', SIGN_TYPE['ONE_{}'.format(art_upper)])
+        btns['type_2_rb'] = SigntypeRadioButton("2 {}s".format(articulator.lower()), parentbtn=None)
+        btns['type_2_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S'.format(art_upper)])
+        type_group.addButton(btns['type_unspec_rb'])
+        type_group.addButton(btns['type_1_rb'])
+        type_group.addButton(btns['type_2_rb'])
         self.buttongroups.append(type_group)
 
         # buttons and groups for 1-handed/-armed/-legged signs
         type_1_group = SigntypeButtonGroup(prt=self)
-        type_1move_rb = SigntypeRadioButton("The {} moves".format(art_lower), parentbtn=type_1_rb)
-        type_1move_rb.setProperty('abbreviation.path', SIGN_TYPE['ONE_{}_MVMT'.format(art_upper)])
-        type_1nomove_rb = SigntypeRadioButton("The {} doesn't move".format(art_lower), parentbtn=type_1move_rb)
-        type_1nomove_rb.setProperty('abbreviation.path', SIGN_TYPE['ONE_{}_NO_MVMT'.format(art_upper)])
-        type_1_group.addButton(type_1move_rb)
-        type_1_group.addButton(type_1nomove_rb)
+        btns['type_1move_rb'] = SigntypeRadioButton("The {} moves".format(art_lower), parentbtn=btns['type_1_rb'])
+        btns['type_1move_rb'].setProperty('abbreviation.path', SIGN_TYPE['ONE_{}_MVMT'.format(art_upper)])
+        btns['type_1nomove_rb'] = SigntypeRadioButton("The {} doesn't move".format(art_lower),
+                                                         parentbtn=btns['type_1move_rb'])
+        btns['type_1nomove_rb'].setProperty('abbreviation.path', SIGN_TYPE['ONE_{}_NO_MVMT'.format(art_upper)])
+        type_1_group.addButton(btns['type_1move_rb'])
+        type_1_group.addButton(btns['type_1nomove_rb'])
         self.buttongroups.append(type_1_group)
 
         # buttons and groups for 2-handed handshape relation (not used for arms or legs)
         if articulator == HAND:
             handstype_handshapereln_group = SigntypeButtonGroup(prt=self)
-            handstype_2hsameshapes_rb = SigntypeRadioButton("H1 and H2 use same set(s) of hand configurations",
-                                                            parentbtn=type_2_rb)
-            handstype_2hsameshapes_rb.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_SAME_HCONF"])
-            handstype_2hdiffshapes_rb = SigntypeRadioButton("H1 and H2 use different set(s) of hand configurations",
-                                                            parentbtn=type_2_rb)
-            handstype_2hdiffshapes_rb.setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_DIFF_HCONF"])
+            btns['handstype_2hsameshapes_rb'] = SigntypeRadioButton("H1 and H2 use same set(s) of hand configurations",
+                                                                    parentbtn=btns['type_2_rb'])
+            btns['handstype_2hsameshapes_rb'].setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_SAME_HCONF"])
+            btns['handstype_2hdiffshapes_rb'] = SigntypeRadioButton("H1 and H2 use different set(s) of hand configurations",
+                                                                    parentbtn=btns['type_2_rb'])
+            btns['handstype_2hdiffshapes_rb'].setProperty('abbreviation.path', SIGN_TYPE["TWO_HANDS_DIFF_HCONF"])
             # handstype_2hdiffshapes_rb.toggled.connect(self.linkhandconfigbuttons)
-            handstype_handshapereln_group.addButton(handstype_2hsameshapes_rb)
-            handstype_handshapereln_group.addButton(handstype_2hdiffshapes_rb)
+            handstype_handshapereln_group.addButton(btns['handstype_2hsameshapes_rb'])
+            handstype_handshapereln_group.addButton(btns['handstype_2hdiffshapes_rb'])
             self.buttongroups.append(handstype_handshapereln_group)
 
         # buttons and groups for 2-handed/-armed/-legged contact relation
         type_contactreln_group = SigntypeButtonGroup(prt=self)
-        type_2contactyes_rb = SigntypeRadioButton("{art}1 and {art}2 maintain contact throughout sign".format(art=articulator[0]),
-                                                  parentbtn=type_2_rb)
-        type_2contactyes_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_MAINT_CONT'.format(art_upper)])
-        type_2contactno_rb = SigntypeRadioButton("{art}1 and {art}2 do not maintain contact".format(art=articulator[0]),
-                                                 parentbtn=type_2_rb)
-        type_2contactno_rb.setProperty('abbreviation.path', SIGN_TYPE["TWO_{}S_NO_CONT".format(art_upper)])
-        type_contactreln_group.addButton(type_2contactyes_rb)
-        type_contactreln_group.addButton(type_2contactno_rb)
+        btns['type_2contactyes_rb'] = SigntypeRadioButton("{art}1 and {art}2 maintain contact throughout sign".format(art=articulator[0]),
+                                                          parentbtn=btns['type_2_rb'])
+        btns['type_2contactyes_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_MAINT_CONT'.format(art_upper)])
+        btns['type_2contactno_rb'] = SigntypeRadioButton("{art}1 and {art}2 do not maintain contact".format(art=articulator[0]),
+                                                         parentbtn=btns['type_2_rb'])
+        btns['type_2contactno_rb'].setProperty('abbreviation.path', SIGN_TYPE["TWO_{}S_NO_CONT".format(art_upper)])
+        type_contactreln_group.addButton(btns['type_2contactyes_rb'])
+        type_contactreln_group.addButton(btns['type_2contactno_rb'])
         self.buttongroups.append(type_contactreln_group)
 
         # buttons and groups for bilateral symmetry relation
         type_symmetryreln_group = SigntypeButtonGroup(prt=self)
-        type_2symmetryyes_rb = SigntypeRadioButton("{art}1 and {art}2 are bilaterally symmetric".format(art=articulator[0]),
-                                                   parentbtn=type_2_rb)
-        type_2symmetryyes_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BISYM'.format(art_upper)])
-        type_2symmetryno_rb = SigntypeRadioButton("{art}1 and {art}2 are not bilaterally symmetric".format(art=articulator[0]),
-                                                   parentbtn=type_2_rb)
-        type_2symmetryno_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_NO_BISYM'.format(art_upper)])
-        type_symmetryreln_group.addButton(type_2symmetryyes_rb)
-        type_symmetryreln_group.addButton(type_2symmetryno_rb)
+        btns['type_2symmetryyes_rb'] = SigntypeRadioButton("{art}1 and {art}2 are bilaterally symmetric".format(art=articulator[0]),
+                                                   parentbtn=btns['type_2_rb'])
+        btns['type_2symmetryyes_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BISYM'.format(art_upper)])
+        btns['type_2symmetryno_rb'] = SigntypeRadioButton("{art}1 and {art}2 are not bilaterally symmetric".format(art=articulator[0]),
+                                                   parentbtn=btns['type_2_rb'])
+        btns['type_2symmetryno_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_NO_BISYM'.format(art_upper)])
+        type_symmetryreln_group.addButton(btns['type_2symmetryyes_rb'])
+        type_symmetryreln_group.addButton(btns['type_2symmetryno_rb'])
         self.buttongroups.append(type_symmetryreln_group)
 
         # buttons and groups for 2-handed/-armed/-legged movement relation
         type_mvmtreln_group = SigntypeButtonGroup(prt=self)
-        type_2mvmtneither_rb = SigntypeRadioButton("Neither {} moves".format(art_lower), parentbtn=type_2_rb)
-        type_2mvmtneither_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_NO_MVMT'.format(art_upper)])
-        type_2mvmtone_rb = SigntypeRadioButton("Only 1 {} moves".format(art_lower), parentbtn=type_2_rb)
-        type_2mvmtone_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_ONE_MVMT'.format(art_upper)])
-        type_2mvmtboth_rb = SigntypeRadioButton("Both {}s move".format(art_lower), parentbtn=type_2_rb)
-        type_2mvmtboth_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT'.format(art_upper)])
-        type_mvmtreln_group.addButton(type_2mvmtneither_rb)
-        type_mvmtreln_group.addButton(type_2mvmtone_rb)
-        type_mvmtreln_group.addButton(type_2mvmtboth_rb)
+        btns['type_2mvmtneither_rb'] = SigntypeRadioButton("Neither {} moves".format(art_lower), parentbtn=btns['type_2_rb'])
+        btns['type_2mvmtneither_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_NO_MVMT'.format(art_upper)])
+        btns['type_2mvmtone_rb'] = SigntypeRadioButton("Only 1 {} moves".format(art_lower), parentbtn=btns['type_2_rb'])
+        btns['type_2mvmtone_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_ONE_MVMT'.format(art_upper)])
+        btns['type_2mvmtboth_rb'] = SigntypeRadioButton("Both {}s move".format(art_lower), parentbtn=btns['type_2_rb'])
+        btns['type_2mvmtboth_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT'.format(art_upper)])
+        type_mvmtreln_group.addButton(btns['type_2mvmtneither_rb'])
+        type_mvmtreln_group.addButton(btns['type_2mvmtone_rb'])
+        type_mvmtreln_group.addButton(btns['type_2mvmtboth_rb'])
         self.buttongroups.append(type_mvmtreln_group)
 
         # buttons and groups for movement relations in 2-handed/-armed/-legged signs where only one moves
         type_mvmtoneartreln_group = SigntypeButtonGroup(prt=self)
-        type_2mvmtoneart1_rb = SigntypeRadioButton("Only {}1 moves".format(articulator[0]), parentbtn=type_2mvmtone_rb)
-        type_2mvmtoneart1_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_ONLY_{}1'.format(art_upper,
+        btns['type_2mvmtoneart1_rb'] = SigntypeRadioButton("Only {}1 moves".format(articulator[0]), parentbtn=btns['type_2mvmtone_rb'])
+        btns['type_2mvmtoneart1_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_ONLY_{}1'.format(art_upper,
                                                                                                   articulator[0])])
-        type_2mvmtoneart2_rb = SigntypeRadioButton("Only {}2 moves".format(articulator[0]), parentbtn=type_2mvmtone_rb)
-        type_2mvmtoneart2_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_ONLY_{}2'.format(art_upper,
+        btns['type_2mvmtoneart2_rb'] = SigntypeRadioButton("Only {}2 moves".format(articulator[0]), parentbtn=btns['type_2mvmtone_rb'])
+        btns['type_2mvmtoneart2_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_ONLY_{}2'.format(art_upper,
                                                                                                   articulator[0])])
-        type_mvmtoneartreln_group.addButton(type_2mvmtoneart1_rb)
-        type_mvmtoneartreln_group.addButton(type_2mvmtoneart2_rb)
+        type_mvmtoneartreln_group.addButton(btns['type_2mvmtoneart1_rb'])
+        type_mvmtoneartreln_group.addButton(btns['type_2mvmtoneart2_rb'])
         self.buttongroups.append(type_mvmtoneartreln_group)
 
         # buttons and groups for movement relations in 2-handed/-armed/-legged signs where both move
         type_mvmtbothartreln_group = SigntypeButtonGroup(prt=self)
-        type_2mvmtbothdiff_rb = SigntypeRadioButton("{art}1 and {art}2 move differently".format(art=articulator[0]),
-                                                    parentbtn=type_2mvmtboth_rb)
-        type_2mvmtbothdiff_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_DIFF'.format(art_upper)])
-        type_2mvmtbothsame_rb = SigntypeRadioButton("{art}1 and {art}2 move similarly".format(art=articulator[0]),
-                                                    parentbtn=type_2mvmtboth_rb)
-        type_2mvmtbothsame_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_SAME'.format(art_upper)])
-        type_mvmtbothartreln_group.addButton(type_2mvmtbothdiff_rb)
-        type_mvmtbothartreln_group.addButton(type_2mvmtbothsame_rb)
+        btns['type_2mvmtbothdiff_rb'] = SigntypeRadioButton("{art}1 and {art}2 move differently".format(art=articulator[0]),
+                                                    parentbtn=btns['type_2mvmtboth_rb'])
+        btns['type_2mvmtbothdiff_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_DIFF'.format(art_upper)])
+        btns['type_2mvmtbothsame_rb'] = SigntypeRadioButton("{art}1 and {art}2 move similarly".format(art=articulator[0]),
+                                                    parentbtn=btns['type_2mvmtboth_rb'])
+        btns['type_2mvmtbothsame_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_SAME'.format(art_upper)])
+        type_mvmtbothartreln_group.addButton(btns['type_2mvmtbothdiff_rb'])
+        type_mvmtbothartreln_group.addButton(btns['type_2mvmtbothsame_rb'])
         self.buttongroups.append(type_mvmtbothartreln_group)
 
         # buttons and groups for movement timing relations in 2-handed/-armed/-legged signs
         type_mvmttimingreln_group = SigntypeButtonGroup(prt=self)
-        type_2mvmtseq_rb = SigntypeRadioButton("Sequential", parentbtn=type_2mvmtbothsame_rb)
-        type_2mvmtseq_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_SEQ'.format(art_upper)])
-        type_2mvmtsimult_rb = SigntypeRadioButton("Simultaneous", parentbtn=type_2mvmtbothsame_rb)
-        type_2mvmtsimult_rb.setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_SIMU'.format(art_upper)])
-        type_mvmttimingreln_group.addButton(type_2mvmtseq_rb)
-        type_mvmttimingreln_group.addButton(type_2mvmtsimult_rb)
+        btns['type_2mvmtseq_rb'] = SigntypeRadioButton("Sequential", parentbtn=btns['type_2mvmtbothsame_rb'])
+        btns['type_2mvmtseq_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_SEQ'.format(art_upper)])
+        btns['type_2mvmtsimult_rb'] = SigntypeRadioButton("Simultaneous", parentbtn=btns['type_2mvmtbothsame_rb'])
+        btns['type_2mvmtsimult_rb'].setProperty('abbreviation.path', SIGN_TYPE['TWO_{}S_BOTH_MVMT_SIMU'.format(art_upper)])
+        type_mvmttimingreln_group.addButton(btns['type_2mvmtseq_rb'])
+        type_mvmttimingreln_group.addButton(btns['type_2mvmtsimult_rb'])
         self.buttongroups.append(type_mvmttimingreln_group)
 
         # begin layout for sign type (highest level)
         signtype_layout = QVBoxLayout()
         firstrow_layout = QHBoxLayout()
-        firstrow_layout.addWidget(type_unspec_rb)
+        firstrow_layout.addWidget(btns['type_unspec_rb'])
         firstrow_layout.addStretch()
         firstrow_layout.addWidget(self.addedinfobuttons[articulator])
         signtype_layout.addLayout(firstrow_layout)
-        signtype_layout.addWidget(type_1_rb)
+        signtype_layout.addWidget(btns['type_1_rb'])
 
         ## begin layout for 1-handed/-armed/-legged sign options
         oneart_spacedlayout = QHBoxLayout()
         oneart_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         oneart_layout = QVBoxLayout()
-        oneart_layout.addWidget(type_1move_rb)
-        oneart_layout.addWidget(type_1nomove_rb)
+        oneart_layout.addWidget(btns['type_1move_rb'])
+        oneart_layout.addWidget(btns['type_1nomove_rb'])
         oneart_spacedlayout.addLayout(oneart_layout)
         signtype_layout.addLayout(oneart_spacedlayout)
-        type_1_rb.setchildlayout(oneart_spacedlayout)
+        btns['type_1_rb'].setchildlayout(oneart_spacedlayout)
         ## end layout for 1-handed/-armed/-legged sign options
 
-        signtype_layout.addWidget(type_2_rb)
+        signtype_layout.addWidget(btns['type_2_rb'])
 
         ## begin layout for 2-handed/-armed/-legged sign options
         twoart_spacedlayout = QHBoxLayout()
@@ -204,8 +207,8 @@ class SigntypeSpecificationPanel(QFrame):
         if articulator == HAND:
             ### begin layout for 2-handed handshape relation (not used for arms or legs)
             handshape_layout = QVBoxLayout()
-            handshape_layout.addWidget(handstype_2hsameshapes_rb)
-            handshape_layout.addWidget(handstype_2hdiffshapes_rb)
+            handshape_layout.addWidget(btns['handstype_2hsameshapes_rb'])
+            handshape_layout.addWidget(btns['handstype_2hdiffshapes_rb'])
             handshape_box = QGroupBox("Hand configuration relation")
             handshape_box.setLayout(handshape_layout)
             twoart_col1_layout.addWidget(handshape_box)
@@ -213,8 +216,8 @@ class SigntypeSpecificationPanel(QFrame):
 
         ### begin layout for 2-handed/-armed/-legged contact relation
         contact_layout = QVBoxLayout()
-        contact_layout.addWidget(type_2contactyes_rb)
-        contact_layout.addWidget(type_2contactno_rb)
+        contact_layout.addWidget(btns['type_2contactyes_rb'])
+        contact_layout.addWidget(btns['type_2contactno_rb'])
         contact_box = QGroupBox("Contact relation")
         contact_box.setLayout(contact_layout)
         twoart_col1_layout.addWidget(contact_box)
@@ -222,8 +225,8 @@ class SigntypeSpecificationPanel(QFrame):
 
         ### begin layout for 2-handed/-armed/-legged bilateral symmetry relation
         symmetry_layout = QVBoxLayout()
-        symmetry_layout.addWidget(type_2symmetryyes_rb)
-        symmetry_layout.addWidget(type_2symmetryno_rb)
+        symmetry_layout.addWidget(btns['type_2symmetryyes_rb'])
+        symmetry_layout.addWidget(btns['type_2symmetryno_rb'])
         symmetry_box = QGroupBox("Bilateral symmetry relation")
         symmetry_box.setLayout(symmetry_layout)
         twoart_col1_layout.addWidget(symmetry_box)
@@ -233,42 +236,42 @@ class SigntypeSpecificationPanel(QFrame):
 
         ### begin layout for 2-handed/-armed/-legged movement relation
         movement_layout = QVBoxLayout()
-        movement_layout.addWidget(type_2mvmtneither_rb)
-        movement_layout.addWidget(type_2mvmtone_rb)
+        movement_layout.addWidget(btns['type_2mvmtneither_rb'])
+        movement_layout.addWidget(btns['type_2mvmtone_rb'])
 
         #### begin layout for 2-handed/-armed/-legged movement relation in which only one hand moves
         movement_1_spacedlayout = QHBoxLayout()
         movement_1_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         movement_1_layout = QVBoxLayout()
-        movement_1_layout.addWidget(type_2mvmtoneart1_rb)
-        movement_1_layout.addWidget(type_2mvmtoneart2_rb)
+        movement_1_layout.addWidget(btns['type_2mvmtoneart1_rb'])
+        movement_1_layout.addWidget(btns['type_2mvmtoneart2_rb'])
         movement_1_spacedlayout.addLayout(movement_1_layout)
         movement_layout.addLayout(movement_1_spacedlayout)
-        type_2mvmtone_rb.setchildlayout(movement_1_spacedlayout)
+        btns['type_2mvmtone_rb'].setchildlayout(movement_1_spacedlayout)
         #### end layout for 2-handed/-armed/-legged movement relation in which only one hand moves
 
-        movement_layout.addWidget(type_2mvmtboth_rb)
+        movement_layout.addWidget(btns['type_2mvmtboth_rb'])
 
         #### begin layout for 2-handed/-armed/-legged movement relation in which both hands move
         movement_2_spacedlayout = QHBoxLayout()
         movement_2_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         movement_2_layout = QVBoxLayout()
-        movement_2_layout.addWidget(type_2mvmtbothdiff_rb)
-        movement_2_layout.addWidget(type_2mvmtbothsame_rb)
+        movement_2_layout.addWidget(btns['type_2mvmtbothdiff_rb'])
+        movement_2_layout.addWidget(btns['type_2mvmtbothsame_rb'])
 
         #### begin layout for 2-handed/-armed/-legged movement relation in which both hands move similarly
         similarmvmt_spacedlayout = QHBoxLayout()
         similarmvmt_spacedlayout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
         similarmvmt_layout = QVBoxLayout()
-        similarmvmt_layout.addWidget(type_2mvmtseq_rb)
-        similarmvmt_layout.addWidget(type_2mvmtsimult_rb)
+        similarmvmt_layout.addWidget(btns['type_2mvmtseq_rb'])
+        similarmvmt_layout.addWidget(btns['type_2mvmtsimult_rb'])
 
         movement_2_spacedlayout.addLayout(movement_2_layout)
         movement_layout.addLayout(movement_2_spacedlayout)
-        type_2mvmtboth_rb.setchildlayout(movement_2_spacedlayout)
+        btns['type_2mvmtboth_rb'].setchildlayout(movement_2_spacedlayout)
         #### end layout for 2-handed/-armed/-legged movement relation in which both hands move
 
-        movement_layout.addWidget(type_2mvmtboth_rb)
+        movement_layout.addWidget(btns['type_2mvmtboth_rb'])
 
         movement_box = QGroupBox("Movement relation")
         movement_box.setLayout(movement_layout)
@@ -279,7 +282,7 @@ class SigntypeSpecificationPanel(QFrame):
 
         signtype_layout.addLayout(twoart_spacedlayout)
 
-        type_2_rb.setchildlayout(twoart_spacedlayout)
+        btns['type_2_rb'].setchildlayout(twoart_spacedlayout)
         ## end layout for 2-handed/-armed/-legged sign options
 
         signtype_box = QGroupBox()
@@ -287,6 +290,7 @@ class SigntypeSpecificationPanel(QFrame):
         # end layout for sign type (highest level)
 
         tab_layout.addWidget(signtype_box)
+        self.signtypebuttons_byarticulator[articulator] = btns
 
         return tab
 
@@ -321,7 +325,9 @@ class SigntypeSpecificationPanel(QFrame):
         target = self.tabs.count() - 1     # where to? to the last tab
         self.tabs.setCurrentIndex(target)
         self.tabs.repaint()
-        self.tabs.setCurrentIndex(0)  # back to the first
+        # go to the first tab that has content (or if none do, then go to the first tab overall)
+        whichtabsbold = self.tabs.get_bold_indices() or [0]
+        self.tabs.setCurrentIndex(min(whichtabsbold))
 
     # uncheck all buttons and clear any selections/entries in AddedInfo "Notes" menu
     def clear(self):
@@ -360,20 +366,26 @@ class SigntypeSpecificationPanel(QFrame):
         return groups[0]
 
     def symmetry_dependencies_warning(self):
-        # conflict = False
-        # if self.handstype_2hsymmetryyes_radio.isChecked():
-        #     msg = "Bilateral symmetry relation conflicts with: \n"
-        #     if self.handstype_2hdiffshapes_radio.isChecked():
-        #         msg += "- Hand configuration relation\n"
-        #         conflict = True
-        #     if self.handstype_2hmvmtone_radio.isChecked() and self.handstype_2hmvmtone_radio.isEnabled():
-        #         msg += "- Movement relation (only 1 hand moves)\n"
-        #         conflict = True
-        #     if self.handstype_2hmvmtbothdiff_radio.isChecked() and self.handstype_2hmvmtbothdiff_radio.isEnabled():
-        #         msg += "- Movement relation (hands move differently)\n"
-        #         conflict = True
-        # if conflict == True:
-        #     return msg
+        conflict = False
+        msgs = []
+        for articulator in [HAND, ARM, LEG]:
+            art_btns = self.signtypebuttons_byarticulator[articulator]
+            msg = ""
+            if art_btns['type_2symmetryyes_rb'].isChecked():
+                msg = "Bilateral symmetry relation for {}s conflicts with: \n".format(articulator.lower())
+                if articulator == HAND and art_btns['handstype_2hdiffshapes_rb'].isChecked():
+                    msg += "- Hand configuration relation\n"
+                    conflict = True
+                if art_btns['type_2mvmtone_rb'].isEnabled() and art_btns['type_2mvmtone_rb'].isChecked():
+                    msg += "- Movement relation (only 1 {} moves)\n".format(articulator.lower())
+                    conflict = True
+                if art_btns['type_2mvmtbothdiff_rb'].isEnabled() and art_btns['type_2mvmtbothdiff_rb'].isChecked():
+                    msg += "- Movement relation ({}s move differently)\n".format(articulator.lower())
+                    conflict = True
+            msgs.append(msg)
+
+        if conflict:
+            return "\n".join(msgs)
         return "pass"
 
 
@@ -387,11 +399,6 @@ class SigntypeButtonGroup(QButtonGroup):
         if checked:
             self.enableChildWidgets(True, thebutton.childlayout)
             self.disableSiblings(thebutton)
-        elif isinstance(thebutton, SigntypeCheckBox) and not checked and not self.hasSiblings(thebutton):
-            # then we've unchecked a checkbox that is the only button in its group,
-            # and will therefore not have its children disabled via disableSiblings()
-            if thebutton.childlayout:
-                self.enableChildWidgets(False, thebutton.childlayout)
 
     def hasSiblings(self, thebutton):
         return len(self.getSiblings(thebutton)) > 0
@@ -405,7 +412,7 @@ class SigntypeButtonGroup(QButtonGroup):
             if b.childlayout:
                 self.enableChildWidgets(False, b.childlayout)
 
-    # TODO KV if all of these subsections are implemented  with widgets instead of layouts, is this part easier?
+    # TODO if all of these subsections are implemented  with widgets instead of layouts, is this part easier?
     # parent can be widget or layout
     def enableChildWidgets(self, yesorno, parent):
         if isinstance(parent, QAbstractButton):
@@ -449,39 +456,6 @@ class SigntypeRadioButton(QRadioButton):
 
     def __repr__(self):
         return '<SigntypeRadioButton: ' + repr(self.text()) + '>'
-
-
-class SigntypeCheckBox(QCheckBox):
-
-    def __init__(self, text="", parentbutton=None):
-        super().__init__(text)
-        self.parentbutton = parentbutton
-        self.available = True  # to be used in conjunction with a linked button; ie, "available" means "available to be enabled"
-        self.toggled.connect(self.checkParent)
-        self.childlayout = None
-
-    def setAvailable(self, avail):
-        self.available = avail
-
-    def checkParent(self, checked):
-        if checked and self.parentbutton:
-            self.parentbutton.setChecked(True)
-
-    def setChildlayout(self, clayout):
-        self.childlayout = clayout
-
-    def setEnabled(self, a0):
-        super().setEnabled(a0 and self.available)
-
-    def changeEvent(self, e):  # gets called *after* change event... so isEnabled is for new state, not old
-        if e.type() == QEvent.EnabledChange:
-            if (not self.available or not self.parentbutton.isEnabled()) and self.isEnabled():
-                self.setEnabled(False)
-                return
-        super().changeEvent(e)
-
-    def __repr__(self):
-        return '<SigntypeCheckBox: ' + repr(self.text()) + '>'
 
 
 class SigntypeSelectorDialog(QDialog):

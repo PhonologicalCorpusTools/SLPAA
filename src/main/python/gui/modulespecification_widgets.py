@@ -627,6 +627,9 @@ class BoldableTabWidget(QTabWidget):
             idx += 1
         self.setCurrentIndex(index)
 
+    def get_bold_indices(self):
+        return self.tab_bar.style().bold_tab_index
+
 
 class BoldTabBarStyle(QProxyStyle):
     def __init__(self, bold_tab_index=None):
