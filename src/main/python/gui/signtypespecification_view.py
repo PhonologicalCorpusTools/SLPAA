@@ -323,7 +323,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.tabs.repaint()
         self.tabs.setCurrentIndex(0)  # back to the first
 
-    # uncheck all buttons
+    # uncheck all buttons and clear any selections/entries in AddedInfo "Notes" menu
     def clear(self):
         for g in self.buttongroups:
             g.setExclusive(False)
@@ -331,6 +331,8 @@ class SigntypeSpecificationPanel(QFrame):
                 b.setEnabled(True)
                 b.setChecked(False)
             g.setExclusive(True)
+        for btn in self.addedinfobuttons.values():
+            btn.clear()
 
     def getsigntype(self):
         addedinfo_dict = {art:btn.addedinfo for (art, btn) in self.addedinfobuttons.items()}
