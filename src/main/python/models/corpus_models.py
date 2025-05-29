@@ -11,6 +11,8 @@ from PyQt5.Qt import (
     QStandardItemModel
 )
 
+from lexicon.lexicon_classes import glossesdelimiter
+
 
 datecreatedrole = 1
 datemodifiedrole = 2
@@ -50,7 +52,23 @@ class CorpusModel(QStandardItemModel):
         self.signs = signs
         self.setsigns(signs)
         self.settings = settings
+        self._byglossorsign = self.settings['display']['corpus_byglossorsign']
         self.col_labels = ["Entry ID", "Gloss", "Lemma", "ID-Gloss"]
+
+    @property
+    def byglossorsign(self):
+        return self._byglossorsign
+
+    @byglossorsign.setter
+    def byglossorsign(self, byglossorsign):
+        if byglossorsign in ["gloss", "sign"]:
+            previous = self._byglossorsign
+            self._byglossorsign = byglossorsign
+
+            if self._byglossorsign != previous:
+                self.setsigns(self.signs)
+                self.modelupdated.emit()
+
 
     def headerData(self, section, orientation, role=None):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -66,6 +84,8 @@ class CorpusModel(QStandardItemModel):
             glosses = sign.signlevel_information.gloss
             if len(glosses) == 0:
                 glosses.append("")
+            elif self.byglossorsign == "sign":
+                glosses = [glossesdelimiter.join(glosses)]
             for gloss in glosses:
                 entryiditem = CorpusItem(sign=sign, identifyingtext=str(sign.signlevel_information.entryid.display_string()), isentryid=True, settings=self.settings)
                 glossitem = CorpusItem(sign, gloss)

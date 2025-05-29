@@ -38,7 +38,7 @@ from lexicon.predefined_handshape import (
 
 # system info
 FROZEN = hasattr(sys, 'frozen')
-VERSION = (0, 0, 0)  # (major, minor, patch)
+VERSION = (0, 1, 0)  # (major, minor, patch)
 
 # symbols
 X_IN_BOX = '\u2327'
@@ -349,6 +349,86 @@ CONTRA = "contra"
 IPSI = "ipsi"
 
 
+# location types (and related types of surfaces, subareas, bones/joints, etc)
+hb = "hand - bone/joint type"  # "hand"
+hs = "hand - subarea type"
+nh = "nonhand"
+tongue = "tongue"
+heel = "heel of hand"
+
+anterior = "Anterior"
+posterior = "Posterior"
+lateral = "Lateral"
+medial = "Medial"
+top = "Top"
+bottom = "Bottom"
+contra_half = "Contra half"
+upper_half = "Upper half"
+whole = "Whole"
+centre = "Centre"
+lower_half = "Lower half"
+ipsi_half = "Ipsi half"
+ipsi_side = "Ipsi side"
+contra_side = "Contra side"
+front_half = "Front half"
+back_half = "Back half"
+back = "Back"
+friction = "Friction"
+radial = "Radial"
+ulnar = "Ulnar"
+wrist = "Wrist"
+finger_side = "Finger side"
+wrist_side = "Wrist side"
+radial_side = "Radial side"
+ulnar_side = "Ulnar side"
+centre = "Centre"
+metacarpophalangeal_joint = "Metacarpophalangeal joint"
+proximal_bone = "Proximal bone"
+proximal_interphalangeal_joint = "Proximal interphalangeal joint"
+medial_bone = "Medial bone"
+distal_interphalangeal_joint = "Distal interphalangeal joint"
+distal_bone = "Distal bone"
+tip = "Tip"
+dorsum = "Dorsum"
+blade = "Blade"
+
+
+
+SURFACE_SUBAREA_ABBREVS = {
+
+    anterior: 'ant',
+    posterior: 'post',
+    lateral: 'lat',
+    medial: 'med',
+    top: 'top',
+    bottom: 'bottom',
+    contra_half: 'contra',
+    upper_half: 'upper',
+    whole: 'whole',
+    centre: 'centre',
+    lower_half: 'lower',
+    ipsi_half: 'ipsi',
+    finger_side: 'finger side',
+    wrist_side: 'wrist side',
+    ulnar_side: 'ulnar side',
+    radial_side: 'radial side',
+    back: 'b',
+    friction: 'fr',
+    radial: 'r',
+    ulnar: 'u',
+    tip: 't',
+    front_half: 'ant',
+    back_half: 'post',
+    dorsum: 'dors',
+    blade: 'blade',
+    metacarpophalangeal_joint: 'MCP',
+    proximal_interphalangeal_joint: 'PIP',
+    distal_interphalangeal_joint: 'DIP',
+    proximal_bone: 'p',
+    medial_bone: 'm',
+    distal_bone: 'd'
+}
+
 # Sign type constants
 SIGN_TYPE = {
     "ONE_HAND": "1h",
@@ -412,8 +492,110 @@ SIGN_TYPE = {
     "TWO_LEGS_BOTH_MVMT_SIMU": "2l-mvmt-simu",
 }
 
+# for backwards compatibility
+specifytotalcycles_str = "Specify total number of cycles"
+numberofreps_str = "Number of repetitions"
+rb = "radio button"  # ie mutually exclusive in group / at this level
+cb = "checkbox"  # ie not mutually exlusive
+nc = "no control" # no radio button or checkbox should be shown
+ed_1 = "editable level 1"  # ie value is editable but restricted to numbers that are >= 1 and multiples of 0.5
+ed_2 = "editable level 2"  # ie value is editable but restricted to numbers
+ed_3 = "editable level 3"  # ie value is editable and unrestricted
+fx = "fixed"  # ie value is not editable
+subgroup = "subgroup"
+custom_abbrev = "custom abbreviation" # for tooltip abbreviations which depend on user entry
 
-treepathdelimiter = ">" # define here or in module_classes?
+class ModuleTypes:
+    MOVEMENT = 'movement'
+    LOCATION = 'location'
+    HANDCONFIG = 'handconfig'
+    RELATION = 'relation'
+    ORIENTATION = 'orientation'
+    NONMANUAL = 'nonmanual'
+    SIGNTYPE = 'signtype'
+
+    abbreviations = {
+        MOVEMENT: 'Mov',
+        LOCATION: 'Loc',
+        HANDCONFIG: 'Config',
+        RELATION: 'Rel',
+        ORIENTATION: 'Ori',
+        NONMANUAL: 'NonMan'
+    }
+
+    parametertypes = list(abbreviations.keys())
+    parametertypes_relationfirst = [RELATION] + [mtype for mtype in parametertypes if mtype != 'relation']
+
+
+class UserDefinedRoles(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+userdefinedroles = UserDefinedRoles({
+    'selectedrole': 0,
+        # selectedrole:
+        # Used by MovementTreeItem, LocationTreeItem, MovementListItem, LocationListItem to indicate
+        # whether they are selected by the user. Not exactly the same as ...Item.checkState() because:
+        #   (1) selectedrole only uses True & False whereas checkstate has none/partial/full, and
+        #   (2) ListItems don't actually get checked, but we still need to track whether they've been selected
+    'pathdisplayrole': 1,
+        # pathdisplayrole:
+        # Used by LocationTreeModel, LocationListModel, LocationPathsProxyModel (and similar for Movement) to access
+        # the full path (node names, separated by delimiters) of the model Item in question,
+        # generally for purposes of displaying in the selectd paths list in the Location or Movement dialog
+    'mutuallyexclusiverole': 2,
+        # mutuallyexclusiverole:
+        # Used by MovementTreeItem & LocationTreeItem to identify the item's relationship to its siblings,
+        # which also involves its display as a radio button vs a checkbox.
+    'nocontrolrole': 3,
+        # nocontrolrole:
+        # used by MovementTreeItemDelegate when a MovementTreeItem is never a selectable item
+        # so text may be displayed, but no checkbox or radiobutton
+    'firstingrouprole': 4,
+        # firstingrouprole:
+        # used by MovementTreeItemDelegate to determine whether the relevant model Item is the first
+        # in its subgroup, which affects how it is painted in the movement tree
+        # (eg, whether the item will be preceded by a horizontal line)
+    'firstsubgrouprole': 5,
+        # firstsubgrouprole:
+        # Used by MovementTreeItem & LocationTreeItem to identify whether an item that is in a subgroup is
+        # also in the *first* subgroup in its section. Such a subgroup will not have a horizontal line drawn before it.
+    'subgroupnamerole': 6,
+        # subgroupnamerole:
+        # Used by MovementTreeItem & LocationTreeItem to identify which items are grouped together. Such
+        # subgroups are separated from other siblings by a horizontal line in the tree, and item selection
+        # is often (always?) mutually exclusive within the subgroup.
+    'nodedisplayrole': 7,
+        # nodedisplayrole:
+        # Used by MovementListItem & LocationListItem to store just the corresponding treeitem's node name
+        # (not the entire path), currently only for sorting listitems by alpha (by lowest node).
+    'timestamprole': 8,
+        # timestamprole:
+        # Used by LocationPathsProxyModel and MovementPathsProxyModel as one option on which to sort selected paths
+    'isuserspecifiablerole': 9,
+        # isuserspecifiablerole:
+        # Used by MovementTreeItem to indicate that this tree item allows the user to specify a particular value.
+        # If 0, the corresponding QStandardItem (ie, the "editable part") is marked not editable; the user cannot change its value;
+        # If 1, the corresponding QStandardItem is marked editable but must be a number, >= 1, and a multiple of 0.5;
+        # If 2, the corrresponding QStandardItem is marked editable but must be a number;
+        # If 3, the corrresponding QStandardItem is marked editable with no restrictions.
+        # This kind of editable functionality was formerly achieved via a separate (subsidiary) editable MovementTreeItem.
+    'userspecifiedvaluerole': 10,
+        # userspecifiedvaluerole:
+        # Used by MovementTreeItem to store the (string) value for an item that is allowed to be user-specified.
+    'pathabbrevrole': 11,
+        # pathabbrevrole:
+        # used by MovementTreeItem and LocationTreeItem for accessing path abbreviations for tooltips
+
+})
+
+
+# TODO KV - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
+treepathdelimiter = ">"
+
+
 DEFAULT_LOC_1H = {"Horizontal axis" + treepathdelimiter + "Ipsi": None, 
                 "Vertical axis" + treepathdelimiter + "Mid": None,
                 "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
@@ -421,9 +603,26 @@ DEFAULT_LOC_2H = {"Horizontal axis" + treepathdelimiter + "Central": None,
                 "Vertical axis" + treepathdelimiter + "Mid": None,
                 "Sagittal axis" + treepathdelimiter + "In front" + treepathdelimiter + "Med.": None}
 
-SIGNLEVELINFO_TARGET = "sign level info"
-XSLOT_TARGET = "xslot"
-SIGNTYPEINFO_TARGET = "sign type info"
+class TargetTypes:
+    SIGNLEVELINFO = "sign level info"
+    XSLOT = "xslot"
+    SIGNTYPEINFO = "sign type info"
+    MOV_REL = "mvmt + reln"
+    LOC_REL = "locn + reln"
+    EXTENDEDFINGERS  = "extended fingers"
+
+class HandConfigSlots:
+    # Used in Search window. Values are the indices of the hand configuration tuple returned by get_hand_transcription_list()
+    # i.e. two less than the actual slot number
+    THUMB_OPPOSITION = 0
+    MCP = {
+        0: 2, # Thumb MCP joint is at index 2
+        1: 15, # Index MCP at position 15
+        2: 20, # Middle finger MCP at index 20
+        3: 25, # Ring finger MCP at index 25
+        4: 30 # Pinky MCP at index 30
+    }
+
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]

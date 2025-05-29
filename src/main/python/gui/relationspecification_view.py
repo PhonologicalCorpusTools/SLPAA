@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import (
     QListView,
     QLineEdit,
-    QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
     QLabel,
@@ -11,12 +10,10 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QPushButton
+    QMessageBox,
 )
 
 from PyQt5.QtCore import (
-    Qt,
-    QEvent,
     pyqtSignal,
     QItemSelectionModel
 )
@@ -30,17 +27,17 @@ from lexicon.module_classes import (
     Direction,
     RelationX,
     RelationY,
-    ModuleTypes,
     ContactRelation,
     ContactType,
     BodypartInfo
 )
 from models.relation_models import ModuleLinkingListModel
 from models.location_models import BodypartTreeModel
-from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton
+from gui.modulespecification_widgets import ModuleSpecificationPanel, SpecifyBodypartPushButton, \
+    DeselectableRadioButtonGroup, DeselectableRadioButton
 from gui.bodypartspecification_dialog import BodypartSelectorDialog
 from gui.helper_widget import OptionSwitch
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, ModuleTypes
 
 
 # This panel contains all the relation-specific options for users to define an instance of a Relation module.
@@ -83,12 +80,37 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
         self.setLayout(main_layout)
         self.check_enable_allsubmenus()
+    
+    def selections_valid(self):
+        # are X and Y both specified at all? 
+        # This method is overloaded in the Search window, where it's not necessary for both to be specified.
+        hasselections = self.x_group.checkedButton() and self.y_group.checkedButton()
+        return hasselections
 
-    # ensure that user has provided the minimum required information in order to specify a Relation module
+    # ensure that user has provided valid (minimum required, non-overlapping) X & Y information for the Relation module
+    # returns two values:
+    #   (1) a boolean indicating the validity of the info
+    #   (2) a string: "" if selections are valid, or a warning message explaining the invalidity (if applicable)
     def validity_check(self):
-        selectionsvalid = self.x_group.checkedButton() and self.y_group.checkedButton()
-        warningmessage = "" if selectionsvalid else "Requires both an X and a Y selection."
-        return selectionsvalid, warningmessage
+        # are X and Y both specified at all?
+        
+        hasselections = self.selections_valid()
+        if not hasselections:
+            return False, "Requires both an X and a Y selection."
+
+        # are there any conflicts/overlaps in X & Y selection?
+        handsconflict = self.hand_selection_conflict()
+        armsconflict = self.arm_selection_conflict()
+        legsconflict = self.leg_selection_conflict()
+        if handsconflict:
+            return False, "X and Y overlap in hand selection. Ensure that X and Y selections are mutually exclusive."
+        elif armsconflict:
+            return False, "X and Y overlap in arm selection. Ensure that X and Y selections are mutually exclusive."
+        elif legsconflict:
+            return False, "X and Y overlap in leg selection. Ensure that X and Y selections are mutually exclusive."
+
+        # if we get to here, everything is fine
+        return True, ""
 
     # set timing info so that subsections (eg contact) of the Relation module can be enabled/disabled accordingly
     def timinglinknotification(self, haspoint, hasinterval):
@@ -124,10 +146,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for horizontal distance options
         self.dishor_box = QGroupBox()
         self.dishor_label = QLabel("Horizontal")
-        self.dishorclose_rb = RelationRadioButton("Close")
-        self.dishormed_rb = RelationRadioButton("Med.")
-        self.dishorfar_rb = RelationRadioButton("Far")
-        self.dishor_group = RelationButtonGroup()
+        self.dishorclose_rb = DeselectableRadioButton("Close")
+        self.dishormed_rb = DeselectableRadioButton("Med.")
+        self.dishorfar_rb = DeselectableRadioButton("Far")
+        self.dishor_group = DeselectableRadioButtonGroup()
         self.dishor_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_hor_layout = self.create_axis_layout(self.dishorclose_rb,
                                                  self.dishormed_rb,
@@ -140,10 +162,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for vertical distance options
         self.disver_box = QGroupBox()
         self.disver_label = QLabel("Vertical")
-        self.disverclose_rb = RelationRadioButton("Close")
-        self.disvermed_rb = RelationRadioButton("Med.")
-        self.disverfar_rb = RelationRadioButton("Far")
-        self.disver_group = RelationButtonGroup()
+        self.disverclose_rb = DeselectableRadioButton("Close")
+        self.disvermed_rb = DeselectableRadioButton("Med.")
+        self.disverfar_rb = DeselectableRadioButton("Far")
+        self.disver_group = DeselectableRadioButtonGroup()
         self.disver_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_ver_layout = self.create_axis_layout(self.disverclose_rb,
                                                  self.disvermed_rb,
@@ -156,10 +178,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for sagittal distance options
         self.dissag_box = QGroupBox()
         self.dissag_label = QLabel("Sagittal")
-        self.dissagclose_rb = RelationRadioButton("Close")
-        self.dissagmed_rb = RelationRadioButton("Med.")
-        self.dissagfar_rb = RelationRadioButton("Far")
-        self.dissag_group = RelationButtonGroup()
+        self.dissagclose_rb = DeselectableRadioButton("Close")
+        self.dissagmed_rb = DeselectableRadioButton("Med.")
+        self.dissagfar_rb = DeselectableRadioButton("Far")
+        self.dissag_group = DeselectableRadioButtonGroup()
         self.dissag_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_sag_layout = self.create_axis_layout(self.dissagclose_rb,
                                                  self.dissagmed_rb,
@@ -171,10 +193,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for generic distance options
         self.disgen_box = QGroupBox()
         self.disgen_label = QLabel("Generic")
-        self.disgenclose_rb = RelationRadioButton("Close")
-        self.disgenmed_rb = RelationRadioButton("Med.")
-        self.disgenfar_rb = RelationRadioButton("Far")
-        self.disgen_group = RelationButtonGroup()
+        self.disgenclose_rb = DeselectableRadioButton("Close")
+        self.disgenmed_rb = DeselectableRadioButton("Med.")
+        self.disgenfar_rb = DeselectableRadioButton("Far")
+        self.disgen_group = DeselectableRadioButtonGroup()
         self.disgen_group.buttonToggled.connect(self.handle_distancebutton_toggled)
         dis_gen_layout = self.create_axis_layout(self.disgenclose_rb,
                                                  self.disgenmed_rb,
@@ -322,10 +344,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for horizontal direction options
         self.dirhor_box = QGroupBox()
         self.dirhor_cb = QCheckBox("Horizontal")
-        self.dirhoripsi_rb = RelationRadioButton("X ipsilateral to Y")
-        self.dirhorcontra_rb = RelationRadioButton("X contralateral to Y")
-        self.dirhorinline_rb = RelationRadioButton("X in line with Y")
-        self.dirhor_group = RelationButtonGroup()
+        self.dirhoripsi_rb = DeselectableRadioButton("X ipsilateral to Y")
+        self.dirhorcontra_rb = DeselectableRadioButton("X contralateral to Y")
+        self.dirhorinline_rb = DeselectableRadioButton("X in line with Y")
+        self.dirhor_group = DeselectableRadioButtonGroup()
         dir_hor_layout = self.create_axis_layout(self.dirhoripsi_rb,
                                                  self.dirhorcontra_rb,
                                                  self.dirhorinline_rb,
@@ -337,10 +359,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for vertical direction options
         self.dirver_box = QGroupBox()
         self.dirver_cb = QCheckBox("Vertical")
-        self.dirverabove_rb = RelationRadioButton("X above Y")
-        self.dirverbelow_rb = RelationRadioButton("X below Y")
-        self.dirverinline_rb = RelationRadioButton("X in line with Y")
-        self.dirver_group = RelationButtonGroup()
+        self.dirverabove_rb = DeselectableRadioButton("X above Y")
+        self.dirverbelow_rb = DeselectableRadioButton("X below Y")
+        self.dirverinline_rb = DeselectableRadioButton("X in line with Y")
+        self.dirver_group = DeselectableRadioButtonGroup()
         dir_ver_layout = self.create_axis_layout(self.dirverabove_rb,
                                                  self.dirverbelow_rb,
                                                  self.dirverinline_rb,
@@ -352,10 +374,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         # create layout for sagittal direction options
         self.dirsag_box = QGroupBox()
         self.dirsag_cb = QCheckBox("Sagittal")
-        self.dirsagdist_rb = RelationRadioButton("X distal to Y")
-        self.dirsagprox_rb = RelationRadioButton("X proximal to Y")
-        self.dirsaginline_rb = RelationRadioButton("X in line with Y")
-        self.dirsag_group = RelationButtonGroup()
+        self.dirsagdist_rb = DeselectableRadioButton("X distal to Y")
+        self.dirsagprox_rb = DeselectableRadioButton("X proximal to Y")
+        self.dirsaginline_rb = DeselectableRadioButton("X in line with Y")
+        self.dirsag_group = DeselectableRadioButtonGroup()
         dir_sag_layout = self.create_axis_layout(self.dirsagdist_rb,
                                                  self.dirsagprox_rb,
                                                  self.dirsaginline_rb,
@@ -384,17 +406,17 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         contact_layout = QVBoxLayout()
         contacttype_spacedlayout = QHBoxLayout()
 
-        self.contact_rb = RelationRadioButton("Contact")
-        self.nocontact_rb = RelationRadioButton("No contact")
-        self.contact_group = RelationButtonGroup()
+        self.contact_rb = DeselectableRadioButton("Contact")
+        self.nocontact_rb = DeselectableRadioButton("No contact")
+        self.contact_group = DeselectableRadioButtonGroup()
         self.contact_group.addButton(self.contact_rb)
         self.contact_group.addButton(self.nocontact_rb)
         self.contact_group.buttonToggled.connect(self.handle_contactgroup_toggled)
 
-        self.contactlight_rb = RelationRadioButton("Light")
-        self.contactfirm_rb = RelationRadioButton("Firm")
-        self.contactother_rb = RelationRadioButton("Other")
-        self.contacttype_group = RelationButtonGroup()
+        self.contactlight_rb = DeselectableRadioButton("Light")
+        self.contactfirm_rb = DeselectableRadioButton("Firm")
+        self.contactother_rb = DeselectableRadioButton("Other")
+        self.contacttype_group = DeselectableRadioButtonGroup()
         self.contacttype_group.addButton(self.contactlight_rb)
         self.contacttype_group.addButton(self.contactfirm_rb)
         self.contacttype_group.addButton(self.contactother_rb)
@@ -470,10 +492,10 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # create layout for specifying contact manner
     def create_manner_box(self):
         manner_box = QGroupBox("Contact manner")
-        self.holding_rb = RelationRadioButton("Holding")
-        self.continuous_rb = RelationRadioButton("Continuous")
-        self.intermittent_rb = RelationRadioButton("Intermittent")
-        self.manner_group = RelationButtonGroup()
+        self.holding_rb = DeselectableRadioButton("Holding")
+        self.continuous_rb = DeselectableRadioButton("Continuous")
+        self.intermittent_rb = DeselectableRadioButton("Intermittent")
+        self.manner_group = DeselectableRadioButtonGroup()
         self.manner_group.buttonToggled.connect(self.handle_mannerbutton_toggled)
         self.manner_group.addButton(self.holding_rb)
         self.manner_group.addButton(self.continuous_rb)
@@ -571,32 +593,47 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
 
     # enable the button for selecting handparts iff there is at least one hand selected in either X or Y
     def check_enable_handpartbutton(self):
-        h1_selected = self.x_h1_radio.isChecked() or self.x_both_radio.isChecked()
-        h2_selected = self.x_h2_radio.isChecked() or self.x_both_radio.isChecked() or self.y_h2_radio.isChecked()
+        h1_selected = self.x_h1_radio.isChecked() or self.x_hboth_radio.isChecked()
+        h2_selected = self.x_h2_radio.isChecked() or self.x_hboth_radio.isChecked() or self.y_h2_radio.isChecked()
         self.handpart_button.setEnabled(h1_selected or h2_selected)
 
     # enable the button for selecting armparts iff there is at least one arm selected in either X or Y
     def check_enable_armpartbutton(self):
-        a1_selected = self.x_a1_radio.isChecked()
-        a2_selected = self.x_a2_radio.isChecked() or self.y_a2_radio.isChecked()
+        a1_selected = self.x_a1_radio.isChecked() or self.x_aboth_radio.isChecked() or \
+                      self.y_a1_radio.isChecked() or self.y_aboth_radio.isChecked()
+        a2_selected = self.x_a2_radio.isChecked() or self.x_aboth_radio.isChecked() or \
+                      self.y_a2_radio.isChecked() or self.y_aboth_radio.isChecked()
         self.armpart_button.setEnabled(a1_selected or a2_selected)
 
     # enable the button for selecting legparts iff there is at least one leg selected in either X or Y
     def check_enable_legpartbutton(self):
-        l1_selected = self.x_l1_radio.isChecked() or self.y_l1_radio.isChecked()
-        l2_selected = self.x_l2_radio.isChecked() or self.y_l2_radio.isChecked()
+        l1_selected = self.x_l1_radio.isChecked() or self.x_lboth_radio.isChecked() or \
+                      self.y_l1_radio.isChecked() or self.y_lboth_radio.isChecked()
+        l2_selected = self.x_l2_radio.isChecked() or self.x_lboth_radio.isChecked() or \
+                      self.y_l2_radio.isChecked() or self.y_lboth_radio.isChecked()
         self.legpart_button.setEnabled(l1_selected or l2_selected)
+
+    def hand_selection_conflict(self):
+        # h1conflict = not possible because Y only has h2 as a hand option
+        h2conflict = (self.x_h2_radio.isChecked() or self.x_hboth_radio.isChecked()) and self.y_h2_radio.isChecked()
+        return h2conflict
 
     # prepare labels and open the dialog to select the handpart(s) involved in the relation
     def handle_handpartbutton_clicked(self):
         bodyparttype = HAND
+
+        if self.hand_selection_conflict():
+            # refuse to open the hand part specification if there is a conflict in X vs Y hand selections
+            QMessageBox.critical(self, "Warning", "X and Y overlap in hand selection. Ensure that X and Y selections are mutually exclusive before attempting to specify hand parts.")
+            return
+
         h1label = ""
         h2label = ""
         if self.x_h1_radio.isChecked():
             h1label = "X"
         elif self.x_h2_radio.isChecked():
             h2label = "X"
-        elif self.x_both_radio.isChecked():
+        elif self.x_hboth_radio.isChecked():
             h1label = "part of X"
             h2label = "part of X"
         if self.y_h2_radio.isChecked():
@@ -605,34 +642,75 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         handpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.handpart_button))
         handpart_selector.exec_()
 
+    def arm_selection_conflict(self):
+        a1conflict = (self.x_a1_radio.isChecked() or self.x_aboth_radio.isChecked()) and \
+                     (self.y_a1_radio.isChecked() or self.y_aboth_radio.isChecked())
+        a2conflict = (self.x_a2_radio.isChecked() or self.x_aboth_radio.isChecked()) and \
+                     (self.y_a2_radio.isChecked() or self.y_aboth_radio.isChecked())
+
+        return a1conflict or a2conflict
+
     # prepare labels and open the dialog to select the armpart(s) involved in the relation
     def handle_armpartbutton_clicked(self):
         bodyparttype = ARM
+        if self.arm_selection_conflict():
+            # refuse to open the arm part specification if there is a conflict in X vs Y arm selections
+            QMessageBox.critical(self, "Warning", "X and Y overlap in arm selection. Ensure that X and Y selections are mutually exclusive before attempting to specify arm parts.")
+            return
+
         a1label = ""
         a2label = ""
         if self.x_a1_radio.isChecked():
             a1label = "X"
         elif self.x_a2_radio.isChecked():
             a2label = "X"
-        if self.y_a2_radio.isChecked():
+        elif self.x_aboth_radio.isChecked():
+            a1label = "part of X"
+            a2label = "part of X"
+        if self.y_a1_radio.isChecked():
+            a1label = "Y"
+        elif self.y_a2_radio.isChecked():
             a2label = "Y"
+        elif self.y_aboth_radio.isChecked():
+            a1label = "part of Y"
+            a2label = "part of Y"
         armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label, bodypart2label=a2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], forrelationmodule=True,parent=self)
         armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
         armpart_selector.exec_()
 
+    def leg_selection_conflict(self):
+        l1conflict = (self.x_l1_radio.isChecked() or self.x_lboth_radio.isChecked()) and \
+                     (self.y_l1_radio.isChecked() or self.y_lboth_radio.isChecked())
+        l2conflict = (self.x_l2_radio.isChecked() or self.x_lboth_radio.isChecked()) and \
+                     (self.y_l2_radio.isChecked() or self.y_lboth_radio.isChecked())
+
+        return l1conflict or l2conflict
+
     # prepare labels and open the dialog to select the legpart(s) involved in the relation
     def handle_legpartbutton_clicked(self):
         bodyparttype = LEG
+
+        if self.leg_selection_conflict():
+            # refuse to open the leg part specification if there is a conflict in X vs Y leg selections
+            QMessageBox.critical(self, "Warning", "X and Y overlap in leg selection. Ensure that X and Y selections are mutually exclusive before attempting to specify leg parts.")
+            return
+
         l1label = ""
         l2label = ""
         if self.x_l1_radio.isChecked():
             l1label = "X"
         elif self.x_l2_radio.isChecked():
             l2label = "X"
+        elif self.x_lboth_radio.isChecked():
+            l1label = "part of X"
+            l2label = "part of X"
         if self.y_l1_radio.isChecked():
             l1label = "Y"
         elif self.y_l2_radio.isChecked():
             l2label = "Y"
+        elif self.y_lboth_radio.isChecked():
+            l1label = "part of Y"
+            l2label = "part of Y"
         legpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=l1label, bodypart2label=l2label, bodypart1infotoload=self.bodyparts_dict[bodyparttype][1], bodypart2infotoload=self.bodyparts_dict[bodyparttype][2],  forrelationmodule=True, parent=self)
         legpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2: self.handle_bodyparts_saved(bodypart1, bodypart2, self.legpart_button))
         legpart_selector.exec_()
@@ -647,50 +725,61 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     def create_x_box(self):
         x_box = QGroupBox("Select X")
         x_layout = QVBoxLayout()
-        x_layout_left = QVBoxLayout()
-        x_layout_right = QVBoxLayout()
-        x_layout_leftandright = QHBoxLayout()
-        x_other_layout = QHBoxLayout()
-        x_bothconnected_layout = QHBoxLayout()
+        x_layout_hands = QVBoxLayout()
+        x_layout_arms = QVBoxLayout()
+        x_layout_legs = QVBoxLayout()
+        x_layout_bodyparts = QHBoxLayout()
+        x_layout_other = QHBoxLayout()
+        x_layout_handsconnected = QHBoxLayout()
         self.x_group = QButtonGroup()
         self.x_group.buttonToggled.connect(self.handle_xgroup_toggled)
-        self.x_h1_radio = RelationRadioButton("H1")
-        self.x_h2_radio = RelationRadioButton("H2")
-        self.x_both_radio = RelationRadioButton("Both hands")
-        self.x_bothconnected_cb = QCheckBox("As a connected unit")
-        self.x_bothconnected_cb.toggled.connect(self.handle_xconnected_toggled)
-        self.x_a1_radio = RelationRadioButton("Arm1")
-        self.x_a2_radio = RelationRadioButton("Arm2")
-        self.x_l1_radio = RelationRadioButton("Leg1")
-        self.x_l2_radio = RelationRadioButton("Leg2")
-        self.x_other_radio = RelationRadioButton("Other")
+        self.x_h1_radio = DeselectableRadioButton("H1")
+        self.x_h2_radio = DeselectableRadioButton("H2")
+        self.x_hboth_radio = DeselectableRadioButton("Both hands")
+        self.x_hbothconnected_cb = QCheckBox("As a connected unit")
+        self.x_hbothconnected_cb.toggled.connect(self.handle_xconnected_toggled)
+        self.x_a1_radio = DeselectableRadioButton("Arm1")
+        self.x_a2_radio = DeselectableRadioButton("Arm2")
+        self.x_aboth_radio = DeselectableRadioButton("Both arms")
+        self.x_l1_radio = DeselectableRadioButton("Leg1")
+        self.x_l2_radio = DeselectableRadioButton("Leg2")
+        self.x_lboth_radio = DeselectableRadioButton("Both legs")
+        self.x_other_radio = DeselectableRadioButton("Other")
         self.x_other_text = QLineEdit()
         self.x_other_text.setPlaceholderText("Specify")
         self.x_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.x_other_radio))
         self.x_group.addButton(self.x_h1_radio)
         self.x_group.addButton(self.x_h2_radio)
-        self.x_group.addButton(self.x_both_radio)
+        self.x_group.addButton(self.x_hboth_radio)
         self.x_group.addButton(self.x_a1_radio)
         self.x_group.addButton(self.x_a2_radio)
+        self.x_group.addButton(self.x_aboth_radio)
         self.x_group.addButton(self.x_l1_radio)
         self.x_group.addButton(self.x_l2_radio)
+        self.x_group.addButton(self.x_lboth_radio)
         self.x_group.addButton(self.x_other_radio)
-        x_layout_left.addWidget(self.x_h1_radio)
-        x_layout_left.addWidget(self.x_h2_radio)
-        x_layout_left.addWidget(self.x_both_radio)
-        x_bothconnected_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        x_bothconnected_layout.addWidget(self.x_bothconnected_cb)
-        x_layout_left.addLayout(x_bothconnected_layout)
-        x_layout_right.addWidget(self.x_a1_radio)
-        x_layout_right.addWidget(self.x_a2_radio)
-        x_layout_right.addWidget(self.x_l1_radio)
-        x_layout_right.addWidget(self.x_l2_radio)
-        x_other_layout.addWidget(self.x_other_radio)
-        x_other_layout.addWidget(self.x_other_text)
-        x_layout_leftandright.addLayout(x_layout_left)
-        x_layout_leftandright.addLayout(x_layout_right)
-        x_layout.addLayout(x_layout_leftandright)
-        x_layout.addLayout(x_other_layout)
+        x_layout_hands.addWidget(self.x_h1_radio)
+        x_layout_hands.addWidget(self.x_h2_radio)
+        x_layout_hands.addWidget(self.x_hboth_radio)
+        x_layout_handsconnected.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        x_layout_handsconnected.addWidget(self.x_hbothconnected_cb)
+        x_layout_hands.addLayout(x_layout_handsconnected)
+        x_layout_hands.addStretch()
+        x_layout_arms.addWidget(self.x_a1_radio)
+        x_layout_arms.addWidget(self.x_a2_radio)
+        x_layout_arms.addWidget(self.x_aboth_radio)
+        x_layout_arms.addStretch()
+        x_layout_legs.addWidget(self.x_l1_radio)
+        x_layout_legs.addWidget(self.x_l2_radio)
+        x_layout_legs.addWidget(self.x_lboth_radio)
+        x_layout_legs.addStretch()
+        x_layout_other.addWidget(self.x_other_radio)
+        x_layout_other.addWidget(self.x_other_text)
+        x_layout_bodyparts.addLayout(x_layout_hands)
+        x_layout_bodyparts.addLayout(x_layout_arms)
+        x_layout_bodyparts.addLayout(x_layout_legs)
+        x_layout.addLayout(x_layout_bodyparts)
+        x_layout.addLayout(x_layout_other)
         x_box.setLayout(x_layout)
         return x_box
 
@@ -699,7 +788,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         selectedbutton = self.x_group.checkedButton()
 
         # enable "as a connected unit" iff the checked button is "both hands"
-        self.x_bothconnected_cb.setEnabled(selectedbutton == self.x_both_radio)
+        self.x_hbothconnected_cb.setEnabled(selectedbutton == self.x_hboth_radio)
 
         # enable "specify" text box iff the checked button is "other"
         self.x_other_text.setEnabled(selectedbutton == self.x_other_radio)
@@ -736,7 +825,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             return
 
         # ensure the parent is checked
-        self.x_both_radio.setChecked(True)
+        self.x_hboth_radio.setChecked(True)
 
     # if user specifies text for an "other" selection, ensure the parent ("other") radio button is checked
     def handle_othertext_edited(self, txt, parentradiobutton):
@@ -751,22 +840,80 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     def create_y_box(self):
         y_box = QGroupBox("Select Y")
         y_layout = QVBoxLayout()
-        y_layout_leftandright = QHBoxLayout()
-        y_layout_left = QVBoxLayout()
         y_layout_right = QVBoxLayout()
-        y_existingmodule_layout = QHBoxLayout()
-        y_list_layout = QHBoxLayout()
-        y_other_layout = QHBoxLayout()
+        y_layout_hands = QVBoxLayout()
+        y_layout_arms = QVBoxLayout()
+        y_layout_legs = QVBoxLayout()
+        y_layout_top = QHBoxLayout()
+        y_layout_existingmod = QHBoxLayout()
+        y_layout_list = QHBoxLayout()
+        y_layout_other = QHBoxLayout()
 
         self.y_group = QButtonGroup()
         self.y_group.buttonToggled.connect(self.handle_ygroup_toggled)
-        self.y_h2_radio = RelationRadioButton("H2")
-        self.y_a2_radio = RelationRadioButton("Arm2")
-        self.y_l1_radio = RelationRadioButton("Leg1")
-        self.y_l2_radio = RelationRadioButton("Leg2")
-        self.y_existingmod_radio = RelationRadioButton("Existing module:")
+        self.y_h2_radio = DeselectableRadioButton("H2")
+        self.y_a1_radio = DeselectableRadioButton("Arm1")
+        self.y_a2_radio = DeselectableRadioButton("Arm2")
+        self.y_aboth_radio = DeselectableRadioButton("Both arms")
+        self.y_l1_radio = DeselectableRadioButton("Leg1")
+        self.y_l2_radio = DeselectableRadioButton("Leg2")
+        self.y_lboth_radio = DeselectableRadioButton("Both legs")
+        self.y_existingmod_radio = DeselectableRadioButton("Existing module:")
         self.y_existingmod_switch = OptionSwitch("Location", "Movement")
+
+        self.y_other_radio = DeselectableRadioButton("Other")
+        self.y_other_text = QLineEdit()
+        self.y_other_text.setPlaceholderText("Specify")
+        self.y_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.y_other_radio))
+        self.y_group.addButton(self.y_h2_radio)
+        self.y_group.addButton(self.y_a1_radio)
+        self.y_group.addButton(self.y_a2_radio)
+        self.y_group.addButton(self.y_aboth_radio)
+        self.y_group.addButton(self.y_l1_radio)
+        self.y_group.addButton(self.y_l2_radio)
+        self.y_group.addButton(self.y_lboth_radio)
+        self.y_group.addButton(self.y_existingmod_radio)
+        self.y_group.addButton(self.y_other_radio)
+
+        self.create_linked_module_box()
+
+        y_layout_hands.addWidget(self.y_h2_radio)
+        y_layout_hands.addStretch()
+        y_layout_arms.addWidget(self.y_a1_radio)
+        y_layout_arms.addWidget(self.y_a2_radio)
+        y_layout_arms.addWidget(self.y_aboth_radio)
+        y_layout_arms.addStretch()
+        y_layout_legs.addWidget(self.y_l1_radio)
+        y_layout_legs.addWidget(self.y_l2_radio)
+        y_layout_legs.addWidget(self.y_lboth_radio)
+        y_layout_legs.addStretch()
+        y_layout_top.addLayout(y_layout_hands)
+        y_layout_top.addSpacerItem(QSpacerItem(10, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        y_layout_top.addLayout(y_layout_arms)
+        y_layout_top.addSpacerItem(QSpacerItem(10, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        y_layout_top.addLayout(y_layout_legs)
+        y_layout_top.addSpacerItem(QSpacerItem(10, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+
+        y_layout_existingmod.addWidget(self.y_existingmod_radio)
+        y_layout_existingmod.addWidget(self.y_existingmod_switch)
+        y_layout_existingmod.addStretch()
+        y_layout_right.addLayout(y_layout_existingmod)
+        y_layout_list.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        y_layout_list.addWidget(self.existingmod_listview)
+        y_layout_right.addLayout(y_layout_list)
+        y_layout_other.addWidget(self.y_other_radio)
+        y_layout_other.addWidget(self.y_other_text)
+
+        y_layout_top.addLayout(y_layout_right)
+        y_layout.addLayout(y_layout_top)
+        y_layout.addLayout(y_layout_other)
+
+        y_box.setLayout(y_layout)
+        return y_box
+
+    def create_linked_module_box(self):
         self.existingmod_listview = QListView()
+        self.existingmod_listview.setMaximumHeight(150)
         self.locmodslist = list(self.mainwindow.current_sign.locationmodules.values())
         self.locmodslist = [loc for loc in self.locmodslist if loc.locationtreemodel.locationtype.usesbodylocations()]
         self.locmodnums = self.mainwindow.current_sign.locationmodulenumbers
@@ -777,37 +924,6 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_existingmod_switch.toggled.connect(self.handle_existingmodswitch_toggled)
         self.existingmod_listview.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.existingmod_listview.clicked.connect(self.handle_existingmod_clicked)
-        self.y_other_radio = RelationRadioButton("Other")
-        self.y_other_text = QLineEdit()
-        self.y_other_text.setPlaceholderText("Specify")
-        self.y_other_text.textEdited.connect(lambda txt: self.handle_othertext_edited(txt, self.y_other_radio))
-        self.y_group.addButton(self.y_h2_radio)
-        self.y_group.addButton(self.y_a2_radio)
-        self.y_group.addButton(self.y_l1_radio)
-        self.y_group.addButton(self.y_l2_radio)
-        self.y_group.addButton(self.y_existingmod_radio)
-        self.y_group.addButton(self.y_other_radio)
-
-        y_layout_left.addWidget(self.y_h2_radio)
-        y_layout_left.addWidget(self.y_a2_radio)
-        y_layout_left.addWidget(self.y_l1_radio)
-        y_layout_left.addWidget(self.y_l2_radio)
-        y_existingmodule_layout.addWidget(self.y_existingmod_radio)
-        y_existingmodule_layout.addWidget(self.y_existingmod_switch)
-        y_existingmodule_layout.addStretch()
-        y_layout_right.addLayout(y_existingmodule_layout)
-        y_list_layout.addSpacerItem(QSpacerItem(30, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        y_list_layout.addWidget(self.existingmod_listview)
-        y_layout_right.addLayout(y_list_layout)
-        y_other_layout.addWidget(self.y_other_radio)
-        y_other_layout.addWidget(self.y_other_text)
-
-        y_layout_leftandright.addLayout(y_layout_left)
-        y_layout_leftandright.addLayout(y_layout_right)
-        y_layout.addLayout(y_layout_leftandright)
-        y_layout.addLayout(y_other_layout)
-        y_box.setLayout(y_layout)
-        return y_box
 
     # if user toggles the switch for selecting an existing module (movement or location),
     #   ensure the parent ("existing module") radio button is checked, that the list of
@@ -823,9 +939,9 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # update the list of existing modules according to which module type was selected
     def update_existingmodule_list(self, selection_dict):
         if selection_dict[1]:
-            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums, ModuleTypes.LOCATION)
+            self.existingmodule_listmodel.setmoduleslist(self.locmodslist, self.locmodnums)
         elif selection_dict[2]:
-            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums, ModuleTypes.MOVEMENT)
+            self.existingmodule_listmodel.setmoduleslist(self.movmodslist, self.movmodnums)
         else:
             self.existingmodule_listmodel.setmoduleslist(None)
 
@@ -858,20 +974,24 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             articulator, articulator_dict = linkedfrommodule.articulators
             if articulator == HAND:
                 if articulator_dict[1] and articulator_dict[2]:
-                    self.x_both_radio.setChecked(True)
+                    self.x_hboth_radio.setChecked(True)
                     if linkedfrommodule.inphase >= 3:
-                        self.x_bothconnected_cb.setChecked(True)
+                        self.x_hbothconnected_cb.setChecked(True)
                 elif articulator_dict[1]:
                     self.x_h1_radio.setChecked(True)
                 elif articulator_dict[2]:
                     self.x_h2_radio.setChecked(True)
             elif articulator == ARM:
-                if articulator_dict[1]:
+                if articulator_dict[1] and articulator_dict[2]:
+                    self.x_aboth_radio.setChecked(True)
+                elif articulator_dict[1]:
                     self.x_a1_radio.setChecked(True)
                 elif articulator_dict[2]:
                     self.x_a2_radio.setChecked(True)
             elif articulator == LEG:
-                if articulator_dict[1]:
+                if articulator_dict[1] and articulator_dict[2]:
+                    self.x_lboth_radio.setChecked(True)
+                elif articulator_dict[1]:
                     self.x_l1_radio.setChecked(True)
                 elif articulator_dict[2]:
                     self.x_l2_radio.setChecked(True)
@@ -915,25 +1035,29 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             self.x_other_text.setText(relationx.othertext)
             self.x_h1_radio.setChecked(relationx.h1)
             self.x_h2_radio.setChecked(relationx.h2)
-            self.x_both_radio.setChecked(relationx.both)
-            if relationx.both:
-                self.x_bothconnected_cb.setChecked(relationx.connected)
+            self.x_hboth_radio.setChecked(relationx.hboth)
+            if relationx.hboth:
+                self.x_hbothconnected_cb.setChecked(relationx.connected)
             self.x_a1_radio.setChecked(relationx.arm1)
             self.x_a2_radio.setChecked(relationx.arm2)
+            self.x_aboth_radio.setChecked(relationx.aboth)
             self.x_l1_radio.setChecked(relationx.leg1)
             self.x_l2_radio.setChecked(relationx.leg2)
+            self.x_lboth_radio.setChecked(relationx.lboth)
             self.x_other_radio.setChecked(relationx.other)
 
     # return the current X element specification as per the GUI values
     def getcurrentx(self):
         return RelationX(h1=self.x_h1_radio.isChecked(),
                          h2=self.x_h2_radio.isChecked(),
-                         both=self.x_both_radio.isChecked(),
-                         connected=self.x_bothconnected_cb.isChecked(),
+                         handboth=self.x_hboth_radio.isChecked(),
+                         connected=self.x_hbothconnected_cb.isChecked(),
                          arm1=self.x_a1_radio.isChecked(),
                          arm2=self.x_a2_radio.isChecked(),
+                         armboth=self.x_aboth_radio.isChecked(),
                          leg1=self.x_l1_radio.isChecked(),
                          leg2=self.x_l2_radio.isChecked(),
+                         legboth=self.x_lboth_radio.isChecked(),
                          other=self.x_other_radio.isChecked(),
                          othertext=self.x_other_text.text())
 
@@ -942,9 +1066,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         if relationy is not None:
             self.y_other_text.setText(relationy.othertext)
             self.y_h2_radio.setChecked(relationy.h2)
+            self.y_a1_radio.setChecked(relationy.arm1)
             self.y_a2_radio.setChecked(relationy.arm2)
+            self.y_aboth_radio.setChecked(relationy.aboth)
             self.y_l1_radio.setChecked(relationy.leg1)
             self.y_l2_radio.setChecked(relationy.leg2)
+            self.y_lboth_radio.setChecked(relationy.lboth)
             self.y_existingmod_radio.setChecked(relationy.existingmodule)
             if relationy.existingmodule:
                 self.setcurrentlinkedmoduleinfo(relationy.linkedmoduleids, relationy.linkedmoduletype)
@@ -953,9 +1080,12 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     # return the current Y element specification as per the GUI values
     def getcurrenty(self):
         return RelationY(h2=self.y_h2_radio.isChecked(),
+                         arm1=self.y_a1_radio.isChecked(),
                          arm2=self.y_a2_radio.isChecked(),
+                         armboth=self.y_aboth_radio.isChecked(),
                          leg1=self.y_l1_radio.isChecked(),
                          leg2=self.y_l2_radio.isChecked(),
+                         legboth=self.y_lboth_radio.isChecked(),
                          existingmodule=self.y_existingmod_radio.isChecked(),
                          linkedmoduletype=self.getcurrentlinkedmoduletype(),
                          linkedmoduleids=self.getcurrentlinkedmoduleids(),
@@ -1183,14 +1313,14 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     def clear_x_options(self):
         self.clear_group_buttons(self.x_group)
         self.x_other_text.clear()
-        self.x_bothconnected_cb.setChecked(False)
+        self.x_hbothconnected_cb.setChecked(False)
 
         self.enable_x_options(True)
 
     # enable all GUI elements for X selection
     def enable_x_options(self, doenable):
         self.x_other_text.setEnabled(doenable)
-        self.x_bothconnected_cb.setEnabled(doenable)
+        self.x_hbothconnected_cb.setEnabled(doenable)
 
     # clear and enable all GUI elements for Y selection
     def clear_y_options(self):
@@ -1258,40 +1388,3 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
     def desiredheight(self):
         return 700
 
-
-# this radio button class tracks not only its current state
-#   (and, as usual, mutual exclusivity with buttons in the same group)
-#   but also, when a group button is toggled, updates the group with its identity
-#   for the purposes of being able to un-check when appropriate
-class RelationRadioButton(QRadioButton):
-
-    def __init__(self, text, **kwargs):
-        super().__init__(text, **kwargs)
-
-    def setChecked(self, checked):
-        if checked and self.group() is not None:
-            self.group().previously_checked = self
-        super().setChecked(checked)
-
-
-# this buttongroup allows for unchecking buttons even when the group is set to mutually exclusive
-class RelationButtonGroup(QButtonGroup):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        # in order to compare new checked button with previously-checked button
-        self.previously_checked = None
-
-        self.buttonClicked.connect(self.handle_button_clicked)
-
-    def handle_button_clicked(self, btn):
-        if self.previously_checked == btn:
-            # user clicked an already-selected button; we'll uncheck it
-            self.setExclusive(False)
-            btn.setChecked(False)
-            self.setExclusive(True)
-            self.previously_checked = None
-        else:
-            # user clicked a previously-unselected button
-            self.previously_checked = btn

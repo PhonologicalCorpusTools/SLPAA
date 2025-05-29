@@ -7,27 +7,26 @@ from os import getcwd, path
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QIcon  # for version number message box icon
 
-from constant import FROZEN, VERSION
+from constant import FROZEN, VERSION, ModuleTypes
 
 help_map = {
     # help_map is a dictionary of functionality (key) and the corresponding help page (value)
-    'movement': 'movement_module',
-    'location': 'location_module',
-    'handconfig': 'hand_configuration_module',   # coming from the 'Help' btn in the hand configuration dialog
+    ModuleTypes.MOVEMENT: 'movement_module',
+    ModuleTypes.LOCATION: 'location_module',
+    ModuleTypes.HANDCONFIG: 'hand_configuration_module',   # coming from the 'Help' btn in the hand configuration dialog
     'predefined_handshapes': 'predefined_handshapes',  # coming from the btn below 'load predefined handshape' inside hc
-    'relation': 'relation_module',
-    'orientation': 'orientation_module',
-    'nonmanual': 'nonmanual_module',
+    ModuleTypes.RELATION: 'relation_module',
+    ModuleTypes.ORIENTATION: 'orientation_module',
+    ModuleTypes.NONMANUAL: 'nonmanual_module',
     'signlevel': 'sign_level_info',
-    'signtype': 'sign_type',
+    ModuleTypes.SIGNTYPE: 'sign_type',
     'xslot': 'timing',  # for sign timing and xslots
     'preferences': 'global_settings',  # coming from preferences dialog
 }
 
 
+# Open the relevant readthedocs page on a web browser. Called when clicking a 'help' btn.
 def show_help(functionality: str) -> None:
-    # activate when the user clicks 'help' btn. launch the web browser and open a relevant readthedocs page
-
     # special case: help > about is the exception. instead of readthedocs, show github repo
     if functionality == 'about':
         webbrowser.open('https://github.com/PhonologicalCorpusTools/SLPAA?tab=readme-ov-file#readme')
@@ -35,7 +34,9 @@ def show_help(functionality: str) -> None:
 
     # in other cases, open readthedocs
     base_url = 'https://slp-aa.readthedocs.io/en/'
-    version = 'latest/' if not FROZEN else "v{}.{}.{}/".format(*VERSION)
+    # version = 'latest/' if not FROZEN else "v{}.{}.{}/".format(*VERSION)
+    # make sure to uncomment the above (and delete the below) if (i) releasing and (ii) readthedocs is done
+    version = 'latest/'  # temporarily disable directing to a frozen version help page
 
     if functionality not in help_map:
         # do not have an individual readthedocs page. land on the main page

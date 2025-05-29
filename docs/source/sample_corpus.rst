@@ -19,7 +19,7 @@ The sample corpus is provided as a means of helping new users orient themselves 
  
 * Open the software and select “Load sample,” either from the initial pop-up window that appears when starting the software or by going to File / Load sample
 * Go to Python / Preferences (on a Mac) or Settings / Preferences (on a PC) and go to the “Sign” tab. Change “x-slot generation” from “None” to “Manual” to allow the specific timing characteristics of signs to be visible. Click “Save.” (This will now be your default for all corpora until you change it again manually.)
-* Look at the signs in the sample corpus and compare them to their original source forms. The signs are listed below in a suggested order of perusal with some of their key characteristics. Clicking on any of the modules in the summary window will open up the details of the transcription.
+* Look at the signs in the sample corpus and compare them to their original source forms. The signs are listed below in a suggested order of perusal with some of their key characteristics. Double-clicking on any of the modules in the summary window will open up the details of the transcription.
 
 **Overview of the SLP-AA interface with the sample corpus loaded:**
 
@@ -142,6 +142,7 @@ CIRCUMSTANCE, OUTCOME
   * but in the case of HAPPEN, CIRCUMSTANCE, and OUTCOME, it’s a single entry with multiple unique glosses and yet a single ID-gloss (used to uniquely identify the form of the entry)
   * editing the transcription of any of them will change the transcription of the others (because there aren’t actually separate entries)
   * in the ‘Corpus’ window, note that the distinction between entries and glosses is noticeable by the existence of 8 signs (8 entries, each with a unique transcription), but 10 glosses shown (because the entry for HAPPEN is shown three times, once for each of its three glosses)
+  * selecting "One sign per row" will collapse all glosses into a single displayed row instead
   * the lines shown can be filtered by typing into the text box (all entries with text that is matched in any of the gloss, lemma, or ID-gloss will be shown)
   * the lines shown can also be sorted by different criteria using the selection box at the bottom of the window; this can help highlight how entries share or don’t share various information
 

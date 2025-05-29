@@ -14,7 +14,9 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QAbstractItemView,
     QRadioButton,
-    QButtonGroup
+    QButtonGroup,
+    QMenu,
+    QAction
 )
 
 from PyQt5.QtCore import (
@@ -22,9 +24,9 @@ from PyQt5.QtCore import (
 )
 
 
+from gui.helper_widget import OptionSwitch
 from models.corpus_models import CorpusModel, CorpusSortProxyModel
 from lexicon.lexicon_classes import Sign
-from gui.modulespecification_widgets import SignEntryContextMenu
 
 
 class CorpusDisplay(QWidget):
@@ -32,7 +34,7 @@ class CorpusDisplay(QWidget):
     selection_cleared = pyqtSignal()
     action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
 
-    def __init__(self, corpusfilename="", **kwargs):
+    def __init__(self, app_settings, corpusfilename="", **kwargs):
         super().__init__(**kwargs)
         self.mainwindow = self.parent()
 
@@ -74,6 +76,12 @@ class CorpusDisplay(QWidget):
         filter_layout.addWidget(self.numlines_label)
         main_layout.addLayout(filter_layout)
 
+        # allow user to toggle between one gloss per row (default) vs one sign per row (displaying concatenated glosses, if multiple)
+        self.byglossorsign_switch = OptionSwitch("One gloss per row", "One sign per row", initialselection=1)
+        self.byglossorsign_switch.toggled.connect(self.toggle_byglossorsign)
+        self.byglossorsign_switch.setwhichbuttonselected(1 if app_settings['display']['corpus_byglossorsign'] == 'gloss' else 2)
+        main_layout.addWidget(self.byglossorsign_switch)
+
         main_layout.addWidget(self.corpus_view)
 
         sort_layout = QHBoxLayout()
@@ -99,11 +107,25 @@ class CorpusDisplay(QWidget):
         sort_layout.addStretch()
         main_layout.addLayout(sort_layout)
 
+    def toggle_byglossorsign(self, switchvalue):
+        if switchvalue[1]:
+            # one gloss per row
+            self.corpus_model.byglossorsign = "gloss"
+        elif switchvalue[2]:
+            # one sign per row
+            self.corpus_model.byglossorsign = "sign"
+        self.update_summarylabels()
+
     def handle_selection(self, proxyindex=None, sign=None):
         if proxyindex is not None and proxyindex.model() is not None:
             sourceindex = self.corpus_sortproxy.mapToSource(proxyindex)
-            sign = self.corpus_model.itemFromIndex(sourceindex).sign
-            self.selected_sign.emit(sign)
+            item = self.corpus_model.itemFromIndex(sourceindex)
+            if item:
+                sign = self.corpus_model.itemFromIndex(sourceindex).sign
+                self.selected_sign.emit(sign)
+            else:
+                # index points to a row that no longer exists
+                self.selection_cleared.emit()
         elif sign is not None:
             self.selected_sign.emit(sign)
         else:
@@ -231,10 +253,43 @@ class CorpusDisplay(QWidget):
 
     def update_summarylabels(self):
         totalsigns = len(self.mainwindow.corpus.signs)
-        self.numentries_label.setText(str(totalsigns) + " signs")
+        self.numentries_label.setText("{} signs".format(totalsigns))
         filteredlines = self.getrowcount()
         totallines = self.corpus_model.rowCount()
-        self.numlines_label.setText(str(filteredlines) + " of " + str(totallines) + " glosses shown")
+        self.numlines_label.setText("{} of {} {} shown".format(filteredlines,
+                                                               totallines,
+                                                               ("glosses" if self.byglossorsign_switch.getvalue()[1] else "signs")))
+
+
+# menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
+class SignEntryContextMenu(QMenu):
+    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
+
+    # individual menu items are enabled/disabled based on whether any signs are currently selected
+    #   and/or whether there are any signs on the clipboard
+    def __init__(self, has_selectedsigns, has_clipboardsigns):
+        super().__init__()
+
+        self.copy_action = QAction("Copy Sign(s)")
+        self.copy_action.setEnabled(has_selectedsigns)
+        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
+        self.addAction(self.copy_action)
+
+        self.paste_action = QAction("Paste Sign(s)")
+        self.paste_action.setEnabled(has_clipboardsigns)
+        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
+        self.addAction(self.paste_action)
+
+        self.edit_action = QAction("Edit Sign-level Info(s)")
+        self.edit_action.setEnabled(has_selectedsigns)
+        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
+        self.addAction(self.edit_action)
+
+        self.delete_action = QAction("Delete Sign(s)")
+        self.delete_action.setEnabled(has_selectedsigns)
+        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
+        self.addAction(self.delete_action)
+
 
 class CorpusTableView(QTableView):
     newcurrentindex = pyqtSignal(QModelIndex)

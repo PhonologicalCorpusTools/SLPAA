@@ -135,18 +135,13 @@ This section is automatically specified by the program as *not relevant* when th
 
 If the hands have opposite specifications for axis direction within every applicable axis, select the checkbox for *H1 and H2 move in opposite directions* and continue to fill out the instance of the module as it applies to H1. The axis direction for H2 can then be defined implicitly without coding another :ref:`instance` of Movement for each hand. This selection does not apply for signs where the hands move along different (sets of) axes, like `TAPE <https://asl-lex.org/visualization/?sign=tape>`.
 
-.. note::
-    **Opposite horizontal directions**
-    
-    Take care in consideration of the horizontal axis, since SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where the default for Movement is set as relative directions. (Consult the :ref:`global_settings` for information on changing these options for each module.)
-    
-    This means that the interpretation of what is considered the "opposite" direction may depend on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `FREE <https://www.handspeak.com/word/search/index.php?id=858>`_ has the **same** axis direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time. If Movement is defined in terms of absolute directions, the movement in `WINDSHIELD WIPERS <https://www.handspeak.com/word/search/index.php?id=3918>`_ has the **same** axis direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time. See :ref:`Symmetry<symmetry_section>` for more information.
+
 
 Keep in mind that a single :ref:`instance` of the module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the section on :ref:`Angled axes<angled_axes>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting axis direction consistently, such as always selecting the first direction of motion.
 
-The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`global_settings`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for Movement:
+The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`setting_preferences`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for Movement (**as of v. 0.1.0, only the relative settings are available!**):
     
 * **Horizontal axis: relative** [Default]
 
@@ -205,8 +200,10 @@ If the hands have opposite specifications for circular direction within every ap
 
 .. note::
     **Opposite horizontal directions**
-    
-    Take care in consideration of what the "opposite" direction means in the horizontal and vertical planes. SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where relative directions are the default for Movement. (Consult the :ref:`global_settings` for information on changing these options for each module.)
+
+    *NB: this is outdated -- for v. 0.1.0, we're only using relative horizontal directions.*
+
+    Take care in consideration of what the "opposite" direction means in the horizontal and vertical planes. SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where relative directions are the default for Movement. (Consult the :ref:`setting_preferences` for information on changing these options for each module.)
     
     This means that the interpretation of what is considered the "opposite" direction depends in some cases on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_ has the **same** circular direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time and share the same **specification**. If Movement is defined in terms of absolute directions, the movement in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ has the **same** circular direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time and share the same **specification**. 
     
@@ -222,7 +219,7 @@ Keep in mind that a single instance of the module is meant to convey only one di
 
 At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting circular direction consistently, such as always selecting the first direction of motion.
 
-As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`global_settings`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module.
+As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`setting_preferences`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module. **NB: as of 0.1.0, only the relative options are available.**
 
 See :ref:`Circular directions<circular_directions>` for a description of what we define to be the 'top of a circle' for each plane.
 
@@ -271,9 +268,11 @@ Make your selections from this section if you are coding a :ref:`joint_specific_
 
 Each joint-specific movement has two sub-options, which correspond to the two directions a movement can occur in. It is possible to use separate instances of the movement module for each direction, or to use one instance of the module and then code that movement as being 'bidirectional' in the :ref:`movement characteristics<movement_chars>` section. In the latter case, you would need to establish a convention such as explicitly selecting the direction that the movement starts with. All of our examples below assume this convention. 
 
-As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown. The appropriate joint activity can optionally be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. Autofilling can be turned off in :ref:`global settings<global_settings>`.
+As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown. The appropriate joint activity can optionally be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. Autofilling can be turned off in :ref:`setting_preferences`. **NB: auto-filling is not available in v. 0.1.0.**
 
 The joint-specific movement options are as follows: 
+
+**TODO: move these to the glossary??**
 
 :ref:`Nodding/Un-nodding<nodding_unnodding>`
 
@@ -351,7 +350,7 @@ No further details of the handshape change itself need to be provided in this se
 2. Joint activity
 ``````````````````
 
-Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can :ref:`autofill<auto_gen>` the joint movements that are predictable from the selections made earlier within its :ref:`movement type<joint_specific_movement_entry>` section. See the :ref:`global_settings` for how to change the program's default autofill behaviour.
+Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can :ref:`autofill<auto_gen>` the joint movements that are predictable from the selections made earlier within its :ref:`movement type<joint_specific_movement_entry>` section. See the :ref:`setting_preferences` for how to change the program's default autofill behaviour. (NB: As of v. 0.1.0, no auto-filling is available.)
 
 **(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 

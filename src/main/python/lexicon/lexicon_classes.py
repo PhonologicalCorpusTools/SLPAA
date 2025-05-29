@@ -1,16 +1,14 @@
 import logging
 import os
 import re
-from datetime import datetime
 from copy import deepcopy
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, ModuleTypes, BodypartInfo, RelationX, RelationY, Direction, RelationModule, treepathdelimiter
-from gui.signtypespecification_view import Signtype
+from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, BodypartInfo, RelationX, RelationY, Direction, RelationModule
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
-from constant import HAND, ARM, LEG
+from constant import HAND, ARM, LEG, ModuleTypes, treepathdelimiter
 
 NULL = '\u2205'
 glossesdelimiter = " / "
@@ -55,7 +53,7 @@ class Sign:
     deepcopy is a boolean and determines whether the Sign re-created from serializedsign should be deep-copied
         (that is, should all the subcomponents such as modules etc also be copies instead of references to the original objects?)
     """
-    def __init__(self, signlevel_info=None, serializedsign=None, makedeepcopy=False):
+    def __init__(self, signlevel_info=None, serializedsign=None):
         if signlevel_info is not None:
             signlevel_info.parentsign = self
         self._signlevel_information = signlevel_info
@@ -81,86 +79,50 @@ class Sign:
             # these attributes don't need to be deep-copied
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
             self._signtype = serializedsign['type']
+            # backward compatibility with pre-20250505 signtype structure
+            if self.signtype and len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
+                self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
 
-            # the remaining attributes will be re-created differently depending on whether this is a deep copy or not
-            # also note that relation *must* come before location
+            # note that relation *must* come before location
             for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
-                self.loadmodules_and_numbering(serializedsign, moduletype, makedeepcopy=makedeepcopy)  # TODO
+                self.loadmodules_and_numbering(serializedsign, moduletype)
 
-    def loadmodules_and_numbering(self, serializedsign, moduletype, makedeepcopy=False):
-
-        # movement, relation, and location are all partially deep-copied already because of the need to serialize their underlying models
-        # however, we will still need to assign new unique IDs to the copies in order to fully deep-copy these modules
+    def loadmodules_and_numbering(self, serializedsign, moduletype):
         if moduletype == ModuleTypes.MOVEMENT:
-            self.unserializemovementmodules(serializedsign['mov modules'])
-            if makedeepcopy:
-                self.movementmodulenumbers = deepcopy(serializedsign['mov module numbers']) \
-                    if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            else:
-                self.movementmodulenumbers = serializedsign['mov module numbers'] \
-                    if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            self.movementmodules = unserializemovementmodules(serializedsign['mov modules'])
+            self.movementmodulenumbers = serializedsign['mov module numbers'] \
+                if 'mov module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.RELATION:
             # backward compatibility
-            self.unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'])
-            if makedeepcopy:
-                self.relationmodulenumbers = deepcopy(serializedsign['rel module numbers']) \
-                    if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            else:
-                self.relationmodulenumbers = serializedsign['rel module numbers'] \
-                    if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+            self.relationmodules = unserializerelationmodules(serializedsign['rel modules' if 'rel modules' in serializedsign.keys() else 'con modules'])
+            self.relationmodulenumbers = serializedsign['rel module numbers'] \
+                if 'rel module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.LOCATION:
-            self.unserializelocationmodules(serializedsign['loc modules'])
-            if makedeepcopy:
-                self.locationmodulenumbers = deepcopy(serializedsign['loc module numbers']) \
-                    if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            else:
-                self.locationmodulenumbers = serializedsign['loc module numbers'] \
-                    if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-
-        # if we are doing a deep copy, then orientation, handconfig, and nonmanual will need to have
-        #   both their content deep-copied and their unique IDs redone in order to fully deep-copy
-        if moduletype in [ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
-            if moduletype == ModuleTypes.ORIENTATION:
-                if makedeepcopy:
-                    self.orientationmodules = deepcopy(serializedsign['ori modules'])
-                    self.orientationmodulenumbers = deepcopy(serializedsign['ori module numbers']) \
-                        if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-                else:
-                    self.orientationmodules = serializedsign['ori modules']
-                    self.orientationmodulenumbers = serializedsign['ori module numbers'] \
-                        if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            elif moduletype == ModuleTypes.HANDCONFIG:
-                if makedeepcopy:
-                    self.handconfigmodules = deepcopy(serializedsign['cfg modules'])
-                    self.handconfigmodulenumbers = deepcopy(serializedsign['cfg module numbers']) \
-                        if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-                else:
-                    self.handconfigmodules = serializedsign['cfg modules']
-                    self.handconfigmodulenumbers = serializedsign['cfg module numbers'] \
-                        if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-            elif moduletype == ModuleTypes.NONMANUAL:
-                if makedeepcopy:
-                    self.nonmanualmodules = deepcopy(serializedsign['nonman modules']) if 'nonman modules' in serializedsign else {}
-                    self.nonmanualmodulenumbers = deepcopy(serializedsign['nonman module numbers']) \
-                        if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-                else:
-                    self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
-                    self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
-                        if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
-
-            # for any of orientation, hand config, nonmanual:
-            if makedeepcopy:
-                for uniqueid in self.getmoduledict(moduletype).keys():
-                    self.getmoduledict(moduletype)[uniqueid] = deepcopy(self.getmoduledict(moduletype)[uniqueid])
-
-        # for any type of module
-        if makedeepcopy:
-            # re-ID the modules
-            self.reIDmodules(moduletype)
+            locmodules, relmodules = unserializelocationmodules(serializedsign['loc modules'])
+            self.addmodules(relmodules)
+            self.locationmodules = locmodules
+            self.locationmodulenumbers = serializedsign['loc module numbers'] \
+                if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.ORIENTATION:
+            self.orientationmodules = serializedsign['ori modules']
+            self.orientationmodulenumbers = serializedsign['ori module numbers'] \
+                if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            self.handconfigmodules = serializedsign['cfg modules']
+            self.handconfigmodulenumbers = serializedsign['cfg module numbers'] \
+                if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
+        elif moduletype == ModuleTypes.NONMANUAL:
+            self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
+            self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
+                if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
 
     def reIDmodules(self, moduletype):
+        # dict of float --> float where the keys are the original modules' uids,
+        #   and the values are their pasted deep-copied versions' new uids
+        uid_updates = {}
+
         olduniquedstoremove = [uid for uid in self.getmoduledict(moduletype).keys()]
         for old_uniqueid in olduniquedstoremove:
             # remove old entries from modules and modulenumbers dicts, while saving content
@@ -168,10 +130,23 @@ class Sign:
             modulenum = self.getmodulenumbersdict(moduletype).pop(old_uniqueid)
 
             # set uniqueID and re-add content to dicts with new uniqueID
-            new_uniqueid = datetime.timestamp(datetime.now())
-            module.uniqueid = new_uniqueid
+            module.uniqueid_reset()
+            new_uniqueid = module.uniqueid
             self.getmoduledict(moduletype)[new_uniqueid] = module
             self.getmodulenumbersdict(moduletype)[new_uniqueid] = modulenum
+
+            uid_updates[old_uniqueid] = new_uniqueid
+
+        return uid_updates
+
+    def getmoduleabbreviation(self, module=None, mod_type=None, mod_uid=None):
+        if module is not None:
+            mod_type = module.moduletype
+            mod_uid = module.uniqueid
+        elif mod_type is None or mod_uid is None:
+            return ""
+        modnum = self.getmodulenumbersdict(mod_type)[mod_uid]
+        return ModuleTypes.abbreviations[mod_type] + str(modnum)
 
     def numbermodules(self, moduletype):
         moduledict = self.getmoduledict(moduletype)
@@ -234,26 +209,11 @@ class Sign:
             'cfg module numbers': self.handconfigmodulenumbers,
         }
 
-
     def serializemovementmodules(self):
         serialized = {}
         for k in self.movementmodules.keys():
             serialized[k] = MovementModuleSerializable(self.movementmodules[k])
         return serialized
-
-    def unserializemovementmodules(self, serialized_mvmtmodules):
-        unserialized = {}
-        for k in serialized_mvmtmodules.keys():
-            serialmodule = serialized_mvmtmodules[k]
-            mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
-            articulators = serialmodule.articulators
-            inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
-            timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo
-            phonlocs = serialmodule.phonlocs
-            unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
-            unserialized[k].uniqueid = k
-        self.movementmodules = unserialized
 
     def serializelocationmodules(self):
         serialized = {}
@@ -261,135 +221,11 @@ class Sign:
             serialized[k] = LocationModuleSerializable(self.locationmodules[k])
         return serialized
 
-    def unserializelocationmodules(self, serialized_locnmodules):
-        unserialized = {}
-        for k in serialized_locnmodules.keys():
-            serialmodule = serialized_locnmodules[k]
-            articulators = serialmodule.articulators
-            timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo
-            phonlocs = serialmodule.phonlocs
-            inphase = serialmodule.inphase
-
-            serialtree = serialmodule.locationtree
-
-            # backward compatibility with corpora saved before Relation Module existed (June 2023)
-            # if hasattr(serialtree.locationtype, '_axis') and serialtree.locationtype.axis:
-            if serialtree.locationtype.allfalse() and "Horizontal" in serialtree.checkstates.keys() and "Vertical" in serialtree.checkstates.keys() and "Sagittal" in serialtree.checkstates.keys():
-                # then this likely was saved as an "axis of relation" location module, which is now
-                # deprecated and should be converted to a relation module
-
-                # relation module should have X = H1 and Y = H2
-                relation_x = RelationX(h1=True)
-                relation_y = RelationY(h2=True)
-                # relation module will have directions copied over from the original axis location tree
-                dir_hor = Direction(Direction.HORIZONTAL)
-                dir_ver = Direction(Direction.VERTICAL)
-                dir_sag = Direction(Direction.SAGITTAL)
-                for pathtext in serialtree.checkstates.keys():
-                    if serialtree.checkstates[pathtext] > 0:  # if fully or partially checked
-                        if "Horizontal" == pathtext:
-                            dir_hor.axisselected = True
-                        elif "Vertical" == pathtext:
-                            dir_ver.axisselected = True
-                        elif "Sagittal" == pathtext:
-                            dir_sag.axisselected = True
-                        elif "H1 is to H1 side of H2" in pathtext:
-                            dir_hor.plus = True
-                        elif "H1 is to H2 side of H2" in pathtext:
-                            dir_hor.minus = True
-                        elif "H1 is above H2" in pathtext:
-                            dir_ver.plus = True
-                        elif "H1 is below H2" in pathtext:
-                            dir_ver.minus = True
-                        elif "H1 is in front of H2" in pathtext or "H1 is more distal than H2" in pathtext:
-                            dir_sag.plus = True
-                        elif "H1 is behind H2" in pathtext or "H1 is more proximal than H2" in pathtext:
-                            dir_sag.minus = True
-                directions = [dir_hor, dir_ver, dir_sag]
-                bodyparts_dict = {
-                    HAND: {
-                        1: BodypartInfo(bodyparttype=HAND, bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND)),
-                        2: BodypartInfo(bodyparttype=HAND, bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND))
-                    },
-                    ARM: {
-                        1: BodypartInfo(bodyparttype=ARM, bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM)),
-                        2: BodypartInfo(bodyparttype=ARM, bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM))
-                    },
-                    LEG: {
-                        1: BodypartInfo(bodyparttype=LEG, bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG)),
-                        2: BodypartInfo(bodyparttype=LEG, bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG))
-                    }
-                }
-                # relation module should not have contact or manner or distance specified
-                convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
-                self.addmodule(convertedrelationmodule, ModuleTypes.RELATION)
-
-            else:
-                locntreemodel = LocationTreeModel(serialmodule.locationtree)
-                unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase=inphase)
-                unserialized[k].uniqueid = k
-        self.locationmodules = unserialized
-
     def serializerelationmodules(self):
         serialized = {}
         for k in self.relationmodules.keys():
             serialized[k] = RelationModuleSerializable(self.relationmodules[k])
         return serialized
-
-    def unserializerelationmodules(self, serialized_relmodules):
-        unserialized = {}
-        for k in serialized_relmodules.keys():
-            serialmodule = serialized_relmodules[k]
-            articulators = serialmodule.articulators
-            timingintervals = serialmodule.timingintervals
-            addedinfo = serialmodule.addedinfo
-            phonlocs = serialmodule.phonlocs
-            relationx = serialmodule.relationx
-            relationy = serialmodule.relationy
-            bodyparts_dict = {
-                HAND: {
-                    1: BodypartInfo(
-                        bodyparttype=HAND,
-                        bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][1].bodyparttree),
-                        addedinfo=serialmodule.bodyparts_dict[HAND][1].addedinfo),
-                    2: BodypartInfo(
-                        bodyparttype=HAND,
-                        bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][2].bodyparttree),
-                        addedinfo=serialmodule.bodyparts_dict[HAND][2].addedinfo),
-                },
-                ARM: {
-                    1: BodypartInfo(
-                        bodyparttype=ARM,
-                        bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][1].bodyparttree),
-                        addedinfo=serialmodule.bodyparts_dict[ARM][1].addedinfo),
-                    2: BodypartInfo(
-                        bodyparttype=ARM,
-                        bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][2].bodyparttree),
-                        addedinfo=serialmodule.bodyparts_dict[ARM][2].addedinfo),
-                },
-                LEG: {
-                    1: BodypartInfo(
-                        bodyparttype=LEG,
-                        bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][1].bodyparttree),
-                        addedinfo=serialmodule.bodyparts_dict[LEG][1].addedinfo),
-                    2: BodypartInfo(
-                        bodyparttype=LEG,
-                        bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][2].bodyparttree),
-                        addedinfo=serialmodule.bodyparts_dict[LEG][2].addedinfo),
-                },
-            }
-            contactrel = serialmodule.contactrel
-            xy_crossed = serialmodule.xy_crossed
-            xy_linked = serialmodule.xy_linked
-            directions = serialmodule.directions
-
-            unserialized[k] = RelationModule(relationx, relationy, bodyparts_dict, contactrel,
-                                             xy_crossed, xy_linked, directionslist=directions,
-                                             articulators=articulators, timingintervals=timingintervals,
-                                             phonlocs=phonlocs, addedinfo=addedinfo)
-            unserialized[k].uniqueid = k
-        self.relationmodules = unserialized
 
     # technically this should not be implemented, because Sign objects are mutable
     # but a Corpus is implemented as a set of Sign objects, so we need a hash function
@@ -452,7 +288,8 @@ class Sign:
     def xslotstructure(self, xslotstruct):
         self._xslotstructure = xslotstruct
 
-    def updatemodule(self, existingkey, updated_module, moduletype):
+    def updatemodule(self, existingkey, updated_module):  # , moduletype):
+        moduletype = updated_module.moduletype
         current_module = self.getmoduledict(moduletype)[existingkey]
         ischanged = False
 
@@ -467,7 +304,13 @@ class Sign:
         if ischanged:
             self.lastmodifiednow()
 
-    def addmodule(self, module_to_add, moduletype):
+    # convenience function to avoid having to iterate over several calls to addmodule
+    def addmodules(self, modules_to_add):
+        for mod in modules_to_add:
+            self.addmodule(mod)
+
+    def addmodule(self, module_to_add):  # , moduletype):
+        moduletype = module_to_add.moduletype
         self.getmoduledict(moduletype)[module_to_add.uniqueid] = module_to_add
         self.getmodulenumbersdict(moduletype)[module_to_add.uniqueid] = self.getnextmodulenumber(moduletype)
         self.lastmodifiednow()
@@ -479,8 +322,18 @@ class Sign:
         return largestnum + 1
 
     def removemodule(self, uniqueid, moduletype):
-        self.getmoduledict(moduletype).pop(uniqueid)
-        self.removemodulenumber(uniqueid, moduletype)
+        if moduletype == ModuleTypes.SIGNTYPE:
+            # has no unique id (there's only ever one instance of a signtype module)
+            self.signtype = None
+        else:
+            self.getmoduledict(moduletype).pop(uniqueid)
+            self.removemodulenumber(uniqueid, moduletype)
+            if moduletype in [ModuleTypes.LOCATION, ModuleTypes.MOVEMENT]:
+                # update any Relation modules that contain references to this anchor module
+                relationslist = list(self.relationmodules.values())
+                for relmod in relationslist:
+                    if relmod.relationy.existingmodule and uniqueid in relmod.relationy.linkedmoduleids:
+                        relmod.relationy.linkedmoduleids.remove(uniqueid)
         self.lastmodifiednow()
 
     def removemodulenumber(self, uniqueid, moduletype):
@@ -502,6 +355,152 @@ class Sign:
 
     def gettimedmodules(self):
         return [self.movementmodules, self.locationmodules, self.relationmodules, self.orientationmodules, self.handconfigmodules]
+
+
+def unserializemovementmodules(serialized_mvmtmodules):
+    unserialized = {}
+    for k in serialized_mvmtmodules.keys():
+        serialmodule = serialized_mvmtmodules[k]
+        mvmttreemodel = MovementTreeModel(serialmodule.movementtree)
+        articulators = serialmodule.articulators
+        inphase = serialmodule.inphase if (hasattr(serialmodule, 'inphase') and serialmodule.inphase is not None) else 0
+        timingintervals = serialmodule.timingintervals
+        addedinfo = serialmodule.addedinfo
+        phonlocs = serialmodule.phonlocs
+        unserialized[k] = MovementModule(mvmttreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase)
+        unserialized[k].uniqueid = k
+    return unserialized
+
+
+def unserializelocationmodules(serialized_locnmodules):
+    unserialized = {}
+    convertedrelationmodules = []
+    for k in serialized_locnmodules.keys():
+        serialmodule = serialized_locnmodules[k]
+        articulators = serialmodule.articulators
+        timingintervals = serialmodule.timingintervals
+        addedinfo = serialmodule.addedinfo
+        phonlocs = serialmodule.phonlocs
+        inphase = serialmodule.inphase
+
+        serialtree = serialmodule.locationtree
+
+        # backward compatibility with corpora saved before Relation Module existed (June 2023)
+        # if hasattr(serialtree.locationtype, '_axis') and serialtree.locationtype.axis:
+        if serialtree.locationtype.allfalse() and "Horizontal" in serialtree.checkstates.keys() and "Vertical" in serialtree.checkstates.keys() and "Sagittal" in serialtree.checkstates.keys():
+            print("converting relation")
+            # then this likely was saved as an "axis of relation" location module, which is now
+            # deprecated and should be converted to a relation module
+
+            # relation module should have X = H1 and Y = H2
+            relation_x = RelationX(h1=True)
+            relation_y = RelationY(h2=True)
+            # relation module will have directions copied over from the original axis location tree
+            dir_hor = Direction(Direction.HORIZONTAL)
+            dir_ver = Direction(Direction.VERTICAL)
+            dir_sag = Direction(Direction.SAGITTAL)
+            for pathtext in serialtree.checkstates.keys():
+                if serialtree.checkstates[pathtext] > 0:  # if fully or partially checked
+                    if "Horizontal" == pathtext:
+                        dir_hor.axisselected = True
+                    elif "Vertical" == pathtext:
+                        dir_ver.axisselected = True
+                    elif "Sagittal" == pathtext:
+                        dir_sag.axisselected = True
+                    elif "H1 is to H1 side of H2" in pathtext:
+                        dir_hor.plus = True
+                    elif "H1 is to H2 side of H2" in pathtext:
+                        dir_hor.minus = True
+                    elif "H1 is above H2" in pathtext:
+                        dir_ver.plus = True
+                    elif "H1 is below H2" in pathtext:
+                        dir_ver.minus = True
+                    elif "H1 is in front of H2" in pathtext or "H1 is more distal than H2" in pathtext:
+                        dir_sag.plus = True
+                    elif "H1 is behind H2" in pathtext or "H1 is more proximal than H2" in pathtext:
+                        dir_sag.minus = True
+            directions = [dir_hor, dir_ver, dir_sag]
+            bodyparts_dict = {
+                HAND: {
+                    1: BodypartInfo(bodyparttype=HAND, bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND)),
+                    2: BodypartInfo(bodyparttype=HAND, bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND))
+                },
+                ARM: {
+                    1: BodypartInfo(bodyparttype=ARM, bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM)),
+                    2: BodypartInfo(bodyparttype=ARM, bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM))
+                },
+                LEG: {
+                    1: BodypartInfo(bodyparttype=LEG, bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG)),
+                    2: BodypartInfo(bodyparttype=LEG, bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG))
+                }
+            }
+            # relation module should not have contact or manner or distance specified
+            convertedrelationmodule = RelationModule(relation_x, relation_y, bodyparts_dict=bodyparts_dict, contactrel=None, xy_crossed=False, xy_linked=False, directionslist=directions, articulators=None, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+            convertedrelationmodules.append(convertedrelationmodule)
+            # self.addmodule(convertedrelationmodule)
+
+        else:
+            locntreemodel = LocationTreeModel(serialmodule.locationtree)
+            unserialized[k] = LocationModule(locntreemodel, articulators, timingintervals, phonlocs, addedinfo, inphase=inphase)
+            unserialized[k].uniqueid = k
+    return unserialized, convertedrelationmodules
+
+
+def unserializerelationmodules(serialized_relmodules):
+    unserialized = {}
+    for k in serialized_relmodules.keys():
+        serialmodule = serialized_relmodules[k]
+        articulators = serialmodule.articulators
+        timingintervals = serialmodule.timingintervals
+        addedinfo = serialmodule.addedinfo
+        phonlocs = serialmodule.phonlocs
+        relationx = serialmodule.relationx
+        # deepcopy for linked modules in relationy is necessary in case this function is being used to
+        #   deep-copy relation modules (and no problem if it's not)
+        relationy = deepcopy(serialmodule.relationy)
+        bodyparts_dict = {
+            HAND: {
+                1: BodypartInfo(
+                    bodyparttype=HAND,
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][1].bodyparttree),
+                    addedinfo=serialmodule.bodyparts_dict[HAND][1].addedinfo),
+                2: BodypartInfo(
+                    bodyparttype=HAND,
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][2].bodyparttree),
+                    addedinfo=serialmodule.bodyparts_dict[HAND][2].addedinfo),
+            },
+            ARM: {
+                1: BodypartInfo(
+                    bodyparttype=ARM,
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][1].bodyparttree),
+                    addedinfo=serialmodule.bodyparts_dict[ARM][1].addedinfo),
+                2: BodypartInfo(
+                    bodyparttype=ARM,
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][2].bodyparttree),
+                    addedinfo=serialmodule.bodyparts_dict[ARM][2].addedinfo),
+            },
+            LEG: {
+                1: BodypartInfo(
+                    bodyparttype=LEG,
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][1].bodyparttree),
+                    addedinfo=serialmodule.bodyparts_dict[LEG][1].addedinfo),
+                2: BodypartInfo(
+                    bodyparttype=LEG,
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][2].bodyparttree),
+                    addedinfo=serialmodule.bodyparts_dict[LEG][2].addedinfo),
+            },
+        }
+        contactrel = serialmodule.contactrel
+        xy_crossed = serialmodule.xy_crossed
+        xy_linked = serialmodule.xy_linked
+        directions = serialmodule.directions
+
+        unserialized[k] = RelationModule(relationx, relationy, bodyparts_dict, contactrel,
+                                         xy_crossed, xy_linked, directionslist=directions,
+                                         articulators=articulators, timingintervals=timingintervals,
+                                         phonlocs=phonlocs, addedinfo=addedinfo)
+        unserialized[k].uniqueid = k
+    return unserialized
 
 
 class Corpus:

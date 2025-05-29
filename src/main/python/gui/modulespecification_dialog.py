@@ -30,8 +30,8 @@ from PyQt5.QtCore import (
     QSize
 )
 
-from gui.xslot_graphics import XslotLinkScene
-from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, LocationModule, MovementModule
+from gui.xslot_graphics import XslotLinkScene, XslotLinkSceneContextMenu, islistoftimingintervals
+from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, LocationModule, MovementModule
 from models.relation_models import ModuleLinkingListModel
 from gui.movementspecification_view import MovementSpecificationPanel
 from gui.locationspecification_view import LocationSpecificationPanel
@@ -41,7 +41,7 @@ from gui.orientationspecification_view import OrientationSpecificationPanel
 from gui.nonmanualspecification_view import NonManualSpecificationPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector, PhonLocSelection
 from gui.link_help import show_help
-from constant import SIGN_TYPE, HAND, ARM, LEG
+from constant import SIGN_TYPE, HAND, ARM, LEG, ModuleTypes
 
 
 class ModuleSelectorDialog(QDialog):
@@ -74,7 +74,7 @@ class ModuleSelectorDialog(QDialog):
 
         if HAND in incl_articulators and self.parent().sign.signtype:
             # set default articulators
-            self.signtype_specslist = { art_setting[0] for art_setting in self.parent().sign.signtype.specslist } 
+            self.signtype_specslist = { art_setting for art_setting in self.parent().sign.signtype.specslist }
             if SIGN_TYPE["ONE_HAND"] in self.signtype_specslist and \
              (SIGN_TYPE["ONE_HAND_NO_MVMT"] not in self.signtype_specslist or self.moduletype != ModuleTypes.MOVEMENT):
                 articulators = (HAND, {1: True, 2: False})
@@ -134,9 +134,7 @@ class ModuleSelectorDialog(QDialog):
             self.articulators_widget.articulatorchanged.connect(self.handle_articulator_changed)
 
         if self.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
-            self.associatedrelations_widget = AssociatedRelationsPanel(parent=self)
-            if self.existingkey is not None:
-                self.associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
+            self.associatedrelations_widget = self.create_associatedrelations_widget()
             self.check_enable_saveaddrelation()
 
             self.associatedrelations_widget.save_anchor.connect(self.handle_save_anchor)
@@ -196,6 +194,12 @@ class ModuleSelectorDialog(QDialog):
                                                   parent=self)
             self.moduleselector_layout.addWidget(self.xslot_widget)
 
+    def create_associatedrelations_widget(self):
+        associatedrelations_widget = AssociatedRelationsPanel(parent=self)
+        if self.existingkey is not None:
+            associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
+        return associatedrelations_widget
+    
     def assign_module_widget(self, moduletype, moduletoload):
         if self.moduletype == ModuleTypes.MOVEMENT:
             self.module_widget = MovementSpecificationPanel(moduletoload=moduletoload, parent=self)
@@ -405,6 +409,7 @@ class ModuleSelectorDialog(QDialog):
             self.validate_and_save(addanother=False, closedialog=True)
 
         elif standard == QDialogButtonBox.RestoreDefaults:  # restore defaults
+            self.phonloc_selection.clear()
             if self.usearticulators:
                 self.articulators_widget.clear()
             self.addedinfobutton.clear()
@@ -555,7 +560,7 @@ class AssociatedRelationsDialog(QDialog):
         else:
             self.relationslist = []
 
-        self.relations_listmodel.setmoduleslist(self.relationslist, self.relationmodulenumsdict, ModuleTypes.RELATION)
+        self.relations_listmodel.setmoduleslist(self.relationslist, self.relationmodulenumsdict)
 
 
 class AssociatedRelationsPanel(QFrame):
@@ -715,6 +720,7 @@ class XslotLinkingPanel(QFrame):
 
         self.xslotlinkscene = XslotLinkScene(timingintervals=self.timingintervals, parentwidget=self)
         self.xslotlinkscene.selection_changed.connect(self.selection_changed.emit)
+        self.xslotlinkscene.scene_Rclicked.connect(self.handle_xslotlinkscene_Rclick)
         self.xslotlinkview = QGraphicsView(self.xslotlinkscene)
         self.xslotlinkview.setFixedHeight(self.xslotlinkscene.scene_height + 50)
         # self.xslotlinkview.setFixedSize(self.xslotlinkscene.scene_width+100, self.xslotlinkscene.scene_height+50)
@@ -736,6 +742,58 @@ class XslotLinkingPanel(QFrame):
     def clear(self):
         self.xslotlinkscene = XslotLinkScene(parentwidget=self, timingintervals=[])
         self.xslotlinkview.setScene(self.xslotlinkscene)
+
+    def handle_xslotlinkscene_Rclick(self, mouseevent):
+        menu = XslotLinkSceneContextMenu(clipboardlist=self.mainwindow.clipboard)
+        menu.action_selected.connect(self.handle_timingaction_selected)
+        menu.exec_(mouseevent.screenPos())
+
+    def handle_timingaction_selected(self, action_str):
+        if action_str == "copy timing":
+            self.mainwindow.copypaste_referencesign = self.mainwindow.current_sign
+            self.mainwindow.clipboard = self.timingintervals
+
+        elif action_str == "paste timing":
+            if not islistoftimingintervals(self.mainwindow.clipboard):
+                # at least some of clipboard contents is not timing info; don't attempt to paste
+                return
+
+            # check x-slot structure of source vs destination signs
+            xslots_src = self.mainwindow.copypaste_referencesign.xslotstructure
+            xslots_dest = self.mainwindow.current_sign.xslotstructure
+            differences = []
+            if xslots_src.number != xslots_dest.number:
+                differences.append("number of whole x-slots")
+            if xslots_src.additionalfraction != xslots_dest.additionalfraction:
+                differences.append("additional fraction of an x-slot")
+            if set(xslots_src.fractionalpoints) != set(xslots_dest.fractionalpoints):
+                differences.append("fractional divisions within x-slots")
+            if differences:
+                # if x-slot structure doesn't match between source module and destination module(s), don't let user paste
+                diff_str = "\n".join([" - " + diff for diff in differences])
+                QMessageBox.critical(self, "X-slot mismatch",
+                                     "Cannot paste timing: the x-slot structures of the source and destination signs do not match."
+                                     + "\nThey differ with respect to:"
+                                     + "\n" + diff_str)
+                return
+
+            # everything looks ok so far; get ready to paste timing into this module
+            # check for overwriting timing
+            thismoduletiming = self.gettimingintervals()
+            timingmismatches = [ti for ti in thismoduletiming if ti not in self.mainwindow.clipboard] \
+                               + [ti for ti in self.mainwindow.clipboard if ti not in thismoduletiming]
+            if thismoduletiming and timingmismatches:
+                response = QMessageBox.question(self, "Overwrite timing",
+                                                "You are about to overwrite the existing timing for this module. "
+                                                + "Do you still want to paste?",
+                                                QMessageBox.Ok | QMessageBox.Cancel)
+                if response == QMessageBox.Cancel:
+                    # don't paste timing into this current module
+                    return
+                else:
+                    # go ahead and paste
+                    self.clear()
+                    self.settimingintervals(self.mainwindow.clipboard) 
 
 
 class ArticulatorSelectionPanel(QFrame):

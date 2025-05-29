@@ -17,18 +17,22 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QLabel,
     QComboBox,
+    QCompleter,
     QListView,
     QStyledItemDelegate,
     QSpacerItem,
     QGridLayout,
-    QTextEdit
+    QTextEdit,
+    QButtonGroup,
+    QRadioButton
 )
 
 from PyQt5.QtGui import (
     QStandardItem,
 )
 
-from lexicon.module_classes import AddedInfo, treepathdelimiter, PhonLocations, userdefinedroles as udr
+from lexicon.module_classes import AddedInfo, PhonLocations, TimingInterval, Signtype, ParameterModule
+from constant import treepathdelimiter, userdefinedroles as udr, ModuleTypes
 
 
 class ModuleSpecificationPanel(QFrame):
@@ -236,36 +240,6 @@ class AddedInfoContextMenu(QMenu):
         self.info_added.emit(self.addedinfo)
 
 
-# menu associated with a sign entry/entries in the corpus view, offering copy/paste/edit/delete functions
-class SignEntryContextMenu(QMenu):
-    action_selected = pyqtSignal(str)  # "copy", "edit" (sign-level info), or "delete"
-
-    # individual menu items are enabled/disabled based on whether any signs are currently selected
-    #   and/or whether there are any signs on the clipboard
-    def __init__(self, has_selectedsigns, has_clipboardsigns):
-        super().__init__()
-
-        self.copy_action = QAction("Copy Sign(s)")
-        self.copy_action.setEnabled(has_selectedsigns)
-        self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
-        self.addAction(self.copy_action)
-
-        self.paste_action = QAction("Paste Sign(s)")
-        self.paste_action.setEnabled(has_clipboardsigns)
-        self.paste_action.triggered.connect(lambda checked: self.action_selected.emit("paste"))
-        self.addAction(self.paste_action)
-
-        self.edit_action = QAction("Edit Sign-level Info(s)")
-        self.edit_action.setEnabled(has_selectedsigns)
-        self.edit_action.triggered.connect(lambda checked: self.action_selected.emit("edit"))
-        self.addAction(self.edit_action)
-
-        self.delete_action = QAction("Delete Sign(s)")
-        self.delete_action.setEnabled(has_selectedsigns)
-        self.delete_action.triggered.connect(lambda checked: self.action_selected.emit("delete"))
-        self.addAction(self.delete_action)
-
-
 class AbstractLocationAction(QWidgetAction):
     textChanged = pyqtSignal(str)
 
@@ -436,35 +410,48 @@ class StatusDisplay(QTextEdit):
         separator = "" if curtext == "" else ("\n" if joinwithnewline else (" " if joinwithspace else ""))
         self.setPlainText(curtext + separator + texttoappend)
 
+
 class TreeSearchComboBox(QComboBox):
     item_selected = pyqtSignal(QStandardItem)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.refresh_userinput()
 
-    def keyPressEvent(self, event):
-        key = event.key()
+    def refresh_userinput(self):
+        # It seems silly to do this every time an item is selected, but it's the only way I could
+        # figure out getting the user-entered text to clear after selecting a list item
+        self.setEditable(False)
+        self.setEditable(True)
+        self.setInsertPolicy(QComboBox.NoInsert)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.completer().setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer().setFilterMode(Qt.MatchContains)
+        self.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.textActivated.connect(self.on_textactivated)
+        # this does need to happen both here AND in the class where the combobox is initially created
+        self.setCurrentIndex(-1)
 
-        if key == Qt.Key_Right:
-
-            if self.currentText():
-                itemstoselect = gettreeitemsinpath(self.parent().treemodel,
-                                                   self.currentText(),
-                                                   delim=treepathdelimiter)
-                if itemstoselect:
+    def on_textactivated(self, activatedtext):
+        if activatedtext:
+            itemstoselect = gettreeitemsinpath(self.parent().treemodel,
+                                               activatedtext,
+                                               treepathdelimiter)
+            if itemstoselect:
+                targetitem = itemstoselect[-1]
+                if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
+                    # as long as the target is selectable, ensure that it's fully checked
+                    # and that its ancestors are (at least) partially checked
+                    targetitem.setCheckState(Qt.Checked)
                     for item in itemstoselect:
                         if item.checkState() == Qt.Unchecked:
                             item.setCheckState(Qt.PartiallyChecked)
-                    targetitem = itemstoselect[-1]
-                    if not targetitem.data(Qt.UserRole + udr.nocontrolrole):
-                        targetitem.setCheckState(Qt.Checked)
-                        self.item_selected.emit(targetitem)
-                        self.setCurrentIndex(-1)
-
-        super().keyPressEvent(event)
+                    self.item_selected.emit(targetitem)
+                # either way, clear the combobox text
+                self.refresh_userinput()
 
 
-def gettreeitemsinpath(treemodel, pathstring, delim="/"):
+def gettreeitemsinpath(treemodel, pathstring, delim):
     pathlist = pathstring.split(delim)
     pathitemslists = []
     for level in pathlist:
@@ -520,6 +507,15 @@ class PhonLocSelection(QWidget):
         )
         return phonlocs
 
+    def clear(self):
+        if (hasattr(self, "majorphonloc_cb") and hasattr(self, "minorphonloc_cb")):
+            self.majorphonloc_cb.setChecked(False)
+            self.minorphonloc_cb.setChecked(False)
+            self.majorphonloc_cb.setEnabled(False)
+            self.minorphonloc_cb.setEnabled(False)
+        self.phonological_cb.setChecked(False)
+        self.phonetic_cb.setChecked(False)
+
 
     def __init__(self, isLocationModule=False): 
         super().__init__() 
@@ -560,3 +556,47 @@ class PhonLocSelection(QWidget):
         self.phonological_cb.setChecked(False)
         self.phonetic_cb.setChecked(False)
 
+
+# this radio button class tracks not only its current state
+#   (and, as usual, mutual exclusivity with buttons in the same group)
+#   but also, when a group button is toggled, updates the group with its identity
+#   for the purposes of being able to un-check when appropriate
+class DeselectableRadioButton(QRadioButton):
+
+    def __init__(self, text, **kwargs):
+        super().__init__(text, **kwargs)
+
+    def setChecked(self, checked):
+        # can deal with programmatically unselected btns as well
+        if self.group() is not None:
+            if checked:
+                self.group().previously_checked = self
+            else:
+                self.group().previously_checked = None
+        super().setChecked(checked)
+
+
+# this buttongroup allows for unchecking buttons even when the group is set to mutually exclusive
+class DeselectableRadioButtonGroup(QButtonGroup):
+
+    def __init__(self, buttonslist=None, **kwargs):
+        # buttonslist: list of QRadioButton to be included as a group
+        super().__init__(**kwargs)
+        if buttonslist is not None:
+            [self.addButton(button) for button in buttonslist]
+
+        # in order to compare new checked button with previously-checked button
+        self.previously_checked = None
+
+        self.buttonClicked.connect(self.handle_button_clicked)
+
+    def handle_button_clicked(self, btn):
+        if self.previously_checked == btn:
+            # user clicked an already-selected button; we'll uncheck it
+            self.setExclusive(False)
+            btn.setChecked(False)
+            self.setExclusive(True)
+            self.previously_checked = None
+        else:
+            # user clicked a previously-unselected button
+            self.previously_checked = btn

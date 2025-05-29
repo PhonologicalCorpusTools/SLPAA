@@ -5,8 +5,6 @@ from PyQt5.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
-    QLayout,
-    QSizePolicy,
     QFormLayout,
     QTabWidget,
     QSpinBox,
@@ -19,17 +17,14 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QPushButton,
     QComboBox,
-    QSpacerItem
 )
 
 from PyQt5.QtCore import pyqtSignal, QSettings
 from gui.link_help import show_help
-from constant import FRACTION_CHAR, HAND, ARM, LEG, DEFAULT_LOC_2H, DEFAULT_LOC_1H
+from constant import FRACTION_CHAR, DEFAULT_LOC_2H, DEFAULT_LOC_1H
 from fractions import Fraction
-from lexicon.module_classes import treepathdelimiter, LocationModule
 from gui.locationspecification_view import LocationOptionsSelectionPanel, LocationType
 from models.location_models import LocationTreeModel
-from serialization_classes import LocationTableSerializable
 from gui.helper_widget import OptionSwitch
 
 
