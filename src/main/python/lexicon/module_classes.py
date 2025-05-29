@@ -1187,7 +1187,13 @@ class Signtype:
         #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        # backward compatibility for pre-20250529 sign type (with only one articulator and therefore only one AddedInfo)
+        self._addedinfo = {HAND: AddedInfo(), ARM: AddedInfo(), LEG: AddedInfo()}
+        if addedinfo is not None:
+            if isinstance(addedinfo, AddedInfo):
+                # if there's just one instead of a dictionary of 3, it was meant for Hand
+                addedinfo = {HAND: addedinfo}
+            self._addedinfo.update(addedinfo)
         self._moduletype = ModuleTypes.SIGNTYPE
 
     # == check compares all content (equality does not require references to be to the same spot in memory)
@@ -1208,14 +1214,24 @@ class Signtype:
 
     @property
     def addedinfo(self):
+        # backward compatibility for pre-20250529 sign type (with only one articulator and therefore only one AddedInfo)
         if not hasattr(self, '_addedinfo'):
-            # for backward compatibility
-            self._addedinfo = AddedInfo()
+            self._addedinfo = {HAND: AddedInfo(), ARM: AddedInfo(), LEG: AddedInfo()}
+        elif isinstance(self._addedinfo, AddedInfo):
+            # if there's just one instead of a dictionary of 3, it was meant for Hand
+            self._addedinfo = {HAND: self._addedinfo, ARM: AddedInfo(), LEG: AddedInfo()}
         return self._addedinfo
 
     @addedinfo.setter
     def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        # backward compatibility for pre-20250529 sign type (with only one articulator and therefore only one AddedInfo)
+        if addedinfo is None or isinstance(self._addedinfo, AddedInfo):
+            self._addedinfo = {HAND: AddedInfo(), ARM: AddedInfo(), LEG: AddedInfo()}
+        if addedinfo is not None:
+            if isinstance(addedinfo, AddedInfo):
+                # if there's just one instead of a dictionary of 3, it was meant for Hand
+                addedinfo = {HAND: addedinfo}
+            self._addedinfo.update(addedinfo)
 
     @property
     def specslist(self):
