@@ -6,14 +6,19 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
-    QTabWidget, QScrollArea, QRadioButton, QLineEdit, QProxyStyle, QWidget, QLabel, QDoubleSpinBox
+    QScrollArea,
+    QRadioButton,
+    QLineEdit,
+    QWidget,
+    QLabel,
+    QDoubleSpinBox
 )
 from PyQt5.QtCore import (Qt, pyqtSignal,)
 
 from lexicon.module_classes import NonManualModule
 from models.nonmanual_models import NonManualModel, nonmanual_root
-from gui.modulespecification_widgets import DeselectableRadioButtonGroup, DeselectableRadioButton
-from gui.modulespecification_widgets import ModuleSpecificationPanel
+from gui.modulespecification_widgets import DeselectableRadioButtonGroup, DeselectableRadioButton, \
+    ModuleSpecificationPanel, BoldableTabWidget
 
 
 class MvmtCharRadioButton(DeselectableRadioButton):
@@ -115,86 +120,11 @@ class RepetitionLayout(QVBoxLayout):
         return
 
 
-class BoldTabBarStyle(QProxyStyle):
-    def __init__(self, bold_tab_index=None):
-        super().__init__()
-        if bold_tab_index is not None:
-            self.bold_tab_index = bold_tab_index
-        else:
-            self.bold_tab_index = []
-
-    def drawControl(self, element, option, painter, widget=None):
-        if element == self.CE_TabBarTabLabel:
-            painter.save()
-
-            # Check if the current tab index is the bold one
-            font = painter.font()
-            if widget.tabAt(option.rect.center()) in self.bold_tab_index:
-                font.setBold(True)
-            else:
-                font.setBold(False)
-            painter.setFont(font)
-
-            super().drawControl(element, option, painter, widget)
-            painter.restore()  # call painter.restore() as painter.save() called in the beginning of the conditional
-
-        else:
-            # for others, just pass to super()
-            super().drawControl(element, option, painter, widget)
-
-
-    def sizeFromContents(self, contents_type, option, size, widget=None):
-        if contents_type == self.CT_TabBarTab:
-            size = super().sizeFromContents(contents_type, option, size, widget)
-            size.setWidth(int(size.width() * 1.15))  # Increase the rectangle width by 20%
-            return size
-        return super().sizeFromContents(contents_type, option, size, widget)
-
-    def setBoldTabIndex(self, index, need_bold=True):
-        if isinstance(index, int):
-            if need_bold:
-                # need bold tab label, so indicate this by adding index to the list
-                self.bold_tab_index.append(index)
-                self.bold_tab_index = list(set(self.bold_tab_index))
-                return
-            try:
-                self.bold_tab_index.remove(index)
-            except ValueError:  # index at hand not in bold_tab_index list but ok
-                pass
-
-        elif isinstance(index, list):
-            self.bold_tab_index.extend(index)
-
-
 class TabContentWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignTop)
-
-
-class NMTabWidget(QTabWidget):
-    def __init__(self):
-        super().__init__()
-        self.tab_bar = self.tabBar()
-        self.tab_bar.setStyle(BoldTabBarStyle())
-        self.currentChanged.connect(self.decide_bold_label)
-
-    def check_components(self, widget):
-        all_cb = widget.findChildren(QCheckBox)
-        all_rb = widget.findChildren(QRadioButton)
-        input_slots = all_cb + all_rb
-        return any(slot.isChecked() for slot in input_slots)
-
-    def decide_bold_label(self, index):
-        # called when tab selection updates.
-        # it decides which tabs need the label bolded
-        idx = 0
-        while self.widget(idx) is not None:
-            need_bold = self.check_components(self.widget(idx))
-            self.tab_bar.style().setBoldTabIndex(idx, need_bold)
-            idx += 1
-        self.setCurrentIndex(index)
 
 
 class NonManualSpecificationPanel(ModuleSpecificationPanel):
@@ -217,7 +147,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         self.nonman_specifications = {}
 
         # different major non manual tabs
-        self.tab_widget = NMTabWidget()                   # Create a tab widget
+        self.tab_widget = BoldableTabWidget()                   # Create a tab widget
         self.create_major_tabs(nonmanual_root.children)   # Create and add tabs to the tab widget
         self.tab_widget.setMinimumHeight(1200)
         self.setLayout(main_layout)
@@ -434,7 +364,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         [tab_widget.layout.addLayout(row) for row in rows if row is not None]
 
         if nonman.children:
-            subtabs_container = NMTabWidget()
+            subtabs_container = BoldableTabWidget()
             for sub_category in nonman.children:
                 sub_tab = self.gen_tab_widget(sub_category, parent=nonman)
                 subtabs_container.addTab(sub_tab, sub_category.label)
