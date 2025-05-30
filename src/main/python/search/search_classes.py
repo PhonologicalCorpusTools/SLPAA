@@ -1237,7 +1237,7 @@ class SearchTargetItem(QStandardItem):
         self._associatedrelnmodule = m
 
     def displaystring(self):
-        if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+        if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
             return(self.module.getabbreviation())
         elif self.targettype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
             moduletype = ModuleTypes.MOVEMENT if self.targettype == TargetTypes.MOV_REL else ModuleTypes.LOCATION

@@ -106,11 +106,13 @@ class SearchModel(QStandardItemModel):
 
         include_cb = QStandardItem()
         include_cb.setCheckable(True)
-        include_cb.setCheckState(t.include)
+        include_cb.setUserTristate(False)
+        include_cb.setCheckState(Qt.Checked if t.include else Qt.Unchecked)
 
         negative_cb = QStandardItem()
         negative_cb.setCheckable(True)
-        negative_cb.setCheckState(t.negative)
+        negative_cb.setUserTristate(False)
+        negative_cb.setCheckState(Qt.Checked if t.negative else Qt.Unchecked)
 
         xslottype = QStandardItem()
         xslottype.setData(repr(t.xslottype), Qt.DisplayRole)
@@ -184,19 +186,23 @@ class SearchModel(QStandardItemModel):
     
     def sign_matches_target(self, sign, target_dict=None):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
-        if TargetTypes.XSLOT in target_dict:
+        if TargetTypes.XSLOT in target_dict: # one module per sign
             if not self.sign_matches_xslot(target_dict[TargetTypes.XSLOT], sign):
                 return False
             
-        if TargetTypes.SIGNLEVELINFO in target_dict:
+        if TargetTypes.SIGNLEVELINFO in target_dict: # one module per sign
             if not self.sign_matches_SLI(target_dict[TargetTypes.SIGNLEVELINFO], sign):
                 return False
 
-        if TargetTypes.SIGNTYPEINFO in target_dict:
+        if TargetTypes.SIGNTYPEINFO in target_dict: # one module per sign
             if not self.sign_matches_ST(target_dict[TargetTypes.SIGNTYPEINFO], sign):
                 return False
+            
+        # TODO: I added a quick fix for the problem where "match all" doesn't work for two targets with the same target / module type.
+        # But there should be a better way to do this
+        # E.g. save a module object containing the info from all targets of one type, and pass that to the "filter modules" functions (in mvmt, locn, and reln)
         
-        if ModuleTypes.HANDCONFIG in target_dict:
+        if ModuleTypes.HANDCONFIG in target_dict: 
             hc_rows, ef_rows = [], []
             for r in target_dict[ModuleTypes.HANDCONFIG]:
                 module_type = self.target_module(r).moduletype
@@ -212,11 +218,12 @@ class SearchModel(QStandardItemModel):
                 return False
         for ttype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             if ttype in target_dict:                
-                matching_modules = [m for m in sign.getmoduledict(ttype).values()]
-                if len(matching_modules) == 0:
+                modules_to_check = [m for m in sign.getmoduledict(ttype).values()]
+                if len(modules_to_check) == 0:
                     return False
                 target_rows = target_dict[ttype]
                 for row in target_rows:
+                    matching_modules = modules_to_check
                     terminate_early = True if row == target_rows[-1] else False
                     # TODO match xslottype
                     target_module = self.target_module(row)
@@ -232,10 +239,11 @@ class SearchModel(QStandardItemModel):
         for ttype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
             if ttype in target_dict:
                 anchortype = ModuleTypes.LOCATION if ttype == TargetTypes.LOC_REL else ModuleTypes.MOVEMENT
-                matching_relation_modules = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
-                if not matching_relation_modules: return False
+                modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.RELATION).values() if m.relationy.linkedmoduletype == anchortype]
+                if not modules_to_check: return False
                 target_rows = target_dict[ttype]
                 for row in target_rows:  
+                    matching_relation_modules = modules_to_check
                     terminate_early = True if row == target_rows[-1] else False
                     target_reln_module = self.target_associatedrelnmodule(row)
                     matching_relation_modules = filter_modules_by_target_reln(matching_relation_modules, target_reln_module, matchtype=self.matchtype, terminate_early=terminate_early)
@@ -388,9 +396,9 @@ class SearchModel(QStandardItemModel):
                             # logging.warning(sign_shape)
                             if target_predefined_shape == sign_shape:
                                 matches_this_row.append(m)   
-            if len(matches_this_row) == 0:
+            if not matches_this_row:
                 return False
-            matching_modules = matches_this_row
+            # matching_modules = matches_this_row
 
         return True
         
@@ -428,7 +436,7 @@ class SearchModel(QStandardItemModel):
             
             if len(matches_this_row) == 0:
                 return False
-            matching_modules = matches_this_row
+            # matching_modules = matches_this_row
 
 
         return True
