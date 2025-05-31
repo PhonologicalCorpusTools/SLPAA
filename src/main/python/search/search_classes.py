@@ -1237,7 +1237,7 @@ class SearchTargetItem(QStandardItem):
         self._associatedrelnmodule = m
 
     def displaystring(self):
-        if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG]:
+        if self.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, TargetTypes.SIGNTYPEINFO]:
             return(self.module.getabbreviation())
         elif self.targettype in [TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
             moduletype = ModuleTypes.MOVEMENT if self.targettype == TargetTypes.MOV_REL else ModuleTypes.LOCATION
@@ -1246,4 +1246,4 @@ class SearchTargetItem(QStandardItem):
             return relationabbrev.replace(f"linked {moduletype} module", moduleabbrev)
             
         else:
-            return self.searchvaluesitem.displayval
+            return f"non-implemented {self.targettype}"

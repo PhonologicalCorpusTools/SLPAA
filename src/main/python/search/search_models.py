@@ -348,21 +348,16 @@ class SearchModel(QStandardItemModel):
                     return False
         return True
     
+    
     def sign_matches_ST(self, rows, sign):
-        if sign.signtype is None:
-            sign_st = []
-        else:
-            sign_st = signtypedisplaytext(sign.signtype.specslist)
-        specs = set("")
+        # TODO: handle Notes (AdditionalInfo)
+        specs_dict = sign.signtype.convertspecstodict()
         for row in rows:
-            specs.update(signtypedisplaytext(self.target_module(row).specslist))
-            # TODO what if a sign type target is present but nothing is specified? i.e. len(specs) = 0
-            if len(sign_st) == 0 and len(specs) > 0:
+            target_specs_dict = self.target_module(row).convertspecstodict()
+            if not (self.is_negative(row) ^ signtype_matches_target(specs_dict, target_specs_dict)):
                 return False
-            
-        if not all (s in sign_st for s in specs):
-            return False
         return True
+
 
     def sign_matches_handconfig(self, rows, sign):
         

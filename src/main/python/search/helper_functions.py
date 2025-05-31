@@ -110,50 +110,33 @@ def loctypedisplaytext(loctype):
         todisplay = txt
     return todisplay
 
+    
+def signtype_matches_target(specs_dict, target):
+    """Used in search function to check if this signtype's specslist matches (i.e. is equal to or more restrictive than) target.
+    Doesn't check Notes.
 
-def signtypedisplaytext(specslist):
-    disp = []
-    if 'Unspecified' in specslist:
-        disp.append('Unspecified')
-    if '1h' in specslist:
-        oneh = ['1h']
-        for s in ['1h.moves', '1h.no mvmt']:
-            if s in specslist:
-                oneh.append(s)
-        if len(oneh) > 0:
-            disp.extend(oneh)
-        else:
-            disp.append('1h')
+    Args:
+        specs_dict (dict): Output of SignType.convertspecstodict(). For example, {'2h': {'different HCs': {}}, '1a': {}, 'Unspecified_legs': {}}
+        target (dict): Target to match. Output of SignType.convertspecstodict().
 
-    if '2h' in specslist:
-        twoh = ['2h']
-        for s in ['same HCs', 'different HCs', 'maintain contact', 'contact not maintained', 'bilaterally symmetric', 'not bilaterally symmetric', 'neither moves']:
-            if ('2h.' + s) in specslist:
-                twoh.append('2h.' + s)
-        if '2h.only 1 moves' in specslist:
-            only1moves = []
-            for s in ['H1 moves', 'H2 moves']:
-                if ('2h.only 1 moves.' + s) in specslist:
-                    only1moves.append('2h.only ' + s)
-            if len(only1moves) > 0:
-                twoh.extend(only1moves)
-            else:
-                twoh.append('2h.one hand moves')
-        if '2h.both move' in specslist:
-            bothmove = []
-            for s in ['move differently', 'move similarly']:
-                if ('2h.both move.' + s) in specslist:
-                    bothmove.append('2h.hands ' + s)
-            if len(bothmove) > 0:
-                twoh.extend(bothmove)
-            else:
-                twoh.append('2h.both move')     
-        if (len(twoh) > 0):
-            disp.extend(twoh)
-        else:
-            disp.append('2h')
+    Returns:
+        bool.
+    """
+    for attr in target: # e.g. 'Unspecified_legs', '1h', '2a'
+        if 'Unspecified' in attr: # has the form 'Unspecified_[hands/arms/legs]'
+            art = attr[attr.index('_') + 1] # grabs 'h', 'a', or 'l'
+            if attr in specs_dict:
+                return True
+            return not any(art in k for k in specs_dict)
+        elif not attr in specs_dict: 
+            return False 
+        elif target[attr]: # first-level specification matches
+            for _ in target[attr]:
+                if not signtype_matches_target(specs_dict[attr], target[attr]):
+                    return False
+            return True
+    return True
 
-    return disp
 
 # TODO
 def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslotstructure, matchtype):
