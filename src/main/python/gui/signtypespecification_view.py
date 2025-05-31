@@ -86,7 +86,7 @@ class SigntypeSpecificationPanel(QFrame):
         btns['type_1move_rb'] = SigntypeRadioButton("The {} moves".format(art_lower), parentbtn=btns['type_1_rb'])
         btns['type_1move_rb'].setProperty('abbreviation.path', SIGN_TYPE['ONE_{}_MVMT'.format(art_upper)])
         btns['type_1nomove_rb'] = SigntypeRadioButton("The {} doesn't move".format(art_lower),
-                                                         parentbtn=btns['type_1move_rb'])
+                                                         parentbtn=btns['type_1_rb'])
         btns['type_1nomove_rb'].setProperty('abbreviation.path', SIGN_TYPE['ONE_{}_NO_MVMT'.format(art_upper)])
         type_1_group.addButton(btns['type_1move_rb'])
         type_1_group.addButton(btns['type_1nomove_rb'])
