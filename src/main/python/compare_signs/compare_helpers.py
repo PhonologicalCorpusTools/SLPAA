@@ -228,12 +228,12 @@ def get_detailed_selections_orientation(ori) -> list:
     def parse_dir(direc) -> str:
         # direc: Direction instance
         axis = direc.axis
-        r = [axis]
+        r = [axis.capitalize()]
 
         axis_labels = {   # mapping between plus minus and their meaning by each axis
-            Direction.HORIZONTAL: ('ipsi', 'contra'),
-            Direction.VERTICAL:   ('above', 'below'),
-            Direction.SAGITTAL:   ('proximal', 'distal'),
+            Direction.HORIZONTAL: ('Ipsilateral', 'Contralateral'),
+            Direction.VERTICAL:   ('Up', 'Down'),
+            Direction.SAGITTAL:   ('Proximal', 'Distal'),
         }
 
         plus_label, minus_label = axis_labels[axis]
