@@ -2,11 +2,10 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, 
     QLabel, QHBoxLayout, QPushButton, QWidget, QFrame
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
-from random import randint  # for stamping tree widget item
 import re
 
 from compare_signs.compare_models import CompareModel
-from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons
+from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons, next_pair_id
 
 
 # This class represents one row consisting of three counters
@@ -342,7 +341,7 @@ class CompareSignsDialog(QDialog):
                 value1 = data1.get(data1_label, None)  # data1_keys_original is a set guaranteed to contain only one str element
                 value2 = data2.get(data2_label, None)
 
-                stamp_id = randint(1, 1000)
+                stamp_id = next_pair_id()
                 item1 = CompareTreeWidgetItem(labels=[data1_label],
                                               palette=self.palette,
                                               pair_id=stamp_id)
@@ -426,7 +425,7 @@ class CompareSignsDialog(QDialog):
                                 item_labels.append(label)
                                 trunc_counts.append(trunc_n)
 
-                            stamp_id = randint(1, 500)
+                            stamp_id = next_pair_id()
                             item1 = CompareTreeWidgetItem(
                                 labels=[item_labels[0]],
                                 palette=self.palette,
@@ -462,7 +461,7 @@ class CompareSignsDialog(QDialog):
                         continue
 
                     # Create tree items for both trees
-                    stamp_id = randint(1, 500)
+                    stamp_id = next_pair_id()
                     item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, key)],
                                                   palette=self.palette,
                                                   pair_id=stamp_id)
@@ -566,7 +565,7 @@ class CompareSignsDialog(QDialog):
 
         # Add each top-level key (e.g., movement, location, relation, ...) as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
-            stamp_id = randint(1, 500)
+            stamp_id = next_pair_id()
             top_item1 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=stamp_id)
             top_item2 = CompareTreeWidgetItem(labels=[key], palette=self.palette, pair_id=stamp_id)
             del stamp_id
@@ -721,7 +720,7 @@ class CompareSignsDialog(QDialog):
         found = None
         for i in range(current.childCount()):
             child = current.child(i)
-            found = recursive_find(child,pair_id)
+            found = recursive_find(child, pair_id)
             if found:
                 break
         return found  # Return None if the item in the path doesn't exist

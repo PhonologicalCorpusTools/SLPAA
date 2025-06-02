@@ -2,10 +2,18 @@
 from collections import defaultdict
 from PyQt5.QtCore import Qt
 import re
-import itertools
+from itertools import count, product
 
 from constant import ARTICULATOR_ABBREVS, userdefinedroles as udr
 from lexicon.module_classes import Direction
+
+_pair_id_counter = count(1)  # for
+
+
+# return a unique int for pair_id (the anchor for comparing two tree widget items)
+def next_pair_id() -> int:
+    return next(_pair_id_counter)
+
 
 def summarize_path_comparison(ld):
     def fuse_two_dicts(d1, d2):
@@ -174,7 +182,7 @@ def get_checked_paths_from_list(treemodel):
 def gen_detailed_paths(base, surfaces, subdetails):
     if surfaces and subdetails:
         # one than one surfaces and subdetails (i.e., subarea or bone/joint) selected.
-        return [f"{base}>{s}>{d}" for s, d in itertools.product(surfaces, subdetails)]
+        return [f"{base}>{s}>{d}" for s, d in product(surfaces, subdetails)]
     elif surfaces:
         # only surface
         return [f"{base}>{s}" for s in surfaces]
