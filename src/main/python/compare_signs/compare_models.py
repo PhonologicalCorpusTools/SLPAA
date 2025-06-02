@@ -71,6 +71,20 @@ class CompareModel:
                     for k, v in ori_res['sign2'].items()
 
                 }
+
+            elif 'handconfig' in module:
+                handconfig_res = self.compare_handconfigs()
+                # For 'sign1'
+                result['sign1']['handconfig'] = {
+                    k: {key: value for d in v for key, value in d.items()}
+                    for k, v in handconfig_res['sign1'].items()
+                }
+                # and for 'sign2'
+                result['sign2']['handconfig'] = {
+                    k: {key: value for d in v for key, value in d.items()}
+                    for k, v in handconfig_res['sign2'].items()
+                }
+
         return result
 
     def get_module_labels(self, module_pair: tuple) -> (str, str):
@@ -401,6 +415,81 @@ class CompareModel:
 
         return pair_comparison
 
+    def compare_handconfigs(self) -> dict:
+        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+            # pair = tuple of HandConfigurationModule
+            # pairwise = False if not comparing one pair
+            # return tuple of two dict. each contains true or false at each level of granularity
+            results1 = []
+            results2 = []
+
+            s1_path_element = []
+            s2_path_element = []
+
+            sign1_hcm = pair[0]
+            sign2_hcm = pair[1]
+
+            sign1_slot_specs = ''.join(pair[0].config_tuple())  # tuple containing all (33) specified configuration value.
+            sign2_slot_specs = ''.join(pair[1].config_tuple())
+
+            # deal with forearm. if forearm checked, add that to compare results
+            if sign1_hcm.overalloptions['forearm']:
+                s1_path_element.append('Forearm')
+            if sign2_hcm.overalloptions['forearm']:
+                s2_path_element.append('Forearm')
+
+            s1_path_element.append(f'Configurations>{sign1_slot_specs}')
+            s2_path_element.append(f'Configurations>{sign2_slot_specs}')
+
+            finished_roots = []  # to track compared roots
+            for e1 in s1_path_element:
+                matched = False
+                for e2 in s2_path_element:
+                    if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                        matched = True
+                        res1, res2 = compare_elements(
+                            e1=e1,
+                            e2=e2,
+                            btn_types1={},
+                            btn_types2={},
+                            pairwise=pairwise
+                        )
+                        results1.append(res1)
+                        results2.append(res2)
+
+                if not matched:
+                    res1, _ = compare_elements(e1, '', {}, {}, pairwise=False)
+                    results1.append(res1)
+
+            for e2 in s2_path_element:
+                if e2.split('>')[0] not in finished_roots:
+                    _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
+                    results2.append(res2)
+
+            results1 = summarize_path_comparison(results1)
+            results2 = summarize_path_comparison(results2)
+            return results1, results2
+            return results1, results2
+
+        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.HANDCONFIG)
+        pair_comparison = {'sign1': {}, 'sign2': {}}
+
+        for i, module in enumerate(aligned_modules):
+            sign1_module_label, sign2_module_label = self.get_module_labels(module)
+
+            if all(module):  # pair of modules
+                r_sign1, r_sign2 = compare_module_pair(module)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
+                pair_comparison['sign2'][
+                    str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
+            elif module[0]:  # only sign 1 has this module
+                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
+            else:  # only sign 2 has this module
+                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
+
+        return pair_comparison
     def compare_relation(self) -> dict:
         def compare_one(pair: tuple) -> [bool, bool]:
             r = []  # return list of two bools each for articulators, location types, phonological locations, paths
