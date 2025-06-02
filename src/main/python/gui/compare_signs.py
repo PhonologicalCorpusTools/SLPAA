@@ -594,7 +594,7 @@ class CompareSignsDialog(QDialog):
 
         sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # Identify signs to compare
         compare = CompareModel(sign1, sign2)
-        compare_res = compare.compare()
+        compare_res = compare.compare_sign_pair()
 
         # Now update trees! Start with clearing.
         self.tree1.clear()
@@ -634,14 +634,9 @@ class CompareSignsDialog(QDialog):
         # - change colour
         # - update current colour counter
 
-        item_invisible = True if item.flags() == Qt.NoItemFlags else False  # check if item is invisible
-
         # Find and expand the corresponding item in the target tree
         corresponding_item = self.find_corresponding_line(item, target_tree)
         if corresponding_item:
-            # check the corresponding line is invisible (i.e., if it does not really exist).
-            corresponding_invisible = True if corresponding_item.flags() == Qt.NoItemFlags else False
-
             if not corresponding_item.isExpanded():
                 # to prevent infinite recursions, expand corresponding tree only when it is collapsed
                 target_tree.expandItem(corresponding_item)

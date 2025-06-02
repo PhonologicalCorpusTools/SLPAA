@@ -17,7 +17,7 @@ class CompareModel:
         self.sign2 = sign2
 
     # this is the main compare function that dispatches each module comparison!
-    def compare(self) -> dict:
+    def compare_sign_pair(self) -> dict:
         # list of modules to compare
         module_attributes = [attr for attr in dir(self.sign1) if attr.endswith('modules')]
         module_attributes = [attr for attr in module_attributes if not callable(getattr(self.sign1, attr))]
@@ -73,25 +73,6 @@ class CompareModel:
                 }
         return result
 
-    def get_module_ids(self, module_type: str) -> (dict, dict):
-        mt_arg_map = {'location': ModuleTypes.LOCATION,
-                      'movement': ModuleTypes.MOVEMENT,
-                      'relation': ModuleTypes.RELATION}
-
-        signs = ['sign1', 'sign2']
-        moduletypeabbrev = ModuleTypes.abbreviations[module_type]
-
-        modules_pair = []
-        for s in signs:
-            sign = getattr(self, s)
-            module_numbers = getattr(sign, f'{module_type}modulenumbers')
-            modules = analyze_modules(modules=[m for m in sign.getmoduledict(mt_arg_map[module_type]).values()],
-                                      module_numbers=module_numbers,
-                                      module_abbrev=moduletypeabbrev)
-            modules_pair.append(modules)
-
-        return modules_pair
-
     def get_module_labels(self, module_pair: tuple) -> (str, str):
         try:
             module1_label = self.sign1.getmoduleabbreviation(module_pair[0])
@@ -113,11 +94,8 @@ class CompareModel:
             results2 = []
 
             # articulator comparison
-            #s1art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
-            #s2art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
-            #if set(s1art) == set(s2art):
-            #    r_sign1['articulator'] = True
-            #    r_sign2['articulator'] = True
+            # no more articulator comparison due to compare on aligned
+            # (articulators are already taken into consideration in sign align!)
 
             # path comparison
             s1path = get_checked_paths_from_list(pair[0].movementtreemodel)
@@ -164,7 +142,7 @@ class CompareModel:
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype='movement')
+        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.MOVEMENT)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
 
@@ -332,7 +310,7 @@ class CompareModel:
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype='location')
+        aligned_modules = alignmodules(self.sign1, self.sign2, ModuleTypes.LOCATION)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
@@ -403,7 +381,7 @@ class CompareModel:
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype='orientation')
+        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.ORIENTATION)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
