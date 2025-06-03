@@ -713,15 +713,18 @@ class MainWindow(QMainWindow):
             'recent_folder',
             defaultValue=os.path.expanduser('~/Documents')
         )
+        self.app_settings['storage']['recent_searches'] = self.app_qsettings.value(
+            'recent_searches',
+            defaultValue=os.path.expanduser('~/Documents')
+        )
+        self.app_settings['storage']['recent_results'] = self.app_qsettings.value(
+            'recent_results',
+            defaultValue=os.path.expanduser('~/Documents')
+        )
         self.app_settings['storage']['corpora'] = self.app_qsettings.value(
             'corpora',
             defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'CORPORA'))
         )
-        self.app_settings['storage']['searches'] = self.app_qsettings.value('searches',
-                                                                           defaultValue=os.path.normpath(
-                                                                               os.path.join(
-                                                                                   os.path.expanduser('~/Documents'),
-                                                                                   'PCT', 'SLP-AA', 'SEARCHES')))
         self.app_settings['storage']['image'] = self.app_qsettings.value(
             'image',
             defaultValue=os.path.normpath(os.path.join(os.path.expanduser('~/Documents'), 'PCT', 'SLP-AA', 'IMAGE'))
@@ -821,6 +824,8 @@ class MainWindow(QMainWindow):
 
         self.app_qsettings.beginGroup('storage')
         self.app_qsettings.setValue('recent_folder', self.app_settings['storage']['recent_folder'])
+        self.app_qsettings.setValue('recent_searches', self.app_settings['storage']['recent_searches'])
+        self.app_qsettings.setValue('recent_results', self.app_settings['storage']['recent_results'])
         self.app_qsettings.setValue('corpora', self.app_settings['storage']['corpora'])
         self.app_qsettings.setValue('image', self.app_settings['storage']['image'])
         self.app_qsettings.endGroup()  # storage
