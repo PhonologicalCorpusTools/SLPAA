@@ -24,9 +24,7 @@ import logging
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
-from search.helper_functions import (relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, 
-                                     signtypedisplaytext, module_matches_xslottype, filter_modules_by_target_locn, filter_modules_by_target_mvmt, filter_modules_by_target_reln,
-                                     )
+from search.helper_functions import *
 from search.search_classes import SearchTargetItem
 
 
@@ -350,21 +348,16 @@ class SearchModel(QStandardItemModel):
                     return False
         return True
     
+    
     def sign_matches_ST(self, rows, sign):
-        if sign.signtype is None:
-            sign_st = []
-        else:
-            sign_st = signtypedisplaytext(sign.signtype.specslist)
-        specs = set("")
+        # TODO: handle Notes (AdditionalInfo)
+        specs_dict = sign.signtype.convertspecstodict()
         for row in rows:
-            specs.update(signtypedisplaytext(self.target_module(row).specslist))
-            # TODO what if a sign type target is present but nothing is specified? i.e. len(specs) = 0
-            if len(sign_st) == 0 and len(specs) > 0:
+            target_specs_dict = self.target_module(row).convertspecstodict()
+            if not (self.is_negative(row) ^ signtype_matches_target(specs_dict, target_specs_dict)):
                 return False
-            
-        if not all (s in sign_st for s in specs):
-            return False
         return True
+
 
     def sign_matches_handconfig(self, rows, sign):
         
@@ -404,9 +397,6 @@ class SearchModel(QStandardItemModel):
 
         return True
         
-
-
-
     def sign_matches_extendedfingers(self, rows, sign):
         matching_modules = [m for m in sign.getmoduledict(ModuleTypes.HANDCONFIG).values()]
         extended_symbols = ['H', 'E', 'e']
@@ -445,7 +435,6 @@ class SearchModel(QStandardItemModel):
 
 
         return True
-
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:
