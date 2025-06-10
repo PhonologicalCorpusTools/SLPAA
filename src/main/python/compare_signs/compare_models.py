@@ -6,9 +6,9 @@ from compare_signs.compare_helpers import (analyze_modules, get_informative_elem
                                            get_btn_type_for_path, get_checked_paths_from_list,
                                            get_detailed_checked_paths_location, get_detailed_selections_orientation)
 from compare_signs.align_modules import alignmodules
+from constant import PREDEFINED_MAP  # for predefined hand config name
 
-# for temporarily showing debug info
-from PyQt5.QtWidgets import QMessageBox
+PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 
 class CompareModel:
@@ -429,8 +429,8 @@ class CompareModel:
             sign1_hcm = pair[0]
             sign2_hcm = pair[1]
 
-            sign1_slot_specs = ''.join(pair[0].config_tuple())  # tuple containing all (33) specified configuration value.
-            sign2_slot_specs = ''.join(pair[1].config_tuple())
+            sign1_slot_specs = pair[0].config_tuple()  # tuple containing all (33) specified configuration value.
+            sign2_slot_specs = pair[1].config_tuple()
 
             # deal with forearm. if forearm checked, add that to compare results
             if sign1_hcm.overalloptions['forearm']:
@@ -438,8 +438,15 @@ class CompareModel:
             if sign2_hcm.overalloptions['forearm']:
                 s2_path_element.append('Forearm')
 
-            s1_path_element.append(f'Configurations>{sign1_slot_specs}')
-            s2_path_element.append(f'Configurations>{sign2_slot_specs}')
+            # if shorthand exists for handshape code, use it.
+            if sign1_slot_specs in PREDEFINED_MAP:
+                s1_path_element.append(PREDEFINED_MAP[sign1_slot_specs].name)
+            else:
+                s1_path_element.append(''.join(sign1_slot_specs))
+            if tuple(sign2_slot_specs) in PREDEFINED_MAP:
+                s2_path_element.append(PREDEFINED_MAP[sign2_slot_specs].name)
+            else:
+                s2_path_element.append(''.join(sign2_slot_specs))
 
             finished_roots = []  # to track compared roots
             for e1 in s1_path_element:
@@ -468,7 +475,6 @@ class CompareModel:
 
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
-            return results1, results2
             return results1, results2
 
         aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.HANDCONFIG)

@@ -197,7 +197,7 @@ class CompareSignsDialog(QDialog):
         self.syncing_scrollbars = False
 
         # finally, update trees, including colour counter updates.
-        self.update_trees()
+        #self.update_trees()
 
     def initialize_sign_counters(self):
         # generate a dictionary of ColourCounters for a sign
