@@ -448,23 +448,26 @@ class CompareModel:
             else:
                 s2_path_element.append(''.join(sign2_slot_specs))
 
+            s1_path_btn_types = {path: 'major loc' for path in s1_path_element}
+            s2_path_btn_types = {path: 'major loc' for path in s2_path_element}
+
             finished_roots = []  # to track compared roots
             for e1 in s1_path_element:
-                matched = False
+                found_counterpart = False
                 for e2 in s2_path_element:
-                    if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
-                        matched = True
-                        res1, res2 = compare_elements(
-                            e1=e1,
-                            e2=e2,
-                            btn_types1={},
-                            btn_types2={},
-                            pairwise=pairwise
-                        )
-                        results1.append(res1)
-                        results2.append(res2)
+                    found_counterpart = True
+                    res1, res2 = compare_elements(
+                        e1=e1,
+                        e2=e2,
+                        btn_types1=s1_path_btn_types,
+                        btn_types2=s2_path_btn_types,
+                        pairwise=pairwise
+                    )
+                    results1.append(res1)
+                    results2.append(res2)
+                    finished_roots.append(e2)
 
-                if not matched:
+                if not found_counterpart:
                     res1, _ = compare_elements(e1, '', {}, {}, pairwise=False)
                     results1.append(res1)
 
