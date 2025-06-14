@@ -121,7 +121,7 @@ class ModuleSelectorDialog(QDialog):
         self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
         self.moduleselector_layout.addLayout(self.arts_and_addedinfo_layout)
-        self.arts_and_addedinfo_layout.minimumSize()
+        # self.arts_and_addedinfo_layout.minimumSize()
 
         self.handle_xslot_widget(xslotstructure, self.loaded_timingintervals)
         self.module_widget = QWidget()
