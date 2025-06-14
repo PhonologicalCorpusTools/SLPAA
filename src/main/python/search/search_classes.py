@@ -44,6 +44,7 @@ from gui.relationspecification_view import RelationSpecificationPanel, ModuleLin
 from gui.modulespecification_widgets import DeselectableRadioButton, DeselectableRadioButtonGroup
 from gui.modulespecification_dialog import XslotLinkingPanel, XslotLinkScene, AssociatedRelationsDialog, AssociatedRelationsPanel
 from gui.modulespecification_widgets import AddedInfoPushButton, ArticulatorSelector
+from gui.orientationspecification_view import OrientationSpecificationPanel
 
 
 
@@ -359,6 +360,8 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
                 self.xslot_widget.xslotlinkscene.emit_selection_changed()  # to ensure that the initial timing selection is noted
                 self.module_widget.timingintervals_inherited.connect(self.xslot_widget.settimingintervals)
             self.module_widget.setvaluesfromanchor(self.linkedfrommoduleid, self.linkedfrommoduletype)
+        elif moduletype == ModuleTypes.ORIENTATION:
+            self.module_widget = Search_OrientationSpecPanel(moduletoload=moduletoload, parent=self)
         self.moduleselector_layout.addWidget(self.module_widget)
     
     def handle_xslot_widget(self, xslotstructure, timingintervals):
@@ -455,9 +458,6 @@ class CustomRBGrp(QButtonGroup):
 class Search_MovementSpecPanel(MovementSpecificationPanel):
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(moduletoload, **kwargs)
-
-    
-
 
 
 class Search_LocationSpecPanel(LocationSpecificationPanel):
@@ -1129,6 +1129,11 @@ class Search_AssociatedRelationsPanel(AssociatedRelationsPanel):
         
         self.mainwindow.build_search_target_view.handle_add_associated_relation_module(self.anchormodule, module_to_save)
         self.style_seeassociatedrelations()
+
+class Search_OrientationSpecPanel(OrientationSpecificationPanel):
+
+    def __init__(self, moduletoload=None, **kwargs):
+        super().__init__(moduletoload, **kwargs)
 
 
 class XslotTypeItem:
