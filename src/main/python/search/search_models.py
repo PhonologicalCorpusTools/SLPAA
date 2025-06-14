@@ -216,10 +216,23 @@ class SearchModel(QStandardItemModel):
 
             if ef_rows and not self.sign_matches_extendedfingers(ef_rows, sign):
                 return False
+            
+        if ModuleTypes.ORIENTATION in target_dict: 
+            rows = []
+            modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.ORIENTATION).values()]
+            if not modules_to_check:
+                return False
+            target_rows = target_dict[ModuleTypes.ORIENTATION]
+            for row in target_rows:
+                matching_modules = modules_to_check
+                target_module = self.target_module(row)
+                if not filter_modules_by_target_orientation(matching_modules, target_module, matchtype=self.matchtype):
+                    return False  
+            
         for ttype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             if ttype in target_dict:                
                 modules_to_check = [m for m in sign.getmoduledict(ttype).values()]
-                if len(modules_to_check) == 0:
+                if not modules_to_check:
                     return False
                 target_rows = target_dict[ttype]
                 for row in target_rows:

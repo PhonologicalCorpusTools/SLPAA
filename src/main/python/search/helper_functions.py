@@ -487,3 +487,5 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
                 return matching_modules
     return matching_modules
 
+def filter_modules_by_target_orientation(modulelist, target_module, matchtype='minimal'):
+    pass
