@@ -218,7 +218,6 @@ class SearchModel(QStandardItemModel):
                 return False
             
         if ModuleTypes.ORIENTATION in target_dict: 
-            rows = []
             modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.ORIENTATION).values()]
             if not modules_to_check:
                 return False

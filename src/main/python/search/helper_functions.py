@@ -488,4 +488,10 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
     return matching_modules
 
 def filter_modules_by_target_orientation(modulelist, target_module, matchtype='minimal'):
-    pass
+    matching_modules = modulelist
+    if target_module.has_articulators():
+        target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
+        matching_modules = [m for m in matching_modules if articulatordisplaytext(m.articulators, m.inphase) == target_art]
+        if not matching_modules: return []
+    # check palm directions
+    
