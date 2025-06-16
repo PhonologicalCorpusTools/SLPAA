@@ -622,7 +622,3 @@ class HandConfigSlots:
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]
-
-
-def filenamefrompath(filepath):
-    return os.path.split(filepath)[1]
