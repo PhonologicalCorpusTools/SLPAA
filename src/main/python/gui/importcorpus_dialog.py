@@ -55,7 +55,7 @@ class ImportCorpusDialog(QDialog):
         self.choosedestbutton.clicked.connect(self.handle_select_dest)
         form_layout.addRow(self.choosedestlabel, self.choosedestbutton)
         self.timestamplabel = QLabel("3. Select which option you prefer for the 'last modified' timestamp on each sign:")
-        self.timestampswitch = OptionSwitch("keep original values as per exported file", "reset to now")
+        self.timestampswitch = OptionSwitch("Keep original values\nas per exported file", "Reset to now")
         self.timestampswitch.toggled.connect(self.handle_timestampswitch_toggled)
         self.timestampswitch.setEnabled(False)
         form_layout.addRow(self.timestamplabel, self.timestampswitch)
