@@ -39,7 +39,7 @@ def delay_uniqueid_reset(func):
 # common ancestor for timed parameter modules such as HandConfigurationModule, MovementModule, etc
 class ParameterModule:
 
-    def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+    def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None, moduletype=""):
         self._articulators = articulators
         self._phonlocs = phonlocs
         self._timingintervals = timingintervals or []
@@ -48,7 +48,7 @@ class ParameterModule:
         # self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._addedinfo = addedinfo or AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
-        self._moduletype = ""
+        self._moduletype = moduletype
 
     @property
     def moduletype(self):
@@ -450,7 +450,7 @@ class MovementModule(ParameterModule):
     def __init__(self, movementtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase    # TODO is "inphase" actually the best name for this attribute?
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.MOVEMENT)
 
     @property
     def moduletype(self):
@@ -1350,7 +1350,7 @@ class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._locationtreemodel = locationtreemodel
         self._inphase = inphase  # TODO is "inphase" actually the best name for this attribute?
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.LOCATION)
 
     @property
     def moduletype(self):
@@ -1832,7 +1832,7 @@ class RelationModule(ParameterModule):
             Direction(axis=Direction.VERTICAL),
             Direction(axis=Direction.SAGITTAL),
         ]
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.RELATION)
 
     @property
     def moduletype(self):
@@ -2625,7 +2625,7 @@ class OrientationModule(ParameterModule):
             Direction(axis=Direction.SAGITTAL)
         ]
 
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.ORIENTATION)
 
     @property
     def moduletype(self):
@@ -2720,7 +2720,7 @@ class HandConfigurationModule(ParameterModule):
     def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.HANDCONFIG)
 
     @property
     def moduletype(self):
@@ -2818,7 +2818,7 @@ class HandConfigurationHand:
 class NonManualModule(ParameterModule):
     def __init__(self, nonman_specs, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._nonmanual = nonman_specs
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.NONMANUAL)
         pass
 
     @property
