@@ -240,7 +240,7 @@ def filter_modules_by_target_reln(modulelist, target_module, target_is_assoc_rel
     """
     Filter a list of relation modules, returning a subset that matches a target relation module.
     Args:
-        modulelist: list of relation modules. If `target_is_assoc_reln`, then we assume modulelist also contains associated relation modules with anchor modules of the correct type
+        modulelist: list of relation modules (list is not modified). If `target_is_assoc_reln`, then we assume modulelist also contains associated relation modules with anchor modules of the correct type
         target_module: relation module built in the Search window
         target_is_assoc_reln: target is a relation module that was built as part of a mov+rel or loc+rel target. 
         matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
@@ -346,7 +346,7 @@ def filter_modules_by_target_mvmt(modulelist, target_module, matchtype='minimal'
     """
     Filter a list of movement modules, returning a subset that matches a target movement module.
     Args:
-        modulelist: list of movement modules
+        modulelist: list of movement modules (list is not modified)
         target_module: movement module built in the Search window
         matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
         terminate_early: bool. True if we only need to know whether `modulelist` has at least one matching module. 
@@ -379,7 +379,7 @@ def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal'
     """
     Filter a list of location modules, returning a subset that matches a target location module.
     Args:
-        modulelist: list of location modules
+        modulelist: list of location modules (list is not modified)
         target_module: location module built in the Search window
         matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
         terminate_early: bool. True if we only need to know whether `modulelist` has at least one matching module. 
@@ -425,7 +425,7 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
     """
     Filter a list of location modules by selected paths. This doesn't check for matching loctypes (e.g. body vs body-anchored), phonlocs, articulators, xslottypes, etc.
     Args:
-        modules: list of location modules
+        modules: list of location modules (list is not modified)
         target_paths: target paths to match. This is a list of tuples where each tuple contains:
             target_path[0]: str. The full path.
             target_path[1]: tuple(tuple(), tuple()). The selected details (e.g. surfaces and subareas)
@@ -488,10 +488,44 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
     return matching_modules
 
 def filter_modules_by_target_orientation(modulelist, target_module, matchtype='minimal'):
+    """
+    Filter a list of orientation modules, returning a subset that matches a target orientation module.
+    Args:
+        modulelist: list of orientation modules (list is not modified)
+        target_module: orientation module built in the Search window
+        matchtype: 'minimal' or 'exact'.
+    Returns:
+        list. Returns the subset of `modulelist` that match `target_module`.
+    """ 
+    if not modulelist: 
+        return []
+    NUM_DIRECTIONS = 3
     matching_modules = modulelist
     if target_module.has_articulators():
         target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
         matching_modules = [m for m in matching_modules if articulatordisplaytext(m.articulators, m.inphase) == target_art]
         if not matching_modules: return []
-    # check palm directions
+    if matchtype != 'minimal': # exact matchtype
+        for i in range(NUM_DIRECTIONS):
+            matching_modules = [m for m in matching_modules if m.palm[i] == target_module.palm[i] and m.root[i] == target_module.root[i]]
+            if not matching_modules:
+                return []
+    else: # minimal matchtype
+        attr_names = ['root', 'palm']
+        for attr_name in attr_names:
+            target_dir = getattr(target_module, attr_name) # module.root or module.pam
+            for i in range(NUM_DIRECTIONS):
+                if target_dir[i].has_subselection(): 
+                    # target includes an axis and a subselection, which need to be matched exactly (even with minimal matchtype)
+                    matching_modules = [m for m in matching_modules if getattr(m, attr_name)[i] == target_dir[i]]
+                elif target_dir[i].axisselected: 
+                    # target has axis but no subselection. When matching minimally, signs can match with or without subselections.
+                    matching_modules = [m for m in matching_modules if getattr(m, attr_name)[i].axisselected]
+                else: 
+                    # target axis not selected. when matching minimally, this direction can have any selection.
+                    pass
+                if not matching_modules:
+                        return []
+    return matching_modules
+
     

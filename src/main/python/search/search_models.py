@@ -184,7 +184,7 @@ class SearchModel(QStandardItemModel):
 
         return resultsdict
     
-    def sign_matches_target(self, sign, target_dict=None):
+    def sign_matches_target(self, sign, target_dict={}):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if TargetTypes.XSLOT in target_dict: # one module per sign
             if not self.sign_matches_xslot(target_dict[TargetTypes.XSLOT], sign):
@@ -219,15 +219,13 @@ class SearchModel(QStandardItemModel):
             
         if ModuleTypes.ORIENTATION in target_dict: 
             modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.ORIENTATION).values()]
-            if not modules_to_check:
-                return False
             target_rows = target_dict[ModuleTypes.ORIENTATION]
             for row in target_rows:
-                matching_modules = modules_to_check
                 target_module = self.target_module(row)
-                if not filter_modules_by_target_orientation(matching_modules, target_module, matchtype=self.matchtype):
-                    return False  
-            
+                orientation_matching = filter_modules_by_target_orientation(modules_to_check, target_module, matchtype=self.matchtype)
+                if not (self.is_negative(row) ^ bool(orientation_matching)):
+                    return False
+
         for ttype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             if ttype in target_dict:                
                 modules_to_check = [m for m in sign.getmoduledict(ttype).values()]
@@ -518,7 +516,7 @@ class SearchModel(QStandardItemModel):
                                              articulators=articulators, timingintervals=timingintervals,
                                              addedinfo=addedinfo)
                 return unserialized
-            elif type in [TargetTypes.SIGNTYPEINFO, ModuleTypes.HANDCONFIG, TargetTypes.EXTENDEDFINGERS]:
+            else:
                 return serialmodule
 
         else:
