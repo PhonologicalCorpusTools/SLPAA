@@ -344,8 +344,8 @@ class ImportCorpusDialog(QDialog):
                                                                   addedinfo=addedinfo)
                 else:
                     bodyparts[articulator][artnum] = BodypartInfo(bodyparttype=articulator,
-                                                                  bodyparttreemodel=BodypartTreeModel(bodyparttype=articulator,
-                                                                                                      forrelationmodule=True),
+                                                                  bodyparttreemodel=BodypartTreeModel(
+                                                                      bodyparttype=articulator),
                                                                   addedinfo=AddedInfo())
         return bodyparts
 

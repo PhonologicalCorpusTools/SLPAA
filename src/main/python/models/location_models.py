@@ -903,9 +903,9 @@ class BodypartTreeModel(LocationTreeModel):
         elif structure.children != []:
             # internal node with substructure
 
-            if self.forrelationmodule:
-                structure.children = [child for child in structure.children 
-                                      if IPSI not in child.display_name and CONTRA not in child.display_name]
+            # since this is for a relation module body part and not a full location tree...
+            structure.children = [child for child in structure.children
+                                  if IPSI not in child.display_name and CONTRA not in child.display_name]
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
     def backwardcompatibility(self):
