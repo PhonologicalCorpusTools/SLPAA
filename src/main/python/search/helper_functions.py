@@ -111,7 +111,7 @@ def loctypedisplaytext(loctype):
     return todisplay
 
     
-def signtype_matches_target(specs_dict, target):
+def signtype_matches_target(specs_dict, target, matchtype='minimal'):
     """Used in search function to check if this signtype's specslist matches (i.e. is equal to or more restrictive than) target.
     Doesn't check Notes.
 
@@ -122,19 +122,22 @@ def signtype_matches_target(specs_dict, target):
     Returns:
         bool.
     """
-    for attr in target: # e.g. 'Unspecified_legs', '1h', '2a'
-        if 'Unspecified' in attr: # has the form 'Unspecified_[hands/arms/legs]'
+    if matchtype != 'minimal': # exact match
+        return specs_dict == target
+    # otherwise, match minimally:
+    for attr in target: # e.g. 'Unspecified_legs', '2h', '1a'
+        if 'Unspecified' in attr:
+            # For example, if target has "Unspecified_hands", then return false if specs_dict has 1h or 2h as keys
             art = attr[attr.index('_') + 1] # grabs 'h', 'a', or 'l'
-            if attr in specs_dict:
-                return True
-            return not any(art in k for k in specs_dict)
-        elif not attr in specs_dict: 
+            if f"1{art}" in specs_dict or f"2{art}" in specs_dict:
+                return False
+        elif not attr in specs_dict: # first-level specification doesn't match
             return False 
-        elif target[attr]: # first-level specification matches
-            for _ in target[attr]:
-                if not signtype_matches_target(specs_dict[attr], target[attr]):
-                    return False
-            return True
+        else: # first-level specification matches. When matching minimally, if target[attr] == {}, then this is sufficient for a match.
+            if bool(target[attr]): # there's a nested selection, eg {"2h" : {"both move" : {"move differently"}}}
+                for _ in target[attr]:
+                    if not signtype_matches_target(specs_dict[attr], target[attr],  matchtype=matchtype):
+                        return False
     return True
 
 

@@ -364,7 +364,7 @@ class SearchModel(QStandardItemModel):
         specs_dict = sign.signtype.convertspecstodict()
         for row in rows:
             target_specs_dict = self.target_module(row).convertspecstodict()
-            if not (self.is_negative(row) ^ signtype_matches_target(specs_dict, target_specs_dict)):
+            if not (self.is_negative(row) ^ signtype_matches_target(specs_dict, target_specs_dict, self.matchtype)):
                 return False
         return True
 
