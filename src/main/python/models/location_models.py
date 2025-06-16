@@ -573,7 +573,7 @@ class LocationTreeModel(QStandardItemModel):
 
             rootnode = self.invisibleRootItem()
             self.populate(rootnode)
-            makelistmodel = self.listmodel  # TODO KV   what is this? necessary?
+            makelistmodel = self.listmodel  # initialize listmodel
             self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode)
 
@@ -914,12 +914,11 @@ class BodypartTreeModel(LocationTreeModel):
         hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
                          "Finger 1", "Finger 2", "Finger 3", "Finger 4",
                          "Between Thumb and Finger 1", "Between Fingers 1 and 2", "Between Fingers 2 and 3", "Between Fingers 3 and 4"]
-        if "Heel of hand" in self.serializedlocntree.checkstates: # check if this is an old version
+        if "Heel of hand" in self.serializedlocntree.checkstates:  # check if this is an old version
             for val in hand_children:
                 for stored_dict in dicts:
                     stored_dict["Whole hand" + treepathdelimiter + val] = stored_dict[val]
                     stored_dict.pop(val)
-
 
 
 class LocationListModel(QStandardItemModel):
