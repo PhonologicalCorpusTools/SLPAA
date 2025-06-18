@@ -3,6 +3,7 @@ from fractions import Fraction
 from itertools import chain
 import functools
 import time, os, re
+import copy
 
 from PyQt5.QtCore import (
     Qt,
@@ -2816,10 +2817,89 @@ class HandConfigurationHand:
 
 
 class NonManualModule(ParameterModule):
-    def __init__(self, nonman_specs, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+    def __init__(self, nonman_specs=None, articulators=None, timingintervals=None, phonlocs=None, addedinfo=None):
+        nonman_specs = self.verify_specs_integrity(nonman_specs)
         self._nonmanual = nonman_specs
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.NONMANUAL)
-        pass
+
+    # if nonman_specs misses anything among the seven parts, build missing parts from fullback
+    def verify_specs_integrity(self, nonman_specs):
+        if nonman_specs is None:
+            return self.gen_fallback_nonman_specs()
+
+        template_nonman_specs = self.gen_fallback_nonman_specs()
+
+        for module_name, specs in nonman_specs.items():
+            template_nonman_specs[module_name] = self._deep_merge(template_nonman_specs[module_name], specs)
+        return template_nonman_specs
+
+    # loop over seven roots and generate empty specs for each
+    def gen_fallback_nonman_specs(self):
+        default_nonman_specs = {}
+        roots = ['Shoulder', 'Body', 'Head', 'Eye gaze', 'Facial Expression', 'Mouth', 'Air']
+        for root in roots:
+            default_nonman_specs[root] = self._build_base_spec(root)
+        return default_nonman_specs
+
+    # build one empty nonmanual submodule. called internally
+    def _build_base_spec(self, name):
+        # all nonmanual submodules share these key-value
+        common_fields = {
+            'neutral': False,
+            'static_dynamic': None,
+            'repetition': None,
+            'directionality': None,
+            'size': None,
+            'speed': None,
+            'force': None,
+            'tension': None,
+            'children': None,
+            'action_state': {'root': {}}
+        }
+
+        # specific to some parts
+        modifications = {
+            'Shoulder': {'subpart': None},
+            'Eye gaze': {'subpart': None, 'distance': None},
+            'Facial Expression': {'description': None},
+            'Eyebrows': {'subpart': None},
+            'Eyelids': {'subpart': None}
+        }
+
+        # facial expression and mouth have nested specifications
+        nested_parts = {
+            'Facial Expression': ['Eyebrows', 'Eyelids', 'Nose'],
+            'Mouth': ['Teeth', 'Jaw (lower jaw)', 'Mouth opening', 'Lips', 'Tongue', 'Cheek']
+        }
+
+        spec = copy.deepcopy(common_fields)
+        spec.update(modifications.get(name, {}))
+        children = nested_parts.get(name)
+        if children:
+            spec['children'] = {}
+            for child in children:
+                spec['children'][child] = self._build_base_spec(child)
+        return spec
+
+    def _deep_merge(self, default, override):
+        r = {}
+        for key, default_value in default.items():
+            if key in override:
+                override_value = override[key]
+                # recurse if dict
+                if isinstance(default_value, dict) and isinstance(override_value, dict):
+                    r[key] = self._deep_merge(default_value, override_value)
+                else:
+                    r[key] = override_value
+            else:
+                r[key] = default_value
+
+        # also copy any keys that override has but default does not
+        for key, override_value in override.items():
+            if key not in default:
+                r[key] = override_value
+
+        return r
 
     @property
     def moduletype(self):
