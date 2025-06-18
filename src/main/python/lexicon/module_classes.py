@@ -3,6 +3,7 @@ from fractions import Fraction
 from itertools import chain
 import functools
 import time, os, re
+import copy
 
 from PyQt5.QtCore import (
     Qt,
@@ -2816,10 +2817,60 @@ class HandConfigurationHand:
 
 
 class NonManualModule(ParameterModule):
-    def __init__(self, nonman_specs, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+    def __init__(self, nonman_specs=None, articulators=None, timingintervals=None, phonlocs=None, addedinfo=None):
+        if nonman_specs is None:
+            nonman_specs = self.gen_fallback_nonman_specs()
         self._nonmanual = nonman_specs
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.NONMANUAL)
         pass
+
+    # build one empty nonmanual submodule
+    def build_base_spec(self, name):
+        # all nonmanual submodules share these key-value
+        common_fields = {
+            'neutral': False,
+            'static_dynamic': None,
+            'repetition': None,
+            'directionality': None,
+            'size': None,
+            'speed': None,
+            'force': None,
+            'tension': None,
+            'children': None,
+            'action_state': {'root': {}}
+        }
+
+        # specific to some parts
+        modifications = {
+            'Shoulder': {'subpart': None},
+            'Eye gaze': {'subpart': None, 'distance': None},
+            'Facial Expression': {'description': None},
+            'Eyebrows': {'subpart': None},
+            'Eyelids': {'subpart': None}
+        }
+
+        # facial expression and mouth have nested specifications
+        nested_parts = {
+            'Facial Expression': ['Eyebrows', 'Eyelids', 'Nose'],
+            'Mouth': ['Teeth', 'Jaw (lower jaw)', 'Mouth opening', 'Lips', 'Tongue', 'Cheek']
+        }
+
+        spec = copy.deepcopy(common_fields)
+        spec.update(modifications.get(name, {}))
+        children = nested_parts.get(name)
+        if children:
+            spec['children'] = {}
+            for child in children:
+                spec['children'][child] = self.build_base_spec(child)
+        return spec
+
+    # loop over seven roots and generate empty specs for each
+    def gen_fallback_nonman_specs(self):
+        default_nonman_specs = {}
+        roots = ['Shoulder', 'Body', 'Head', 'Eye gaze', 'Facial Expression', 'Mouth', 'Air']
+        for root in roots:
+            default_nonman_specs[root] = self.build_base_spec(root)
+        return default_nonman_specs
 
     @property
     def moduletype(self):
