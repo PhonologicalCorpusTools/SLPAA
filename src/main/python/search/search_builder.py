@@ -370,7 +370,8 @@ class SearchTargetsView(QWidget):
             initialdialog.exec_()
 
         
-        elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, TargetTypes.LOC_REL, TargetTypes.MOV_REL, ModuleTypes.HANDCONFIG]:
+        elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, TargetTypes.LOC_REL, TargetTypes.MOV_REL, 
+                                 ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION]:
             initialdialog = XSlotTypeDialog(parent=self, preexistingitem=item)
             initialdialog.continue_clicked.connect(lambda name, xslottype: 
             self.mainwindow.build_search_target_view.show_next_dialog(item.targettype, name, xslottype, preexistingitem=item, row=row))
@@ -474,9 +475,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         initialdialog.exec_()
 
     def handle_menumodulebtn_clicked(self, moduletype):
-        initialdialog = XSlotTypeDialog(parent=self)
-        initialdialog.continue_clicked.connect(lambda name, xslottype: self.show_next_dialog(moduletype,name,xslottype))
-        initialdialog.exec_()
+        if moduletype == ModuleTypes.NONMANUAL:
+            QMessageBox.critical(self, "Warning", "search not implemented for nonmanual")
+        else:
+            initialdialog = XSlotTypeDialog(parent=self)
+            initialdialog.continue_clicked.connect(lambda name, xslottype: self.show_next_dialog(moduletype,name,xslottype))
+            initialdialog.exec_()
 
     def show_next_dialog(self, targettype, name, xslottype=None, preexistingitem=None, row=None): 
         self.sign.xslottype = xslottype
@@ -532,7 +536,8 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             
 
         
-        elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
+        elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, TargetTypes.LOC_REL, TargetTypes.MOV_REL,
+                            ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION, ModuleTypes.NONMANUAL]:
             includearticulators = [HAND, ARM, LEG] if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
             else ([] if targettype == ModuleTypes.RELATION else [HAND])
             includephase = 2 if targettype == ModuleTypes.MOVEMENT else (

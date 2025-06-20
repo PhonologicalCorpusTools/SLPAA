@@ -184,7 +184,7 @@ class SearchModel(QStandardItemModel):
 
         return resultsdict
     
-    def sign_matches_target(self, sign, target_dict=None):
+    def sign_matches_target(self, sign, target_dict={}):
         # ORDER: xslot, sign level, sign type, mvmt, locn, reln
         if TargetTypes.XSLOT in target_dict: # one module per sign
             if not self.sign_matches_xslot(target_dict[TargetTypes.XSLOT], sign):
@@ -216,10 +216,20 @@ class SearchModel(QStandardItemModel):
 
             if ef_rows and not self.sign_matches_extendedfingers(ef_rows, sign):
                 return False
+            
+        if ModuleTypes.ORIENTATION in target_dict: 
+            modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.ORIENTATION).values()]
+            target_rows = target_dict[ModuleTypes.ORIENTATION]
+            for row in target_rows:
+                target_module = self.target_module(row)
+                orientation_matching = filter_modules_by_target_orientation(modules_to_check, target_module, matchtype=self.matchtype)
+                if not (self.is_negative(row) ^ bool(orientation_matching)):
+                    return False
+
         for ttype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             if ttype in target_dict:                
                 modules_to_check = [m for m in sign.getmoduledict(ttype).values()]
-                if len(modules_to_check) == 0:
+                if not modules_to_check:
                     return False
                 target_rows = target_dict[ttype]
                 for row in target_rows:
@@ -354,7 +364,7 @@ class SearchModel(QStandardItemModel):
         specs_dict = sign.signtype.convertspecstodict()
         for row in rows:
             target_specs_dict = self.target_module(row).convertspecstodict()
-            if not (self.is_negative(row) ^ signtype_matches_target(specs_dict, target_specs_dict)):
+            if not (self.is_negative(row) ^ signtype_matches_target(specs_dict, target_specs_dict, self.matchtype)):
                 return False
         return True
 
@@ -506,7 +516,7 @@ class SearchModel(QStandardItemModel):
                                              articulators=articulators, timingintervals=timingintervals,
                                              addedinfo=addedinfo)
                 return unserialized
-            elif type in [TargetTypes.SIGNTYPEINFO, ModuleTypes.HANDCONFIG, TargetTypes.EXTENDEDFINGERS]:
+            else:
                 return serialmodule
 
         else:

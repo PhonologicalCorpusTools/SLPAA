@@ -2486,6 +2486,9 @@ class Direction:
             self._plus = False
             self._minus = False
     
+    def has_subselection(self):
+        return self.plus or self.minus or self.inline
+    
     def getabbreviation(self, sourcemodule=None):
         # returns the abbreviated label of the selected direction depending on this Direction's axis
         # abbreviations might differ depending on the source module, e.g. for Relation we use above/below but for Orientation we use up/down
@@ -2639,7 +2642,6 @@ class OrientationModule(ParameterModule):
     @root.setter
     def root(self, root):
         self._root = root
-
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
