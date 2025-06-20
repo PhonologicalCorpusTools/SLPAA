@@ -4,6 +4,7 @@
 
 *.pyc
 .idea/*
+*.DS_Store
 
 # Documentation
 docs_imported/*
