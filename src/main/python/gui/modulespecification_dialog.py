@@ -121,6 +121,9 @@ class ModuleSelectorDialog(QDialog):
         self.arts_and_addedinfo_layout.setAlignment(self.addedinfobutton, Qt.AlignTop)
 
         self.moduleselector_layout.addLayout(self.arts_and_addedinfo_layout)
+        # 2025.06.16. We think this was originally added to deal with a bug when vertically resizing modules,
+        # but it causes problems with panel compression in the orientation and non-manual modules.
+        # Commenting out for now:
         # self.arts_and_addedinfo_layout.minimumSize()
 
         self.handle_xslot_widget(xslotstructure, self.loaded_timingintervals)
