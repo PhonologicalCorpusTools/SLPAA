@@ -23,67 +23,30 @@ def articulatordisplaytext(arts, phase):
             todisplay += " connected, in phase"
     return todisplay
 
-def relationdisplaytext(relmod):
-    todisplay = []
-    relX_str = ""
-    relY_str = ""
-    bodyparts1 = []
-    bodyparts2 = []
-    contact = ""
-    manner = ""
-    direction = ""
-    distance = ""
-
-    relX_str = relmod.relationx.displaystr()
-    relY_str = relmod.relationy.displaystr()
 
 
-    if relmod.contactrel.contact == False: # if None, then no contact has been specified.
-        contact = "no contact"
-    elif relmod.contactrel.contact:
-        hascontacttype = True
-        hascontactmanner = True
-        contact = "contact"
-        contacttype = relmod.contactrel.contacttype
-        if contacttype.light:
-            contact += ": light"
-        elif contacttype.firm:
-            contact += ": firm"
-        elif contacttype.other:
-            contact += ": other"
-            if len(contacttype.othertext) > 0:
-                contact += f" ({contacttype.othertext})"
-        else:
-            hascontacttype = False
-        contactmanner = relmod.contactrel.manner
-        if contactmanner.holding:
-            manner += "holding"
-        elif contactmanner.continuous:
-            manner += "continuous"
-        elif contactmanner.intermittent:
-            manner += "intermittent"
-        else:
-            hascontactmanner = False
-        
-        if hascontacttype and hascontactmanner:
-            contact = contact + ", " + manner
-        elif hascontactmanner:
-            contact = contact + ": " + manner
+def filter_modules_by_articulators(modulelist, target_module, matchtype='minimal'):
+    # currently this satisfies minimal matching.
+    # TODO: do we care about exact matchtype?
+    if target_module.has_articulators():
+        # module.articulators is (Articulator: str, {1: bool, 2: bool})
+        # module.inphase is 0: not specifiable; 1: in phase; 2: out of phase; 3: connected; 4: connected & in phase; 5: connected & out of phase (impossible)
+        # (see getphase() in modulespecification_dialog)
+        target_art, target_inphase = target_module.articulators, target_module.inphase
+        matching_modules = []
+        for m in modulelist:
+            m_art, m_inphase = m.articulators, m.inphase
+            if (target_art[0] == m_art[0] # hand / arm / leg matches
+                and all([m_art[1][i] for i in range(len(target_art[1])) if target_art[1][i]]) # if target art1/2 is checked, then module art1/2 is checked (respectively)
+                and (target_inphase == m_inphase
+                     or target_inphase == 1 and m_inphase == 4
+                     or target_inphase == 2 and m_inphase == 5
+                     or target_inphase == 3 and m_inphase in [4, 5])):
+                matching_modules.append(m)
+        return matching_modules
+    else:
+        return modulelist
 
-    if relmod.xy_linked:
-        direction += "x/y linked"
-    if relmod.xy_crossed:
-        direction += "x/y crossed"
-    # TODO hori, vert, sag; distance
-                
-    
-
-    for s in relX_str, relY_str, contact, direction, distance:
-        if len(s) > 0:
-            todisplay.append(s)
-    return todisplay
-
-# TODO update 
 def phonlocsdisplaytext(phonlocs):
     todisplay = []
     if phonlocs.phonologicalloc:
@@ -96,6 +59,14 @@ def phonlocsdisplaytext(phonlocs):
     if phonlocs.phoneticloc:
         todisplay.append("Phonetic locn")
     return ", ".join(todisplay)
+
+def filter_modules_by_phonlocs(modulelist, target_module, matchtype='minimal'):
+    # TODO: do we care about exact matchtype?
+    if not target_module.phonlocs.allfalse():
+        # just get the attribute names that are true in the target. For minimal matching, we don't care about unchecked attributes.
+        target_attrs = [attr for attr, val in vars(target_module.phonlocs).items() if val] 
+        modulelist = [m for m in modulelist if all([m.phonlocs[attr] for attr in target_attrs])]
+    return modulelist
 
 def loctypedisplaytext(loctype):
     todisplay = ""
@@ -110,7 +81,14 @@ def loctypedisplaytext(loctype):
         todisplay = txt
     return todisplay
 
-    
+def filter_modules_by_loctype(modulelist, target_module, matchtype='minimal'):
+    # TODO: do we care about exact matchtype?
+    if not target_module.locationtreemodel.locationtype.allfalse():
+        # just get the attribute names that are true in the target. For minimal matching, we don't care about unchecked attributes.
+        target_attrs = [attr for attr, val in vars(target_module.locationtreemodel.locationtype).items() if val] 
+        modulelist = [m for m in modulelist if all([m.locationtreemodel.locationtype[attr] for attr in target_attrs])]
+    return modulelist
+
 def signtype_matches_target(specs_dict, target, matchtype='minimal'):
     """Used in search function to check if this signtype's specslist matches (i.e. is equal to or more restrictive than) target.
     Doesn't check Notes.
@@ -356,16 +334,11 @@ def filter_modules_by_target_mvmt(modulelist, target_module, matchtype='minimal'
     Returns:
         list. Returns the subset of `modules` that match `target_module`. If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """ 
-    matching_modules = modulelist
-    if target_module.has_articulators():
-        target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
-        matching_modules = [m for m in matching_modules if articulatordisplaytext(m.articulators, m.inphase) == target_art]
-        if not matching_modules: return []
+    matching_modules = filter_modules_by_articulators(modulelist, target_module, matchtype)
+    if not matching_modules: return []
 
-    if not target_module.phonlocs.allfalse():
-        target_phonlocs = phonlocsdisplaytext(target_module.phonlocs)
-        matching_modules = [m for m in matching_modules if phonlocsdisplaytext(m.locationtreemodel.locationtype) == target_phonlocs]
-        if not matching_modules: return []
+    matching_modules = filter_modules_by_phonlocs(modulelist, target_module, matchtype)
+    if not matching_modules: return []
 
     # Filter for modules that match target paths
     target_paths = set(target_module.movementtreemodel.get_checked_items())
@@ -389,21 +362,14 @@ def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal'
     Returns:
         list. Returns the subset of `modules` that match `target_module`. If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """
-    matching_modules = modulelist
-    if target_module.has_articulators():
-        target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
-        matching_modules = [m for m in matching_modules if articulatordisplaytext(m.articulators, m.inphase) == target_art]
-        if not matching_modules: return []
+    matching_modules = filter_modules_by_articulators(modulelist, target_module, matchtype)
+    if not matching_modules: return []
 
-    if not target_module.locationtreemodel.locationtype.allfalse():
-        target_loctype = loctypedisplaytext(target_module.locationtreemodel.locationtype)
-        matching_modules = [m for m in matching_modules if loctypedisplaytext(m.locationtreemodel.locationtype) == target_loctype]
-        if not matching_modules: return []
+    matching_modules = filter_modules_by_phonlocs(modulelist, target_module, matchtype)
+    if not matching_modules: return []
 
-    if not target_module.phonlocs.allfalse():
-        target_phonlocs = phonlocsdisplaytext(target_module.phonlocs)
-        matching_modules = [m for m in matching_modules if phonlocsdisplaytext(m.locationtreemodel.locationtype) == target_phonlocs]
-        if not matching_modules: return []
+    matching_modules = filter_modules_by_loctype(modulelist, target_module, matchtype)
+    if not matching_modules: return []
     
     fully_checked = target_module.locationtreemodel.nodes_are_terminal
     target_paths = target_module.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True)
