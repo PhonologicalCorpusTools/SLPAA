@@ -31,7 +31,6 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
     QAction,
 )
-from PyQt5.Qt import QStandardItem
 from gui.decorator import check_unsaved_search_targets
 from gui.undo_command import TranscriptionUndoCommand
 from search.results import ResultsView
@@ -45,8 +44,7 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure, RelationModule
 from search.search_models import SearchModel, TargetHeaders, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
-from search.search_classes import SearchTargetItem, CustomRBGrp, XslotTypes,Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, Search_SigntypeSelectorDialog
-
+from search.search_classes import *
 class SearchWindow(QMainWindow):
 
     def __init__(self, app_settings, corpus, app_ctx, **kwargs):
@@ -448,15 +446,15 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         if preexistingitem is not None:
             negative = preexistingitem.negative
             include = preexistingitem.include
-
-        svi = SearchValuesItem(type=TargetTypes.XSLOT, 
-                               module=None, 
-                               values={ "xslot min": min_xslots, 
-                                       "xslot max": max_xslots })
+        module = XslotTarget(min_xslots, max_xslots)
+        # svi = SearchValuesItem(type=TargetTypes.XSLOT, 
+        #                        module=None, 
+        #                        values={ "xslot min": min_xslots, 
+        #                                "xslot max": max_xslots })
         target = SearchTargetItem(name=target_name, 
                                   targettype=TargetTypes.XSLOT, 
                                   xslottype=None, 
-                                  searchvaluesitem=svi,
+                                  module=module,
                                   include=include,
                                   negative=negative)
 
@@ -966,12 +964,12 @@ class XSlotTargetDialog(QDialog):
         if preexistingitem is not None:
             self.reload_item(preexistingitem)
 
-    def reload_item(self, it):
+    def reload_item(self, it: XslotTarget):
         self.name_widget.text_entry.setText(it.name)
-        if "xslot max" in it.searchvaluesitem.values:
-            self.max_num.setText(it.searchvaluesitem.values["xslot max"])
-        if "xslot min" in it.searchvaluesitem.values:
-            self.min_num.setText(it.searchvaluesitem.values["xslot min"])
+        if it.max_xslots != float('inf'):
+            self.max_num.setText(it.max_xslots)
+        if it.min_xslots > -1:
+            self.min_num.setText(it.min_xslots)
         self.toggle_continue_selectable()
     
     def toggle_continue_selectable(self):

@@ -271,36 +271,16 @@ class SearchModel(QStandardItemModel):
         return True
     
     def sign_matches_xslot(self, rows, sign):
-        # this is a minimal match
-        numxslots = sign.xslotstructure.number
-        if self.matchtype == 'minimal':
-            for row in rows: # 
-                min = self.target_values(row).values["xslot min"]
-                max = self.target_values(row).values["xslot max"]
-                if min == '': # only max specified
-                    if numxslots <= int(max):
-                        return True
-                elif max == '': # only min specified
-                    if numxslots >= int(min):
-                        return True
-                else:
-                    if int(min) <= numxslots and numxslots <= int(max):
-                        return True
-            return False
-        elif self.matchtype == 'exact':
-            for row in rows:
-                min = self.target_values(row).values["xslot min"]
-                max = self.target_values(row).values["xslot max"]
-                if min == '': # only max specified
-                    if numxslots > int(max):
-                        return False
-                elif max == '': # only min specified
-                    if numxslots < int(min):
-                        return False
-                else:
-                    if int(min) > numxslots or numxslots > int(max):
-                        return False
-            return True     
+        # there's no difference between minimal and exact matchtypes for this module type.
+        numxslots = int(sign.xslotstructure.number)
+        for row in rows:
+            min_val = self.target_module(row).min_xslots
+            max_val = self.target_module(row).max_xslots
+            if not (self.is_negative(row) ^ (min_val <= numxslots and numxslots <= max_val)):
+                return False
+        return True
+            
+  
     
     def sign_matches_SLI(self, sli_rows, sign):
         '''Returns True if the sign matches all specified rows (corresponding to SLI targets)'''
