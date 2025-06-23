@@ -1,30 +1,8 @@
 import logging, fractions
 from collections import defaultdict
 from search.search_classes import XslotTypes
-from lexicon.module_classes import TimingInterval, TimingPoint, ModuleTypes
-
-def articulatordisplaytext(arts, phase):
-    todisplay = ""
-    k = arts[0] # hand, arm, or leg
-    if arts[1][1] and not arts[1][2]:
-        todisplay = k + " " + str(1)
-    elif arts[1][2] and not arts[1][1]:
-        todisplay = k + " " + str(2)
-    elif arts[1][1] and arts[1][2]:
-        
-        todisplay = "Both " + k.lower() + "s"
-        if phase == 1:
-            todisplay += " in phase"
-        elif phase == 2:
-            todisplay += " out of phase"
-        elif phase == 3:
-            todisplay += " connected"
-        elif phase == 4:
-            todisplay += " connected, in phase"
-    return todisplay
-
-
-
+from lexicon.module_classes import TimingInterval, TimingPoint, ModuleTypes, HandConfigurationHand, PREDEFINED_MAP
+from lexicon.predefined_handshape import HandshapeEmpty
 def filter_modules_by_articulators(modulelist, target_module, matchtype='minimal'):
     # currently this satisfies minimal matching.
     # TODO: do we care about exact matchtype?
@@ -32,12 +10,14 @@ def filter_modules_by_articulators(modulelist, target_module, matchtype='minimal
         # module.articulators is (Articulator: str, {1: bool, 2: bool})
         # module.inphase is 0: not specifiable; 1: in phase; 2: out of phase; 3: connected; 4: connected & in phase; 5: connected & out of phase (impossible)
         # (see getphase() in modulespecification_dialog)
-        target_art, target_inphase = target_module.articulators, target_module.inphase
+        target_art = target_module.articulators
+        target_inphase = target_module.inphase if hasattr(target_module, "inphase") else 0
         matching_modules = []
         for m in modulelist:
-            m_art, m_inphase = m.articulators, m.inphase
+            m_art = m.articulators
+            m_inphase = m.inphase if hasattr(m, "inphase") else 0
             if (target_art[0] == m_art[0] # hand / arm / leg matches
-                and all([m_art[1][i] for i in range(len(target_art[1])) if target_art[1][i]]) # if target art1/2 is checked, then module art1/2 is checked (respectively)
+                and all([m_art[1][key] for key in target_art[1] if target_art[1][key]]) # if target art1/2 is checked, then module art1/2 is checked (respectively)
                 and (target_inphase == m_inphase
                      or target_inphase == 1 and m_inphase == 4
                      or target_inphase == 2 and m_inphase == 5
@@ -47,19 +27,6 @@ def filter_modules_by_articulators(modulelist, target_module, matchtype='minimal
     else:
         return modulelist
 
-def phonlocsdisplaytext(phonlocs):
-    todisplay = []
-    if phonlocs.phonologicalloc:
-        if phonlocs.majorphonloc:
-            todisplay.append("Maj. phonological locn")
-        if phonlocs.minorphonloc:
-            todisplay.append("Min. phonological locn")
-        else:
-            todisplay.append("Phonological locn")
-    if phonlocs.phoneticloc:
-        todisplay.append("Phonetic locn")
-    return ", ".join(todisplay)
-
 def filter_modules_by_phonlocs(modulelist, target_module, matchtype='minimal'):
     # TODO: do we care about exact matchtype?
     if not target_module.phonlocs.allfalse():
@@ -67,19 +34,6 @@ def filter_modules_by_phonlocs(modulelist, target_module, matchtype='minimal'):
         target_attrs = [attr for attr, val in vars(target_module.phonlocs).items() if val] 
         modulelist = [m for m in modulelist if all([m.phonlocs[attr] for attr in target_attrs])]
     return modulelist
-
-def loctypedisplaytext(loctype):
-    todisplay = ""
-    if loctype.body:
-       todisplay = "Body"
-    elif loctype.signingspace:
-        txt = "Signing space"
-        if loctype.bodyanchored:
-            txt += " (body anchored)"
-        elif loctype.purelyspatial:
-            txt += " (purely spatial)"
-        todisplay = txt
-    return todisplay
 
 def filter_modules_by_loctype(modulelist, target_module, matchtype='minimal'):
     # TODO: do we care about exact matchtype?
@@ -334,11 +288,10 @@ def filter_modules_by_target_mvmt(modulelist, target_module, matchtype='minimal'
     Returns:
         list. Returns the subset of `modules` that match `target_module`. If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """ 
-    matching_modules = filter_modules_by_articulators(modulelist, target_module, matchtype)
-    if not matching_modules: return []
-
-    matching_modules = filter_modules_by_phonlocs(modulelist, target_module, matchtype)
-    if not matching_modules: return []
+    for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
+        matching_modules = filter(modulelist, target_module, matchtype)
+        if not matching_modules:
+            return False
 
     # Filter for modules that match target paths
     target_paths = set(target_module.movementtreemodel.get_checked_items())
@@ -362,15 +315,10 @@ def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal'
     Returns:
         list. Returns the subset of `modules` that match `target_module`. If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """
-    matching_modules = filter_modules_by_articulators(modulelist, target_module, matchtype)
-    if not matching_modules: return []
-
-    matching_modules = filter_modules_by_phonlocs(modulelist, target_module, matchtype)
-    if not matching_modules: return []
-
-    matching_modules = filter_modules_by_loctype(modulelist, target_module, matchtype)
-    if not matching_modules: return []
-    
+    for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs, filter_modules_by_loctype]:
+        matching_modules = filter(modulelist, target_module, matchtype)
+        if not matching_modules:
+            return False
     fully_checked = target_module.locationtreemodel.nodes_are_terminal
     target_paths = target_module.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True)
     if target_paths:
@@ -469,11 +417,10 @@ def filter_modules_by_target_orientation(modulelist, target_module, matchtype='m
     if not modulelist: 
         return []
     NUM_DIRECTIONS = 3
-    matching_modules = modulelist
-    if target_module.has_articulators():
-        target_art = articulatordisplaytext(target_module.articulators, target_module.inphase)
-        matching_modules = [m for m in matching_modules if articulatordisplaytext(m.articulators, m.inphase) == target_art]
-        if not matching_modules: return []
+    for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
+        matching_modules = filter(modulelist, target_module, matchtype)
+        if not matching_modules:
+            return []
     if matchtype != 'minimal': # exact matchtype
         for i in range(NUM_DIRECTIONS):
             matching_modules = [m for m in matching_modules if m.palm[i] == target_module.palm[i] and m.root[i] == target_module.root[i]]
@@ -498,3 +445,70 @@ def filter_modules_by_target_orientation(modulelist, target_module, matchtype='m
     return matching_modules
 
     
+def filter_modules_by_target_handconfig(modulelist, target_module, matchtype='minimal'):
+    for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
+        modulelist = filter(modulelist, target_module, matchtype)
+        if not modulelist:
+            return []
+    target_forearm = target_module.overalloptions['forearm']
+    # TODO: overalloptions['overall_addedinfo'], overalloptions['forearm_addedinfo']
+    target_tuple = tuple(HandConfigurationHand(target_module.handconfiguration).get_hand_transcription_list())
+    # TODO: if minimal, only check what's specified. if exact, match even empty strings.
+    if matchtype == 'minimal' and target_tuple == HandshapeEmpty.canonical:
+        return modulelist
+    matching_modules = []
+    for m in modulelist:
+        sign_forearm = m.overalloptions['forearm']
+        if sign_forearm == target_forearm: # Don't bother checking hand config if forearm doesn't match.
+            sign_tuple = tuple(HandConfigurationHand(m.handconfiguration).get_hand_transcription_list())
+            
+            # Searching for a custom tuple (not a predefined shape)
+            if target_tuple not in PREDEFINED_MAP: 
+                # items in certain positions are hardcoded for all tuples.
+                positions_to_check = [i for i in range(33) if i not in [6,7,14,19,24,29] and target_tuple[i] != ""]
+                # logging.warning(positions_to_check)
+                if all([target_tuple[i] == sign_tuple[i] for i in positions_to_check]):
+                    matching_modules.append(m)
+
+            # Searching for a predefined shape
+            else:
+                target_predefined_shape = PREDEFINED_MAP[target_tuple].name
+                if sign_tuple in PREDEFINED_MAP:
+                    sign_shape = PREDEFINED_MAP[sign_tuple].name
+                    # logging.warning(sign_shape)
+                    if target_predefined_shape == sign_shape:
+                        matching_modules.append(m)   
+
+    return matching_modules
+
+        
+def filter_modules_by_target_extendedfingers(modulelist, target_module, matchtype='minimal'):
+    for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
+        modulelist = filter(modulelist, target_module, matchtype)
+        if not modulelist:
+            return []
+    extended_symbols = ['H', 'E', 'e', 'i'] if target_module.i_extended else ['H', 'E', 'e']
+    # get lists of target extended vs nonextended fingers, where thumb=0, index=1, etc
+    target_extended_fingers, target_nonextended_fingers = [], [] 
+    for index, (finger, value) in enumerate(target_module.finger_selections.items()):
+        if value == "Extended":
+            target_extended_fingers.append(index)
+        elif value == "Not extended":
+            target_nonextended_fingers.append(index)
+    # logging.warning(f"extended: {target_extended_fingers}. not: {target_nonextended_fingers}")
+    # get a list of "Number of extended fingers" that were selected
+    target_extended_numbers = [num for num, is_selected in target_module.num_extended_selections.items() if is_selected]
+    # logging.warning(f"nums: {target_extended_numbers}")
+    matching_modules = []
+    for m in modulelist:
+        sign_tuple = tuple(HandConfigurationHand(m.handconfiguration).get_hand_transcription_list())
+        sign_ext_fingers = [finger for finger in range(5) if m.finger_is_extended(sign_tuple, extended_symbols, finger)]
+        # logging.warning(f"target ext: {target_extended_fingers}. target not ext: {target_nonextended_fingers}. sign ext: {sign_ext_fingers}")
+
+        if ((len(sign_ext_fingers) in target_extended_numbers or target_extended_numbers == [])  # TODO
+            and all(finger in sign_ext_fingers for finger in target_extended_fingers)
+            and all(finger not in sign_ext_fingers for finger in target_nonextended_fingers)):
+            matching_modules.append(m)
+            # logging.warning("this module matches.")
+    
+    return matching_modules
