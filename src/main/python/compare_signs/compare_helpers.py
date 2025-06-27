@@ -280,6 +280,12 @@ def get_btn_type_for_path(module_type, path, root_node):
     parts = path.split('>')
     btn_types = []  # this will be the output
 
+    if module_type == 'handconfig':
+        for part in parts:
+            this_btn = 'checkbox' if part in ['Handshape', 'Forearm'] else 'radio button'
+            btn_types.append(this_btn)
+        return '>'.join(btn_types)
+
     def traverse(path_parts: list, node):
         if not path_parts:
             return True  # Reached the end successfully

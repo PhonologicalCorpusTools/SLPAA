@@ -358,14 +358,6 @@ class CompareModel:
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
 
-            """
-            s1_path_btn_types = {
-                path: get_btn_type_for_mvmtpath(path, pair[0].locationtreemodel.optionstree) for path in s1_path_element
-            }
-            s2_path_btn_types = {
-                path: get_btn_type_for_mvmtpath(path, pair[1].locationtreemodel.optionstree) for path in s2_path_element
-            }
-            """
             finished_roots = []  # to track compared roots
             for e1 in s1_path_element:
                 matched = False
@@ -432,40 +424,49 @@ class CompareModel:
             sign1_slot_specs = pair[0].config_tuple()  # tuple containing all (33) specified configuration value.
             sign2_slot_specs = pair[1].config_tuple()
 
-            # deal with forearm. if forearm checked, add that to compare results
-            if sign1_hcm.overalloptions['forearm']:
-                s1_path_element.append('Forearm')
-            if sign2_hcm.overalloptions['forearm']:
-                s2_path_element.append('Forearm')
+            # deal with forearm.
+            s1_forearm_element = 'Forearm>Included' if sign1_hcm.overalloptions['forearm'] else 'Forearm>Not included'
+            s2_forearm_element = 'Forearm>Included' if sign2_hcm.overalloptions['forearm'] else 'Forearm>Not included'
+
+            s1_path_element.append(s1_forearm_element)
+            s2_path_element.append(s2_forearm_element)
+
+            # handshape name
+            handshape_names = [''.join(sign1_slot_specs), ''.join(sign2_slot_specs)]
 
             # if shorthand exists for handshape code, use it.
             if sign1_slot_specs in PREDEFINED_MAP:
-                s1_path_element.append(PREDEFINED_MAP[sign1_slot_specs].name)
-            else:
-                s1_path_element.append(''.join(sign1_slot_specs))
-            if tuple(sign2_slot_specs) in PREDEFINED_MAP:
-                s2_path_element.append(PREDEFINED_MAP[sign2_slot_specs].name)
-            else:
-                s2_path_element.append(''.join(sign2_slot_specs))
+                handshape_names[0] = PREDEFINED_MAP[sign1_slot_specs].name
+            if sign2_slot_specs in PREDEFINED_MAP:
+                handshape_names[1] = PREDEFINED_MAP[sign2_slot_specs].name
 
-            s1_path_btn_types = {path: 'major loc' for path in s1_path_element}
-            s2_path_btn_types = {path: 'major loc' for path in s2_path_element}
+            s1_path_element.append(f'Handshape>{handshape_names[0]}')
+            s2_path_element.append(f'Handshape>{handshape_names[1]}')
+
+            # button types
+            s1_path_btn_types = {
+                path: get_btn_type_for_path("handconfig", path, None) for path in s1_path_element
+            }
+            s2_path_btn_types = {
+                path: get_btn_type_for_path("handconfig", path, None) for path in s2_path_element
+            }
 
             finished_roots = []  # to track compared roots
             for e1 in s1_path_element:
                 found_counterpart = False
                 for e2 in s2_path_element:
-                    found_counterpart = True
-                    res1, res2 = compare_elements(
-                        e1=e1,
-                        e2=e2,
-                        btn_types1=s1_path_btn_types,
-                        btn_types2=s2_path_btn_types,
-                        pairwise=pairwise
-                    )
-                    results1.append(res1)
-                    results2.append(res2)
-                    finished_roots.append(e2)
+                    if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                        found_counterpart = True
+                        res1, res2 = compare_elements(
+                            e1=e1,
+                            e2=e2,
+                            btn_types1=s1_path_btn_types,
+                            btn_types2=s2_path_btn_types,
+                            pairwise=pairwise
+                        )
+                        results1.append(res1)
+                        results2.append(res2)
+                        finished_roots.append(e2.split('>')[0])
 
                 if not found_counterpart:
                     res1, _ = compare_elements(e1, '', {}, {}, pairwise=False)
@@ -489,8 +490,8 @@ class CompareModel:
             if all(module):  # pair of modules
                 r_sign1, r_sign2 = compare_module_pair(module)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
-                pair_comparison['sign2'][
-                    str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
+
             elif module[0]:  # only sign 1 has this module
                 r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
