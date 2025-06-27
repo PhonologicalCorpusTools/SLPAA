@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QComboBox, \
-    QLabel, QHBoxLayout, QPushButton, QWidget, QFrame
+    QLabel, QHBoxLayout, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 import re
@@ -258,6 +258,46 @@ class CompareSignsDialog(QDialog):
 
         tree_counter_layout.addLayout(expand_collapse_layout_hbox)
 
+        # Hand configuration options
+        toggle_layout = QHBoxLayout()
+        toggle_layout.setContentsMargins(0, 0, 0, 0)
+        options_label = QLabel("Options:")
+        toggle_layout.addWidget(options_label)
+
+        self.options_toggle_btn = QToolButton()
+        self.options_toggle_btn.setArrowType(Qt.DownArrow)
+        self.options_toggle_btn.setCheckable(True)
+        self.options_toggle_btn.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.options_toggle_btn.setFixedSize(16, 16)
+        toggle_layout.addWidget(self.options_toggle_btn)
+        toggle_layout.addStretch()
+
+        tree_counter_layout.addLayout(toggle_layout)
+
+        # Hand-configuration radio-button container (hidden by default)
+        self.hand_options_widget = QWidget()
+        hand_opts_layout = QVBoxLayout(self.hand_options_widget)
+        # three radio buttons
+        self.predefined_HC = QRadioButton("Compare predefined hand shape names.")
+        self.predefined_HC.setChecked(True)
+        self.predefined_base_variant = QRadioButton("Compare predefined names with a base-variant hierarchy.")
+        self.transcription_matches = QRadioButton("Compare actual transcriptions (exact matches only).")
+        self.transcription_lenient = QRadioButton("Compare actual transcriptions (lenient).")
+        hand_opts_layout.addWidget(self.predefined_HC)
+        hand_opts_layout.addWidget(self.predefined_base_variant)
+        hand_opts_layout.addWidget(self.transcription_matches)
+        hand_opts_layout.addWidget(self.transcription_lenient)
+
+        # group them so only one can be checked
+        self.hand_btn_group = QButtonGroup(self)
+        for rb in (self.predefined_HC, self.predefined_base_variant, self.transcription_matches, self.transcription_lenient):
+            self.hand_btn_group.addButton(rb)
+
+        # hide by default
+        self.hand_options_widget.setVisible(False)
+        tree_counter_layout.addWidget(self.hand_options_widget)
+        self.options_toggle_btn.toggled.connect(self._on_options_toggled)
+
         # separator
         separate_line = QFrame()
         separate_line.setFrameShape(QFrame.HLine)
@@ -278,6 +318,12 @@ class CompareSignsDialog(QDialog):
             self.syncing_scrollbars = True
             target_scrollbar.setValue(scrolled_value)
             self.syncing_scrollbars = False
+
+    def _on_options_toggled(self, checked):
+        # show or hide the container
+        self.hand_options_widget.setVisible(checked)
+        # flip the arrow
+        self.options_toggle_btn.setArrowType(Qt.UpArrow if checked else Qt.DownArrow)
 
     def gen_bottom_btns(self):
         # generate Ok and Cancel buttons
