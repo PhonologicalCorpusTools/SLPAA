@@ -153,10 +153,6 @@ def cleandictsforexport(serialstructure, detaillevel):
                 elif k == 'col_contents':
                     # dealt with above
                     pass
-                # elif "body" in k:
-                #     cleaned_item = cleandictsforexport(v, detaillevel)
-                #     if cleaned_item:
-                #         cleaned_dict[k] = cleaned_item
                 else:
                     cleaned_item = cleandictsforexport(v, detaillevel)
                     if cleaned_item:
