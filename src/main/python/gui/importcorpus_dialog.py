@@ -335,10 +335,10 @@ class ImportCorpusDialog(QDialog):
                     onebodypart = bodypartsdict[articulator][str(artnum)]
                     # for one bodypart...
                     addedinfo = self.read_addedinfo(onebodypart.pop('addedinfo', {}))
-                    ltreeser = LocationTreeSerializable(infodicts=onebodypart['bodyparttree'])
                     bodyparttreemodel = BodypartTreeModel(bodyparttype=articulator,
-                                                          serializedlocntree=ltreeser,
-                                                          forrelationmodule=True)
+                                                          jsondict=onebodypart['bodyparttree'])
+                    # ltreeser = LocationTreeSerializable(infodicts=onebodypart['bodyparttree'])
+                    # bodyparttreemodel = BodypartTreeModel(bodyparttype=articulator, serializedbodyparttree=ltreeser)
                     bodyparts[articulator][artnum] = BodypartInfo(bodyparttype=articulator,
                                                                   bodyparttreemodel=bodyparttreemodel,
                                                                   addedinfo=addedinfo)
@@ -360,12 +360,12 @@ class ImportCorpusDialog(QDialog):
         contacttype = ContactType()
         if '_contacttype' in contactdict.keys() and contactdict['_contacttype'] is not None:
             contacttype.__dict__.update(contactdict['_contacttype'])
-        conrel.contacttype = contacttype
+            conrel.contacttype = contacttype
 
         manner = MannerRelation()
         if '_manner' in contactdict.keys() and contactdict['_manner'] is not None:
             manner.__dict__.update(contactdict['_manner'])
-        conrel.manner = manner
+            conrel.manner = manner
 
         distances = [
             Distance(Direction.HORIZONTAL),
@@ -399,9 +399,10 @@ class ImportCorpusDialog(QDialog):
         articulators, timingintervals, phonlocs, addedinfo = self.read_parameter_module(locdict)
 
         # location-specific attributes
-        ltreeser = LocationTreeSerializable(infodicts=locdict['locationtree'])  # includes addedinfos for individual location items
-        # TODO missing detailstables
-        ltree = LocationTreeModel(serializedlocntree=ltreeser)
+        ltree = LocationTreeModel(jsondict=locdict['locationtree'])
+        # ltreeser = LocationTreeSerializable(infodicts=locdict['locationtree'])  # includes addedinfos for individual location items
+        # # TODO missing detailstables
+        # ltree = LocationTreeModel(serializedlocntree=ltreeser)
         inphase = locdict.pop('inphase', 0)
 
         lmod = LocationModule(ltree, articulators, timingintervals=timingintervals,

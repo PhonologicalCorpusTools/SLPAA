@@ -546,7 +546,7 @@ locn_options_purelyspatial = LocnOptionsNode("purelyspatial_options_root", child
 
 class LocationTreeModel(QStandardItemModel):
 
-    def __init__(self, serializedlocntree=None, **kwargs):
+    def __init__(self, serializedlocntree=None, jsondict=None, **kwargs):
         super().__init__(**kwargs)
         self._listmodel = None  # LocationListModel(self)
         self._multiple_selection_allowed = False
@@ -577,21 +577,49 @@ class LocationTreeModel(QStandardItemModel):
             self.backwardcompatibility()
             self.setvaluesfromserializedtree(rootnode)
 
-    # ensure that any info stored in this LocationTreeSerializable under older keys (paths),
+        elif jsondict is not None:
+            self.jsondict = jsondict
+            if 'locationtype' in self.jsondict.keys():
+                self.locationtype.__dict__.update(self.jsondict['locationtype'])
+            if 'multiple_selection_allowed' in self.jsondict.keys():
+                self._multiple_selection_allowed = self.jsondict['multiple_selection_allowed']
+            else:
+                self._multiple_selection_allowed = False
+            if 'defaultneutralselected' in self.jsondict.keys():
+                self.defaultneutralselected = self.jsondict['defaultneutralselected']
+                self.defaultneutrallist = self.jsondict['defaultneutrallist']
+            if 'nodes_are_terminal' in self.jsondict.keys():
+                self._nodes_are_terminal = self.jsondict['nodes_are_terminal']
+
+            rootnode = self.invisibleRootItem()
+            self.populate(rootnode)
+            makelistmodel = self.listmodel  # initialize listmodel
+
+            self.setvaluesfromjsondict(rootnode)
+
+    # ensure that any info stored in this LocationTreeSerializable (or json dict) under older keys (paths),
     # is updated to reflect the newer text for those outdated keys
     def backwardcompatibility(self):
-        dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
+        if self.serializedlocntree is not None:
+            dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
+        elif self.jsondict is not None:
+            dicts = []
+            dicts.append(self.jsondict['checkstates'] if 'checkstates' in self.jsondict.keys() else {})
+            dicts.append(self.jsondict['addedinfos'] if 'addedinfos' in self.jsondict.keys() else {})
+            dicts.append(self.jsondict['detailstables'] if 'detailstables' in self.jsondict.keys() else {})
+        else:
+            return
 
-        # As of 20230631, entries with "other hand>whole hand" will be moved to "other hand" with surfaces and subareas preserved
-        if ("Other hand"+treepathdelimiter+ "Whole hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand" + treepathdelimiter + "Whole hand"] == Qt.Checked):
+        # backward compatibility: As of 20230631, entries with "other hand>whole hand" will be moved to "other hand" with surfaces and subareas preserved
+        if ("Other hand"+treepathdelimiter+ "Whole hand" in dicts[0]):
+            if (dicts[0]["Other hand" + treepathdelimiter + "Whole hand"] == Qt.Checked):
                 for stored_dict in dicts:
                     stored_dict["Whole hand"] = stored_dict["Other hand" + treepathdelimiter + "Whole hand"]
             for stored_dict in dicts:
                 stored_dict.pop("Other hand" + treepathdelimiter + "Whole hand")
-        # As of 20230918, rename "Other hand" back to "Whole hand"
-        if ("Other hand" in self.serializedlocntree.checkstates):
-            if (self.serializedlocntree.checkstates["Other hand"] == Qt.Checked):
+        # backward compatibility: As of 20230918, rename "Other hand" back to "Whole hand"
+        if ("Other hand" in dicts[0]):
+            if (dicts[0]["Other hand"] == Qt.Checked):
                 for stored_dict in dicts:
                     stored_dict["Whole hand"] = stored_dict["Other hand"] 
             for stored_dict in dicts:
@@ -660,9 +688,7 @@ class LocationTreeModel(QStandardItemModel):
             for r in range(treenode.rowCount()):
                 treechild = treenode.child(r, 0)
                 if treechild is not None:
-                    
                     pathtext = treechild.data(Qt.UserRole+udr.pathdisplayrole)
-                    
                     if pathtext in self.serializedlocntree.checkstates.keys():
                         treechild.setCheckState(self.serializedlocntree.checkstates[pathtext])
                         if self.serializedlocntree.checkstates[pathtext] == Qt.Checked:
@@ -671,9 +697,24 @@ class LocationTreeModel(QStandardItemModel):
                         treechild.addedinfo = copy(self.serializedlocntree.addedinfos[pathtext])
                     if pathtext in self.serializedlocntree.detailstables.keys():
                         treechild.detailstable.updatefromserialtable(self.serializedlocntree.detailstables[pathtext])
-
                     self.setvaluesfromserializedtree(treechild)
-                    
+
+    # take info stored in this json dict and ensure it's reflected in the associated LocationTreeModel
+    def setvaluesfromjsondict(self, treenode):
+        if treenode is not None:
+            for r in range(treenode.rowCount()):
+                treechild = treenode.child(r, 0)
+                if treechild is not None:
+                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                    if 'checkstates' in self.jsondict.keys() and pathtext in self.jsondict['checkstates'].keys():
+                        treechild.setCheckState(self.jsondict['checkstates'][pathtext])
+                        if self.jsondict['checkstates'][pathtext] == Qt.Checked:
+                            self.checked.append(pathtext)
+                    if 'addedinfos' in self.jsondict.keys() and pathtext in self.jsondict['addedinfos'].keys():
+                        treechild.addedinfo = copy(self.jsondict['addedinfos'][pathtext])
+                    if 'detailstables' in self.jsondict.keys() and pathtext in self.jsondict['detailstables'].keys():
+                        treechild.detailstable.updatefromjsondict(self.jsondict['detailstables'][pathtext])
+                    self.setvaluesfromjsondict(treechild)
 
     def get_checked_from_serialized_tree(self):
         checked = []
@@ -875,12 +916,12 @@ class LocationTreeModel(QStandardItemModel):
 
 class BodypartTreeModel(LocationTreeModel):
 
-    def __init__(self, bodyparttype, serializedlocntree=None, forrelationmodule=False, **kwargs):
+    def __init__(self, bodyparttype, serializedbodyparttree=None, jsondict=None, **kwargs):
         self.bodyparttype = bodyparttype
-        self.forrelationmodule = forrelationmodule
-        super().__init__(serializedlocntree=serializedlocntree, **kwargs)
-        if serializedlocntree is not None:
-            self.serializedlocntree = serializedlocntree
+        super().__init__(serializedlocntree=serializedbodyparttree, jsondict=jsondict, **kwargs)
+        if serializedbodyparttree is not None or jsondict is not None:
+            self.serializedlocntree = serializedbodyparttree
+            self.jsondict = jsondict
             self.backwardcompatibility()
 
     def populate(self, parentnode, structure=LocnOptionsNode(), pathsofar="", issubgroup=False, isfirstsubgroup=True, subgroupname=""):
@@ -908,13 +949,23 @@ class BodypartTreeModel(LocationTreeModel):
                                   if IPSI not in child.display_name and CONTRA not in child.display_name]
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
+    # ensure that any info stored in this LocationTreeSerializable (or json dict) under older keys (paths),
+    # is updated to reflect the newer text for those outdated keys
     def backwardcompatibility(self):
-        dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
+        if self.serializedlocntree is not None:
+            dicts = [self.serializedlocntree.checkstates, self.serializedlocntree.addedinfos, self.serializedlocntree.detailstables]
+        elif self.jsondict is not None:
+            dicts = []
+            dicts.append(self.jsondict['checkstates'] if 'checkstates' in self.jsondict.keys() else {})
+            dicts.append(self.jsondict['addedinfos'] if 'addedinfos' in self.jsondict.keys() else {})
+            dicts.append(self.jsondict['detailstables'] if 'detailstables' in self.jsondict.keys() else {})
+        else:
+            return
 
         hand_children = ["Hand minus fingers", "Heel of hand", "Thumb", "Fingers", "Selected fingers", "Selected fingers and Thumb",
                          "Finger 1", "Finger 2", "Finger 3", "Finger 4",
                          "Between Thumb and Finger 1", "Between Fingers 1 and 2", "Between Fingers 2 and 3", "Between Fingers 3 and 4"]
-        if "Heel of hand" in self.serializedlocntree.checkstates:  # check if this is an old version
+        if "Heel of hand" in dicts[0]:  # check if this is an old version-- ie, if "Heel of hand" is in the location keys
             for val in hand_children:
                 for stored_dict in dicts:
                     stored_dict["Whole hand" + treepathdelimiter + val] = stored_dict[val]
@@ -980,6 +1031,20 @@ class LocationTableModel(QAbstractTableModel):
 
         if serializedtablemodel is not None:  # populate with specific info from saved table
             self.updatefromserialtable(serializedtablemodel)
+
+    def updatefromjsondict(self, jsondict):
+
+        for c_idx, col_label in enumerate(self.col_labels):
+
+            for r_idx, row in enumerate(self.col_contents[c_idx]):
+                row_label = row[0]
+                serial_value = self.value_at_columnlabel_rowlabel(col_label,
+                                                                  row_label,
+                                                                  othercolumnlabels=jsondict['col_labels'],
+                                                                  othercolumncontents=jsondict['col_contents']
+                                                                  )
+                if serial_value is not None:
+                    self.col_contents[c_idx][r_idx][1] = serial_value
 
     def updatefromserialtable(self, serializedtablemodel):
 
@@ -1200,6 +1265,9 @@ class LocationTreeItem(QStandardItem):
 
     def check(self, fully=True, multiple_selection_allowed=False):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
+        listitem = self.listitem
+        if listitem is None:
+            temp = "pause here"
         self.listitem.setData(fully, Qt.UserRole + udr.selectedrole)
         if fully:
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)

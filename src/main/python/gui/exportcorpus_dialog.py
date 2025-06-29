@@ -102,6 +102,7 @@ class ExportCorpusDialog(QDialog):
         self.statusdisplay.setText(resultmessage)
 
     def export_corpus(self):
+        # corpus = self.parent().corpus
         serialized_corpus = self.parent().corpus.serialize()
         with io.open(self.exportfilepath, 'w') as exfile:
             try:
@@ -115,7 +116,7 @@ class ExportCorpusDialog(QDialog):
                 # default is (', ', ': ') if indent is None and (',', ': ') otherwise
                 thestring = json.dumps(serialized_corpus, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
                 reloaded = json.loads(thestring)
-                cleaned = cleandictsforexport(reloaded, self.detaillevel)
+                cleaned = cleandictsforexport(reloaded, self.detaillevel)  # TODO this is where we lose everything but 'mouth' for TRY's nonmanuals
                 json.dump(cleaned, exfile, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
             except Exception:
                 return "export failed"
@@ -152,6 +153,10 @@ def cleandictsforexport(serialstructure, detaillevel):
                 elif k == 'col_contents':
                     # dealt with above
                     pass
+                # elif "body" in k:
+                #     cleaned_item = cleandictsforexport(v, detaillevel)
+                #     if cleaned_item:
+                #         cleaned_dict[k] = cleaned_item
                 else:
                     cleaned_item = cleandictsforexport(v, detaillevel)
                     if cleaned_item:

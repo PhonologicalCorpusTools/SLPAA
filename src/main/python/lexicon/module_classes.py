@@ -2207,8 +2207,8 @@ class MannerRelation:
 class ContactRelation:
     def __init__(self, contact=None, contacttype=None, mannerrel=None, distance_list=None):
         self._contact = contact
-        self._contacttype = contacttype
-        self._manner = mannerrel
+        self._contacttype = contacttype #or ContactType()
+        self._manner = mannerrel #or MannerRelation()
         self._distances = distance_list or [
             Distance(Direction.HORIZONTAL),
             Distance(Direction.VERTICAL),
@@ -2819,7 +2819,7 @@ class HandConfigurationHand:
 class NonManualModule(ParameterModule):
     def __init__(self, nonman_specs=None, articulators=None, timingintervals=None, phonlocs=None, addedinfo=None):
         nonman_specs = self.verify_specs_integrity(nonman_specs)
-        self._nonmanual = nonman_specs
+        self._nonmanual = nonman_specs  # TODO for minimal export of TRY, this has only 'mouth'
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.NONMANUAL)
 
     # if nonman_specs misses anything among the seven parts, build missing parts from fullback
