@@ -480,43 +480,51 @@ def filter_modules_by_target_orientation(modulelist, target_module, matchtype='m
 
     
 def filter_modules_by_target_handconfig(modulelist, target_module, matchtype='minimal'):
+    """ Filter a list of hand config modules, returning a subset whose specifications match that of a target hand config module.
+        
+        If matchtype is 'minimal':
+            A target with 'forearm' unchecked matches modules with any value of 'forearm'.
+            A target with an empty handshape matches all hand configs.s
+            A target with a custom hand config tuple specified matches modules where the target specs are a subset of the module specs.
+            Otherwise, match exactly.
+    """
     for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
         modulelist = filter(modulelist, target_module, matchtype)
         if not modulelist:
             return []
+    # filter by forearm
     target_forearm = target_module.overalloptions['forearm']
-    # TODO: overalloptions['overall_addedinfo'], overalloptions['forearm_addedinfo']
-    target_tuple = tuple(HandConfigurationHand(target_module.handconfiguration).get_hand_transcription_list())
-    # TODO: if minimal, only check what's specified. if exact, match even empty strings.
+    modulelist = [
+        m for m in modulelist
+        if (
+            m.overalloptions['forearm'] == target_forearm
+            or (matchtype == 'minimal' and not target_forearm)
+        )
+    ]
+    if not modulelist: return []
+    # filter by hand config
+    target_tuple = target_module.config_tuple()
     if matchtype == 'minimal' and target_tuple == HandshapeEmpty.canonical:
         return modulelist
     matching_modules = []
+    
     for m in modulelist:
-        sign_forearm = m.overalloptions['forearm']
-        if sign_forearm == target_forearm: # Don't bother checking hand config if forearm doesn't match.
-            sign_tuple = tuple(HandConfigurationHand(m.handconfiguration).get_hand_transcription_list())
-            
+        if HandConfigurationHand(m.handconfiguration) == HandConfigurationHand(target_module.handconfiguration):
+            matching_modules.append(m)
+        elif matchtype == 'minimal':
+            sign_tuple = m.config_tuple()
             # Searching for a custom tuple (not a predefined shape)
-            if target_tuple not in PREDEFINED_MAP: 
-                # items in certain positions are hardcoded for all tuples.
-                positions_to_check = [i for i in range(33) if i not in [6,7,14,19,24,29] and target_tuple[i] != ""]
-                # logging.warning(positions_to_check)
-                if all([target_tuple[i] == sign_tuple[i] for i in positions_to_check]):
-                    matching_modules.append(m)
-
-            # Searching for a predefined shape
-            else:
-                target_predefined_shape = PREDEFINED_MAP[target_tuple].name
-                if sign_tuple in PREDEFINED_MAP:
-                    sign_shape = PREDEFINED_MAP[sign_tuple].name
-                    # logging.warning(sign_shape)
-                    if target_predefined_shape == sign_shape:
-                        matching_modules.append(m)   
+            # items in certain positions are hardcoded for all tuples.
+            positions_to_check = [i for i in range(33) if i not in [6,7,14,19,24,29] and target_tuple[i] != ""]
+            # logging.warning(positions_to_check)
+            if all([target_tuple[i] == sign_tuple[i] for i in positions_to_check]):
+                matching_modules.append(m)
 
     return matching_modules
 
         
-def filter_modules_by_target_extendedfingers(modulelist, target_module, matchtype='minimal'):
+def filter_modules_by_target_extendedfingers(modulelist, target_module, matchtype='exact'):
+    """ This filter is always exact. """
     for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
         modulelist = filter(modulelist, target_module, matchtype)
         if not modulelist:
