@@ -1,47 +1,81 @@
 import logging, fractions
 from collections import defaultdict
 from search.search_classes import XslotTypes
-from lexicon.module_classes import TimingInterval, TimingPoint, ModuleTypes, HandConfigurationHand, PREDEFINED_MAP
+from lexicon.module_classes import ParameterModule, TimingInterval, TimingPoint, ModuleTypes, HandConfigurationHand, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeEmpty
-def filter_modules_by_articulators(modulelist, target_module, matchtype='minimal'):
-    # currently this satisfies minimal matching.
-    # TODO: do we care about exact matchtype?
-    if target_module.has_articulators():
-        # module.articulators is (Articulator: str, {1: bool, 2: bool})
-        # module.inphase is 0: not specifiable; 1: in phase; 2: out of phase; 3: connected; 4: connected & in phase; 5: connected & out of phase (impossible)
-        # (see getphase() in modulespecification_dialog)
-        target_art = target_module.articulators
-        target_inphase = target_module.inphase if hasattr(target_module, "inphase") else 0
-        matching_modules = []
-        for m in modulelist:
-            m_art = m.articulators
-            m_inphase = m.inphase if hasattr(m, "inphase") else 0
-            if (target_art[0] == m_art[0] # hand / arm / leg matches
-                and all([m_art[1][key] for key in target_art[1] if target_art[1][key]]) # if target art1/2 is checked, then module art1/2 is checked (respectively)
-                and (target_inphase == m_inphase
-                     or target_inphase == 1 and m_inphase == 4
-                     or target_inphase == 2 and m_inphase == 5
-                     or target_inphase == 3 and m_inphase in [4, 5])):
-                matching_modules.append(m)
-        return matching_modules
-    else:
+
+def filter_modules_by_articulators(modulelist, target_module: ParameterModule, matchtype='minimal'):
+    """ Filter a list of parameter modules, returning a subset whose articulator / inphase specifications match that of a target module.
+        
+        If matchtype is 'minimal':
+            A target with no articulators specified returns the full modulelist. 
+            A target with articulators specified returns modules where articulators match exactly.
+            A target with articulators specified and no inphase specified returns modules where articulators match exactly.
+            A target with inphase specifications returns modules where the target inphase specs are a subset of the module inphase specs. (e.g. if target is 'connected', modules that are both 'connected' and 'in phase' will also be matched).
+    """
+
+    if not target_module.has_articulators() and matchtype == 'minimal':
         return modulelist
 
+    # module.articulators is (Articulator: str, {1: bool, 2: bool})
+    # module.inphase:
+    # 0: not specifiable; 1: in phase; 2: out of phase; 3: connected; 4: connected & in phase; 5: connected & out of phase (impossible)
+    # (see getphase() in modulespecification_dialog)
+    target_art = target_module.articulators
+    target_inphase = target_module.inphase if hasattr(target_module, "inphase") else 0
+    matching_modules = []
+    for m in modulelist:
+        m_art = m.articulators
+        m_inphase = m.inphase if hasattr(m, "inphase") else 0
+        if matchtype == 'exact' and m_art == target_art and m_inphase == target_inphase:
+            matching_modules.append(m)
+        elif matchtype == 'minimal' and m_art == target_art:
+            if target_inphase == m_inphase:
+                matching_modules.append(m)
+            elif (matchtype == 'minimal' 
+                and (target_inphase == m_inphase 
+                        or target_inphase == 1 and m_inphase == 4
+                        or target_inphase == 2 and m_inphase == 5
+                        or target_inphase == 3 and m_inphase in [4, 5])):
+                matching_modules.append(m)
+    return matching_modules
+
+
 def filter_modules_by_phonlocs(modulelist, target_module, matchtype='minimal'):
-    # TODO: do we care about exact matchtype?
-    if not target_module.phonlocs.allfalse():
+    """ Filter a list of parameter modules, returning a subset whose phonlocs specifications match that of a target module.
+        
+        If matchtype is 'minimal':
+            A target with no phonlocs specified will return the full modulelist. 
+            A target with phonlocs specifications returns modules where the target specs are a subset of the module specs.
+    """
+    if target_module.phonlocs.allfalse() and matchtype == 'minimal':
+        return modulelist
+    if matchtype == 'exact':
+        matching_modules = [m for m in modulelist if m.phonlocs == target_module.phonlocs]
+        return matching_modules
+    else:
         # just get the attribute names that are true in the target. For minimal matching, we don't care about unchecked attributes.
         target_attrs = [attr for attr, val in vars(target_module.phonlocs).items() if val] 
-        modulelist = [m for m in modulelist if all([m.phonlocs[attr] for attr in target_attrs])]
-    return modulelist
+        matching_modules = [m for m in modulelist if all([m.phonlocs[attr] for attr in target_attrs])]
+        return matching_modules
 
 def filter_modules_by_loctype(modulelist, target_module, matchtype='minimal'):
-    # TODO: do we care about exact matchtype?
-    if not target_module.locationtreemodel.locationtype.allfalse():
+    """ Filter a list of parameter modules, returning a subset whose loctype specifications match that of a target module.
+        
+        If matchtype is 'minimal':
+            A target with no loctype specified will return the full modulelist. 
+            A target with only 'signing space' specified will also return modules with 'body-anchored' or 'purely spatial'. 
+    """
+    if target_module.locationtreemodel.locationtype.allfalse() and matchtype == 'minimal':
+        return modulelist
+    if matchtype == 'exact':
+        matching_modules = [m for m in modulelist if m.locationtreemodel.locationtype == target_module.locationtreemodel.locationtype]
+        return matching_modules
+    else:
         # just get the attribute names that are true in the target. For minimal matching, we don't care about unchecked attributes.
         target_attrs = [attr for attr, val in vars(target_module.locationtreemodel.locationtype).items() if val] 
-        modulelist = [m for m in modulelist if all([m.locationtreemodel.locationtype[attr] for attr in target_attrs])]
-    return modulelist
+        matching_modules = [m for m in modulelist if all([getattr(m.locationtreemodel.locationtype, attr) for attr in target_attrs])]
+        return matching_modules
 
 def signtype_matches_target(specs_dict, target, matchtype='minimal'):
     """Used in search function to check if this signtype's specslist matches (i.e. is equal to or more restrictive than) target.

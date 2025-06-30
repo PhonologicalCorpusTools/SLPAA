@@ -63,7 +63,9 @@ class ParameterModule:
             self._moduletype = moduletype
 
     def has_articulators(self):
-        return self.articulators[1][1] or self.articulators[1][2] # between articulator 1 and articulator 2, at least one is True
+        """ Between articulator 1 and articulator 2, at least one is True.
+        """
+        return self.articulators[1][1] or self.articulators[1][2] # 
 
     @property
     def addedinfo(self):
@@ -682,6 +684,9 @@ class LocationType:
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
+    
+    def __eq__(self, other):
+        return isinstance(other, LocationType) and self.body == other.body and self.signingspace == other.signingspace and self.bodyanchored == other.bodyanchored and self.purelyspatial == other.purelyspatial
 
     def __repr__(self):
         repr_str = "nil"
