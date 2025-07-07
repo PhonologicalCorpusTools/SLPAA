@@ -209,7 +209,7 @@ class CompareModel:
             elif loc_type._bodyanchored:
                 r = {'Signing space': {'Body anchored': compare_result_dict}}
             elif loc_type._purelyspatial:
-                r = {'Signing space': {'Purely spacial': compare_result_dict}}
+                r = {'Signing space': {'Purely spatial': compare_result_dict}}
             else:
                 print("[DEBUG] Major location type unspecified.")
                 return {}

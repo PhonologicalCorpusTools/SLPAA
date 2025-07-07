@@ -378,17 +378,33 @@ def get_btn_type_for_path(module_type, path, root_node):
         return 'Path not found'
 
 
-def parse_button_type(node_data: dict):
+def parse_button_type(node_data: dict, k: str = ''):
     # helper function that parses 'button_type' information created by get_btn_type_for_mvmtpath()
-    if not isinstance(node_data, dict):
+    def pick_btn_type(branch: dict):
+        if not isinstance(branch, dict):
+            return []
+        if 'button_type' in branch:
+            return branch['button_type'].split('>')
+        for child in branch.values():
+            if isinstance(child, dict):
+                hit = pick_btn_type(child)
+                if hit:
+                    return hit
         return []
-    if 'button_type' in node_data:
-        return node_data['button_type'].split('>')
-    for k, v in node_data.items():
-        if isinstance(v, dict):
-            deeper = parse_button_type(v)
-            if deeper:
-                return deeper
+
+    # fallback. if k is not given
+    if not k:
+        return pick_btn_type(node_data)
+
+    # regular cases
+    elif k in node_data:
+        return pick_btn_type(node_data[k])
+
+    for child in node_data.values():
+        if isinstance(child, dict):
+            hit = parse_button_type(child, k)
+            if hit:
+                return hit
     return []
 
 
