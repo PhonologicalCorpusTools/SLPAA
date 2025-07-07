@@ -484,7 +484,7 @@ def filter_modules_by_target_handconfig(modulelist, target_module, matchtype='mi
         
         If matchtype is 'minimal':
             A target with 'forearm' unchecked matches modules with any value of 'forearm'.
-            A target with an empty handshape matches all hand configs.s
+            A target with an empty handshape matches all hand configs.
             A target with a custom hand config tuple specified matches modules where the target specs are a subset of the module specs.
             Otherwise, match exactly.
     """
