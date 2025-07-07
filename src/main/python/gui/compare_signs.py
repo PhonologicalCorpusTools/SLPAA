@@ -211,8 +211,8 @@ class CompareSignsDialog(QDialog):
         self.sign1_dropdown.addItems(idgloss_list)
         self.sign2_dropdown.addItems(idgloss_list)
 
-        self.sign1_dropdown.currentIndexChanged.connect(self.update_trees)
-        self.sign2_dropdown.currentIndexChanged.connect(self.update_trees)
+        self.sign1_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
+        self.sign2_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
 
         layout = QHBoxLayout()
         layout.addWidget(QLabel("Select Sign 1:"))
@@ -277,21 +277,38 @@ class CompareSignsDialog(QDialog):
         # Hand-configuration radio-button container (hidden by default)
         self.hand_options_widget = QWidget()
         hand_opts_layout = QVBoxLayout(self.hand_options_widget)
-        # three radio buttons
+
+        # four radio buttons for handshape name
         self.predefined_HC = QRadioButton("Compare predefined hand shape names.")
         self.predefined_HC.setChecked(True)
-        self.predefined_base_variant = QRadioButton("Compare predefined names with a base-variant hierarchy.")
-        self.transcription_matches = QRadioButton("Compare actual transcriptions (exact matches only).")
-        self.transcription_lenient = QRadioButton("Compare actual transcriptions (lenient).")
+        self.predefined_HC.setProperty("compare_target", "predefined")
+        self.predefined_HC.setProperty("details", False)
         hand_opts_layout.addWidget(self.predefined_HC)
+
+        self.predefined_base_variant = QRadioButton("Compare predefined names with a base-variant hierarchy.")
+        self.predefined_base_variant.setProperty("compare_target", "predefined")
+        self.predefined_base_variant.setProperty("details", True)
         hand_opts_layout.addWidget(self.predefined_base_variant)
-        hand_opts_layout.addWidget(self.transcription_matches)
+
+        self.transcription_exact = QRadioButton("Compare actual transcriptions (exact matches only).")
+        self.transcription_exact.setProperty("compare_target", "transcriptions")
+        self.transcription_exact.setProperty("details", True)
+        hand_opts_layout.addWidget(self.transcription_exact)
+
+
+        self.transcription_lenient = QRadioButton("Compare actual transcriptions (lenient).")
+        self.transcription_lenient.setProperty("compare_target", "transcriptions")
+        self.transcription_lenient.setProperty("details", False)
+        hand_opts_layout.addWidget(self.transcription_lenient)
+
+
         hand_opts_layout.addWidget(self.transcription_lenient)
 
         # group them so only one can be checked
         self.hand_btn_group = QButtonGroup(self)
-        for rb in (self.predefined_HC, self.predefined_base_variant, self.transcription_matches, self.transcription_lenient):
+        for rb in (self.predefined_HC, self.predefined_base_variant, self.transcription_exact, self.transcription_lenient):
             self.hand_btn_group.addButton(rb)
+        self.hand_btn_group.buttonClicked.connect(self._on_hand_option_changed)
 
         # hide by default
         self.hand_options_widget.setVisible(False)
@@ -319,11 +336,21 @@ class CompareSignsDialog(QDialog):
             target_scrollbar.setValue(scrolled_value)
             self.syncing_scrollbars = False
 
+    def _on_sign_selection_changed(self, idx):
+        self.update_trees()
+
     def _on_options_toggled(self, checked):
         # show or hide the container
         self.hand_options_widget.setVisible(checked)
         # flip the arrow
         self.options_toggle_btn.setArrowType(Qt.UpArrow if checked else Qt.DownArrow)
+
+    def _on_hand_option_changed(self, btn):
+        # btn: QAbstractButton object
+        options = {'handconfig': None}
+        options['handconfig'] = {'compare_target': btn.property('compare_target'),
+                                 'details': btn.property('details')}
+        self.update_trees(options)
 
     def gen_bottom_btns(self):
         # generate Ok and Cancel buttons
@@ -337,10 +364,13 @@ class CompareSignsDialog(QDialog):
         return button_layout
 
     # clean keys like '0:Mov1' to '0'
-    def clean_data_keys(self, k_set_1, k_set_2):
-        data1_keys = {match.group(1) if (match := re.match(r'^(\d+):', item)) else item for item in k_set_1}
-        data2_keys = {match.group(1) if (match := re.match(r'^(\d+):', item)) else item for item in k_set_2}
-        return data1_keys, data2_keys
+    def clean_data_keys(self, k_lst: list):
+        confirmed_clean = dict()
+        for k in k_lst:
+            match = re.match(r'^(\d+):', k)
+            key = match.group(1) if match else k
+            confirmed_clean[key] = None
+        return list(confirmed_clean)
 
     # get '0:Mov1' from '0'
     def get_original_key(self, many_keys, int_key):
@@ -370,10 +400,11 @@ class CompareSignsDialog(QDialog):
             data2_btn_types = parse_button_type(data2)
 
             # Get the union of all keys in both data1 and data2
-            data1_keys_original = set(data1.keys()) if isinstance(data1, dict) else set()
-            data2_keys_original = set(data2.keys()) if isinstance(data2, dict) else set()
+            data1_keys_original: list = list(data1.keys()) if isinstance(data1, dict) else []
+            data2_keys_original: list = list(data2.keys()) if isinstance(data2, dict) else []
 
-            data1_keys, data2_keys = self.clean_data_keys(data1_keys_original, data2_keys_original)
+            data1_keys = self.clean_data_keys(data1_keys_original)
+            data2_keys = self.clean_data_keys(data2_keys_original)
 
             # case: major location comparison → align current keys and force background colour to be always red
             try:
@@ -446,11 +477,11 @@ class CompareSignsDialog(QDialog):
                     should_paint_red[1] = True
                 should_paint_red = [should_paint_red[0], should_paint_red[1]]
             else:
-                all_keys = sorted(data1_keys.union(data2_keys), reverse=True)
+                all_keys = data1_keys + [k for k in data2_keys if k not in data1_keys]
 
-                for key in reversed(all_keys):
+                for k in all_keys:
                     # case: same parents, different children.
-                    if parent1 == parent2 and key not in (data1_keys & data2_keys) and not parent1.is_root and not parent2.is_root:
+                    if parent1 == parent2 and k not in (set(data1_keys) & set(data2_keys)) and not parent1.is_root and not parent2.is_root:
                         try:
                             is_data1_rb = data1_btn_types[depth] == 'radio button'
                             is_data2_rb = data2_btn_types[depth] == 'radio button'
@@ -463,8 +494,8 @@ class CompareSignsDialog(QDialog):
                             item_labels = []
                             trunc_counts = []
 
-                            for k, btn_t in [(data1_keys, data1_btn_types), (data2_keys, data2_btn_types)]:
-                                label = str(list(k)[0])
+                            for kay, btn_t in [(data1_keys, data1_btn_types), (data2_keys, data2_btn_types)]:
+                                label = str(list(kay)[0])
                                 trunc_n = len(btn_t[depth + 1:])
                                 if trunc_n > 0:
                                     label += f" (+ {trunc_n} truncated for lack of correspondence)"
@@ -491,14 +522,14 @@ class CompareSignsDialog(QDialog):
                             return should_paint_red, should_paint_yellow
                     value1, value2 = None, None
                     try:
-                        value1 = data1.get(self.get_original_key(data1_keys_original, key), None)
-                        value2 = data2.get(self.get_original_key(data2_keys_original, key), None)
+                        value1 = data1.get(self.get_original_key(data1_keys_original, k), None)
+                        value2 = data2.get(self.get_original_key(data2_keys_original, k), None)
                     except AttributeError:
                         # when data1 or data2 is bool
                         pass
 
                     # case: a tree hit the terminal. button_type node should not be visible
-                    if key in {'match', 'button_type'}:
+                    if k in {'match', 'button_type'}:
                         if len(data1_btn_types) != len(data2_btn_types):
 
                             # needs to decide 'which parent' should be yellow
@@ -508,10 +539,10 @@ class CompareSignsDialog(QDialog):
 
                     # Create tree items for both trees
                     stamp_id = next_pair_id()
-                    item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, key)],
+                    item1 = CompareTreeWidgetItem(labels=[self.get_original_key(data1_keys_original, k)],
                                                   palette=self.palette,
                                                   pair_id=stamp_id)
-                    item2 = CompareTreeWidgetItem(labels=[self.get_original_key(data2_keys_original, key)],
+                    item2 = CompareTreeWidgetItem(labels=[self.get_original_key(data2_keys_original, k)],
                                                   palette=self.palette,
                                                   pair_id=stamp_id)
                     del stamp_id
@@ -619,7 +650,7 @@ class CompareSignsDialog(QDialog):
             tree1.addTopLevelItem(top_item1)
             tree2.addTopLevelItem(top_item2)
 
-            # Recursively add children under the top-level item
+            # and then recursively add children under the top-level item
             add_items(parent1=top_item1,
                       parent2=top_item2,
                       data1=data1.get(key, {}),  # sign1 child dictionary
@@ -630,8 +661,17 @@ class CompareSignsDialog(QDialog):
             #top_item1.setExpanded(True)
             #top_item2.setExpanded(True)
 
-    def update_trees(self):
+    def update_trees(self, options: dict = None):
         # Update the dialog visual as the user selects signs from the dropdown
+        # options: dict of options such as handshape compare by predefined name or not
+        if options is None:
+            # default options
+            options = {
+                'handconfig': {
+                    'compare_target': 'predefined', 'details': False
+                }
+            }
+
         label_sign1 = self.sign1_dropdown.currentText()
         label_sign2 = self.sign2_dropdown.currentText()
 
@@ -640,7 +680,7 @@ class CompareSignsDialog(QDialog):
 
         sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # Identify signs to compare
         compare = CompareModel(sign1, sign2)
-        compare_res = compare.compare_sign_pair()
+        compare_res = compare.compare_sign_pair(options)
 
         # Now update trees! Start with clearing.
         self.tree1.clear()

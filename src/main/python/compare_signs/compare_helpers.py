@@ -6,6 +6,7 @@ from itertools import count, product
 
 from constant import ARTICULATOR_ABBREVS, userdefinedroles as udr
 from lexicon.module_classes import Direction
+from gui.handconfigspecification_view import ConfigField  # for predefined handshape labels
 
 _pair_id_counter = count(1)  # for
 
@@ -19,7 +20,10 @@ def summarize_path_comparison(ld):
     def fuse_two_dicts(d1, d2):
         merged = defaultdict(dict)
 
-        for key in set(d1) | set(d2):  # for each key in either d1 or d2
+        # the keys are ordered in this manner:
+        # everything in dictionary 1 comes first, and then anything new from dictionary 2 follows.
+        keys_from_both = list(d1) + [k for k in d2 if k not in d1]
+        for key in keys_from_both:  # for each key in either d1 or d2
             if key in d1 and key in d2:
                 if isinstance(d1[key], dict) and isinstance(d2[key], dict):
                     # Recursively merge dictionaries
@@ -275,6 +279,55 @@ def get_detailed_selections_orientation(ori) -> list:
     return res
 
 
+# extract handshape slots hierarchically for hand configuration comparison
+def extract_handshape_slots(hcm, linear=False):
+    # hcm: HandConfigurationModule
+
+    def linearize(obj, path=''):
+        paths = []
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if k:
+                    new_path = f"{path}>{k}" if path else k
+                else:
+                    new_path = path
+                paths.extend(linearize(v, new_path))
+
+        elif isinstance(obj, list):
+            for item in obj:
+                paths.extend(linearize(item, path))
+
+        else:  # Base case
+            final_path = f"{path}>{obj}" if path else obj
+            paths.append(final_path)
+
+        return paths
+
+    res = {}
+    for field in hcm:
+        field_num = field['field_number']
+        this_field_details = ConfigField(field_num)
+        for slot, slot_info in zip(this_field_details, field['slots']):
+            # slot is a ConfigSlot object (empty slot template) Useful properties in it and examples:
+            # slot.field_type 'thumb'
+            # slot.num '3'
+            # slot.slot_type 'thumb abduction/adduction (CM adduction)'
+            #
+            # slot_info is the specified slot information in Sign at hand
+            this_field_name = f'{field_num} {slot.field_type.capitalize()}'
+
+            if slot.slot_type == '':
+                continue
+
+            if this_field_name not in res:
+                res[this_field_name] = []
+
+            res[this_field_name].append({slot.slot_type: slot_info['symbol']})
+
+    if linear:
+        return linearize(res)
+    return res
+
 #  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
 def get_btn_type_for_path(module_type, path, root_node):
     parts = path.split('>')
@@ -282,7 +335,11 @@ def get_btn_type_for_path(module_type, path, root_node):
 
     if module_type == 'handconfig':
         for part in parts:
-            this_btn = 'checkbox' if part in ['Handshape', 'Forearm'] else 'radio button'
+            this_btn = 'radio button'
+            if 'Handshape' in part:
+                this_btn = 'major loc'
+            elif 'Forearm' in part:
+                this_btn = 'checkbox'
             btn_types.append(this_btn)
         return '>'.join(btn_types)
 
@@ -321,7 +378,7 @@ def get_btn_type_for_path(module_type, path, root_node):
         return 'Path not found'
 
 
-def parse_button_type(node_data):
+def parse_button_type(node_data: dict):
     # helper function that parses 'button_type' information created by get_btn_type_for_mvmtpath()
     if not isinstance(node_data, dict):
         return []

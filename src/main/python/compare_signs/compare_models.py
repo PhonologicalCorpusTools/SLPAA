@@ -4,7 +4,7 @@ from search.helper_functions import relationdisplaytext, articulatordisplaytext,
 from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
                                            compare_elements, summarize_path_comparison,
                                            get_btn_type_for_path, get_checked_paths_from_list,
-                                           get_detailed_checked_paths_location, get_detailed_selections_orientation)
+                                           get_detailed_checked_paths_location, get_detailed_selections_orientation, extract_handshape_slots)
 from compare_signs.align_modules import alignmodules
 from constant import PREDEFINED_MAP  # for predefined hand config name
 
@@ -17,7 +17,7 @@ class CompareModel:
         self.sign2 = sign2
 
     # this is the main compare function that dispatches each module comparison!
-    def compare_sign_pair(self) -> dict:
+    def compare_sign_pair(self, options) -> dict:
         # list of modules to compare
         module_attributes = [attr for attr in dir(self.sign1) if attr.endswith('modules')]
         module_attributes = [attr for attr in module_attributes if not callable(getattr(self.sign1, attr))]
@@ -69,11 +69,10 @@ class CompareModel:
                 result['sign2']['orientation'] = {
                     k: {key: value for d in v for key, value in d.items()}
                     for k, v in ori_res['sign2'].items()
-
                 }
 
             elif 'handconfig' in module:
-                handconfig_res = self.compare_handconfigs()
+                handconfig_res = self.compare_handconfigs(options['handconfig'])
                 # For 'sign1'
                 result['sign1']['handconfig'] = {
                     k: {key: value for d in v for key, value in d.items()}
@@ -269,9 +268,7 @@ class CompareModel:
                 what_selected.append('Signing space > BodyAnchored')
             elif s2_location_type._purelyspatial:
                 what_selected.append('Signing space > PurelySpatial')
-            #QMessageBox.information(None, 'Loc selection', f'[DEBUG] Major location selection info\n\nSign1: {what_selected[0]}\nSign2: {what_selected[1]}')
             del what_selected
-            # end debug
 
             if s1_location_type.usesbodylocations():
                 s1_root_node = locn_options_body
@@ -407,8 +404,8 @@ class CompareModel:
 
         return pair_comparison
 
-    def compare_handconfigs(self) -> dict:
-        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+    def compare_handconfigs(self, options) -> dict:
+        def compare_module_pair(pair: tuple, pairwise: bool = True, options: dict = None) -> (list, list):
             # pair = tuple of HandConfigurationModule
             # pairwise = False if not comparing one pair
             # return tuple of two dict. each contains true or false at each level of granularity
@@ -421,8 +418,8 @@ class CompareModel:
             sign1_hcm = pair[0]
             sign2_hcm = pair[1]
 
-            sign1_slot_specs = pair[0].config_tuple()  # tuple containing all (33) specified configuration value.
-            sign2_slot_specs = pair[1].config_tuple()
+            sign1_slot_specs = sign1_hcm.config_tuple()  # tuple containing all (33) specified configuration value.
+            sign2_slot_specs = sign2_hcm.config_tuple()
 
             # deal with forearm.
             s1_forearm_element = 'Forearm>Included' if sign1_hcm.overalloptions['forearm'] else 'Forearm>Not included'
@@ -431,17 +428,34 @@ class CompareModel:
             s1_path_element.append(s1_forearm_element)
             s2_path_element.append(s2_forearm_element)
 
-            # handshape name
+            # handshape name. used for direct comparison or as top-layer label.
             handshape_names = [''.join(sign1_slot_specs), ''.join(sign2_slot_specs)]
 
+            predefined = [False, False]
             # if shorthand exists for handshape code, use it.
             if sign1_slot_specs in PREDEFINED_MAP:
                 handshape_names[0] = PREDEFINED_MAP[sign1_slot_specs].name
+                predefined[0] = True
             if sign2_slot_specs in PREDEFINED_MAP:
                 handshape_names[1] = PREDEFINED_MAP[sign2_slot_specs].name
+                predefined[1] = True
 
-            s1_path_element.append(f'Handshape>{handshape_names[0]}')
-            s2_path_element.append(f'Handshape>{handshape_names[1]}')
+            # listen to 'options' and decide the comparison target
+            if options['compare_target'] == 'predefined':
+                s1_path_element.append(f'Handshape>{handshape_names[0]}')
+                s2_path_element.append(f'Handshape>{handshape_names[1]}')
+
+                # if base-variant hierarchy required
+                if options['details']:
+                    pass  # to implement
+
+            else:
+                hand1_slots = extract_handshape_slots(hcm=sign1_hcm.handconfiguration, linear=True)
+                hand2_slots = extract_handshape_slots(hcm=sign2_hcm.handconfiguration, linear=True)
+
+                for path1, path2 in zip(hand1_slots, hand2_slots):
+                    s1_path_element.append(f'Handshape 1 Name: {handshape_names[0]}>{path1}')
+                    s2_path_element.append(f'Handshape 2 Name: {handshape_names[1]}>{path2}')
 
             # button types
             s1_path_btn_types = {
@@ -455,7 +469,7 @@ class CompareModel:
             for e1 in s1_path_element:
                 found_counterpart = False
                 for e2 in s2_path_element:
-                    if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                    if e1.split('>')[0] == e2.split('>')[0] or e1.split(' ')[0] == e2.split(' ')[0] == 'Handshape':  # Compare only if they share the same root
                         found_counterpart = True
                         res1, res2 = compare_elements(
                             e1=e1,
@@ -488,15 +502,15 @@ class CompareModel:
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(module)
+                r_sign1, r_sign2 = compare_module_pair(module, options=options)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
             elif module[0]:  # only sign 1 has this module
-                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False, options=options)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:  # only sign 2 has this module
-                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False, options=options)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
