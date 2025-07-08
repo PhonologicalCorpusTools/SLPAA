@@ -438,6 +438,10 @@ class SignLevelInformation:
     @handdominance.setter
     def handdominance(self, new_handdominance):
         self._handdominance = new_handdominance
+    
+    def getabbreviation(self):
+        # used in search function
+        return "SLI"
 
 
 # This module stores the movement information for a particular articulator/s.
