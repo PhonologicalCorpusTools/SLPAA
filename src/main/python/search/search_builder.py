@@ -519,11 +519,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         
 
         if targettype == TargetTypes.SIGNLEVELINFO:
-            if preexistingitem is not None:
-                sli = SignLevelInformation(preexistingitem.searchvaluesitem.values)
-            else:
-                sli = None
-            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(sli, parent=self)
+            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(module, parent=self)
             signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo, row=row))
             signlevelinfo_selector.exec_()
         
@@ -659,24 +655,25 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         self.emit_signal(target, row)
 
     def handle_save_signlevelinfo(self, target, signlevel_info, row=None):
-        values = {}
-        values["entryid"] = signlevel_info.entryid.display_string()
-        values["gloss"] = signlevel_info.gloss
-        values["idgloss"] = signlevel_info.idgloss
-        values["lemma"] = signlevel_info.lemma
-        values["source"] = signlevel_info.source
-        values["signer"] = signlevel_info.signer
-        values["frequency"] = signlevel_info.frequency
-        values["coder"] = signlevel_info.coder
-        values["date created"] = signlevel_info.datecreated
-        values["date last modified"] = signlevel_info.datelastmodified
-        values["note"] = signlevel_info.note
-        # backward compatibility for attribute added 20230412!
-        values["fingerspelled"] = signlevel_info.fingerspelled
-        values["compoundsign"] = signlevel_info.compoundsign
-        values["handdominance"] = signlevel_info.handdominance
-        # TODO update to use signlevel info instead of target values
-        target.searchvaluesitem = SearchValuesItem(target.targettype, module=None, values=values)
+        target.module = signlevel_info
+        # values = {}
+        # values["entryid"] = signlevel_info.entryid.display_string()
+        # values["gloss"] = signlevel_info.gloss
+        # values["idgloss"] = signlevel_info.idgloss
+        # values["lemma"] = signlevel_info.lemma
+        # values["source"] = signlevel_info.source
+        # values["signer"] = signlevel_info.signer
+        # values["frequency"] = signlevel_info.frequency
+        # values["coder"] = signlevel_info.coder
+        # values["date created"] = signlevel_info.datecreated
+        # values["date last modified"] = signlevel_info.datelastmodified
+        # values["note"] = signlevel_info.note
+        # # backward compatibility for attribute added 20230412!
+        # values["fingerspelled"] = signlevel_info.fingerspelled
+        # values["compoundsign"] = signlevel_info.compoundsign
+        # values["handdominance"] = signlevel_info.handdominance
+        # # TODO update to use signlevel info instead of target values
+        # target.searchvaluesitem = SearchValuesItem(target.targettype, module=None, values=values)
         self.emit_signal(target, row)
     
     @property

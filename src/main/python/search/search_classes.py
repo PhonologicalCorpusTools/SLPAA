@@ -102,8 +102,8 @@ class Search_SignLevelInfoSelectorDialog(QDialog):
     
     def get_SLI(self, vals):
         sli = SignLevelInformation(signlevel_info=vals)
-        if vals["entryid"] == "":
-            sli.entryid.counter = ""
+        # if not vals['entryid']:
+        #     sli.entryid.counter = ""
         return sli
 
 class Search_SignLevelInfoPanel(SignLevelInfoPanel):
@@ -208,30 +208,30 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
 
     def get_compoundsignstatus(self):
         if self.compoundsign_F_rb.isChecked():
-            return 'F'
+            return False
         elif self.compoundsign_T_rb.isChecked():
-            return 'T'
+            return True
         else:
-            return ""
+            return None
     
     def set_compoundsignstatus(self, val):
         if val is not None:
-            self.compoundsign_T_rb.setChecked(val=='T')
-            self.compoundsign_F_rb.setChecked(val=='F')
+            self.compoundsign_T_rb.setChecked(val)
+            self.compoundsign_F_rb.setChecked(not val)
 
 
     def get_fingerspelledstatus(self):
         if self.fingerspelled_F_rb.isChecked():
-            return 'F'
+            return False
         elif self.fingerspelled_T_rb.isChecked():
-            return 'T'
+            return True
         else:
-            return ""
+            return None
 
     def set_fingerspelledstatus(self, val):
         if val is not None:
-            self.fingerspelled_T_rb.setChecked(val=='T')
-            self.fingerspelled_F_rb.setChecked(val=='F')
+            self.fingerspelled_T_rb.setChecked(val)
+            self.fingerspelled_F_rb.setChecked(not val)
 
     # don't check that gloss is populated
     def get_value(self):
@@ -1261,4 +1261,6 @@ class XslotTarget:
         min_abbrev = f"min xslots: {self.min_xslots}" if self.min_xslots > -1 else ""
         max_abbrev = f"max xslots: {self.max_xslots}" if self.max_xslots != float('inf') else ""
         return '; '.join(filter(None, [min_abbrev, max_abbrev]))
+    
+
 

@@ -106,6 +106,42 @@ def signtype_matches_target(specs_dict, target, matchtype='minimal'):
                         return False
     return True
 
+def signlevelinfo_matches_target(sli, target_sli, matchtype='minimal'):
+    '''
+    Used in search function to check if this signtype's signlevelinfo matches (i.e. is equal to or more restrictive than) target.
+    TODO: allow fuzzy matching for text (regex?) and date ranges
+
+    For now searches are always minimal.
+        If an attribute is empty, don't check that attribute.
+        Eventually maybe this target will always match exactly, and specific attributes will allow greater precision
+        e.g. by default a text attribute will have * specified
+
+    '''
+    # Check gloss
+    # TODO: eventually we will need to allow multiple target glosses
+    target_gloss = getattr(target_sli, "gloss") 
+    if target_gloss and not g in getattr(sli, "gloss"):
+        return False
+    target_entryid = getattr(target_sli, "entryid").display_string()
+    if target_entryid and not getattr(sli, val).display_string() == target_entryid:
+        return False
+
+    # Text properties: for now, match exactly. TODO: allow regex or other matching methods?
+    for val in ["idgloss", "lemma", "source", "signer", "frequency", "coder", "note"]:
+        target_attr = getattr(target_sli, val)
+        if target_attr and not getattr(sli, val) == target_attr:
+            return False
+    # Binary properties. 
+    for val in ["fingerspelled", "compoundsign", "handdominance"]:
+        target_attr = getattr(target_sli, val)
+        if target_attr and not getattr(sli, val) == target_attr:
+            return False
+    # Dates. TODO: allow date ranges?
+    for val in ["datecreated", "datelastmodified"]:
+        target_attr = getattr(target_sli, val)
+        if target_attr and not getattr(sli, val) == target_attr:
+            return False
+    return True
 
 # TODO
 def module_matches_xslottype(timingintervals, targetintervals, xslottype, xslotstructure, matchtype):

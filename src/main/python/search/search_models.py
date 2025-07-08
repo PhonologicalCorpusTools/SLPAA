@@ -283,59 +283,12 @@ class SearchModel(QStandardItemModel):
   
     
     def sign_matches_SLI(self, sli_rows, sign):
-        '''Returns True if the sign matches all specified rows (corresponding to SLI targets)'''
-        
-        binary_vals = {
-            "fingerspelled": sign.signlevel_information.fingerspelled,
-            "compoundsign": sign.signlevel_information.compoundsign,
-            "handdominance": sign.signlevel_information.handdominance
-        }
-        date_vals = {
-            "datecreated": sign.signlevel_information.datecreated,
-            "datelastmodified": sign.signlevel_information.datelastmodified
-        }
-        text_vals = {
-            "gloss": sign.signlevel_information.gloss,
-            "entryid": sign.signlevel_information.entryid,
-            "idgloss": sign.signlevel_information.idgloss,
-            "lemma": sign.signlevel_information.lemma,
-            "source": sign.signlevel_information.source,
-            "signer": sign.signlevel_information.signer,
-            "frequency": sign.signlevel_information.frequency,
-            "coder": sign.signlevel_information.coder,
-            "note": sign.signlevel_information.note
-        }
-
-        # CHECK TEXT PROPERTIES
-        for val in text_vals:
-            target_vals = []
-            for row in sli_rows:
-                this_val = self.target_values(row).values[val]
-                if this_val not in [None, ""]:
-                    target_vals.append(this_val)
-            if val == "gloss":
-                if not all(x in text_vals["gloss"] for x in target_vals):
-                    return False
-            else:
-                if len(target_vals) > 1:
-                    return False
-                if len(target_vals) == 1:
-                    # logging.warning("checking text val " + val + " is " + target_vals[0])
-                    if text_vals[val] != target_vals[0]:
-                        return False
-        # CHECK BINARY PROPERTIES
-        for val in binary_vals:
-            target_vals = []
-            for row in sli_rows:
-                this_val = self.target_values(row).values[val]
-                if this_val not in [None, ""]:
-                    target_vals.append(this_val)
-            if len(target_vals) > 1 and not all(x == target_vals[0] for x in target_vals):
+        # TODO: handle Notes (AdditionalInfo)
+        sli = sign.signlevel_information
+        for row in sli_rows:
+            target_sli = self.target_module(row)
+            if not (self.is_negative(row) ^ signlevelinfo_matches_target(sli, target_sli, self.matchtype)):
                 return False
-            if len(target_vals) == 1:
-                # logging.warning("checking binary val " + val + " is " + target_vals[0])
-                if binary_vals[val] != target_vals[0]:
-                    return False
         return True
     
     
