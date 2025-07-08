@@ -117,10 +117,12 @@ def signlevelinfo_matches_target(sli, target_sli, matchtype='minimal'):
         e.g. by default a text attribute will have * specified
 
     '''
+    if matchtype == 'exact':
+        return sli == target_sli
     # Check gloss
     # TODO: eventually we will need to allow multiple target glosses
     target_gloss = getattr(target_sli, "gloss") 
-    if target_gloss and not g in getattr(sli, "gloss"):
+    if target_gloss and not target_gloss in getattr(sli, "gloss"):
         return False
     target_entryid = getattr(target_sli, "entryid").display_string()
     if target_entryid and not getattr(sli, val).display_string() == target_entryid:
