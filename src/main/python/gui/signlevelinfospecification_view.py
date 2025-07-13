@@ -274,6 +274,7 @@ class SignLevelInfoPanel(QFrame):
             self.fingerspelled_cb.setChecked(signlevelinfo.fingerspelled)
             self.compoundsign_cb.setChecked(signlevelinfo.compoundsign)
             self.set_handdominance(signlevelinfo.handdominance)
+            self.set_partsofspeech(signlevelinfo.partsofspeech)
 
     def clear(self):
         self.restore_defaults()
@@ -303,6 +304,13 @@ class SignLevelInfoPanel(QFrame):
         elif handdominance == 'L':
             self.handdominance_l_radio.setChecked(True)
 
+    def set_partsofspeech(self, partsofspeech):
+        (checked_list, other_text) = partsofspeech
+        for label in checked_list:
+            self.pos_buttongrp.button(PARTS_OF_SPEECH[label]).setChecked(True)
+        self.other_pos_lineedit.setText(other_text)
+
+
     def get_handdominance(self):
         return 'R' if self.handdominance_r_radio.isChecked() else 'L'
 
@@ -328,7 +336,8 @@ class SignLevelInfoPanel(QFrame):
                 'note': self.note_edit.toPlainText(),
                 'fingerspelled': self.fingerspelled_cb.isChecked(),
                 'compoundsign': self.compoundsign_cb.isChecked(),
-                'handdominance': self.get_handdominance()
+                'handdominance': self.get_handdominance(),
+                'partsofspeech': self.get_partsofspeech()
             }
 
     def get_glosses(self):
@@ -339,6 +348,11 @@ class SignLevelInfoPanel(QFrame):
 
     def get_idgloss(self):
         return self.idgloss_edit.text().strip()
+    
+    def get_partsofspeech(self):
+        checked_btns = [btn.text() for btn in self.pos_buttongrp.buttons() if btn.isChecked()]
+        other_label = self.other_pos_lineedit.text()
+        return (checked_btns, other_label)
 
     @check_empty_glosslemmaIDgloss
     @check_duplicated_idgloss
