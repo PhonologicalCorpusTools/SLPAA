@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QLabel,
     QListView,
-    QMessageBox
+    QGridLayout
 )
 
 from PyQt5.QtCore import (
@@ -28,7 +28,7 @@ from lexicon.lexicon_classes import SignLevelInformation
 from lexicon.module_classes import EntryID
 from gui.decorator import check_duplicated_lemma, check_empty_glosslemmaIDgloss, check_duplicated_idgloss
 from gui.link_help import show_help
-
+from constant import PARTS_OF_SPEECH
 
 class SignLevelDateDisplay(QLabel):
     def __init__(self, thedatetime=None, **kwargs):
@@ -125,6 +125,29 @@ class SignLevelInfoPanel(QFrame):
 
         self.signlevelinfo = signlevelinfo
         self.create_and_set_layout()
+    
+    def create_and_set_pos_layout(self):
+        # parts of speech dropdown list
+        layout = QGridLayout()
+        self.pos_buttongrp = QButtonGroup()
+        self.pos_buttongrp.setExclusive(False)
+        buttons_per_row = 4
+        curr_row = 0
+        for i, label in enumerate(PARTS_OF_SPEECH):
+            curr_col = i % buttons_per_row
+            pos_cb = QCheckBox(label)
+            self.pos_buttongrp.addButton(pos_cb)
+            layout.addWidget(pos_cb, curr_row, curr_col)
+            if curr_col == buttons_per_row - 1:
+                curr_row += 1
+        self.other_pos_lineedit = QLineEdit()
+        other_pos_cb = QCheckBox("Other")
+        other_pos_layout = QHBoxLayout()
+        other_pos_layout.addWidget(other_pos_cb)
+        other_pos_layout.addWidget(self.other_pos_lineedit)
+        self.pos_buttongrp.addButton(other_pos_cb)
+        layout.addLayout(other_pos_layout, curr_row, curr_col+1, 1, 2, Qt.AlignmentFlag(1))
+        return layout
 
     def create_and_set_layout(self):
 
@@ -165,6 +188,8 @@ class SignLevelInfoPanel(QFrame):
         self.fingerspelled_cb = QCheckBox()
         compoundsign_label = QLabel('Compound sign:')
         self.compoundsign_cb = QCheckBox()
+        pos_label = QLabel('Part(s) of speech:')
+        self.pos_layout = self.create_and_set_pos_layout()
 
         handdominance_label = QLabel("Hand dominance:")
         self.handdominance_buttongroup = QButtonGroup()
@@ -196,6 +221,7 @@ class SignLevelInfoPanel(QFrame):
         main_layout.addRow(fingerspelled_label, self.fingerspelled_cb)
         main_layout.addRow(compoundsign_label, self.compoundsign_cb)
         main_layout.addRow(handdominance_label, self.handdominance_layout)
+        main_layout.addRow(pos_label, self.pos_layout)
 
         self.set_value()
 

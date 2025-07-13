@@ -587,6 +587,8 @@ userdefinedroles = UserDefinedRoles({
 
 })
 
+PARTS_OF_SPEECH = ["Noun", "Verb", "Adjective", "Adverb", "Adposition", "Conjunction", "Interjection", 
+                   "Numeral", "Pronoun", "Determiner", "Article", "Phrase", "Unique"]
 
 # TODO KV - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
 treepathdelimiter = ">"
