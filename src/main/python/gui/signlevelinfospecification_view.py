@@ -133,21 +133,35 @@ class SignLevelInfoPanel(QFrame):
         self.pos_buttongrp.setExclusive(False)
         buttons_per_row = 4
         curr_row = 0
-        for i, label in enumerate(PARTS_OF_SPEECH):
+        for label in PARTS_OF_SPEECH:
+            i = PARTS_OF_SPEECH[label]
             curr_col = i % buttons_per_row
             pos_cb = QCheckBox(label)
-            self.pos_buttongrp.addButton(pos_cb)
-            layout.addWidget(pos_cb, curr_row, curr_col)
-            if curr_col == buttons_per_row - 1:
-                curr_row += 1
-        self.other_pos_lineedit = QLineEdit()
-        other_pos_cb = QCheckBox("Other")
+            self.pos_buttongrp.addButton(pos_cb, id=i)
+            if label == "Other": 
+                break
+            else:
+                layout.addWidget(pos_cb, curr_row, curr_col)
+                if curr_col == buttons_per_row - 1:
+                    curr_row += 1
+        
+        self.other_pos_lineedit = QLineEdit("Specify")
+        self.other_pos_lineedit.textEdited.connect(self.handle_othertext_edited)
         other_pos_layout = QHBoxLayout()
-        other_pos_layout.addWidget(other_pos_cb)
+        other_pos_layout.addWidget(self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"]))
         other_pos_layout.addWidget(self.other_pos_lineedit)
-        self.pos_buttongrp.addButton(other_pos_cb)
-        layout.addLayout(other_pos_layout, curr_row, curr_col+1, 1, 2, Qt.AlignmentFlag(1))
+        
+        layout.addLayout(other_pos_layout, curr_row, curr_col, 1, 2, Qt.AlignmentFlag(1))
         return layout
+
+        # if user specifies text for an "other" selection, ensure the parent ("other") radio button is checked
+    def handle_othertext_edited(self, txt):
+        if txt == "":
+            # don't need to do anything special
+            return
+
+        # ensure the parent is checked
+        self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"]).setChecked(True)
 
     def create_and_set_layout(self):
 
@@ -279,6 +293,9 @@ class SignLevelInfoPanel(QFrame):
         self.fingerspelled_cb.setChecked(False)
         self.compoundsign_cb.setChecked(False)
         self.set_handdominance(self.defaulthand)
+        for cb in self.pos_buttongrp.buttons():
+            cb.setChecked(False)
+        self.other_pos_lineedit.setText("")
 
     def set_handdominance(self, handdominance):
         if handdominance == 'R':
