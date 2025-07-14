@@ -579,7 +579,6 @@ class CompareSignsDialog(QDialog):
 
         return newly_added, parent1, parent2
 
-
     # for radio buttons, align different lines and colour the red if same parents
     def _gen_twi_for_radiobuttons(self, parents, children):
         newly_added = []
@@ -669,7 +668,7 @@ class CompareSignsDialog(QDialog):
         print(f"\n[DEBUG] Currently in add_tree_widget_items: trying to add\n    {data1} to {parent1}, \nand\n    {data2} to {parent2}")
 
         # iterate over all keys. for each key create twi and add it
-        already_added_keys = []  # just a temporary storing space to track already added lines
+        already_added_keys = []  # just a temporary storage to prevent duplicates
         for key in all_keys:
             if key in already_added_keys:
                 continue
@@ -734,162 +733,10 @@ class CompareSignsDialog(QDialog):
 
         return parent1, parent2
 
-        """
-            # task 1
-            non_zero_keys, is_data1_non_zero = (data2_keys, False) if len(data1_keys) == 0 else (data1_keys, True)
-            yellow_twi, greyed_out_twi = self._gen_twi_pair(non_zero_keys[0])
-
-            # task 2
-            greyed_out_twi.setForeground(0, brush['grey'])
-            greyed_out_twi.setFlags(Qt.NoItemFlags)
-            yellow_twi.initilize_bg_color('yellow')
-
-            # tasks 3 4 and 5
-            if is_data1_non_zero:
-                should_paint_yellow[0] = True
-                parent1.addChild(yellow_twi)
-                parent2.addChild(greyed_out_twi)
-                child1 = data1.get(non_zero_keys[0], None)
-                should_paint_red = self.add_tree_widget_items(yellow_twi, greyed_out_twi, child1, None, depth+1)
-
-            else:
-                should_paint_yellow[1] = True
-                parent1.addChild(greyed_out_twi)
-                parent2.addChild(yellow_twi)
-                child2 = data2.get(non_zero_keys[0], None)
-                should_paint_red = self.add_tree_widget_items(greyed_out_twi, yellow_twi, None, child2, depth+1)
-
-            return should_paint_red, should_paint_yellow
-            
-
-        # legacy code
-        all_keys = data1_keys + [k for k in data2_keys if k not in data1_keys]
-        shared_keys = list(set(data1_keys).intersection(data2_keys))
-
-        # query button_type (major loc, rb, cb)
-        data1_btn_types = parse_button_type(data1)
-        data2_btn_types = parse_button_type(data2)
-
-        for k in all_keys:
-            # debug
-            k = str(k) if isinstance(k, int) else k
-
-            if 'Handshape' in k:
-                pass
-            value1, value2 = None, None
-            try:
-                value1 = data1.get(self.get_original_key(data1_keys_original, k), None)
-                value2 = data2.get(self.get_original_key(data2_keys_original, k), None)
-            except AttributeError:
-                # when data1 or data2 is bool
-                pass
-
-            # case: a tree hit the terminal. button_type node should not be visible
-            if k in {'match', 'button_type'}:
-                if len(data1_btn_types) != len(data2_btn_types):
-                    # needs to decide 'which parent' should be yellow
-                    index = 0 if value1 is not None else 1
-                    should_paint_yellow[index] = True
-                continue
-
-            # Create tree items for both trees
-            item1, item2 = self._gen_twi_pair(self.get_original_key(data1_keys_original, k),
-                                              self.get_original_key(data2_keys_original, k))
-
-            # Set the color of missing nodes
-            if value1 is None and value2 is not None:
-                # only tree 2 has this node
-                item1.setForeground(0, brush['grey'])  # node in tree 1 greyed out
-                item1.setFlags(Qt.NoItemFlags)
-                item2.initilize_bg_color('yellow')
-                should_paint_yellow[1] = True
-            elif value2 is None and value1 is not None:
-                # only tree 1 has it
-                item2.setForeground(0, brush['grey'])  # node in tree 2 greyed out
-                item2.setFlags(Qt.NoItemFlags)
-                item1.initilize_bg_color('yellow')
-                should_paint_yellow[0] = True
-            parent1.addChild(item1)
-            parent2.addChild(item2)
-
-            # initialize children color flags
-            child_r = [False, False]  # flag marking whether a children node is coloured red
-            child_y = [False, False]  # flag marking whether a children node is coloured yellow
-
-            # If either of the two values are dicts, recurse into them
-            if isinstance(value1, dict) or isinstance(value2, dict):
-                child_r, child_y = self.add_tree_widget_items(item1, item2, value1, value2, depth + 1)
-            else:
-                # Set color for false values
-                if value1 is False and not should_paint_yellow[0]:
-                    item1.initilize_bg_color('red')  # red
-                    should_paint_red[0] = True
-                elif item1.flags() == Qt.NoItemFlags:
-                    item1.initilize_bg_color()  # default case = transparent background
-                elif item2.flags() != Qt.NoItemFlags:
-                    item1.initilize_bg_color('blue')
-                else:
-                    item1.initilize_bg_color('yellow')
-
-                if value2 is False and not should_paint_yellow[1]:
-                    item2.initilize_bg_color('red')  # red
-                    should_paint_red[1] = True
-                elif item2.flags() == Qt.NoItemFlags:
-                    item2.initilize_bg_color()
-                elif item1.flags() != Qt.NoItemFlags:
-                    item2.initilize_bg_color('blue')
-                else:
-                    item2.initilize_bg_color('yellow')
-
-            # color the node depending on children
-            # if a children is either yellow or red, the parent should be red
-            if child_r[0] or child_y[0]:
-                should_paint_red[0] = True
-            if child_r[1] or child_y[1]:
-                should_paint_red[1] = True
-            should_paint_red = [should_paint_red[0], should_paint_red[1]]
-
-        # Check parent1's children for empty (greyed out) lines
-        for i in range(parent1.childCount()):
-            c = parent1.child(i)
-            if c.flags() == Qt.NoItemFlags:  # means c is "missing" on this side
-                should_paint_red[0] = True
-                break  # no need to keep checking
-
-        # ... and parent2
-        for j in range(parent2.childCount()):
-            c = parent2.child(j)
-            if c.flags() == Qt.NoItemFlags:
-                should_paint_red[1] = True
-                break
-
-        # color of the parent node: red wins over yellow
-        if should_paint_red[0]:
-            # red should not override already painted yellow
-            if parent1.background(0).color() != brush['yellow'] and not parent1.flags() == Qt.NoItemFlags:
-                parent1.initilize_bg_color('red')
-        elif should_paint_yellow[0] and parent1 == parent2:
-            parent1.initilize_bg_color('red')
-        elif should_paint_yellow[0]:
-            parent1.initilize_bg_color('yellow')
-        elif not parent1.flags() == Qt.NoItemFlags:
-            parent1.initilize_bg_color('blue')
-
-        if should_paint_red[1]:
-            if parent2.background(0).color() != brush['yellow'] and not parent2.flags() == Qt.NoItemFlags:
-                parent2.initilize_bg_color('red')
-        elif should_paint_yellow[1] and parent1 == parent2:
-            parent2.initilize_bg_color('red')
-        elif should_paint_yellow[1]:
-            parent2.initilize_bg_color('yellow')
-        elif not parent2.flags() == Qt.NoItemFlags:
-            parent2.initilize_bg_color('blue')
-        """
-        return should_paint_red, should_paint_yellow
-
-
     def populate_trees(self, tree1, tree2, data1, data2):
         # 'self.add_tree_widget_items' actually does the heavy lifting
+        # tree1, tree2: QTreeWidget
+        # data1, data2: dict. sign comparison results
 
         # Add each top-level key (e.g., movement, location, relation, ...) as a root item in the tree
         for key in set(data1.keys()).union(data2.keys()):
