@@ -213,6 +213,8 @@ class CompareSignsDialog(QDialog):
         self.tree2 = QTreeWidget()
         self.tree1.setHeaderLabel("Sign 1")
         self.tree2.setHeaderLabel("Sign 2")
+        self.tree1.setSelectionMode(QTreeWidget.NoSelection)
+        self.tree2.setSelectionMode(QTreeWidget.NoSelection)
 
         # colour scheme to be used throughout the dialog
         self.palette = {'red': QBrush(QColor(255, 0, 0, 128)),
