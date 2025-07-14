@@ -30,6 +30,36 @@ class TreeWidgetItemKey:
             # eventually fix this
             self.btn_type = ''
 
+    # wrapper for __eq__ with hand shape broad match option
+    def equals(self, other, handshape_broad_match):
+        # handshape_broad_match: bool. consider equal the following these pairs
+        # f/F = ‘flexed’ and e/E/H = ‘extended’ and x-, x, x+, [x] = ‘crossed’
+
+        # helper function
+        def convert_for_broad_match(key):
+            if key in ['f', 'F']:
+                return 'flexed'
+            elif key in ['e', 'E', 'H']:
+                return 'extended'
+            elif key in ['x-', 'x', 'x+', '\u2327']:  # '\u2327' is the unicode for 'X in square'
+                return 'crossed'
+            return key
+
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+
+        this_key = self.key
+        that_key = other.key
+
+        if handshape_broad_match:
+            this_key = convert_for_broad_match(this_key)
+            that_key = convert_for_broad_match(that_key)
+        return (
+            this_key == that_key and
+            self.btn_type == other.btn_type and
+            self.vacuous == other.vacuous
+        )
+
     def __repr__(self):
         vacuous = ' (vacuous)' if self.vacuous else ''
         return f'<TreeWidgetItemKey {self.key!r}{vacuous}>'
@@ -204,6 +234,14 @@ class CompareSignsDialog(QDialog):
 
         self.corpus = self.parent().corpus
         self.signs = self.corpus.signs  # don't need meta-data; only need 'signs' part
+
+        # default sign comparison options
+        self.comparison_options = {
+            'handconfig': {
+                'compare_target': 'predefined',
+                'details': False
+            }
+        }
 
         # the main layout
         layout = QVBoxLayout()
@@ -581,6 +619,8 @@ class CompareSignsDialog(QDialog):
 
     # for radio buttons, align different lines and colour the red if same parents
     def _gen_twi_for_radiobuttons(self, parents, children):
+        # parents: CompareTreeWidgetItem instances
+        # children: TreeWidgetItemKey instances
         newly_added = []
         parent1, parent2 = parents
         child1, child2 = children
@@ -590,7 +630,7 @@ class CompareSignsDialog(QDialog):
 
         depth = child1.depth
 
-        # task0: check if parents are same
+        # task0: check if same parents, the children should always align
         same_parents = parent1 == parent2
         if same_parents and child1.vacuous:
             child1.update_with_alternative(target_btn_type='radio button')
@@ -599,11 +639,14 @@ class CompareSignsDialog(QDialog):
             child2.update_with_alternative(target_btn_type='radio button')
             newly_added.append(child2.key)
 
+        # as well, if lenient transcriptions comparison option for handconfig, lower and upper cases don't matter
+        handshape_broad_match = True if not self.comparison_options['handconfig']['details'] else False
+
         # task1
         twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
 
         # task2
-        if (child1 != child2) and same_parents:
+        if not child1.equals(child2, handshape_broad_match) and same_parents:
             twi_1.initialize_bg_color('red')
             twi_2.initialize_bg_color('red')
             # task3
@@ -614,7 +657,7 @@ class CompareSignsDialog(QDialog):
         elif child1.vacuous:
             twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2,
                                                         greyout_twi=twi_1)
-        elif child1 == child2:
+        elif child1.equals(child2, handshape_broad_match):
             twi_1.initialize_bg_color('blue')
             twi_2.initialize_bg_color('blue')
 
@@ -756,13 +799,7 @@ class CompareSignsDialog(QDialog):
     def update_trees(self, options: dict = None):
         # Update the dialog visual as the user selects signs from the dropdown
         # options: dict of options such as handshape compare by predefined name or not
-        if options is None:
-            # default options
-            options = {
-                'handconfig': {
-                    'compare_target': 'predefined', 'details': False
-                }
-            }
+        self.comparison_options = options if options is not None else self.comparison_options  # update if needed
 
         label_sign1 = self.sign1_dropdown.currentText()
         label_sign2 = self.sign2_dropdown.currentText()
@@ -772,7 +809,7 @@ class CompareSignsDialog(QDialog):
 
         sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # Identify signs to compare
         compare = CompareModel(sign1, sign2)
-        compare_res = compare.compare_sign_pair(options)
+        compare_res = compare.compare_sign_pair(self.comparison_options)
 
         # Now update trees! Start with clearing.
         self.tree1.clear()
