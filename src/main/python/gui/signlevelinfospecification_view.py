@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QVBoxLayout,
     QDialogButtonBox,
+    QSizePolicy,
     QPlainTextEdit,
     QButtonGroup,
     QCheckBox,
@@ -144,14 +145,17 @@ class SignLevelInfoPanel(QFrame):
                 layout.addWidget(pos_cb, curr_row, curr_col)
                 if curr_col == buttons_per_row - 1:
                     curr_row += 1
-        
+        for col in range(layout.columnCount()):
+            layout.setColumnStretch(col, 1)
+        for row in range(layout.rowCount()):
+            layout.setRowStretch(row, 1)
         self.other_pos_lineedit = QLineEdit("Specify")
         self.other_pos_lineedit.textEdited.connect(self.handle_othertext_edited)
         other_pos_layout = QHBoxLayout()
         other_pos_layout.addWidget(self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"]))
         other_pos_layout.addWidget(self.other_pos_lineedit)
         
-        layout.addLayout(other_pos_layout, curr_row, curr_col, 1, 2, Qt.AlignmentFlag(1))
+        layout.addLayout(other_pos_layout, curr_row, curr_col, 1, 2, Qt.AlignmentFlag(1)) # span one row and two columns; align left
         return layout
 
         # if user specifies text for an "other" selection, ensure the parent ("other") radio button is checked
@@ -236,7 +240,6 @@ class SignLevelInfoPanel(QFrame):
         main_layout.addRow(compoundsign_label, self.compoundsign_cb)
         main_layout.addRow(handdominance_label, self.handdominance_layout)
         main_layout.addRow(pos_label, self.pos_layout)
-
         self.set_value()
 
         self.setLayout(main_layout)
