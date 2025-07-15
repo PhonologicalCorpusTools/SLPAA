@@ -181,8 +181,8 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         self.truncated_count = truncated_count
 
         # underlying and current background colours are unspecified by default, but may be blue red or yellow!
-        self.underlying_bg = None
-        self.current_bg = None
+        self.underlying_bg = None  # colour when collapsed, considering children's matching
+        self.current_bg = None     # 'apparent' background colour, only considering the current tree configurations
         self.force_underlying = False   # if True, expanding/collapsing does not change the background colour
 
         # information on background colour when folded in the compare tree
@@ -215,7 +215,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         if self.background(0).color().name() != self.palette['transparent'].color().name():
             # if the line's colour has already been initialized, do nothing
             return
-        self.underlying_bg = colour
+        self.underlying_bg = colour   # set the 'collapsed' colour
         self.current_bg = colour
         colour_brush = self.palette.get(colour, self.palette['transparent'])
         self.setBackground(0, colour_brush)
@@ -525,13 +525,24 @@ class CompareSignsDialog(QDialog):
         should_paint_yellow = [child is None for child in children]
         return should_paint_yellow, is_terminal
 
-    def _colour_by_children_logic(self, colour_hints_red, colour_hints_yellow):
-        should_paint_red = [False, False]
-        if colour_hints_red[0] or colour_hints_yellow[0]:
-            should_paint_red[0] = True
-        if colour_hints_red[1] or colour_hints_yellow[1]:
-            should_paint_red[1] = True
-        return should_paint_red
+    def _colour_twi_bg(self, twi_1, twi_2):
+        # decide yellow
+        if twi_1.flags() == Qt.NoItemFlags:
+            twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2, greyout_twi=twi_1)
+        elif twi_2.flags() == Qt.NoItemFlags:
+            twi_1, twi_2 = self._asymmetric_twi_colours(yellow_twi=twi_1, greyout_twi=twi_2)
+
+        # decide red
+        if twi_1.red_when_folded_hint:
+            twi_1.initialize_bg_color('red')
+        if twi_2.red_when_folded_hint:
+            twi_2.initialize_bg_color('red')
+
+        # default to blue
+        twi_1.initialize_bg_color('blue')
+        twi_2.initialize_bg_color('blue')
+
+        return twi_1, twi_2
 
     def _add_twi_for_module_roots(self, parents, children):
         # for module roots (e.g., 0:Loc1) children should always be aligned *and consider as equal*
@@ -559,22 +570,17 @@ class CompareSignsDialog(QDialog):
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
 
         # task2
-        if twi_1 == twi_2:
-            twi_1.initialize_bg_color('blue')
-            twi_2.initialize_bg_color('blue')
-        elif twi_1.flags() == Qt.NoItemFlags:
-            twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2, greyout_twi=twi_1)
-        elif twi_2.flags() == Qt.NoItemFlags:
-            twi_1, twi_2 = self._asymmetric_twi_colours(yellow_twi=twi_1, greyout_twi=twi_2)
-        else:
-            twi_1.initialize_bg_color('red')
-            twi_2.initialize_bg_color('red')
+        twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
 
+        # task4
+        if twi_1.underlying_bg in ['red', 'yellow'] or twi_2.underlying_bg in ['red', 'yellow']:
+            parent1.red_when_folded_hint, parent2.red_when_folded_hint = True, True
+
+        # task5
         parent1.addChild(twi_1)
         parent2.addChild(twi_2)
 
         return parent1, parent2
-
 
     def _add_twi_for_major_loc(self, parents, children):
         newly_added = []
@@ -611,7 +617,7 @@ class CompareSignsDialog(QDialog):
         # task5: major loc nodes can never be terminal so must recurse
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
 
-        # task4
+        # task5
         parent1.addChild(twi_1)
         parent2.addChild(twi_2)
 
@@ -661,10 +667,10 @@ class CompareSignsDialog(QDialog):
             twi_1.initialize_bg_color('blue')
             twi_2.initialize_bg_color('blue')
 
-        # task5
+        # task3
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
 
-        # task4
+        # task5
         parent1.addChild(twi_1)
         parent2.addChild(twi_2)
 
@@ -690,7 +696,7 @@ class CompareSignsDialog(QDialog):
         # (1) generate CompareTreeWidgetItem (twi)
         # (2) decide own colours (twi.initialize_bg_color)
         # (3) recurse with their children and (if not terminal)
-        # (4) think again about the colours
+        # (4) decide parent red hints (whether parent should also be red or not)
         # (5) parent.addChild(twi)
         # return parents (with children added)
 
@@ -747,6 +753,9 @@ class CompareSignsDialog(QDialog):
             # task1
             twi_1, twi_2 = self._gen_twi_pair(key)
 
+            # task3
+            twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, data1_key.children, data2_key.children, depth + 1)
+
             # task2
             if data2_key.vacuous:
                 # if sign1 has it but sign2 does not, sign1 becomes yellow, 2 greys out
@@ -757,20 +766,13 @@ class CompareSignsDialog(QDialog):
                 twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2,
                                                             greyout_twi=twi_1)
             else:
-                # both are the same
-                twi_1.initialize_bg_color('blue')
-                twi_2.initialize_bg_color('blue')
-
-            # task3
-            if twi_1.underlying_bg == 'red':
-                parent1.red_when_folded_hint = True
-            elif twi_2.underlying_bg == 'red':
-                parent2.red_when_folded_hint = True
-
-            # task5
-            twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, data1_key.children, data2_key.children, depth + 1)
+                twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
 
             # task4
+            if twi_1.underlying_bg in ['red', 'yellow'] or twi_2.underlying_bg in ['red', 'yellow']:
+                parent1.red_when_folded_hint, parent2.red_when_folded_hint = True, True
+
+            # task5
             parent1.addChild(twi_1)
             parent2.addChild(twi_2)
 
@@ -789,6 +791,7 @@ class CompareSignsDialog(QDialog):
                                                               parent2=top_item2,
                                                               data1=data1.get(key, {}),  # sign1 child dictionary
                                                               data2=data2.get(key, {}))
+            top_item1, top_item2 = self._colour_twi_bg(top_item1, top_item2)
             tree1.addTopLevelItem(top_item1)
             tree2.addTopLevelItem(top_item2)
 
@@ -844,7 +847,7 @@ class CompareSignsDialog(QDialog):
         return sign1, sign2
 
     def on_item_expanded(self, item, target_tree):
-        # when a qtreeitem gets expanded do the following:
+        # when item (=twi) gets expanded do the following:
         # - find corresponding line in the other tree and expand
         # - change colour
         # - update current colour counter
@@ -887,17 +890,17 @@ class CompareSignsDialog(QDialog):
         # update current colour counter
         self.update_current_counters()
 
+    # expand or collapse all lines in tree1 (effectively for tree2 as well due to the sync function)
     def toggle_all_trees(self, expand=True):
-        # expand or collapse all lines in tree1, effectively doing so for tree2 due to syncing
-        # called by either 'expand all' or 'collapse all' button ('expand' parameter)
+        # called by either 'expand all' or 'collapse all' button (differ by the 'expand' parameter)
         def recursive_toggle(root, should_expand):
             # recursively expand or collapse
             for i in range(root.childCount()):
                 item = root.child(i)
                 if should_expand and not item.isExpanded():    # only expand expandable lines
-                    self.tree1.expandItem(item)
+                    self.tree1.expandItem(item)  # connects to on_item_expanded()
                 elif not should_expand and item.isExpanded():  # only collapse collapsible lines
-                    self.tree1.collapseItem(item)
+                    self.tree1.collapseItem(item)  # connects on_item_collapsed()
                 recursive_toggle(item, should_expand)
 
         recursive_toggle(self.tree1.invisibleRootItem(), expand)
