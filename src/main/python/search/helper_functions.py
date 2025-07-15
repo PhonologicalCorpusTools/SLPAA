@@ -136,7 +136,8 @@ def signlevelinfo_matches_target(sli, target_sli, matchtype='minimal'):
     # Binary properties. 
     for val in ["fingerspelled", "compoundsign", "handdominance"]:
         target_attr = getattr(target_sli, val)
-        if target_attr and not getattr(sli, val) == target_attr:
+        # fingerspelled and compoundsign can be T/F/None; handdominance can be L/R/None
+        if target_attr not in [None, ''] and not getattr(sli, val) == target_attr:
             return False
     # Dates. TODO: allow date ranges?
     for val in ["datecreated", "datelastmodified"]:

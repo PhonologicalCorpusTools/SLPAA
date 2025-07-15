@@ -200,7 +200,7 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         elif self.handdominance_l_radio.isChecked():
             return 'L'
         else:
-            return ""
+            return None
     
     def set_handdominance(self, val):
         self.handdominance_r_radio.setChecked(val=='R')
