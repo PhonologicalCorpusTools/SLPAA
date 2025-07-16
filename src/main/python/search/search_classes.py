@@ -102,8 +102,8 @@ class Search_SignLevelInfoSelectorDialog(QDialog):
     
     def get_SLI(self, vals):
         sli = SignLevelInformation(signlevel_info=vals)
-        if vals["entryid"] == "":
-            sli.entryid.counter = ""
+        # if not vals['entryid']:
+        #     sli.entryid.counter = ""
         return sli
 
 class Search_SignLevelInfoPanel(SignLevelInfoPanel):
@@ -200,7 +200,7 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
         elif self.handdominance_l_radio.isChecked():
             return 'L'
         else:
-            return ""
+            return None
     
     def set_handdominance(self, val):
         self.handdominance_r_radio.setChecked(val=='R')
@@ -208,30 +208,30 @@ class Search_SignLevelInfoPanel(SignLevelInfoPanel):
 
     def get_compoundsignstatus(self):
         if self.compoundsign_F_rb.isChecked():
-            return 'F'
+            return False
         elif self.compoundsign_T_rb.isChecked():
-            return 'T'
+            return True
         else:
-            return ""
+            return None
     
     def set_compoundsignstatus(self, val):
         if val is not None:
-            self.compoundsign_T_rb.setChecked(val=='T')
-            self.compoundsign_F_rb.setChecked(val=='F')
+            self.compoundsign_T_rb.setChecked(val)
+            self.compoundsign_F_rb.setChecked(not val)
 
 
     def get_fingerspelledstatus(self):
         if self.fingerspelled_F_rb.isChecked():
-            return 'F'
+            return False
         elif self.fingerspelled_T_rb.isChecked():
-            return 'T'
+            return True
         else:
-            return ""
+            return None
 
     def set_fingerspelledstatus(self, val):
         if val is not None:
-            self.fingerspelled_T_rb.setChecked(val=='T')
-            self.fingerspelled_F_rb.setChecked(val=='F')
+            self.fingerspelled_T_rb.setChecked(val)
+            self.fingerspelled_F_rb.setChecked(not val)
 
     # don't check that gloss is populated
     def get_value(self):
@@ -1247,6 +1247,20 @@ class SearchTargetItem(QStandardItem):
             moduleabbrev = self.module.getabbreviation()
             relationabbrev = self.associatedrelnmodule.getabbreviation()
             return relationabbrev.replace(f"linked {moduletype} module", moduleabbrev)
-            
         else:
             return(self.module.getabbreviation())
+
+class XslotTarget:
+    # unlike the other targets, the x-slot target doesn't have a corresponding module in the regular corpus.
+    # so this class will be used as the SearchTargetItem's module
+    def __init__(self, min_xslots: str, max_xslots: str):
+        self.min_xslots = int(min_xslots) if min_xslots else -1
+        self.max_xslots = int(max_xslots) if max_xslots else float('inf')
+
+    def getabbreviation(self):
+        min_abbrev = f"min xslots: {self.min_xslots}" if self.min_xslots > -1 else ""
+        max_abbrev = f"max xslots: {self.max_xslots}" if self.max_xslots != float('inf') else ""
+        return '; '.join(filter(None, [min_abbrev, max_abbrev]))
+    
+
+

@@ -271,91 +271,24 @@ class SearchModel(QStandardItemModel):
         return True
     
     def sign_matches_xslot(self, rows, sign):
-        # this is a minimal match
-        numxslots = sign.xslotstructure.number
-        if self.matchtype == 'minimal':
-            for row in rows: # 
-                min = self.target_values(row).values["xslot min"]
-                max = self.target_values(row).values["xslot max"]
-                if min == '': # only max specified
-                    if numxslots <= int(max):
-                        return True
-                elif max == '': # only min specified
-                    if numxslots >= int(min):
-                        return True
-                else:
-                    if int(min) <= numxslots and numxslots <= int(max):
-                        return True
-            return False
-        elif self.matchtype == 'exact':
-            for row in rows:
-                min = self.target_values(row).values["xslot min"]
-                max = self.target_values(row).values["xslot max"]
-                if min == '': # only max specified
-                    if numxslots > int(max):
-                        return False
-                elif max == '': # only min specified
-                    if numxslots < int(min):
-                        return False
-                else:
-                    if int(min) > numxslots or numxslots > int(max):
-                        return False
-            return True     
+        # there's no difference between minimal and exact matchtypes for this module type.
+        numxslots = int(sign.xslotstructure.number)
+        for row in rows:
+            min_val = self.target_module(row).min_xslots
+            max_val = self.target_module(row).max_xslots
+            if not (self.is_negative(row) ^ (min_val <= numxslots and numxslots <= max_val)):
+                return False
+        return True
+            
+  
     
     def sign_matches_SLI(self, sli_rows, sign):
-        '''Returns True if the sign matches all specified rows (corresponding to SLI targets)'''
-        
-        binary_vals = {
-            "fingerspelled": sign.signlevel_information.fingerspelled,
-            "compoundsign": sign.signlevel_information.compoundsign,
-            "handdominance": sign.signlevel_information.handdominance
-        }
-        date_vals = {
-            "datecreated": sign.signlevel_information.datecreated,
-            "datelastmodified": sign.signlevel_information.datelastmodified
-        }
-        text_vals = {
-            "gloss": sign.signlevel_information.gloss,
-            "entryid": sign.signlevel_information.entryid,
-            "idgloss": sign.signlevel_information.idgloss,
-            "lemma": sign.signlevel_information.lemma,
-            "source": sign.signlevel_information.source,
-            "signer": sign.signlevel_information.signer,
-            "frequency": sign.signlevel_information.frequency,
-            "coder": sign.signlevel_information.coder,
-            "note": sign.signlevel_information.note
-        }
-
-        # CHECK TEXT PROPERTIES
-        for val in text_vals:
-            target_vals = []
-            for row in sli_rows:
-                this_val = self.target_values(row).values[val]
-                if this_val not in [None, ""]:
-                    target_vals.append(this_val)
-            if val == "gloss":
-                if not all(x in text_vals["gloss"] for x in target_vals):
-                    return False
-            else:
-                if len(target_vals) > 1:
-                    return False
-                if len(target_vals) == 1:
-                    # logging.warning("checking text val " + val + " is " + target_vals[0])
-                    if text_vals[val] != target_vals[0]:
-                        return False
-        # CHECK BINARY PROPERTIES
-        for val in binary_vals:
-            target_vals = []
-            for row in sli_rows:
-                this_val = self.target_values(row).values[val]
-                if this_val not in [None, ""]:
-                    target_vals.append(this_val)
-            if len(target_vals) > 1 and not all(x == target_vals[0] for x in target_vals):
+        # TODO: handle Notes (AdditionalInfo)
+        sli = sign.signlevel_information
+        for row in sli_rows:
+            target_sli = self.target_module(row)
+            if not (self.is_negative(row) ^ signlevelinfo_matches_target(sli, target_sli, self.matchtype)):
                 return False
-            if len(target_vals) == 1:
-                # logging.warning("checking binary val " + val + " is " + target_vals[0])
-                if binary_vals[val] != target_vals[0]:
-                    return False
         return True
     
     
@@ -372,80 +305,23 @@ class SearchModel(QStandardItemModel):
 
     def sign_matches_handconfig(self, rows, sign):
         
-        matching_modules = [m for m in sign.getmoduledict(ModuleTypes.HANDCONFIG).values()]
+        modulelist = [m for m in sign.getmoduledict(ModuleTypes.HANDCONFIG).values()]
 
         for row in rows:
-            matches_this_row = []
             target_module = self.target_module(row)
-            target_forearm = target_module.overalloptions['forearm']
-            # TODO: overalloptions['overall_addedinfo'], overalloptions['forearm_addedinfo']
-            target_tuple = tuple(HandConfigurationHand(target_module.handconfiguration).get_hand_transcription_list())
-
-            for m in matching_modules:
-                sign_forearm = m.overalloptions['forearm']
-                if sign_forearm == target_forearm: # Don't bother checking hand config if forearm doesn't match.
-                    sign_tuple = tuple(HandConfigurationHand(m.handconfiguration).get_hand_transcription_list())
-                    
-                    # Searching for a custom tuple (not a predefined shape)
-                    if target_tuple not in PREDEFINED_MAP: 
-                        # items in certain positions are hardcoded for all tuples.
-                        positions_to_check = [i for i in range(33) if i not in [6,7,14,19,24,29] and target_tuple[i] != ""]
-                        # logging.warning(positions_to_check)
-                        if all([target_tuple[i] == sign_tuple[i] for i in positions_to_check]):
-                            matches_this_row.append(m)
-
-                    # Searching for a predefined shape
-                    else:
-                        target_predefined_shape = PREDEFINED_MAP[target_tuple].name
-                        if sign_tuple in PREDEFINED_MAP:
-                            sign_shape = PREDEFINED_MAP[sign_tuple].name
-                            # logging.warning(sign_shape)
-                            if target_predefined_shape == sign_shape:
-                                matches_this_row.append(m)   
-            if not matches_this_row:
+            if not (self.is_negative(row) ^ bool(filter_modules_by_target_handconfig(modulelist, target_module, self.matchtype))):
                 return False
-            # matching_modules = matches_this_row
-
         return True
         
     def sign_matches_extendedfingers(self, rows, sign):
         matching_modules = [m for m in sign.getmoduledict(ModuleTypes.HANDCONFIG).values()]
-        extended_symbols = ['H', 'E', 'e']
 
         for row in rows:
-            matches_this_row = []
             target_module = self.target_module(row)
-            extended_symbols = ['H', 'E', 'e', 'i'] if target_module.i_extended else ['H', 'E', 'e']
-            # get lists of target extended vs nonextended fingers, where thumb=0, index=1, etc
-            target_extended_fingers, target_nonextended_fingers = [], [] 
-            for index, (finger, value) in enumerate(target_module.finger_selections.items()):
-                if value == "Extended":
-                    target_extended_fingers.append(index)
-                elif value == "Not extended":
-                    target_nonextended_fingers.append(index)
-            # logging.warning(f"extended: {target_extended_fingers}. not: {target_nonextended_fingers}")
-            # get a list of "Number of extended fingers" that were selected
-            target_extended_numbers = [num for num, is_selected in target_module.num_extended_selections.items() if is_selected]
-            # logging.warning(f"nums: {target_extended_numbers}")
-
-            for m in matching_modules:
-                sign_tuple = tuple(HandConfigurationHand(m.handconfiguration).get_hand_transcription_list())
-                sign_ext_fingers = [finger for finger in range(5) if m.finger_is_extended(sign_tuple, extended_symbols, finger)]
-                # logging.warning(f"target ext: {target_extended_fingers}. target not ext: {target_nonextended_fingers}. sign ext: {sign_ext_fingers}")
-
-
-                if ((len(sign_ext_fingers) in target_extended_numbers or target_extended_numbers == [])  # TODO
-                    and all(finger in sign_ext_fingers for finger in target_extended_fingers)
-                    and all(finger not in sign_ext_fingers for finger in target_nonextended_fingers)):
-                    matches_this_row.append(m)
-                    # logging.warning("this module matches.")
-            
-            if len(matches_this_row) == 0:
+            if not (self.is_negative(row) ^ bool(filter_modules_by_target_extendedfingers(matching_modules, target_module, self.matchtype))):
                 return False
-            # matching_modules = matches_this_row
-
-
         return True
+        
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:

@@ -63,7 +63,9 @@ class ParameterModule:
             self._moduletype = moduletype
 
     def has_articulators(self):
-        return self.articulators[1][1] or self.articulators[1][2] # between articulator 1 and articulator 2, at least one is True
+        """ Between articulator 1 and articulator 2, at least one is True.
+        """
+        return self.articulators[1][1] or self.articulators[1][2] # 
 
     @property
     def addedinfo(self):
@@ -436,6 +438,32 @@ class SignLevelInformation:
     @handdominance.setter
     def handdominance(self, new_handdominance):
         self._handdominance = new_handdominance
+    
+    def getabbreviation(self):
+        # used in search function. 
+        to_append = []
+        if self.gloss:
+            to_append.append(f"gloss={self.gloss}") # update once search allows multiple glosses
+        if self.entryid.display_string():
+            to_append.append(f"entryid={self.entryid.display_string()}")
+
+        # Text properties: for now, match exactly. TODO: allow regex or other matching methods?
+        for val in ["idgloss", "lemma", "source", "signer", "frequency", "coder", "note"]:
+            sli_attr = getattr(self, val)
+            if sli_attr:
+                to_append.append(f"{val}={sli_attr}")
+        # Binary properties. 
+        for val in ["fingerspelled", "compoundsign", "handdominance"]:
+            sli_attr = getattr(self, val)
+            # fingerspelled and compoundsign can be T/F/None; handdominance can be L/R/None
+            if sli_attr not in [None, '']:
+                to_append.append(f"{val}={sli_attr}")
+        # Dates. TODO: allow date ranges?
+        for val in ["datecreated", "datelastmodified"]:
+            sli_attr = getattr(self, val)
+            if sli_attr:
+                to_append.append(f"{val}={sli_attr}")
+        return "; ".join(to_append)
 
 
 # This module stores the movement information for a particular articulator/s.
@@ -682,6 +710,9 @@ class LocationType:
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
+    
+    def __eq__(self, other):
+        return isinstance(other, LocationType) and self.body == other.body and self.signingspace == other.signingspace and self.bodyanchored == other.bodyanchored and self.purelyspatial == other.purelyspatial
 
     def __repr__(self):
         repr_str = "nil"

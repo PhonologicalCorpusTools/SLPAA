@@ -31,7 +31,6 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
     QAction,
 )
-from PyQt5.Qt import QStandardItem
 from gui.decorator import check_unsaved_search_targets
 from gui.undo_command import TranscriptionUndoCommand
 from search.results import ResultsView
@@ -45,8 +44,7 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure, RelationModule
 from search.search_models import SearchModel, TargetHeaders, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
-from search.search_classes import SearchTargetItem, CustomRBGrp, XslotTypes,Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, Search_SigntypeSelectorDialog
-
+from search.search_classes import *
 class SearchWindow(QMainWindow):
 
     def __init__(self, app_settings, corpus, app_ctx, **kwargs):
@@ -448,15 +446,15 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         if preexistingitem is not None:
             negative = preexistingitem.negative
             include = preexistingitem.include
-
-        svi = SearchValuesItem(type=TargetTypes.XSLOT, 
-                               module=None, 
-                               values={ "xslot min": min_xslots, 
-                                       "xslot max": max_xslots })
+        module = XslotTarget(min_xslots, max_xslots)
+        # svi = SearchValuesItem(type=TargetTypes.XSLOT, 
+        #                        module=None, 
+        #                        values={ "xslot min": min_xslots, 
+        #                                "xslot max": max_xslots })
         target = SearchTargetItem(name=target_name, 
                                   targettype=TargetTypes.XSLOT, 
                                   xslottype=None, 
-                                  searchvaluesitem=svi,
+                                  module=module,
                                   include=include,
                                   negative=negative)
 
@@ -521,11 +519,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         
 
         if targettype == TargetTypes.SIGNLEVELINFO:
-            if preexistingitem is not None:
-                sli = SignLevelInformation(preexistingitem.searchvaluesitem.values)
-            else:
-                sli = None
-            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(sli, parent=self)
+            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(module, parent=self)
             signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo, row=row))
             signlevelinfo_selector.exec_()
         
@@ -661,24 +655,25 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         self.emit_signal(target, row)
 
     def handle_save_signlevelinfo(self, target, signlevel_info, row=None):
-        values = {}
-        values["entryid"] = signlevel_info.entryid.display_string()
-        values["gloss"] = signlevel_info.gloss
-        values["idgloss"] = signlevel_info.idgloss
-        values["lemma"] = signlevel_info.lemma
-        values["source"] = signlevel_info.source
-        values["signer"] = signlevel_info.signer
-        values["frequency"] = signlevel_info.frequency
-        values["coder"] = signlevel_info.coder
-        values["date created"] = signlevel_info.datecreated
-        values["date last modified"] = signlevel_info.datelastmodified
-        values["note"] = signlevel_info.note
-        # backward compatibility for attribute added 20230412!
-        values["fingerspelled"] = signlevel_info.fingerspelled
-        values["compoundsign"] = signlevel_info.compoundsign
-        values["handdominance"] = signlevel_info.handdominance
-        # TODO update to use signlevel info instead of target values
-        target.searchvaluesitem = SearchValuesItem(target.targettype, module=None, values=values)
+        target.module = signlevel_info
+        # values = {}
+        # values["entryid"] = signlevel_info.entryid.display_string()
+        # values["gloss"] = signlevel_info.gloss
+        # values["idgloss"] = signlevel_info.idgloss
+        # values["lemma"] = signlevel_info.lemma
+        # values["source"] = signlevel_info.source
+        # values["signer"] = signlevel_info.signer
+        # values["frequency"] = signlevel_info.frequency
+        # values["coder"] = signlevel_info.coder
+        # values["date created"] = signlevel_info.datecreated
+        # values["date last modified"] = signlevel_info.datelastmodified
+        # values["note"] = signlevel_info.note
+        # # backward compatibility for attribute added 20230412!
+        # values["fingerspelled"] = signlevel_info.fingerspelled
+        # values["compoundsign"] = signlevel_info.compoundsign
+        # values["handdominance"] = signlevel_info.handdominance
+        # # TODO update to use signlevel info instead of target values
+        # target.searchvaluesitem = SearchValuesItem(target.targettype, module=None, values=values)
         self.emit_signal(target, row)
     
     @property
@@ -966,12 +961,12 @@ class XSlotTargetDialog(QDialog):
         if preexistingitem is not None:
             self.reload_item(preexistingitem)
 
-    def reload_item(self, it):
+    def reload_item(self, it: XslotTarget):
         self.name_widget.text_entry.setText(it.name)
-        if "xslot max" in it.searchvaluesitem.values:
-            self.max_num.setText(it.searchvaluesitem.values["xslot max"])
-        if "xslot min" in it.searchvaluesitem.values:
-            self.min_num.setText(it.searchvaluesitem.values["xslot min"])
+        if it.max_xslots != float('inf'):
+            self.max_num.setText(it.max_xslots)
+        if it.min_xslots > -1:
+            self.min_num.setText(it.min_xslots)
         self.toggle_continue_selectable()
     
     def toggle_continue_selectable(self):

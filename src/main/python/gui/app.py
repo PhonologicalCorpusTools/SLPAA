@@ -2,7 +2,7 @@ import errno
 import sys
 from copy import deepcopy
 from os import getcwd
-from os.path import join, exists, realpath, dirname
+from os.path import join, exists, realpath, dirname, abspath
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
 from .main_window import MainWindow
 
@@ -37,7 +37,8 @@ class AppContext(ApplicationContext):
         if hasattr(sys, 'frozen'):  # running as executable
             resource_dir = join(sys._MEIPASS, 'resources')  # cf. 'datas' parameter in .spec
         else:                       # running from source
-            parent_dir = dirname(getcwd())
+            # parent_dir = dirname(getcwd())
+            parent_dir = dirname(dirname(dirname(abspath(__file__))))
             resource_dir = join(parent_dir, 'resources', 'base')
             # workaround
             if relative_path == 'Icon.ico':
