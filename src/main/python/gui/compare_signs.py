@@ -192,11 +192,11 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         self.palette = palette
 
         self.is_root: bool = False
-        if self._text in ['movement', 'relation', 'orientation', 'location']:
+        if self._text in ['movement', 'relation', 'orientation', 'location', 'handconfig']:
             self.is_root = True
 
         self.is_label: bool = False
-        if self._text.startswith(('H1', 'H2')) or self.is_root:
+        if ':' in self._text or self.is_root:
             self.is_label = True
 
         # pair_id to help finding corresponding line in the other tree
