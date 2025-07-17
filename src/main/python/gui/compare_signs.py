@@ -309,7 +309,7 @@ class CompareSignsDialog(QDialog):
         self.syncing_scrollbars = False
 
         # finally, update trees, including colour counter updates.
-        #self.update_trees()
+        self.update_trees()
 
     def initialize_sign_counters(self):
         # generate a dictionary of ColourCounters for a sign
@@ -713,9 +713,6 @@ class CompareSignsDialog(QDialog):
         all_keys = data1_keys + [k for k in data2_keys if k not in data1_keys]
         shared_keys = list(set(data1_keys).intersection(data2_keys))
 
-        # debug
-        print(f"\n[DEBUG] Currently in add_tree_widget_items: trying to add\n    {data1} to {parent1}, \nand\n    {data2} to {parent2}")
-
         # iterate over all keys. for each key create twi and add it
         already_added_keys = []  # just a temporary storage to prevent duplicates
         for key in all_keys:
@@ -821,7 +818,7 @@ class CompareSignsDialog(QDialog):
         # Populate trees hierarchically
         self.populate_trees(self.tree1, self.tree2, compare_res['sign1'], compare_res['sign2'])
 
-        # Update counters, now as the trees are all populated.
+        # Update counters now, as the trees are all populated.
         self.update_expand_collapse_counters()  # all collapsed / all expanded
         self.update_current_counters()          # current
 
@@ -898,9 +895,11 @@ class CompareSignsDialog(QDialog):
             for i in range(root.childCount()):
                 item = root.child(i)
                 if should_expand and not item.isExpanded():    # only expand expandable lines
-                    self.tree1.expandItem(item)  # connects to on_item_expanded()
+                    self.tree1.expandItem(item)  # does not connect to on_item_expanded()
+                    self.on_item_expanded(item, self.tree2)
                 elif not should_expand and item.isExpanded():  # only collapse collapsible lines
-                    self.tree1.collapseItem(item)  # connects on_item_collapsed()
+                    self.tree1.collapseItem(item)  # does not connect on_item_collapsed()
+                    self.on_item_collapsed(item, self.tree2)
                 recursive_toggle(item, should_expand)
 
         recursive_toggle(self.tree1.invisibleRootItem(), expand)
