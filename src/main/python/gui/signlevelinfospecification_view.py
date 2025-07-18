@@ -128,7 +128,7 @@ class SignLevelInfoPanel(QFrame):
         self.create_and_set_layout()
     
     def create_and_set_pos_layout(self):
-        # parts of speech dropdown list
+        # parts of speech grid layout
         layout = QGridLayout()
         self.pos_buttongrp = QButtonGroup()
         self.pos_buttongrp.setExclusive(False)
@@ -150,6 +150,7 @@ class SignLevelInfoPanel(QFrame):
         for row in range(layout.rowCount()):
             layout.setRowStretch(row, 1)
         self.other_pos_lineedit = QLineEdit("Specify")
+        self.other_pos_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.other_pos_lineedit.textEdited.connect(self.handle_othertext_edited)
         other_pos_layout = QHBoxLayout()
         other_pos_layout.addWidget(self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"]))
