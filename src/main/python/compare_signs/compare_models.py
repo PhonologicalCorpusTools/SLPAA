@@ -1,10 +1,10 @@
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
 from models.location_models import locn_options_body, locn_options_hand, locn_options_purelyspatial
 from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
-from compare_signs.compare_helpers import (analyze_modules, get_informative_elements,
-                                           compare_elements, summarize_path_comparison,
+from compare_signs.compare_helpers import (analyze_modules, extract_handshape_slots, parse_predefined_names,
+                                           summarize_path_comparison, get_informative_elements, compare_elements,
                                            get_btn_type_for_path, get_checked_paths_from_list,
-                                           get_detailed_checked_paths_location, get_detailed_selections_orientation, extract_handshape_slots)
+                                           get_detailed_checked_paths_location, get_detailed_selections_orientation)
 from compare_signs.align_modules import alignmodules
 from constant import PREDEFINED_MAP  # for predefined hand config name
 
@@ -442,14 +442,18 @@ class CompareModel:
 
             # listen to 'options' and decide the comparison target
             if options['compare_target'] == 'predefined':
-                s1_path_element.append(f'Handshape>{handshape_names[0]}')
-                s2_path_element.append(f'Handshape>{handshape_names[1]}')
-
-                # if base-variant hierarchy required
+                # deal with predefined names
                 if options['details']:
-                    pass  # to implement
+                    # base-variant hierarchy required
+                    s1_path_element.extend(parse_predefined_names(handshape_names[0]))
+                    s2_path_element.extend(parse_predefined_names(handshape_names[1]))
+                else:
+                    # not requried
+                    s1_path_element.append(f'Handshape>{handshape_names[0]}')
+                    s2_path_element.append(f'Handshape>{handshape_names[1]}')
 
             else:
+                # deal with handshape slots
                 hand1_slots = extract_handshape_slots(hcm=sign1_hcm.handconfiguration, linear=True)
                 hand2_slots = extract_handshape_slots(hcm=sign2_hcm.handconfiguration, linear=True)
 

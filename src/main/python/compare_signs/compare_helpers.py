@@ -334,12 +334,16 @@ def get_btn_type_for_path(module_type, path, root_node):
     btn_types = []  # this will be the output
 
     if module_type == 'handconfig':
+        bad_blood = False  # bad_blood is like a hereditary curse that renders all descendents into checkbox
         for part in parts:
             this_btn = 'radio button'
             if 'Handshape' in part:
                 this_btn = 'major loc'
-            elif 'Forearm' in part:
+            elif 'Forearm' in part or bad_blood:
                 this_btn = 'checkbox'
+                bad_blood = False  # no more checkboxes in the offsprings
+            elif 'Variant' in part:
+                bad_blood = True
             btn_types.append(this_btn)
         return '>'.join(btn_types)
 
@@ -430,3 +434,50 @@ def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush
     parent1.addChild(item1)
     parent2.addChild(item2)
     return [should_paint_red[0], should_paint_red[1]]
+
+
+# it parses one sign's handshape predefined name into bases and variants.
+def parse_predefined_names(pred_name: str) -> list:
+    # pred_name: str. predefined_names like 'extended A'
+    # returns list of strings
+
+    def in_path_form():
+        return [f'handshape>{category_name}>{detail}'
+                for category_name, category in [('base', bases), ('variant', variants)]
+                for detail in category]
+
+    bases = []
+    variants = []
+
+    pname_comp = pred_name.split(' ')
+
+    # process 'combined'
+    # very special case of 'comboined ILY'
+
+    if 'combined' in pname_comp:
+        # combination of two or more bases
+        pname_comp.remove('combined')
+        for component in pname_comp:
+            if '+' in component:
+                bases = [c for c in component.split('+')]
+            else:
+                variants.append(component)
+        return in_path_form()
+
+    # process 'variants'
+    if 'index' in pname_comp:
+        # first 'index' is variant of variants. it appears at the end of the name, unlike other variants.
+        # so it should switch seats with the 'base'
+        pname_comp[-2], pname_comp[-1] = pname_comp[-1], pname_comp[-2]
+
+    # the last of pname_comp is always the base name except for 'middle finger'
+    if pred_name == 'middle finger':
+        bases.append(pred_name)
+        return in_path_form()
+    else:
+        bases.append(pname_comp.pop())
+
+    # naive solution = variants delimited by space
+    variants.extend(pname_comp)
+
+    return in_path_form()
