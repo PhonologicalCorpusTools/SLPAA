@@ -132,12 +132,9 @@ class SignLevelInfoPanel(QFrame):
         layout = QGridLayout()
         self.pos_buttongrp = QButtonGroup()
         self.pos_buttongrp.setExclusive(False)
-        minHeight = QCheckBox().height()
-        print("btn height", minHeight)
         buttons_per_row = 4
         curr_row = 0
         for label in PARTS_OF_SPEECH:
-            layout.setRowMinimumHeight(curr_row, minHeight)
             i = PARTS_OF_SPEECH[label]
             curr_col = i % buttons_per_row
             pos_cb = QCheckBox(label)
@@ -149,11 +146,10 @@ class SignLevelInfoPanel(QFrame):
                 if curr_col == buttons_per_row - 1:
                     curr_row += 1
                     
-        layout.setRowMinimumHeight(curr_row, minHeight)
         self.other_pos_lineedit = QLineEdit("Specify")
         thisbtn = self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"])
 
-        self.other_pos_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.other_pos_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         thisbtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
         self.other_pos_lineedit.textEdited.connect(self.handle_othertext_edited)
@@ -161,9 +157,6 @@ class SignLevelInfoPanel(QFrame):
         other_pos_layout.addWidget(self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"]))
         other_pos_layout.addWidget(self.other_pos_lineedit)
         layout.addLayout(other_pos_layout, curr_row, curr_col, 1, 2, Qt.AlignmentFlag(0)) # span one row and two columns; default alignment
-        print("btn:", thisbtn.width(), thisbtn.height(), thisbtn.sizeHint(), thisbtn.sizePolicy().verticalPolicy())
-        print("line_edit:", self.other_pos_lineedit.width(), self.other_pos_lineedit.height(), self.other_pos_lineedit.sizeHint(), self.other_pos_lineedit.sizePolicy().verticalPolicy())
-        print("row min height", layout.rowMinimumHeight(2), layout.rowMinimumHeight(3))
         return layout
 
         # if user specifies text for an "other" selection, ensure the parent ("other") radio button is checked
@@ -251,12 +244,6 @@ class SignLevelInfoPanel(QFrame):
         self.set_value()
 
         self.setLayout(main_layout)
-        print("then")
-        thisbtn = self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"])
-        print("btn:", thisbtn.width(), thisbtn.height(), thisbtn.sizeHint(), thisbtn.sizePolicy().verticalPolicy())
-        print("line_edit:", self.other_pos_lineedit.width(), self.other_pos_lineedit.height(), self.other_pos_lineedit.sizeHint(), self.other_pos_lineedit.sizePolicy().verticalPolicy())
-        print("row min height", self.pos_layout.rowMinimumHeight(2), self.pos_layout.rowMinimumHeight(3))
-
 
     def entryid_counter(self):
         if self.signlevelinfo is not None:
