@@ -442,8 +442,8 @@ def parse_predefined_names(pred_name: str) -> list:
     # returns list of strings
 
     def in_path_form():
-        return [f'handshape>{category_name}>{detail}'
-                for category_name, category in [('base', bases), ('variant', variants)]
+        return [f'Handshape>{category_name}>{detail}'
+                for category_name, category in [('Base', bases), ('Variant', variants)]
                 for detail in category]
 
     bases = []
