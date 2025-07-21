@@ -604,7 +604,7 @@ class CompareSignsDialog(QDialog):
         # task1
         twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
 
-        # task2: major location should be either red or blue. we only mark red.
+        # task2: major location should be either red or blue.
         if child1 != child2:
             twi_1.initialize_bg_color('red')
             twi_2.initialize_bg_color('red')
@@ -616,6 +616,11 @@ class CompareSignsDialog(QDialog):
 
         # task5: major loc nodes can never be terminal so must recurse
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
+        # after adding children, we may learn that twi_1 or twi_2 should be red when folded. then, pass that to parents
+        if twi_1.red_when_folded_hint:
+            parent1.red_when_folded_hint = True
+        if twi_2.red_when_folded_hint:
+            parent2.red_when_folded_hint = True
 
         # task5
         parent1.addChild(twi_1)
