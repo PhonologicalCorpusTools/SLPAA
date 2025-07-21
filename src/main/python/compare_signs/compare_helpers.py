@@ -453,7 +453,9 @@ def parse_predefined_names(pred_name: str) -> list:
 
     # process 'combined'
     # very special case of 'comboined ILY'
-
+    if pred_name == 'combined ILY':
+        bases = ['I', 'L', 'Y']
+        return in_path_form()
     if 'combined' in pname_comp:
         # combination of two or more bases
         pname_comp.remove('combined')
@@ -477,7 +479,7 @@ def parse_predefined_names(pred_name: str) -> list:
     else:
         bases.append(pname_comp.pop())
 
-    # naive solution = variants delimited by space
+    # variants delimited by space
     variants.extend(pname_comp)
 
     return in_path_form()
