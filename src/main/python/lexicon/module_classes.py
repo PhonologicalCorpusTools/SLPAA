@@ -258,6 +258,8 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
+            # backward compatibility for attribute added 20250713
+            self._partsofspeech = serializedsignlevelinfo['partsofspeech'] if 'partsofspeech' in serializedsignlevelinfo else ([], "")
         elif signlevel_info is not None:
             self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
@@ -274,6 +276,8 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
             self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
             self._handdominance = signlevel_info['handdominance']
+            # backward compatibility for attribute added 20250713
+            self._partsofspeech = signlevel_info['partsofspeech'] if 'partsofspeech' in signlevel_info else ([], "")
 
     def __eq__(self, other):
         if isinstance(other, SignLevelInformation):
@@ -300,7 +304,8 @@ class SignLevelInformation:
             'note': self._note,
             'fingerspelled': self._fingerspelled,
             'compoundsign': self._compoundsign,
-            'handdominance': self._handdominance
+            'handdominance': self._handdominance,
+            'partsofspeech': self._partsofspeech
         }
 
     @property
@@ -464,6 +469,17 @@ class SignLevelInformation:
             if sli_attr:
                 to_append.append(f"{val}={sli_attr}")
         return "; ".join(to_append)
+
+    @property
+    def partsofspeech(self):
+        if not hasattr(self, '_partsofspeech'):
+            # backward compatibility for attribute added 20250713
+            self._partsofspeech = ([], "")  # default value
+        return self._partsofspeech
+    
+    @partsofspeech.setter
+    def partsofspeech(self, pos):
+        self._partsofspeech = pos
 
 
 # This module stores the movement information for a particular articulator/s.
