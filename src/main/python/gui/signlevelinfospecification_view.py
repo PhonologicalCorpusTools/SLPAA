@@ -1,13 +1,15 @@
 from datetime import datetime
 
 from PyQt5.QtWidgets import (
+    QGroupBox,
+    QSpacerItem,
     QLineEdit,
     QDialog,
     QFrame,
     QHBoxLayout,
-    QFormLayout,
     QRadioButton,
     QVBoxLayout,
+    QFormLayout,
     QDialogButtonBox,
     QSizePolicy,
     QPlainTextEdit,
@@ -147,6 +149,7 @@ class SignLevelInfoPanel(QFrame):
                     curr_row += 1
                     
         self.other_pos_lineedit = QLineEdit("Specify")
+        self.other_pos_lineedit.setMaximumHeight(25)
         thisbtn = self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"])
 
         self.other_pos_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -209,6 +212,9 @@ class SignLevelInfoPanel(QFrame):
         self.compoundsign_cb = QCheckBox()
         pos_label = QLabel('Part(s) of speech:')
         self.pos_layout = self.create_and_set_pos_layout()
+        pos_widget = QGroupBox()
+        pos_widget.setMinimumHeight(110)
+        pos_widget.setLayout(self.pos_layout)
 
         handdominance_label = QLabel("Hand dominance:")
         self.handdominance_buttongroup = QButtonGroup()
@@ -240,7 +246,7 @@ class SignLevelInfoPanel(QFrame):
         main_layout.addRow(fingerspelled_label, self.fingerspelled_cb)
         main_layout.addRow(compoundsign_label, self.compoundsign_cb)
         main_layout.addRow(handdominance_label, self.handdominance_layout)
-        main_layout.addRow(pos_label, self.pos_layout)
+        main_layout.addRow(pos_label, pos_widget)
         self.set_value()
 
         self.setLayout(main_layout)
