@@ -206,6 +206,7 @@ class SignLevelInfoPanel(QFrame):
         self.modified_display = SignLevelDateDisplay()
         note_label = QLabel('Notes:')
         self.note_edit = QPlainTextEdit()
+        self.note_edit.setMaximumHeight(50)
         fingerspelled_label = QLabel('Fingerspelled:')
         self.fingerspelled_cb = QCheckBox()
         compoundsign_label = QLabel('Compound sign:')
@@ -214,6 +215,7 @@ class SignLevelInfoPanel(QFrame):
         self.pos_layout = self.create_and_set_pos_layout()
         pos_widget = QGroupBox()
         pos_widget.setMinimumHeight(110)
+        pos_widget.setMaximumHeight(150)
         pos_widget.setLayout(self.pos_layout)
 
         handdominance_label = QLabel("Hand dominance:")
@@ -248,8 +250,8 @@ class SignLevelInfoPanel(QFrame):
         main_layout.addRow(handdominance_label, self.handdominance_layout)
         main_layout.addRow(pos_label, pos_widget)
         self.set_value()
-
         self.setLayout(main_layout)
+
 
     def entryid_counter(self):
         if self.signlevelinfo is not None:
