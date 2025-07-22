@@ -2,7 +2,8 @@ from datetime import datetime
 
 from PyQt5.QtWidgets import (
     QGroupBox,
-    QSpacerItem,
+    QScrollArea,
+    QWidget,
     QLineEdit,
     QDialog,
     QFrame,
@@ -115,7 +116,7 @@ class GlossesListView(QListView):
                     self.model().removeRow(itemindex.row())
 
 
-class SignLevelInfoPanel(QFrame):
+class SignLevelInfoPanel(QScrollArea):
 
     def __init__(self, signlevelinfo, **kwargs):
         super().__init__(**kwargs)
@@ -149,7 +150,7 @@ class SignLevelInfoPanel(QFrame):
                     curr_row += 1
                     
         self.other_pos_lineedit = QLineEdit("Specify")
-        self.other_pos_lineedit.setMaximumHeight(25)
+        # self.other_pos_lineedit.setMaximumHeight(25)
         thisbtn = self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"])
 
         self.other_pos_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -214,8 +215,7 @@ class SignLevelInfoPanel(QFrame):
         pos_label = QLabel('Part(s) of speech:')
         self.pos_layout = self.create_and_set_pos_layout()
         pos_widget = QGroupBox()
-        pos_widget.setMinimumHeight(110)
-        pos_widget.setMaximumHeight(150)
+        # pos_widget.setMaximumHeight(150)
         pos_widget.setLayout(self.pos_layout)
 
         handdominance_label = QLabel("Hand dominance:")
@@ -250,7 +250,11 @@ class SignLevelInfoPanel(QFrame):
         main_layout.addRow(handdominance_label, self.handdominance_layout)
         main_layout.addRow(pos_label, pos_widget)
         self.set_value()
-        self.setLayout(main_layout)
+
+        scroll_widget = QWidget()
+        scroll_widget.setLayout(main_layout)
+
+        self.setWidget(scroll_widget)
 
 
     def entryid_counter(self):
