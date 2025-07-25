@@ -961,12 +961,13 @@ class XSlotTargetDialog(QDialog):
         if preexistingitem is not None:
             self.reload_item(preexistingitem)
 
-    def reload_item(self, it: XslotTarget):
+    def reload_item(self, it):
+        xslottarget = it.module
         self.name_widget.text_entry.setText(it.name)
-        if it.max_xslots != float('inf'):
-            self.max_num.setText(it.max_xslots)
-        if it.min_xslots > -1:
-            self.min_num.setText(it.min_xslots)
+        if xslottarget.max_xslots != float('inf'):
+            self.max_num.setText(str(xslottarget.max_xslots))
+        if xslottarget.min_xslots > -1:
+            self.min_num.setText(str(xslottarget.min_xslots))
         self.toggle_continue_selectable()
     
     def toggle_continue_selectable(self):
