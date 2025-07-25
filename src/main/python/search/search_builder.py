@@ -940,11 +940,11 @@ class XSlotTargetDialog(QDialog):
             button.setEnabled(False) # to make life easier, the user can only modify the number
 
         min_layout = QHBoxLayout()
-        min_layout.addWidget(self.min_xslots_cb)
+        min_layout.addWidget(QLabel("Minimum number of x-slots:"))
         min_layout.addWidget(self.min_num)
 
         max_layout = QHBoxLayout()
-        max_layout.addWidget(self.max_xslots_cb)
+        max_layout.addWidget(QLabel("Maximum number of x-slots:"))
         max_layout.addWidget(self.max_num)
 
         layout.addWidget(QLabel("Number of x-slots in search results:"))
@@ -977,19 +977,21 @@ class XSlotTargetDialog(QDialog):
     # TODO combine into one function?
     def on_xslottarget_max_edited(self):
         num = self.max_num.text()
-        self.max_xslots_cb.setEnabled(num != "")
-        self.max_xslots_cb.setChecked(num != "")
+        # self.max_xslots_cb.setEnabled(num != "")
+        # self.max_xslots_cb.setChecked(num != "")
         self.toggle_continue_selectable()
 
     def on_xslottarget_min_edited(self):
         num = self.min_num.text()
-        self.min_xslots_cb.setEnabled(num != "")
-        self.min_xslots_cb.setChecked(num != "")
+        # self.min_xslots_cb.setEnabled(num != "")
+        # self.min_xslots_cb.setChecked(num != "")
         self.toggle_continue_selectable()
 
     def on_save_clicked(self):
-        max = self.max_num.text() if self.max_xslots_cb.isChecked() else ""
-        min = self.min_num.text() if self.min_xslots_cb.isChecked() else ""
+        max = self.max_num.text()
+        min = self.min_num.text() 
+        # max = self.max_num.text() if self.max_xslots_cb.isChecked() else ""
+        # min = self.min_num.text() if self.min_xslots_cb.isChecked() else ""
         txt = ""
         
         if (max == "" and min == ""):
@@ -1007,11 +1009,11 @@ class XSlotTargetDialog(QDialog):
 
     def on_restore_defaults_clicked(self):
         self.buttonbox.save_button.setEnabled(False)
-        for b in [self.min_xslots_cb, self.max_xslots_cb]:
-            b.setChecked(False)
-            b.setEnabled(False)
-        self.min_xslots_cb.setChecked(False)
-        self.min_xslots_cb.setChecked(False)
+        # for b in [self.min_xslots_cb, self.max_xslots_cb]:
+        #     b.setChecked(False)
+        #     b.setEnabled(False)
+        # self.min_xslots_cb.setChecked(False)
+        # self.min_xslots_cb.setChecked(False)
         self.max_num.setText("")
         self.min_num.setText("")
         self.name_widget.text_entry.setText("")
