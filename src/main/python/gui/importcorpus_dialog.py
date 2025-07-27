@@ -477,4 +477,3 @@ class ImportCorpusDialog(QDialog):
         if standard == QDialogButtonBox.Close:
             # close dialog
             self.accept()
-

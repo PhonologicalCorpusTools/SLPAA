@@ -267,7 +267,7 @@ class SigntypeSpecificationPanel(QFrame):
         self.setLayout(main_layout)
 
         # ensure that Unspecified is selected by default
-        # TODO KV keep this? or does loadspecs preclude it?
+        # TODO keep this? or does loadspecs preclude it?
         # self.handstype_unspec_radio.toggle()
 
     def setsigntype(self, signtype):
@@ -368,7 +368,6 @@ class SigntypeButtonGroup(QButtonGroup):
             if b.childlayout:
                 self.enableChildWidgets(False, b.childlayout)
 
-    # TODO KV if all of these subsections are implemented  with widgets instead of layouts, is this part easier?
     # parent can be widget or layout
     def enableChildWidgets(self, yesorno, parent):
         if isinstance(parent, QAbstractButton):
@@ -520,7 +519,7 @@ class SigntypeSelectorDialog(QDialog):
                 QMessageBox.critical(self, "Warning", dependency_warning)
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            # TODO KV - problem: not all relevant radio buttons are enabled when restoring default
+            # TODO - problem: not all relevant radio buttons are enabled when restoring default
             self.signtype_widget.setsigntype(self.get_default_signtype())
 
 

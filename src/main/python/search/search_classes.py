@@ -339,7 +339,7 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
         self.button_box.button(QDialogButtonBox.Apply).setDefault(True)
         self.button_box.button(QDialogButtonBox.Apply).setText("Save target")
 
-        # TODO KV keep? from orig locationdefinerdialog:
+        # TODO keep? from orig locationdefinerdialog:
         #      Ref: https://programtalk.com/vs2/python/654/enki/enki/core/workspace.py/
         self.button_box.clicked.connect(self.handle_button_click)
 

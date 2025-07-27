@@ -552,7 +552,7 @@ userdefinedroles = UserDefinedRoles({
 })
 
 
-# TODO KV - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
+# TODO - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
 treepathdelimiter = ">"
 
 

@@ -587,7 +587,7 @@ class PredefinedHandshapeView(QTableView):
         vertical_header.setDefaultAlignment(Qt.AlignCenter)
         vertical_header.setVisible(True)
 
-        num_col = predefined_model.columnCount(self)  # TODO KV does there need to be an argument here?
+        num_col = predefined_model.columnCount(self)  # TODO does there need to be an argument here?
         for col in range(num_col):
             if col == 0:
                 self.horizontalHeader().resizeSection(col, 100)

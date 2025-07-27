@@ -822,15 +822,15 @@ class LocationTreeModel(QStandardItemModel):
     def updateCheckState(self, item):
         thestate = item.checkState()
         if thestate == Qt.Checked:
-            # TODO KV then the user must have checked it,
+            # TODO then the user must have checked it,
             #  so make sure to partially-fill ancestors and also look at ME siblings
             item.check(fully=True, multiple_selection_allowed = self.multiple_selection_allowed)
         elif thestate == Qt.PartiallyChecked:
-            # TODO KV then the software must have updated it based on some other user action
+            # TODO then the software must have updated it based on some other user action
             # make sure any ME siblings are unchecked
             item.check(fully=False, multiple_selection_allowed = self.multiple_selection_allowed)
         elif thestate == Qt.Unchecked:
-            # TODO KV then either...
+            # TODO then either...
             # (1) the user unchecked it and we have to uncheck ancestors and look into ME siblings, or
             # (2) it was unchecked as a (previously partially-checked) ancestor of a user-unchecked node, or
             # (3) it was force-unchecked as a result of ME/sibling interaction
@@ -931,7 +931,7 @@ class BodypartTreeModel(LocationTreeModel):
             pass
         elif structure.children == [] and pathsofar == "":
             # no parameters; build a tree from the default structure
-            # TODO KV define a default structure somewhere (see constant.py)
+            # TODO  define a default structure somewhere (see constant.py)
             if self.bodyparttype == HAND:
                 locn_options = deepcopy(locn_options_hand)
             elif self.bodyparttype == ARM:
@@ -984,7 +984,7 @@ class LocationListModel(QStandardItemModel):
             self.treemodel.listmodel = self
 
     def populate(self, treenode):
-        # colcount = 1  # TODO KV treenode.columnCount()
+        # colcount = 1  # TODO treenode.columnCount()
         for r in range(treenode.rowCount()):
             # for colnum in range(colcount):
             treechild = treenode.child(r, 0)
@@ -1090,7 +1090,7 @@ class LocationTableModel(QAbstractTableModel):
 
     # must implement! abstract parent doesn't define this behaviour
     def data(self, index, role=Qt.DisplayRole):
-        # TODO KV make sure to deal with other potential roles as well
+        # TODO make sure to deal with other potential roles as well
         if not index.isValid():
             return None
         try:
@@ -1165,7 +1165,7 @@ class LocationListItem(QStandardItem):
     def __repr__(self):
         return '<LocationListItem: ' + repr(self.text()) + '>'
 
-    # TODO KV no longer used?
+    # TODO no longer used?
     def updatetext(self, txt=""):
         self.setText(txt)
 
@@ -1266,8 +1266,6 @@ class LocationTreeItem(QStandardItem):
     def check(self, fully=True, multiple_selection_allowed=False):
         self.setCheckState(Qt.Checked if fully else Qt.PartiallyChecked)
         listitem = self.listitem
-        if listitem is None:
-            temp = "pause here"
         self.listitem.setData(fully, Qt.UserRole + udr.selectedrole)
         if fully:
             self.setData(QDateTime.currentDateTimeUtc(), Qt.UserRole + udr.timestamprole)
@@ -1350,7 +1348,7 @@ class LocationTreeItem(QStandardItem):
 
         if self.data(Qt.UserRole + udr.mutuallyexclusiverole):
             pass
-            # TODO KV is this relevant? shouldn't be able to uncheck anyway
+            # TODO is this relevant? shouldn't be able to uncheck anyway
         elif True:  # has a mutually exclusive sibling
             pass
             # might one of those sibling need to be checked, if none of the boxes are?

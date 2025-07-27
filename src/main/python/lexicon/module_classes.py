@@ -2819,7 +2819,7 @@ class HandConfigurationHand:
 class NonManualModule(ParameterModule):
     def __init__(self, nonman_specs=None, articulators=None, timingintervals=None, phonlocs=None, addedinfo=None):
         nonman_specs = self.verify_specs_integrity(nonman_specs)
-        self._nonmanual = nonman_specs  # TODO for minimal export of TRY, this has only 'mouth'
+        self._nonmanual = nonman_specs
         super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.NONMANUAL)
 
     # if nonman_specs misses anything among the seven parts, build missing parts from fullback

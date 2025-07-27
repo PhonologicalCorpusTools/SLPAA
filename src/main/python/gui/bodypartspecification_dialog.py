@@ -103,7 +103,7 @@ class BodypartSpecificationPanel(QFrame):
             treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
             treemodel.populate(treemodel.invisibleRootItem())
 
-        # TODO KV this seems like too much detail to be handling at this level
+        # TODO this seems like too much detail to be handling at this level
         self.locationoptionsselectionpanel.treemodel = treemodel
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.update_detailstable()
@@ -195,7 +195,7 @@ class BodypartSelectorDialog(QDialog):
             self.validate_and_save()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            # TODO KV -- where should the "defaults" be defined?
+            # TODO -- where should the "defaults" be defined?
             self.bodypart1_panel.clear()
             self.bodypart2_panel.clear()
             

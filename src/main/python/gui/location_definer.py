@@ -45,7 +45,7 @@ from constant import LocationParameter, Locations
 from copy import deepcopy
 
 
-# TODO KV there are two classes with this name-- are they exactly the same?
+# TODO there are two classes with this name-- are they exactly the same?
 # Ref: https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
 class LocationPolygon(QGraphicsPolygonItem):
     def __init__(self, polygon, pen_width=5, pen_color='orange', fill_color='#FFD141', fill_alpha=0.5):
