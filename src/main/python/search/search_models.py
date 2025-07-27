@@ -225,8 +225,12 @@ class SearchModel(QStandardItemModel):
                 orientation_matching = filter_modules_by_target_orientation(modules_to_check, target_module, matchtype=self.matchtype)
                 if not (self.is_negative(row) ^ bool(orientation_matching)):
                     return False
+        
+        if ModuleTypes.MOVEMENT in target_dict:
+            if not self.sign_matches_movement(target_dict[ModuleTypes.MOVEMENT], sign):
+                return False
 
-        for ttype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+        for ttype in [ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             if ttype in target_dict:                
                 modules_to_check = [m for m in sign.getmoduledict(ttype).values()]
                 if not modules_to_check:
@@ -235,7 +239,6 @@ class SearchModel(QStandardItemModel):
                 for row in target_rows:
                     matching_modules = modules_to_check
                     terminate_early = True if row == target_rows[-1] else False
-                    # TODO match xslottype
                     target_module = self.target_module(row)
                     if ttype == ModuleTypes.LOCATION:
                         matching_modules = filter_modules_by_target_locn(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
@@ -319,6 +322,19 @@ class SearchModel(QStandardItemModel):
         for row in rows:
             target_module = self.target_module(row)
             if not (self.is_negative(row) ^ bool(filter_modules_by_target_extendedfingers(matching_modules, target_module, self.matchtype))):
+                return False
+        return True
+    
+    def sign_matches_movement(self, rows, sign):
+           
+        modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
+        for row in rows:
+            # if negative ("match signs not containing path xyz"), stop as soon as we find a module containing path xyz
+            terminate_early = True if self.is_negative(row) else False 
+            target_module = self.target_module(row)
+            target_paths = set(target_module.movementtreemodel.get_checked_items())
+            matching_modules = filter_modules_by_target_mvmt(modules_to_check, target_module, target_paths, matchtype=self.matchtype, terminate_early=terminate_early)
+            if not (self.is_negative(row) ^ bool(matching_modules)):
                 return False
         return True
         
