@@ -116,7 +116,7 @@ class ExportCorpusDialog(QDialog):
                 # default is (', ', ': ') if indent is None and (',', ': ') otherwise
                 thestring = json.dumps(serialized_corpus, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
                 reloaded = json.loads(thestring)
-                cleaned = cleandictsforexport(reloaded, self.detaillevel)  # TODO this is where we lose everything but 'mouth' for TRY's nonmanuals
+                cleaned = cleandictsforexport(reloaded, self.detaillevel)
                 json.dump(cleaned, exfile, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
             except Exception:
                 return "export failed"
@@ -153,6 +153,9 @@ def cleandictsforexport(serialstructure, detaillevel):
                 elif k == 'col_contents':
                     # dealt with above
                     pass
+                elif k == 'action_state':
+                    # do not omit any info from non-manual "action/state" subtrees; even when populated the values are empty dictionaries
+                    cleaned_dict[k] = v
                 else:
                     cleaned_item = cleandictsforexport(v, detaillevel)
                     if cleaned_item:
