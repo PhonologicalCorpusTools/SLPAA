@@ -172,7 +172,7 @@ class ColourCounter(QWidget):
 
 # This class represents one line in the compare tree
 class CompareTreeWidgetItem(QTreeWidgetItem):
-    def __init__(self, labels, palette, truncated_count=0, pair_id=0):
+    def __init__(self, labels, palette, truncated_count=0, pair_id=0, override_is_label=False):
         super().__init__(labels)
 
         self._text = self.text(0)
@@ -196,7 +196,7 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
             self.is_root = True
 
         self.is_label: bool = False
-        if ':' in self._text or self.is_root:
+        if override_is_label or ':' in self._text or self.is_root:
             self.is_label = True
 
         # pair_id to help finding corresponding line in the other tree
@@ -492,7 +492,9 @@ class CompareSignsDialog(QDialog):
         return int_key
 
     # generate a pair of CompareTreeWidgetItem instances
-    def _gen_twi_pair(self, label1: str, label2: str = None, trunc_count1: int = 0, trunc_count2: int = 0):
+    def _gen_twi_pair(self, label1: str, label2: str = None,         # text of the twi that shows up in gui
+                      trunc_count1: int = 0, trunc_count2: int = 0,  # number of truncated children of radio button
+                      force_label: bool = False):   # when True, always treated as label (transparent when expanded)
         if label2 is None:
             label2 = label1
 
@@ -501,13 +503,15 @@ class CompareSignsDialog(QDialog):
             labels=[label1],
             palette=self.palette,
             truncated_count=trunc_count1,
-            pair_id=stamp_id
+            pair_id=stamp_id,
+            override_is_label=force_label,
         )
         item2 = CompareTreeWidgetItem(
             labels=[label2],
             palette=self.palette,
             truncated_count=trunc_count2,
-            pair_id=stamp_id
+            pair_id=stamp_id,
+            override_is_label=force_label,
         )
         del stamp_id
 
@@ -753,7 +757,7 @@ class CompareSignsDialog(QDialog):
 
             # default case
             # task1
-            twi_1, twi_2 = self._gen_twi_pair(key)
+            twi_1, twi_2 = self._gen_twi_pair(key, force_label=data1_key.btn_type == 'autogen label')
 
             # task3
             twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, data1_key.children, data2_key.children, depth + 1)

@@ -448,9 +448,9 @@ class CompareModel:
                     s1_path_element.extend(parse_predefined_names(handshape_names[0]))
                     s2_path_element.extend(parse_predefined_names(handshape_names[1]))
                 else:
-                    # not requried
-                    s1_path_element.append(f'Handshape>{handshape_names[0]}')
-                    s2_path_element.append(f'Handshape>{handshape_names[1]}')
+                    # not required
+                    s1_path_element.append(f'Handshape: >{handshape_names[0]}')
+                    s2_path_element.append(f'Handshape: >{handshape_names[1]}')
 
             else:
                 # deal with handshape slots
@@ -458,8 +458,8 @@ class CompareModel:
                 hand2_slots = extract_handshape_slots(hcm=sign2_hcm.handconfiguration, linear=True)
 
                 for path1, path2 in zip(hand1_slots, hand2_slots):
-                    s1_path_element.append(f'Handshape 1 Name: {handshape_names[0]}>{path1}')
-                    s2_path_element.append(f'Handshape 2 Name: {handshape_names[1]}>{path2}')
+                    s1_path_element.append(f'Handshape: {handshape_names[0]}>{path1}')
+                    s2_path_element.append(f'Handshape: {handshape_names[1]}>{path2}')
 
             # button types
             s1_path_btn_types = {
@@ -473,7 +473,7 @@ class CompareModel:
             for e1 in s1_path_element:
                 found_counterpart = False
                 for e2 in s2_path_element:
-                    if e1.split('>')[0] == e2.split('>')[0] or e1.split(' ')[0] == e2.split(' ')[0] == 'Handshape':  # Compare only if they share the same root
+                    if e1.split('>')[0] == e2.split('>')[0] or e1.split(' ')[0] == e2.split(' ')[0] == 'Handshape:':  # Compare only if they share the same root
                         found_counterpart = True
                         res1, res2 = compare_elements(
                             e1=e1,

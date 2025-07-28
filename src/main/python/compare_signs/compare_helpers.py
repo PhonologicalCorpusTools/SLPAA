@@ -328,22 +328,36 @@ def extract_handshape_slots(hcm, linear=False):
         return linearize(res)
     return res
 
-#  Traverse the path and return the button types (i.e., either 'rb' or 'cb') of each element in the path.
+
+#  Traverse the path and return the button types of each element in the path.
 def get_btn_type_for_path(module_type, path, root_node):
+    # btn_types are in two types: basic and additional
+    # basic types are radio_button and checkbox, which are decided by the module spec gui
+    # additional types are 'major loc' and 'autogen label'
+    #
+    # basic btn_types are needed because mismatching rb's and cb's are treated differently in sign comparison
+    # mismatching rb's with same parents are aligned and painted red, while mismatching cb's are in yellow separately.
+    #
+    # 'major loc' matters in Location Comparison. Such as 'Body anchored,' or ' Purely Spatial,'
+    # where two lines are always aligned even if they mismatch
+    # 'autogen label' (automatically generated label) relates to handconfig comparision. it should be transparent when
+    # expanded.
+
     parts = path.split('>')
     btn_types = []  # this will be the output
 
     if module_type == 'handconfig':
-        bad_blood = False  # bad_blood is like a hereditary curse that renders all descendents into checkbox
-        for part in parts:
-            this_btn = 'radio button'
-            if 'Handshape' in part:
+        # by default, all lines should be transparent when expanded,
+        # except the terminal line.
+        # the line 'Handshape' per se should be 'major loc' because the two correspondents should always align.
+        part_len = len(parts) - 1
+        for i, part in enumerate(parts):
+            part = part.lower()
+            this_btn = 'autogen label'
+            if i == part_len:  # terminal
+                this_btn = 'radio button'
+            elif 'handshape' in part:
                 this_btn = 'major loc'
-            elif 'Forearm' in part or bad_blood:
-                this_btn = 'checkbox'
-                bad_blood = False  # no more checkboxes in the offsprings
-            elif 'Variant' in part:
-                bad_blood = True
             btn_types.append(this_btn)
         return '>'.join(btn_types)
 
@@ -382,8 +396,8 @@ def get_btn_type_for_path(module_type, path, root_node):
         return 'Path not found'
 
 
+# it parses 'button_type' information created by get_btn_type_for_path()
 def parse_button_type(node_data: dict, k: str = ''):
-    # helper function that parses 'button_type' information created by get_btn_type_for_mvmtpath()
     def pick_btn_type(branch: dict):
         if not isinstance(branch, dict):
             return []
@@ -442,7 +456,7 @@ def parse_predefined_names(pred_name: str) -> list:
     # returns list of strings
 
     def in_path_form():
-        return [f'Handshape>{category_name}>{detail}'
+        return [f'Handshape: >{category_name}>{detail}'
                 for category_name, category in [('Base', bases), ('Variant', variants)]
                 for detail in category]
 
