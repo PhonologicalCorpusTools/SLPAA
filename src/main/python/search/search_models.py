@@ -19,7 +19,7 @@ from lexicon.module_classes import (AddedInfo, TimingInterval, TimingPoint, Para
                                     ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule,
                                     HandConfigurationHand, PREDEFINED_MAP)
 from constant import TargetTypes, HAND, ARM, LEG, HandConfigSlots
-import logging
+import logging, time
 
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
@@ -27,7 +27,8 @@ from serialization_classes import LocationModuleSerializable, MovementModuleSeri
 from search.helper_functions import *
 from search.search_classes import SearchTargetItem
 
-
+class Precomputed:
+    MOV_PATHS = 'mvmt paths' 
 
 
 class TargetHeaders:
@@ -141,13 +142,29 @@ class SearchModel(QStandardItemModel):
             if self.is_included(row):
                 rows.append(row)
         return rows
+    
+    def precompute_targets(self, selected_rows):
+        # TODO potentially update each time a new target is created.
+        # we pre-compute some things such as movement and location paths
+        # to avoid re-computing them each time we call a filter or sign_matches_ function
+        # Done so far: movement paths
+        
+        self.precomputed_targets = {} # reset
+        for row in selected_rows:
+            if self.target_type(row) == ModuleTypes.MOVEMENT:
+                module = self.target_module(row)
+                self.precomputed_targets[row] = {Precomputed.MOV_PATHS: set(module.movementtreemodel.get_checked_items())}
+            
+        
+        
 
     def search_corpus(self, corpus): # TODO potentially add a rows_to_skip for adding on to existing results table
         corpusname = os.path.split(corpus.path)[1]
         selected_rows = self.get_selected_rows()       
+        self.precompute_targets(selected_rows)
         resultsdict = {}
         
-
+        
         if self.matchdegree == 'all':
             # Create a dictionary to store like targets together. Keys are target type, values are lists containing row numbers.
             negative_rows = [] 
@@ -329,10 +346,15 @@ class SearchModel(QStandardItemModel):
            
         modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
         for row in rows:
+            target_module = self.target_module(row)
+            if row in self.precomputed_targets:
+                target_paths = self.precomputed_targets[row][Precomputed.MOV_PATHS]
+            else:
+                target_paths = set(target_module.movementtreemodel.get_checked_items())
+            
             # if negative ("match signs not containing path xyz"), stop as soon as we find a module containing path xyz
             terminate_early = True if self.is_negative(row) else False 
-            target_module = self.target_module(row)
-            target_paths = set(target_module.movementtreemodel.get_checked_items())
+            
             matching_modules = filter_modules_by_target_mvmt(modules_to_check, target_module, target_paths, matchtype=self.matchtype, terminate_early=terminate_early)
             if not (self.is_negative(row) ^ bool(matching_modules)):
                 return False
