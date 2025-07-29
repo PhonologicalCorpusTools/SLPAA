@@ -5,7 +5,7 @@
 Sign Level Information
 *********************
 
-This module provides a place to tag the particular corpus entry with relevant information, including information about the signer, the coder, the video, and the sign. This information may be used in searches to identify and group together signs based on shared sign level information.
+This module provides a place to tag the particular corpus entry with relevant information, including information about the signer, the coder, the video, and the sign. This information may be used in searches to identify and group together signs based on shared sign level information. As of v. 0.2.0 (July 2025), part-of-speech information is also available to be tagged here. Note that if you have added part-of-speech tags to a corpus and then re-open and save the same corpus with an earlier version (e.g. v. 0.1.0), the part-of-speech information will be permanently lost, with no warning! Please make sure you are using the most up to date version of the software.
 
 NB: There is slightly more detailed information about how glosses, lemmas, and ID-glosses relate to each other in :ref:`sample_corpus`. 
 
@@ -62,8 +62,12 @@ Check the box if this is a compound sign.
 
 Choose from one of the options L or R for the signer. Global settings for hand dominance can be specified by the user in :ref:`setting_preferences`.
 
+- **Part(s) of Speech**
 
-.. image:: images/sign_level_info_example.png
+Check the box(es) for the part(s) of speech applicable for a given sign. Choices are mostly based on the [EAGLES tagset](https://home.uni-leipzig.de/burr/Verb/htm/LinkedDocuments/annotate.pdf) (p. 7), with "Pronoun" and "Determiner" split into separate categories, and the EAGLES' 'Residual' category labelled as "Other." The "Punctuation" category is not included here.
+
+
+.. image:: images/sign_level_info_example_v0-2-0.png
    :width: 90%
    :align: center
 
