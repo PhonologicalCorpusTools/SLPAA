@@ -632,6 +632,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
         """
         Parses the action state options, relative to parent and options.options (children)
         """
+        
         if isinstance(options, str):
             # in shallow module
             main_btn = DeselectableRadioButton(options)
@@ -680,7 +681,8 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
             sub_spacedlayout = QHBoxLayout()
             sub_spacedlayout.setAlignment(Qt.AlignTop)
             sub_spacedlayout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-
+            sub_spacedlayout.addLayout(sub_layout)
+            sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
             if options.options is not None:
                 # parse children
                 for child in options.options:
@@ -705,14 +707,15 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
                             sub_rb = DeselectableRadioButton(child)
                             sub_layout.addWidget(sub_rb)
                         options.as_btn_group.addButton(sub_rb)
-                        sub_spacedlayout.addLayout(sub_layout)
+                        # sub_spacedlayout.addLayout(sub_layout)
 
                         sub_rb.toggled.connect(lambda checked: self.handle_btn_toggled(None, checked, options.main_btn))
 
                     else:
                         self.parse_actionstate(parent=options, options=child)
-                        sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
+                        # sub_spacedlayout.addLayout(options.widget_grouplayout_actionstate)
                         sub_spacedlayout.setStretchFactor(options.widget_grouplayout_actionstate, 1)
+                
                 main_layout.addLayout(sub_spacedlayout)
             parent.widget_grouplayout_actionstate.addLayout(main_layout)
         else:
