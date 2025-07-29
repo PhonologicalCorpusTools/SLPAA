@@ -64,8 +64,7 @@ Choose from one of the options L or R for the signer. Global settings for hand d
 
 - **Part(s) of Speech**
 
-Check the box(es) for the part(s) of speech applicable for a given sign. Choices are mostly based on the [EAGLES tagset](https://home.uni-leipzig.de/burr/Verb/htm/LinkedDocuments/annotate.pdf) (p. 7), with "Pronoun" and "Determiner" split into separate categories, and the EAGLES' 'Residual' category labelled as "Other." The "Punctuation" category is not included here.
-
+Check the box(es) for the part(s) of speech applicable for a given sign. Choices are mostly based on the `EAGLES tagset <https://home.uni-leipzig.de/burr/Verb/htm/LinkedDocuments/annotate.pdf>`_ (p. 7), with "Pronoun" and "Determiner" split into separate categories, and the EAGLES' 'Residual' category labelled as "Other." The "Punctuation" category is not included here.
 
 .. image:: images/sign_level_info_example_v0-2-0.png
    :width: 90%
