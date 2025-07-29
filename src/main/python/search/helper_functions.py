@@ -364,26 +364,30 @@ def filter_modules_by_target_mvmt(modulelist, target_module, target_paths:set=No
         If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. 
         If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """ 
+    if not modulelist:
+        return []
     for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
         modulelist = filter(modulelist, target_module, matchtype)
-        if not matching_modules:
+        if not modulelist:
             return []
+
+    # TODO filter by xslot types! 
 
     # Filter for modules that match target paths
     target_paths = target_paths or set(target_module.movementtreemodel.get_checked_items())
-    # for m in matching_modules:
-    # if matchtype == 'exact':
-    #     if terminate_early:
-    #         pass
-    if target_paths:
-        # TODO matching_modules = m for m in ... if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
-        # TODO minimal vs exact, and terminate_early
-        matching_modules = [m for m in matching_modules if target_paths.issubset(set(m.movementtreemodel.get_checked_items()))]
-        
-        if not matching_modules: return []
-                
-    return matching_modules
+    if terminate_early:
+        for m in modulelist:
+            module_paths = set(m.movementtreemodel.get_checked_items())
+            if ((matchtype == "exact" and module_paths == target_paths) 
+                or (matchtype == "minimal" and target_paths.issubset(module_paths))):
+                return [m]
+    elif matchtype == "exact":
+        return [m for m in modulelist if set(m.movementtreemodel.get_checked_items()) == target_paths]
+    elif matchtype == "minimal":
+        return [m for m in modulelist if target_paths.issubset(set(m.movementtreemodel.get_checked_items()))]
+            
 
+                
 def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal', terminate_early=False): 
     """
     Filter a list of location modules, returning a subset that matches a target location module.
