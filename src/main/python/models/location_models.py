@@ -931,7 +931,6 @@ class BodypartTreeModel(LocationTreeModel):
             pass
         elif structure.children == [] and pathsofar == "":
             # no parameters; build a tree from the default structure
-            # TODO  define a default structure somewhere (see constant.py)
             if self.bodyparttype == HAND:
                 locn_options = deepcopy(locn_options_hand)
             elif self.bodyparttype == ARM:

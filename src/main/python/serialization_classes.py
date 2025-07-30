@@ -185,7 +185,7 @@ class MovementTreeSerializable:
 # and from saveable form.
 class LocationTreeSerializable:
 
-    def __init__(self, locntreemodel=None):  # , infodicts=None):
+    def __init__(self, locntreemodel=None):
 
         self.numvals = {}  # deprecated
         self.checkstates = {}
@@ -197,36 +197,14 @@ class LocationTreeSerializable:
         self.defaultneutralselected = False
         self.defaultneutrallist = None
 
-        # # reading from JSON
-        # if locntreemodel is None and infodicts is not None:
-        #     # just import the dicts directly-- not from an existing LocationTreeModel
-        #     loctypedict = infodicts.pop('locationtype', {})
-        #     self.locationtype = LocationType()
-        #     self.locationtype.__dict__.update(loctypedict)
-        #
-        #     detailstables = infodicts.pop('detailstables', {})
-        #     for k, v in detailstables.items():
-        #         self.detailstables[k] = LocationTableSerializable(infodict=v)
-        #
-        #     addedinfos = infodicts.pop('addedinfos', {})
-        #     for k, v in addedinfos.items():
-        #         addedinfo = AddedInfo()
-        #         addedinfo.__dict__.update(v)
-        #         self.addedinfos[k] = addedinfo
-        #
-        #     # remaining subdicts: 'checkstates', 'multiple_selection_allowed', 'nodes_are_terminal',
-        #     #   'defaultneutralselected', 'defaultneutrallist'
-        #     self.__dict__.update(infodicts)
-
-        if True:  # else:
-            # creates a full serializable copy of the location tree, eg for saving to disk
-            treenode = locntreemodel.invisibleRootItem()
-            self.collectdatafromLocationTreeModel(treenode)
-            self.locationtype = copy(locntreemodel.locationtype)
-            self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
-            self.nodes_are_terminal = locntreemodel.nodes_are_terminal
-            self.defaultneutralselected = locntreemodel.defaultneutralselected
-            self.defaultneutrallist = locntreemodel.defaultneutrallist
+        # creates a full serializable copy of the location tree, eg for saving to disk
+        treenode = locntreemodel.invisibleRootItem()
+        self.collectdatafromLocationTreeModel(treenode)
+        self.locationtype = copy(locntreemodel.locationtype)
+        self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
+        self.nodes_are_terminal = locntreemodel.nodes_are_terminal
+        self.defaultneutralselected = locntreemodel.defaultneutralselected
+        self.defaultneutrallist = locntreemodel.defaultneutrallist
 
     # collect data from the LocationTreeModel to store in this LocationTreeSerializable
     def collectdatafromLocationTreeModel(self, treenode):
@@ -254,20 +232,13 @@ class LocationTreeSerializable:
 # LocationTableModel to convert to and from saveable form.
 class LocationTableSerializable:
 
-    def __init__(self, locntablemodel=None):  # , infodict=None):
+    def __init__(self, locntablemodel=None):
         self.col_labels = ["", ""]
         self.col_contents = [[], []]
 
-        # if locntablemodel is None and infodict is not None:
-        #     # just import the dicts directly-- not from an existing LocationTableModel
-        #     if 'col_labels' in infodict.keys():
-        #         self.col_labels = infodict['col_labels']
-        #     if 'col_contents' in infodict.keys():
-        #         self.col_contents = infodict['col_contents']
-        if True:  # else:
-            # creates a full serializable copy of the location table, eg for saving to disk
-            self.col_labels = locntablemodel.col_labels
-            self.col_contents = locntablemodel.col_contents
+        # creates a full serializable copy of the location table, eg for saving to disk
+        self.col_labels = locntablemodel.col_labels
+        self.col_contents = locntablemodel.col_contents
 
     def isempty(self):
         labelsempty = self.col_labels == ["", ""]
@@ -290,74 +261,6 @@ class BodypartInfoSerializable:
             self.bodyparttree = LocationTreeSerializable(bodypartinfo.bodyparttreemodel)
         else:
             self.bodyparttree = None
-
-
-# # This class is a serializable form of the class BodypartTreeModel, which is itself not pickleable.
-# # Rather than being based on QStandardItemModel, this one uses dictionary structures to convert to
-# # and from saveable form.
-# class BodypartTreeSerializable:
-#
-#     def __init__(self, bodyparttreemodel=None, infodicts=None):
-#
-#         self.checkstates = {}
-#         self.detailstables = {}
-#         self.addedinfos = {}
-#         self.locationtype = None
-#         self.multiple_selection_allowed = False
-#         self.nodes_are_terminal = False
-#         self.defaultneutralselected = False
-#         self.defaultneutrallist = None
-#
-#         # reading from JSON
-#         if locntreemodel is None and infodicts is not None:
-#             # just import the dicts directly-- not from an existing LocationTreeModel
-#             loctypedict = infodicts.pop('locationtype', {})
-#             self.locationtype = LocationType()
-#             self.locationtype.__dict__.update(loctypedict)
-#
-#             detailstables = infodicts.pop('detailstables', {})
-#             for k, v in detailstables.items():
-#                 self.detailstables[k] = LocationTableSerializable(infodict=v)
-#
-#             addedinfos = infodicts.pop('addedinfos', {})
-#             for k, v in addedinfos.items():
-#                 addedinfo = AddedInfo()
-#                 addedinfo.__dict__.update(v)
-#                 self.addedinfos[k] = addedinfo
-#
-#             # remaining subdicts: 'checkstates', 'multiple_selection_allowed', 'nodes_are_terminal',
-#             #   'defaultneutralselected', 'defaultneutrallist'
-#             self.__dict__.update(infodicts)
-#
-#         else:
-#             # creates a full serializable copy of the location tree, eg for saving to disk
-#             treenode = locntreemodel.invisibleRootItem()
-#             self.collectdatafromLocationTreeModel(treenode)
-#             self.locationtype = copy(locntreemodel.locationtype)
-#             self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
-#             self.nodes_are_terminal = locntreemodel.nodes_are_terminal
-#             self.defaultneutralselected = locntreemodel.defaultneutralselected
-#             self.defaultneutrallist = locntreemodel.defaultneutrallist
-#
-#     # collect data from the LocationTreeModel to store in this LocationTreeSerializable
-#     def collectdatafromLocationTreeModel(self, treenode):
-#         if treenode is not None:
-#             for r in range(treenode.rowCount()):
-#                 treechild = treenode.child(r, 0)
-#                 if treechild is not None:
-#                     pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-#                     checkstate = treechild.checkState()
-#                     locntable = treechild.detailstable
-#                     addedinfo = treechild.addedinfo
-#                     self.addedinfos[pathtext] = copy(addedinfo)
-#                     self.detailstables[pathtext] = LocationTableSerializable(locntable)
-#                     self.checkstates[pathtext] = checkstate
-#                     iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
-#                     userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
-#                     # if iseditable:
-#                     #     self.userspecifiedvalues[pathtext] = userspecifiedvalue
-#
-#                 self.collectdatafromLocationTreeModel(treechild)
 
 
 # for backward compatibility with package structure from pre- issue #69 (20230510)
@@ -415,10 +318,9 @@ def renamed_loads(pickled_bytes):
     return renamed_load(file_obj)
 
 
-# copied instead of imported, to avoid yet another package requirement for RAs
-# from https://github.com/pydantic/pydantic/blob/fd2991fe6a73819b48c906e3c3274e8e47d0f761/pydantic/utils.py#L200
-# TODO consider actually importing the package once RAs have switched to using the executable
-# from pydantic.utils import deep_update
+# copied and adapted from
+# https://github.com/pydantic/pydantic/blob/fd2991fe6a73819b48c906e3c3274e8e47d0f761/pydantic/utils.py#L200
+# ... otherwise importable from pydantic.utils import deep_update
 def deep_update_pydantic(mapping, updating_mappings):
     updated_mapping = mapping.copy()
     # for updating_mapping in updating_mappings.items():  # I added .items()

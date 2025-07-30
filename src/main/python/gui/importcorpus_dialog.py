@@ -337,8 +337,6 @@ class ImportCorpusDialog(QDialog):
                     addedinfo = self.read_addedinfo(onebodypart.pop('addedinfo', {}))
                     bodyparttreemodel = BodypartTreeModel(bodyparttype=articulator,
                                                           jsondict=onebodypart['bodyparttree'])
-                    # ltreeser = LocationTreeSerializable(infodicts=onebodypart['bodyparttree'])
-                    # bodyparttreemodel = BodypartTreeModel(bodyparttype=articulator, serializedbodyparttree=ltreeser)
                     bodyparts[articulator][artnum] = BodypartInfo(bodyparttype=articulator,
                                                                   bodyparttreemodel=bodyparttreemodel,
                                                                   addedinfo=addedinfo)
