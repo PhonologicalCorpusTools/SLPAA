@@ -1301,7 +1301,9 @@ class Signtype:
             abbrevlist = []
             abbrevstr = ""
             for k in abbrevsdict.keys():
-                abbrevlist.append(k + self.makeabbreviationstring(abbrevsdict[k]))
+                isarticulatorabbr = re.match('^[12][hal]$', k)
+                k_display = k.upper() if isarticulatorabbr else k
+                abbrevlist.append(k_display + self.makeabbreviationstring(abbrevsdict[k]))
             abbrevstr += "; ".join(abbrevlist)
             return " (" + abbrevstr + ")"
 
