@@ -17,6 +17,3 @@ dist/*
 !dist/SLPAA-win64*.zip
 !dist/SLPAA-macos*.zip
 
-src/main/python/exports_donotsync/*
-
-
