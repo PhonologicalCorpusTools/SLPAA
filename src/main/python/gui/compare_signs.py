@@ -666,17 +666,17 @@ class CompareSignsDialog(QDialog):
         twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
 
         # task2
-        if not child1.equals(child2, handshape_broad_match) and same_parents:
-            twi_1.initialize_bg_color('red')
-            twi_2.initialize_bg_color('red')
-            # task3
-            parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
-        elif child2.vacuous:
+        if child2.vacuous:
             twi_1, twi_2 = self._asymmetric_twi_colours(yellow_twi=twi_1,
                                                         greyout_twi=twi_2)
         elif child1.vacuous:
             twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2,
                                                         greyout_twi=twi_1)
+        elif not child1.equals(child2, handshape_broad_match) and same_parents:
+            twi_1.initialize_bg_color('red')
+            twi_2.initialize_bg_color('red')
+            # task3
+            parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
         elif child1.equals(child2, handshape_broad_match):
             twi_1.initialize_bg_color('blue')
             twi_2.initialize_bg_color('blue')
