@@ -173,26 +173,6 @@ class CompareModel:
                 _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
-
-        """
-        for module_id in sign1_modules:  # module_id is something like H1.Mov1
-            if module_id in sign2_modules:
-                r_sign1, r_sign2 = compare_module_pair((sign1_modules[module_id], sign2_modules[module_id]))
-                pair_comparison['sign1'][module_id] = r_sign1
-                pair_comparison['sign2'][module_id] = r_sign2
-            else:
-                # the module_id exists in sign1 but not in sign2
-                r_sign1, _ = compare_module_pair((sign1_modules[module_id], sign1_modules[module_id]), pairwise=False)
-                pair_comparison['sign1'][module_id] = r_sign1
-
-        for module_id in sign2_modules:
-            # another for-loop to consider module_ids that only exist in sign2
-            if module_id not in sign1_modules:
-                # the module_id exists in sign2 but not in sign1
-                _, r_sign2 = compare_module_pair((sign2_modules[module_id], sign2_modules[module_id]), pairwise=False)
-                pair_comparison['sign2'][module_id] = r_sign2
-        """
-
         return pair_comparison
 
     def compare_locations(self) -> [bool]:

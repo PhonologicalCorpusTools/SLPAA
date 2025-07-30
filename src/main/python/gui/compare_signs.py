@@ -568,7 +568,12 @@ class CompareSignsDialog(QDialog):
             return
 
         # task1
-        twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
+        if child1.vacuous:    # asymmetric comparison. only sign 2 has this module, so follow its key
+            twi_1, twi_2 = self._gen_twi_pair(child2.key)
+        elif child2.vacuous:  # asymmetric comparison. only sign 1 has this module, so follow its key
+            twi_1, twi_2 = self._gen_twi_pair(child1.key)
+        else:  # both keys exist
+            twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
 
         # task3
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
@@ -736,8 +741,10 @@ class CompareSignsDialog(QDialog):
 
             if depth < 0:
                 # module root nodes
-                return self._add_twi_for_module_roots(parents=[parent1, parent2],
-                                                      children=[data1_key, data2_key])
+                r = self._add_twi_for_module_roots(parents=[parent1, parent2],
+                                                   children=[data1_key, data2_key])
+                parent1, parent2 = r
+                continue
 
             if data1_key.btn_type == 'major loc':
                 r = self._add_twi_for_major_loc(parents=[parent1, parent2],
