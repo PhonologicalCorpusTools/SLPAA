@@ -15,76 +15,61 @@ class CompareModel:
     def __init__(self, sign1, sign2):
         self.sign1 = sign1
         self.sign2 = sign2
+        self.implemented = ['handconfig', 'movement', 'location', 'orientation']
+        self.yet_to_implement = ['relation', 'nonmanual']
 
     # this is the main compare function that dispatches each module comparison!
-    def compare_sign_pair(self, options) -> dict:
+    def compare_sign_pair(self, options) -> tuple[dict, list]:
         # list of modules to compare
         module_attributes = [attr for attr in dir(self.sign1) if attr.endswith('modules')]
         module_attributes = [attr for attr in module_attributes if not callable(getattr(self.sign1, attr))]
 
         result = {'sign1': {}, 'sign2': {}}
 
-        for module in module_attributes:
-            if 'movement' in module:
-                mvmt_res = self.compare_movements()
-                # For 'sign1'
-                result['sign1']['movement'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in mvmt_res['sign1'].items()
-                }
+        never_implement = ['handpart']
+        clean_module_lists = self.module_list_helper([self.implemented, self.yet_to_implement, never_implement])
+        implemented_modules, yet_to_implement_modules, never_implement_modules = clean_module_lists
+        known_modules = [component_module for sublist in clean_module_lists for component_module in sublist]
+        del clean_module_lists
 
-                # For 'sign2'
-                result['sign2']['movement'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in mvmt_res['sign2'].items()
-                }
+        # if signs do not include required modules, stop the process
+        missing_modules = [m for m in known_modules if m not in module_attributes]
+        if missing_modules:
+            raise ValueError(f"Sign comparison couldn't find these modules -- {', '.join(missing_modules)}")
 
-            elif 'location' in module:
-                loc_res = self.compare_locations()
-                # For 'sign1'
-                result['sign1']['location'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in loc_res['sign1'].items()
-                }
+        # future proofing: if the signs contain a unknown module, prompt a warning message
+        unknown_modules = [m for m in module_attributes if m not in known_modules]
 
-                # For 'sign2'
-                result['sign2']['location'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in loc_res['sign2'].items()
-                }
+        # strict order of module comparison.
+        module_comparison_results = {
+            'Handconfig': self.compare_handconfigs(options['handconfig']),
+            'Movement': self.compare_movements(),
+            'Location': self.compare_locations(),
+            #'Relation': self,   # not impplemented yet
+            'Orientation': self.compare_orientations(),
+            #'Nonmanual': self,  # not implemented yet
+        }
 
-            elif 'relation' in module:
-                #reln_res = self.compare_relation()
-                #result['relation'] = reln_res
-                #print(f'relation_compare:{reln_res}')
-                pass
-            elif 'orientation' in module:
-                ori_res = self.compare_orientations()
-                # For 'sign1'
-                result['sign1']['orientation'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in ori_res['sign1'].items()
-                }
-                # and for 'sign2'
-                result['sign2']['orientation'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in ori_res['sign2'].items()
-                }
+        for module_name, comparison in module_comparison_results.items():
+            result['sign1'][module_name] = {
+                k: {key: value for d in v for key, value in d.items()}
+                for k, v in comparison['sign1'].items()
+            }
+            result['sign2'][module_name] = {
+                k: {key: value for d in v for key, value in d.items()}
+                for k, v in comparison['sign2'].items()
+            }
 
-            elif 'handconfig' in module:
-                handconfig_res = self.compare_handconfigs(options['handconfig'])
-                # For 'sign1'
-                result['sign1']['handconfig'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in handconfig_res['sign1'].items()
-                }
-                # and for 'sign2'
-                result['sign2']['handconfig'] = {
-                    k: {key: value for d in v for key, value in d.items()}
-                    for k, v in handconfig_res['sign2'].items()
-                }
+        return result, unknown_modules
 
-        return result
+    def module_list_helper(self, module_list) -> list:
+        suffix = "modules"
+        if isinstance(module_list[0], list):
+            r = []
+            for nested in module_list:
+                r.append(self.module_list_helper(nested))
+            return r
+        return [f"{name}{suffix}" for name in module_list]
 
     def get_module_labels(self, module_pair: tuple) -> (str, str):
         try:
@@ -208,21 +193,6 @@ class CompareModel:
             # return tuple of two dict each contains true or false at each level of granularity
             results1 = []
             results2 = []
-
-            # articulator
-            #s1art = articulatordisplaytext(pair[0].articulators, pair[0].inphase)
-            #s2art = articulatordisplaytext(pair[1].articulators, pair[1].inphase)
-            #r.append(True) if set(s1art) == set(s2art) else r.append(False)
-
-            # location type
-            #s1loctype = loctypedisplaytext(pair[0].locationtreemodel.locationtype)
-            #s2loctype = loctypedisplaytext(pair[1].locationtreemodel.locationtype)
-            #r.append(True) if set(s1loctype) == set(s2loctype) else r.append(False)
-
-            # phonological locations
-            #s1pl = phonlocsdisplaytext(pair[0].phonlocs)
-            #slpl = phonlocsdisplaytext(pair[1].phonlocs)
-            #r.append(True) if set(s1pl) == set(slpl) else r.append(False)
 
             # paths
             s1path = get_detailed_checked_paths_location(pair[0].locationtreemodel)

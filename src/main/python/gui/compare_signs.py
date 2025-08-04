@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QComboBox, \
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
     QLabel, QHBoxLayout, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
@@ -191,12 +191,8 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         # imagine each tree item carries a palette and use it to change background colour
         self.palette = palette
 
-        self.is_root: bool = False
-        if self._text in ['movement', 'relation', 'orientation', 'location', 'handconfig']:
-            self.is_root = True
-
         self.is_label: bool = False
-        if override_is_label or ':' in self._text or self.is_root:
+        if override_is_label or ':' in self._text:
             self.is_label = True
 
         # pair_id to help finding corresponding line in the other tree
@@ -797,8 +793,17 @@ class CompareSignsDialog(QDialog):
         # data1, data2: dict. sign comparison results
 
         # Add each top-level key (e.g., movement, location, relation, ...) as a root item in the tree
-        for key in set(data1.keys()).union(data2.keys()):
-            top_item1, top_item2 = self._gen_twi_pair(key)
+        if data1.keys() != data2.keys():  # if data1.keys() != data2.keys(), something is wrong.
+            raise ValueError(
+                "Top-level module keys of sign1 and sign2 do not match.\n"
+                f"Sign1 keys: {list(data1.keys())}\n"
+                f"Sign2 keys: {list(data2.keys())}"
+            )
+
+        for key in data1.keys():  # data1.keys() should be identical to data2.keys(), so just use data1's dict_keys.
+            top_item1, top_item2 = self._gen_twi_pair(key,
+                                                      force_label=True  # top node should be considered a label.
+                                                      )
             # and recursively add children under the top-level item
             top_item1, top_item2 = self.add_tree_widget_items(parent1=top_item1,
                                                               parent2=top_item2,
@@ -825,7 +830,15 @@ class CompareSignsDialog(QDialog):
 
         sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # Identify signs to compare
         compare = CompareModel(sign1, sign2)
-        compare_res = compare.compare_sign_pair(self.comparison_options)
+        compare_res, unknown_modules = compare.compare_sign_pair(self.comparison_options)
+
+        # Future proofing: warn the user if any existing module is unknown and cannot be compared
+        if unknown_modules:
+            QMessageBox.warning(self,
+                                "Unknown modules",
+                                "The following modules are unknown "
+                                "and are not compared.\n" + "\n".join(unknown_modules),
+                                QMessageBox.Ok)
 
         # Now update trees! Start with clearing.
         self.tree1.clear()
