@@ -609,15 +609,12 @@ class CompareSignsDialog(QDialog):
         # task1
         twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
 
-        # task2: major location should be either red or blue.
-        if child1 != child2:
+        # task2
+        if child1 != child2:  # they are red for sure when labels themselves don't match
             twi_1.initialize_bg_color('red')
             twi_2.initialize_bg_color('red')
             # task3
             parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
-        else:
-            twi_1.initialize_bg_color('blue')
-            twi_2.initialize_bg_color('blue')
 
         # task5: major loc nodes can never be terminal so must recurse
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
@@ -626,6 +623,9 @@ class CompareSignsDialog(QDialog):
             parent1.red_when_folded_hint = True
         if twi_2.red_when_folded_hint:
             parent2.red_when_folded_hint = True
+
+        # task2: only after adding children, we may be able to confirm major loc background colours as blue
+        twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
 
         # task5
         parent1.addChild(twi_1)
@@ -759,13 +759,13 @@ class CompareSignsDialog(QDialog):
                 continue
 
             # default case
-            # task1
+            # task1: generate CompareTreeWidgetItem (twi)
             twi_1, twi_2 = self._gen_twi_pair(key, force_label=data1_key.btn_type == 'autogen label')
 
-            # task3
+            # task3: recurse with their children
             twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, data1_key.children, data2_key.children, depth + 1)
 
-            # task2
+            # task2: decide own colours
             if data2_key.vacuous:
                 # if sign1 has it but sign2 does not, sign1 becomes yellow, 2 greys out
                 twi_1, twi_2 = self._asymmetric_twi_colours(yellow_twi=twi_1,
@@ -777,14 +777,13 @@ class CompareSignsDialog(QDialog):
             else:
                 twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
 
-            # task4
+            # task4: decide parent red hints (whether parent should also be red or not)
             if twi_1.underlying_bg in ['red', 'yellow'] or twi_2.underlying_bg in ['red', 'yellow']:
                 parent1.red_when_folded_hint, parent2.red_when_folded_hint = True, True
 
-            # task5
+            # task5: add twi's to parents, respectively
             parent1.addChild(twi_1)
             parent2.addChild(twi_2)
-
         return parent1, parent2
 
     def populate_trees(self, tree1, tree2, data1, data2):
