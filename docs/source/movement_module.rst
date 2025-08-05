@@ -15,14 +15,17 @@ Movement Module
 
 This :ref:`module` is used to code the **movement** components of a sign. As many :ref:`instances<instance>` of this module as necessary can be called for any given sign coding. For more discussion on the use of modules in SLP-AA to encode information about signs, see :ref:`modularity`.
 
+Hand Selection
+`````````````````
+
 Select the hand(s) involved in this instance of the module. For movements involving both hands, you can also optionally specify whether the movement described in this :ref:`instance` of the module is in phase or out of phase. If the hands are not out of phase, you can also choose to select if the hands are moving as a connected unit.
 
 .. note::
     **Phasing**
     
-    Movements should be selected to be *in phase* if the hands have the same specifications for Movement at the same time, and they should be selected as *out of phase* if the specifications are the same for each hand but with different timing. In either case, choose the specifications that apply to H1, and the specifications for H2 will be predictable from the indication of phasing.
+    Conventionally, Movements are *in phase* if the hands have the same specifications for Movement at the same time, and are *out of phase* if the specifications are the same for each hand but with different timing. In either case, specifications from H1 will be predictable for H2 from the indication of phasing.
     
-    For instance, a two-handed :ref:`joint_specific_movement` (like `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_) may use one category of movement (like :ref:`Closing/Opening<closing_opening>`) for both hands, though the specification for each hand within that category is *out of phase* with the other (as in, one hand is *closing* while the other one is *opening*).
+    For instance, following SLP-AA conventions, a two-handed :ref:`joint_specific_movement` (like `POPCORN <https://asl-lex.org/visualization/?sign=popcorn>`_) may use one category of movement (like :ref:`Closing/Opening<closing_opening>`) for both hands, though the specification for each hand within that category is *out of phase* with the other (as in, one hand is *closing* while the other one is *opening*).
     
     A two-handed :ref:`perceptual_shape` movement is *out of phase* if the hands reach different points of the perceptual shape at the same time, as in `PACK <https://asl-lex.org/visualization/?sign=pack>`_ or `THEATER <https://asl-lex.org/visualization/?sign=theater>`_. Conversely, the movement is *in phase* if both hands reach the same point of the perceptual shape at the same time, as in `ROW <https://asl-lex.org/visualization/?sign=row>`_ or `BLANKET <https://asl-lex.org/visualization/?sign=blanket>`_.
     
@@ -101,7 +104,7 @@ a) Shape
 
 Select the **shape** of the movement.
 
-Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The timing of each movement with respect to the others can then be seen in the :ref:`x-slot visualization window<sign_summary>`. The default list of perceptual shapes can also be ``edited by the user`` **[ADD REF TO EDITING INFO]**, so another way to capture the full movement of a new shape is to create a shape label. This may be a useful option for shapes that reappear in many signs.
+Only one shape option can be specified per module. When you want to indicate multiple perceptual shapes in one sign, as you could for `SIGN_LANGUAGE <https://asl-lex.org/visualization/?sign=sign_language>`_, one way to code the full set of movements is to add as many modules as there are distinct shapes. The timing of each movement with respect to the others can then be seen in the :ref:`x-slot visualization window<sign_summary>`. For perceptual shapes that do not fit into the default list, the **Other [specify]** option allows one to manually input a custom shape. 
 
 For the special case of shape combinations where multiple straight movements are signed in a connected sequence, as in `CANCEL <https://www.handspeak.com/word/search/index.php?id=312>`_ or `SEMESTER <https://www.handspeak.com/word/search/index.php?id=4065>`_, you have the option to select whether any given straight shape **interacts with a subsequent straight movement**, and then to code each of the straight lines using a separate module. Some signs may include multiple straight shapes that do not form a connected sequence, as in `ROOM <https://asl-lex.org/visualization/?sign=room>`_, in which case you can indicate that the first straight movement **does not interact with a subsequent straight movement**. This latter option is also used for signs that have only a single straight movement, such as `NORTH <https://asl-lex.org/visualization/?sign=north>`_, and for the final straight movement in a connected sequence. 
 
@@ -122,7 +125,7 @@ The default list of shape options is:
 * **Circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or `REASON <https://www.handspeak.com/word/index.php?id=3974>`_
 * **Zigzag**, as in `DRAW <https://asl-lex.org/visualization/?sign=draw>`_ or `WHALE <https://asl-lex.org/visualization/?sign=whale>`_
 * **Loop (traveling circles)**, as in `ERASE_5 <https://asl-lex.org/visualization/?sign=erase_5>`_ or `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_
-* **None of these**
+* **Other [specify]**
 
 .. _axis_direction_entry:
 
@@ -131,26 +134,20 @@ b) Axis direction
 
 Select an **axis direction** (or a combination of axis directions) that describe the direction of movement. It is also possible to select an axis without a specific direction.
 
-This section is automatically specified by the program as *not relevant* when the module includes a *circle* perceptual shape.
-
-If the hands have opposite specifications for axis direction within every applicable axis, select the checkbox for *H1 and H2 move in opposite directions* and continue to fill out the instance of the module as it applies to H1. The axis direction for H2 can then be defined implicitly without coding another :ref:`instance` of Movement for each hand. This selection does not apply for signs where the hands move along different (sets of) axes, like `TAPE <https://asl-lex.org/visualization/?sign=tape>`.
-
-
+If the hands have opposite specifications for axis direction within every applicable axis, select the checkbox for *H1 and H2 move in opposite directions* and continue to fill out the instance of the module as it applies to H1. The axis direction for H2 can then be defined implicitly without coding another :ref:`instance` of Movement for each hand. This selection does not apply for signs where the hands move along different (sets of) axes, like `TAPE <https://asl-lex.org/visualization/?sign=tape>`_.
 
 Keep in mind that a single :ref:`instance` of the module is meant to convey only one direction of movement, so selecting a combination of axes should be interpreted as a diagonal or angled movement with all of the selected directions applying simultaneously. See the section on :ref:`Angled axes<angled_axes>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
-At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting axis direction consistently, such as always selecting the first direction of motion.
+At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. A bidirectional movement may have a specified first direction of motion or remain unspecified.
 
-The directions for the horizontal axis as they appear in the movement module depend on the preferences of the user as set in the :ref:`setting_preferences`. These adhere to one of two models, relative (:ref:`ipsi<ipsilateral>`/:ref:`contra<contralateral>`) or absolute (toward H1/H2), and these are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for Movement (**as of v. 0.1.0, only the relative settings are available!**):
-    
-* **Horizontal axis: relative** [Default]
+* **Horizontal axis: absolute**
 
     * **Ipsilateral**, as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
     * **Contralateral**, as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
 
 OR
 
-* **Horizontal axis: absolute**
+* **Horizontal axis: relative**
     
     * **Toward H1**, as in the right hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
     * **Toward H2**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the right hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
@@ -217,9 +214,9 @@ If the hands have opposite specifications for circular direction within every ap
 
 Keep in mind that a single instance of the module is meant to convey only one direction of movement, so a selection of a combination of planes is interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the sections on :ref:`Angled planes<angled_planes>` and :ref:`Angled circular directions<angled_circles>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
-At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. In the case of bidirectional movements, you should establish a convention for selecting circular direction consistently, such as always selecting the first direction of motion.
+At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options.
 
-As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`setting_preferences`. The relative (ipsi/contra) and absolute (toward H1/H2) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module. **NB: as of 0.1.0, only the relative options are available.**
+As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`setting_preferences`. The absolute (ipsi/contra) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module. **NB: as of 0.1.0, only the absolute options are available.**
 
 See :ref:`Circular directions<circular_directions>` for a description of what we define to be the 'top of a circle' for each plane.
 
@@ -268,70 +265,90 @@ Make your selections from this section if you are coding a :ref:`joint_specific_
 
 Each joint-specific movement has two sub-options, which correspond to the two directions a movement can occur in. It is possible to use separate instances of the movement module for each direction, or to use one instance of the module and then code that movement as being 'bidirectional' in the :ref:`movement characteristics<movement_chars>` section. In the latter case, you would need to establish a convention such as explicitly selecting the direction that the movement starts with. All of our examples below assume this convention. 
 
-As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown. The appropriate joint activity can optionally be autofilled in the :ref:`joint activity<joint_activity_entry>` section once you have selected a sub-option for direction. Autofilling can be turned off in :ref:`setting_preferences`. **NB: auto-filling is not available in v. 0.1.0.**
-
+As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown.
 The joint-specific movement options are as follows: 
 
 **TODO: move these to the glossary??**
 
 :ref:`Nodding/Un-nodding<nodding_unnodding>`
 
-* **Nodding** should be selected if the movement begins with a flexion of the wrist, such as `CORN_3 <https://asl-lex.org/visualization/?sign=corn_3>`_. This is an example of a sign that contains both nodding and un-nodding, however this option should also be selected for signs where there is only a single nodding motion, such as `CAN <https://asl-lex.org/visualization/?sign=can>`_, or signs where there is a repeated, unidirectional nodding, such as `YES <https://asl-lex.org/visualization/?sign=yes>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of the wrist. 
+* **Nodding** refers to movement beginning with a flexion of the wrist, such as `CORN_3 <https://asl-lex.org/visualization/?sign=corn_3>`_. This is an example of a sign that contains both nodding and un-nodding, however this option can also be selected for signs where there is only a single nodding motion, such as `CAN <https://asl-lex.org/visualization/?sign=can>`_, or signs where there is a repeated, unidirectional nodding, such as `YES <https://asl-lex.org/visualization/?sign=yes>`_.
  
-* **Un-nodding** should be selected if the movement begins with an extension of the wrist, or if it is the only movement involved, for example `GIVE_UP <https://asl-lex.org/visualization/?sign=give_up>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of the wrist. 
+* **Un-nodding** refers to movement beginning with an extension of the wrist, or if it is the only movement involved, for example `GIVE_UP <https://asl-lex.org/visualization/?sign=give_up>`_. 
 
 :ref:`Pivoting<pivoting>`
 
-* **To ulnar** should be selected if the movement begins with a pivot in the direction of the ulnar surface of the hand, as in `COOKIE <https://asl-lex.org/visualization/?sign=cookie>`_, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *radial* deviation of the wrist.
+* **Ulnar** refers to movement beginning with a pivot in the direction of the ulnar surface of the hand, as in `COOKIE <https://asl-lex.org/visualization/?sign=cookie>`_, or if it is the only direction involved.
 
-* **To radial** should be selected if the movement begins with a pivot in the direction of the radial surface of the hand, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *ulnar* deviation of the wrist.
+* **Radial** refers to movement beginning with a pivot in the direction of the radial surface of the hand, or if it is the only direction involved.
 
 :ref:`Twisting<twisting>`
 
-* **Pronation** should be selected if the movement begins with pronation, or if it is the only direction involved, such as the subordinate hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_. Selecting this will autofill to proximal radioulnar *pronation* in the :ref:`joint activity<joint_activity_entry>` section.
-* **Supination** should be selected if the movement begins with supination, or if it is the only direction involved, such as `CLAUSE <https://asl-lex.org/visualization/?sign=clause>`_ and the dominant hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_. Selecting this will autofill to proximal radioulnar *supination* in the :ref:`joint activity<joint_activity_entry>` section.
+* **Pronation** refers to movement beginning with pronation, or if it is the only direction involved, such as the subordinate hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_.
+* **Supination** refers to movement beginning with supination, or if it is the only direction involved, such as `CLAUSE <https://asl-lex.org/visualization/?sign=clause>`_ and the dominant hand of `DIE <https://asl-lex.org/visualization/?sign=die>`_.
 
 :ref:`Closing/Opening<closing_opening>`
 
-* **Closing** should be selected if the movement begins with flexion of all joints of the selected finger(s), or if this is the only direction involved, such as `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of [selected finger, all joints].
+* **Closing** refers to movement beginning with flexion of all joints of the selected finger(s), or if this is the only direction involved, such as `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_.
 
-* **Opening** should be selected if the movement begins with extension of all joints of the selected finger(s), or if this is the only direction involved, such as `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger, all joints].
+* **Opening** refers to movement beginning with extension of all joints of the selected finger(s), or if this is the only direction involved, such as `BOWTIE <https://asl-lex.org/visualization/?sign=bowtie>`_.
 
 :ref:`Pinching/Un-pinching<pinching_unpinching>`
 
-* **Pinching** should be selected if the movement begins with adduction of the thumb base joint, such as `TURTLE <https://asl-lex.org/visualization/?sign=turtle>`_, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *adduction* of thumb base joint.
+* **Pinching** refers to movement beginning with adduction of the thumb base joint, such as `TURTLE <https://asl-lex.org/visualization/?sign=turtle>`_, or if it is the only direction involved.
 
-* **Un-pinching** should be selected if the movement begins with abduction of the thumb base joint, or if it is the only direction involved, such as `DELETE <https://www.handspeak.com/word/index.php?id=554>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *abduction* of thumb base joint.
+* **Un-pinching** refers to movement beginning with abduction of the thumb base joint, or if it is the only direction involved, such as `DELETE <https://www.handspeak.com/word/index.php?id=554>`_.
 
 :ref:`Flattening/Straightening<flattening_straightening>`
 
-* **Flattening** should be selected if the movement begins with flexion of the base joints of the selected fingers, such as `HORSE <https://asl-lex.org/visualization/?sign=horse>`_, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of [selected finger base joints].
+* **Flattening** refers to movement beginning with flexion of the base joints of the selected fingers, such as `HORSE <https://asl-lex.org/visualization/?sign=horse>`_, or if it is the only direction involved.
 
-* **Straightening** should be selected if the movement begins with extension of the base joints of the selected fingers, or if it is the only direction involved. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger base joints].
+* **Straightening** refers to movement beginning with extension of the base joints of the selected fingers, or if it is the only direction involved.
 
 :ref:`Hooking/Un-hooking<hooking_unhooking>`
 
-* **Hooking**, or "clawing", should be selected if the movement begins with flexion of the non-base joints of the selected fingers,  or if it is the only direction involved, such as  `CLAUSE <https://asl-lex.org/visualization/?sign=clause>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *flexion* of [selected finger non-base joints].
+* **Hooking**, or "clawing", refers to movement beginning with flexion of the non-base joints of the selected fingers,  or if it is the only direction involved, such as  `CLAUSE <https://asl-lex.org/visualization/?sign=clause>`_.
 
-* **Un-hooking** should be selected if the movement begins with  extension of the non-base joints of the selected fingers, or if it is the only direction involved, such as `UPLOAD <https://asl-lex.org/visualization/?sign=upload>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *extension* of [selected finger non-base joints].
+* **Un-hooking** refers to movement beginning with extension of the non-base joints of the selected fingers, or if it is the only direction involved, such as `UPLOAD <https://asl-lex.org/visualization/?sign=upload>`_.
 
 :ref:`Spreading/Un-spreading<spreading_unspreading>`
 
-* **Spreading** should be selected if the movement begins with the abduction of the base joints of the selected fingers, or if it is the only direction involved, such as `SEND <https://asl-lex.org/visualization/?sign=send>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *abduction* of [selected finger base joints]. 
+* **Spreading** refers to movement beginning with the abduction of the base joints of the selected fingers, or if it is the only direction involved, such as `SEND <https://asl-lex.org/visualization/?sign=send>`_.
 
-* **Un-spreading** should be selected if the movement begins with the adduction of the base joints of the selected fingers, or if it is the only direction involved, such as `RUN_OUT_OF <https://asl-lex.org/visualization/?sign=run_out_of>`_ or `SCISSORS <https://asl-lex.org/visualization/?sign=scissors>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to *abduction* of [selected finger base joints]. 
+* **Un-spreading** refers to movement beginning with the adduction of the base joints of the selected fingers, or if it is the only direction involved, such as `RUN_OUT_OF <https://asl-lex.org/visualization/?sign=run_out_of>`_ or `SCISSORS <https://asl-lex.org/visualization/?sign=scissors>`_.
 
 :ref:`Rubbing<rubbing>`
 
-* **Thumb crosses over the palm** should be selected if the thumb crosses over the palm, as in `FEW <https://asl-lex.org/visualization/?sign=few>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
+* **Articulator(s)**
 
-* **Thumb moves away from palm** should be selected if the thumb moves away from the palm, as in `DOG <https://asl-lex.org/visualization/?sign=dog>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to [complex/multi-joint].
+    * **Thumb**
+    * **Finger(s)**
+    * **Other [specify]**
+
+* **Location**
+
+    * **Thumb**
+    * **Finger(s)**
+    * **Palm**
+    * **Other [specify]**
+
+* **Across**
+
+    * **to radial side**
+    * **to ulnar side**
+
+* **Along**
+
+    * **to fingertip end**
+    * **to base end**
 
 :ref:`Wiggling or fluttering<wiggling_fluttering>`
 
-* **Wiggling/Fluttering** should be selected if the selected fingers wiggle or flutter, such as in the signs `DIRTY <https://asl-lex.org/visualization/?sign=dirty>`_, `SALT <https://asl-lex.org/visualization/?sign=salt>`_, or `BEACH <https://asl-lex.org/visualization/?sign=beach>`_. The :ref:`joint activity<joint_activity_entry>` section will be autofilled to both flexion and extension of the selected fingers' base joints.
+* **Wiggling/Fluttering** refers to movement where selected fingers wiggle or flutter, such as in the signs `DIRTY <https://asl-lex.org/visualization/?sign=dirty>`_, `SALT <https://asl-lex.org/visualization/?sign=salt>`_, or `BEACH <https://asl-lex.org/visualization/?sign=beach>`_.
 
-The **none of these** option should be selected for a joint-specific movement that does not seem to correspond with any (single or combination) of the movements in the list above.
+:ref:`Other [specify]<Other>`
+
+* The **Other** option allows for a joint-specific movement that does not seem to correspond with any (single or combination) of the movements in the list above. One can type in the specific movement that is wanted. 
 
 .. _handshape_change_entry:
 
