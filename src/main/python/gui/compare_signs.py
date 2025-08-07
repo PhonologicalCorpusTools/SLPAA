@@ -494,6 +494,11 @@ class CompareSignsDialog(QDialog):
         if label2 is None:
             label2 = label1
 
+        if trunc_count1 > 0:
+            label1 += f" (+ {trunc_count1} truncated for lack of correspondence)"
+        if trunc_count2 > 0:
+            label2 += f" (+ {trunc_count2} truncated for lack of correspondence)"
+
         stamp_id = next_pair_id()
         item1 = CompareTreeWidgetItem(
             labels=[label1],
@@ -669,10 +674,27 @@ class CompareSignsDialog(QDialog):
             twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2,
                                                         greyout_twi=twi_1)
         elif not child1.equals(child2, handshape_broad_match) and same_parents:
+            # if two radio buttons are not the same but have the same parents,
+            # no need to recurse in children (no task 3), but rather need to count truncated lines
+
+            # count truncated lines
+            trunc_counts: list[int] = [len(parse_button_type(child1.children)[child1.depth + 1:]),
+                                       len(parse_button_type(child2.children)[child2.depth + 1:])]
+
+            # redo task1
+            twi_1, twi_2 = self._gen_twi_pair(label1=child1.key, trunc_count1=trunc_counts[0],
+                                              label2=child2.key, trunc_count2=trunc_counts[1])
+
             twi_1.initialize_bg_color('red')
             twi_2.initialize_bg_color('red')
-            # task3
+
+            # task 4
             parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
+
+            # and then just do task5 and return without considering children
+            parent1.addChild(twi_1)
+            parent2.addChild(twi_2)
+            return newly_added, parent1, parent2
         elif child1.equals(child2, handshape_broad_match):
             twi_1.initialize_bg_color('blue')
             twi_2.initialize_bg_color('blue')
@@ -735,13 +757,14 @@ class CompareSignsDialog(QDialog):
             data1_key = TreeWidgetItemKey(key, data1_keys_original, data1, depth=depth)
             data2_key = TreeWidgetItemKey(key, data2_keys_original, data2, depth=depth)
 
+            # module root nodes
             if depth < 0:
-                # module root nodes
                 r = self._add_twi_for_module_roots(parents=[parent1, parent2],
                                                    children=[data1_key, data2_key])
                 parent1, parent2 = r
                 continue
 
+            # major locations (e.g., in location or in hand configuration)
             if data1_key.btn_type == 'major loc':
                 r = self._add_twi_for_major_loc(parents=[parent1, parent2],
                                                 children=[data1_key, data2_key])
@@ -750,6 +773,7 @@ class CompareSignsDialog(QDialog):
                 del newly_added
                 continue
 
+            # radio buttons
             elif data1_key.btn_type == 'radio button':
                 r = self._gen_twi_for_radiobuttons(parents=[parent1, parent2],
                                                    children=[data1_key, data2_key])
