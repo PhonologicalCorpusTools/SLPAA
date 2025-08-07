@@ -31,7 +31,6 @@ from PyQt5.QtWidgets import (
     QStyledItemDelegate,
     QAction,
 )
-from PyQt5.Qt import QStandardItem
 from gui.decorator import check_unsaved_search_targets
 from gui.undo_command import TranscriptionUndoCommand
 from search.results import ResultsView
@@ -45,8 +44,7 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, XslotStructure, RelationModule
 from search.search_models import SearchModel, TargetHeaders, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
-from search.search_classes import SearchTargetItem, CustomRBGrp, XslotTypes,Search_SignLevelInfoSelectorDialog, Search_ModuleSelectorDialog, XslotTypeItem, Search_SigntypeSelectorDialog
-
+from search.search_classes import *
 class SearchWindow(QMainWindow):
 
     def __init__(self, app_settings, corpus, app_ctx, **kwargs):
@@ -118,46 +116,27 @@ class SearchWindow(QMainWindow):
         file_menu.addAction(action_save)
 
         # save as
-        action_saveas = QAction(QIcon(self.app_ctx.icons['saveas']), 'Save As...', self)
+        action_saveas = QAction(QIcon(self.app_ctx.icons['saveas']), 'Save target file as...', self)
         action_saveas.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_A))
         action_saveas.triggered.connect(self.on_action_save_as)
         file_menu.addAction(action_saveas)
-
-        # undo
-        action_undo = QAction(QIcon(self.app_ctx.icons['undo']), 'Undo', parent=self)
-        action_undo.setEnabled(False)
-        self.undostack.canUndoChanged.connect(lambda b: action_undo.setEnabled(b))
-        action_undo.setStatusTip('Undo')
-        action_undo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Z))
-        action_undo.triggered.connect(lambda: self.undostack.undo())
-        action_undo.setCheckable(False)
-
-        # redo
-        action_redo = QAction(QIcon(self.app_ctx.icons['redo']), 'Redo', parent=self)
-        action_redo.setEnabled(False)
-        self.undostack.canRedoChanged.connect(lambda b: action_redo.setEnabled(b))
-        action_redo.setStatusTip('Undo')
-        action_redo.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_Y))
-        action_redo.triggered.connect(lambda: self.undostack.redo())
-        action_redo.setCheckable(False)
-
-
 
         settings_menu = menu_bar.addMenu('Settings')
 
     def on_action_load(self):
         file_name, file_type = QFileDialog.getOpenFileName(self,
                                                            self.tr('Load Targets'),
-                                                           self.app_settings['storage']['recent_folder'],
+                                                           self.app_settings['storage']['recent_searches'],
                                                            self.tr('SLP-AA SearchTargets (*.slpst)'))
         if not file_name:
             # the user cancelled out of the dialog
             return False
         folder, _ = os.path.split(file_name)
         if folder:
-            self.app_settings['storage']['recent_folder'] = folder
+            self.app_settings['storage']['recent_searches'] = folder
 
         self.searchmodel = self.load_search_binary(file_name)
+        self.searchmodel.name = os.path.splitext(os.path.basename(file_name))[0]
         self.search_targets_view.table_view.setModel(self.searchmodel)
         self.current_sign.addmodulesfrommodel(self.searchmodel)
         self.unsaved_changes = False
@@ -169,17 +148,16 @@ class SearchWindow(QMainWindow):
         name = self.searchmodel.name or "New search"
         file_name, _ = QFileDialog.getSaveFileName(self,
                                                    self.tr('Save Targets'),
-                                                   os.path.join(self.app_settings['storage']['recent_folder'],
+                                                   os.path.join(self.app_settings['storage']['recent_searches'],
                                                                 name + '.slpst'),  # 'corpus.slpaa'),
                                                    self.tr('SLP-AA Search Targets (*.slpst)'))
         if file_name:
             self.searchmodel.path = file_name
             folder, _ = os.path.split(file_name)
             if folder:
-                self.app_settings['storage']['recent_folder'] = folder
+                self.app_settings['storage']['recent_searches'] = folder
 
             self.save_search_binary()
-        self.undostack.clear()
         self.unsaved_changes = False
 
     @check_unsaved_search_targets
@@ -188,7 +166,6 @@ class SearchWindow(QMainWindow):
             self.save_search_binary()
 
         self.unsaved_changes = False
-        self.undostack.clear()
             
     def init_ui(self):
         self.create_menu_bar()
@@ -391,7 +368,8 @@ class SearchTargetsView(QWidget):
             initialdialog.exec_()
 
         
-        elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, TargetTypes.LOC_REL, TargetTypes.MOV_REL, ModuleTypes.HANDCONFIG]:
+        elif item.targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, TargetTypes.LOC_REL, TargetTypes.MOV_REL, 
+                                 ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION]:
             initialdialog = XSlotTypeDialog(parent=self, preexistingitem=item)
             initialdialog.continue_clicked.connect(lambda name, xslottype: 
             self.mainwindow.build_search_target_view.show_next_dialog(item.targettype, name, xslottype, preexistingitem=item, row=row))
@@ -468,15 +446,15 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         if preexistingitem is not None:
             negative = preexistingitem.negative
             include = preexistingitem.include
-
-        svi = SearchValuesItem(type=TargetTypes.XSLOT, 
-                               module=None, 
-                               values={ "xslot min": min_xslots, 
-                                       "xslot max": max_xslots })
+        module = XslotTarget(min_xslots, max_xslots)
+        # svi = SearchValuesItem(type=TargetTypes.XSLOT, 
+        #                        module=None, 
+        #                        values={ "xslot min": min_xslots, 
+        #                                "xslot max": max_xslots })
         target = SearchTargetItem(name=target_name, 
                                   targettype=TargetTypes.XSLOT, 
                                   xslottype=None, 
-                                  searchvaluesitem=svi,
+                                  module=module,
                                   include=include,
                                   negative=negative)
 
@@ -495,9 +473,12 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         initialdialog.exec_()
 
     def handle_menumodulebtn_clicked(self, moduletype):
-        initialdialog = XSlotTypeDialog(parent=self)
-        initialdialog.continue_clicked.connect(lambda name, xslottype: self.show_next_dialog(moduletype,name,xslottype))
-        initialdialog.exec_()
+        if moduletype == ModuleTypes.NONMANUAL:
+            QMessageBox.critical(self, "Warning", "search not implemented for nonmanual")
+        else:
+            initialdialog = XSlotTypeDialog(parent=self)
+            initialdialog.continue_clicked.connect(lambda name, xslottype: self.show_next_dialog(moduletype,name,xslottype))
+            initialdialog.exec_()
 
     def show_next_dialog(self, targettype, name, xslottype=None, preexistingitem=None, row=None): 
         self.sign.xslottype = xslottype
@@ -538,11 +519,7 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         
 
         if targettype == TargetTypes.SIGNLEVELINFO:
-            if preexistingitem is not None:
-                sli = SignLevelInformation(preexistingitem.searchvaluesitem.values)
-            else:
-                sli = None
-            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(sli, parent=self)
+            signlevelinfo_selector = Search_SignLevelInfoSelectorDialog(module, parent=self)
             signlevelinfo_selector.saved_signlevelinfo.connect(lambda signlevelinfo: self.handle_save_signlevelinfo(target, signlevelinfo, row=row))
             signlevelinfo_selector.exec_()
         
@@ -553,7 +530,8 @@ class BuildSearchTargetView(SignLevelMenuPanel):
             
 
         
-        elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, ModuleTypes.HANDCONFIG, TargetTypes.LOC_REL, TargetTypes.MOV_REL]:
+        elif targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION, TargetTypes.LOC_REL, TargetTypes.MOV_REL,
+                            ModuleTypes.HANDCONFIG, ModuleTypes.ORIENTATION, ModuleTypes.NONMANUAL]:
             includearticulators = [HAND, ARM, LEG] if targettype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION] \
             else ([] if targettype == ModuleTypes.RELATION else [HAND])
             includephase = 2 if targettype == ModuleTypes.MOVEMENT else (
@@ -677,24 +655,25 @@ class BuildSearchTargetView(SignLevelMenuPanel):
         self.emit_signal(target, row)
 
     def handle_save_signlevelinfo(self, target, signlevel_info, row=None):
-        values = {}
-        values["entryid"] = signlevel_info.entryid.display_string()
-        values["gloss"] = signlevel_info.gloss
-        values["idgloss"] = signlevel_info.idgloss
-        values["lemma"] = signlevel_info.lemma
-        values["source"] = signlevel_info.source
-        values["signer"] = signlevel_info.signer
-        values["frequency"] = signlevel_info.frequency
-        values["coder"] = signlevel_info.coder
-        values["date created"] = signlevel_info.datecreated
-        values["date last modified"] = signlevel_info.datelastmodified
-        values["note"] = signlevel_info.note
-        # backward compatibility for attribute added 20230412!
-        values["fingerspelled"] = signlevel_info.fingerspelled
-        values["compoundsign"] = signlevel_info.compoundsign
-        values["handdominance"] = signlevel_info.handdominance
-        # TODO update to use signlevel info instead of target values
-        target.searchvaluesitem = SearchValuesItem(target.targettype, module=None, values=values)
+        target.module = signlevel_info
+        # values = {}
+        # values["entryid"] = signlevel_info.entryid.display_string()
+        # values["gloss"] = signlevel_info.gloss
+        # values["idgloss"] = signlevel_info.idgloss
+        # values["lemma"] = signlevel_info.lemma
+        # values["source"] = signlevel_info.source
+        # values["signer"] = signlevel_info.signer
+        # values["frequency"] = signlevel_info.frequency
+        # values["coder"] = signlevel_info.coder
+        # values["date created"] = signlevel_info.datecreated
+        # values["date last modified"] = signlevel_info.datelastmodified
+        # values["note"] = signlevel_info.note
+        # # backward compatibility for attribute added 20230412!
+        # values["fingerspelled"] = signlevel_info.fingerspelled
+        # values["compoundsign"] = signlevel_info.compoundsign
+        # values["handdominance"] = signlevel_info.handdominance
+        # # TODO update to use signlevel info instead of target values
+        # target.searchvaluesitem = SearchValuesItem(target.targettype, module=None, values=values)
         self.emit_signal(target, row)
     
     @property
@@ -961,11 +940,11 @@ class XSlotTargetDialog(QDialog):
             button.setEnabled(False) # to make life easier, the user can only modify the number
 
         min_layout = QHBoxLayout()
-        min_layout.addWidget(self.min_xslots_cb)
+        min_layout.addWidget(QLabel("Minimum number of x-slots:"))
         min_layout.addWidget(self.min_num)
 
         max_layout = QHBoxLayout()
-        max_layout.addWidget(self.max_xslots_cb)
+        max_layout.addWidget(QLabel("Maximum number of x-slots:"))
         max_layout.addWidget(self.max_num)
 
         layout.addWidget(QLabel("Number of x-slots in search results:"))
@@ -983,11 +962,12 @@ class XSlotTargetDialog(QDialog):
             self.reload_item(preexistingitem)
 
     def reload_item(self, it):
+        xslottarget = it.module
         self.name_widget.text_entry.setText(it.name)
-        if "xslot max" in it.searchvaluesitem.values:
-            self.max_num.setText(it.searchvaluesitem.values["xslot max"])
-        if "xslot min" in it.searchvaluesitem.values:
-            self.min_num.setText(it.searchvaluesitem.values["xslot min"])
+        if xslottarget.max_xslots != float('inf'):
+            self.max_num.setText(str(xslottarget.max_xslots))
+        if xslottarget.min_xslots > -1:
+            self.min_num.setText(str(xslottarget.min_xslots))
         self.toggle_continue_selectable()
     
     def toggle_continue_selectable(self):
@@ -997,19 +977,21 @@ class XSlotTargetDialog(QDialog):
     # TODO combine into one function?
     def on_xslottarget_max_edited(self):
         num = self.max_num.text()
-        self.max_xslots_cb.setEnabled(num != "")
-        self.max_xslots_cb.setChecked(num != "")
+        # self.max_xslots_cb.setEnabled(num != "")
+        # self.max_xslots_cb.setChecked(num != "")
         self.toggle_continue_selectable()
 
     def on_xslottarget_min_edited(self):
         num = self.min_num.text()
-        self.min_xslots_cb.setEnabled(num != "")
-        self.min_xslots_cb.setChecked(num != "")
+        # self.min_xslots_cb.setEnabled(num != "")
+        # self.min_xslots_cb.setChecked(num != "")
         self.toggle_continue_selectable()
 
     def on_save_clicked(self):
-        max = self.max_num.text() if self.max_xslots_cb.isChecked() else ""
-        min = self.min_num.text() if self.min_xslots_cb.isChecked() else ""
+        max = self.max_num.text()
+        min = self.min_num.text() 
+        # max = self.max_num.text() if self.max_xslots_cb.isChecked() else ""
+        # min = self.min_num.text() if self.min_xslots_cb.isChecked() else ""
         txt = ""
         
         if (max == "" and min == ""):
@@ -1027,11 +1009,11 @@ class XSlotTargetDialog(QDialog):
 
     def on_restore_defaults_clicked(self):
         self.buttonbox.save_button.setEnabled(False)
-        for b in [self.min_xslots_cb, self.max_xslots_cb]:
-            b.setChecked(False)
-            b.setEnabled(False)
-        self.min_xslots_cb.setChecked(False)
-        self.min_xslots_cb.setChecked(False)
+        # for b in [self.min_xslots_cb, self.max_xslots_cb]:
+        #     b.setChecked(False)
+        #     b.setEnabled(False)
+        # self.min_xslots_cb.setChecked(False)
+        # self.min_xslots_cb.setChecked(False)
         self.max_num.setText("")
         self.min_num.setText("")
         self.name_widget.text_entry.setText("")

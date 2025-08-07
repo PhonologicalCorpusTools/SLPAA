@@ -24,7 +24,9 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QTextEdit,
     QButtonGroup,
-    QRadioButton
+    QRadioButton,
+    QProxyStyle,
+    QTabWidget
 )
 
 from PyQt5.QtGui import (
@@ -600,3 +602,107 @@ class DeselectableRadioButtonGroup(QButtonGroup):
         else:
             # user clicked a previously-unselected button
             self.previously_checked = btn
+
+
+class BoldableTabWidget(QTabWidget):
+    def __init__(self):
+        super().__init__()
+        self.tab_bar = self.tabBar()
+        self.tab_bar.setStyle(BoldTabBarStyle())
+        self.currentChanged.connect(self.on_tab_change)
+
+    def __repr__(self):
+        current_index = self.currentIndex()
+        current_tab = self.tabText(current_index) if current_index >= 0 else "None"
+        count = self.count()
+        return (f"<{self.__class__.__name__} "
+                f"selected: '{current_tab}' (tab # {current_index} out of {count})")
+
+    def check_components(self, widget):
+        all_cb = widget.findChildren(QCheckBox)
+        all_rb = widget.findChildren(QRadioButton)
+        all_ai = widget.findChildren(AddedInfoPushButton)
+        return any(btn.isChecked() for btn in all_rb+all_cb) or any(btn.addedinfo.hascontent() for btn in all_ai)
+
+    def decide_bold_label(self):
+        # called when tab selection updates.
+        # it decides which tabs need the label bolded
+        idx = 0
+        while self.widget(idx) is not None:
+            need_bold = self.check_components(self.widget(idx))
+            self.tab_bar.style().setBoldTabIndex(idx, need_bold)
+            idx += 1
+
+    def get_bold_indices(self):
+        return self.tab_bar.style().bold_tab_index
+
+    def get_nested_tabs(self, idx):
+        # returns None or QTabWidget
+        widget = self.widget(idx)
+        if widget is None:
+            return False
+        nested_tabs = widget.findChildren(QTabWidget)
+        if len(nested_tabs) > 1:
+            raise NotImplementedError("Hi future developers, nesting many QTabWidgets is not expected as of July 2025!")
+        return nested_tabs[0] if nested_tabs else None
+
+    # wrapper for decide_bold_label(). it applies bolding to matrix and nested tabs
+    def on_tab_change(self, index):
+        self.decide_bold_label()  # decide bold for the current tab
+
+        # and then check if nested tab needs to be bolded
+        nested_tab = self.get_nested_tabs(index)
+        if nested_tab:
+            nested_tab.decide_bold_label()
+
+        self.setCurrentIndex(index)  # finally move the selection
+
+
+class BoldTabBarStyle(QProxyStyle):
+    def __init__(self, bold_tab_index=None):
+        super().__init__()
+        if bold_tab_index is not None:
+            self.bold_tab_index = bold_tab_index
+        else:
+            self.bold_tab_index = []
+
+    def drawControl(self, element, option, painter, widget=None):
+        if element == self.CE_TabBarTabLabel:
+            painter.save()
+
+            # Check if the current tab index is the bold one
+            font = painter.font()
+            if widget.tabAt(option.rect.center()) in self.bold_tab_index:
+                font.setBold(True)
+            else:
+                font.setBold(False)
+            painter.setFont(font)
+
+            super().drawControl(element, option, painter, widget)
+            painter.restore()  # call painter.restore() as painter.save() called in the beginning of the conditional
+
+        else:
+            # for others, just pass to super()
+            super().drawControl(element, option, painter, widget)
+
+    def sizeFromContents(self, contents_type, option, size, widget=None):
+        if contents_type == self.CT_TabBarTab:
+            size = super().sizeFromContents(contents_type, option, size, widget)
+            size.setWidth(int(size.width() * 1.15))  # Increase the rectangle width by 20%
+            return size
+        return super().sizeFromContents(contents_type, option, size, widget)
+
+    def setBoldTabIndex(self, index, need_bold=True):
+        if isinstance(index, int):
+            if need_bold:
+                # need bold tab label, so indicate this by adding index to the list
+                self.bold_tab_index.append(index)
+                self.bold_tab_index = list(set(self.bold_tab_index))
+                return
+            try:
+                self.bold_tab_index.remove(index)
+            except ValueError:  # index at hand not in bold_tab_index list but ok
+                pass
+
+        elif isinstance(index, list):
+            self.bold_tab_index.extend(index)
