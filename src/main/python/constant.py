@@ -38,7 +38,7 @@ from lexicon.predefined_handshape import (
 
 # system info
 FROZEN = hasattr(sys, 'frozen')
-VERSION = (0, 1, 0)  # (major, minor, patch)
+VERSION = (0, 2, 0)  # (major, minor, patch)
 
 # symbols
 X_IN_BOX = '\u2327'
@@ -449,7 +449,43 @@ SIGN_TYPE = {
     "TWO_HANDS_BOTH_MVMT_DIFF": "2h.both move.move differently",
     "TWO_HANDS_BOTH_MVMT_SAME": "2h.both move.move similarly",
     "TWO_HANDS_BOTH_MVMT_SEQ": "2h.both move.move similarly.sequential",
-    "TWO_HANDS_BOTH_MVMT_SIMU": "2h.both move.move similarly.simultaneous"
+    "TWO_HANDS_BOTH_MVMT_SIMU": "2h.both move.move similarly.simultaneous",
+
+    "ONE_ARM": "1a",
+    "TWO_ARMS": "2a",
+    "ONE_ARM_MVMT": "1a.moves",
+    "ONE_ARM_NO_MVMT": "1a.no mvmt",
+    "TWO_ARMS_MAINT_CONT": "2a.maintain contact",
+    "TWO_ARMS_NO_CONT": "2a.contact not maintained",
+    "TWO_ARMS_BISYM": "2a.bilaterally symmetric",
+    "TWO_ARMS_NO_BISYM": "2a.not bilaterally symmetric",
+    "TWO_ARMS_NO_MVMT": "2a.neither moves",
+    "TWO_ARMS_ONE_MVMT": "2a.only 1 moves",
+    "TWO_ARMS_BOTH_MVMT": "2a.both move",
+    "TWO_ARMS_ONLY_A1": "2a.only 1 moves.A1 moves",
+    "TWO_ARMS_ONLY_A2": "2a.only 1 moves.A1 moves",
+    "TWO_ARMS_BOTH_MVMT_DIFF": "2a.both move.move differently",
+    "TWO_ARMS_BOTH_MVMT_SAME": "2a.both move.move similarly",
+    "TWO_ARMS_BOTH_MVMT_SEQ": "2a.both move.move similarly.sequential",
+    "TWO_ARMS_BOTH_MVMT_SIMU": "2a.both move.move similarly.simultaneous",
+
+    "ONE_LEG": "1l",
+    "TWO_LEGS": "2l",
+    "ONE_LEG_MVMT": "1l.moves",
+    "ONE_LEG_NO_MVMT": "1l.no mvmt",
+    "TWO_LEGS_MAINT_CONT": "2l.maintain contact",
+    "TWO_LEGS_NO_CONT": "2l.contact not maintained",
+    "TWO_LEGS_BISYM": "2l.bilaterally symmetric",
+    "TWO_LEGS_NO_BISYM": "2l.not bilaterally symmetric",
+    "TWO_LEGS_NO_MVMT": "2l.neither moves",
+    "TWO_LEGS_ONE_MVMT": "2l.only 1 moves",
+    "TWO_LEGS_BOTH_MVMT": "2l.both move",
+    "TWO_LEGS_ONLY_L1": "2l.only 1 moves.L1 moves",
+    "TWO_LEGS_ONLY_L2": "2l.only 1 moves.L1 moves",
+    "TWO_LEGS_BOTH_MVMT_DIFF": "2l.both move.move differently",
+    "TWO_LEGS_BOTH_MVMT_SAME": "2l.both move.move similarly",
+    "TWO_LEGS_BOTH_MVMT_SEQ": "2l.both move.move similarly.sequential",
+    "TWO_LEGS_BOTH_MVMT_SIMU": "2l.both move.move similarly.simultaneous",
 }
 
 # for backwards compatibility
@@ -551,6 +587,22 @@ userdefinedroles = UserDefinedRoles({
 
 })
 
+PARTS_OF_SPEECH = {
+    "Noun": 0,
+    "Verb": 1,
+    "Adjective": 2,
+    "Adverb": 3,
+    "Adposition": 4,
+    "Conjunction": 5,
+    "Interjection": 6,
+    "Numeral": 7,
+    "Pronoun": 8,
+    "Determiner": 9,
+    "Article": 10,
+    "Phrase": 11,
+    "Unique": 12,
+    "Other": 13
+}
 
 # TODO - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
 treepathdelimiter = ">"
@@ -582,10 +634,6 @@ class HandConfigSlots:
         3: 25, # Ring finger MCP at index 25
         4: 30 # Pinky MCP at index 30
     }
-
-
-def filenamefrompath(filepath):
-    return os.path.split(filepath)[1]
 
 
 def filenamefrompath(filepath):

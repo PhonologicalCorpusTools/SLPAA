@@ -1,20 +1,24 @@
 from datetime import datetime
 
 from PyQt5.QtWidgets import (
+    QGroupBox,
+    QScrollArea,
+    QWidget,
     QLineEdit,
     QDialog,
     QFrame,
     QHBoxLayout,
-    QFormLayout,
     QRadioButton,
     QVBoxLayout,
+    QFormLayout,
     QDialogButtonBox,
+    QSizePolicy,
     QPlainTextEdit,
     QButtonGroup,
     QCheckBox,
     QLabel,
     QListView,
-    QMessageBox
+    QGridLayout
 )
 
 from PyQt5.QtCore import (
@@ -28,7 +32,7 @@ from lexicon.lexicon_classes import SignLevelInformation
 from lexicon.module_classes import EntryID
 from gui.decorator import check_duplicated_lemma, check_empty_glosslemmaIDgloss, check_duplicated_idgloss
 from gui.link_help import show_help
-
+from constant import PARTS_OF_SPEECH
 
 class SignLevelDateDisplay(QLabel):
     def __init__(self, thedatetime=None, **kwargs):
@@ -112,7 +116,7 @@ class GlossesListView(QListView):
                     self.model().removeRow(itemindex.row())
 
 
-class SignLevelInfoPanel(QFrame):
+class SignLevelInfoPanel(QScrollArea):
 
     def __init__(self, signlevelinfo, **kwargs):
         super().__init__(**kwargs)
@@ -125,6 +129,48 @@ class SignLevelInfoPanel(QFrame):
 
         self.signlevelinfo = signlevelinfo
         self.create_and_set_layout()
+    
+    def create_and_set_pos_layout(self):
+        # parts of speech grid layout
+        layout = QGridLayout()
+        self.pos_buttongrp = QButtonGroup()
+        self.pos_buttongrp.setExclusive(False)
+        buttons_per_row = 4
+        curr_row = 0
+        for label in PARTS_OF_SPEECH:
+            i = PARTS_OF_SPEECH[label]
+            curr_col = i % buttons_per_row
+            pos_cb = QCheckBox(label)
+            self.pos_buttongrp.addButton(pos_cb, id=i)
+            if label == "Other": 
+                break
+            else:
+                layout.addWidget(pos_cb, curr_row, curr_col)
+                if curr_col == buttons_per_row - 1:
+                    curr_row += 1
+                    
+        self.other_pos_lineedit = QLineEdit("Specify")
+        # self.other_pos_lineedit.setMaximumHeight(25)
+        thisbtn = self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"])
+
+        self.other_pos_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        thisbtn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+
+        self.other_pos_lineedit.textEdited.connect(self.handle_othertext_edited)
+        other_pos_layout = QHBoxLayout()
+        other_pos_layout.addWidget(self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"]))
+        other_pos_layout.addWidget(self.other_pos_lineedit)
+        layout.addLayout(other_pos_layout, curr_row, curr_col, 1, 2, Qt.AlignmentFlag(0)) # span one row and two columns; default alignment
+        return layout
+
+        # if user specifies text for an "other" selection, ensure the parent ("other") radio button is checked
+    def handle_othertext_edited(self, txt):
+        if txt == "":
+            # don't need to do anything special
+            return
+
+        # ensure the parent is checked
+        self.pos_buttongrp.button(PARTS_OF_SPEECH["Other"]).setChecked(True)
 
     def create_and_set_layout(self):
 
@@ -161,10 +207,16 @@ class SignLevelInfoPanel(QFrame):
         self.modified_display = SignLevelDateDisplay()
         note_label = QLabel('Notes:')
         self.note_edit = QPlainTextEdit()
+        self.note_edit.setMaximumHeight(50)
         fingerspelled_label = QLabel('Fingerspelled:')
         self.fingerspelled_cb = QCheckBox()
         compoundsign_label = QLabel('Compound sign:')
         self.compoundsign_cb = QCheckBox()
+        pos_label = QLabel('Part(s) of speech:')
+        self.pos_layout = self.create_and_set_pos_layout()
+        pos_widget = QGroupBox()
+        # pos_widget.setMaximumHeight(150)
+        pos_widget.setLayout(self.pos_layout)
 
         handdominance_label = QLabel("Hand dominance:")
         self.handdominance_buttongroup = QButtonGroup()
@@ -196,10 +248,14 @@ class SignLevelInfoPanel(QFrame):
         main_layout.addRow(fingerspelled_label, self.fingerspelled_cb)
         main_layout.addRow(compoundsign_label, self.compoundsign_cb)
         main_layout.addRow(handdominance_label, self.handdominance_layout)
-
+        main_layout.addRow(pos_label, pos_widget)
         self.set_value()
 
-        self.setLayout(main_layout)
+        scroll_widget = QWidget()
+        scroll_widget.setLayout(main_layout)
+
+        self.setWidget(scroll_widget)
+
 
     def entryid_counter(self):
         if self.signlevelinfo is not None:
@@ -234,6 +290,7 @@ class SignLevelInfoPanel(QFrame):
             self.fingerspelled_cb.setChecked(signlevelinfo.fingerspelled)
             self.compoundsign_cb.setChecked(signlevelinfo.compoundsign)
             self.set_handdominance(signlevelinfo.handdominance)
+            self.set_partsofspeech(signlevelinfo.partsofspeech)
 
     def clear(self):
         self.restore_defaults()
@@ -253,12 +310,22 @@ class SignLevelInfoPanel(QFrame):
         self.fingerspelled_cb.setChecked(False)
         self.compoundsign_cb.setChecked(False)
         self.set_handdominance(self.defaulthand)
+        for cb in self.pos_buttongrp.buttons():
+            cb.setChecked(False)
+        self.other_pos_lineedit.setText("")
 
     def set_handdominance(self, handdominance):
         if handdominance == 'R':
             self.handdominance_r_radio.setChecked(True)
         elif handdominance == 'L':
             self.handdominance_l_radio.setChecked(True)
+
+    def set_partsofspeech(self, partsofspeech):
+        (checked_list, other_text) = partsofspeech
+        for label in checked_list:
+            self.pos_buttongrp.button(PARTS_OF_SPEECH[label]).setChecked(True)
+        self.other_pos_lineedit.setText(other_text)
+
 
     def get_handdominance(self):
         return 'R' if self.handdominance_r_radio.isChecked() else 'L'
@@ -285,7 +352,8 @@ class SignLevelInfoPanel(QFrame):
                 'note': self.note_edit.toPlainText(),
                 'fingerspelled': self.fingerspelled_cb.isChecked(),
                 'compoundsign': self.compoundsign_cb.isChecked(),
-                'handdominance': self.get_handdominance()
+                'handdominance': self.get_handdominance(),
+                'partsofspeech': self.get_partsofspeech()
             }
 
     def get_glosses(self):
@@ -296,6 +364,11 @@ class SignLevelInfoPanel(QFrame):
 
     def get_idgloss(self):
         return self.idgloss_edit.text().strip()
+    
+    def get_partsofspeech(self):
+        checked_btns = [btn.text() for btn in self.pos_buttongrp.buttons() if btn.isChecked()]
+        other_label = self.other_pos_lineedit.text()
+        return (checked_btns, other_label)
 
     @check_empty_glosslemmaIDgloss
     @check_duplicated_idgloss

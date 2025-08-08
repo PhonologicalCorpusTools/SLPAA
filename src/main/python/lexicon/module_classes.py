@@ -65,7 +65,9 @@ class ParameterModule:
             self._moduletype = moduletype
 
     def has_articulators(self):
-        return self.articulators[1][1] or self.articulators[1][2] # between articulator 1 and articulator 2, at least one is True
+        """ Between articulator 1 and articulator 2, at least one is True.
+        """
+        return self.articulators[1][1] or self.articulators[1][2] # 
 
     @property
     def addedinfo(self):
@@ -262,6 +264,8 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['fingerspelled']
             self._compoundsign = 'compoundsign' in serializedsignlevelinfo.keys() and serializedsignlevelinfo['compoundsign']
             self._handdominance = serializedsignlevelinfo['handdominance']
+            # backward compatibility for attribute added 20250713
+            self._partsofspeech = serializedsignlevelinfo['partsofspeech'] if 'partsofspeech' in serializedsignlevelinfo else ([], "")
         elif signlevel_info is not None:
             self._entryid = EntryID(counter=signlevel_info['entryid'], parentsign=parentsign)
             self._gloss = signlevel_info['gloss']
@@ -278,6 +282,8 @@ class SignLevelInformation:
             self._fingerspelled = 'fingerspelled' in signlevel_info.keys() and signlevel_info['fingerspelled']
             self._compoundsign = 'compoundsign' in signlevel_info.keys() and signlevel_info['compoundsign']
             self._handdominance = signlevel_info['handdominance']
+            # backward compatibility for attribute added 20250713
+            self._partsofspeech = signlevel_info['partsofspeech'] if 'partsofspeech' in signlevel_info else ([], "")
 
     def __eq__(self, other):
         if isinstance(other, SignLevelInformation):
@@ -304,7 +310,8 @@ class SignLevelInformation:
             'note': self._note,
             'fingerspelled': self._fingerspelled,
             'compoundsign': self._compoundsign,
-            'handdominance': self._handdominance
+            'handdominance': self._handdominance,
+            'partsofspeech': self._partsofspeech
         }
 
     @property
@@ -442,6 +449,43 @@ class SignLevelInformation:
     @handdominance.setter
     def handdominance(self, new_handdominance):
         self._handdominance = new_handdominance
+    
+    def getabbreviation(self):
+        # used in search function. 
+        to_append = []
+        if self.gloss:
+            to_append.append(f"gloss={self.gloss}") # update once search allows multiple glosses
+        if self.entryid.display_string():
+            to_append.append(f"entryid={self.entryid.display_string()}")
+
+        # Text properties: for now, match exactly. TODO: allow regex or other matching methods?
+        for val in ["idgloss", "lemma", "source", "signer", "frequency", "coder", "note"]:
+            sli_attr = getattr(self, val)
+            if sli_attr:
+                to_append.append(f"{val}={sli_attr}")
+        # Binary properties. 
+        for val in ["fingerspelled", "compoundsign", "handdominance"]:
+            sli_attr = getattr(self, val)
+            # fingerspelled and compoundsign can be T/F/None; handdominance can be L/R/None
+            if sli_attr not in [None, '']:
+                to_append.append(f"{val}={sli_attr}")
+        # Dates. TODO: allow date ranges?
+        for val in ["datecreated", "datelastmodified"]:
+            sli_attr = getattr(self, val)
+            if sli_attr:
+                to_append.append(f"{val}={sli_attr}")
+        return "; ".join(to_append)
+
+    @property
+    def partsofspeech(self):
+        if not hasattr(self, '_partsofspeech'):
+            # backward compatibility for attribute added 20250713
+            self._partsofspeech = ([], "")  # default value
+        return self._partsofspeech
+    
+    @partsofspeech.setter
+    def partsofspeech(self, pos):
+        self._partsofspeech = pos
 
 
 # This module stores the movement information for a particular articulator/s.
@@ -688,6 +732,9 @@ class LocationType:
         self._signingspace = signingspace
         self._bodyanchored = bodyanchored
         self._purelyspatial = purelyspatial
+    
+    def __eq__(self, other):
+        return isinstance(other, LocationType) and self.body == other.body and self.signingspace == other.signingspace and self.bodyanchored == other.bodyanchored and self.purelyspatial == other.purelyspatial
 
     def __repr__(self):
         repr_str = "nil"
@@ -1193,7 +1240,13 @@ class Signtype:
         #   the first element is the full signtype property (correlated with radio buttons in selector dialog)
         #   the second element is a flag indicating whether or not to include this abbreviation in the concise form
         self._specslist = specslist
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        # backward compatibility for pre-20250529 sign type (with only one articulator and therefore only one AddedInfo)
+        self._addedinfo = {HAND: AddedInfo(), ARM: AddedInfo(), LEG: AddedInfo()}
+        if addedinfo is not None:
+            if isinstance(addedinfo, AddedInfo):
+                # if there's just one instead of a dictionary of 3, it was meant for Hand
+                addedinfo = {HAND: addedinfo}
+            self._addedinfo.update(addedinfo)
         self._moduletype = ModuleTypes.SIGNTYPE
 
     # == check compares all content (equality does not require references to be to the same spot in memory)
@@ -1214,14 +1267,24 @@ class Signtype:
 
     @property
     def addedinfo(self):
+        # backward compatibility for pre-20250529 sign type (with only one articulator and therefore only one AddedInfo)
         if not hasattr(self, '_addedinfo'):
-            # for backward compatibility
-            self._addedinfo = AddedInfo()
+            self._addedinfo = {HAND: AddedInfo(), ARM: AddedInfo(), LEG: AddedInfo()}
+        elif isinstance(self._addedinfo, AddedInfo):
+            # if there's just one instead of a dictionary of 3, it was meant for Hand
+            self._addedinfo = {HAND: self._addedinfo, ARM: AddedInfo(), LEG: AddedInfo()}
         return self._addedinfo
 
     @addedinfo.setter
     def addedinfo(self, addedinfo):
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        # backward compatibility for pre-20250529 sign type (with only one articulator and therefore only one AddedInfo)
+        if addedinfo is None or isinstance(self._addedinfo, AddedInfo):
+            self._addedinfo = {HAND: AddedInfo(), ARM: AddedInfo(), LEG: AddedInfo()}
+        if addedinfo is not None:
+            if isinstance(addedinfo, AddedInfo):
+                # if there's just one instead of a dictionary of 3, it was meant for Hand
+                addedinfo = {HAND: addedinfo}
+            self._addedinfo.update(addedinfo)
 
     @property
     def specslist(self):
@@ -1251,7 +1314,9 @@ class Signtype:
             abbrevlist = []
             abbrevstr = ""
             for k in abbrevsdict.keys():
-                abbrevlist.append(k + self.makeabbreviationstring(abbrevsdict[k]))
+                isarticulatorabbr = re.match('^[12][hal]$', k)
+                k_display = k.upper() if isarticulatorabbr else k
+                abbrevlist.append(k_display + self.makeabbreviationstring(abbrevsdict[k]))
             abbrevstr += "; ".join(abbrevlist)
             return " (" + abbrevstr + ")"
 
@@ -2494,6 +2559,9 @@ class Direction:
             self._plus = False
             self._minus = False
     
+    def has_subselection(self):
+        return self.plus or self.minus or self.inline
+    
     def getabbreviation(self, sourcemodule=None):
         # returns the abbreviated label of the selected direction depending on this Direction's axis
         # abbreviations might differ depending on the source module, e.g. for Relation we use above/below but for Orientation we use up/down
@@ -2647,7 +2715,6 @@ class OrientationModule(ParameterModule):
     @root.setter
     def root(self, root):
         self._root = root
-
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""

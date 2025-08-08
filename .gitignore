@@ -4,7 +4,9 @@
 
 *.pyc
 .idea/*
-
+*.DS_Store
+.vscode/*
+src/main/python/.vscode/*
 # Documentation
 docs_imported/*
 docs/build/*

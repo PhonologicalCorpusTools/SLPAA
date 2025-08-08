@@ -83,7 +83,7 @@ class Sign:
             if not hasattr(self.signtype, '_moduletype'):
                 self.signtype._moduletype = ModuleTypes.SIGNTYPE
             # backward compatibility with pre-20250505 signtype structure
-            if len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
+            if self.signtype and len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
                 self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']

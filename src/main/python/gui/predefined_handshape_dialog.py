@@ -43,7 +43,7 @@ class PredefinedTableModel(QAbstractTableModel):
 
         self.data_cached = [
             ['A',
-             'closed-A-index',  # bent
+             '',  # bent
              '', 'closed-A-index', '', '', '', '', '',  # clawed, closed, combined, contracted, covered, crooked, curved
              'extended-A',  # extended
              '',  # flat
