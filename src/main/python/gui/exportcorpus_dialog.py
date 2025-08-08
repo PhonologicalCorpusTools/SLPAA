@@ -245,6 +245,9 @@ def cleandictsforexport(serialstructure, detaillevel):
                 elif k == 'action_state':
                     # do not omit any info from non-manual "action/state" subtrees; even when populated the values are empty dictionaries
                     cleaned_dict[k] = v
+                elif k == 'defaultneutrallist' and v is not None:
+                    # if default neutral is selected, then even when populated the values of defaultneutrallist are empty dictionaries
+                    cleaned_dict[k] = v
                 else:
                     cleaned_item = cleandictsforexport(v, detaillevel)
                     if cleaned_item:
