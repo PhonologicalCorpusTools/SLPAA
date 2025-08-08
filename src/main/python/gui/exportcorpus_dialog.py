@@ -4,12 +4,9 @@ import json
 from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
-    QDialog,
     QPushButton,
     QLabel,
     QFormLayout,
-    QFrame,
-    QDialogButtonBox,
     QFileDialog,
     QWizard,
     QWizardPage,
@@ -106,7 +103,7 @@ class ExportFormatSelectionWizardPage(QWizardPage):
         self.selectformatcombo.addItems(["JSON (.txt)"])
         formlayout.addRow(selectformatlabel, self.selectformatcombo)
 
-        selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values):")
+        selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values).")
         self.selectdetailswitch = OptionSwitch("Maximal", "Minimal")
         self.selectdetailswitch.toggled.connect(self.handle_detailswitch_toggled)
         formlayout.addRow(selectdetaillabel, self.selectdetailswitch)
@@ -145,7 +142,7 @@ class ExportFileSelectionWizardPage(QWizardPage):
         self.app_settings = app_settings
         pagelayout = QVBoxLayout()
 
-        pagelayout.addWidget(QLabel("Choose the name and location for the exported file:"))
+        pagelayout.addWidget(QLabel("Choose the name and location for the exported file."))
 
         selectionlayout = QHBoxLayout()
         self.exportedfiledisplay = QLineEdit()
@@ -268,7 +265,6 @@ def cleandictsforexport(serialstructure, detaillevel):
         # the only contents to be those with True appearing in their key-value pairs.
 
         # assume it's col_contents
-        toreturn = [cleandictsforexport(cc, "min") for cc in serialstructure]
         return [cleandictsforexport(cc, "min") for cc in serialstructure]
 
 
