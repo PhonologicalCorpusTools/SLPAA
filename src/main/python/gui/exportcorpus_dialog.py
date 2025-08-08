@@ -32,7 +32,6 @@ class ExportCorpusWizard(QWizard):
         self.app_settings = app_settings
         self.outputformat = ""
         self.detaillevel = ""
-        self.exportsuccessful = False
 
         formatselection_page = ExportFormatSelectionWizardPage()
         formatselection_page.exportformatselected.connect(self.handle_exportformatselected)
@@ -101,7 +100,7 @@ class ExportFormatSelectionWizardPage(QWizardPage):
 
         formlayout = QFormLayout()
 
-        selectformatlabel = QLabel("Choose which format you'd like for the exported data (JSON (.txt) is currently the only option):")
+        selectformatlabel = QLabel("Choose which format you'd like for the exported data: JSON (.txt) is currently the only option.")
         self.selectformatcombo = QComboBox()
         self.selectformatcombo.currentTextChanged.connect(self.formatcombo_changed)
         self.selectformatcombo.addItems(["JSON (.txt)"])
@@ -173,9 +172,6 @@ class ExportFileSelectionWizardPage(QWizardPage):
         if file_name:
             self.exportedfiledisplay.setText(file_name)
             self.completeChanged.emit()
-            # self.exportfilepath = file_name
-        # if len(self.exportfilepath) > 0 and self.parent().corpus is not None:  TODO
-        #     self.exportcorpusbutton.setEnabled(True)
 
 
 # wizard page that allows the user to finally confirm exporting the corpus
