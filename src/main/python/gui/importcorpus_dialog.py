@@ -78,23 +78,31 @@ class ImportCorpusWizard(QWizard):
     def import_corpus(self):
         returnmessage = ""
         with io.open(str(self.field("importsourcepath")), "r") as imfile:
+            corpus = Corpus()
+            glosses = []
             try:
-                corpus = Corpus()
                 data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
-                glosses = []
+            except json.JSONDecodeError:
+                return "import failed - not a valid JSON document"
+            except UnicodeDecodeError:
+                return "import failed - JSON does not contain UTF-8, UTF-16 or UTF-32 encoded data"
+            try:
                 if 'signs' in data.keys():
                     for signdict in data['signs']:
                         sign = self.read_sign(signdict)
                         corpus.add_sign(sign)
                         glosses.append(str(sign))
                 corpus.path = str(self.field("importdestpath"))
+            except Exception:
+                return "import failed - reading signs"
+            try:
                 if 'minimum id' in data.keys():
                     corpus.minimumID = data['minimum id']
                 if 'highest id' in data.keys():
                     corpus.highestID = data['highest id']
                 returnmessage = "imported " + str(len(glosses)) + " signs:\n" + "\n".join(glosses)
             except Exception:
-                return "import failed"
+                return "import failed - setting corpus metadata"
         self.parent().load_corpus_info(corpus.path, preloadedcorpus=corpus)
         return "import completed\n\n" + returnmessage
 

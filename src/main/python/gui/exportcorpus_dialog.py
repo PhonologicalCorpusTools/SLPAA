@@ -66,21 +66,32 @@ class ExportCorpusWizard(QWizard):
 
         serialized_corpus = self.parent().corpus.serialize()
         with io.open(str(self.field("exportedfilepath")), 'w') as exfile:
-            try:
-                # OK, this is a bit convoluted, but it seems like the most general way to be able to omit values
-                # that are empty/zero/false/null, is to convert everything to json format and read it back in so
-                # all of the data is in either dicts or lists (rather than objects).
-                # If we end up wanting to do something prettier or more customized in the future,
-                # this kind of cleaning might have to be done in the data classes themselves.
+            # OK, this is a bit convoluted, but it seems like the most general way to be able to omit values
+            # that are empty/zero/false/null, is to convert everything to json format and read it back in so
+            # all of the data is in either dicts or lists (rather than objects).
+            # If we end up wanting to do something prettier or more customized in the future,
+            # this kind of cleaning might have to be done in the data classes themselves.
 
+            try:
                 # for json.dumps, can also specify separators=(item_separator, key_separator)
                 # default is (', ', ': ') if indent is None and (',', ': ') otherwise
                 thestring = json.dumps(serialized_corpus, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
+            except Exception:
+                return "export failed - writing original json"
+            try:
                 reloaded = json.loads(thestring)
+            except json.JSONDecodeError:
+                return "export failed - not a valid JSON document"
+            except UnicodeDecodeError:
+                return "export failed - JSON does not contain UTF-8, UTF-16 or UTF-32 encoded data"
+            try:
                 cleaned = cleandictsforexport(reloaded, self.detaillevel)
+            except Exception:
+                return "export failed - cleaning JSON"
+            try:
                 json.dump(cleaned, exfile, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
             except Exception:
-                return "export failed - writing json"
+                return "export failed - writing cleaned JSON"
 
         return "export completed"
 
