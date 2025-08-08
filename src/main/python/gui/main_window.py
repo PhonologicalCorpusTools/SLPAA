@@ -54,9 +54,9 @@ from gui.corpus_view import CorpusDisplay
 from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
-from gui.exportcorpus_dialog import ExportCorpusDialog
 from gui.importcorpus_dialog import ImportCorpusDialog
 # from gui.compareexports_dialog import CompareExportsDialog
+from gui.exportcorpus_dialog import ExportCorpusWizard
 from gui.location_definer import LocationDefinerDialog
 from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
@@ -925,8 +925,8 @@ class MainWindow(QMainWindow):
         import_corpus_window.exec_()
 
     def on_action_export_corpus(self):
-        export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
-        export_corpus_window.exec_()
+        export_corpus_wizard = ExportCorpusWizard(self.app_settings, parent=self)
+        export_corpus_wizard.exec_()
 
     def on_action_search(self):
         self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)

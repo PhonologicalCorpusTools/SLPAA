@@ -3,6 +3,7 @@ import json
 
 from PyQt5.QtWidgets import (
     QVBoxLayout,
+    QHBoxLayout,
     QDialog,
     QPushButton,
     QLabel,
@@ -10,101 +11,65 @@ from PyQt5.QtWidgets import (
     QFrame,
     QDialogButtonBox,
     QFileDialog,
-    QComboBox
+    QWizard,
+    QWizardPage,
+    QComboBox,
+    QLineEdit,
 )
+
+from PyQt5.QtCore import pyqtSignal, Qt
 
 from gui.modulespecification_widgets import StatusDisplay
 from gui.helper_widget import OptionSwitch
 
 
-class ExportCorpusDialog(QDialog):
+# wizard that walks the user through exporting the current corpus as a .json file (currently only one format available)
+class ExportCorpusWizard(QWizard):
 
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
+        self.setOption(QWizard.IndependentPages, True)
         self.app_settings = app_settings
-        self.exportfilepath = ''
-        self.outputformat = "json"
-        self.detaillevel = "max"
+        self.outputformat = ""
+        self.detaillevel = ""
+        self.exportsuccessful = False
 
-        main_layout = QVBoxLayout()
-        form_layout = QFormLayout()
+        formatselection_page = ExportFormatSelectionWizardPage()
+        formatselection_page.exportformatselected.connect(self.handle_exportformatselected)
+        formatselection_page.completeChanged.connect(self.clear_statusdisplay)
+        self.formatselection_pageid = self.addPage(formatselection_page)
 
-        self.selectformatlabel = QLabel("1a. Choose which format you'd like for the exported data: JSON (.txt) is currently the only option.")
-        self.selectformatcombo = QComboBox()
-        self.selectformatcombo.addItems(["JSON (.txt)"])
-        self.selectformatcombo.currentTextChanged.connect(self.formatcombo_changed)
-        form_layout.addRow(self.selectformatlabel, self.selectformatcombo)
-        self.selectdetaillabel = QLabel("1b. Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values).")
-        self.selectdetailswitch = OptionSwitch("Maximal", "Minimal")
-        self.selectdetailswitch.toggled.connect(self.handle_detailswitch_toggled)
-        form_layout.addRow(self.selectdetaillabel, self.selectdetailswitch)
-        self.chooseexportedfilelabel = QLabel("2. Choose the name and location for the exported file.")
-        self.chooseexportedfilebutton = QPushButton("Select exported file")
-        self.chooseexportedfilebutton.setEnabled(False)
-        self.chooseexportedfilebutton.clicked.connect(self.handle_select_exportedfile)
-        form_layout.addRow(self.chooseexportedfilelabel, self.chooseexportedfilebutton)
-        self.exportcorpuslabel = QLabel("3. Export current .slpaa file.")
-        self.exportcorpusbutton = QPushButton("Export corpus")
-        self.exportcorpusbutton.setEnabled(False)
-        self.exportcorpusbutton.clicked.connect(self.handle_export_corpus)
-        form_layout.addRow(self.exportcorpuslabel, self.exportcorpusbutton)
-        self.statuslabel = QLabel("4. Status of export:")
-        self.statusdisplay = StatusDisplay("not yet attempted")
-        form_layout.addRow(self.statuslabel, self.statusdisplay)
+        fileselection_page = ExportFileSelectionWizardPage(self.app_settings)
+        fileselection_page.completeChanged.connect(self.clear_statusdisplay)
+        self.fileselection_pageid = self.addPage(fileselection_page)
 
-        main_layout.addLayout(form_layout)
+        self.exportcorpus_page = ExportCorpusWizardPage()
+        self.exportcorpus_page.exportcorpus.connect(self.handle_export_corpus)
+        self.exportcorpus_pageid = self.addPage(self.exportcorpus_page)
 
-        horizontal_line = QFrame()
-        horizontal_line.setFrameShape(QFrame.HLine)
-        horizontal_line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(horizontal_line)
+        self.setWindowTitle("Export Corpus")
 
-        buttons = QDialogButtonBox.Close
-        self.button_box = QDialogButtonBox(buttons, parent=self)
-        self.button_box.clicked.connect(self.handle_buttonbox_click)
-        main_layout.addWidget(self.button_box)
+    def clear_statusdisplay(self):
+        self.exportcorpus_page.exportattempted = False
+        self.exportcorpus_page.statusdisplay.clear()
 
-        self.setLayout(main_layout)
-
-    def handle_detailswitch_toggled(self, selection_dict):
-        if selection_dict[1]:
-            self.detaillevel = "max"
-        else:
-            self.detaillevel = "min"
-        self.statusdisplay.setText(self.detaillevel + "imal detail selected")
-        self.chooseexportedfilebutton.setEnabled(True)
-
-    def formatcombo_changed(self, txt):
-        if "json" in txt.lower():
-            newoutputformat = "json"
-        else:
-            newoutputformat = "unrecognized"
-
-        if newoutputformat != self.outputformat:
-            self.statusdisplay.setText(newoutputformat + " format selected")
-        self.outputformat = newoutputformat
-
-    def handle_select_exportedfile(self):
-        file_name, file_type = QFileDialog.getSaveFileName(self,
-                                                           self.tr("Select export destination"),
-                                                           self.app_settings['storage']['recent_folder'],
-                                                           self.tr("JSON file (*.txt)"))
-        if file_name != self.exportfilepath:
-            self.statusdisplay.setText("destination selected")
-        self.exportfilepath = file_name
-        if len(self.exportfilepath) > 0 and self.parent().corpus is not None:
-            self.exportcorpusbutton.setEnabled(True)
+    def handle_exportformatselected(self, outputformat, detaillevel):
+        self.outputformat = outputformat
+        self.detaillevel = detaillevel
 
     def handle_export_corpus(self):
-        self.statusdisplay.setText("exporting...")
-        self.statusdisplay.repaint()
+        self.exportcorpus_page.statusdisplay.setText("exporting...")
+        self.exportcorpus_page.statusdisplay.repaint()
         resultmessage = self.export_corpus()
-        self.statusdisplay.setText(resultmessage)
+        self.exportcorpus_page.statusdisplay.setText(resultmessage)
 
     def export_corpus(self):
         # corpus = self.parent().corpus
+        if self.parent().corpus is None:
+            return "export failed - corpus does not exist"
+
         serialized_corpus = self.parent().corpus.serialize()
-        with io.open(self.exportfilepath, 'w') as exfile:
+        with io.open(str(self.field("exportedfilepath")), 'w') as exfile:
             try:
                 # OK, this is a bit convoluted, but it seems like the most general way to be able to omit values
                 # that are empty/zero/false/null, is to convert everything to json format and read it back in so
@@ -119,16 +84,136 @@ class ExportCorpusDialog(QDialog):
                 cleaned = cleandictsforexport(reloaded, self.detaillevel)
                 json.dump(cleaned, exfile, indent=3, default=lambda x: getattr(x, '__dict__', str(x)))
             except Exception:
-                return "export failed"
+                return "export failed - writing json"
 
         return "export completed"
 
-    def handle_buttonbox_click(self, button):
-        standard = self.button_box.standardButton(button)
 
-        if standard == QDialogButtonBox.Close:
-            # close dialog
-            self.accept()
+# wizard page that asks the user to select the file format for the export,
+# and whether it should contain minimal or maximal data
+class ExportFormatSelectionWizardPage(QWizardPage):
+    exportformatselected = pyqtSignal(str, str)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.outputformat = ""
+        self.detaillevel = ""
+
+        formlayout = QFormLayout()
+
+        selectformatlabel = QLabel("Choose which format you'd like for the exported data (JSON (.txt) is currently the only option):")
+        self.selectformatcombo = QComboBox()
+        self.selectformatcombo.currentTextChanged.connect(self.formatcombo_changed)
+        self.selectformatcombo.addItems(["JSON (.txt)"])
+        formlayout.addRow(selectformatlabel, self.selectformatcombo)
+
+        selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values):")
+        self.selectdetailswitch = OptionSwitch("Maximal", "Minimal")
+        self.selectdetailswitch.toggled.connect(self.handle_detailswitch_toggled)
+        formlayout.addRow(selectdetaillabel, self.selectdetailswitch)
+
+        self.setLayout(formlayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return len(self.outputformat) > 0 and len(self.detaillevel)
+
+    def handle_detailswitch_toggled(self, selection_dict):
+        if selection_dict[1]:
+            self.detaillevel = "max"
+        else:
+            self.detaillevel = "min"
+        self.check_emitsignals()
+
+    def formatcombo_changed(self, txt):
+        if "json" in txt.lower():
+            self.outputformat = "json"
+        else:
+            self.outputformat = "something else"
+        self.check_emitsignals()
+
+    def check_emitsignals(self):
+        if self.isComplete():
+            self.completeChanged.emit()
+            self.exportformatselected.emit(self.outputformat, self.detaillevel)
+
+
+# wizard page that asks the user to choose a path/name for the export file
+class ExportFileSelectionWizardPage(QWizardPage):
+
+    def __init__(self, app_settings, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+        pagelayout = QVBoxLayout()
+
+        pagelayout.addWidget(QLabel("Choose the name and location for the exported file:"))
+
+        selectionlayout = QHBoxLayout()
+        self.exportedfiledisplay = QLineEdit()
+        self.exportedfiledisplay.setReadOnly(True)
+        self.registerField("exportedfilepath", self.exportedfiledisplay)
+        choosefilebutton = QPushButton("Browse")
+        choosefilebutton.clicked.connect(self.handle_select_exportedfile)
+        selectionlayout.addWidget(self.exportedfiledisplay)
+        selectionlayout.addWidget(choosefilebutton)
+
+        pagelayout.addLayout(selectionlayout)
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return len(self.field("exportedfilepath")) > 0
+
+    # presents the user a standard file selection dialog to choose where to save the exported file
+    def handle_select_exportedfile(self):
+        file_name, file_type = QFileDialog.getSaveFileName(self,
+                                                           self.tr('Select export destination'),
+                                                           self.app_settings['storage']['recent_folder'],
+                                                           self.tr('JSON file (*.txt)'))
+        if file_name:
+            self.exportedfiledisplay.setText(file_name)
+            self.completeChanged.emit()
+            # self.exportfilepath = file_name
+        # if len(self.exportfilepath) > 0 and self.parent().corpus is not None:  TODO
+        #     self.exportcorpusbutton.setEnabled(True)
+
+
+# wizard page that allows the user to finally confirm exporting the corpus
+# it also shows a status display
+class ExportCorpusWizardPage(QWizardPage):
+    exportcorpus = pyqtSignal()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.exportattempted = False
+        pagelayout = QVBoxLayout()
+
+        exportlayout = QHBoxLayout()
+        exportlayout.addWidget(QLabel("Export current .slpaa file:"))
+        exportcorpusbutton = QPushButton("Export corpus")
+        exportcorpusbutton.clicked.connect(self.handle_export_corpus)
+        exportlayout.addWidget(exportcorpusbutton)
+        pagelayout.addLayout(exportlayout)
+
+        statuslayout = QHBoxLayout()
+        statuslabel = QLabel("Status of export:")
+        statuslayout.addWidget(statuslabel)
+        statuslayout.setAlignment(statuslabel, Qt.AlignTop)
+        self.statusdisplay = StatusDisplay("not yet attempted")
+        statuslayout.addWidget(self.statusdisplay)
+        pagelayout.addLayout(statuslayout)
+
+        self.setLayout(pagelayout)
+
+    # signals to the parent (wizard) to try exporting the corpus
+    def handle_export_corpus(self, checked):
+        self.exportcorpus.emit()
+        self.exportattempted = True
+        self.completeChanged.emit()
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return self.exportattempted
 
 
 def cleandictsforexport(serialstructure, detaillevel):
