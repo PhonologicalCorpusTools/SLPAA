@@ -1419,7 +1419,7 @@ class MainWindow(QMainWindow):
 
     # load corpus info from given path
     def load_corpus_info(self, corpuspath, preloadedcorpus=None):
-        if preloadedcorpus:
+        if preloadedcorpus is not None:
             self.corpus = preloadedcorpus
         else:
             self.corpus = self.load_corpus_binary(corpuspath)
