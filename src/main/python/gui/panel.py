@@ -54,7 +54,7 @@ from gui.xslot_graphics import XslotRect, XslotRectModuleButton, SignSummaryScen
 
 
 
-# TODO KV there are two classes with this name-- are they exactly the same?
+# TODO there are two classes with this name-- are they exactly the same?
 class LocationPolygon(QGraphicsPolygonItem):
     def __init__(self, polygon, pen_width=5, pen_color='orange', fill_color='#FFD141', fill_alpha=0.5, **kwargs):
         super().__init__(**kwargs)
@@ -454,7 +454,7 @@ class SignSummaryPanel(QScrollArea):
 
 
     def addmodules_other(self, moduletype):  # artnum,
-        # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
+        # TODO implement spacing efficiency - for now put intervals on one row and points on another
         if moduletype == ModuleTypes.RELATION:
             modules = self.relmods_other
         elif moduletype == ModuleTypes.NONMANUAL:
@@ -506,7 +506,7 @@ class SignSummaryPanel(QScrollArea):
 
     def addmodules_hands_arms(self, artnum, moduletype):
         isrel = moduletype == ModuleTypes.RELATION
-        # TODO KV implement spacing efficiency - for now put intervals on one row and points on another
+        # TODO implement spacing efficiency - for now put intervals on one row and points on another
         if isrel:
             modules = [mod for mod in self.relmods_hands_arms if
                        mod.usesarticulator(HAND, artnum) or mod.usesarticulator(ARM, artnum)]
@@ -591,7 +591,7 @@ class SignSummaryPanel(QScrollArea):
         return condensed_intervals
 
     def add_timinginterval_tocondensed(self, timinginterval, condensed_intervals):
-        # TODO KV - look for possible simplifications
+        # TODO - look for possible simplifications
         if timinginterval.ispoint():
             # the one we're adding is a point; don't condense it with anything
             condensed_intervals.append(timinginterval)
