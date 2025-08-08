@@ -396,13 +396,13 @@ class ImportCorpusWizard(QWizard):
 
     def read_signtype(self, typedict):
         specslist = []
-
-        if '_specslist' in typedict.keys() and typedict['_specslist'] is not None:
-            specslist = [spec for spec in typedict['_specslist']]
-
         addedinfo = AddedInfo()
-        if '_addedinfo' in typedict.keys() and typedict['_addedinfo'] is not None:
-            addedinfo.__dict__.update(typedict['_addedinfo'])
+
+        if typedict is not None:
+            if '_specslist' in typedict.keys() and typedict['_specslist'] is not None:
+                specslist = [spec for spec in typedict['_specslist']]
+            if '_addedinfo' in typedict.keys() and typedict['_addedinfo'] is not None:
+                addedinfo.__dict__.update(typedict['_addedinfo'])
 
         return Signtype(specslist, addedinfo)
 
