@@ -54,7 +54,7 @@ from gui.corpus_view import CorpusDisplay
 from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
-from gui.importcorpus_dialog import ImportCorpusDialog
+from gui.importcorpus_dialog import ImportCorpusWizard
 # from gui.compareexports_dialog import CompareExportsDialog
 from gui.exportcorpus_dialog import ExportCorpusWizard
 from gui.location_definer import LocationDefinerDialog
@@ -921,8 +921,10 @@ class MainWindow(QMainWindow):
 
     @check_unsaved_change
     def on_action_import_corpus(self, clicked):
-        import_corpus_window = ImportCorpusDialog(self.app_settings, parent=self)
-        import_corpus_window.exec_()
+        # import_corpus_window = ImportCorpusDialog(self.app_settings, parent=self)
+        # import_corpus_window.exec_()
+        import_corpus_wizard = ImportCorpusWizard(self.app_settings, parent=self)
+        import_corpus_wizard.exec_()
 
     def on_action_export_corpus(self):
         export_corpus_wizard = ExportCorpusWizard(self.app_settings, parent=self)

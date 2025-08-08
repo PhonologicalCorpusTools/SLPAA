@@ -6,14 +6,17 @@ from fractions import Fraction
 
 from PyQt5.QtWidgets import (
     QVBoxLayout,
-    QDialog,
+    QHBoxLayout,
     QPushButton,
     QLabel,
     QFormLayout,
-    QFrame,
-    QDialogButtonBox,
-    QFileDialog
+    QFileDialog,
+    QWizard,
+    QWizardPage,
+    QLineEdit
 )
+
+from PyQt5.QtCore import pyqtSignal, Qt
 
 from gui.modulespecification_widgets import StatusDisplay
 from gui.helper_widget import OptionSwitch
@@ -22,7 +25,7 @@ from lexicon.module_classes import SignLevelInformation, Signtype, AddedInfo, Xs
     LocationModule, RelationModule, OrientationModule, HandConfigurationModule, NonManualModule, \
     TimingInterval, TimingPoint, Direction, PhonLocations, RelationX, RelationY, ContactRelation, Distance, \
     BodypartInfo, ContactType, MannerRelation
-from serialization_classes import MovementTreeSerializable, LocationTreeSerializable
+from serialization_classes import MovementTreeSerializable
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from constant import HAND, ARM, LEG
@@ -31,97 +34,50 @@ from constant import HAND, ARM, LEG
 # Throughout the methods of this class, there are lots of conditionals, default values, and the like, because we
 #   don't know if we're importing a maximal or a minimal .json. Don't make any assumptions! (Well... except a few
 #   keys that are absolutely guaranteed to exist.)
-class ImportCorpusDialog(QDialog):
+class ImportCorpusWizard(QWizard):
 
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
+        self.setOption(QWizard.IndependentPages, True)
         self.app_settings = app_settings
-        self.importsourcepath = ""
         self.inputformat = "json"
-        self.destpath = ""
         self.keeporigtimestamps = True
 
-        main_layout = QVBoxLayout()
-        form_layout = QFormLayout()
+        sourceselection_page = ImportSourceSelectionWizardPage(self.app_settings)
+        sourceselection_page.completeChanged.connect(self.clear_statusdisplay)
+        self.sourceselection_pageid = self.addPage(sourceselection_page)
 
-        self.chooseimportsourcelabel = QLabel("1. Select the file to import: JSON (.txt) is currently the only importable format.")
-        self.chooseimportsourcebutton = QPushButton("Select import source")
-        self.chooseimportsourcebutton.setEnabled(True)
-        self.chooseimportsourcebutton.clicked.connect(self.handle_select_importsource)
-        form_layout.addRow(self.chooseimportsourcelabel, self.chooseimportsourcebutton)
-        self.choosedestlabel = QLabel("2. Choose the name and location to save the corpus file generated from the import.")
-        self.choosedestbutton = QPushButton("Select import destination")
-        self.choosedestbutton.setEnabled(False)
-        self.choosedestbutton.clicked.connect(self.handle_select_dest)
-        form_layout.addRow(self.choosedestlabel, self.choosedestbutton)
-        self.timestamplabel = QLabel("3. Select which option you prefer for the 'last modified' timestamp on each sign:")
-        self.timestampswitch = OptionSwitch("Keep original values\nas per exported file", "Reset to now")
-        self.timestampswitch.toggled.connect(self.handle_timestampswitch_toggled)
-        self.timestampswitch.setEnabled(False)
-        form_layout.addRow(self.timestamplabel, self.timestampswitch)
-        self.importcorpuslabel = QLabel("4. Import JSON to new .slpaa file.")
-        self.importcorpusbutton = QPushButton("Import corpus")
-        self.importcorpusbutton.setEnabled(False)
-        self.importcorpusbutton.clicked.connect(self.handle_import_corpus)
-        form_layout.addRow(self.importcorpuslabel, self.importcorpusbutton)
-        self.statuslabel = QLabel("3. Status of import:")
-        self.statusdisplay = StatusDisplay("not yet attempted")
-        form_layout.addRow(self.statuslabel, self.statusdisplay)
+        destselection_page = ImportDestinationSelectionWizardPage(self.app_settings)
+        destselection_page.completeChanged.connect(self.clear_statusdisplay)
+        self.destselection_pageid = self.addPage(destselection_page)
 
-        main_layout.addLayout(form_layout)
+        timestampselection_page = TimestampSelectionWizardPage()
+        timestampselection_page.timestampselected.connect(self.handle_timestampselected)
+        timestampselection_page.completeChanged.connect(self.clear_statusdisplay)
+        self.timestampselection_pageid = self.addPage(timestampselection_page)
 
-        horizontal_line = QFrame()
-        horizontal_line.setFrameShape(QFrame.HLine)
-        horizontal_line.setFrameShadow(QFrame.Sunken)
-        main_layout.addWidget(horizontal_line)
+        self.importcorpus_page = ImportCorpusWizardPage()
+        self.importcorpus_page.importcorpus.connect(self.handle_import_corpus)
+        self.importcorpus_pageid = self.addPage(self.importcorpus_page)
 
-        buttons = QDialogButtonBox.Close
-        self.button_box = QDialogButtonBox(buttons, parent=self)
-        self.button_box.clicked.connect(self.handle_buttonbox_click)
-        main_layout.addWidget(self.button_box)
+        self.setWindowTitle("Import Corpus")
 
-        self.setLayout(main_layout)
+    def clear_statusdisplay(self):
+        self.importcorpus_page.importattempted = False
+        self.importcorpus_page.statusdisplay.clear()
 
-    def handle_select_dest(self):
-        importsourcefilename = os.path.split(self.importsourcepath)[1]
-        suggesteddestfilename = importsourcefilename.replace(".txt", "_imported.slpaa")
-        file_name, file_type = QFileDialog.getSaveFileName(self,
-                                                           self.tr('Select import destination'),
-                                                           # complains if dest already exists
-                                                           os.path.join(self.app_settings['storage']['recent_folder'], suggesteddestfilename),
-                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
-        if file_name != self.destpath:
-            self.statusdisplay.setText("destination selected")
-        self.destpath = file_name
-        if len(self.destpath) > 0 and len(self.importsourcepath) > 0:  #
-            self.timestampswitch.setEnabled(True)
-
-    def handle_timestampswitch_toggled(self, switchvalue):
-        self.keeporigtimestamps = switchvalue[1]
-        self.importcorpusbutton.setEnabled(True)
-
-    def handle_select_importsource(self):
-        file_name, file_type = QFileDialog.getOpenFileName(self,
-                                                           caption=self.tr('Select file to import'),
-                                                           directory=self.app_settings['storage']['recent_folder'],
-                                                           filter=self.tr('JSON file (*.txt)'))
-        if file_name != self.importsourcepath:
-            self.statusdisplay.setText("source selected")
-        self.importsourcepath = file_name
-        if len(self.importsourcepath) > 0:
-            self.choosedestbutton.setEnabled(True)
-            if len(self.destpath) > 0:
-                self.importcorpusbutton.setEnabled(True)
+    def handle_timestampselected(self, keeporigtimestamps):
+        self.keeporigtimestamps = keeporigtimestamps
 
     def handle_import_corpus(self):
-        self.statusdisplay.setText("importing...")
-        self.statusdisplay.repaint()
+        self.importcorpus_page.statusdisplay.setText("importing...")
+        self.importcorpus_page.statusdisplay.repaint()
         resultmessage = self.import_corpus()
-        self.statusdisplay.setText(resultmessage)
+        self.importcorpus_page.statusdisplay.setText(resultmessage)
 
     def import_corpus(self):
         returnmessage = ""
-        with io.open(self.importsourcepath, "r") as imfile:
+        with io.open(str(self.field("importsourcepath")), "r") as imfile:
             try:
                 corpus = Corpus()
                 data = json.load(imfile)  # dict with keys: 'signs', 'path', 'minimum id', 'highest id'
@@ -131,7 +87,7 @@ class ImportCorpusDialog(QDialog):
                         sign = self.read_sign(signdict)
                         corpus.add_sign(sign)
                         glosses.append(str(sign))
-                corpus.path = self.destpath
+                corpus.path = str(self.field("importdestpath"))
                 if 'minimum id' in data.keys():
                     corpus.minimumID = data['minimum id']
                 if 'highest id' in data.keys():
@@ -287,16 +243,16 @@ class ImportCorpusDialog(QDialog):
         palmdirs_list = []
         palmlist = oridict.pop('_palm', [])
         for dirdict in palmlist:
-            dir = Direction(axis=dirdict['_axis'])
-            dir.__dict__.update(dirdict)
-            palmdirs_list.append(dir)
+            dirn = Direction(axis=dirdict['_axis'])
+            dirn.__dict__.update(dirdict)
+            palmdirs_list.append(dirn)
 
         rootdirs_list = []
         rootlist = oridict.pop('_root', [])
         for dirdict in rootlist:
-            dir = Direction(axis=dirdict['_axis'])
-            dir.__dict__.update(dirdict)
-            rootdirs_list.append(dir)
+            dirn = Direction(axis=dirdict['_axis'])
+            dirn.__dict__.update(dirdict)
+            rootdirs_list.append(dirn)
 
         omod = OrientationModule(palmdirs_list=palmdirs_list, rootdirs_list=rootdirs_list, articulators=articulators,
                                  timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
@@ -398,9 +354,6 @@ class ImportCorpusDialog(QDialog):
 
         # location-specific attributes
         ltree = LocationTreeModel(jsondict=locdict['locationtree'])
-        # ltreeser = LocationTreeSerializable(infodicts=locdict['locationtree'])  # includes addedinfos for individual location items
-        # # TODO missing detailstables
-        # ltree = LocationTreeModel(serializedlocntree=ltreeser)
         inphase = locdict.pop('inphase', 0)
 
         lmod = LocationModule(ltree, articulators, timingintervals=timingintervals,
@@ -469,9 +422,144 @@ class ImportCorpusDialog(QDialog):
             sli[k] = v
         return SignLevelInformation(signlevel_info=sli)
 
-    def handle_buttonbox_click(self, button):
-        standard = self.button_box.standardButton(button)
 
-        if standard == QDialogButtonBox.Close:
-            # close dialog
-            self.accept()
+# wizard page that asks the user to choose a source (exported) file to import
+class ImportSourceSelectionWizardPage(QWizardPage):
+
+    def __init__(self, app_settings, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+        pagelayout = QVBoxLayout()
+
+        pagelayout.addWidget(QLabel("Select the file to import: JSON (.txt) is currently the only importable format."))
+
+        selectionlayout = QHBoxLayout()
+        self.importsourcedisplay = QLineEdit()
+        self.importsourcedisplay.setReadOnly(True)
+        self.registerField("importsourcepath", self.importsourcedisplay)
+        choosefilebutton = QPushButton("Browse")
+        choosefilebutton.clicked.connect(self.handle_select_source)
+        selectionlayout.addWidget(self.importsourcedisplay)
+        selectionlayout.addWidget(choosefilebutton)
+
+        pagelayout.addLayout(selectionlayout)
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return len(self.field("importsourcepath")) > 0
+
+    # presents the user a standard file selection dialog to choose which file to import
+    def handle_select_source(self):
+        file_name, file_type = QFileDialog.getOpenFileName(self,
+                                                           self.tr('Select file to import'),
+                                                           self.app_settings['storage']['recent_folder'],
+                                                           self.tr('JSON file (*.txt)'))
+        if file_name:
+            self.importsourcedisplay.setText(file_name)
+            self.completeChanged.emit()
+
+
+# wizard page that asks the user to choose a destination file to which to save the imported (source) file
+class ImportDestinationSelectionWizardPage(QWizardPage):
+
+    def __init__(self, app_settings, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+        pagelayout = QVBoxLayout()
+
+        pagelayout.addWidget(QLabel("Choose the name and location to save the corpus file generated from the import."))
+
+        selectionlayout = QHBoxLayout()
+        self.importdestdisplay = QLineEdit()
+        self.importdestdisplay.setReadOnly(True)
+        self.registerField("importdestpath", self.importdestdisplay)
+        choosefilebutton = QPushButton("Browse")
+        choosefilebutton.clicked.connect(self.handle_select_dest)
+        selectionlayout.addWidget(self.importdestdisplay)
+        selectionlayout.addWidget(choosefilebutton)
+
+        pagelayout.addLayout(selectionlayout)
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return len(self.field("importdestpath")) > 0
+
+    # presents the user a standard file selection dialog to choose which file to import
+    def handle_select_dest(self):
+        importsourcefilename = os.path.split(str(self.field("importsourcepath")))[1]
+        suggesteddestfilename = importsourcefilename.replace(".txt", "_imported.slpaa")
+        file_name, file_type = QFileDialog.getSaveFileName(self,
+                                                           self.tr('Select import destination'),
+                                                           # complains if dest already exists
+                                                           os.path.join(self.app_settings['storage']['recent_folder'], suggesteddestfilename),
+                                                           self.tr('SLP-AA Corpus (*.slpaa)'))
+        if file_name:
+            self.importdestdisplay.setText(file_name)
+            self.completeChanged.emit()
+
+
+# wizard page that asks the user to decide whether they want the 'last modified' timestamps from the originally-exported signs,
+# or if new ones should be generated now
+class TimestampSelectionWizardPage(QWizardPage):
+    timestampselected = pyqtSignal(bool)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.keeporigtimestamps = None
+
+        pagelayout = QVBoxLayout()
+        pagelayout.addWidget(QLabel("Select which option you prefer for the 'last modified' timestamp on each sign."))
+        self.timestampswitch = OptionSwitch("Keep original values\nas per exported file", "Reset to now")
+        self.timestampswitch.toggled.connect(self.handle_timestampswitch_toggled)
+        pagelayout.addWidget(self.timestampswitch)
+
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return self.keeporigtimestamps is not None
+
+    def handle_timestampswitch_toggled(self, switchvalue):
+        self.keeporigtimestamps = switchvalue[1]
+        self.completeChanged.emit()
+        self.timestampselected.emit(self.keeporigtimestamps)
+
+
+# wizard page that allows the user to finally confirm importing the corpus
+# it also shows a status display
+class ImportCorpusWizardPage(QWizardPage):
+    importcorpus = pyqtSignal()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.importattempted = False
+        pagelayout = QVBoxLayout()
+
+        importlayout = QHBoxLayout()
+        importlayout.addWidget(QLabel("Import JSON to new .slpaa file."))
+        importcorpusbutton = QPushButton("Import corpus")
+        importcorpusbutton.clicked.connect(self.handle_import_corpus)
+        importlayout.addWidget(importcorpusbutton)
+        pagelayout.addLayout(importlayout)
+
+        statuslayout = QHBoxLayout()
+        statuslabel = QLabel("Status of import:")
+        statuslayout.addWidget(statuslabel)
+        statuslayout.setAlignment(statuslabel, Qt.AlignTop)
+        self.statusdisplay = StatusDisplay("not yet attempted")
+        statuslayout.addWidget(self.statusdisplay)
+        pagelayout.addLayout(statuslayout)
+
+        self.setLayout(pagelayout)
+
+    # signals to the parent (wizard) to try importing the corpus
+    def handle_import_corpus(self, checked):
+        self.importcorpus.emit()
+        self.importattempted = True
+        self.completeChanged.emit()
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return self.importattempted
