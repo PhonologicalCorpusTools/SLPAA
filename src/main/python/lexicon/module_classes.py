@@ -9,7 +9,7 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, \
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, Precomputed, userdefinedroles as udr, treepathdelimiter, ModuleTypes, \
     SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots, SIGN_TYPE
 from constant import (specifytotalcycles_str, numberofreps_str, custom_abbrev)
 
@@ -48,6 +48,7 @@ class ParameterModule:
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
         self._moduletype = ""
+        self._selections = None # Currently used in search window only
 
     @property
     def moduletype(self):
@@ -140,7 +141,16 @@ class ParameterModule:
                 todisplay += " connected, in phase"
         return todisplay
 
-
+    @property
+    def selections(self):
+        return self._selections
+        
+    @selections.setter
+    def selections(self, selections):
+        self._selections = selections
+        
+    def compute_selections(self):
+        pass
 
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
@@ -510,7 +520,16 @@ class MovementModule(ParameterModule):
     @inphase.setter
     def inphase(self, inphase):
         self._inphase = inphase
+        
+    def compute_selections(self):
+        """Sets `self.selections`. Used in search function to precompute some of the selections in this module. 
+        Not everything is included yet (for example, not articulators, additional notes, etc).
+        For now, includes selected movement paths """
 
+        self.selections = {
+            Precomputed.MOV_PATHS: set(self.movementtreemodel.get_checked_items())
+        }
+    
     def getabbreviation(self):
         def refactor_list(strings):
             if not strings:
@@ -1414,7 +1433,28 @@ class LocationModule(ParameterModule):
     def inphase(self, inphase):
         self._inphase = inphase
     
+    def compute_selections(self, nodes_are_terminal):
+        """Used in search function to precompute some of the selections in this module. 
+        Not everything is included yet (for example, not articulators, additional notes, etc)
+        
+        Args:
+            nodes_are_terminal: bool. Used in search window. True if this is a location search target. Otherwise, depends on the nodes_are_terminal checkbox.
+        
+        LOC_PATHS: Selected location paths and their corresponding details tables. 
+        This is a list of tuples where each tuple contains:
+            path[0]: str. The full path.
+            path[1]: tuple(tuple(), tuple()). The selected details (e.g. surfaces and subareas)
+        """
+        paths = self.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
+        path_tuples = []
+        for path in paths:
+            details_tuple = tuple(tuple(selecteddetails) for selecteddetails in path['details'].get_checked_values().values())
+            path_tuples.append((path['path'], details_tuple))
+            
 
+        self.selections = {
+            Precomputed.LOC_PATHS: path_tuples
+        }
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
