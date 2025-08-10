@@ -150,7 +150,7 @@ class SearchModel(QStandardItemModel):
         # Location modules: list of dicts, where keys are checked paths and values
         
         for row in selected_rows:
-            if self.target_type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+            if self.target_type(row) in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
                 self.target_module(row).compute_selections()
             
         
