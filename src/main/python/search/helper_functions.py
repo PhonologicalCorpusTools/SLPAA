@@ -1,7 +1,7 @@
 import logging, fractions
 from collections import defaultdict
 from search.search_classes import XslotTypes
-from lexicon.module_classes import ParameterModule, MovementModule, LocationModule, TimingInterval, TimingPoint, ModuleTypes, HandConfigurationHand, PREDEFINED_MAP
+from lexicon.module_classes import ParameterModule, MovementModule, LocationModule, RelationModule, TimingInterval, TimingPoint, ModuleTypes, HandConfigurationHand, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeEmpty
 from constant import Precomputed
 
@@ -357,7 +357,7 @@ def filter_modules_by_target_mvmt(modulelist, target_module:MovementModule, matc
     Args:
         modulelist: list of movement modules (list is not modified)
         target_module: movement module built in the Search window
-        matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
+        matchtype: 'minimal' or 'exact'. If minimal, matching modules can contain paths not specified in target_module's paths.
         terminate_early: bool. True if we only need to know whether `modulelist` has at least one matching module. 
     Returns:
         list. Returns the subset of `modules` that match `target_module`. 
@@ -390,13 +390,13 @@ def filter_modules_by_target_mvmt(modulelist, target_module:MovementModule, matc
     return matching_modules
 
                 
-def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal', terminate_early=False): 
+def filter_modules_by_target_locn(modulelist, target_module:LocationModule, matchtype='minimal', terminate_early=False): 
     """
     Filter a list of location modules, returning a subset that matches a target location module.
     Args:
         modulelist: list of location modules (list is not modified)
         target_module: location module built in the Search window
-        matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
+        matchtype: 'minimal' or 'exact'. If minimal, matching modules can contain paths/details not specified in target_module's paths/details.
         terminate_early: bool. True if we only need to know whether `modulelist` has at least one matching module. 
     Returns:
         list. Returns the subset of `modules` that match `target_module`. 
@@ -408,28 +408,22 @@ def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal'
         if not modulelist:
             return []
     fully_checked = target_module.locationtreemodel.nodes_are_terminal
-    target_paths = target_module.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True)
-    if target_paths:
-        # convert to a list of tuples, since that's what we'll try to match when searching
-        target_path_tuples = []
-        for p in target_paths:
-            # details_tuple is tuple([], [])
-            details_tuple = tuple(tuple(selecteddetails) for selecteddetails in p['details'].get_checked_values().values())
-            target_path_tuples.append((p['path'], details_tuple))
-
-        modulelist = filter_modules_by_locn_paths(modules=modulelist, 
-                                                        target_paths=target_path_tuples, 
-                                                        nodes_are_terminal=fully_checked, 
-                                                        matchtype=matchtype, 
-                                                        terminate_early=terminate_early)
+    if target_module.selections is None:
+        target_module.compute_selections()
+    target_path_tuples = target_module.selections[Precomputed.LOC_PATHS]
+    modulelist = filter_modules_by_locn_paths(modules=modulelist, 
+                                                    target_paths=target_path_tuples, 
+                                                    nodes_are_terminal=fully_checked, 
+                                                    matchtype=matchtype, 
+                                                    terminate_early=terminate_early)
 
     return modulelist
     
-def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False, is_relation=False, articulator=None):
+def filter_modules_by_locn_paths(modules: list[LocationModule] | list[RelationModule], target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False, is_relation=False, articulator=None):
     """
-    Filter a list of location modules by selected paths. This doesn't check for matching loctypes (e.g. body vs body-anchored), phonlocs, articulators, xslottypes, etc.
+    Filter a list of location or relation modules by selected paths. This doesn't check for matching loctypes (e.g. body vs body-anchored), phonlocs, articulators, xslottypes, etc.
     Args:
-        modules: list of location modules (list is not modified)
+        modules: list of location or relation modules
         target_paths: target paths to match. This is a list of tuples where each tuple contains:
             target_path[0]: str. The full path.
             target_path[1]: tuple(tuple(), tuple()). The selected details (e.g. surfaces and subareas)
@@ -440,25 +434,26 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
         articulator: string. A label such as "hand1" or "arm2"
 
     Returns:
-        list. Returns the subset of `modules` with modules that contain all the paths and details tables in `paths`. If `terminate_early` is True, the list contains only the first module in `modules` that matches `target_paths`. If matchtype is `exact`, matching modules cannot contain any other paths or details tables.
+        list. Contains the subset of `modules` with modules that contain all the paths and details tables in `paths`. If `terminate_early` is True, the list contains only the first module in `modules` that matches `target_paths`. If matchtype is `exact`, matching modules cannot contain any other paths or details tables.
     """
     matching_modules = []
     for module in modules:
         if is_relation:
             treemodel = module.get_treemodel_from_articulator_label(articulator)
             module_paths_to_check = treemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
-        else:
-            module_paths_to_check = module.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
-        if len(module_paths_to_check) < len(target_paths): # all paths specified in the target need to be present in the module for it to match, regardless of matchtype
-            continue
-        module_paths = set()
-        for mp in module_paths_to_check:
-            # module_paths is a list of dicts {'path', 'abbrev', 'details'}. 
-            # Convert the details to tuples to match the target_path format, and so that we can store them in a set later.
-            # details_tuple is tuple(tuple(), tuple())
-            details_tuple = tuple(tuple(selecteddetails) for selecteddetails in mp['details'].get_checked_values().values())
-            module_paths.add((mp['path'], details_tuple))
+            module_paths = set()
+            for mp in module_paths_to_check:
+                # module_paths is a list of dicts {'path', 'abbrev', 'details'}. 
+                # Convert the details to tuples to match the target_path format, and so that we can store them in a set later.
+                # details_tuple is tuple(tuple(), tuple())
+                details_tuple = tuple(tuple(selecteddetails) for selecteddetails in mp['details'].get_checked_values().values())
+                module_paths.add((mp['path'], details_tuple))
 
+        else:
+            if module.selections is None:
+                module.compute_selections(nodes_are_terminal)
+            module_paths = module.selections[Precomputed.LOC_PATHS]
+        
         # to match exactly, a module must contain _only_ the target paths and no other paths
         if matchtype == 'exact' and module_paths == target_paths: 
             matching_modules.append(module)
@@ -466,8 +461,6 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
         elif matchtype == 'minimal':
             # create module_details as dict so we can sort by path for faster lookup.
             # This is ok because we don't expect any repeated paths in module_paths, so keys are unique.
-            # This is NOT the case for target_paths 
-            # (we might have e.g. two instances of the same target path, but with different details)
             module_details = {}
             for p in module_paths:
                 module_details[p[0]] = p[1]

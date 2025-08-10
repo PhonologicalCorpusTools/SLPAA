@@ -150,7 +150,8 @@ class SearchModel(QStandardItemModel):
         # Location modules: list of dicts, where keys are checked paths and values
         
         for row in selected_rows:
-            self.target_module(row).compute_selections()
+            if self.target_type in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                self.target_module(row).compute_selections()
             
         
         
@@ -248,7 +249,7 @@ class SearchModel(QStandardItemModel):
             if not self.sign_matches_location(target_dict[ModuleTypes.LOCATION], sign):
                 return False
 
-        for ttype in [ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+        for ttype in [ ModuleTypes.RELATION]:
             if ttype in target_dict:                
                 modules_to_check = [m for m in sign.getmoduledict(ttype).values()]
                 if not modules_to_check:
@@ -361,7 +362,7 @@ class SearchModel(QStandardItemModel):
             # if negative ("match signs not containing path xyz"), stop as soon as we find a module containing path xyz
             terminate_early = True if self.is_negative(row) else False 
             
-            matching_modules = filter_modules_by_target_locn(modules_to_check, target_module, target_paths, matchtype=self.matchtype, terminate_early=terminate_early)
+            matching_modules = filter_modules_by_target_locn(modules_to_check, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
             if not (self.is_negative(row) ^ bool(matching_modules)):
                 return False
         return True
