@@ -1433,17 +1433,17 @@ class LocationModule(ParameterModule):
     def inphase(self, inphase):
         self._inphase = inphase
     
-    def compute_selections(self, nodes_are_terminal):
+    def compute_selections(self, nodes_are_terminal=True):
         """Used in search function to precompute some of the selections in this module. 
         Not everything is included yet (for example, not articulators, additional notes, etc)
         
-        Args:
-            nodes_are_terminal: bool. Used in search window. True if this is a location search target. Otherwise, depends on the nodes_are_terminal checkbox.
-        
-        LOC_PATHS: Selected location paths and their corresponding details tables. 
-        This is a list of tuples where each tuple contains:
+        Adds Precomputed.LOC_PATHS key to self.selections. Value is a list of tuples where each tuple contains:
             path[0]: str. The full path.
             path[1]: tuple(tuple(), tuple()). The selected details (e.g. surfaces and subareas)
+        
+        Args:
+            nodes_are_terminal: bool. Used in search window. True if computing paths of a location search target. Otherwise, depends on the location search target's nodes_are_terminal checkbox.
+        # TODO: consider saving LOC_PATHS as a dict instead with keys=paths and values=details (this is needed in filter_by location path)
         """
         paths = self.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
         path_tuples = []
