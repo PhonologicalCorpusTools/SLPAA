@@ -1297,7 +1297,7 @@ class MainWindow(QMainWindow):
                     if (idglossduplicated and self.edit_SLI["idgloss"] == "tag"):
                         # user wants duplicated ID-glosses to be tagged to differentiate
                         thisidgloss = signtopaste.signlevel_information.idgloss
-                        suffixmatches = re.match('.*-copy(\d+)$', thisidgloss)
+                        suffixmatches = re.match(r'.*-copy(\d+)$', thisidgloss)
                         if not suffixmatches:
                             # this one hasn't been tagged yet
                             thisidgloss += "-copy1"
