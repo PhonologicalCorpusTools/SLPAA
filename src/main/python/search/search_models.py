@@ -18,7 +18,7 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import (AddedInfo, TimingInterval, TimingPoint, ParameterModule, 
                                     ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule,
                                     HandConfigurationHand, PREDEFINED_MAP)
-from constant import TargetTypes, HAND, ARM, LEG, HandConfigSlots
+from constant import TargetTypes, HAND, ARM, LEG, HandConfigSlots, Precomputed
 import logging, time
 
 from models.movement_models import MovementTreeModel
@@ -27,8 +27,6 @@ from serialization_classes import LocationModuleSerializable, MovementModuleSeri
 from search.helper_functions import *
 from search.search_classes import SearchTargetItem
 
-class Precomputed:
-    MOV_PATHS = 'mvmt paths' 
 
 
 class TargetHeaders:
@@ -147,13 +145,12 @@ class SearchModel(QStandardItemModel):
         # TODO potentially update each time a new target is created.
         # we pre-compute some things such as movement and location paths
         # to avoid re-computing them each time we call a filter or sign_matches_ function
-        # Done so far: movement paths
+        # Done so far: 
+        # Movement modules: set of checked paths
+        # Location modules: list of dicts, where keys are checked paths and values
         
-        self.precomputed_targets = {} # reset
         for row in selected_rows:
-            if self.target_type(row) == ModuleTypes.MOVEMENT:
-                module = self.target_module(row)
-                self.precomputed_targets[row] = {Precomputed.MOV_PATHS: set(module.movementtreemodel.get_checked_items())}
+            self.target_module(row).compute_selections()
             
         
         
@@ -246,6 +243,10 @@ class SearchModel(QStandardItemModel):
         if ModuleTypes.MOVEMENT in target_dict:
             if not self.sign_matches_movement(target_dict[ModuleTypes.MOVEMENT], sign):
                 return False
+        
+        if ModuleTypes.LOCATION in target_dict:
+            if not self.sign_matches_location(target_dict[ModuleTypes.LOCATION], sign):
+                return False
 
         for ttype in [ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             if ttype in target_dict:                
@@ -259,8 +260,6 @@ class SearchModel(QStandardItemModel):
                     target_module = self.target_module(row)
                     if ttype == ModuleTypes.LOCATION:
                         matching_modules = filter_modules_by_target_locn(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
-                    elif ttype == ModuleTypes.MOVEMENT:
-                        matching_modules = filter_modules_by_target_mvmt(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
                     elif ttype == ModuleTypes.RELATION:
                         matching_modules = filter_modules_by_target_reln(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
 
@@ -347,19 +346,26 @@ class SearchModel(QStandardItemModel):
         modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
         for row in rows:
             target_module = self.target_module(row)
-            if row in self.precomputed_targets:
-                target_paths = self.precomputed_targets[row][Precomputed.MOV_PATHS]
-            else:
-                target_paths = set(target_module.movementtreemodel.get_checked_items())
-            
             # if negative ("match signs not containing path xyz"), stop as soon as we find a module containing path xyz
             terminate_early = True if self.is_negative(row) else False 
             
-            matching_modules = filter_modules_by_target_mvmt(modules_to_check, target_module, target_paths, matchtype=self.matchtype, terminate_early=terminate_early)
+            matching_modules = filter_modules_by_target_mvmt(modules_to_check, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
             if not (self.is_negative(row) ^ bool(matching_modules)):
                 return False
         return True
         
+    def sign_matches_location(self, rows, sign):
+        modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
+        for row in rows:
+            target_module = self.target_module(row)            
+            # if negative ("match signs not containing path xyz"), stop as soon as we find a module containing path xyz
+            terminate_early = True if self.is_negative(row) else False 
+            
+            matching_modules = filter_modules_by_target_locn(modules_to_check, target_module, target_paths, matchtype=self.matchtype, terminate_early=terminate_early)
+            if not (self.is_negative(row) ^ bool(matching_modules)):
+                return False
+        return True
+
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:

@@ -1,8 +1,9 @@
 import logging, fractions
 from collections import defaultdict
 from search.search_classes import XslotTypes
-from lexicon.module_classes import ParameterModule, TimingInterval, TimingPoint, ModuleTypes, HandConfigurationHand, PREDEFINED_MAP
+from lexicon.module_classes import ParameterModule, MovementModule, LocationModule, TimingInterval, TimingPoint, ModuleTypes, HandConfigurationHand, PREDEFINED_MAP
 from lexicon.predefined_handshape import HandshapeEmpty
+from constant import Precomputed
 
 def filter_modules_by_articulators(modulelist, target_module: ParameterModule, matchtype='minimal'):
     """ Filter a list of parameter modules, returning a subset whose articulator / inphase specifications match that of a target module.
@@ -350,13 +351,12 @@ def filter_modules_by_target_reln(modulelist, target_module, target_is_assoc_rel
 
     return modulelist          
 
-def filter_modules_by_target_mvmt(modulelist, target_module, target_paths:set=None, matchtype='minimal', terminate_early=False):
+def filter_modules_by_target_mvmt(modulelist, target_module:MovementModule, matchtype='minimal', terminate_early=False):
     """
     Filter a list of movement modules, returning a subset that matches a target movement module.
     Args:
         modulelist: list of movement modules (list is not modified)
         target_module: movement module built in the Search window
-        target_paths: set(). output of get_checked_items() for `target_module`. Optionally pre-computed. None if not pre-computed
         matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
         terminate_early: bool. True if we only need to know whether `modulelist` has at least one matching module. 
     Returns:
@@ -374,18 +374,20 @@ def filter_modules_by_target_mvmt(modulelist, target_module, target_paths:set=No
     # TODO filter by xslot types! 
 
     # Filter for modules that match target paths
-    target_paths = target_paths or set(target_module.movementtreemodel.get_checked_items())
-    if terminate_early:
-        for m in modulelist:
-            module_paths = set(m.movementtreemodel.get_checked_items())
-            if ((matchtype == "exact" and module_paths == target_paths) 
-                or (matchtype == "minimal" and target_paths.issubset(module_paths))):
-                return [m]
-    elif matchtype == "exact":
-        return [m for m in modulelist if set(m.movementtreemodel.get_checked_items()) == target_paths]
-    elif matchtype == "minimal":
-        return [m for m in modulelist if target_paths.issubset(set(m.movementtreemodel.get_checked_items()))]
-            
+    if target_module.selections is None:
+        target_module.compute_selections()
+    target_paths = target_module.selections[Precomputed.MOV_PATHS]
+    matching_modules = []
+    for m in modulelist:
+        if m.selections is None:
+                m.compute_selections()
+        module_paths = m.selections[Precomputed.MOV_PATHS]
+        if ((matchtype == "exact" and module_paths == target_paths) 
+            or (matchtype == "minimal" and target_paths.issubset(module_paths))):
+            matching_modules.append(m)
+        if matching_modules and terminate_early:
+            return matching_modules
+    return matching_modules
 
                 
 def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal', terminate_early=False): 
