@@ -235,7 +235,7 @@ class MovementSpecificationPanel(ModuleSpecificationPanel):
         # return super().eventFilter(source, event)
 
         if event.type() == QEvent.ContextMenu and source == self.pathslistview:
-            proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
+            proxyindex = self.pathslistview.currentIndex()  # TODO what if multiple are selected?
             # proxyindex = self.pathslistview.selectedIndexes()[0]
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
