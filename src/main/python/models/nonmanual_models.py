@@ -93,91 +93,91 @@ class ActionStateModel:
 
 # children of major non-manual module 'Mouth'
 mouth_teeth = NonManualModel(
-    label='Teeth',
+    label="Teeth",
     visibility=False,
     distance=False,
-    action_state=ActionStateModel(options=['Upper teeth touch lower lip',
-                                           'Close (bite)',
-                                           'Almost close',
-                                           'Open',
-                                           'Clatter'  # gray out if Static is selected
+    action_state=ActionStateModel(options=["Upper teeth touch lower lip",
+                                           "Close (bite)",
+                                           "Almost close",
+                                           "Open",
+                                           "Clatter"  # gray out if Static is selected
                                            ])
 )
 mouth_jaw = NonManualModel(
-    label='Jaw (lower jaw)',
-    action_state=ActionStateModel(options=[ActionStateModel(label='Horizontal',
-                                                            options=['H1 side',
-                                                                     'H2 side']),
-                                           ActionStateModel(label='Vertical',
-                                                            options=['Up',
-                                                                     'Down']),
-                                           ActionStateModel(label='Sagittal',
-                                                            options=['Forward',
-                                                                     'Backward'])],
+    label="Jaw (lower jaw)",
+    action_state=ActionStateModel(options=[ActionStateModel(label="Horizontal",
+                                                            options=["H1 side",
+                                                                     "H2 side"]),
+                                           ActionStateModel(label="Vertical",
+                                                            options=["Up",
+                                                                     "Down"]),
+                                           ActionStateModel(label="Sagittal",
+                                                            options=["Forward",
+                                                                     "Backward"])],
                                   exclusive=False)
 )
 mouth_opening = NonManualModel(
-    label='Mouth opening',
-    action_state=ActionStateModel(options=['Yawn',
-                                           'Wide open',
-                                           'Open',
-                                           'Slightly open',
-                                           'Closed',
-                                           'Tightly closed'
+    label="Mouth opening",
+    action_state=ActionStateModel(options=["Yawn",
+                                           "Wide open",
+                                           "Open",
+                                           "Slightly open",
+                                           "Closed",
+                                           "Tightly closed"
                                            ])
 )
 mouth_lips = NonManualModel(
-    label='Lips',
+    label="Lips",
     visibility=False,
-    action_state=ActionStateModel(options=[ActionStateModel(label='Openness',
-                                                            options=['Wide open',
-                                                                     'Open',
-                                                                     'Slightly open',
-                                                                     'Almost closed',
-                                                                     'Closed',
-                                                                     'Tightly closed',]),
-                                           ActionStateModel(label='Stretch',
-                                                            options=['Small stretch',
-                                                                     'Large stretch']),
-                                           ActionStateModel(label='Raise',
-                                                            options=[ActionStateModel(label='upper lip',
+    action_state=ActionStateModel(options=[ActionStateModel(label="Openness",
+                                                            options=["Wide open",
+                                                                     "Open",
+                                                                     "Slightly open",
+                                                                     "Almost closed",
+                                                                     "Closed",
+                                                                     "Tightly closed",]),
+                                           ActionStateModel(label="Stretch",
+                                                            options=["Small stretch",
+                                                                     "Large stretch"]),
+                                           ActionStateModel(label="Raise",
+                                                            options=[ActionStateModel(label="upper lip",
                                                                                       options=[
-                                                                                          ActionStateModel(label='One side',
-                                                                                                           options=['H1 side',
-                                                                                                                    'H2 side'],
+                                                                                          ActionStateModel(label="One side",
+                                                                                                           options=["H1 side",
+                                                                                                                    "H2 side"],
                                                                                                            exclusive=True),
-                                                                                          'Whole',
+                                                                                          "Whole",
                                                                                       ],
                                                                                       exclusive=True
                                                                                       ),
-                                                                     ActionStateModel(label='corner(s)',
+                                                                     ActionStateModel(label="corner(s)",
                                                                                       options=[
-                                                                                          ActionStateModel(label='One side',
-                                                                                                           options=['H1 side',
-                                                                                                                    'H2 side'],
+                                                                                          ActionStateModel(label="One side",
+                                                                                                           options=["H1 side",
+                                                                                                                    "H2 side"],
                                                                                                            exclusive=True),
-                                                                                          'Both sides',
+                                                                                          "Both sides",
                                                                                       ],
                                                                                       exclusive=True
                                                                                       ),
                                                                      ]
                                                             ),
-                                           ActionStateModel(label='Curve down corners',
-                                                            options=[ActionStateModel(label='One side',
-                                                                                      options=['H1 side',
-                                                                                               'H2 side'],
+                                           ActionStateModel(label="Curve down corners",
+                                                            options=[ActionStateModel(label="One side",
+                                                                                      options=["H1 side",
+                                                                                               "H2 side"],
                                                                                       exclusive=True),
-                                                                     'Both sides']),
-                                           ActionStateModel(label='Pucker'),
-                                           ActionStateModel(label='Vibrate'),   # gray out if static
-                                           ActionStateModel(label='Purse'),
-                                           ActionStateModel(label='Round'),
-                                           ActionStateModel(label='Tense'),
-                                           ActionStateModel(label='Puff',
-                                                            options=['Both lips',
-                                                                     ActionStateModel(label='One lip',
-                                                                                      options=['Upper lip',
-                                                                                               'Lower lip'],
+                                                                     "Both sides"]),
+                                           ActionStateModel(label="Pucker"),
+                                           ActionStateModel(label="Vibrate"),   # gray out if static
+                                           ActionStateModel(label="Purse"),
+                                           ActionStateModel(label="Round"),
+                                           ActionStateModel(label="Tense"),
+                                           ActionStateModel(label="Puff",
+                                                            options=["Both lips",
+                                                                     ActionStateModel(label="One lip",
+                                                                                      options=["Upper lip",
+                                                                                               "Lower lip"],
                                                                                       exclusive=True),
                                                                      ],
                                                             ),
@@ -185,52 +185,52 @@ mouth_lips = NonManualModel(
 
 )
 mouth_tongue = NonManualModel(
-    label='Tongue',
-    action_state=ActionStateModel(options=[ActionStateModel(label='Protrude',
-                                                            options=[ActionStateModel(label='Part of tongue',
-                                                                                      options=['tip only',
-                                                                                               'body of tongue']),
-                                                                     ActionStateModel(label='Distance',
-                                                                                      options=['past teeth only',
-                                                                                               'past teeth and lips']),
-                                                                     ActionStateModel(label='Direction',
+    label="Tongue",
+    action_state=ActionStateModel(options=[ActionStateModel(label="Protrude",
+                                                            options=[ActionStateModel(label="Part of tongue",
+                                                                                      options=["tip only",
+                                                                                               "body of tongue"]),
+                                                                     ActionStateModel(label="Distance",
+                                                                                      options=["past teeth only",
+                                                                                               "past teeth and lips"]),
+                                                                     ActionStateModel(label="Direction",
                                                                                       options=[ActionStateModel(
-                                                                                          label='Horizontal',
-                                                                                          options=['toward H1',
-                                                                                                   'toward H2']),
+                                                                                          label="Horizontal",
+                                                                                          options=["toward H1",
+                                                                                                   "toward H2"]),
                                                                                                ActionStateModel(
-                                                                                                   label='Vertical',
-                                                                                                   options=['up',
-                                                                                                            'down']),
+                                                                                                   label="Vertical",
+                                                                                                   options=["up",
+                                                                                                            "down"]),
                                                                                                ActionStateModel(
-                                                                                                   label='Sagittal',
-                                                                                                   options=['forward']),
+                                                                                                   label="Sagittal",
+                                                                                                   options=["forward"]),
                                                                                                ActionStateModel(
-                                                                                                   label='Circular',
+                                                                                                   label="Circular",
                                                                                                    # gray out if static
                                                                                                    options=[])
                                                                                                ],
                                                                                       )]
                                                             ),
-                                           ActionStateModel(label='Contact',
-                                                            options=[ActionStateModel(label='Behind upper teeth'),
-                                                                     ActionStateModel(label='Touch upper lip'),
-                                                                     ActionStateModel(label='Touch lower lip'),
-                                                                     ActionStateModel(label='Touch lower teeth'),
-                                                                     ActionStateModel(label='Touch a corner of the mouth',
-                                                                                      options=['H1 side corner',
-                                                                                               'H2 side corner']),
-                                                                     ActionStateModel(label='Push into cheek',
-                                                                                      options=['H1 side cheek',
-                                                                                               'H2 side cheek']),
-                                                                     ActionStateModel(label='Push behind bottom lip'),
-                                                                     ActionStateModel(label='Push behind upper lip')])
+                                           ActionStateModel(label="Contact",
+                                                            options=[ActionStateModel(label="Behind upper teeth"),
+                                                                     ActionStateModel(label="Touch upper lip"),
+                                                                     ActionStateModel(label="Touch lower lip"),
+                                                                     ActionStateModel(label="Touch lower teeth"),
+                                                                     ActionStateModel(label="Touch a corner of the mouth",
+                                                                                      options=["H1 side corner",
+                                                                                               "H2 side corner"]),
+                                                                     ActionStateModel(label="Push into cheek",
+                                                                                      options=["H1 side cheek",
+                                                                                               "H2 side cheek"]),
+                                                                     ActionStateModel(label="Push behind bottom lip"),
+                                                                     ActionStateModel(label="Push behind upper lip")])
                                            ])
 )
 mouth_cheek = NonManualModel(
-    label='Cheek',
-    action_state=ActionStateModel(options=[ActionStateModel(label='Puff'),
-                                           ActionStateModel(label='Suck in'),
+    label="Cheek",
+    action_state=ActionStateModel(options=[ActionStateModel(label="Puff"),
+                                           ActionStateModel(label="Suck in"),
                                            ],
                                   )
 
@@ -238,146 +238,146 @@ mouth_cheek = NonManualModel(
 
 # children of major non-manual module 'Facial Expression'
 facial_eyebrows = NonManualModel(
-    label='Eyebrows',
+    label="Eyebrows",
     subparts={'specifier': 'side',
               'opposite action': True},
-    action_state=ActionStateModel(options=['Furrow', #  [gray out if ‘one side’ is checked]
-                                           'Up',
-                                           'Down',
+    action_state=ActionStateModel(options=["Furrow", #  [gray out if ‘one side’ is checked]
+                                           "Up",
+                                           "Down",
                                            ])
 )
 facial_eyelids = NonManualModel(
-    label='Eyelids',
+    label="Eyelids",
     subparts={'specifier': 'side',
               'opposite action': False},
-    action_state=ActionStateModel(options=['Wide open',
-                                           'Open',
-                                           'Narrow',
-                                           'Close',
-                                           'Tightly shut',
+    action_state=ActionStateModel(options=["Wide open",
+                                           "Open",
+                                           "Narrow",
+                                           "Close",
+                                           "Tightly shut",
                                            ])
 )
 facial_nose = NonManualModel(
-    label='Nose',
-    action_state=ActionStateModel(options=['Wrinkle',
-                                           ActionStateModel(label='Move to side',
-                                                            options=['H1 side',
-                                                                     'H2 side'],
+    label="Nose",
+    action_state=ActionStateModel(options=["Wrinkle",
+                                           ActionStateModel(label="Move to side",
+                                                            options=["H1 side",
+                                                                     "H2 side"],
                                                             exclusive=True),
-                                           ActionStateModel(label='Move nostril(s)',
-                                                            options=['Widen / flare',
-                                                                     'Pinch'],
+                                           ActionStateModel(label="Move nostril(s)",
+                                                            options=["Widen / flare",
+                                                                     "Pinch"],
                                                             exclusive=True)])
 )
 
 
 shoulder = NonManualModel(
-    label='Shoulder',
+    label="Shoulder",
     subparts={'specifier': 'side',
               'opposite action': False},
-    action_state=ActionStateModel(options=[ActionStateModel(label='Straight',
-                                                            options=[ActionStateModel(label='Vertical',
-                                                                                      options=['Up', 'Down'],
+    action_state=ActionStateModel(options=[ActionStateModel(label="Straight",
+                                                            options=[ActionStateModel(label="Vertical",
+                                                                                      options=["Up", "Down"],
                                                                                       ),
-                                                                     ActionStateModel(label='Sagittal',
-                                                                                      options=['Distal', 'Proximal'],
+                                                                     ActionStateModel(label="Sagittal",
+                                                                                      options=["Distal", "Proximal"],
                                                                                       )
                                                                      ],
                                                             exclusive=True),
-                                           ActionStateModel(label='Circumduction',
-                                                            options=['forward from top of circle',
-                                                                     'backward from top of circle'],
+                                           ActionStateModel(label="Circumduction",
+                                                            options=["forward from top of circle",
+                                                                     "backward from top of circle"],
                                                             exclusive=True)],
                                    )
 )
 body = NonManualModel(
-    label='Body',
-    action_state=ActionStateModel(options=[ActionStateModel(label='Torso',
-                                                            options=[ActionStateModel(label='Rotate',
-                                                                                      options=['toward H1',
-                                                                                               'toward H2']),
-                                                                     ActionStateModel(label='Tilt',
-                                                                                      options=[ActionStateModel(label='Horizontal',
-                                                                                                                options=['toward H1',
-                                                                                                                         'toward H2']),
-                                                                                               ActionStateModel(label='Sagittal',
-                                                                                                                options=['forward',
-                                                                                                                         'backward'])
+    label="Body",
+    action_state=ActionStateModel(options=[ActionStateModel(label="Torso",
+                                                            options=[ActionStateModel(label="Rotate",
+                                                                                      options=["toward H1",
+                                                                                               "toward H2"]),
+                                                                     ActionStateModel(label="Tilt",
+                                                                                      options=[ActionStateModel(label="Horizontal",
+                                                                                                                options=["toward H1",
+                                                                                                                         "toward H2"]),
+                                                                                               ActionStateModel(label="Sagittal",
+                                                                                                                options=["forward",
+                                                                                                                         "backward"])
                                                                                                ]
                                                                                       ),]),
-                                           ActionStateModel(label='Chest',
-                                                            options=['Exhale / deflate',
-                                                                     'Inhale / inflate']),
-                                           ActionStateModel(label='Back',
-                                                            options=['Round', 'Straight']),
+                                           ActionStateModel(label="Chest",
+                                                            options=["Exhale / deflate",
+                                                                     "Inhale / inflate"]),
+                                           ActionStateModel(label="Back",
+                                                            options=["Round", "Straight"]),
                                            ]
                                   )
 )
 head = NonManualModel(
-    label='Head',
-    action_state=ActionStateModel(options=[ActionStateModel(label='Rotate',
-                                                            options=['toward H1',
-                                                                     'toward H2']),
-                                           ActionStateModel(label='Tilt',
-                                                            options=[ActionStateModel(label='Horizontal',
-                                                                                      options=['toward H1',
-                                                                                               'toward H2']),
-                                                                     ActionStateModel(label='Sagittal',
-                                                                                      options=['forward',
-                                                                                               'backward'])]),
-                                           ActionStateModel(label='Push',
-                                                            options=[ActionStateModel(label='Horizontal',
-                                                                                      options=['toward H1',
-                                                                                               'toward H2']),
-                                                                     ActionStateModel(label='Sagittal',
-                                                                                      options=['forward',
-                                                                                               'backward'])])
+    label="Head",
+    action_state=ActionStateModel(options=[ActionStateModel(label="Rotate",
+                                                            options=["toward H1",
+                                                                     "toward H2"]),
+                                           ActionStateModel(label="Tilt",
+                                                            options=[ActionStateModel(label="Horizontal",
+                                                                                      options=["toward H1",
+                                                                                               "toward H2"]),
+                                                                     ActionStateModel(label="Sagittal",
+                                                                                      options=["forward",
+                                                                                               "backward"])]),
+                                           ActionStateModel(label="Push",
+                                                            options=[ActionStateModel(label="Horizontal",
+                                                                                      options=["toward H1",
+                                                                                               "toward H2"]),
+                                                                     ActionStateModel(label="Sagittal",
+                                                                                      options=["forward",
+                                                                                               "backward"])])
                                            ]
                                   )
 )
 
 eyegaze = NonManualModel(
-    label='Eye gaze',
+    label="Eye gaze",
     subparts={'specifier': 'eye',
               'opposite action': False},
     distance=False,
-    action_state=ActionStateModel(options=[ActionStateModel(label='Absolute direction',
-                                                            options=[ActionStateModel(label='Horizontal',
-                                                                                      options=['Toward H1 side',
-                                                                                               'Toward H2 side']),
-                                                                     ActionStateModel(label='Vertical',
-                                                                                      options=['Up', 'Down']),
-                                                                     ActionStateModel(label='Sagittal',
-                                                                                      options=['Ahead']),
+    action_state=ActionStateModel(options=[ActionStateModel(label="Absolute direction",
+                                                            options=[ActionStateModel(label="Horizontal",
+                                                                                      options=["Toward H1 side",
+                                                                                               "Toward H2 side"]),
+                                                                     ActionStateModel(label="Vertical",
+                                                                                      options=["Up", "Down"]),
+                                                                     ActionStateModel(label="Sagittal",
+                                                                                      options=["Ahead"]),
                                                                      ]),
-                                           ActionStateModel(label='Relative direction',
-                                                            options=['toward Addressee',
-                                                                     'toward Researcher',
-                                                                     ActionStateModel(label='toward Hands',
-                                                                                      options=['Both hands',
+                                           ActionStateModel(label="Relative direction",
+                                                            options=["toward Addressee",
+                                                                     "toward Researcher",
+                                                                     ActionStateModel(label="toward Hands",
+                                                                                      options=["Both hands",
                                                                                                ActionStateModel(
-                                                                                                   label='One hand',
-                                                                                                   options=['H1', 'H2'],
+                                                                                                   label="One hand",
+                                                                                                   options=["H1", "H2"],
                                                                                                    exclusive=True)
                                                                                                ],
                                                                                       exclusive=True),
-                                                                     'toward a discourse reference; Specify',  # specify
-                                                                     'toward something else; Specify']),  # specify
-                                           'Unfocused',
-                                           'Rolling'  # grey out if Static is selected
+                                                                     "toward a discourse reference; Specify",  # specify
+                                                                     "toward something else; Specify"]),  # specify
+                                           "Unfocused",
+                                           "Rolling"  # grey out if Static is selected
                                            ])
 )
 facexp = NonManualModel(
-    label='Facial Expression',
+    label="Facial Expression",
     children=[facial_eyebrows,
               facial_eyelids,
               facial_nose],
     subparts=[  # 'subparts' only nominally. instead used for components that go in row#1. esp. 'general description'
-        'Description; Specify'
+        "Description; Specify"
     ]
 )
 mouth = NonManualModel(
-    label='Mouth',
+    label="Mouth",
     children=[mouth_teeth,
               mouth_jaw,
               mouth_opening,
@@ -385,19 +385,19 @@ mouth = NonManualModel(
               mouth_tongue,
               mouth_cheek],
     subparts=[   # 'subparts' only nominally. it is actually for 'Type of mouth movement'
-        'mouthing / mouth picture \n[i.e., taken from spoken language]; Specify',
-        'mouth gesture \n[i.e., inherent to the sign language]; Specify',
-        'emotional; Specify',
-        'other; Specify'
+        "mouthing / mouth picture \n[i.e., taken from spoken language]; Specify",
+        "mouth gesture \n[i.e., inherent to the sign language]; Specify",
+        "emotional; Specify",
+        "other; Specify"
     ]
 )
 air = NonManualModel(
-    label='Air',
-    action_state=ActionStateModel(options=[ActionStateModel(label='Breath',  # grey out if static
-                                                            options=['In', 'Out'],
+    label="Air",
+    action_state=ActionStateModel(options=[ActionStateModel(label="Breath",  # grey out if static
+                                                            options=["In", "Out"],
                                                             exclusive=True),
-                                           'Hold breath',  # grey out if dynamic
-                                           'Press air toward lips'],
+                                           "Hold breath",  # grey out if dynamic
+                                           "Press air toward lips"],
                                   )
 
 )
