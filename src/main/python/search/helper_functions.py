@@ -350,33 +350,44 @@ def filter_modules_by_target_reln(modulelist, target_module, target_is_assoc_rel
 
     return modulelist          
 
-def filter_modules_by_target_mvmt(modulelist, target_module, matchtype='minimal', terminate_early=False):
+def filter_modules_by_target_mvmt(modulelist, target_module, target_paths:set=None, matchtype='minimal', terminate_early=False):
     """
     Filter a list of movement modules, returning a subset that matches a target movement module.
     Args:
         modulelist: list of movement modules (list is not modified)
         target_module: movement module built in the Search window
+        target_paths: set(). output of get_checked_items() for `target_module`. Optionally pre-computed. None if not pre-computed
         matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
         terminate_early: bool. True if we only need to know whether `modulelist` has at least one matching module. 
     Returns:
-        list. Returns the subset of `modules` that match `target_module`. If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
+        list. Returns the subset of `modules` that match `target_module`. 
+        If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. 
+        If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """ 
+    if not modulelist:
+        return []
     for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
-        matching_modules = filter(modulelist, target_module, matchtype)
-        if not matching_modules:
-            return False
+        modulelist = filter(modulelist, target_module, matchtype)
+        if not modulelist:
+            return []
+
+    # TODO filter by xslot types! 
 
     # Filter for modules that match target paths
-    target_paths = set(target_module.movementtreemodel.get_checked_items())
-    if target_paths:
-        # TODO matching_modules = m for m in ... if module_matches_xslottype(module.timingintervals, target_module.timingintervals, xslottype, sign.xslotstructure, self.matchtype):
-        # TODO minimal vs exact, and terminate_early
-        matching_modules = [m for m in matching_modules if target_paths.issubset(set(m.movementtreemodel.get_checked_items()))]
-        
-        if not matching_modules: return []
-                
-    return matching_modules
+    target_paths = target_paths or set(target_module.movementtreemodel.get_checked_items())
+    if terminate_early:
+        for m in modulelist:
+            module_paths = set(m.movementtreemodel.get_checked_items())
+            if ((matchtype == "exact" and module_paths == target_paths) 
+                or (matchtype == "minimal" and target_paths.issubset(module_paths))):
+                return [m]
+    elif matchtype == "exact":
+        return [m for m in modulelist if set(m.movementtreemodel.get_checked_items()) == target_paths]
+    elif matchtype == "minimal":
+        return [m for m in modulelist if target_paths.issubset(set(m.movementtreemodel.get_checked_items()))]
+            
 
+                
 def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal', terminate_early=False): 
     """
     Filter a list of location modules, returning a subset that matches a target location module.
@@ -386,12 +397,14 @@ def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal'
         matchtype: 'minimal' or 'exact'. TODO: exactly what does minimal / exact mean?
         terminate_early: bool. True if we only need to know whether `modulelist` has at least one matching module. 
     Returns:
-        list. Returns the subset of `modules` that match `target_module`. If `terminate_early` is True and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
+        list. Returns the subset of `modules` that match `target_module`. 
+        If `terminate_early` and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. 
+        If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """
     for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs, filter_modules_by_loctype]:
-        matching_modules = filter(modulelist, target_module, matchtype)
-        if not matching_modules:
-            return False
+        modulelist = filter(modulelist, target_module, matchtype)
+        if not modulelist:
+            return []
     fully_checked = target_module.locationtreemodel.nodes_are_terminal
     target_paths = target_module.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True)
     if target_paths:
@@ -402,14 +415,13 @@ def filter_modules_by_target_locn(modulelist, target_module, matchtype='minimal'
             details_tuple = tuple(tuple(selecteddetails) for selecteddetails in p['details'].get_checked_values().values())
             target_path_tuples.append((p['path'], details_tuple))
 
-        matching_modules = filter_modules_by_locn_paths(modules=matching_modules, 
+        modulelist = filter_modules_by_locn_paths(modules=modulelist, 
                                                         target_paths=target_path_tuples, 
                                                         nodes_are_terminal=fully_checked, 
                                                         matchtype=matchtype, 
                                                         terminate_early=terminate_early)
-        if not matching_modules: return []     
 
-    return matching_modules
+    return modulelist
     
 def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False, is_relation=False, articulator=None):
     """
@@ -487,12 +499,10 @@ def filter_modules_by_target_orientation(modulelist, target_module, matchtype='m
     Returns:
         list. Returns the subset of `modulelist` that match `target_module`.
     """ 
-    if not modulelist: 
-        return []
     NUM_DIRECTIONS = 3
     for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs]:
-        matching_modules = filter(modulelist, target_module, matchtype)
-        if not matching_modules:
+        modulelist = filter(modulelist, target_module, matchtype)
+        if not modulelist:
             return []
     if matchtype != 'minimal': # exact matchtype
         for i in range(NUM_DIRECTIONS):
