@@ -718,61 +718,61 @@ class Corpus:
         length = len(nodes)
         if modtype == ModuleTypes.MOVEMENT:
             # Issue 193: Update thumb movements in joint activity section
-            if nodes[0] == 'Joint activity':
-                if (length > 1 and nodes[1] == 'Thumb base / metacarpophalangeal'):
-                    if (length > 2 and (nodes[2] in ['Abduction', 'Adduction'])):
-                        nodes[1] = 'Thumb root / carpometacarpal (CMC)'
-                        paths_to_add.append(nodes[0:2] + (['Radial abduction'] if nodes[2] == 'Abduction' else ['Radial adduction']))
-                        paths_to_add.append(nodes[0:2] + (['Palmar abduction'] if nodes[2] == 'Abduction' else ['Palmar adduction']))
+            if nodes[0] == "Joint activity":
+                if (length > 1 and nodes[1] == "Thumb base / metacarpophalangeal"):
+                    if (length > 2 and (nodes[2] in ["Abduction", "Adduction"])):
+                        nodes[1] = "Thumb root / carpometacarpal (CMC)"
+                        paths_to_add.append(nodes[0:2] + (["Radial abduction"] if nodes[2] == "Abduction" else ["Radial adduction"]))
+                        paths_to_add.append(nodes[0:2] + (["Palmar abduction"] if nodes[2] == "Abduction" else ["Palmar adduction"]))
                     
-                    elif (length > 2 and nodes[2] == 'Circumduction'):
-                        nodes[1] = 'Thumb root / carpometacarpal (CMC)'
+                    elif (length > 2 and nodes[2] == "Circumduction"):
+                        nodes[1] = "Thumb root / carpometacarpal (CMC)"
                         paths_to_add.append(nodes)
                         
-                    elif (length > 2 and nodes[2] == 'Opposition'):
-                        nodes[1] = 'Thumb complex movement'
+                    elif (length > 2 and nodes[2] == "Opposition"):
+                        nodes[1] = "Thumb complex movement"
                         paths_to_add.append(nodes)
 
                     else: # Flexion/extension
-                        nodes[1] = 'Thumb base / metacarpophalangeal (MCP)'
+                        nodes[1] = "Thumb base / metacarpophalangeal (MCP)"
                         paths_to_add.append(nodes)
                     
-                elif (length > 1 and nodes[1] == 'Thumb non-base / interphalangeal'):
-                    nodes[1] = 'Thumb non-base / interphalangeal (IP)'
+                elif (length > 1 and nodes[1] == "Thumb non-base / interphalangeal"):
+                    nodes[1] = "Thumb non-base / interphalangeal (IP)"
                     paths_to_add.append(nodes)
                 
             # Fix some minor spelling / punctuation changes from issue #195
-            if (length > 2 and nodes[2] == 'Rubbing'):
-                if length > 3 and nodes[3] == 'Articulators':
-                    nodes[3] = 'Articulator(s):'
-                elif length > 3 and nodes[3] == 'Location':
-                    nodes[3] = 'Location:'
-                elif length > 4 and nodes[3] in ['Across', 'Along']:
+            if (length > 2 and nodes[2] == "Rubbing"):
+                if length > 3 and nodes[3] == "Articulators":
+                    nodes[3] = "Articulator(s):"
+                elif length > 3 and nodes[3] == "Location":
+                    nodes[3] = "Location:"
+                elif length > 4 and nodes[3] in ["Across", "Along"]:
                     nodes[4] = nodes[4].lower()
                 paths_to_add.append(nodes)
             # Issue 194: Add abs/rel movement options 
-            if (length > 2 and nodes[1] == 'Perceptual shape' and nodes[3] in ['Horizontal', 'Vertical', 'Sagittal']):
-                nodes.insert(3, 'Absolute')
+            if (length > 2 and nodes[1] == "Perceptual shape" and nodes[3] in ["Horizontal", "Vertical", "Sagittal"]):
+                nodes.insert(3, "Absolute")
                 paths_to_add.append(nodes)
         else: # LOCATION and RELATION
             # Issue 162: hand changes
-            if 'hand' in nodes[0] and length > 1:
-                if nodes[0] == 'Other hand':
-                    nodes[0] = 'Whole hand'
-                if nodes[1] in ['Fingers', 'Thumb']:
-                    nodes.insert(1, 'Fingers and thumb')
-                elif nodes[1][0:7] == 'Finger ':
-                    nodes.insert(1, 'Fingers and thumb')
-                    nodes.insert(2, 'Fingers')
-                elif nodes[1][0:8] == 'Between ':
-                    nodes.insert(1, 'Fingers and thumb')
-                    nodes.insert(2, 'Between fingers')
-                elif nodes[1] == 'Selected fingers':
-                    nodes.insert(1, 'Fingers and thumb')
-                    nodes.insert(2, 'Selected fingers and thumb')
-                elif nodes[1] == 'Selected fingers and Thumb':
-                    nodes[1] = 'Selected fingers and thumb'
-                    nodes.insert(1, 'Fingers and thumb')
+            if "hand" in nodes[0] and length > 1:
+                if nodes[0] == "Other hand":
+                    nodes[0] = "Whole hand"
+                if nodes[1] in ["Fingers", "Thumb"]:
+                    nodes.insert(1, "Fingers and thumb")
+                elif nodes[1][0:7] == "Finger ":
+                    nodes.insert(1, "Fingers and thumb")
+                    nodes.insert(2, "Fingers")
+                elif nodes[1][0:8] == "Between ":
+                    nodes.insert(1, "Fingers and thumb")
+                    nodes.insert(2, "Between fingers")
+                elif nodes[1] == "Selected fingers":
+                    nodes.insert(1, "Fingers and thumb")
+                    nodes.insert(2, "Selected fingers and thumb")
+                elif nodes[1] == "Selected fingers and Thumb":
+                    nodes[1] = "Selected fingers and thumb"
+                    nodes.insert(1, "Fingers and thumb")
                 # Issue 85: New hand layers
                 # don't need any special insertion code for "Whole hand - contra" or "Whole hand - ipsi" because they are leaf nodes
                 # same for  "Hand minus fingers - contra" and "Hand minus fingers - ipsi"
@@ -783,44 +783,44 @@ class Corpus:
                 # same for  "Between fingers - contra" and "Between fingers - ipsi" as well as for each of Between thumb & finger 1/1&2/2&3/3&4 ipsi/contra
                 paths_to_add.append(nodes)
             # Issue 162: leg and feet changes
-            elif nodes[0] == 'Legs and feet':
-                nodes[0] = 'Leg and foot'
+            elif nodes[0] == "Legs and feet":
+                nodes[0] = "Leg and foot"
                 paths_to_add.append(nodes)
             # Issue 162: Arm changes
-            elif nodes[0] == 'Arm (contralateral)':
-                nodes[0] = 'Arm'
+            elif nodes[0] == "Arm (contralateral)":
+                nodes[0] = "Arm"
                 if length == 1:
-                    nodes.insert(1, 'Arm - contra')
+                    nodes.insert(1, "Arm - contra")
                 elif length == 2:
                     nodes.insert(1, nodes[1]) 
-                    nodes[2] = nodes[2] + ' - contra'
+                    nodes[2] = nodes[2] + " - contra"
                 elif length == 3: 
                     nodes.insert(2, nodes[2])
-                    nodes[3] = nodes[3] + ' - contra'
+                    nodes[3] = nodes[3] + " - contra"
                 paths_to_add.append(nodes)
             # Issue 162: New torso layers
-            elif nodes[0] == 'Torso' and length > 1:
-                if nodes[1] in ['Hip', 'Groin', 'Buttocks', 'Pelvis area']:
-                    nodes.insert(1, 'Lower torso')
+            elif nodes[0] == "Torso" and length > 1:
+                if nodes[1] in ["Hip", "Groin", "Buttocks", "Pelvis area"]:
+                    nodes.insert(1, "Lower torso")
                 else:
-                    nodes.insert(1, 'Upper torso')
+                    nodes.insert(1, "Upper torso")
                 paths_to_add.append(nodes)
             # Issue 162: New face layers
-            elif length > 2 and nodes[0] == 'Head' and nodes[1] == 'Face':
-                if nodes[2] in ['Above forehead (hairline)', 'Forehead', 'Temple']:
-                    nodes.insert(2, 'Forehead region')
-                elif nodes[2] in ['Eyebrow', 'Eye']:
-                    nodes.insert(2, 'Eye region')
-                elif length > 3 and nodes[3] in ['Upper eyelid', 'Lower eyelid']:
-                    nodes.insert(4, 'Eyelid')
-                elif nodes[-1] == 'Septum':
-                    nodes.insert(length-2, 'Septum / nostril area')
+            elif length > 2 and nodes[0] == "Head" and nodes[1] == "Face":
+                if nodes[2] in ["Above forehead (hairline)", "Forehead", "Temple"]:
+                    nodes.insert(2, "Forehead region")
+                elif nodes[2] in ["Eyebrow", "Eye"]:
+                    nodes.insert(2, "Eye region")
+                elif length > 3 and nodes[3] in ["Upper eyelid", "Lower eyelid"]:
+                    nodes.insert(4, "Eyelid")
+                elif nodes[-1] == "Septum":
+                    nodes.insert(length-2, "Septum / nostril area")
                 # Issue 85: New face layers
-                elif length > 3 and nodes[3] in ['Corner of mouth - contra', 'Corner of mouth - ipsi']:
-                    nodes.insert(3, 'Corner of mouth')
+                elif length > 3 and nodes[3] in ["Corner of mouth - contra", "Corner of mouth - ipsi"]:
+                    nodes.insert(3, "Corner of mouth")
                 # don't need any special insertion code for "Eyelid - contra" or "Eyelid - ipsi" because they are leaf nodes
                 paths_to_add.append(nodes)
-            elif length > 2 and nodes[1] == 'Ear':
-                nodes[3].replace('Mastoid process', 'Behind ear')
+            elif length > 2 and nodes[1] == "Ear":
+                nodes[3].replace("Mastoid process", "Behind ear")
                 paths_to_add.append(nodes)
         return paths_to_add
