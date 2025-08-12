@@ -1453,7 +1453,6 @@ class LocationModule(ParameterModule):
             else:
                 details_tuple = tuple(tuple(selecteddetails) for selecteddetails in path['details'].get_checked_values().values())
             path_tuples.append((path['path'], details_tuple))
-        print("computed path tuples", path_tuples)
 
         self.selections = {
             Precomputed.LOC_PATHS: path_tuples
