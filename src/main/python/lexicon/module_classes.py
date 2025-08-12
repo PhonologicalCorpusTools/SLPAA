@@ -1433,24 +1433,27 @@ class LocationModule(ParameterModule):
     def inphase(self, inphase):
         self._inphase = inphase
     
-    def compute_selections(self, nodes_are_terminal=True):
+    def compute_selections(self, nodes_are_terminal):
         """Used in search function to precompute some of the selections in this module. 
         Not everything is included yet (for example, not articulators, additional notes, etc)
         
         Adds Precomputed.LOC_PATHS key to self.selections. Value is a list of tuples where each tuple contains:
             path[0]: str. The full path.
-            path[1]: tuple(tuple(), tuple()). The selected details (e.g. surfaces and subareas)
+            path[1]: tuple(tuple(), tuple()) | str. The selected details (e.g. surfaces and subareas) OR "ancestor" if this was an ancestor
         
         Args:
-            nodes_are_terminal: bool. Used in search window. True if computing paths of a location search target. Otherwise, depends on the location search target's nodes_are_terminal checkbox.
+            nodes_are_terminal: bool. Used in search window. True if computing paths of a location search target. Otherwise, false.
         # TODO: consider saving LOC_PATHS as a dict instead with keys=paths and values=details (this is needed in filter_by location path)
         """
         paths = self.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
         path_tuples = []
         for path in paths:
-            details_tuple = tuple(tuple(selecteddetails) for selecteddetails in path['details'].get_checked_values().values())
+            if path['details'] == 'ancestor': # only possible if nodes_are_terminal False
+                details_tuple = 'ancestor'
+            else:
+                details_tuple = tuple(tuple(selecteddetails) for selecteddetails in path['details'].get_checked_values().values())
             path_tuples.append((path['path'], details_tuple))
-            
+        print("computed path tuples", path_tuples)
 
         self.selections = {
             Precomputed.LOC_PATHS: path_tuples
@@ -1493,7 +1496,7 @@ class LocationModule(ParameterModule):
 
         elif loctype_str != "Signing space(spatial)" :
             # each 'path' is a dict. Keys are 'path', 'abbrev', 'details'
-            for path in self.locationtreemodel.get_checked_items(include_details=True):
+            for path in self.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True):
                 path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
                 # details_dict: keys are the subarea types ('surface', 'sub-area', or ''); 
                 # values are lists of checked subareas
