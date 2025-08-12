@@ -407,9 +407,9 @@ def filter_modules_by_target_locn(modulelist, target_module:LocationModule, matc
         modulelist = filter(modulelist, target_module, matchtype)
         if not modulelist:
             return []
-    fully_checked = target_module.locationtreemodel.nodes_are_terminal
+    fully_checked = target_module.locationtreemodel.nodes_are_terminal or matchtype == 'exact'
     if target_module.selections is None:
-        target_module.compute_selections()
+        target_module.compute_selections(nodes_are_terminal=True)
     target_path_tuples = target_module.selections[Precomputed.LOC_PATHS]
     modulelist = filter_modules_by_locn_paths(modules=modulelist, 
                                                     target_paths=target_path_tuples, 
@@ -419,7 +419,7 @@ def filter_modules_by_target_locn(modulelist, target_module:LocationModule, matc
 
     return modulelist
     
-def filter_modules_by_locn_paths(modules: list[LocationModule] | list[RelationModule], target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False, is_relation=False, articulator=None):
+def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matchtype='minimal', terminate_early=False, is_relation=False, articulator=None):
     """
     Filter a list of location or relation modules by selected paths. This doesn't check for matching loctypes (e.g. body vs body-anchored), phonlocs, articulators, xslottypes, etc.
     Args:
@@ -445,44 +445,60 @@ def filter_modules_by_locn_paths(modules: list[LocationModule] | list[RelationMo
             for mp in module_paths_to_check:
                 # module_paths is a list of dicts {'path', 'abbrev', 'details'}. 
                 # Convert the details to tuples to match the target_path format, and so that we can store them in a set later.
-                # details_tuple is tuple(tuple(), tuple())
-                details_tuple = tuple(tuple(selecteddetails) for selecteddetails in mp['details'].get_checked_values().values())
+                # details_tuple is tuple(tuple(), tuple()) or "ancestor" if this path was partially checked
+                if mp['details'] == 'ancestor': # only possible if nodes_are_terminal False
+                    details_tuple = 'ancestor'
+                else:
+                    details_tuple = tuple(tuple(selecteddetails) for selecteddetails in mp['details'].get_checked_values().values())
                 module_paths.add((mp['path'], details_tuple))
 
         else:
             if module.selections is None:
-                module.compute_selections(nodes_are_terminal)
+                module.compute_selections(nodes_are_terminal=False) # this has to be false. Otherwise selections may be wrong when switching between minimal and exact
             module_paths = module.selections[Precomputed.LOC_PATHS]
         
         # to match exactly, a module must contain _only_ the target paths and no other paths
-        if matchtype == 'exact' and module_paths == target_paths: 
-            matching_modules.append(module)
+        if matchtype == 'exact':
+            module_paths = [m for m in module_paths if m['details'] != 'ancestor']
+            if module_paths == target_paths: 
+                matching_modules.append(module)
             
         elif matchtype == 'minimal':
             # create module_details as dict so we can sort by path for faster lookup.
-            # This is ok because we don't expect any repeated paths in module_paths, so keys are unique.
+            # Note there is a possibility of repeated paths in the case where "nodes_are_terminal" is False. 
+            # For example, module could have "whole hand" with subareas 'back' and 'mcp' selected, as well as "whole hand>finger 1"
+            # In this case, module_paths will have both ("whole hand", (("back"),("mcp"))) and ("whole hand", "ancestor"). So we can't put ancestors in the same dict.
             module_details = {}
+            module_path_ancestors = set()
             for p in module_paths:
-                module_details[p[0]] = p[1]
-            module_minimally_matches = True
-            for target_path in target_paths: 
-                # target_path is a tuple (path_name, ((surfaces),(subareas)))
-                # module_details is a dict: {path_name_1: ((surfaces), (subareas)), path_name_2: ((blah), (blah))}
-                target_path_name = target_path[0]
-                if target_path_name not in module_details:
-                    module_minimally_matches = False
-                    break # break out of this loop, as all target_paths need to match.
-                else:
-                    if target_path[1] != module_details[target_path_name]: # check for at least a minimal match
-                        target_details = [set(td) for td in target_path[1]] # eg [set(surface1, surface2), set(bonejoint1)]
-                        if not all(target_details[i] <= set(module_details[target_path_name][i]) for i in range(len(target_details))):
-                            module_minimally_matches = False
-                            break
-            if module_minimally_matches:
+                if not nodes_are_terminal and p[1] == 'ancestor':
+                    module_path_ancestors.add(p[0])
+                elif p[1] != 'ancestor':
+                    module_details[p[0]] = p[1]
+            if locn_paths_minimally_match(target_paths, module_details, module_path_ancestors):
                 matching_modules.append(module)
-            if terminate_early and matching_modules:
-                return matching_modules
+        if terminate_early and matching_modules:
+            return matching_modules
     return matching_modules
+
+def locn_paths_minimally_match(target_paths, module_details, module_path_ancestors):
+    """
+    Args:
+        target_paths: Paths to match. List of tuples (path_name, ((surfaces),(subareas)))
+        module_details (dict): {path_name_1: ((surfaces), (subareas)), path_name_2: ((blah), (blah))} 
+        module_path_ancestors (set): path names of ancestors of checked paths in this module. Empty if nodes_are_terminal
+    """
+    for target_path in target_paths: 
+        target_path_name = target_path[0]        
+        if target_path_name not in module_details and target_path_name not in module_path_ancestors:
+            return False
+        elif target_path_name in module_details and target_path[1] != module_details[target_path_name]: # check for at least a minimal match in details
+            target_details = [set(td) for td in target_path[1]] # eg [set(surface1, surface2), set(bonejoint1)]
+            if not all(target_details[i] <= set(module_details[target_path_name][i]) for i in range(len(target_details))):
+                return False
+        elif target_path_name in module_path_ancestors and any(target_path[1]): # a target with subareas selected will never be satisfied by an ancestor path
+            return False
+    return True
 
 def filter_modules_by_target_orientation(modulelist, target_module, matchtype='minimal'):
     """

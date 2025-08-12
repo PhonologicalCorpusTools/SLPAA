@@ -148,10 +148,13 @@ class SearchModel(QStandardItemModel):
         # Done so far: 
         # Movement modules: set of checked paths
         # Location modules: list of dicts, where keys are checked paths and values
-        
+    
         for row in selected_rows:
+            kwargs = {}
+            if self.target_type(row) == ModuleTypes.LOCATION:
+                kwargs = {'nodes_are_terminal': True}
             if self.target_type(row) in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
-                self.target_module(row).compute_selections()
+                self.target_module(row).compute_selections(**kwargs)
             
         
         
