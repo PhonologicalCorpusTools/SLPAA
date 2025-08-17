@@ -45,6 +45,7 @@ class ResultsView(QWidget):
         self.setWindowTitle("Search Results")
         self.resultsdict = resultsdict
         self.mainwindow = mainwindow
+        self.appctxt = mainwindow.app_ctx
         self.corpus = self.mainwindow.corpus
         self.individualresultspath = None
         self.summaryresultspath = None
@@ -169,8 +170,8 @@ class ResultsView(QWidget):
                 entryid = s.signlevel_information.entryid
                 break
 
-        self.mainwindow.current_sign = None
-        signsummary_panel = SignSummaryPanel(mainwindow=self.mainwindow, sign=thissign, parent=self)
+        # self.mainwindow.current_sign = None
+        signsummary_panel = SignSummaryPanel(mainwindow=self.appctxt.main_window, sign=thissign, parent=self)
         signsummary_panel.mainwindow.current_sign = thissign  # refreshsign() checks for this
         signsummary_panel.refreshsign(thissign)
 
@@ -179,7 +180,7 @@ class ResultsView(QWidget):
         resultpopup = QWidget(parent=self)
         resultpopup.setLayout(layout)
         resultpopup.setWindowFlags(Qt.Window)
-        resultpopup.setWindowTitle("Search Result: " + str(entryid) +"idgloss")
+        resultpopup.setWindowTitle(f"Search Result: {entryid} {idgloss}")
         resultpopup.setAttribute(Qt.WA_DeleteOnClose) 
         resultpopup.show()
         
