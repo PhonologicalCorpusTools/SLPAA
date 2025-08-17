@@ -609,7 +609,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         else:
             enable_default_neutral = self.signingspacebody_radio.isChecked() and self.signingspacebody_radio.isEnabled()
         self.applyneutral_pb.setEnabled(enable_default_neutral)
-
         self.locationoptionsselectionpanel.multiple_selection_cb.setEnabled(
             self.signingspacespatial_radio.isChecked() == False
             or self.signingspacespatial_radio.isEnabled() == False)
@@ -633,8 +632,8 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.locationoptionsselectionpanel.pathslistview.setEnabled(enablecomboboxandlistview)
         self.locationoptionsselectionpanel.update_detailstable()
         self.locationoptionsselectionpanel.detailstableview.setEnabled(enabledetailstable)
-
-        self.locationoptionsselectionpanel.treemodel.defaultneutralselected = self.markneutral_cb.checkState()
+        self.markneutral_cb.setEnabled(self.signingspacespatial_radio.isChecked() or self.body_radio.isChecked() or self.signingspacebody_radio.isChecked()) # only enable if a location type is selected
+        self.locationoptionsselectionpanel.treemodel.defaultneutralselected = self.markneutral_cb.isChecked() and self.markneutral_cb.isEnabled()
         
 
     def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
@@ -721,7 +720,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
                 defaultloctype.bodyanchored = True
         self.markneutral_cb.setChecked(False)
         self.set_loctype_buttons_from_content(defaultloctype)
-
+    
     def set_loctype_buttons_from_content(self, loctype):
 
         self.loctype_subgroup.blockSignals(True)
@@ -754,9 +753,6 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.signingspace_subgroup.setExclusive(True)
         self.loctype_subgroup.blockSignals(False)
         self.signingspace_subgroup.blockSignals(False)
-
-        self.markneutral_cb.setChecked(self.getcurrenttreemodel().defaultneutralselected)
-
 
     def clearlist(self, button):
         numtoplevelitems = self.getcurrenttreemodel().invisibleRootItem().rowCount()
