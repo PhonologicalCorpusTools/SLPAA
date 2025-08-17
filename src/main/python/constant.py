@@ -622,6 +622,11 @@ class TargetTypes:
     MOV_REL = "mvmt + reln"
     LOC_REL = "locn + reln"
     EXTENDEDFINGERS  = "extended fingers"
+    
+class Precomputed:
+    MOV_PATHS = 'mvmt paths' 
+    LOC_PATHS = 'locn paths'
+    
 
 class HandConfigSlots:
     # Used in Search window. Values are the indices of the hand configuration tuple returned by get_hand_transcription_list()
