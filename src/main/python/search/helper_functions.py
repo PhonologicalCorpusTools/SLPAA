@@ -78,6 +78,15 @@ def filter_modules_by_loctype(modulelist, target_module, matchtype='minimal'):
         matching_modules = [m for m in modulelist if all([getattr(m.locationtreemodel.locationtype, attr) for attr in target_attrs])]
         return matching_modules
 
+def filter_modules_by_neutral(modulelist, target_module, matchtype='minimal'):
+    """ # TODO
+    """
+    if not target_module.locationtreemodel.defaultneutralselected:
+        return modulelist
+    else:
+        matching_modules = [m for m in modulelist if m.locationtreemodel.defaultneutralselected]
+        return matching_modules
+
 def signtype_matches_target(specs_dict, target, matchtype='minimal'):
     """Used in search function to check if this signtype's specslist matches (i.e. is equal to or more restrictive than) target.
     Doesn't check Notes.
@@ -403,7 +412,7 @@ def filter_modules_by_target_locn(modulelist, target_module:LocationModule, matc
         If `terminate_early` and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. 
         If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """
-    for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs, filter_modules_by_loctype]:
+    for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs, filter_modules_by_loctype, filter_modules_by_neutral]:
         modulelist = filter(modulelist, target_module, matchtype)
         if not modulelist:
             return []
@@ -459,7 +468,7 @@ def filter_modules_by_locn_paths(modules, target_paths, nodes_are_terminal, matc
         
         # to match exactly, a module must contain _only_ the target paths and no other paths
         if matchtype == 'exact':
-            module_paths = [m for m in module_paths if m['details'] != 'ancestor']
+            module_paths = [m for m in module_paths if m[1] != 'ancestor']
             if module_paths == target_paths: 
                 matching_modules.append(module)
             
