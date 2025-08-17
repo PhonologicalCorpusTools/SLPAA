@@ -1,6 +1,5 @@
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
 from models.location_models import locn_options_body, locn_options_hand, locn_options_purelyspatial
-from search.helper_functions import relationdisplaytext, articulatordisplaytext, phonlocsdisplaytext, loctypedisplaytext, signtypedisplaytext, module_matches_xslottype
 from compare_signs.compare_helpers import (analyze_modules, extract_handshape_slots, parse_predefined_names,
                                            summarize_path_comparison, get_informative_elements, compare_elements,
                                            get_btn_type_for_path, get_checked_paths_from_list,
@@ -419,6 +418,19 @@ class CompareModel:
                 path: get_btn_type_for_path("handconfig", path, None) for path in s2_path_element
             }
 
+            # quick patch to the btn_types
+            # only the first child of Base should be radio button. other children should be checkbox
+            for btn_types in [s1_path_btn_types, s2_path_btn_types]:
+                first_child_flag = True
+                for path_btn in btn_types.keys():
+                    if '>Base' in path_btn and not first_child_flag:
+                        path_chunks = btn_types[path_btn].split('>')
+                        path_chunks[-1] = 'checkbox'
+                        btn_types[path_btn] = '>'.join(path_chunks)
+                    elif '>Base' in path_btn and first_child_flag:
+                        first_child_flag = False
+
+            # now start comparing
             finished_roots = []  # to track compared roots
             for e1 in s1_path_element:
                 found_counterpart = False
@@ -469,30 +481,5 @@ class CompareModel:
 
         return pair_comparison
     def compare_relation(self) -> dict:
-        def compare_one(pair: tuple) -> [bool, bool]:
-            r = []  # return list of two bools each for articulators, location types, phonological locations, paths
-
-            # relation
-            s1reln = relationdisplaytext(pair[0])
-            s2reln = relationdisplaytext(pair[1])
-            r.append(True) if set(s1reln) == set(s2reln) else r.append(False)
-
-            return r
-
-        sign1_modules = [m for m in self.sign1.getmoduledict(ModuleTypes.RELATION).values()]
-        sign2_modules = [m for m in self.sign2.getmoduledict(ModuleTypes.RELATION).values()]
-
-        if (len(sign1_modules) * len(sign2_modules) < 1 or  # if either does not have any movement module
-                len(sign1_modules) != len(sign2_modules)):  # if the number of xslots does not match
-            return {'X-slots not matching': False}
-        to_compare = zip(sign1_modules, sign2_modules)
-        comparison_result = {
-            'relation': True,
-        }
-
-        for pair in to_compare:
-            compare_r = compare_one(pair)
-            for b, (key, _) in zip(compare_r, comparison_result.items()):
-                if not b:
-                    comparison_result[key] = b
-        return comparison_result
+        # not implemented
+        pass

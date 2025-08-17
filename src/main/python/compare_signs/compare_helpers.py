@@ -468,11 +468,12 @@ def parse_predefined_names(pred_name: str) -> list:
     # process 'combined'
     # very special case of 'comboined ILY'
     if pred_name == 'combined ILY':
-        bases = ['I', 'L', 'Y']
+        variants = ['combined']
+        bases = ['Y', 'I', 'L']  # this ordering in order to align to 'combined Y + x'
         return in_path_form()
     if 'combined' in pname_comp:
         # combination of two or more bases
-        pname_comp.remove('combined')
+        #pname_comp.remove('combined')  # 'combined' as a variant as well!
         for component in pname_comp:
             if '+' in component:
                 bases = [c for c in component.split('+')]
