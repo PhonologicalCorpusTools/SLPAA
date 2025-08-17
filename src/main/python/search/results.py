@@ -45,6 +45,7 @@ class ResultsView(QWidget):
         self.setWindowTitle("Search Results")
         self.resultsdict = resultsdict
         self.mainwindow = mainwindow
+        self.appctxt = mainwindow.app_ctx
         self.corpus = self.mainwindow.corpus
         self.individualresultspath = None
         self.summaryresultspath = None
@@ -162,27 +163,37 @@ class ResultsView(QWidget):
 
     def handle_result_doubleclicked(self, index):
         entryid = self.individualmodel.entry_id(index.row())
+        previous_sign = self.appctxt.main_window.current_sign
         for s in self.corpus.signs:
             if s.signlevel_information.entryid == entryid:
                 thissign = s
                 idgloss = s.signlevel_information.idgloss
                 entryid = s.signlevel_information.entryid
                 break
-
-        self.mainwindow.current_sign = None
-        signsummary_panel = SignSummaryPanel(mainwindow=self.mainwindow, sign=thissign, parent=self)
-        signsummary_panel.mainwindow.current_sign = thissign  # refreshsign() checks for this
-        signsummary_panel.refreshsign(thissign)
+        self.appctxt.main_window.current_sign  = thissign
+        # self.mainwindow.current_sign = None
+        signsummary_panel = SignSummaryPanel(mainwindow=self.appctxt.main_window, sign=thissign, parent=self)
+        # signsummary_panel.mainwindow.current_sign = thissign  # refreshsign() checks for this
+        # signsummary_panel.refreshsign(thissign)
+        
+        # TODO. subclass the sign summary panel. connect focus in and focus out events to switch the current sign.
+        
 
         layout = QHBoxLayout()
         layout.addWidget(signsummary_panel)
         resultpopup = QWidget(parent=self)
         resultpopup.setLayout(layout)
         resultpopup.setWindowFlags(Qt.Window)
-        resultpopup.setWindowTitle("Search Result: " + str(entryid) +"idgloss")
+        resultpopup.setWindowTitle(f"Search Result: {entryid} {idgloss}")
         resultpopup.setAttribute(Qt.WA_DeleteOnClose) 
+        resultpopup.destroyed.connect(lambda: self.reset_mainwindow_sign(previous_sign))
         resultpopup.show()
         
+    def reset_mainwindow_sign(self, previous_sign):
+        # when we doubleclick on a search result, it sets the current sign to that search result.
+        # but if we then return to the mainwindow, the current sign will still be the double-clicked search result 
+        # even if the active sign is different. So we reset it to the previous active sign.s
+        self.appctxt.main_window.current_sign = previous_sign
         
 
 class ListDelegate(QStyledItemDelegate):
