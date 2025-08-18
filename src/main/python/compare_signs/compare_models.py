@@ -382,24 +382,28 @@ class CompareModel:
 
             predefined = [False, False]
             # if shorthand exists for handshape code, use it.
+            str_visible_names = ['', '']  # string visible to the user as a handshape name
             if sign1_slot_specs in PREDEFINED_MAP:
-                handshape_names[0] = PREDEFINED_MAP[sign1_slot_specs].name
                 predefined[0] = True
+                str_visible_names[0] = f"{PREDEFINED_MAP[sign1_slot_specs].name} ({handshape_names[0]})"
+                handshape_names[0] = PREDEFINED_MAP[sign1_slot_specs].name
+
             if sign2_slot_specs in PREDEFINED_MAP:
-                handshape_names[1] = PREDEFINED_MAP[sign2_slot_specs].name
                 predefined[1] = True
+                str_visible_names[1] = f"{PREDEFINED_MAP[sign2_slot_specs].name} ({handshape_names[1]})"
+                handshape_names[1] = PREDEFINED_MAP[sign2_slot_specs].name
 
             # listen to 'options' and decide the comparison target
             if options['compare_target'] == 'predefined':
                 # deal with predefined names
                 if options['details']:
                     # base-variant hierarchy required
-                    s1_path_element.extend(parse_predefined_names(handshape_names[0]))
-                    s2_path_element.extend(parse_predefined_names(handshape_names[1]))
+                    s1_path_element.extend(parse_predefined_names(handshape_names[0], str_visible_name[0]))
+                    s2_path_element.extend(parse_predefined_names(handshape_names[1], str_visible_name[1]))
                 else:
                     # not required
-                    s1_path_element.append(f'Handshape: >{handshape_names[0]}')
-                    s2_path_element.append(f'Handshape: >{handshape_names[1]}')
+                    s1_path_element.append(f'Handshape: >{str_visible_name[0]}')
+                    s2_path_element.append(f'Handshape: >{str_visible_name[1]}')
 
             else:
                 # deal with handshape slots
@@ -407,8 +411,8 @@ class CompareModel:
                 hand2_slots = extract_handshape_slots(hcm=sign2_hcm.handconfiguration, linear=True)
 
                 for path1, path2 in zip(hand1_slots, hand2_slots):
-                    s1_path_element.append(f'Handshape: {handshape_names[0]}>{path1}')
-                    s2_path_element.append(f'Handshape: {handshape_names[1]}>{path2}')
+                    s1_path_element.append(f'Handshape: {str_visible_name[0]}>{path1}')
+                    s2_path_element.append(f'Handshape: {str_visible_name[1]}>{path2}')
 
             # button types
             s1_path_btn_types = {
