@@ -86,8 +86,8 @@ class Sign:
                 # backward compatibility with pre-20250505 signtype structure
                 if len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
                     self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
-                self._xslotstructure = serializedsign['xslot structure']
-                self._specifiedxslots = serializedsign['specified xslots']
+            self._xslotstructure = serializedsign['xslot structure']
+            self._specifiedxslots = serializedsign['specified xslots']
 
             # note that relation *must* come before location
             for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
