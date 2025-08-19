@@ -555,7 +555,7 @@ class LocationTreeModel(QStandardItemModel):
         self._locationtype = LocationType()
         self.checked=[]
 
-        self.defaultneutralselected = False
+        self.defaultneutralselected = False # misnomer. This is true if the "mark neutral" checkbox is checked. The "default neutral" location paths might not necessarily be selected
         self.defaultneutrallist = None
 
         if serializedlocntree is not None:

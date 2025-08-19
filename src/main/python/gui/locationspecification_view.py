@@ -480,7 +480,10 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
             treemodel.locationtype = self.getcurrentlocationtype()
             return treemodel
         else:
-            return LocationTreeModel()
+            # it's possible to check the "mark neutral" checkbox even if no location type is selected
+            generictreemodel = LocationTreeModel()
+            generictreemodel.defaultneutralselected = self.markneutral_cb.isChecked()
+            return generictreemodel
 
     def getcurrentlistmodel(self):
         if self.getcurrentlocationtype().usesbodylocations():
@@ -632,8 +635,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.locationoptionsselectionpanel.pathslistview.setEnabled(enablecomboboxandlistview)
         self.locationoptionsselectionpanel.update_detailstable()
         self.locationoptionsselectionpanel.detailstableview.setEnabled(enabledetailstable)
-        self.markneutral_cb.setEnabled(self.signingspacespatial_radio.isChecked() or self.body_radio.isChecked() or self.signingspacebody_radio.isChecked()) # only enable if a location type is selected
-        self.locationoptionsselectionpanel.treemodel.defaultneutralselected = self.markneutral_cb.isChecked() and self.markneutral_cb.isEnabled()
+        self.locationoptionsselectionpanel.treemodel.defaultneutralselected = self.markneutral_cb.isChecked()
         
 
     def getsavedmodule(self, articulators, timingintervals, phonlocs, addedinfo, inphase):
