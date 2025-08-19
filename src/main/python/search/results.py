@@ -58,8 +58,12 @@ class ResultsView(QWidget):
         self.summarytab = QWidget()
         self.summary_table_view = QTableView()
         self.summarymodel = ResultSummaryModel()
-        self.summarymodel.populate(self.resultsdict)
-        self.summary_table_view.setModel(self.summarymodel)
+        self.individualtab = QWidget()
+        self.individual_table_view = QTableView()
+        self.individualmodel = IndividualSummaryModel()
+        
+        self.set_results(resultsdict)
+    
         self.summary_table_view.setItemDelegate(self.listdelegate)
         self.summary_table_view.setEditTriggers(QTableView.NoEditTriggers)
         summarylayout = QVBoxLayout()
@@ -67,11 +71,7 @@ class ResultsView(QWidget):
         summarylayout.addWidget(self.summary_table_view)
         self.summarytab.setLayout(summarylayout)
         
-        self.individualtab = QWidget()
-        self.individual_table_view = QTableView()
-        self.individualmodel = IndividualSummaryModel()
-        self.individualmodel.populate(self.resultsdict)
-        self.individual_table_view.setModel(self.individualmodel)
+
         self.individual_table_view.setItemDelegate(self.listdelegate)
         self.individual_table_view.doubleClicked.connect(self.handle_result_doubleclicked)
         self.individual_table_view.setEditTriggers(QTableView.NoEditTriggers) # disable edit via clicking table
@@ -88,6 +88,15 @@ class ResultsView(QWidget):
         self.showMaximized()
         main_layout.addWidget(self.tab_widget)
         self.setLayout(main_layout)    
+        
+    def set_results(self, new_results_dict):
+        # completely replaces results
+        self.resultsdict = new_results_dict
+        self.individualmodel.populate(self.resultsdict)
+        self.individual_table_view.setModel(self.individualmodel)
+        self.summarymodel.populate(self.resultsdict)
+        self.summary_table_view.setModel(self.summarymodel)
+        
 
     def create_toolbar(self, label):
         toolbar = QToolBar(f'{label} toolbar', parent=self)
