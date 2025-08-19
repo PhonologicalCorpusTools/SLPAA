@@ -451,7 +451,7 @@ def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush
 
 
 # it parses one sign's handshape predefined name into bases and variants.
-def parse_predefined_names(pred_name: str, viz_name: str) -> list:
+def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str) -> list:
     # pred_name: str. predefined_names like 'extended A'
     # viz_name: str. the handshape name visible to the user in the form of "name ([slots])"
     # returns list of strings
@@ -470,11 +470,11 @@ def parse_predefined_names(pred_name: str, viz_name: str) -> list:
     # very special case of 'comboined ILY'
     if pred_name == 'combined ILY':
         variants = ['combined']
-        bases = ['Y', 'I', 'L']  # this ordering in order to align to 'combined Y + x'
+        # Y I L ordering in order to align to 'combined Y + x'
+        bases = ['Y', 'I', 'L'] if any(p.startswith('Y') for p in counterpart_name.split(' ')) else ['I', 'L', 'Y']
         return in_path_form()
     if 'combined' in pname_comp:
         # combination of two or more bases
-        #pname_comp.remove('combined')  # 'combined' as a variant as well!
         for component in pname_comp:
             if '+' in component:
                 bases = [c for c in component.split('+')]
