@@ -33,11 +33,15 @@ class ResultHeaders:
     NAME = 1
     VALUES = 2
     TYPE = 3
-    ID = 4
     FREQUENCY = 4
-    GLOSS = 5
-    LEMMA = 6
-    IDGLOSS = 7
+    MATCHTYPE_SUMMARY = 5
+    MATCHTYPE_INDIV = 4
+    ID = 5
+    GLOSS = 6
+    LEMMA = 7
+    IDGLOSS = 8
+    
+    
 
 class ResultsView(QWidget):
     def __init__(self, resultsdict, mainwindow, **kwargs):
@@ -89,8 +93,11 @@ class ResultsView(QWidget):
         main_layout.addWidget(self.tab_widget)
         self.setLayout(main_layout)    
         
+    def clear_results(self):
+        self.individualmodel.clear()
+        self.summarymodel.clear()
+         
     def set_results(self, new_results_dict):
-        # completely replaces results
         self.resultsdict = new_results_dict
         self.individualmodel.populate(self.resultsdict)
         self.individual_table_view.setModel(self.individualmodel)
@@ -193,7 +200,7 @@ class ResultsView(QWidget):
         resultpopup = QWidget(parent=self)
         resultpopup.setLayout(layout)
         resultpopup.setWindowFlags(Qt.Window)
-        resultpopup.setWindowTitle(f"Search Result: {entryid} {idgloss}")
+        resultpopup.setWindowTitle(f"Search Result: {thissign}")
         resultpopup.setAttribute(Qt.WA_DeleteOnClose) 
         resultpopup.destroyed.connect(lambda: self.reset_mainwindow_sign(previous_sign))
         resultpopup.show()
@@ -218,7 +225,11 @@ class ResultSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)", "Target Value(s)", "Result Type(s)", "Frequency"]
+        self.headers = ["Corpus", "Target Name(s)", "Target Value(s)", "Result Type(s)", "Frequency", "Match type"]
+        self.setHorizontalHeaderLabels(self.headers)
+
+    def clear(self):
+        super().clear()
         self.setHorizontalHeaderLabels(self.headers)
     
     def entry(self, row, col):
@@ -315,14 +326,20 @@ class ResultSummaryModel(QStandardItemModel):
             resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
             frequency = QStandardItem()
             frequency.setData(len(resultrow["signs"]), Qt.DisplayRole)
+            matchtype = QStandardItem()
+            matchtype.setData(resultrow["matchtype"], Qt.DisplayRole)
 
-            self.appendRow([corpus, name, values, resulttypes, frequency])
+            self.appendRow([corpus, name, values, resulttypes, frequency, matchtype])
 
 class IndividualSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss(es)", "Lemma", "ID Gloss"]
+        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Match type", "Entry ID", "Gloss(es)", "Lemma", "ID Gloss"]
+        self.setHorizontalHeaderLabels(self.headers)
+    
+    def clear(self):
+        super().clear()
         self.setHorizontalHeaderLabels(self.headers)
     
     def entry_id(self, row):
@@ -424,9 +441,6 @@ class IndividualSummaryModel(QStandardItemModel):
         return ET.ElementTree(root)
 
 
-
-
-
     def populate(self, resultsdict):
         for targetname in resultsdict:
             resultrow = resultsdict[targetname]
@@ -439,6 +453,8 @@ class IndividualSummaryModel(QStandardItemModel):
                 corpus.setData(resultrow["corpus"], Qt.DisplayRole)
                 resulttypes = QStandardItem()
                 resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
+                matchtype = QStandardItem()
+                matchtype.setData(resultrow["matchtype"], Qt.DisplayRole)
                 entryid = QStandardItem()
                 entryid.setData(sli.entryid, Qt.UserRole)
                 entryid.setData(sli.entryid.display_string(), Qt.DisplayRole)
@@ -448,4 +464,4 @@ class IndividualSummaryModel(QStandardItemModel):
                 lemma.setData(sli.lemma, Qt.DisplayRole)
                 idgloss = QStandardItem()
                 idgloss.setData(sli.idgloss, Qt.DisplayRole)
-                self.appendRow([corpus, name, values, resulttypes, entryid, gloss, lemma, idgloss])
+                self.appendRow([corpus, name, values, resulttypes, matchtype, entryid, gloss, lemma, idgloss])
