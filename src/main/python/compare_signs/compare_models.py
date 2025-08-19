@@ -398,12 +398,12 @@ class CompareModel:
                 # deal with predefined names
                 if options['details']:
                     # base-variant hierarchy required
-                    s1_path_element.extend(parse_predefined_names(handshape_names[0], str_visible_name[0]))
-                    s2_path_element.extend(parse_predefined_names(handshape_names[1], str_visible_name[1]))
+                    s1_path_element.extend(parse_predefined_names(handshape_names[0], str_visible_names[0]))
+                    s2_path_element.extend(parse_predefined_names(handshape_names[1], str_visible_names[1]))
                 else:
                     # not required
-                    s1_path_element.append(f'Handshape: >{str_visible_name[0]}')
-                    s2_path_element.append(f'Handshape: >{str_visible_name[1]}')
+                    s1_path_element.append(f'Handshape: >{str_visible_names[0]}')
+                    s2_path_element.append(f'Handshape: >{str_visible_names[1]}')
 
             else:
                 # deal with handshape slots
@@ -411,8 +411,8 @@ class CompareModel:
                 hand2_slots = extract_handshape_slots(hcm=sign2_hcm.handconfiguration, linear=True)
 
                 for path1, path2 in zip(hand1_slots, hand2_slots):
-                    s1_path_element.append(f'Handshape: {str_visible_name[0]}>{path1}')
-                    s2_path_element.append(f'Handshape: {str_visible_name[1]}>{path2}')
+                    s1_path_element.append(f'Handshape: {str_visible_names[0]}>{path1}')
+                    s2_path_element.append(f'Handshape: {str_visible_names[1]}>{path2}')
 
             # button types
             s1_path_btn_types = {
