@@ -435,9 +435,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.signingspacespatial_radio.setProperty('loctype', 'signingspace_spatial')
         signingspace_layout.addWidget(self.signingspacespatial_radio, 0, 2)
 
-        self.applyneutral_pb = QPushButton("Apply 'neutral' settings")
-        self.applyneutral_pb.clicked.connect(self.handle_toggle_neutral_pb)
-        signingspace_layout.addWidget(self.applyneutral_pb, 0, 3)
+        self.create_neutral_pb_layout(signingspace_layout)
 
         self.markneutral_cb = QCheckBox("This location is 'neutral'")
         self.markneutral_cb.clicked.connect(self.handle_toggle_neutral_cb)
@@ -466,6 +464,13 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
                                                          self.handle_toggle_signingspacetype(self.signingspace_subgroup.checkedButton()))
 
         return loctype_layout
+    
+    def create_neutral_pb_layout(self, signingspace_layout):
+        hands = 'one-handed' if self.is_onehanded_sign() else 'two-handed'
+        self.applyneutral_pb = QPushButton(f"Apply {hands} 'neutral' settings")
+        self.applyneutral_pb.clicked.connect(self.handle_toggle_neutral_pb)
+        signingspace_layout.addWidget(self.applyneutral_pb, 0, 3)
+
 
     def getcurrenttreemodel(self):
         
