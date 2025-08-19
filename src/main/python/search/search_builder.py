@@ -45,6 +45,7 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.search_models import SearchModel, TargetHeaders, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
 from search.search_classes import *
+
 class SearchWindow(QMainWindow):
 
     def __init__(self, app_settings, corpus, app_ctx, **kwargs):
@@ -210,7 +211,7 @@ class SearchWindow(QMainWindow):
         # search_param_window.setGeometry(int(2*w/3), int(1/2*h), int(1*w/3), int(1/2*h))
 
         
-    def handle_search_clicked(self, type):
+    def handle_search_clicked(self, add_or_new):
         
         mssg = ""
         if self.search_params_view.match_type is None: 
@@ -221,13 +222,24 @@ class SearchWindow(QMainWindow):
             mssg += "\nNothing to search"
         if mssg != "":
             QMessageBox.critical(self, "Warning", mssg)
+        
         else:
-            self.searchmodel.searchtype = type
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
             # start_time = time.time()
+            if add_or_new == 'new' and self.results_view.resultsdict:
+                response = QMessageBox.question(self,
+                                                'Warning',
+                                                'Really clear the current results table?')
+                if response == QMessageBox.Yes:
+                    self.results_view.clear_results()
+                else:
+                    return
             resultsdict = self.searchmodel.search_corpus(self.corpus)
             self.results_view.set_results(resultsdict)
+
+            
+
             # self.results_view = ResultsView(resultsdict, mainwindow=self)
             # self.results_view.show()
             # end_time = time.time()

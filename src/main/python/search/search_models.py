@@ -183,7 +183,7 @@ class SearchModel(QStandardItemModel):
             for sign in corpus.signs:
                 if self.sign_matches_target(sign, target_dict):
                     matchingsigns.append(sign.signlevel_information)
-            resultsdict[target_name] = {"corpus": corpusname, "display": display_vals,"signs": matchingsigns, "negative": negative_rows}
+            resultsdict[target_name] = {"corpus": corpusname, "display": display_vals,"signs": matchingsigns, "negative": negative_rows, "matchtype": self.matchtype}
         
         elif self.matchdegree == 'any':
             for row in selected_rows:
@@ -198,7 +198,7 @@ class SearchModel(QStandardItemModel):
                 for sign in corpus.signs:
                     if self.sign_matches_target(sign, target_dict):
                         matchingsigns.append(sign.signlevel_information)
-                resultsdict[target_name] = {"corpus": corpusname, "display": self.target_display(row), "signs": matchingsigns, "negative": negative_rows}
+                resultsdict[target_name] = {"corpus": corpusname, "display": self.target_display(row), "signs": matchingsigns, "negative": negative_rows, "matchtype": self.matchtype}
 
         return resultsdict
     
