@@ -361,6 +361,14 @@ def get_btn_type_for_path(module_type, path, root_node):
             btn_types.append(this_btn)
         return '>'.join(btn_types)
 
+    elif module_type == 'signtype':
+        # by default, all lines should preserve colours when expanded,
+        # except for category names (category names not implemented)
+        btn_types = []
+        for i, part in enumerate(parts[1:]):    # [1:] because the 'Sign type' part is the top level and do not count.
+            btn_types.append('radio button')
+        return '>'.join(btn_types)
+
     def traverse(path_parts: list, node):
         if not path_parts:
             return True  # Reached the end successfully

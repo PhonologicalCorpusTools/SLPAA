@@ -618,7 +618,7 @@ class CompareSignsDialog(QDialog):
         if child1 != child2:  # they are red for sure when labels themselves don't match
             twi_1.initialize_bg_color('red')
             twi_2.initialize_bg_color('red')
-            # task3
+            # task4
             parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
 
         # task5: major loc nodes can never be terminal so must recurse
@@ -688,7 +688,7 @@ class CompareSignsDialog(QDialog):
             twi_1.initialize_bg_color('red')
             twi_2.initialize_bg_color('red')
 
-            # task 4
+            # task4
             parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
 
             # and then just do task5 and return without considering children
@@ -696,8 +696,9 @@ class CompareSignsDialog(QDialog):
             parent2.addChild(twi_2)
             return newly_added, parent1, parent2
         elif child1.equals(child2, handshape_broad_match):
-            twi_1.initialize_bg_color('blue')
-            twi_2.initialize_bg_color('blue')
+            twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
+            #twi_1.initialize_bg_color('blue')
+            #twi_2.initialize_bg_color('blue')
 
         # task3
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)

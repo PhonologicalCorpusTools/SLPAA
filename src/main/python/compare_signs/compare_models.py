@@ -19,11 +19,20 @@ class CompareModel:
 
     # this is the main compare function that dispatches each module comparison!
     def compare_sign_pair(self, options) -> tuple[dict, list]:
+        result = {'sign1': {}, 'sign2': {}}  # this is the output
+
+        # signtype comparison before all module comparisons
+        signtype_comparison_results = self.compare_signtype(options)
+        result['sign1']['Sign type'] = {
+            k: v for d in signtype_comparison_results['sign1'] for k, v in d.items()
+        }
+        result['sign2']['Sign type'] = {
+            k: v for d in signtype_comparison_results['sign2'] for k, v in d.items()
+        }
+
         # list of modules to compare
         module_attributes = [attr for attr in dir(self.sign1) if attr.endswith('modules')]
         module_attributes = [attr for attr in module_attributes if not callable(getattr(self.sign1, attr))]
-
-        result = {'sign1': {}, 'sign2': {}}
 
         never_implement = ['handpart']
         clean_module_lists = self.module_list_helper([self.implemented, self.yet_to_implement, never_implement])
@@ -81,6 +90,102 @@ class CompareModel:
             module2_label = None
 
         return module1_label, module2_label
+
+    def compare_signtype(self, options) -> dict:
+        results1, results2 = [], []
+        if self.sign1.signtype is None or self.sign2.signtype is None:
+            return {}
+        s1path = self.parse_st_representations(self.sign1.signtype.specslist)
+        s2path = self.parse_st_representations(self.sign2.signtype.specslist)
+
+        s1_path_element = get_informative_elements(s1path)
+        s2_path_element = get_informative_elements(s2path)
+
+        s1_path_btn_types = {
+            path: get_btn_type_for_path('signtype', path, None) for path in s1_path_element
+        }
+        s2_path_btn_types = {
+            path: get_btn_type_for_path('signtype', path, None) for path in s2_path_element
+        }
+
+        finished_roots = []
+
+        for e1 in s1_path_element:
+            matched = False
+            for e2 in s2_path_element:
+                if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                    matched = True
+                    finished_roots.append(e2.split('>')[0])
+                    res1, res2 = compare_elements(
+                        e1=e1,
+                        e2=e2,
+                        btn_types1=s1_path_btn_types,
+                        btn_types2=s2_path_btn_types,
+                        pairwise=True
+                    )
+                    results1.append(res1)
+                    results2.append(res2)
+
+            if not matched:
+                res1, _ = compare_elements(e1, '', s1_path_btn_types, {}, pairwise=False)
+                results1.append(res1)
+
+        for e2 in s2_path_element:
+            if e2.split('>')[0] not in finished_roots:
+                _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
+                results2.append(res2)
+
+        results1 = summarize_path_comparison(results1)
+        results2 = summarize_path_comparison(results2)
+
+        return {'sign1': results1, 'sign2': results2}
+
+    def parse_st_representations(self, signtype_specs: list):
+        hands = []
+        arms = []
+        legs = []
+        for spec in signtype_specs:
+            # articulator number actively unspecified
+            if 'Unspecified' in spec:
+                whats_unspecified = spec.split('_')[1]
+                if 'hands' in whats_unspecified:
+                    hands.append('Unspecified')
+                elif 'arms' in whats_unspecified:
+                    arms.append('Unspecified')
+                elif 'legs' in whats_unspecified:
+                    legs.append('Unspecified')
+                continue
+
+            # default case: articulator specified
+            descriptions_list = spec.split('.')
+            articulator, *descriptors = descriptions_list
+            descriptions = '>'.join(descriptors) if len(descriptors) > 0 else None
+
+
+            # parse articulator info e.g., 1h, 2l, etc
+            articulator_fullname = {'h': 'hand', 'a': 'arm', 'l': 'leg'}
+
+            articulator_count, articulator_shortname = articulator
+            if articulator_count == '1':
+                art_discription = f'One {articulator_fullname[articulator[1]]}'
+            elif articulator_count == '2':
+                art_discription = f'Two {articulator_fullname[articulator[1]]}s'
+            _ = [art_discription, descriptions]
+            descriptions = '>'.join([element for element in _ if element is not None])
+
+            if articulator_shortname == 'h':
+                hands.append(descriptions)
+            elif articulator_shortname == 'a':
+                arms.append(descriptions)
+            elif articulator_shortname == 'l':
+                legs.append(descriptions)
+
+        result = []
+        for label, specs in (("Hands", hands), ("Arms", arms), ("Legs", legs)):
+            for s in specs:
+                result.append(f"{label}>{s}")
+
+        return result
 
     def compare_movements(self) -> dict:
         def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
