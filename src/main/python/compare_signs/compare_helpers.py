@@ -461,18 +461,30 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str)
                 for category_name, category in [('Base', bases), ('Variant', variants)]
                 for detail in category]
 
+    def get_bases_and_variants(components):
+        b = []
+        v = []
+        combined_base_processed = False
+        for component in components:
+            if '+' in component:
+                b = [c for c in component.split('+')]
+                combined_base_processed = True
+            else:
+                v.append(component)
+        if not combined_base_processed:
+            b = components[-1]  # if no multiple bases, then the last in components should be the only base
+        return b, v
+
     bases = []
     variants = []
+
+    # very special case of 'combined ILY'
+    pred_name, counterpart_name = map(lambda name: 'combined I+L+Y' if name == 'combined ILY' else name,
+                                      (pred_name, counterpart_name))
 
     pname_comp = pred_name.split(' ')
 
     # process 'combined'
-    # very special case of 'comboined ILY'
-    if pred_name == 'combined ILY':
-        variants = ['combined']
-        # Y I L ordering in order to align to 'combined Y + x'
-        bases = ['Y', 'I', 'L'] if any(p.startswith('Y') for p in counterpart_name.split(' ')) else ['I', 'L', 'Y']
-        return in_path_form()
     if 'combined' in pname_comp:
         # combination of two or more bases
         for component in pname_comp:
@@ -480,6 +492,12 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str)
                 bases = [c for c in component.split('+')]
             else:
                 variants.append(component)
+        bases, variants = get_bases_and_variants(pname_comp)
+        counterpart_bases, _ = get_bases_and_variants(counterpart_name.split(' '))
+
+        # align bases
+        order = {v: i for i, v in enumerate(counterpart_bases)}  # because there is only one instance of base
+        bases = sorted(bases, key=lambda b: (b not in order, order.get(b, float('inf'))))  # move a unique base to the back
         return in_path_form()
 
     # process 'variants'
