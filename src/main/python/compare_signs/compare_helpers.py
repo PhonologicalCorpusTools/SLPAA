@@ -487,11 +487,6 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str)
     # process 'combined'
     if 'combined' in pname_comp:
         # combination of two or more bases
-        for component in pname_comp:
-            if '+' in component:
-                bases = [c for c in component.split('+')]
-            else:
-                variants.append(component)
         bases, variants = get_bases_and_variants(pname_comp)
         counterpart_bases, _ = get_bases_and_variants(counterpart_name.split(' '))
 
