@@ -491,8 +491,10 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str)
         counterpart_bases, _ = get_bases_and_variants(counterpart_name.split(' '))
 
         # align bases
-        order = {v: i for i, v in enumerate(counterpart_bases)}  # because there is only one instance of base
-        bases = sorted(bases, key=lambda b: (b not in order, order.get(b, float('inf'))))  # move a unique base to the back
+        if bases != counterpart_bases:
+            order = {v: i for i, v in enumerate(counterpart_bases)}  # because there is only one instance of base
+            bases = sorted(bases, key=lambda b: (b not in order, order.get(b, float('inf'))))  # unique base to the back
+
         return in_path_form()
 
     # process 'variants'

@@ -400,10 +400,10 @@ class CompareModel:
                     # base-variant hierarchy required
                     s1_path_element.extend(parse_predefined_names(pred_name=handshape_names[0],   # predefined name
                                                                   viz_name=str_visible_names[0],  # name that user sees
-                                                                  counterpart_name=str_visible_names[1]))
+                                                                  counterpart_name=handshape_names[1]))
                     s2_path_element.extend(parse_predefined_names(pred_name=handshape_names[1],
                                                                   viz_name=str_visible_names[1],
-                                                                  counterpart_name=str_visible_names[0]
+                                                                  counterpart_name=handshape_names[0]
                                                                   ))
                 else:
                     # not required
