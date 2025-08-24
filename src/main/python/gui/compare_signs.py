@@ -643,6 +643,7 @@ class CompareSignsDialog(QDialog):
         # parents: CompareTreeWidgetItem instances
         # children: TreeWidgetItemKey instances
         newly_added = []
+        what_should_be_yellow = None  # self-colouring hint
         parent1, parent2 = parents
         child1, child2 = children
 
@@ -653,12 +654,22 @@ class CompareSignsDialog(QDialog):
 
         # task0: check if same parents, the children should always align
         same_parents = parent1 == parent2
+
+        # find alternative radio button in the counterpart, if exists.
         if same_parents and child1.vacuous:
-            child1.update_with_alternative(target_btn_type='radio button')
-            newly_added.append(child1.key)
+            try:
+                child1.update_with_alternative(target_btn_type='radio button')
+                newly_added.append(child1.key)
+            except IndexError:
+                # child1 truly non-existent
+                pass
         elif same_parents and child2.vacuous:
-            child2.update_with_alternative(target_btn_type='radio button')
-            newly_added.append(child2.key)
+            try:
+                child2.update_with_alternative(target_btn_type='radio button')
+                newly_added.append(child2.key)
+            except IndexError:
+                # child2 truly non-existent
+                pass
 
         # as well, if lenient transcriptions comparison option for handconfig, lower and upper cases don't matter
         handshape_broad_match = True if not self.comparison_options['handconfig']['details'] else False
@@ -668,14 +679,19 @@ class CompareSignsDialog(QDialog):
 
         # task2
         if child2.vacuous:
-            twi_1, twi_2 = self._asymmetric_twi_colours(yellow_twi=twi_1,
-                                                        greyout_twi=twi_2)
+            what_should_be_yellow = 1
+            # task4
+            parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
+
         elif child1.vacuous:
-            twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2,
-                                                        greyout_twi=twi_1)
+            what_should_be_yellow = 2
+            # task4
+            parent1.red_when_folded_hint, parent2.red_when_folded_hint = [True, True]
+
         elif not child1.equals(child2, handshape_broad_match) and same_parents:
             # if two radio buttons are not the same but have the same parents,
             # no need to recurse in children (no task 3), but rather need to count truncated lines
+            # and then just return
 
             # count truncated lines
             trunc_counts: list[int] = [len(parse_button_type(child1.children)[child1.depth + 1:]),
@@ -695,13 +711,26 @@ class CompareSignsDialog(QDialog):
             parent1.addChild(twi_1)
             parent2.addChild(twi_2)
             return newly_added, parent1, parent2
-        elif child1.equals(child2, handshape_broad_match):
-            twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
-            #twi_1.initialize_bg_color('blue')
-            #twi_2.initialize_bg_color('blue')
 
         # task3
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
+
+        # task2
+        if not what_should_be_yellow:
+            # no yellow
+            twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
+        elif what_should_be_yellow == 1:
+            # sign1 should be yellow, and sign2 should be transparent.
+            twi_1, twi_2 = self._asymmetric_twi_colours(yellow_twi=twi_1,
+                                                        greyout_twi=twi_2)
+        else:
+            # sign1 should be transparent, and sign2 should be yellow.
+            twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2,
+                                                        greyout_twi=twi_1)
+
+        # task4
+        if twi_1.underlying_bg in ['red', 'yellow'] or twi_2.underlying_bg in ['red', 'yellow']:
+            parent1.red_when_folded_hint, parent2.red_when_folded_hint = True, True
 
         # task5
         parent1.addChild(twi_1)

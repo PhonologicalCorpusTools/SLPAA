@@ -94,7 +94,7 @@ class CompareModel:
     def compare_signtype(self, options) -> dict:
         results1, results2 = [], []
         if self.sign1.signtype is None or self.sign2.signtype is None:
-            return {}
+            return {'sign1': {}, 'sign2': {}}
         s1path = self.parse_st_representations(self.sign1.signtype.specslist)
         s2path = self.parse_st_representations(self.sign2.signtype.specslist)
 
