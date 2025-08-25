@@ -199,7 +199,7 @@ class ToggleSwitch(QPushButton):
 class OptionSwitch(QWidget):
     toggled = pyqtSignal(dict)
 
-    def __init__(self, label1, label2, initialselection=None, **kwargs):
+    def __init__(self, label1, label2, initialselection=0, deselectable=False, **kwargs):
         super().__init__(**kwargs)
 
         buttons_layout = QHBoxLayout()
@@ -214,8 +214,10 @@ class OptionSwitch(QWidget):
         self.right_btn.clicked.connect(lambda checked: self.buttonclicked(self.right_btn, checked))
         self.setlabels(label1, label2)
 
-        if initialselection is not None:
+        if initialselection:
             self.setwhichbuttonselected(initialselection)
+
+        self.deselectable = deselectable
 
         buttons_layout.addWidget(self.left_btn)
         buttons_layout.addWidget(self.right_btn)
@@ -257,10 +259,18 @@ class OptionSwitch(QWidget):
         self.right_btn.setChecked(valuesdict[2])
 
     def buttonclicked(self, btn, checked):
-        if btn == self.right_btn:
-            self.left_btn.setChecked(not checked)
-        elif btn == self.left_btn:
-            self.right_btn.setChecked(not checked)
+        otherbtn = self.right_btn if btn == self.left_btn else self.left_btn
+
+        if checked:
+            otherbtn.setChecked(False)
+        if not checked:
+            if self.deselectable:
+                pass  # let this be unchecked, and do not check the other
+            else:
+                # don't let user uncheck
+                btn.setChecked(True)
+                otherbtn.setChecked(False)
+                return  # don't need to emit anything because the values didn't change
 
         self.toggled.emit(self.getvalue())
 

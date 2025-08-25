@@ -124,7 +124,7 @@ class ExportFormatSelectionWizardPage(QWizardPage):
         selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values).")
         # selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values,\neven if they're empty/false/0) or minimal (only specified values).")
         # selectdetaillabel.setWordWrap(True)
-        self.selectdetailswitch = OptionSwitch("Maximal", "Minimal")
+        self.selectdetailswitch = OptionSwitch("Maximal", "Minimal", deselectable=False)
         self.selectdetailswitch.toggled.connect(self.handle_detailswitch_toggled)
         formlayout.addRow(selectdetaillabel, self.selectdetailswitch)
         # pagelayout.addWidget(QLabel("Choose whether you'd like maximal information (all attribute values,\neven if they're empty/false/0) or minimal (only specified values)."))
@@ -140,8 +140,10 @@ class ExportFormatSelectionWizardPage(QWizardPage):
     def handle_detailswitch_toggled(self, selection_dict):
         if selection_dict[1]:
             self.detaillevel = "max"
-        else:
+        elif selection_dict[2]:
             self.detaillevel = "min"
+        else:
+            self.detaillevel = ""
         self.check_emitsignals()
 
     def formatcombo_changed(self, txt):

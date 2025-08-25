@@ -871,7 +871,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
         self.y_l2_radio = DeselectableRadioButton("Leg2")
         self.y_lboth_radio = DeselectableRadioButton("Both legs")
         self.y_existingmod_radio = DeselectableRadioButton("Existing module:")
-        self.y_existingmod_switch = OptionSwitch("Location", "Movement")
+        self.y_existingmod_switch = OptionSwitch("Location", "Movement", deselectable=True)
 
         self.y_other_radio = DeselectableRadioButton("Other")
         self.y_other_text = QLineEdit()

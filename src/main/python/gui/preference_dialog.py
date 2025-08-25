@@ -493,7 +493,7 @@ class LocationTab(QWidget):
                 break
         main_layout.addRow(QLabel("Default location type:"), self.locationtype_layout)
 
-        self.locnimgclickorder_switch = OptionSwitch("Large to small", "Small to large")
+        self.locnimgclickorder_switch = OptionSwitch("Large to small", "Small to large", deselectable=False)
         self.locnimgclickorder_switch.setwhichbuttonselected(self.settings['location']['clickorder'])
         main_layout.addRow(QLabel("L-clicking on image iterates over locations from:"),
                            self.locnimgclickorder_switch)

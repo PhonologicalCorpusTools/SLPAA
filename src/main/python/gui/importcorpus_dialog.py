@@ -520,7 +520,7 @@ class TimestampSelectionWizardPage(QWizardPage):
 
         pagelayout = QVBoxLayout()
         pagelayout.addWidget(QLabel("Select which option you prefer for the 'last modified' timestamp on each sign."))
-        self.timestampswitch = OptionSwitch("Keep original values\nas per exported file", "Reset to now")
+        self.timestampswitch = OptionSwitch("Keep original values\nas per exported file", "Reset to now", deselectable=False)
         self.timestampswitch.toggled.connect(self.handle_timestampswitch_toggled)
         pagelayout.addWidget(self.timestampswitch)
 
@@ -531,7 +531,7 @@ class TimestampSelectionWizardPage(QWizardPage):
         return self.keeporigtimestamps is not None
 
     def handle_timestampswitch_toggled(self, switchvalue):
-        self.keeporigtimestamps = switchvalue[1]
+        self.keeporigtimestamps = not switchvalue[2]
         self.completeChanged.emit()
         self.timestampselected.emit(self.keeporigtimestamps)
 
