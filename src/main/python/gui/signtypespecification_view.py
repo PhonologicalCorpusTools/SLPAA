@@ -412,7 +412,6 @@ class SigntypeButtonGroup(QButtonGroup):
             if b.childlayout:
                 self.enableChildWidgets(False, b.childlayout)
 
-    # TODO if all of these subsections are implemented  with widgets instead of layouts, is this part easier?
     # parent can be widget or layout
     def enableChildWidgets(self, yesorno, parent):
         if isinstance(parent, QAbstractButton):

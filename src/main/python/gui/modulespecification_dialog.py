@@ -556,7 +556,7 @@ class AssociatedRelationsDialog(QDialog):
         self.relationslist = list(self.mainwindow.current_sign.relationmodules.values())
         self.relationmodulenumsdict = self.mainwindow.current_sign.relationmodulenumbers
         if self.anchormodule is not None:
-            # TODO KV the numbering is not correct for the filtered list (just re-numbers in order from 1; doesn't match what's in summary)
+            # TODO the numbering is not correct for the filtered list (just re-numbers in order from 1; doesn't match what's in summary)
             self.relationslist = [rel for rel in self.relationslist if
                                   (rel.relationy.existingmodule and
                                    self.anchormodule.uniqueid in rel.relationy.linkedmoduleids)]
@@ -707,7 +707,7 @@ class XslotLinkingPanel(QFrame):
         super().__init__(**kwargs)
         self.mainwindow = self.parent().mainwindow
 
-        self.timingintervals = [] if timingintervals is None else timingintervals
+        self.timingintervals = timingintervals or []
         self.partialxslots = partialxslots
         if xslotstructure is not None:
             self.xslotstruct = xslotstructure
