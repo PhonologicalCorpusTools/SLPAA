@@ -701,6 +701,8 @@ class MainWindow(QMainWindow):
             self.delete_modules()
         elif action_str == "copy":
             self.on_action_copy()
+        elif action_str == "TODO compare":
+            self.on_action_compare_fortesting()
         elif action_str == "paste":
             self.on_action_paste()
         elif action_str == "copy timing":
@@ -1109,6 +1111,43 @@ class MainWindow(QMainWindow):
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
+
+    # TODO compares the modules currently selected in the sign summary scene
+    def on_action_compare_fortesting(self, clicked=None):
+        self.copypaste_referencesign = self.current_sign
+
+        if self.signsummary_panel.scene.hasFocus():
+            twomodulestocompare = self.modules_fromselectedbuttons()
+            module0 = twomodulestocompare[0]
+            module1 = twomodulestocompare[1]
+
+            if module0.moduletype != module1.moduletype:
+                print(module0.moduletype, "&", module1.moduletype, "modules have different types and therefore can't be compared")
+                return
+
+            print(module0.moduletype, "modules")
+            if module0.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                results0 = module0.locationtreemodel.data_as_dicts() if hasattr(module0, "locationtreemodel") else module0.movementtreemodel.data_as_dicts()
+                results1 = module1.locationtreemodel.data_as_dicts() if hasattr(module1, "locationtreemodel") else module1.movementtreemodel.data_as_dicts()
+                for dictidx in [0, 1, 2]:
+                    aresame = results0[dictidx] == results1[dictidx]
+                    print(dictidx, ":", aresame)
+                    if not aresame:
+                        for k, v in results0[dictidx].items():
+                            if k not in results1[dictidx].keys() or results1[dictidx][k] != v:
+                                print("   0:", k, v)
+                                print("   1:", k, results1[dictidx][k])
+            elif module0.moduletype == ModuleTypes.RELATION:
+                for ai in [True, False]:
+                    for dt in [True, False]:
+                        ai_str = ("" if ai else "not ") + "including addedinfos"
+                        dt_str = ("" if dt else "not ") + "including details tables"
+                        print(ai_str, "and", dt_str, "- match:", module0.matchesmodulespecs(module1, includeAddedInfos=ai, includeDetailsTables=dt))
+            else:
+                for ai in [True, False]:
+                    ai_str = ("" if ai else "not ") + "including addedinfos"
+                    print("    ", ai_str, "- match:", module0.matchesmodulespecs(module1, includeAddedInfos=ai))
+            print("-----------------------------")
 
     # copies timing info from the module (there can only be one) currently selected in the sign summary window
     def on_action_copytiming(self):
@@ -1822,8 +1861,8 @@ class AlignTestDialog(QDialog):
             return abbrevstr
         elif mtype == ModuleTypes.NONMANUAL:
             abbrevstr = ""
-            for k in module._nonmanual.keys():
-                subdict = self.nonmanualdictreducer(module._nonmanual[k])
+            for k in module.nonmanual.keys():
+                subdict = self.nonmanualdictreducer(module.nonmanual[k])
                 if subdict:
                     abbrevstr += "     " + k + ": " + str(subdict) + "\n"
             return abbrevstr

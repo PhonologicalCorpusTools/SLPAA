@@ -683,10 +683,17 @@ class LocationTreeModel(QStandardItemModel):
         return checked
 
     # returns True iff input `other` is also a LocationTreeModel, and it has the exact same checked items as this one
-    # note that this function ignores any potential surface/subarea selection or AddedInfo (right-click menu) info
-    #   AND also ignores the location type associated with the tree (body, body-anchored, purely spatial, etc)
-    def matches(self, other):
-        return isinstance(other, LocationTreeModel) and (self.listmodel.matches(other.listmodel))
+    # note that this function ignores the loc type associated with the tree (body, body-anchored, purely spatial, etc)
+    # includes OPTIONAL comparison of any potential surface/subarea selection or item-level AddedInfo (right-click menu) info
+    def matches(self, other, includeAddedInfos=False, includeDetailsTables=False):
+        if isinstance(other, LocationTreeModel):
+            checkstates_self, addedinfos_self, detailstables_self = self.data_as_dicts()
+            checkstates_other, addedinfos_other, detailstables_other = other.data_as_dicts()
+            checkstatesmatch = checkstates_self == checkstates_other
+            addedinfosmatch = not includeAddedInfos or addedinfos_self == addedinfos_other
+            detailsmatch = not includeDetailsTables or detailstables_self == detailstables_other
+            return checkstatesmatch and addedinfosmatch and detailsmatch
+        return False
 
     # Compare what was serialized with what the current tree actually shows
     def compare_checked_lists(self):
@@ -720,9 +727,24 @@ class LocationTreeModel(QStandardItemModel):
             items.extend(subresults)
         return items
 
-    
+    # collect data from the LocationTreeModel and return as three dicts (checkstates, addedinfos, detailstables),
+    # each of which has the full texts of the treemodel's paths as its keys
+    def data_as_dicts(self):
+        checkstates = {}
+        addedinfos = {}
+        detailstables = {}
+        self.datadictshelper(self.invisibleRootItem(), checkstates, addedinfos, detailstables)
+        return checkstates, addedinfos, detailstables
 
-
+    def datadictshelper(self, treenode, checkstates, addedinfos, detailstables):
+        for r in range(treenode.rowCount()):
+            treechild = treenode.child(r, 0)
+            if treechild is not None:
+                pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                checkstates[pathtext] = treechild.checkState()
+                addedinfos[pathtext] = copy(treechild.addedinfo)
+                detailstables[pathtext] = LocationTableSerializable(treechild.detailstable)
+                self.datadictshelper(treechild, checkstates, addedinfos, detailstables)
 
     # def tempprintcheckeditems(self):
     #     treenode = self.invisibleRootItem()
@@ -899,9 +921,8 @@ class LocationTreeModel(QStandardItemModel):
 
 class BodypartTreeModel(LocationTreeModel):
 
-    def __init__(self, bodyparttype, serializedlocntree=None, forrelationmodule=False, **kwargs):
+    def __init__(self, bodyparttype, serializedlocntree=None, **kwargs):
         self.bodyparttype = bodyparttype
-        self.forrelationmodule=forrelationmodule
         super().__init__(serializedlocntree=serializedlocntree, **kwargs)
         if serializedlocntree is not None:
             self.serializedlocntree = serializedlocntree
@@ -927,9 +948,10 @@ class BodypartTreeModel(LocationTreeModel):
         elif structure.children != []:
             # internal node with substructure
 
-            if self.forrelationmodule:
-                structure.children = [child for child in structure.children 
-                                      if IPSI not in child.display_name and CONTRA not in child.display_name]
+            # always assume that if we're making a bodyparttreemodel, then it's for the relation module
+            #   and therefore we shouldn't display contra/ipsi options
+            structure.children = [child for child in structure.children
+                                  if IPSI not in child.display_name and CONTRA not in child.display_name]
             super().populate(parentnode=parentnode, structure=structure, pathsofar=pathsofar)
 
     def backwardcompatibility(self):
@@ -943,7 +965,6 @@ class BodypartTreeModel(LocationTreeModel):
                 for stored_dict in dicts:
                     stored_dict["Whole hand" + treepathdelimiter + val] = stored_dict[val]
                     stored_dict.pop(val)
-
 
 
 class LocationListModel(QStandardItemModel):
@@ -971,11 +992,6 @@ class LocationListModel(QStandardItemModel):
 
     def setTreemodel(self, treemod):
         self.treemodel = treemod
-
-    # returns True iff input `other` is also a LocationListModel, and it has the exact same checked items as this one
-    # note that this function ignores any potential surface/subarea selection or AddedInfo (right-click menu) info
-    def matches(self, other):
-        return isinstance(other, LocationListModel) and (self.get_checked_items() == other.get_checked_items())
 
     # returns a list of strings, where each is the (tree) path of one of the checked items in this list
     def get_checked_items(self, parent_item=None):

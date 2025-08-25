@@ -947,7 +947,6 @@ class Config(QGroupBox):
         # self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
-        self._addedinfo = AddedInfo()
         self.add_slot1()
         self.generate_hands()
 
@@ -1015,20 +1014,17 @@ class Config(QGroupBox):
         self.hand.set_value(HandConfigurationHand(handconfigmodule.handconfiguration))
         self.slot1.setChecked(handconfigmodule.overalloptions['forearm'])
         self.slot1.addedinfo = handconfigmodule.overalloptions['forearm_addedinfo']
-        self._addedinfo = handconfigmodule.overalloptions['overall_addedinfo']
 
     def clear(self):
         self.hand.clear()
         self.slot1.setChecked(False)
         self.slot1.addedinfo = AddedInfo()
-        self._addedinfo = AddedInfo()
 
     def get_value(self):
         return {
             'forearm': self.slot1.isChecked(),
             'forearm_addedinfo': self.slot1.addedinfo,
             'hand': self.hand.get_value(),  # this is a list of field values
-            'overall_addedinfo': self._addedinfo
         }
 
 
