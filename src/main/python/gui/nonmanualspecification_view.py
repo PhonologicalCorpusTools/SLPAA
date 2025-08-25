@@ -1178,9 +1178,9 @@ def load_specifications(values_toload, load_destination):
         as_to_load = values_toload['action_state']  # packaged action_state selections. comes as Dict
         if len(as_to_load['root']) != 0:
             load_destination.action_state = load_actionstate(as_to_load, load_destination.action_state)
-        else:
+        #else:
             # initialize action_state (i.e., deselct all)
-            deselect_all(load_destination.action_state)
+            #deselect_all(load_destination.action_state)
     except KeyError:
         pass
 
