@@ -440,6 +440,7 @@ class ImportSourceSelectionWizardPage(QWizardPage):
         pagelayout = QVBoxLayout()
 
         pagelayout.addWidget(QLabel("Select the file to import: JSON (.txt) is currently the only importable format."))
+        # TODO pagelayout.addWidget(QLabel("Select the file to import:\nJSON (.txt) is currently the only importable format."))
 
         selectionlayout = QHBoxLayout()
         self.importsourcedisplay = QLineEdit()
