@@ -121,6 +121,8 @@ class ExportFormatSelectionWizardPage(QWizardPage):
         # pagelayout.addWidget(QLabel("Choose which format you'd like for the exported data:\nJSON (.txt) is currently the only option."))
         # pagelayout.addWidget(self.selectformatcombo)
 
+
+        formlayout.addRow(QLabel("decoy button for testing macos highlighting"), QPushButton("TODO"))
         selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values).")
         # selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values,\neven if they're empty/false/0) or minimal (only specified values).")
         # selectdetaillabel.setWordWrap(True)
