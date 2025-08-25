@@ -550,7 +550,9 @@ class CompareSignsDialog(QDialog):
         return twi_1, twi_2
 
     def _add_twi_for_module_roots(self, parents, children):
-        # for module roots (e.g., 0:Loc1) children should always be aligned *and consider as equal*
+        # for module roots (e.g., 0:Loc1),
+        # always force as label.
+        # as well, children should always be aligned *and consider as equal*
         # because they are always given aligned (cf. compare_signs.align_modules)
         #
         # parents: top-level module names like 'Movement,' 'Handconfig,' etc.
@@ -570,11 +572,11 @@ class CompareSignsDialog(QDialog):
 
         # task1
         if child1.vacuous:    # asymmetric comparison. only sign 2 has this module, so follow its key
-            twi_1, twi_2 = self._gen_twi_pair(child2.key)
+            twi_1, twi_2 = self._gen_twi_pair(child2.key, force_label=True)
         elif child2.vacuous:  # asymmetric comparison. only sign 1 has this module, so follow its key
-            twi_1, twi_2 = self._gen_twi_pair(child1.key)
+            twi_1, twi_2 = self._gen_twi_pair(child1.key, force_label=True)
         else:  # both keys exist
-            twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
+            twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key, force_label=True)
 
         # task3
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
