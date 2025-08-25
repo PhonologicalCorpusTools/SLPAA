@@ -46,8 +46,6 @@ class ExportCorpusWizard(QWizard):
         self.exportcorpus_pageid = self.addPage(self.exportcorpus_page)
 
         self.setWindowTitle("Export Corpus")
-        # self.updateGeometry()
-        # self.repaint()
 
     def clear_statusdisplay(self):
         self.exportcorpus_page.exportattempted = False
@@ -64,7 +62,6 @@ class ExportCorpusWizard(QWizard):
         self.exportcorpus_page.statusdisplay.setText(resultmessage)
 
     def export_corpus(self):
-        # corpus = self.parent().corpus
         if self.parent().corpus is None:
             return "export failed - corpus does not exist"
 
@@ -111,31 +108,19 @@ class ExportFormatSelectionWizardPage(QWizardPage):
         self.detaillevel = ""
 
         formlayout = QFormLayout()
-        # pagelayout = QVBoxLayout()
 
         selectformatlabel = QLabel("Choose which format you'd like for the exported data: JSON (.txt) is currently the only option.")
-        # selectformatlabel = QLabel("Choose which format you'd like for the exported data:\nJSON (.txt) is currently the only option.")
-        # selectformatlabel.setWordWrap(True)
         self.selectformatcombo = QComboBox()
         self.selectformatcombo.currentTextChanged.connect(self.formatcombo_changed)
         self.selectformatcombo.addItems(["JSON (.txt)"])
         formlayout.addRow(selectformatlabel, self.selectformatcombo)
-        # pagelayout.addWidget(QLabel("Choose which format you'd like for the exported data:\nJSON (.txt) is currently the only option."))
-        # pagelayout.addWidget(self.selectformatcombo)
 
-
-        formlayout.addRow(QLabel("decoy button for testing macos highlighting"), QPushButton("TODO"))
         selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values).")
-        # selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values,\neven if they're empty/false/0) or minimal (only specified values).")
-        # selectdetaillabel.setWordWrap(True)
         self.selectdetailswitch = OptionSwitch("Maximal", "Minimal", deselectable=False)
         self.selectdetailswitch.toggled.connect(self.handle_detailswitch_toggled)
         formlayout.addRow(selectdetaillabel, self.selectdetailswitch)
-        # pagelayout.addWidget(QLabel("Choose whether you'd like maximal information (all attribute values,\neven if they're empty/false/0) or minimal (only specified values)."))
-        # pagelayout.addWidget(self.selectdetailswitch)
 
         self.setLayout(formlayout)
-        # self.setLayout(pagelayout)
 
     # determines whether the "next" (or "finish") button should be enabled on this page
     def isComplete(self):
