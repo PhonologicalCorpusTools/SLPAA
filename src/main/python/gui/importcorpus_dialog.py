@@ -39,6 +39,8 @@ class ImportCorpusWizard(QWizard):
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
         self.setOption(QWizard.IndependentPages, True)
+        self.setOption(QWizard.NoDefaultButton, False)
+        self.setOption(QWizard.NoCancelButton, False)
         self.app_settings = app_settings
         self.inputformat = "json"
         self.keeporigtimestamps = True
