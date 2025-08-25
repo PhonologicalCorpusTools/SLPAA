@@ -140,10 +140,14 @@ class ParameterModule:
                 todisplay += " connected, in phase"
         return todisplay
 
-
-
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
+
+    # checks if this module's *module-specific* specifications (everything except articulators, uniqueid, and timing) 
+    #   are the same as othermodule
+    # needs to be implemented by individual module subclasses
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False):
+        return False
 
 
 class EntryID:
@@ -639,6 +643,15 @@ class MovementModule(ParameterModule):
         return to_return
         # return to_return
         
+    # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing) 
+    #   are the same as othermodule
+    # includes OPTIONAL comparison of module-level & item-level AddedInfos, and item-level user-specified values
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False, includeUserSpecifiedValues=False):
+        if isinstance(othermodule, MovementModule):
+            return (self.inphase == othermodule.inphase) \
+                and (not includeAddedInfos or self._addedinfo == othermodule.addedinfo)\
+                and (self.movementtreemodel.matches(othermodule.movementtreemodel, includeAddedInfos=includeAddedInfos, includeUserSpecifiedValues=includeUserSpecifiedValues))
+        return False
 
 
 # this class stores info about whether an instance of the Location module represents a phonetic/phonological location
@@ -729,6 +742,18 @@ class LocationType:
     
     def __eq__(self, other):
         return isinstance(other, LocationType) and self.body == other.body and self.signingspace == other.signingspace and self.bodyanchored == other.bodyanchored and self.purelyspatial == other.purelyspatial
+
+    # == check compares the attributes dicts
+    def __eq__(self, other):
+        if isinstance(other, LocationType):
+            self_attributes = self.__dict__
+            other_attributes = other.__dict__
+            return False not in [self_attributes[attr] == other_attributes[attr] for attr in self_attributes.keys()]
+        return False
+
+    # != check compares the attributes dicts
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __repr__(self):
         repr_str = "nil"
@@ -1321,6 +1346,14 @@ class Signtype:
                 abbrevsdict[pathelements[0]] = {}
             self.ensurepathindict(pathelements[1:], abbrevsdict[pathelements[0]])
 
+    # checks if this module's *module-specific* specifications are the same as othermodule
+    # includes OPTIONAL comparison of module-level AddedInfo
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False):
+        if isinstance(othermodule, Signtype):
+            return (set(self.specslist) == set(othermodule.specslist))\
+                and (not includeAddedInfos or self._addedinfo == othermodule.addedinfo)
+        return False
+
 
 class BodypartInfo:
 
@@ -1369,11 +1402,21 @@ class BodypartInfo:
         hastreecontent = self._bodyparttreemodel.hasselections()
         return hasaddedinfo or hastreecontent
 
-    def __eq__(self, other):
-        if isinstance(other, BodypartInfo):
-            if self._addedinfo == other.addedinfo and self._bodyparttreemodel == other.bodyparttreemodel and self._bodyparttype == other.bodyparttype:
-                return True
+    # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing)
+    #   are the same as othermodule
+    # includes OPTIONAL comparison of module-level & item-level AddedInfos, and item-level surfaces/subareas (details tables)
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False, includeDetailsTables=False):
+        if isinstance(othermodule, BodypartInfo):
+            typesmatch = self._bodyparttype == othermodule.bodyparttype
+            addedinfosmatch = not includeAddedInfos or self._addedinfo == othermodule.addedinfo
+            treemodelsmatch = self._bodyparttreemodel.matches(othermodule.bodyparttreemodel,
+                                                              includeAddedInfos=includeAddedInfos,
+                                                              includeDetailsTables=includeDetailsTables)
+            return typesmatch and addedinfosmatch and treemodelsmatch
         return False
+
+    def __eq__(self, other):
+        return self.matchesmodulespecs(other, includeAddedInfo=True)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -1467,6 +1510,17 @@ class LocationModule(ParameterModule):
         
 
         return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str, path_strings]))
+
+    # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing)
+    #   are the same as othermodule
+    # includes OPTIONAL comparison of module-level & item-level AddedInfos, and item-level surfaces/subareas (details tables)
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False, includeDetailsTables=False):
+        if isinstance(othermodule, LocationModule):
+            return (self.inphase == othermodule.inphase)\
+                and (self.locationtreemodel.locationtype == othermodule.locationtreemodel.locationtype)\
+                and (not includeAddedInfos or self._addedinfo == othermodule.addedinfo)\
+                and (self.locationtreemodel.matches(othermodule.locationtreemodel, includeAddedInfos=includeAddedInfos, includeDetailsTables=includeDetailsTables))
+        return False
 
 
 class RelationX:
@@ -2165,8 +2219,27 @@ class RelationModule(ParameterModule):
             relative_label += f"X is {', '.join(filter(None, to_append))} to Y"
         
         return ": ".join(filter(None, [phonphon_str, "; ".join(filter(None, [X_str, Y_str, contact, link_cross_label, any_dir_dist_label, relative_label]))]))
-    
 
+    # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing)
+    #   are the same as othermodule
+    # includes OPTIONAL comparison of module-level & item-level AddedInfos for RelationModule and/or BodyPartInfo,
+    #   and item-level surfaces/subareas (details tables) for BodyPartInfos
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False, includeDetailsTables=False):
+        if isinstance(othermodule, RelationModule):
+            x_and_y_match = self.relationx == othermodule.relationx and self.relationy == othermodule.relationy
+            bodyparts_match = True
+            # TODO this part is not working-- can't properly ignore addedinfos or detailstables in bodyparts
+            for art in self.bodyparts_dict.keys():
+                for artnum, bodypartinfo in self.bodyparts_dict[art].items():
+                    bodypartinfosmatch = othermodule.bodyparts_dict[art][artnum].matchesmodulespecs(bodypartinfo, includeAddedInfos=includeAddedInfos, includeDetailsTables=includeDetailsTables)
+                    bodyparts_match = bodyparts_match and bodypartinfosmatch
+            contactrels_match = self.contactrel == othermodule.contactrel
+            xy_interactions_match = self.xy_crossed == othermodule.xy_crossed and self.xy_linked == othermodule.xy_linked
+            directions_match = self.directions == othermodule.directions
+
+            return x_and_y_match and bodyparts_match and contactrels_match and xy_interactions_match \
+                and directions_match and (not includeAddedInfos or self._addedinfo == othermodule.addedinfo)
+        return False
 
 
 class MannerRelation:
@@ -2718,6 +2791,16 @@ class OrientationModule(ParameterModule):
         root_str = f"Finger direction: {' & '.join(root_arr)}" if root_arr else ""
         return ': '.join(filter(None, [phonphon_str, '; '.join(filter(None, [palm_str, root_str]))]))
 
+    # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing) 
+    #   are the same as othermodule
+    # includes OPTIONAL comparison of module-level AddedInfo
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False):
+        if isinstance(othermodule, OrientationModule):
+            return (self.root == othermodule.root)\
+                and (self.palm == othermodule.palm)\
+                and (not includeAddedInfos or self._addedinfo == othermodule.addedinfo)
+        return False
+
 
 # This module is only used in the search window. 
 # Used instead of the usual HandConfigurationModule when the user wants to do an extended-fingers search.
@@ -2806,8 +2889,6 @@ class HandConfigurationModule(ParameterModule):
             return True
         return False
 
-
-
     def getabbreviation(self):
         handconfighand = HandConfigurationHand(self.handconfiguration)
 
@@ -2826,7 +2907,44 @@ class HandConfigurationModule(ParameterModule):
 
         return predefinedname + fieldstext
 
-        
+    # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing) 
+    #   are the same as othermodule
+    # includes OPTIONAL comparison of module-level and slot-level AddedInfos
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False):
+        if isinstance(othermodule, HandConfigurationModule):
+            handconfigsmatch = self.handconfigurationsmatch(othermodule, includeAddedInfos=includeAddedInfos)
+            overalloptionsmatch = self.overalloptionsmatch(othermodule, includeAddedInfos=includeAddedInfos)
+            addedinfosmatch = not includeAddedInfos or self._addedinfo == othermodule.addedinfo
+            return handconfigsmatch and overalloptionsmatch and addedinfosmatch
+        return False
+
+    def overalloptionsmatch(self, othermodule, includeAddedInfos=False):
+        overall_self = self.overalloptions
+        overall_other = othermodule.overalloptions
+
+        return overall_self['forearm'] == overall_other['forearm']\
+            and (not includeAddedInfos) or (overall_self['forearm_addedinfo'] == overall_other['forearm_addedinfo'])
+
+    def handconfigurationsmatch(self, othermodule, includeAddedInfos=False):
+        hcfg_self = self.handconfiguration
+        hcfg_other = othermodule.handconfiguration
+
+        if len(hcfg_self) != len(hcfg_other):
+            return False
+
+        for field_index in range(len(hcfg_self)):
+            field_dict_self = hcfg_self[field_index]
+            field_dict_other = hcfg_other[field_index]
+            if field_dict_self['field_number'] != field_dict_other['field_number']:
+                return False
+            for slot_index in range(len(field_dict_self['slots'])):
+                slot_dict_self = field_dict_self['slots'][slot_index]
+                slot_dict_other = field_dict_other['slots'][slot_index]
+                if includeAddedInfos and slot_dict_self['addedinfo'] != slot_dict_other['addedinfo']:
+                    return False
+        return True
+
+
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
 # the transcription info for one hand configuration.
 class HandConfigurationHand:
@@ -2872,6 +2990,19 @@ class NonManualModule(ParameterModule):
     @property
     def moduletype(self):
         return super().moduletype or ModuleTypes.NONMANUAL
+
+    @property
+    def nonmanual(self):
+        return self._nonmanual
+
+    # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing) 
+    #   are the same as othermodule
+    # includes OPTIONAL comparison of module-level AddedInfo
+    def matchesmodulespecs(self, othermodule, includeAddedInfos=False):
+        if isinstance(othermodule, NonManualModule):
+            return (self.nonmanual == othermodule.nonmanual)\
+                and (not includeAddedInfos or self._addedinfo == othermodule.addedinfo)
+        return False
 
 
 # This class consists of 34 slots; each instance of a HandConfigurationField corresponds to a certain subset

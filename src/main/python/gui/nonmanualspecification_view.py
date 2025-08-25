@@ -132,8 +132,6 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
     def __init__(self, moduletoload=None, **kwargs):
         super().__init__(**kwargs)
-        self.islinkedtopoint = False
-        self.islinkedtointerval = False
 
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignTop)
@@ -1002,7 +1000,7 @@ class NonManualSpecificationPanel(ModuleSpecificationPanel):
 
         if not isinstance(moduletoload, dict):
             # moduletoload is a NonManualModule, so extract _nonmanual from it
-            toload_dict = moduletoload._nonmanual
+            toload_dict = moduletoload.nonmanual
 
         major_modules = [module_title.label for module_title in nonmanual_root.children]  # major modules in non manual
         template = self.nonman_specifications  # empty template of specification window

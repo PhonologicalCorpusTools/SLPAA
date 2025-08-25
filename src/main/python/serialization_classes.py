@@ -134,34 +134,9 @@ class MovementModuleSerializable(ParameterModuleSerializable):
 class MovementTreeSerializable:
 
     def __init__(self, mvmttreemodel):
-
         # creates a full serializable copy of the movement tree, eg for saving to disk
-        treenode = mvmttreemodel.invisibleRootItem()
 
-        self.numvals = {}  # deprecated
-        self.stringvals = {}  # deprecated
-        self.checkstates = {}
-        self.addedinfos = {}
-        self.userspecifiedvalues = {}
-
-        self.collectdatafromMovementTreeModel(treenode)
-
-    def collectdatafromMovementTreeModel(self, treenode):
-        if treenode is not None:
-            for r in range(treenode.rowCount()):
-                treechild = treenode.child(r, 0)
-                if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                    checkstate = treechild.checkState()
-                    addedinfo = treechild.addedinfo
-                    self.addedinfos[pathtext] = copy(addedinfo)
-                    iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
-                    userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
-                    if iseditable:
-                        self.userspecifiedvalues[pathtext] = userspecifiedvalue
-
-                    self.checkstates[pathtext] = checkstate
-                self.collectdatafromMovementTreeModel(treechild)
+        self.checkstates, self.addedinfos, self.userspecifiedvalues = mvmttreemodel.data_as_dicts()
 
 
 # This class is a serializable form of the class LocationTreeModel, which is itself not pickleable.
@@ -170,42 +145,16 @@ class MovementTreeSerializable:
 class LocationTreeSerializable:
 
     def __init__(self, locntreemodel):
-
         # creates a full serializable copy of the location tree, eg for saving to disk
-        treenode = locntreemodel.invisibleRootItem()
 
-        self.numvals = {}  # deprecated
-        self.checkstates = {}
-        self.detailstables = {}
-        self.addedinfos = {}
         self.multiple_selection_allowed = locntreemodel.multiple_selection_allowed
         self.defaultneutralselected = locntreemodel.defaultneutralselected
         self.defaultneutrallist = locntreemodel.defaultneutrallist
         self.nodes_are_terminal = locntreemodel.nodes_are_terminal
 
-        self.collectdatafromLocationTreeModel(treenode)
+        self.checkstates, self.addedinfos, self.detailstables = locntreemodel.data_as_dicts()
         
         self.locationtype = copy(locntreemodel.locationtype)
-
-    # collect data from the LocationTreeModel to store in this LocationTreeSerializable
-    def collectdatafromLocationTreeModel(self, treenode):
-        if treenode is not None:
-            for r in range(treenode.rowCount()):
-                treechild = treenode.child(r, 0)
-                if treechild is not None:
-                    pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
-                    checkstate = treechild.checkState()
-                    locntable = treechild.detailstable
-                    addedinfo = treechild.addedinfo
-                    self.addedinfos[pathtext] = copy(addedinfo)
-                    self.detailstables[pathtext] = LocationTableSerializable(locntable)
-                    self.checkstates[pathtext] = checkstate
-                    iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
-                    userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
-                    # if iseditable:
-                    #     self.userspecifiedvalues[pathtext] = userspecifiedvalue
-
-                self.collectdatafromLocationTreeModel(treechild)
 
 
 # This class is a serializable form of the class LocationTableModel, which is itself not pickleable.
@@ -225,6 +174,14 @@ class LocationTableSerializable:
 
     def __repr__(self):
         return '<LocationTableSerializable: ' + repr(self.col_labels) + ' / ' + repr(self.col_contents) + '>'
+
+    def __eq__(self, other):
+        if isinstance(other, LocationTableSerializable):
+            return self.col_labels == other.col_labels and self.col_contents == other.col_contents
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 # This class is a serializable form of the class BodypartInfo, which is itself not pickleable.
