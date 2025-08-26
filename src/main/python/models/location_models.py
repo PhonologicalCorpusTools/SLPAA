@@ -555,7 +555,7 @@ class LocationTreeModel(QStandardItemModel):
         self._locationtype = LocationType()
         self.checked=[]
 
-        self.defaultneutralselected = False
+        self.defaultneutralselected = False # misnomer. This is true if the "mark neutral" checkbox is checked. The "default neutral" location paths might not necessarily be selected
         self.defaultneutrallist = None
 
         if serializedlocntree is not None:
@@ -741,12 +741,12 @@ class LocationTreeModel(QStandardItemModel):
     def nodes_are_terminal(self, terminal):
         self._nodes_are_terminal = terminal    
 
-    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=True, include_details=False):
+    def get_checked_items(self, parent_index=QModelIndex(), only_fully_checked=False, include_details=False):
         """
         Recursively traverses the location tree and returns a list of checked items.
         Args:
-            only_fully_checked: bool. If True, then partially checked items are not considered checked. \
-                The default value for only_fully_checked is True (in contrast to Movement module) because a search for an ancestor should not by default return its checked descendants. \
+            only_fully_checked: bool. If True, then partially checked items are not returned at all. If False, they are specified in the details as "ancestor"\
+                We specify this in Location (in contrast to Movement module) because a search for an ancestor should not by default return its checked descendants. \
                 For example, a search for "Repetition" should return movement modules that contain "Repetition>Repeated>2x", \
                 but a search for "Face" should not return location modules that only contain "Face>Cheek/nose".
             include_details: bool. If True, also returns abbreviations and details tables of checked location paths.
@@ -755,7 +755,7 @@ class LocationTreeModel(QStandardItemModel):
             list. If `include_details`, returns a list of dicts of the form: 
             {'path': [the full path], 
             'abbrev': [the abbreviation, None if the path leaf should not be abbreviated],
-            'details': DetailsTable}
+            'details': DetailsTable; or, if this path is an ancestor (therefore partially checked), "ancestor"}
             Otherwise returns a list of paths.
             
         """
@@ -769,10 +769,11 @@ class LocationTreeModel(QStandardItemModel):
             if index.data(Qt.CheckStateRole) >= checkstate_to_match:
                 path = index.data(Qt.UserRole+udr.pathdisplayrole)
                 if include_details:
+                    details = self.itemFromIndex(index).detailstable if index.data(Qt.CheckStateRole) == Qt.Checked else "ancestor"
                     checked_values.append({
                         'path': path,
                         'abbrev': index.data(Qt.UserRole+udr.pathabbrevrole),
-                        'details': self.itemFromIndex(index).detailstable})
+                        'details': details})
                 else:
                     checked_values.append(path)
             checked_values.extend(self.get_checked_items(index, only_fully_checked, include_details))

@@ -542,7 +542,7 @@ class Corpus:
     # return the highest index in this corpus that is attached to the IDgloss given by idglosstext
     # if the idgloss doesn't exist or if it is does but it's not indexed, then 0 is returned
     def highestIDglossindex(self, idglossinput):
-        suffixmatchesinput = re.match('.*(-copy\d+)$', idglossinput)
+        suffixmatchesinput = re.match(r'.*(-copy\d+)$', idglossinput)
         if suffixmatchesinput:
             idglossinput = idglossinput[:idglossinput.index(suffixmatchesinput.group(1))]
         idglossinput = idglossinput.lower()
@@ -550,8 +550,8 @@ class Corpus:
         all_idglosses_lower = [sign.signlevel_information.idgloss.lower() for sign in self.signs]
         matching_indices = [0]
         for idgloss_lower in all_idglosses_lower:
-            idglossmatches = re.match(idglossinput + '-copy\d+$', idgloss_lower)
-            suffixmatches = re.match('.*-copy(\d+)$', idgloss_lower)
+            idglossmatches = re.match(idglossinput + r'-copy\d+$', idgloss_lower)
+            suffixmatches = re.match(r'.*-copy(\d+)$', idgloss_lower)
             if idglossmatches and suffixmatches:
                 matching_indices.append(int(suffixmatches.group(1)))
         return max(matching_indices)

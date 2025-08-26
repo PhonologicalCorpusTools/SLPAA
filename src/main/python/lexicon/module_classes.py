@@ -9,7 +9,7 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, \
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, Precomputed, userdefinedroles as udr, treepathdelimiter, ModuleTypes, \
     SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots, SIGN_TYPE
 from constant import (specifytotalcycles_str, numberofreps_str, custom_abbrev)
 
@@ -48,6 +48,7 @@ class ParameterModule:
         self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
         self._moduletype = ""
+        self._selections = None # Currently used in search window only
 
     @property
     def moduletype(self):
@@ -140,7 +141,16 @@ class ParameterModule:
                 todisplay += " connected, in phase"
         return todisplay
 
-
+    @property
+    def selections(self):
+        return self._selections
+        
+    @selections.setter
+    def selections(self, selections):
+        self._selections = selections
+        
+    def compute_selections(self):
+        pass
 
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
@@ -510,7 +520,16 @@ class MovementModule(ParameterModule):
     @inphase.setter
     def inphase(self, inphase):
         self._inphase = inphase
+        
+    def compute_selections(self):
+        """Sets `self.selections`. Used in search function to precompute some of the selections in this module. 
+        Not everything is included yet (for example, not articulators, additional notes, etc).
+        For now, includes selected movement paths """
 
+        self.selections = {
+            Precomputed.MOV_PATHS: set(self.movementtreemodel.get_checked_items())
+        }
+    
     def getabbreviation(self):
         def refactor_list(strings):
             if not strings:
@@ -1414,20 +1433,39 @@ class LocationModule(ParameterModule):
     def inphase(self, inphase):
         self._inphase = inphase
     
+    def compute_selections(self, nodes_are_terminal):
+        """Used in search function to precompute some of the selections in this module. 
+        Not everything is included yet (for example, not articulators, additional notes, etc)
+        
+        Adds Precomputed.LOC_PATHS key to self.selections. Value is a list of tuples where each tuple contains:
+            path[0]: str. The full path.
+            path[1]: tuple(tuple(), tuple()) | str. The selected details (e.g. surfaces and subareas) OR "ancestor" if this was an ancestor
+        
+        Args:
+            nodes_are_terminal: bool. Used in search window. True if computing paths of a location search target. Otherwise, false.
+        # TODO: consider saving LOC_PATHS as a dict instead with keys=paths and values=details (this is needed in filter_by location path)
+        """
+        paths = self.locationtreemodel.get_checked_items(only_fully_checked=nodes_are_terminal, include_details=True)
+        path_tuples = []
+        for path in paths:
+            if path['details'] == 'ancestor': # only possible if nodes_are_terminal False
+                details_tuple = 'ancestor'
+            else:
+                details_tuple = tuple(tuple(selecteddetails) for selecteddetails in path['details'].get_checked_values().values())
+            path_tuples.append((path['path'], details_tuple))
 
+        self.selections = {
+            Precomputed.LOC_PATHS: path_tuples
+        }
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         loctype_str = self.locationtreemodel.locationtype.getabbreviation()
         is_neutral_str = "neutral" if self.locationtreemodel.defaultneutralselected else ""
-
-        # don't list paths if neutral checkbox is checked or "default neutral space" is a selected path
-        if is_neutral_str:
-            return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
         
         path_strings = []
         # purely spatial locations don't have surfaces / subareas; we handle the abbrev differently
-        if loctype_str == "Signing space(spatial)" and not is_neutral_str:
+        if loctype_str == "Signing space(spatial)":
             # setting only_fully_checked False returns each individual node in the path (eg 'Sagittal axis', 'Sagittal axis>In front)
             # so that we can get the abbreviations of intermediate nodes
             paths = self.locationtreemodel.get_checked_items(only_fully_checked=False, include_details=True) 
@@ -1436,7 +1474,7 @@ class LocationModule(ParameterModule):
             # Each 'curr_node' is a dict. Keys are 'path', 'abbrev', 'details'
             for curr_node in paths:
                 if curr_node['path'] == 'Default neutral space':
-                    is_neutral_str = "neutral"
+                    is_neutral_str = "neutral (default neutral space)" if is_neutral_str else "default neutral space" # differentiate if the neutral checkbox is checked
                     return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
                 else:
                     curr_abbrev = (get_path_lowest_node(curr_node['path']) if curr_node['abbrev'] is None else curr_node['abbrev']).lower()
@@ -1453,7 +1491,7 @@ class LocationModule(ParameterModule):
 
         elif loctype_str != "Signing space(spatial)" :
             # each 'path' is a dict. Keys are 'path', 'abbrev', 'details'
-            for path in self.locationtreemodel.get_checked_items(include_details=True):
+            for path in self.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True):
                 path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
                 # details_dict: keys are the subarea types ('surface', 'sub-area', or ''); 
                 # values are lists of checked subareas
