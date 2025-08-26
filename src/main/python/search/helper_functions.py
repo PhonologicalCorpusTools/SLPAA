@@ -79,12 +79,18 @@ def filter_modules_by_loctype(modulelist, target_module, matchtype='minimal'):
         return matching_modules
 
 def filter_modules_by_neutral(modulelist, target_module, matchtype='minimal'):
-    """ # TODO
+    """ Filter a list of location modules, returning a subset whose "neutral" checkstate matches that of a target module.
+        This doesn't look at the "Default neutral space" location path, which is handled later by the location path filter.
+        It only looks at the "This location is 'neutral'" checkbox.
+        
+        If matchtype is 'minimal' and neutral cb is unchecked, this returns the full modulelist.
+        If matchtype is 'exact' and neutral cb is unchecked, this filters out modules where the neutral cb is checked.
     """
-    if not target_module.locationtreemodel.defaultneutralselected:
+    target_state = target_module.locationtreemodel.defaultneutralselected
+    if matchtype == 'minimal' and not target_state:
         return modulelist
     else:
-        matching_modules = [m for m in modulelist if m.locationtreemodel.defaultneutralselected]
+        matching_modules = [m for m in modulelist if m.locationtreemodel.defaultneutralselected == target_state]
         return matching_modules
 
 def signtype_matches_target(specs_dict, target, matchtype='minimal'):
@@ -389,7 +395,7 @@ def filter_modules_by_target_mvmt(modulelist, target_module:MovementModule, matc
     matching_modules = []
     for m in modulelist:
         if m.selections is None:
-                m.compute_selections()
+            m.compute_selections()
         module_paths = m.selections[Precomputed.MOV_PATHS]
         if ((matchtype == "exact" and module_paths == target_paths) 
             or (matchtype == "minimal" and target_paths.issubset(module_paths))):
@@ -412,13 +418,12 @@ def filter_modules_by_target_locn(modulelist, target_module:LocationModule, matc
         If `terminate_early` and target paths are specified, the list contains only the first module in `modulelist` that matches `target_module`. 
         If matchtype is `exact`, matching modules cannot contain any details or selections not specified in `target_module`.
     """
+
     for filter in [filter_modules_by_articulators, filter_modules_by_phonlocs, filter_modules_by_loctype, filter_modules_by_neutral]:
         modulelist = filter(modulelist, target_module, matchtype)
         if not modulelist:
             return []
     fully_checked = target_module.locationtreemodel.nodes_are_terminal or matchtype == 'exact'
-    if target_module.selections is None:
-        target_module.compute_selections(nodes_are_terminal=True)
     target_path_tuples = target_module.selections[Precomputed.LOC_PATHS]
     modulelist = filter_modules_by_locn_paths(modules=modulelist, 
                                                     target_paths=target_path_tuples, 
