@@ -1462,14 +1462,10 @@ class LocationModule(ParameterModule):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         loctype_str = self.locationtreemodel.locationtype.getabbreviation()
         is_neutral_str = "neutral" if self.locationtreemodel.defaultneutralselected else ""
-
-        # don't list paths if neutral checkbox is checked or "default neutral space" is a selected path
-        if is_neutral_str:
-            return ': '.join(filter(None, [phonphon_str, loctype_str, is_neutral_str]))
         
         path_strings = []
         # purely spatial locations don't have surfaces / subareas; we handle the abbrev differently
-        if loctype_str == "Signing space(spatial)" and not is_neutral_str:
+        if loctype_str == "Signing space(spatial)":
             # setting only_fully_checked False returns each individual node in the path (eg 'Sagittal axis', 'Sagittal axis>In front)
             # so that we can get the abbreviations of intermediate nodes
             paths = self.locationtreemodel.get_checked_items(only_fully_checked=False, include_details=True) 
