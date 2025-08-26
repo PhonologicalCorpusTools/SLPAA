@@ -328,7 +328,6 @@ class Search_ModuleSelectorDialog(ModuleSelectorDialog):
     def create_associatedrelations_widget(self):
         associatedrelations_widget = Search_AssociatedRelationsPanel(parent=self)
         if self.existingkey is not None:
-            print("sign is ", self.mainwindow.current_sign)
             associatedrelations_widget.anchormodule = self.mainwindow.current_sign.getmoduledict(self.moduletype)[self.existingkey]
         return associatedrelations_widget
     
