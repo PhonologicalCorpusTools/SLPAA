@@ -47,9 +47,13 @@ Select the hand(s) involved in this instance of the module. For movements involv
     
 .. note::
     **Connectedness**
-    
+
+Hands are connected if undergo the same movement simultaneously
     **(Add short description here)**: reference Morgan's dissertation and/or book. Link to glossary term for :ref:`connected`.
     
+Timing Selection
+`````````````````
+
 Module instances link to generic :ref:`x-slots<x_slot>` to record information about their timing relative to any others within a sign. For more information on the use of x-slots in SLP-AA, consult :ref:`timing_page`.
     
 .. _movement_type_entry:
@@ -140,19 +144,18 @@ Keep in mind that a single :ref:`instance` of the module is meant to convey only
 
 At most one direction can be selected for each axis, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both directions for a given axis, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options. A bidirectional movement may have a specified first direction of motion or remain unspecified.
 
+There are two ways of defining an axis in the software: :ref:`Absolute_entry` and :ref:`Relative_entry`
+
+.. _Absolute_entry:
+
+Absolute
+========= 
+Absolute axes are based on :ref:`cardinal axes` and the pertinent hand of the signer. Using absolute axes means that the description of a sign does not change depending on whether H1 is the left or right hand. 
+
 * **Horizontal axis: absolute**
 
     * **Ipsilateral**, as in `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_
     * **Contralateral**, as in `GAME <https://asl-lex.org/visualization/?sign=game>`_ 
-
-OR
-
-* **Horizontal axis: relative**
-    
-    * **Toward H1**, as in the right hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the left hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
-    * **Toward H2**, as in the left hand of `SAUSAGE <https://asl-lex.org/visualization/?sign=sausage>`_ or the right hand of `GAME <https://asl-lex.org/visualization/?sign=game>`_
-    
-The endpoints for the vertical and sagittal axes are consistent wherever they appear. 
     
 * **Vertical axis**
 
@@ -177,6 +180,26 @@ See :ref:`signing_space_page` for a visual representation of these options.
     
     (We don't use right and left for the absolute directions anymore, but the reference could still be helpful - Nico)
 
+.. Relative_entry:
+
+Relative
+=========
+Relative axes are based on anatomical position and change **relative to the dominant hand of the signer**. This set of axes can be easier in the case where movement is relative to a body part. For example, in `CHARGE_CARD <https://asl-lex.org/visualization/?sign=charge_card>`_, H1 can be said to be moving relative to H2 rather than cardinal directions.
+
+The default list of relative axes is:
+
+* **Finger**
+* **Hand**
+* **Forearm**
+* **Upper Arm**
+* **Arm**
+
+Therefore, using relative axes, `CHARGE_CARD <https://asl-lex.org/visualization/?sign=charge_card>`_ could be described as being relative to the hand, along to the finger end:
+
+.. image:: images/charge_v2_example.png
+    :width: 500
+    :align: center
+
 .. note::
     **Left and right vs. H1 and H2 side**
     
@@ -189,38 +212,17 @@ See :ref:`signing_space_page` for a visual representation of these options.
 c) Plane
 ~~~~~~~~
 
-In some cases, it is useful to specify not just the axis but also the **plane** (or combination of planes) that is relevant to describe the movement being coded. For each selected plane, you can also choose a **circular direction** if desired.
-
-This section is automatically specified by the program as *not relevant* when the module includes a *straight* perceptual shape.
+In some cases, it is useful to specify not just the axis but also the **plane** (or combination of planes) that is relevant to describe the movement being coded. For each selected plane, you can further specify a direction along the cardinal axis if desired.
 
 If the hands have opposite specifications for circular direction within every applicable plane, select the checkbox for *H1 and H2 move in opposite directions* and continue to fill out the instance of the module as it applies to H1. The circular direction for H2 can then be defined implicitly without coding another :ref:`instance` of Movement for each hand.
-
-.. note::
-    **Opposite horizontal directions**
-
-    *NB: this is outdated -- for v. 0.1.0, we're only using relative horizontal directions.*
-
-    Take care in consideration of what the "opposite" direction means in the horizontal and vertical planes. SLP-AA allows users to select whether the horizontal axis is defined in **absolute** (toward H1/H2) or **relative** (:ref:`ipsilateral`/:ref:`contralateral`) terms for each module, where relative directions are the default for Movement. (Consult the :ref:`setting_preferences` for information on changing these options for each module.)
     
-    This means that the interpretation of what is considered the "opposite" direction depends in some cases on the user's preferences for the horizontal axis. If Movement is defined in terms of relative directions, the movement in `CLOUD_1 <https://asl-lex.org/visualization/?sign=cloud_1>`_ has the **same** circular direction for both hands, as they move in the same relative way (contralaterally or ipsilaterally) at the same time and share the same **specification**. If Movement is defined in terms of absolute directions, the movement in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ has the **same** circular direction for both hands, as they move in the same absolute way (toward the H1 or H2 side) at the same time and share the same **specification**. 
-    
-    .. image:: images/signtype_circular_movements.png
-        :width: 750
-        :align: center
-    
-    See :ref:`Symmetry<symmetry_section>` for more information.
-    
-    This option could also apply in cases that do not involve the horizontal axis, which means both hands move in circles in opposite directions in only the sagittal plane. We do not know of any such cases, as they are biomechanically difficult.
-
 Keep in mind that a single instance of the module is meant to convey only one direction of movement, so a selection of a combination of planes is interpreted as a diagonal or angled movement with all of the selected planes (and circular directions, if applicable) applying simultaneously. See the sections on :ref:`Angled planes<angled_planes>` and :ref:`Angled circular directions<angled_circles>` for a visual description of how this works. To instead indicate a sequence of movements in different planes or directions, create multiple instances of the Movement module, associate them with separate (and sequential) :ref:`timing values<timing_page>`, and select the appropriate direction for each one.
 
 At most one circular direction can be selected for each plane, so that a total maximum of three directions can apply at once within a module. For a movement that travels back and forth along both circular directions for a given plane, as in `WINDSHIELD_WIPERS <https://www.handspeak.com/word/index.php?id=3918>`_, you can either create a new module for each successive change in direction, or you can select that the movement is *bidirectional* in the :ref:`movement characteristics<movement_chars>` options.
 
-As with :ref:`Axis direction<axis_direction_entry>`, the options for circular directions in planes involving the horizontal axis (which are the horizontal and vertical planes) depend on the user preferences for the movement module as set in the :ref:`setting_preferences`. The absolute (ipsi/contra) models for the horizontal axis are described in greater detail in :ref:`Symmetry<symmetry_section>`. By default, the relative set of options apply for the movement module. **NB: as of 0.1.0, only the absolute options are available.**
-
 See :ref:`Circular directions<circular_directions>` for a description of what we define to be the 'top of a circle' for each plane.
 
-* **Horizontal plane: relative** [Default]
+* **Horizontal plane: Absolute**
 
     * **Ipsilateral from the top of the circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
     * **Contralateral from the top of the circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
@@ -317,7 +319,9 @@ The joint-specific movement options are as follows:
 
 * **Un-spreading** refers to movement beginning with the adduction of the base joints of the selected fingers, or if it is the only direction involved, such as `RUN_OUT_OF <https://asl-lex.org/visualization/?sign=run_out_of>`_ or `SCISSORS <https://asl-lex.org/visualization/?sign=scissors>`_.
 
-:ref:`Rubbing<rubbing>`
+:ref:`Rubbing<rubbing>` 
+Refers to movement in which an articulator makes contact as it moves across/along a location, such as `MONEY_2 <https://asl-lex.org/visualization/?sign=money_2>`_.
+Further specifications include:
 
 * **Articulator(s)**
 
@@ -341,6 +345,14 @@ The joint-specific movement options are as follows:
 
     * **to fingertip end**
     * **to base end**
+
+Using these specifications, `MONEY_2 <https://asl-lex.org/visualization/?sign=money_2>`_ could be described as having a **thumb** articulator moving **across** the **finger(s)** location:
+
+.. image:: images/money_v2_example.png
+    :width: 500
+    :align: center
+
+This description considers the rubbing to be bidirectional since there is no beginning direction, therefore *to the radial side* or *to the ulnar side* remain unselected.
 
 :ref:`Wiggling or fluttering<wiggling_fluttering>`
 
@@ -367,7 +379,7 @@ No further details of the handshape change itself need to be provided in this se
 2. Joint activity
 ``````````````````
 
-Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module. If the module describes a :ref:`joint_specific_movement`, then the program can :ref:`autofill<auto_gen>` the joint movements that are predictable from the selections made earlier within its :ref:`movement type<joint_specific_movement_entry>` section. See the :ref:`setting_preferences` for how to change the program's default autofill behaviour. (NB: As of v. 0.1.0, no auto-filling is available.)
+Use the **joint activity** section to add more fine-grained detail about any joint movements related to the current module.
 
 **(A note on user flexibility: this section can encode the phonetics of proximalization/distalization, differences in sizes of the same perceptual shape based on the joints involved, etc.)**
 
