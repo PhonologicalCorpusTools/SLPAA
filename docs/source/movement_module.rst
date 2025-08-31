@@ -411,11 +411,11 @@ Select whether the movement is Unidirectional (moving in one direction along an 
 
 .. note::
     **Lexical vs. Transitional**
-    We leave it to the discretion of the coder whether transitional movement is considered in directionality. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>` is lexically bidirectional, since the fingers are fluttering as the hands move in both directions. 
+    We leave it to the discretion of the coder whether transitional movement is considered in directionality. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>`_ is lexically bidirectional, since the fingers are fluttering as the hands move in both directions. 
 
-    Meanwhile `FINGERSPELLING <https://asl-lex.org/visualization/?sign=fingerspelling>` is lexically undirectional, since the fingers are fluttering only while the hand moves :ref:`ipsilaterally<ipsilateral>`. However, technically, the sign does move in both directions since it moves :ref:`contralaterally<contralateral>` when transitioning back to the original position in order to repeat itself.
+    Meanwhile `FINGERSPELLING <https://asl-lex.org/visualization/?sign=fingerspelling>`_ is lexically undirectional, since the fingers are fluttering only while the hand moves :ref:`ipsilaterally<ipsilateral>`. However, technically, the sign does move in both directions since it moves :ref:`contralaterally<contralateral>` when transitioning back to the original position in order to repeat itself.
 
-As mentioned in the :ref:`_axis_direction_entry`, a movement may have a specified first direction of motion or remain unspecified depending on whether a direction is checked off in the axis options. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>` does not have specified first direction, it can begin ipsilaterally or contralaterally, while `CROCODILE <https://asl-lex.org/visualization/?sign=crocodile>` is bidirectional with the first direction of motion being *vertical, up*
+As mentioned in the :ref:`_axis_direction_entry`, a movement may have a specified first direction of motion or remain unspecified depending on whether a direction is checked off in the axis options. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>`_ does not have specified first direction, it can begin ipsilaterally or contralaterally, while `CROCODILE <https://asl-lex.org/visualization/?sign=crocodile>`_ is bidirectional with the first direction of motion being *vertical, up*
 
 .. _add_chars_entry:
 III. Additional Characteristics
