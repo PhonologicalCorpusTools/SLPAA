@@ -149,7 +149,8 @@ There are two ways of defining an axis in the software: :ref:`Absolute_entry` an
 .. _Absolute_entry:
 
 Absolute
-========= 
+^^^^^^^^^
+
 Absolute axes are based on :ref:`cardinal axes` and the pertinent hand of the signer. Using absolute axes means that the description of a sign does not change depending on whether H1 is the left or right hand. 
 
 * **Horizontal axis: absolute**
@@ -183,8 +184,9 @@ See :ref:`signing_space_page` for a visual representation of these options.
 .. Relative_entry:
 
 Relative
-=========
-Relative axes are based on anatomical position and change **relative to the dominant hand of the signer**. This set of axes can be easier in the case where movement is relative to a body part. For example, in `CHARGE_CARD <https://asl-lex.org/visualization/?sign=charge_card>`_, H1 can be said to be moving relative to H2 rather than cardinal directions.
+^^^^^^^^^
+
+Relative axes are based on anatomical position; This set of axes can be easier in the case where movement is relative to a body part. For example, in `CHARGE_CARD <https://asl-lex.org/visualization/?sign=charge_card>`_, H1 can be said to be moving relative to H2 rather than absolute cardinal directions.
 
 The default list of relative axes is:
 
@@ -222,26 +224,19 @@ At most one circular direction can be selected for each plane, so that a total m
 
 See :ref:`Circular directions<circular_directions>` for a description of what we define to be the 'top of a circle' for each plane.
 
-* **Horizontal plane: Absolute**
+Planes can be defined in the same way as axes: :ref:`Absolute_entry` and :ref:`Relative_entry`
+
+Absolute
+^^^^^^^^^
+
+Select the plane which the sign moves along. See :ref:`_planes_entry` for a description of cardinal planes.
+
+* **Horizontal plane**
 
     * **Ipsilateral from the top of the circle**, as in `SWIM <https://asl-lex.org/visualization/?sign=swim>`_ or the left hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
     * **Contralateral from the top of the circle**, as in `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ or the right hand of `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_
 
-OR
-
-* **Horizontal plane: absolute**
-
-    * **Toward H1 side from the top of the circle**, as in the left hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_ 
-    * **Toward H2 side from the top of the circle**, as in `DECORATE_2 <https://asl-lex.org/visualization/?sign=decorate_2>`_ or the right hand of `CELEBRATE <https://asl-lex.org/visualization/?sign=celebrate>`_
-
-* **Vertical plane: relative** [Default]
-
-    * **Ipsilateral from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_
-    * **Contralateral from the top of the circle**, as in `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
-
-OR
-
-* **Vertical plane: absolute**
+* **Vertical plane**
     
     * **Toward H1 side from the top of the circle**, as in `RAINBOW <https://asl-lex.org/visualization/?sign=rainbow>`_ or the left hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
     * **Toward H2 side from the top of the circle**, as in the right hand of `ENJOY <https://asl-lex.org/visualization/?sign=enjoy>`_
@@ -252,6 +247,16 @@ OR
     * **Proximal from the top of the circle**, as in `BACK_UP <https://asl-lex.org/visualization/?sign=back_up>`_ or `ROW <https://asl-lex.org/visualization/?sign=row>`_
 
 * **Not relevant**, as in `VALIDATE <https://asl-lex.org/visualization/?sign=validate>`_. Plane is not relevant for this sign because the perceptual shape is *straight*, whereas plane is only relevant for perceptual shapes that are not *straight*.
+
+Relative
+^^^^^^^^^
+
+Similarly to :ref:`Relative_entry`, it may be easier to describe a plane relative to body parts rather than absolute cardinal axes. Each body part in the default list has 3 options to select from:
+
+* **On plane of [body part]**
+* **Perpendicular to plane of [body part], across length**
+* **Perpendicular to plane of [body part], across width**
+
 
 See :ref:`signing_space_page` for a visual representation of these options.
 
@@ -265,7 +270,7 @@ Make your selections from this section if you are coding a :ref:`joint_specific_
 .. note::
     As with the other movement types, a module with this specification cannot be combined with the selections for a :ref:`handshape_change` or a movement with :ref:`perceptual_shape`. To code any information about other movements in the sign, add additional movement module(s) with the appropriate movement type(s). You can then adjust the timing of each module with respect to the others in the :ref:`x-slot visualization window<sign_summary>`. For example, to code the sign `MILK_2 <https://asl-lex.org/visualization/?sign=milk_2>`_, one would need two separate instances of the movement module, one for the straight (perceptual shape) movement of the hands and one for the joint-specific opening and closing movements.
 
-Each joint-specific movement has two sub-options, which correspond to the two directions a movement can occur in. It is possible to use separate instances of the movement module for each direction, or to use one instance of the module and then code that movement as being 'bidirectional' in the :ref:`movement characteristics<movement_chars>` section. In the latter case, you would need to establish a convention such as explicitly selecting the direction that the movement starts with. All of our examples below assume this convention. 
+Each joint-specific movement except for :ref:`Rubbing<rubbing>` has two sub-options, which correspond to the two directions a movement can occur in. It is possible to use separate instances of the movement module for each direction, or to use one instance of the module and then code that movement as being 'bidirectional' in the :ref:`movement characteristics<movement_chars>` section. In the latter case, you would need to establish a convention such as explicitly selecting the direction that the movement starts with. All of our examples below assume this convention. 
 
 As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding. Alternatively, the system does not require that you specify a sub-option, if for any reason it is preferable to leave the direction unspecified or if it is unknown.
 The joint-specific movement options are as follows: 
@@ -323,13 +328,13 @@ The joint-specific movement options are as follows:
 Refers to movement in which an articulator makes contact as it moves across/along a location, such as `MONEY_2 <https://asl-lex.org/visualization/?sign=money_2>`_.
 Further specifications include:
 
-* **Articulator(s)**
+* **Articulator(s)** refers to which body part is moving.
 
     * **Thumb**
     * **Finger(s)**
     * **Other [specify]**
 
-* **Location**
+* **Location** refers to which body part the articulator is making contact while moving.
 
     * **Thumb**
     * **Finger(s)**
@@ -352,7 +357,7 @@ Using these specifications, `MONEY_2 <https://asl-lex.org/visualization/?sign=mo
     :width: 500
     :align: center
 
-This description considers the rubbing to be bidirectional since there is no beginning direction, therefore *to the radial side* or *to the ulnar side* remain unselected.
+This description considers the rubbing to be bidirectional since there is no specified beginning direction, therefore *to the radial side* or *to the ulnar side* remain unselected.
 
 :ref:`Wiggling or fluttering<wiggling_fluttering>`
 
@@ -387,6 +392,45 @@ Use the **joint activity** section to add more fine-grained detail about any joi
 
 3. Movement characteristics
 ```````````````````````````
+
+Select **Movement characteristics** to further specify details of a sign's movement. These describe the ways in which the sign moves rather than the movement itself.
+
+.. _Repetition_entry:
+
+I. Repetition
+===================
+
+Select whether the movement is **Unidirectional** or **Bidirectional**.
+
+.. _Directionality_entry:
+
+II. Directionality
+===================
+
+Select whether the movement is Unidirectional (moving in one direction along an axis), or Bidirectional (moving in both directions along an axis). 
+
+.. note::
+    **Lexical vs. Transitional**
+    We leave it to the discretion of the coder whether transitional movement is considered in directionality. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>` is lexically bidirectional, since the fingers are fluttering as the hands move in both directions. 
+
+    Meanwhile `FINGERSPELLING <https://asl-lex.org/visualization/?sign=fingerspelling>` is lexically undirectional, since the fingers are fluttering only while the hand moves :ref:`ipsilaterally<ipsilateral>`. However, technically, the sign does move in both directions since it moves :ref:`contralaterally<contralateral>` when transitioning back to the original position in order to repeat itself.
+
+As mentioned in the :ref:`_axis_direction_entry`, a movement may have a specified first direction of motion or remain unspecified depending on whether a direction is checked off in the axis options. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>` does not have specified first direction, it can begin ipsilaterally or contralaterally, while `CROCODILE <https://asl-lex.org/visualization/?sign=crocodile>` is bidirectional with the first direction of motion being *vertical, up*
+
+.. _add_chars_entry:
+III. Additional Characteristics
+===================
+
+**Additional Characteristics** are descriptors of the movement. Each characteristic in the list has three scalar options from strongest to weakest, as well as an *other [specify]* option, for describing the movement of a sign. These adjectives can also be specified as to what they are *relative to*, for example whether the movement is small relative to the hand or relative to the body.
+
+As with all menus, selecting the sub-option will automatically select the broader option, saving a step of coding.
+The additional characteristic options are as follows:
+
+* **Size**
+* **Speed**
+* **Force**
+* **Tension**
+* **Other [specify]**
 
 .. todo::
     Some notes to use as starting points for some of these characteristics:
