@@ -18,13 +18,16 @@ from PyQt5.QtCore import pyqtSignal, Qt
 
 from gui.modulespecification_widgets import StatusDisplay
 from gui.helper_widget import OptionSwitch
-
+from constant import SYSTEM
 
 # wizard that walks the user through exporting the current corpus as a .json file (currently only one format available)
 class ExportCorpusWizard(QWizard):
 
     def __init__(self, app_settings, **kwargs):
         super().__init__(**kwargs)
+        if SYSTEM == 'darwin':  # last resort: minimum width for macOS
+            screen_size = self.screen().availableSize()
+            self.setMinimumWidth(min(screen_size.width(), 900))
         self.setOption(QWizard.IndependentPages, True)
         self.setOption(QWizard.NoDefaultButton, False)
         self.setOption(QWizard.NoCancelButton, False)

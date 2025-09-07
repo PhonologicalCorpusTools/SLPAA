@@ -66,7 +66,7 @@ from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from gui.xslot_graphics import islistoftimingintervals
-from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from constant import SYSTEM, SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
 from lexicon.module_classes import ParameterModule, TimingPoint, TimingInterval
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
@@ -273,9 +273,9 @@ class MainWindow(QMainWindow):
         self.action_delete_sign.setEnabled(False)
         self.action_delete_sign.setStatusTip('Delete the selected sign(s) or module(s)')
         shortcuts = [QKeySequence(Qt.CTRL + Qt.Key_Delete), QKeySequence(Qt.CTRL + Qt.Key_Backspace)]
-        if sys.platform in ['darwin', 'ios']:
+        if SYSTEM in ['darwin', 'ios']:
             # MacOS or iOS - keyboard "delete" key is actually linked to backspace,
-            # so let's show that shortcute correctly in the menu
+            # so let's show that shortcut correctly in the menu
             shortcuts.reverse()
         self.action_delete_sign.setShortcuts(shortcuts)
         self.action_delete_sign.triggered.connect(self.on_action_delete)

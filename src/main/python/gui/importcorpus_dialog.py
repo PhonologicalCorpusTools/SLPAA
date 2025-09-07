@@ -9,11 +9,10 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QLabel,
-    QFormLayout,
     QFileDialog,
     QWizard,
     QWizardPage,
-    QLineEdit
+    QLineEdit, QRadioButton, QButtonGroup
 )
 
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -53,7 +52,8 @@ class ImportCorpusWizard(QWizard):
         destselection_page.completeChanged.connect(self.clear_statusdisplay)
         self.destselection_pageid = self.addPage(destselection_page)
 
-        timestampselection_page = TimestampSelectionWizardPage()
+        timestampselection_page = AlternativeTimestampSelectionWizardPage()
+        #timestampselection_page = TimestampSelectionWizardPage()
         timestampselection_page.timestampselected.connect(self.handle_timestampselected)
         timestampselection_page.completeChanged.connect(self.clear_statusdisplay)
         self.timestampselection_pageid = self.addPage(timestampselection_page)
@@ -535,6 +535,44 @@ class TimestampSelectionWizardPage(QWizardPage):
         self.keeporigtimestamps = not switchvalue[2]
         self.completeChanged.emit()
         self.timestampselected.emit(self.keeporigtimestamps)
+
+
+class AlternativeTimestampSelectionWizardPage(QWizardPage):
+    timestampselected = pyqtSignal(bool)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.keeporigtimestamps = None
+
+        pagelayout = QVBoxLayout()
+        pagelayout.addWidget(QLabel("Select which option you prefer for the 'last modified' timestamp on each sign."))
+
+        # radio buttons for each option
+        self.option_rb_keep = QRadioButton("Keep original values as per exported file")
+        self.option_rb_reset = QRadioButton("Reset to now")
+        pagelayout.addWidget(self.option_rb_keep)
+        pagelayout.addWidget(self.option_rb_reset)
+
+        # grouping radio buttons
+        self.timestampswitch = QButtonGroup(self)
+        self.timestampswitch.setExclusive(True)
+        self.timestampswitch.addButton(self.option_rb_keep, 1)
+        self.timestampswitch.addButton(self.option_rb_reset, 0)
+
+        self.timestampswitch.buttonToggled.connect(self.handle_timestampswitch_toggled)
+
+        self.setLayout(pagelayout)
+
+    # determines whether the "next" (or "finish") button should be enabled on this page
+    def isComplete(self):
+        return self.timestampswitch.checkedId() != -1
+
+    def handle_timestampswitch_toggled(self, btn, checked):
+        if checked:
+            switch_value = self.timestampswitch.id(btn)
+            self.keeporigtimestamps = bool(switch_value)
+            self.completeChanged.emit()
+            self.timestampselected.emit(self.keeporigtimestamps)
 
 
 # wizard page that allows the user to finally confirm importing the corpus
