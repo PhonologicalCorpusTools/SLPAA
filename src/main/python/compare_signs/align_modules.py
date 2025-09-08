@@ -3,6 +3,7 @@ from collections import defaultdict
 from PyQt5.QtCore import Qt
 
 from lexicon.module_classes import HandConfigurationHand
+from compare_signs.compare_helpers import get_bases_and_variants
 from constant import ModuleTypes, HAND, ARM, LEG, userdefinedroles as udr, PREDEFINED_MAP
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
@@ -93,11 +94,23 @@ def alignmodules_helper(modulesbysign, moduletype):
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
         return modsalignedbypalm + modsalignedbyfingerroot + modsalignedbycodingorder, unmatched
     elif moduletype == ModuleTypes.HANDCONFIG:
-        # ii. After aligning by hand, align by handshape name if possible (e.g. align two '5' handshapes).
-        modsalignedbyhs, unmatched = alignbyhandshapename(modulesbysign)
-        #   If not possible, align by coding order.
+        # ii. After aligning by hand, align by full handshape name if possible (e.g. align two '5' handshapes, or 2 'extended A' handshapes, etc.).
+        modsalignedbyhsname, unmatched = alignbyhandshape(modulesbysign, 'name')
+        # iii. If aligning by full handshape name isn’t possible, align by ‘base’ handshape.
+        #   That is, align any variant of an “A” handshape with another variant of an “A” handshape (e.g. "A" and "extended A"),
+        #   or any variant of a “B” handshape with another variant of a “B” handshape, etc.
+        #   The base handshapes appear in the first column of the predefined handshape chart,
+        #   so basically this is aligning by rows in that chart.
+        #   If there are multiple handshapes with the same base, they can just be aligned by coding order.
+        modsalignedbyhsbase, unmatched = alignbyhandshape(unmatched, 'base')
+        # iv. If aligning by ‘base’ handshape isn’t possible, align by ‘variant type.’
+        #   That is, align any ‘bent’ handshape with another ‘bent’ handshape, or any ‘clawed’ handshape with another
+        #   ‘clawed’ handshape, etc. The variant types are listed in the first row of the predefined handshape chart,
+        #   so basically this is aligning by columns in that chart.
+        modsalignedbyhsvariant, unmatched = alignbyhandshape(unmatched, 'variant')
+        # v. If there are still unaligned handshapes, align by coding order.
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
-        return modsalignedbyhs + modsalignedbycodingorder, unmatched
+        return modsalignedbyhsname + modsalignedbyhsbase + modsalignedbyhsvariant + modsalignedbycodingorder, unmatched
         #   [NB: this one might eventually need to get refined.]
     elif moduletype == ModuleTypes.RELATION:
         # TODO - waiting for further intructions from Kathleen
@@ -155,8 +168,19 @@ def directionsmatch(sign1dirs, sign2dirs, level='specific'):
         return True
 
 
-# ii. After aligning by hand, align by handshape name if possible (e.g. align two '5' handshapes).
-def alignbyhandshapename(configmodsbysign):
+# ii. After aligning by hand, align by full handshape name if possible (e.g. align two '5' handshapes, or 2 'extended A' handshapes, etc.).
+# iii. If aligning by full handshape name isn’t possible, align by ‘base’ handshape.
+#   That is, align any variant of an “A” handshape with another variant of an “A” handshape (e.g. "A" and "extended A"),
+#   or any variant of a “B” handshape with another variant of a “B” handshape, etc.
+#   The base handshapes appear in the first column of the predefined handshape chart,
+#   so basically this is aligning by rows in that chart.
+#   If there are multiple handshapes with the same base, they can just be aligned by coding order.
+# iv. If aligning by ‘base’ handshape isn’t possible, align by ‘variant type.’
+#   That is, align any ‘bent’ handshape with another ‘bent’ handshape, or any ‘clawed’ handshape with another
+#   ‘clawed’ handshape, etc. The variant types are listed in the first row of the predefined handshape chart,
+#   so basically this is aligning by columns in that chart.
+def alignbyhandshape(configmodsbysign, elementtoalignby):
+    # elementtoalignby: str. one of 'name', 'base', or 'variant'
     sign1mods = [mod for mod in configmodsbysign[1]]
     sign2mods = [mod for mod in configmodsbysign[2]]
 
@@ -177,7 +201,20 @@ def alignbyhandshapename(configmodsbysign):
                 if mod2hs is not None:
                     mod2hsname = mod2hs.name
 
-                    if mod1hsname == mod2hsname:
+                    # very special case of 'combined ILY'
+                    mod1hsname, mod2hsname = map(lambda name: 'combined I+L+Y' if name == 'combined ILY' else name,
+                                                 (mod1hsname, mod2hsname))
+
+                    mod1bases, mod1variants = get_bases_and_variants(mod1hsname.split(' '))
+                    mod2bases, mod2variants = get_bases_and_variants(mod2hsname.split(' '))
+                    mod1bases = set(mod1bases)
+                    mod2bases = set(mod2bases)
+                    mod1variants = [v for v in mod1variants if v not in mod1bases]
+                    mod2variants = [v for v in mod2variants if v not in mod2bases]
+
+                    if (elementtoalignby == 'name' and mod1hsname == mod2hsname) or \
+                            (elementtoalignby == 'base' and (mod1bases.issubset(mod2bases) or mod2bases.issubset(mod1bases))) or \
+                            (elementtoalignby == 'variant' and mod1variants == mod2variants):
                         matchedmods.append((mod1, mod2))
                         sign1mods.remove(mod1)
                         sign2mods.remove(mod2)
@@ -553,7 +590,7 @@ def alignbyarticulator(modulesbysign, moduletype):
         LEG: {1: [], 2: [], 3: []},
     }
 
-    # works in place
+    # works in-place
     arrangemodsbyarticulator(modulesbysign, sign1modsbyarticulator, sign2modsbyarticulator)
 
     for art in [HAND, ARM, LEG]:
@@ -614,7 +651,7 @@ def alignbyarticulator(modulesbysign, moduletype):
         sign1modsbyarticulator[art] = {1: [], 2: [], 3: []}
         sign2modsbyarticulator[art] = {1: [], 2: [], 3: []}
 
-        # works in place
+        # works in-place
         arrangemodsbyarticulator(unmatched, sign1modsbyarticulator, sign2modsbyarticulator)
 
     # once all the within-articulator matches have been attempted, we'll try to match across articulators
@@ -675,7 +712,7 @@ def alignbyarticulator(modulesbysign, moduletype):
             # put unmatched mods back into the pot
             sign1modsbyarticulator[arttype1] = {1: [], 2: [], 3: []}
             sign2modsbyarticulator[arttype2] = {1: [], 2: [], 3: []}
-            # works in place
+            # works in-place
             arrangemodsbyarticulator(unmatched, sign1modsbyarticulator, sign2modsbyarticulator)
 
     allremainingunmatchedmods = {1: [], 2: []}

@@ -462,6 +462,22 @@ def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush
     return [should_paint_red[0], should_paint_red[1]]
 
 
+# parses the whitespace-separated components of a handshape's predefined name into bases and variants
+def get_bases_and_variants(components):
+    b = []
+    v = []
+    combined_base_processed = False
+    for component in components:
+        if '+' in component:
+            b = [c for c in component.split('+')]
+            combined_base_processed = True
+        else:
+            v.append(component)
+    if not combined_base_processed:
+        b = components[-1]  # if no multiple bases, then the last in components should be the only base
+    return b, v
+
+
 # it parses one sign's handshape predefined name into bases and variants.
 def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str) -> list:
     # pred_name: str. predefined_names like 'extended A'
@@ -472,20 +488,6 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str)
         return [f'Handshape: {viz_name}>{category_name}>{detail}'
                 for category_name, category in [('Base', bases), ('Variant', variants)]
                 for detail in category]
-
-    def get_bases_and_variants(components):
-        b = []
-        v = []
-        combined_base_processed = False
-        for component in components:
-            if '+' in component:
-                b = [c for c in component.split('+')]
-                combined_base_processed = True
-            else:
-                v.append(component)
-        if not combined_base_processed:
-            b = components[-1]  # if no multiple bases, then the last in components should be the only base
-        return b, v
 
     bases = []
     variants = []
