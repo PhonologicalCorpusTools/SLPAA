@@ -5,14 +5,15 @@ from datetime import datetime
 from fractions import Fraction
 
 from PyQt5.QtWidgets import (
-    QVBoxLayout,
-    QHBoxLayout,
+    QSizePolicy,
+    QVBoxLayout, QHBoxLayout,
     QPushButton,
-    QLabel,
+    QLabel, QLineEdit,
     QFileDialog,
     QWizard,
     QWizardPage,
-    QLineEdit, QRadioButton, QButtonGroup
+    QRadioButton, QButtonGroup,
+    QSpacerItem
 )
 
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -548,10 +549,18 @@ class AlternativeTimestampSelectionWizardPage(QWizardPage):
         pagelayout.addWidget(QLabel("Select which option you prefer for the 'last modified' timestamp on each sign."))
 
         # radio buttons for each option
+        timestamp_options_layout = QVBoxLayout()
         self.option_rb_keep = QRadioButton("Keep original values as per exported file")
         self.option_rb_reset = QRadioButton("Reset to now")
-        pagelayout.addWidget(self.option_rb_keep)
-        pagelayout.addWidget(self.option_rb_reset)
+        timestamp_options_layout.addWidget(self.option_rb_keep)
+        timestamp_options_layout.addWidget(self.option_rb_reset)
+
+        # add spacer to show two options are subsidiary
+        timestamp_options_spacer_layout = QHBoxLayout()
+        timestamp_options_spacer_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        timestamp_options_spacer_layout.addLayout(timestamp_options_layout)
+
+        pagelayout.addLayout(timestamp_options_spacer_layout)
 
         # grouping radio buttons
         self.timestampswitch = QButtonGroup(self)
