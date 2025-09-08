@@ -462,32 +462,33 @@ def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush
     return [should_paint_red[0], should_paint_red[1]]
 
 
-# parses the whitespace-separated components of a handshape's predefined name into bases and variants
-def get_bases_and_variants(components):
-    b = []
-    v = []
-    combined_base_processed = False
-    for component in components:
-        if '+' in component:
-            b = [c for c in component.split('+')]
-            combined_base_processed = True
-        else:
-            v.append(component)
-    if not combined_base_processed:
-        b = components[-1]  # if no multiple bases, then the last in components should be the only base
-    return b, v
-
-
 # it parses one sign's handshape predefined name into bases and variants.
-def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str) -> list:
+def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str, return_path_form=True) -> list:
     # pred_name: str. predefined_names like 'extended A'
     # viz_name: str. the handshape name visible to the user in the form of "name ([slots])"
     # returns list of strings
 
-    def in_path_form():
-        return [f'Handshape: {viz_name}>{category_name}>{detail}'
-                for category_name, category in [('Base', bases), ('Variant', variants)]
-                for detail in category]
+    def get_return_format():
+        if return_path_form:
+            return [f'Handshape: {viz_name}>{category_name}>{detail}'
+                    for category_name, category in [('Base', bases), ('Variant', variants)]
+                    for detail in category]
+        else:
+            return bases, variants
+
+    def get_bases_and_variants(components):
+        b = []
+        v = []
+        combined_base_processed = False
+        for component in components:
+            if '+' in component:
+                b = [c for c in component.split('+')]
+                combined_base_processed = True
+            else:
+                v.append(component)
+        if not combined_base_processed:
+            b = components[-1]  # if no multiple bases, then the last in components should be the only base
+        return b, v
 
     bases = []
     variants = []
@@ -509,7 +510,7 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str)
             order = {v: i for i, v in enumerate(counterpart_bases)}  # because there is only one instance of base
             bases = sorted(bases, key=lambda b: (b not in order, order.get(b, float('inf'))))  # unique base to the back
 
-        return in_path_form()
+        return get_return_format()
 
     # process 'variants'
     if 'index' in pname_comp:
@@ -520,11 +521,11 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str)
     # the last of pname_comp is always the base name except for 'middle finger'
     if pred_name == 'middle finger':
         bases.append(pred_name)
-        return in_path_form()
+        return get_return_format()
     else:
         bases.append(pname_comp.pop())
 
     # variants delimited by space
     variants.extend(pname_comp)
 
-    return in_path_form()
+    return get_return_format()

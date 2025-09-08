@@ -3,7 +3,7 @@ from collections import defaultdict
 from PyQt5.QtCore import Qt
 
 from lexicon.module_classes import HandConfigurationHand
-from compare_signs.compare_helpers import get_bases_and_variants
+from compare_signs.compare_helpers import parse_predefined_names
 from constant import ModuleTypes, HAND, ARM, LEG, userdefinedroles as udr, PREDEFINED_MAP
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
@@ -201,12 +201,9 @@ def alignbyhandshape(configmodsbysign, elementtoalignby):
                 if mod2hs is not None:
                     mod2hsname = mod2hs.name
 
-                    # very special case of 'combined ILY'
-                    mod1hsname, mod2hsname = map(lambda name: 'combined I+L+Y' if name == 'combined ILY' else name,
-                                                 (mod1hsname, mod2hsname))
+                    mod1bases, mod1variants = parse_predefined_names(mod1hsname, "TODO", mod2hsname, return_path_form=False)  # TODO
+                    mod2bases, mod2variants = parse_predefined_names(mod2hsname, "TODO", mod1hsname, return_path_form=False)  # TODO
 
-                    mod1bases, mod1variants = get_bases_and_variants(mod1hsname.split(' '))
-                    mod2bases, mod2variants = get_bases_and_variants(mod2hsname.split(' '))
                     mod1bases = set(mod1bases)
                     mod2bases = set(mod2bases)
                     mod1variants = [v for v in mod1variants if v not in mod1bases]
