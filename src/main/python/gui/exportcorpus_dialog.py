@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QWizard,
     QWizardPage,
     QComboBox,
-    QLineEdit,
+    QLineEdit, QSpacerItem, QSizePolicy,
 )
 
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -110,20 +110,32 @@ class ExportFormatSelectionWizardPage(QWizardPage):
         self.outputformat = ""
         self.detaillevel = ""
 
-        formlayout = QFormLayout()
+        format_options_layout = QVBoxLayout()
 
         selectformatlabel = QLabel("Choose which format you'd like for the exported data: JSON (.txt) is currently the only option.")
         self.selectformatcombo = QComboBox()
         self.selectformatcombo.currentTextChanged.connect(self.formatcombo_changed)
         self.selectformatcombo.addItems(["JSON (.txt)"])
-        formlayout.addRow(selectformatlabel, self.selectformatcombo)
+        format_options_layout.addWidget(selectformatlabel)
+        format_options_spacer_layout = QHBoxLayout()
+        format_options_spacer_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        format_options_spacer_layout.addWidget(self.selectformatcombo)
+        format_options_layout.addLayout(format_options_spacer_layout)
 
         selectdetaillabel = QLabel("Choose whether you'd like maximal information (all attribute values, even if they're empty/false/0) or minimal (only specified values).")
+        selectdetaillabel.setWordWrap(True)
+        selectdetaillabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        selectdetaillabel.adjustSize()
+
         self.selectdetailswitch = OptionSwitch("Maximal", "Minimal", deselectable=False)
         self.selectdetailswitch.toggled.connect(self.handle_detailswitch_toggled)
-        formlayout.addRow(selectdetaillabel, self.selectdetailswitch)
+        detail_switch_spacer_layout = QHBoxLayout()
+        detail_switch_spacer_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        detail_switch_spacer_layout.addWidget(self.selectdetailswitch)
+        format_options_layout.addWidget(selectdetaillabel)
+        format_options_layout.addLayout(detail_switch_spacer_layout)
 
-        self.setLayout(formlayout)
+        self.setLayout(format_options_layout)
 
     # determines whether the "next" (or "finish") button should be enabled on this page
     def isComplete(self):
