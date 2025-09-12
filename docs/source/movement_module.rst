@@ -400,18 +400,24 @@ Select **Movement characteristics** to further specify details of a sign's movem
 I. Repetition
 ===================
 
-Select whether the movement is **Unidirectional** or **Bidirectional**.
+Select whether the movement is **single**, *repeated**, or **trilled**: 
+    * **Single** refers to when the movement does not repeat, such as `GOLF <https://asl-lex.org/visualization/?sign=golf>`_, `WISH <https://asl-lex.org/visualization/?sign=wish>`_, or `HOUR <https://asl-lex.org/visualization/?sign=hour>`_
+    * **Repeated** refers to when the movement is 
+    * **Trilled** is movement following  Brentari's definition as consisting of “small, rapidly repeated dynamic elements during the production of signs” (1996: 45), such as `SPIDER<https://asl-lex.org/visualization/?sign=spider>`_.
+
+.. note::
+    The flexibility of the software allows for a trilled movement to apply to any movement, not just finger movement. 
 
 .. _Directionality_entry:
 
 II. Directionality
 ===================
 
-Select whether the movement is Unidirectional (moving in one direction along an axis), or Bidirectional (moving in both directions along an axis). 
+Select whether the movement is **Unidirectional** (moving in one direction along an axis), or **Bidirectional** (moving in both directions along an axis). 
 
 .. note::
     **Lexical vs. Transitional**
-    We leave it to the discretion of the coder whether transitional movement is considered in directionality. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>`_ is lexically bidirectional, since the fingers are fluttering as the hands move in both directions. 
+    We leave it to the discretion of the coder whether transitional movement is considered in directionality. For example, `PIANO <https://asl-lex.org/visualization/?sign=piano>`_ is lexically bidirectional-- that is, movement is encoded in both directions--since the fingers are fluttering as the hands move in both directions. 
 
     Meanwhile `FINGERSPELLING <https://asl-lex.org/visualization/?sign=fingerspelling>`_ is lexically undirectional, since the fingers are fluttering only while the hand moves :ref:`ipsilaterally<ipsilateral>`. However, technically, the sign does move in both directions since it moves :ref:`contralaterally<contralateral>` when transitioning back to the original position in order to repeat itself.
 
