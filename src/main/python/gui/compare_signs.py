@@ -74,7 +74,7 @@ class TreeWidgetItemKey:
         )
 
     # find alternative data and update key and children. called when different lines should align
-    def update_with_alternative(self, target_btn_type):
+    def update_with_alternative(self, target_btn_type, already_added=None):
         # 'alternative key' is the key that should be presented on the same line as the counterpart key.
         # for example, if Location modules are specified as
         # Sign1: Signing space>Purely spatial... and Sign2: Signing space> Body anchored,
@@ -87,6 +87,8 @@ class TreeWidgetItemKey:
             return
 
         for k, v in self.path_context.items():
+            if k in already_added:
+                continue
             if parse_button_type(node_data=self.path_context, k=k)[depth] == target_btn_type:
                 self.key = k
                 self.children = v
@@ -641,7 +643,7 @@ class CompareSignsDialog(QDialog):
         return newly_added, parent1, parent2
 
     # for radio buttons, align different lines and colour the red if same parents
-    def _gen_twi_for_radiobuttons(self, parents, children):
+    def _gen_twi_for_radiobuttons(self, parents, children, already_added_keys):
         # parents: CompareTreeWidgetItem instances
         # children: TreeWidgetItemKey instances
         newly_added = []
@@ -660,19 +662,21 @@ class CompareSignsDialog(QDialog):
         # find alternative radio button in the counterpart, if exists.
         if same_parents and child1.vacuous:
             try:
-                child1.update_with_alternative(target_btn_type='radio button')
-                newly_added.append(child1.key)
+                child1.update_with_alternative(target_btn_type='radio button', already_added_keys=already_added_keys)
+                # add a check whether adding the same stuff if so, raise IndexError
             except IndexError:
                 # child1 truly non-existent
                 pass
         elif same_parents and child2.vacuous:
             try:
-                child2.update_with_alternative(target_btn_type='radio button')
-                newly_added.append(child2.key)
+                child2.update_with_alternative(target_btn_type='radio button', already_added=already_added_keys)
+                # add a check whether adding the same stuff if so, raise IndexError
+
             except IndexError:
                 # child2 truly non-existent
                 pass
-
+        newly_added.append(child1.key)
+        newly_added.append(child2.key)
         # as well, if lenient transcriptions comparison option for handconfig, lower and upper cases don't matter
         handshape_broad_match = True if not self.comparison_options['handconfig']['details'] else False
 
@@ -808,7 +812,8 @@ class CompareSignsDialog(QDialog):
             # radio buttons
             elif data1_key.btn_type == 'radio button':
                 r = self._gen_twi_for_radiobuttons(parents=[parent1, parent2],
-                                                   children=[data1_key, data2_key])
+                                                   children=[data1_key, data2_key],
+                                                   already_added_keys=already_added_keys)
                 newly_added, parent1, parent2 = r
                 already_added_keys.extend(newly_added)
                 del newly_added
