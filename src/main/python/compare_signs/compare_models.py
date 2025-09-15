@@ -3,7 +3,8 @@ from models.location_models import locn_options_body, locn_options_hand, locn_op
 from compare_signs.compare_helpers import (analyze_modules, extract_handshape_slots, parse_predefined_names,
                                            summarize_path_comparison, get_informative_elements, compare_elements,
                                            get_btn_type_for_path, get_checked_paths_from_list,
-                                           get_detailed_checked_paths_location, get_detailed_selections_orientation)
+                                           get_detailed_checked_paths_location, get_detailed_selections_orientation,
+                                           inject_signtype_intermediates)
 from compare_signs.align_modules import alignmodules
 from constant import PREDEFINED_MAP  # for predefined hand config name
 
@@ -145,8 +146,7 @@ class CompareModel:
         arms = []
         legs = []
         for spec in signtype_specs:
-            # articulator number actively unspecified
-            if 'Unspecified' in spec:
+            if 'Unspecified' in spec:  # articulator number actively unspecified
                 whats_unspecified = spec.split('_')[1]
                 if 'hands' in whats_unspecified:
                     hands.append('Unspecified')
@@ -160,7 +160,6 @@ class CompareModel:
             descriptions_list = spec.split('.')
             articulator, *descriptors = descriptions_list
             descriptions = '>'.join(descriptors) if len(descriptors) > 0 else None
-
 
             # parse articulator info e.g., 1h, 2l, etc
             articulator_fullname = {'h': 'hand', 'a': 'arm', 'l': 'leg'}
@@ -183,6 +182,7 @@ class CompareModel:
         result = []
         for label, specs in (("Hands", hands), ("Arms", arms), ("Legs", legs)):
             for s in specs:
+                s = inject_signtype_intermediates(s)
                 result.append(f"{label}>{s}")
 
         return result

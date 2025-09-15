@@ -363,14 +363,13 @@ def get_btn_type_for_path(module_type, path, root_node):
 
     elif module_type == 'signtype':
         # by default, all lines should preserve colours when expanded,
-        # except for category names (category names not implemented)
-
-        #btn_types = ['major loc']
-        #for i, part in enumerate(parts[2:]):
+        # except for intermediate group names e.g., 'Contact relation' or 'Movement relation'
 
         for i, part in enumerate(parts[1:]):    # [1:] because the 'Sign type' part is the top level and do not count.
-
-            btn_types.append('radio button')
+            to_append = 'radio button'
+            if ' relation' in part:
+                to_append = 'autogen label'
+            btn_types.append(to_append)
         return '>'.join(btn_types)
 
     def traverse(path_parts: list, node):
@@ -529,3 +528,16 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str,
     variants.extend(pname_comp)
 
     return get_return_format()
+
+
+# Add sign type intermediate layers. they only show up in the sign type dialog as groupings.
+def inject_signtype_intermediates(spec: str) -> str:
+    if ' HCs' in spec:
+        return f'Hand configuration relation>{spec}'
+    elif 'contact' in spec:
+        return f'Contact relation>{spec}'
+    elif 'symmetric' in spec:
+        return f'Bilateral symmetry relation>{spec}'
+    elif ' move' in spec:
+        return f'Movement relation>{spec}'
+    return spec
