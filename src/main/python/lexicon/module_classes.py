@@ -3,6 +3,7 @@ from fractions import Fraction
 from itertools import chain
 import functools
 import time, os, re
+import copy
 
 from PyQt5.QtCore import (
     Qt,
@@ -39,15 +40,16 @@ def delay_uniqueid_reset(func):
 # common ancestor for timed parameter modules such as HandConfigurationModule, MovementModule, etc
 class ParameterModule:
 
-    def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+    def __init__(self, articulators, timingintervals=None, phonlocs=None, addedinfo=None, moduletype=""):
         self._articulators = articulators
         self._phonlocs = phonlocs
-        self._timingintervals = []
-        if timingintervals is not None:
-            self.timingintervals = timingintervals
-        self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._timingintervals = timingintervals or []
+        # if timingintervals is not None:
+        #     self.timingintervals = timingintervals
+        # self._addedinfo = addedinfo if addedinfo is not None else AddedInfo()
+        self._addedinfo = addedinfo or AddedInfo()
         self._uniqueid = datetime.timestamp(datetime.now())
-        self._moduletype = ""
+        self._moduletype = moduletype
 
     @property
     def moduletype(self):
@@ -80,9 +82,11 @@ class ParameterModule:
         if not hasattr(self, '_articulators'):
             # backward compatibility pre-20230804 addition of arms and legs as articulators (issues #175 and #176)
             articulator_dict = {1: False, 2: False}
-            if hasattr(self, '_hands'):
+            if hasattr(self, '_hands') or hasattr(self, 'hands'):
                 articulator_dict[1] = self._hands['H1']
                 articulator_dict[2] = self._hands['H2']
+                # for backward compatibility with pre-20250325 parameter modules
+                del self._hands
             self._articulators = (HAND, articulator_dict)
         return self._articulators
 
@@ -93,7 +97,11 @@ class ParameterModule:
     @property
     def phonlocs(self):
         if not hasattr(self, '_phonlocs'):
-            self.phonlocs = PhonLocations()
+            self._phonlocs = PhonLocations()
+            # TODO remove? for backward compatibility with pre-20250325 parameter modules
+            # if hasattr(self, 'phonlocs'):
+            #     self._phonlocs = self.phonlocs
+            #     del self.phonlocs
         return self._phonlocs 
 
     @phonlocs.setter
@@ -139,8 +147,6 @@ class ParameterModule:
             elif self.inphase == 4:
                 todisplay += " connected, in phase"
         return todisplay
-
-
 
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
@@ -489,7 +495,7 @@ class MovementModule(ParameterModule):
     def __init__(self, movementtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._movementtreemodel = movementtreemodel
         self._inphase = inphase    # TODO is "inphase" actually the best name for this attribute?
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.MOVEMENT)
 
     @property
     def moduletype(self):
@@ -1289,6 +1295,13 @@ class Signtype:
         self._specslist = specslist
 
     def getabbreviation(self):
+        # TODO move include flags from specslist to here
+        abbrevsdict = self.convertspecstodict()
+        abbreviationtext = self.makeabbreviationstring(abbrevsdict)
+        abbreviationtext = abbreviationtext.strip()[1:-1]  # effectively remove the top-level ()'s
+        return abbreviationtext
+
+    def getabbreviation_OLD(self):
         abbrevsdict = self.convertspecstodict()
         abbreviationtext = self.makeabbreviationstring(abbrevsdict)
         abbreviationtext = abbreviationtext.strip()[1:-1]  # effectively remove the top-level ()'s
@@ -1308,6 +1321,17 @@ class Signtype:
             return " (" + abbrevstr + ")"
 
     def convertspecstodict(self):
+        # TODO populate / move out of this function??
+        DONOTINCLUDE = [SIGN_TYPE["TWO_HANDS_NO_CONT"], SIGN_TYPE["TWO_HANDS_NO_BISYM"], SIGN_TYPE["TWO_HANDS_ONE_MVMT"], SIGN_TYPE["TWO_HANDS_BOTH_MVMT"]]
+        abbrevsdict = {}
+        specscopy = [spec for spec in self._specslist]
+        for spec in specscopy:
+            if spec not in DONOTINCLUDE:
+                pathlist = spec.split('.')  # this is the path of abbreviations to this particular setting
+                self.ensurepathindict(pathlist, abbrevsdict)
+        return abbrevsdict
+
+    def convertspecstodict_OLD(self):
         abbrevsdict = {}
         for spec in self._specslist:
             # include abbreviations for all options
@@ -1392,7 +1416,7 @@ class LocationModule(ParameterModule):
     def __init__(self, locationtreemodel, articulators, timingintervals=None, phonlocs=None, addedinfo=None, inphase=0):
         self._locationtreemodel = locationtreemodel
         self._inphase = inphase  # TODO is "inphase" actually the best name for this attribute?
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.LOCATION)
 
     @property
     def moduletype(self):
@@ -1874,7 +1898,7 @@ class RelationModule(ParameterModule):
             Direction(axis=Direction.VERTICAL),
             Direction(axis=Direction.SAGITTAL),
         ]
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.RELATION)
 
     @property
     def moduletype(self):
@@ -2107,7 +2131,7 @@ class RelationModule(ParameterModule):
         elif self.contactrel.contact:
             contacttype, contactmanner = "", ""
             # contact type
-            if self.contactrel.has_contacttype:
+            if self.contactrel.has_contacttype():
                 if self.contactrel.contacttype.light:
                     contacttype += "light"
                 elif self.contactrel.contacttype.firm:
@@ -2117,7 +2141,7 @@ class RelationModule(ParameterModule):
                     if len(self.contactrel.contacttype.othertext) > 0:
                         contacttype += f" ({self.contactrel.contacttype.othertext})"
             # contact manner
-            if self.contactrel.has_manner:
+            if self.contactrel.has_manner():
                 if self.contactrel.manner.holding:
                     contactmanner += "holding"
                 elif self.contactrel.manner.continuous:
@@ -2248,8 +2272,8 @@ class MannerRelation:
 class ContactRelation:
     def __init__(self, contact=None, contacttype=None, mannerrel=None, distance_list=None):
         self._contact = contact
-        self._contacttype = contacttype
-        self._manner = mannerrel
+        self._contacttype = contacttype #or ContactType()
+        self._manner = mannerrel #or MannerRelation()
         self._distances = distance_list or [
             Distance(Direction.HORIZONTAL),
             Distance(Direction.VERTICAL),
@@ -2334,7 +2358,7 @@ class ContactType:
         self._firm = firm
         self._other = other
         self._othertext = othertext
-        self._any = any # Used by search targets to match any contact type selection
+        self._any = any  # Used by search targets to match any contact type selection
 
     def __eq__(self, other):
         if isinstance(other, ContactType):
@@ -2670,7 +2694,7 @@ class OrientationModule(ParameterModule):
             Direction(axis=Direction.SAGITTAL)
         ]
 
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.ORIENTATION)
 
     @property
     def moduletype(self):
@@ -2764,7 +2788,7 @@ class HandConfigurationModule(ParameterModule):
     def __init__(self, handconfiguration, overalloptions, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
         self._handconfiguration = handconfiguration
         self._overalloptions = overalloptions
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.HANDCONFIG)
 
     @property
     def moduletype(self):
@@ -2860,10 +2884,89 @@ class HandConfigurationHand:
 
 
 class NonManualModule(ParameterModule):
-    def __init__(self, nonman_specs, articulators, timingintervals=None, phonlocs=None, addedinfo=None):
+    def __init__(self, nonman_specs=None, articulators=None, timingintervals=None, phonlocs=None, addedinfo=None):
+        nonman_specs = self.verify_specs_integrity(nonman_specs)
         self._nonmanual = nonman_specs
-        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo)
-        pass
+        super().__init__(articulators, timingintervals=timingintervals, phonlocs=phonlocs, addedinfo=addedinfo, moduletype=ModuleTypes.NONMANUAL)
+
+    # if nonman_specs misses anything among the seven parts, build missing parts from fullback
+    def verify_specs_integrity(self, nonman_specs):
+        if nonman_specs is None:
+            return self.gen_fallback_nonman_specs()
+
+        template_nonman_specs = self.gen_fallback_nonman_specs()
+
+        for module_name, specs in nonman_specs.items():
+            template_nonman_specs[module_name] = self._deep_merge(template_nonman_specs[module_name], specs)
+        return template_nonman_specs
+
+    # loop over seven roots and generate empty specs for each
+    def gen_fallback_nonman_specs(self):
+        default_nonman_specs = {}
+        roots = ['Shoulder', 'Body', 'Head', 'Eye gaze', 'Facial Expression', 'Mouth', 'Air']
+        for root in roots:
+            default_nonman_specs[root] = self._build_base_spec(root)
+        return default_nonman_specs
+
+    # build one empty nonmanual submodule. called internally
+    def _build_base_spec(self, name):
+        # all nonmanual submodules share these key-value
+        common_fields = {
+            'neutral': False,
+            'static_dynamic': None,
+            'repetition': None,
+            'directionality': None,
+            'size': None,
+            'speed': None,
+            'force': None,
+            'tension': None,
+            'children': None,
+            'action_state': {'root': {}}
+        }
+
+        # specific to some parts
+        modifications = {
+            'Shoulder': {'subpart': None},
+            'Eye gaze': {'subpart': None, 'distance': None},
+            'Facial Expression': {'description': None},
+            'Eyebrows': {'subpart': None},
+            'Eyelids': {'subpart': None}
+        }
+
+        # facial expression and mouth have nested specifications
+        nested_parts = {
+            'Facial Expression': ['Eyebrows', 'Eyelids', 'Nose'],
+            'Mouth': ['Teeth', 'Jaw (lower jaw)', 'Mouth opening', 'Lips', 'Tongue', 'Cheek']
+        }
+
+        spec = copy.deepcopy(common_fields)
+        spec.update(modifications.get(name, {}))
+        children = nested_parts.get(name)
+        if children:
+            spec['children'] = {}
+            for child in children:
+                spec['children'][child] = self._build_base_spec(child)
+        return spec
+
+    def _deep_merge(self, default, override):
+        r = {}
+        for key, default_value in default.items():
+            if key in override:
+                override_value = override[key]
+                # recurse if dict
+                if isinstance(default_value, dict) and isinstance(override_value, dict):
+                    r[key] = self._deep_merge(default_value, override_value)
+                else:
+                    r[key] = override_value
+            else:
+                r[key] = default_value
+
+        # also copy any keys that override has but default does not
+        for key, override_value in override.items():
+            if key not in default:
+                r[key] = override_value
+
+        return r
 
     @property
     def moduletype(self):

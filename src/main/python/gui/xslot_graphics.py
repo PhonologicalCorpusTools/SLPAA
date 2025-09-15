@@ -531,7 +531,7 @@ class XslotLinkScene(QGraphicsScene):
 
         self.xslotlinks = [] if timingintervals is None else timingintervals
 
-        # TODO KV do we need this modularity now that there's only one row of them?
+        # TODO do we need this modularity now that there's only one row of them?
         self.point_checkboxes = {}
         self.populate_checkboxes(self.point_checkboxes)
         if len(self.point_checkboxes) == 0:
@@ -549,7 +549,7 @@ class XslotLinkScene(QGraphicsScene):
             self.add_populate_checkboxes_rectangles()
 
     def add_populate_checkboxes_rectangles(self):
-        # TODO KV do we need this modularity now that there's only one row of them?
+        # TODO do we need this modularity now that there's only one row of them?
         self.point_checkboxes = {}
         self.populate_checkboxes(self.point_checkboxes)
         if len(self.point_checkboxes) == 0:

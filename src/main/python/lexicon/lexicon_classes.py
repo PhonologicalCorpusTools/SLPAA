@@ -79,9 +79,13 @@ class Sign:
             # these attributes don't need to be deep-copied
             self._signlevel_information = SignLevelInformation(serializedsignlevelinfo=serializedsign['signlevel'], parentsign=self)
             self._signtype = serializedsign['type']
-            # backward compatibility with pre-20250505 signtype structure
-            if self.signtype and len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
-                self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
+            if self.signtype:
+                # backward compatibility with pre-20241024 signtype, which didn't have a moduletype attribute
+                if not hasattr(self.signtype, '_moduletype'):
+                    self.signtype._moduletype = ModuleTypes.SIGNTYPE
+                # backward compatibility with pre-20250505 signtype structure
+                if len(self.signtype.specslist) > 0 and isinstance(self.signtype.specslist[0], tuple):
+                    self.signtype.specslist = [duple[0] for duple in self.signtype.specslist]
             self._xslotstructure = serializedsign['xslot structure']
             self._specifiedxslots = serializedsign['specified xslots']
 
@@ -107,14 +111,26 @@ class Sign:
                 if 'loc module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.ORIENTATION:
             self.orientationmodules = serializedsign['ori modules']
+            # backward compatibility with pre-20241024 parameter modules, which didn't have a moduletype attribute
+            for orimod in self.orientationmodules.values():
+                if not hasattr(orimod, '_moduletype'):
+                    orimod._moduletype = ModuleTypes.ORIENTATION
             self.orientationmodulenumbers = serializedsign['ori module numbers'] \
                 if 'ori module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.HANDCONFIG:
             self.handconfigmodules = serializedsign['cfg modules']
+            # backward compatibility with pre-20241024 parameter modules, which didn't have a moduletype attribute
+            for cfgmod in self.handconfigmodules.values():
+                if not hasattr(cfgmod, '_moduletype'):
+                    cfgmod._moduletype = ModuleTypes.HANDCONFIG
             self.handconfigmodulenumbers = serializedsign['cfg module numbers'] \
                 if 'cfg module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
         elif moduletype == ModuleTypes.NONMANUAL:
             self.nonmanualmodules = serializedsign['nonman modules'] if 'nonman modules' in serializedsign else {}
+            # backward compatibility with pre-20241024 parameter modules, which didn't have a moduletype attribute
+            for nmmod in self.nonmanualmodules.values():
+                if not hasattr(nmmod, '_moduletype'):
+                    nmmod._moduletype = ModuleTypes.NONMANUAL
             self.nonmanualmodulenumbers = serializedsign['nonman module numbers'] \
                 if 'nonman module numbers' in serializedsign.keys() else self.numbermodules(moduletype)
 
@@ -462,31 +478,31 @@ def unserializerelationmodules(serialized_relmodules):
             HAND: {
                 1: BodypartInfo(
                     bodyparttype=HAND,
-                    bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][1].bodyparttree),
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedbodyparttree=serialmodule.bodyparts_dict[HAND][1].bodyparttree),
                     addedinfo=serialmodule.bodyparts_dict[HAND][1].addedinfo),
                 2: BodypartInfo(
                     bodyparttype=HAND,
-                    bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][2].bodyparttree),
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedbodyparttree=serialmodule.bodyparts_dict[HAND][2].bodyparttree),
                     addedinfo=serialmodule.bodyparts_dict[HAND][2].addedinfo),
             },
             ARM: {
                 1: BodypartInfo(
                     bodyparttype=ARM,
-                    bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][1].bodyparttree),
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedbodyparttree=serialmodule.bodyparts_dict[ARM][1].bodyparttree),
                     addedinfo=serialmodule.bodyparts_dict[ARM][1].addedinfo),
                 2: BodypartInfo(
                     bodyparttype=ARM,
-                    bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][2].bodyparttree),
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedbodyparttree=serialmodule.bodyparts_dict[ARM][2].bodyparttree),
                     addedinfo=serialmodule.bodyparts_dict[ARM][2].addedinfo),
             },
             LEG: {
                 1: BodypartInfo(
                     bodyparttype=LEG,
-                    bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][1].bodyparttree),
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedbodyparttree=serialmodule.bodyparts_dict[LEG][1].bodyparttree),
                     addedinfo=serialmodule.bodyparts_dict[LEG][1].addedinfo),
                 2: BodypartInfo(
                     bodyparttype=LEG,
-                    bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][2].bodyparttree),
+                    bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedbodyparttree=serialmodule.bodyparts_dict[LEG][2].bodyparttree),
                     addedinfo=serialmodule.bodyparts_dict[LEG][2].addedinfo),
             },
         }

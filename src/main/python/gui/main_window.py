@@ -54,7 +54,9 @@ from gui.corpus_view import CorpusDisplay
 from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
-from gui.exportcorpus_dialog import ExportCorpusDialog
+from gui.importcorpus_dialog import ImportCorpusWizard
+# from gui.compareexports_dialog import CompareExportsDialog
+from gui.exportcorpus_dialog import ExportCorpusWizard
 from gui.location_definer import LocationDefinerDialog
 from gui.signtypespecification_view import Signtype
 from gui.export_csv_dialog import ExportCSVDialog
@@ -64,7 +66,7 @@ from gui.decorator import check_unsaved_change, check_unsaved_corpus
 from gui.link_help import show_help, show_version
 from gui.undo_command import TranscriptionUndoCommand, SignLevelUndoCommand
 from gui.xslot_graphics import islistoftimingintervals
-from constant import SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
+from constant import SYSTEM, SAMPLE_LOCATIONS, filenamefrompath, DEFAULT_LOC_1H, DEFAULT_LOC_2H
 from lexicon.module_classes import ParameterModule, TimingPoint, TimingInterval
 from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
@@ -181,32 +183,31 @@ class MainWindow(QMainWindow):
         action_paste.triggered.connect(self.on_action_paste)
         action_paste.setCheckable(False)
 
-        # define locations
-        action_define_location = QAction('Define locations...', parent=self)
-        action_define_location.setStatusTip('Open define location window')
-        action_define_location.triggered.connect(self.on_action_define_location)
-        action_define_location.setCheckable(False)
+        # this menu/item is for an older way of interacting & defining Locations
+        # I've kept the content & relevant classes for now, but just commented out the access
+        # TODO consider at some point whether we want to trash the relevant classes
+        # or if there's some code in there worth saving/reusing in an updated location definition UI
+        # # define locations
+        # action_define_location = QAction('Define locations...', parent=self)
+        # action_define_location.setStatusTip('Open define location window')
+        # action_define_location.triggered.connect(self.on_action_define_location)
+        # action_define_location.setCheckable(False)
 
         # count x-slots
         action_count_xslots = QAction("Count x-slots...", parent=self)
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
 
-        # merge corpora
-        action_merge_corpora = QAction("Merge corpora...", parent=self)
-        action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
-        action_merge_corpora.setCheckable(False)
-
-        # export corpus in human-readable form
-        action_export_corpus = QAction("Export corpus...", parent=self)
-        action_export_corpus.triggered.connect(self.on_action_export_corpus)
-        action_export_corpus.setCheckable(False)
-
         # search
         action_search = QAction("Search", parent=self)
         action_search.triggered.connect(self.on_action_search)
         action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
         action_search.setCheckable(False)
+
+        # # compare exports
+        # action_compareexports = QAction("Compare exports", parent=self)
+        # action_compareexports.triggered.connect(self.on_action_compareexports)
+        # action_compareexports.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -234,8 +235,18 @@ class MainWindow(QMainWindow):
         action_merge_corpora.triggered.connect(self.on_action_merge_corpora)
         action_merge_corpora.setCheckable(False)
 
+        # import corpus from human-readable form
+        action_import_corpus = QAction("Import corpus... (beta)", parent=self)
+        action_import_corpus.setStatusTip("Import corpus from human-readable form")
+        # action_import_corpus.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_I))
+        action_import_corpus.triggered.connect(self.on_action_import_corpus)
+        action_import_corpus.setCheckable(False)
+
+
         # export corpus in human-readable form
         action_export_corpus = QAction("Export corpus... (beta)", parent=self)
+        action_export_corpus.setStatusTip("Export corpus in human-readable form")
+        # action_export_corpus.setShortcut(QKeySequence(Qt.CTRL + Qt.Key_E))
         action_export_corpus.triggered.connect(self.on_action_export_corpus)
         action_export_corpus.setCheckable(False)
 
@@ -262,9 +273,9 @@ class MainWindow(QMainWindow):
         self.action_delete_sign.setEnabled(False)
         self.action_delete_sign.setStatusTip('Delete the selected sign(s) or module(s)')
         shortcuts = [QKeySequence(Qt.CTRL + Qt.Key_Delete), QKeySequence(Qt.CTRL + Qt.Key_Backspace)]
-        if sys.platform in ['darwin', 'ios']:
+        if SYSTEM in ['darwin', 'ios']:
             # MacOS or iOS - keyboard "delete" key is actually linked to backspace,
-            # so let's show that shortcute correctly in the menu
+            # so let's show that shortcut correctly in the menu
             shortcuts.reverse()
         self.action_delete_sign.setShortcuts(shortcuts)
         self.action_delete_sign.triggered.connect(self.on_action_delete)
@@ -357,6 +368,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(action_load_corpus)
         menu_file.addAction(action_load_sample)
         menu_file.addAction(action_merge_corpora)
+        menu_file.addAction(action_import_corpus)
         menu_file.addAction(action_export_corpus)
         menu_file.addSeparator()
         # TODO this needs an overhaul
@@ -394,6 +406,7 @@ class MainWindow(QMainWindow):
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
         menu_analysis_beta.addAction(action_search)
+        # menu_analysis_beta.addAction(action_compareexports)
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
         menu_help.addAction(action_help_main)
         menu_help.addAction(action_help_about)
@@ -885,27 +898,42 @@ class MainWindow(QMainWindow):
         self.app_qsettings.setValue('autocheck_neutral_on_locn_selected', self.app_settings['location']['autocheck_neutral_on_locn_selected'])
         self.app_qsettings.endGroup()  # location
 
-    def on_action_define_location(self):
-        location_definer = LocationDefinerDialog(self.system_default_locations,
-                                                 self.corpus.location_definition,
-                                                 self.app_settings,
-                                                 self.app_ctx,
-                                                 parent=self)
-        location_definer.saved_locations.connect(self.save_new_locations)
-        location_definer.exec_()
+    # this menu/item is for an older way of interacting & defining Locations
+    # I've kept the content & relevant classes for now, but just commented out the access
+    # TODO consider at some point whether we want to trash the relevant classes
+    # or if there's some code in there worth saving/reusing in an updated location definition UI
+    # def on_action_define_location(self):
+    #     location_definer = LocationDefinerDialog(self.system_default_locations,
+    #                                              self.corpus.location_definition,
+    #                                              self.app_settings,
+    #                                              self.app_ctx,
+    #                                              parent=self)
+    #     location_definer.saved_locations.connect(self.save_new_locations)
+    #     location_definer.exec_()
 
     def on_action_count_xslots(self):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
+
+    # def on_action_compareexports(self):
+    #     compareexports_window = CompareExportsDialog(self.app_settings, parent=self)
+    #     compareexports_window.exec_()
 
     @check_unsaved_change
     def on_action_merge_corpora(self, clicked):
         merge_corpora_wizard = MergeCorporaWizard(self.app_settings, parent=self)
         merge_corpora_wizard.exec_()
 
+    @check_unsaved_change
+    def on_action_import_corpus(self, clicked):
+        # import_corpus_window = ImportCorpusDialog(self.app_settings, parent=self)
+        # import_corpus_window.exec_()
+        import_corpus_wizard = ImportCorpusWizard(self.app_settings, parent=self)
+        import_corpus_wizard.exec_()
+
     def on_action_export_corpus(self):
-        export_corpus_window = ExportCorpusDialog(self.app_settings, parent=self)
-        export_corpus_window.exec_()
+        export_corpus_wizard = ExportCorpusWizard(self.app_settings, parent=self)
+        export_corpus_wizard.exec_()
 
     def on_action_search(self):
         self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
@@ -1397,10 +1425,14 @@ class MainWindow(QMainWindow):
         return self.corpus is not None
 
     # load corpus info from given path
-    def load_corpus_info(self, corpuspath):
-        self.corpus = self.load_corpus_binary(corpuspath)
+    def load_corpus_info(self, corpuspath, preloadedcorpus=None):
+        if preloadedcorpus is not None:
+            self.corpus = preloadedcorpus
+        else:
+            self.corpus = self.load_corpus_binary(corpuspath)
         self.corpus_display.corpusfile_edit.setText(filenamefrompath(self.corpus.path))
         self.corpus_display.updated_signs(signs=self.corpus.signs)
+
         if len(self.corpus.signs) > 0:
             self.corpus_display.selectfirstrow()
         else:  # if loading a blank corpus
@@ -1409,7 +1441,12 @@ class MainWindow(QMainWindow):
             self.signlevel_panel.clear()
             self.signlevel_panel.enable_module_buttons(False)
 
-        self.unsaved_changes = False
+        if preloadedcorpus:
+            self.unsaved_changes = True
+        else:
+            self.unsaved_changes = False
+
+
 
     def on_action_close(self, clicked):
         self.close()

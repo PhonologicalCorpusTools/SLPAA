@@ -39,6 +39,7 @@ from lexicon.predefined_handshape import (
 # system info
 FROZEN = hasattr(sys, 'frozen')
 VERSION = (0, 2, 0)  # (major, minor, patch)
+SYSTEM = sys.platform
 
 # symbols
 X_IN_BOX = '\u2327'
@@ -604,7 +605,7 @@ PARTS_OF_SPEECH = {
     "Other": 13
 }
 
-# TODO KV - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
+# TODO - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
 treepathdelimiter = ">"
 
 
