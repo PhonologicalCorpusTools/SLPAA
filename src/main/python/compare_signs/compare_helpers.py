@@ -534,13 +534,21 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str,
 
 
 # Add sign type intermediate layers. they only show up in the sign type dialog as groupings.
-def inject_signtype_intermediates(spec: str) -> str:
-    if ' HCs' in spec:
-        return f'Hand configuration relation>{spec}'
-    elif 'contact' in spec:
-        return f'Contact relation>{spec}'
-    elif 'symmetric' in spec:
-        return f'Bilateral symmetry relation>{spec}'
-    elif ' move' in spec:
-        return f'Movement relation>{spec}'
-    return spec
+def inject_signtype_intermediates(specifications: str) -> str:
+    r = []
+    for idx, spec in enumerate(specifications.split('>')):
+        if idx != 1:
+            r.append(spec)
+            continue
+        if ' HCs' in spec:
+            r.append(f'Hand configuration relation>{spec}')
+        elif 'contact' in spec:
+            r.append(f'Contact relation>{spec}')
+        elif 'symmetric' in spec:
+            r.append(f'Bilateral symmetry relation>{spec}')
+        elif ' move' in spec:
+            r.append(f'Movement relation>{spec}')
+        else:
+            r.append(spec)
+
+    return '>'.join(r)
