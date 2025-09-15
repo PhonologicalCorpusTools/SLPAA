@@ -464,7 +464,10 @@ def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush
 # it parses one sign's handshape predefined name into bases and variants.
 def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str, return_path_form=True) -> list:
     # pred_name: str. predefined_names like 'extended A'
-    # viz_name: str. the handshape name visible to the user in the form of "name ([slots])"
+    # viz_name: str. the handshape name visible to the user in the form of "name ([slots])";
+    #   only required if return_path_form is True
+    # counterpart_name: str. the predefined name of the handshape to compare pred_name to
+    #   (determines which of multiple bases to use in case of ambiguity)
     # returns list of strings
 
     def get_return_format():

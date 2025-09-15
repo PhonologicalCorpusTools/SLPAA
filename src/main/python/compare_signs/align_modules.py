@@ -108,9 +108,11 @@ def alignmodules_helper(modulesbysign, moduletype):
         #   ‘clawed’ handshape, etc. The variant types are listed in the first row of the predefined handshape chart,
         #   so basically this is aligning by columns in that chart.
         modsalignedbyhsvariant, unmatched = alignbyhandshape(unmatched, 'variant')
+        # from 20250908 meeting: align by forearm after variant and before coding order
+        modsalignedbyhsforearm, unmatched = alignbyhandshape(unmatched, 'forearm')
         # v. If there are still unaligned handshapes, align by coding order.
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
-        return modsalignedbyhsname + modsalignedbyhsbase + modsalignedbyhsvariant + modsalignedbycodingorder, unmatched
+        return modsalignedbyhsname + modsalignedbyhsbase + modsalignedbyhsvariant + modsalignedbyhsforearm + modsalignedbycodingorder, unmatched
         #   [NB: this one might eventually need to get refined.]
     elif moduletype == ModuleTypes.RELATION:
         # TODO - waiting for further intructions from Kathleen
@@ -179,8 +181,9 @@ def directionsmatch(sign1dirs, sign2dirs, level='specific'):
 #   That is, align any ‘bent’ handshape with another ‘bent’ handshape, or any ‘clawed’ handshape with another
 #   ‘clawed’ handshape, etc. The variant types are listed in the first row of the predefined handshape chart,
 #   so basically this is aligning by columns in that chart.
+# from 20250908 meeting: align by forearm after variant and before coding order
 def alignbyhandshape(configmodsbysign, elementtoalignby):
-    # elementtoalignby: str. one of 'name', 'base', or 'variant'
+    # elementtoalignby: str. one of 'name', 'base', 'variant', or 'forearm'
     sign1mods = [mod for mod in configmodsbysign[1]]
     sign2mods = [mod for mod in configmodsbysign[2]]
 
@@ -201,8 +204,8 @@ def alignbyhandshape(configmodsbysign, elementtoalignby):
                 if mod2hs is not None:
                     mod2hsname = mod2hs.name
 
-                    mod1bases, mod1variants = parse_predefined_names(mod1hsname, "TODO", mod2hsname, return_path_form=False)  # TODO
-                    mod2bases, mod2variants = parse_predefined_names(mod2hsname, "TODO", mod1hsname, return_path_form=False)  # TODO
+                    mod1bases, mod1variants = parse_predefined_names(mod1hsname, None, mod2hsname, return_path_form=False)
+                    mod2bases, mod2variants = parse_predefined_names(mod2hsname, None, mod1hsname, return_path_form=False)
 
                     mod1bases = set(mod1bases)
                     mod2bases = set(mod2bases)
@@ -211,7 +214,8 @@ def alignbyhandshape(configmodsbysign, elementtoalignby):
 
                     if (elementtoalignby == 'name' and mod1hsname == mod2hsname) or \
                             (elementtoalignby == 'base' and (mod1bases.issubset(mod2bases) or mod2bases.issubset(mod1bases))) or \
-                            (elementtoalignby == 'variant' and mod1variants == mod2variants):
+                            (elementtoalignby == 'variant' and mod1variants == mod2variants) or \
+                            (elementtoalignby == 'forearm' and mod1.overalloptions['forearm'] == mod2.overalloptions['forearm']):
                         matchedmods.append((mod1, mod2))
                         sign1mods.remove(mod1)
                         sign2mods.remove(mod2)
