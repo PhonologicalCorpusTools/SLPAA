@@ -2826,8 +2826,6 @@ class HandConfigurationModule(ParameterModule):
             return True
         return False
 
-
-
     def getabbreviation(self):
         handconfighand = HandConfigurationHand(self.handconfiguration)
 
@@ -2844,7 +2842,10 @@ class HandConfigurationModule(ParameterModule):
                 fieldstext += slot.symbol
             fieldstext += "] "
 
-        return predefinedname + fieldstext
+        forearm = "+ forearm" if self.overalloptions['forearm'] else ""
+
+        print(predefinedname + fieldstext + forearm)
+        return predefinedname + fieldstext + forearm
 
         
 # This class consists of six fields (2 through 7; 1 is forearm and is not included here) that store
