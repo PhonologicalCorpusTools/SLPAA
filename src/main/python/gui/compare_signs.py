@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
-    QLabel, QHBoxLayout, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton
+    QLabel, QHBoxLayout, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 import re
@@ -238,6 +238,9 @@ class CompareSignsDialog(QDialog):
             'handconfig': {
                 'compare_target': 'predefined',
                 'details': False
+            },
+            'signtype': {
+                'articulator_merger': False
             }
         }
 
@@ -416,6 +419,11 @@ class CompareSignsDialog(QDialog):
             self.hand_btn_group.addButton(rb)
         self.hand_btn_group.buttonClicked.connect(self._on_hand_option_changed)
 
+        # sign type articulator merger option
+        self.sign_type_art_button = QCheckBox("Merge articulators in sign type comparison.")
+        self.sign_type_art_button.toggled.connect(self._on_signtype_option_changed)
+        hand_opts_layout.addWidget(self.sign_type_art_button)
+
         # hide by default
         self.hand_options_widget.setVisible(False)
         tree_counter_layout.addWidget(self.hand_options_widget)
@@ -453,10 +461,14 @@ class CompareSignsDialog(QDialog):
 
     def _on_hand_option_changed(self, btn):
         # btn: QAbstractButton object
-        options = {'handconfig': None}
-        options['handconfig'] = {'compare_target': btn.property('compare_target'),
-                                 'details': btn.property('details')}
-        self.update_trees(options)
+        self.comparison_options['handconfig'] = {'compare_target': btn.property('compare_target'),
+                                                 'details': btn.property('details')}
+        self.update_trees(self.comparison_options)
+
+    def _on_signtype_option_changed(self, state):
+        # state: bool. whether checked or not
+        self.comparison_options['signtype']['articulator_merger'] = state
+        self.update_trees(self.comparison_options)
 
     def gen_bottom_btns(self):
         # generate Ok and Cancel buttons

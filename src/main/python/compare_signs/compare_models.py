@@ -23,7 +23,7 @@ class CompareModel:
         result = {'sign1': {}, 'sign2': {}}  # this is the output
 
         # signtype comparison before all module comparisons
-        signtype_comparison_results = self.compare_signtype(options)
+        signtype_comparison_results = self.compare_signtype(options['signtype'])
         result['sign1']['Sign type'] = {
             k: v for d in signtype_comparison_results['sign1'] for k, v in d.items()
         }
@@ -96,8 +96,8 @@ class CompareModel:
         results1, results2 = [], []
         if self.sign1.signtype is None or self.sign2.signtype is None:
             return {'sign1': {}, 'sign2': {}}
-        s1path = self.parse_st_representations(self.sign1.signtype.specslist)
-        s2path = self.parse_st_representations(self.sign2.signtype.specslist)
+        s1path = self.parse_st_representations(self.sign1.signtype.specslist, merger=options['articulator_merger'])
+        s2path = self.parse_st_representations(self.sign2.signtype.specslist, merger=options['articulator_merger'])
 
         s1_path_element = get_informative_elements(s1path)
         s2_path_element = get_informative_elements(s2path)
@@ -141,12 +141,17 @@ class CompareModel:
 
         return {'sign1': results1, 'sign2': results2}
 
-    def parse_st_representations(self, signtype_specs: list):
+    def parse_st_representations(self, signtype_specs: list, merger: bool):
         hands = []
         arms = []
         legs = []
+        abstract_articulator = []
+
         for spec in signtype_specs:
             if 'Unspecified' in spec:  # articulator number actively unspecified
+                if merger:
+                    abstract_articulator.append('Unspecified')
+                    continue
                 whats_unspecified = spec.split('_')[1]
                 if 'hands' in whats_unspecified:
                     hands.append('Unspecified')
@@ -163,7 +168,8 @@ class CompareModel:
 
             # parse articulator info e.g., 1h, 2l, etc
             articulator_fullname = {'h': 'hand', 'a': 'arm', 'l': 'leg'}
-
+            if merger:
+                articulator_fullname = {'h': 'articulator', 'a': 'articulator', 'l': 'articulator'}
             articulator_count, articulator_shortname = articulator
             if articulator_count == '1':
                 art_discription = f'One {articulator_fullname[articulator[1]]}'
@@ -172,7 +178,9 @@ class CompareModel:
             _ = [art_discription, descriptions]
             descriptions = '>'.join([element for element in _ if element is not None])
 
-            if articulator_shortname == 'h':
+            if merger:
+                abstract_articulator.append(descriptions)
+            elif articulator_shortname == 'h':
                 hands.append(descriptions)
             elif articulator_shortname == 'a':
                 arms.append(descriptions)
@@ -180,6 +188,12 @@ class CompareModel:
                 legs.append(descriptions)
 
         result = []
+        if merger:
+            for s in abstract_articulator:
+                s = inject_signtype_intermediates(s)
+                result.append(f'Articulator>{s}')
+            return result
+
         for label, specs in (("Hands", hands), ("Arms", arms), ("Legs", legs)):
             for s in specs:
                 s = inject_signtype_intermediates(s)
