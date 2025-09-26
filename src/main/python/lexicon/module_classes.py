@@ -2127,7 +2127,7 @@ class RelationModule(ParameterModule):
             X_str += self.get_path_abbrev(paths, X_art)
 
         if self.relationy.existingmodule:
-            Y_str = f'linked {self.relationy.linkedmoduletype} module'
+                Y_str = 'linked module' if not self.relationy.linkedmoduletype else f'linked {self.relationy.linkedmoduletype} module'
         else:
             Y_art = self.relationy.displaystr()
             if Y_art.startswith('both'):
