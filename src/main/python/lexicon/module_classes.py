@@ -2003,17 +2003,21 @@ class RelationModule(ParameterModule):
                     - 'details': The details table.
         """
         paths = {}
+        
         arts, nums = self.get_articulators_in_use()
         for i in range(len(arts)):
             label = arts[i] if arts[i] != 'Hand' else 'H'
-            bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
-            treemodel = bodypartinfo.bodyparttreemodel
-            paths.update({label + str(nums[i]) : treemodel.get_checked_items(only_fully_checked=only_fully_checked, include_details=True)})
-        
+            if label.startswith('other'):
+                paths.update({label : []})
+            else:
+                bodypartinfo = self.bodyparts_dict[arts[i]][nums[i]]
+                treemodel = bodypartinfo.bodyparttreemodel
+                paths.update({label + str(nums[i]) : treemodel.get_checked_items(only_fully_checked=only_fully_checked, include_details=True)})
         return paths
     
     def get_path_abbrev(self, paths, art): # abbreviation for paths and details tables
         path_strings = []
+        art = art.capitalize() # `paths` expects keys to be H1, H2, etc
         for path in paths[art]:
             path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
             details_dict = path['details'].get_checked_values()
@@ -2112,12 +2116,12 @@ class RelationModule(ParameterModule):
         
         paths = self.get_paths() 
 
-        X_art = self.relationx.displaystr().capitalize()
-        if "both" in X_art.lower():
+        X_art = self.relationx.displaystr()
+        if X_art.startswith('both'):
             art1, art2 = ('H1', 'H2') if "hands" in X_art else (('Arm1', 'Arm2') if "arms" in X_art else ('Leg1', 'Leg2'))
             X_str += f'{X_art}: '
             X_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
-        elif X_art.startswith('Other'):
+        elif X_art.startswith('other'):
             X_str += X_art
         elif paths and X_art:
             X_str += self.get_path_abbrev(paths, X_art)
@@ -2125,12 +2129,12 @@ class RelationModule(ParameterModule):
         if self.relationy.existingmodule:
             Y_str = f'linked {self.relationy.linkedmoduletype} module'
         else:
-            Y_art = self.relationy.displaystr().capitalize()
-            if "both" in Y_art.lower():
+            Y_art = self.relationy.displaystr()
+            if Y_art.startswith('both'):
                 art1, art2 = ('H1', 'H2') if "hands" in Y_art else (('Arm1', 'Arm2') if "arms" in Y_art else ('Leg1', 'Leg2'))
                 Y_str += f'{Y_art}: '
                 Y_str += ', '.join([self.get_path_abbrev(paths, a) for a in [art1, art2]])
-            elif Y_art.startswith('Other'):
+            elif Y_art.startswith('other'):
                 Y_str += Y_art
             elif paths and Y_art:
                 Y_str = self.get_path_abbrev(paths, Y_art)
