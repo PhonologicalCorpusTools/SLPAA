@@ -680,7 +680,7 @@ class RelationSpecificationPanel(ModuleSpecificationPanel):
             a2label = "part of Y"
         armpart_selector = BodypartSelectorDialog(bodyparttype=bodyparttype, bodypart1label=a1label,
                                                   bodypart2label=a2label,
-                                                  odypart1infotoload=self.bodyparts_dict[bodyparttype][1],
+                                                  bodypart1infotoload=self.bodyparts_dict[bodyparttype][1],
                                                   bodypart2infotoload=self.bodyparts_dict[bodyparttype][2], parent=self)
         armpart_selector.bodyparts_saved.connect(lambda bodypart1, bodypart2:
                                                  self.handle_bodyparts_saved(bodypart1, bodypart2, self.armpart_button))
