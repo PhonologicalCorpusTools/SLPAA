@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
-    QLabel, QHBoxLayout, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
+    QLabel, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox, QGroupBox
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 import re
@@ -87,6 +87,8 @@ class TreeWidgetItemKey:
             return
 
         for k, v in self.path_context.items():
+            if already_added is None:
+                continue
             if k in already_added:
                 continue
             if parse_button_type(node_data=self.path_context, k=k)[depth] == target_btn_type:
@@ -387,9 +389,38 @@ class CompareSignsDialog(QDialog):
 
         tree_counter_layout.addLayout(toggle_layout)
 
-        # Hand-configuration radio-button container (hidden by default)
-        self.hand_options_widget = QWidget()
-        hand_opts_layout = QVBoxLayout(self.hand_options_widget)
+        # Compare signs options (hidden by default)
+        self.compare_options_widget = QWidget()
+        options_major_hbox = QHBoxLayout(self.compare_options_widget)
+
+        # two groupboxes, side by side
+        self._gen_options_content_hc()  # Hand-configuration radio buttons (left)
+        self._gen_options_content_signtype()  # sign type articulator merger options (right)
+        options_major_hbox.addWidget(self.handconfig_groupbox)
+        options_major_hbox.addWidget(self.signtype_groupbox)
+
+        # hide by default
+        self.compare_options_widget.setVisible(False)
+        tree_counter_layout.addWidget(self.compare_options_widget)
+        self.options_toggle_btn.toggled.connect(self._on_options_toggled)
+
+        # separator
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        tree_counter_layout.addWidget(separate_line)
+
+        # colour counters
+        counters_hbl = QHBoxLayout()
+        counters_hbl.addLayout(create_counters_layout(counters_1))
+        counters_hbl.addLayout(create_counters_layout(counters_2))
+        tree_counter_layout.addLayout(counters_hbl)
+
+        return tree_counter_layout
+
+    def _gen_options_content_hc(self):
+        self.handconfig_groupbox = QGroupBox("Handconfig")
+        hand_opts_layout = QVBoxLayout(self.handconfig_groupbox)
 
         # four radio buttons for handshape name
         self.predefined_HC = QRadioButton("Compare predefined hand shape names.")
@@ -412,36 +443,22 @@ class CompareSignsDialog(QDialog):
         self.transcription_lenient.setProperty("compare_target", "transcriptions")
         self.transcription_lenient.setProperty("details", False)
         hand_opts_layout.addWidget(self.transcription_lenient)
+        hand_opts_layout.addStretch()
 
         # group them so only one can be checked
         self.hand_btn_group = QButtonGroup(self)
-        for rb in (self.predefined_HC, self.predefined_base_variant, self.transcription_exact, self.transcription_lenient):
+        for rb in (
+        self.predefined_HC, self.predefined_base_variant, self.transcription_exact, self.transcription_lenient):
             self.hand_btn_group.addButton(rb)
         self.hand_btn_group.buttonClicked.connect(self._on_hand_option_changed)
 
-        # sign type articulator merger option
+    def _gen_options_content_signtype(self):
+        self.signtype_groupbox = QGroupBox("Sign type")
+        hand_opts_layout = QVBoxLayout(self.signtype_groupbox)
         self.sign_type_art_button = QCheckBox("Merge articulators in sign type comparison.")
         self.sign_type_art_button.toggled.connect(self._on_signtype_option_changed)
         hand_opts_layout.addWidget(self.sign_type_art_button)
-
-        # hide by default
-        self.hand_options_widget.setVisible(False)
-        tree_counter_layout.addWidget(self.hand_options_widget)
-        self.options_toggle_btn.toggled.connect(self._on_options_toggled)
-
-        # separator
-        separate_line = QFrame()
-        separate_line.setFrameShape(QFrame.HLine)
-        separate_line.setFrameShadow(QFrame.Sunken)
-        tree_counter_layout.addWidget(separate_line)
-
-        # colour counters
-        counters_hbl = QHBoxLayout()
-        counters_hbl.addLayout(create_counters_layout(counters_1))
-        counters_hbl.addLayout(create_counters_layout(counters_2))
-        tree_counter_layout.addLayout(counters_hbl)
-
-        return tree_counter_layout
+        hand_opts_layout.addStretch()
 
     def sync_scrollbars(self, scrolled_value, other_tree):
         if not self.syncing_scrollbars:
@@ -455,7 +472,7 @@ class CompareSignsDialog(QDialog):
 
     def _on_options_toggled(self, checked):
         # show or hide the container
-        self.hand_options_widget.setVisible(checked)
+        self.compare_options_widget.setVisible(checked)
         # flip the arrow
         self.options_toggle_btn.setArrowType(Qt.UpArrow if checked else Qt.DownArrow)
 
@@ -866,11 +883,9 @@ class CompareSignsDialog(QDialog):
 
         # Add each top-level key (e.g., movement, location, relation, ...) as a root item in the tree
         if data1.keys() != data2.keys():  # if data1.keys() != data2.keys(), something is wrong.
-            raise ValueError(
-                "Top-level module keys of sign1 and sign2 do not match.\n"
-                f"Sign1 keys: {list(data1.keys())}\n"
-                f"Sign2 keys: {list(data2.keys())}"
-            )
+            raise ValueError("Top-level module keys of sign1 and sign2 do not match.\n"
+                             f"Sign1 keys: {list(data1.keys())}\n"
+                             f"Sign2 keys: {list(data2.keys())}")
 
         for key in data1.keys():  # data1.keys() should be identical to data2.keys(), so just use data1's dict_keys.
             top_item1, top_item2 = self._gen_twi_pair(key,
