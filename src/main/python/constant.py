@@ -38,7 +38,7 @@ from lexicon.predefined_handshape import (
 
 # system info
 FROZEN = hasattr(sys, 'frozen')
-VERSION = (0, 2, 0)  # (major, minor, patch)
+VERSION = (0, 2, 1)  # (major, minor, patch)
 SYSTEM = sys.platform
 
 # symbols
