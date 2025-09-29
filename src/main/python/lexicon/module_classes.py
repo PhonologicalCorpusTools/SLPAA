@@ -2844,7 +2844,6 @@ class HandConfigurationModule(ParameterModule):
 
         forearm = "+ forearm" if self.overalloptions['forearm'] else ""
 
-        print(predefinedname + fieldstext + forearm)
         return predefinedname + fieldstext + forearm
 
         
