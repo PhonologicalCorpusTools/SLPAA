@@ -275,68 +275,80 @@ def filter_modules_by_target_reln(modulelist, target_module, target_is_assoc_rel
     
     # All relation_x possibilities are mutually exclusive, so check if target relation_x matches at least one relation_x in the list
     target_relationx = target_module.relationx.displaystr()
-    if target_relationx != "":
+    if matchtype == 'exact':
         modulelist = [m for m in modulelist if target_relationx == m.relationx.displaystr()]
-        if not modulelist: return []
-
-    # If target relation_y is "Existing module", this can also match "existing module - locn" or "existing module - mvmt".
-    # Otherwise, relation_y possibilities are mutually exclusive.
+    elif target_relationx: 
+        # in minimal searches, we allow relationX to be unspecified (in which case displaystr() is '')
+        # also 'Both hands connected' satisfies a target with 'Both hands',
+        # and "Other" satisfies a target with "Other (optional specification)"
+        modulelist = [m for m in modulelist if m.relationx.displaystr().startswith(target_relationx)]
+    
+    if not modulelist: return []
+                
     # We don't have to check relation_y if target_is_assoc_reln, because in this case we assume modulelist is already filtered.
-    if not target_is_assoc_reln and target_module.relationy.displaystr() != "": 
+    if not target_is_assoc_reln: 
         target_relationy = target_module.relationy.displaystr()
-        if target_relationy == "Y: existing module":
-            modulelist = [m for m in modulelist if target_relationy in m.relationy.displaystr()]
-        else:
+        if matchtype == 'exact':
             modulelist = [m for m in modulelist if target_relationy == m.relationy.displaystr()]
+        elif target_relationy:
+            # If minimal search and target relation_y is "Existing module", this can also match "Existing module - locn" or "Existing module - mvmt".
+            # and "Other" satisfies a target with "Other (optional specification)"
+            modulelist = [m for m in modulelist if m.relationy.displaystr().startswith(target_relationy)]
         if not modulelist: return []
-    # If target contact is only "Contact", this needs to match contact type suboptions (light, firm, other)
-    # If target contact is "No contact", must match signs where contact is not specified or empty (?)
-    # Manner options are mutually exclusive.
-    if target_module.contactrel.contact is False: # if False, then "no contact" specified
-        modulelist = [m for m in modulelist if m.contactrel.contact == False]
-    elif target_module.contactrel.contact is not None:
-        if target_module.contactrel.contacttype.any:
-            modulelist = [m for m in modulelist if m.contactrel.has_contacttype()]
-        elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
-            modulelist = [m for m in modulelist if m.contactrel.contacttype == target_module.contactrel.contacttype]
-        if not modulelist: return [] 
-
-        if target_module.contactrel.manner.any:
-            modulelist = [m for m in modulelist if m.contactrel.has_manner()]
-        elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
-            modulelist = [m for m in modulelist if m.contactrel.manner == target_module.contactrel.manner]
-        else: # only "contact" specified, so module must have some contact / contacttype
-            modulelist = [m for m in modulelist if m.contactrel.contact]
-    if not modulelist: return [] 
     
-    # direction:
-    if len(target_module.directions) == 1 and target_module.directions[0].any: 
-        modulelist = [m for m in modulelist if m.has_any_direction()]
+    # check contact, distance, and direction for exact and minimal matchtypes
+    if matchtype == 'exact':
+        modulelist = [m for m in modulelist if m.contactrel == target_module.contactrel and m.directions == target_module.directions] # contactrel covers contact and distance
+        if not modulelist: return []
     else:
-        if target_module.xy_linked:
-            modulelist = [m for m in modulelist if m.xy_linked]
-        if target_module.xy_crossed:
-            modulelist = [m for m in modulelist if m.xy_crossed]
-        for i in range(len(target_module.directions)):
-            if target_module.directions[i].axisselected:
-                if target_module.has_direction(i): # match exactly because suboption is selected
-                    modulelist = [m for m in modulelist if m.directions[i] == target_module.directions[i]]
-                else: # only axis is selected, so match if any suboption is selected
-                    modulelist = [m for m in modulelist if m.has_direction(i)]
-    if not modulelist:
-        return []
-    
-    # Distance:
-    if not target_module.contactrel.contact:
-        if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
-            modulelist = [m for m in modulelist if m.has_any_distance()]
+        # If target contact is only "Contact", this needs to match contact type suboptions (light, firm, other)
+        # If target contact is "No contact", must match signs where contact is not specified or empty (?)
+        # Manner options are mutually exclusive.
+        if target_module.contactrel.contact is False: # if False, then "no contact" specified
+            modulelist = [m for m in modulelist if m.contactrel.contact == False]
+        elif target_module.contactrel.contact is not None:
+            if target_module.contactrel.contacttype.any:
+                modulelist = [m for m in modulelist if m.contactrel.has_contacttype()]
+            elif target_module.contactrel.has_contacttype(): # module must match contacttype exactly
+                modulelist = [m for m in modulelist if m.contactrel.contacttype == target_module.contactrel.contacttype]
+            if not modulelist: return [] 
+
+            if target_module.contactrel.manner.any:
+                modulelist = [m for m in modulelist if m.contactrel.has_manner()]
+            elif target_module.contactrel.has_manner(): # module must match manner (and have some contact / contacttype)
+                modulelist = [m for m in modulelist if m.contactrel.manner == target_module.contactrel.manner]
+            else: # only "contact" specified, so module must have some contact / contacttype
+                modulelist = [m for m in modulelist if m.contactrel.contact]
+        if not modulelist: return [] 
+        
+        # direction:
+        if len(target_module.directions) == 1 and target_module.directions[0].any: 
+            modulelist = [m for m in modulelist if m.has_any_direction()]
         else:
-            for dist in target_module.contactrel.distances:
-                if dist.has_selection():
-                    modulelist = [m for m in modulelist if m.contactrel.distances[i].has_selection()]
-                        
+            if target_module.xy_linked:
+                modulelist = [m for m in modulelist if m.xy_linked]
+            if target_module.xy_crossed:
+                modulelist = [m for m in modulelist if m.xy_crossed]
+            for i in range(len(target_module.directions)):
+                if target_module.directions[i].axisselected:
+                    if target_module.has_direction(i): # match exactly because suboption is selected
+                        modulelist = [m for m in modulelist if m.directions[i] == target_module.directions[i]]
+                    else: # only axis is selected, so match if any suboption is selected
+                        modulelist = [m for m in modulelist if m.has_direction(i)]
         if not modulelist:
             return []
+        
+        # Distance:
+        if not target_module.contactrel.contact:
+            if len(target_module.contactrel.distances) == 1 and target_module.contactrel.distances[0].any: 
+                modulelist = [m for m in modulelist if m.has_any_distance()]
+            else:
+                for dist in target_module.contactrel.distances:
+                    if dist.has_selection():
+                        modulelist = [m for m in modulelist if m.contactrel.distances[i].has_selection()]
+                            
+            if not modulelist:
+                return []
     
     # Paths
     # fully_checked = target_module.locationtreemodel.nodes_are_terminal 
