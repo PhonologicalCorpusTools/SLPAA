@@ -493,7 +493,7 @@ class LocationTab(QWidget):
                 break
         main_layout.addRow(QLabel("Default location type:"), self.locationtype_layout)
 
-        self.locnimgclickorder_switch = OptionSwitch("Large to small", "Small to large")
+        self.locnimgclickorder_switch = OptionSwitch("Large to small", "Small to large", deselectable=False)
         self.locnimgclickorder_switch.setwhichbuttonselected(self.settings['location']['clickorder'])
         main_layout.addRow(QLabel("L-clicking on image iterates over locations from:"),
                            self.locnimgclickorder_switch)
@@ -753,9 +753,9 @@ class PreferenceDialog(QDialog):
             xslotincompatibilities_msgbox.setText("Your new partial x-slot settings create incompatibilities with previously coded signs that used the old settings. What would you like to do?")
             discardbutton = QPushButton("Discard changes (keep old divisions)")
             # TODO implement
-            newsignsonlybutton = QPushButton("Apply changes to new signs only (not yet implemented)")  # TODO KV [Tooltip / documentation explains: previously coded signs will have only the old x-slot options both visible and usable; any new signs added will have only the new x-slot options available.]
+            newsignsonlybutton = QPushButton("Apply changes to new signs only (not yet implemented)")  # TODO [Tooltip / documentation explains: previously coded signs will have only the old x-slot options both visible and usable; any new signs added will have only the new x-slot options available.]
             # TODO implement
-            allsignsbutton = QPushButton("Apply changes to all signs (not yet implemented)")  # TODO KV [Tooltip / documentation explains: previously coded signs will keep their coded x-slot selections if they are compatible with the new options, otherwise will lose their associations and need to be recoded; all signs (old and new) will have only the new x-slot options available]. [Add option here: output list of signs that had incompatibilities to a file? or mark in the corpus somehow?]
+            allsignsbutton = QPushButton("Apply changes to all signs (not yet implemented)")  # TODO [Tooltip / documentation explains: previously coded signs will keep their coded x-slot selections if they are compatible with the new options, otherwise will lose their associations and need to be recoded; all signs (old and new) will have only the new x-slot options available]. [Add option here: output list of signs that had incompatibilities to a file? or mark in the corpus somehow?]
             xslotincompatibilities_msgbox.addButton(discardbutton, QMessageBox.DestructiveRole)
             xslotincompatibilities_msgbox.addButton(newsignsonlybutton, QMessageBox.ApplyRole)
             xslotincompatibilities_msgbox.addButton(allsignsbutton, QMessageBox.ApplyRole)

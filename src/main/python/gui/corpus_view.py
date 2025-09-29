@@ -77,7 +77,7 @@ class CorpusDisplay(QWidget):
         main_layout.addLayout(filter_layout)
 
         # allow user to toggle between one gloss per row (default) vs one sign per row (displaying concatenated glosses, if multiple)
-        self.byglossorsign_switch = OptionSwitch("One gloss per row", "One sign per row", initialselection=1)
+        self.byglossorsign_switch = OptionSwitch("One gloss per row", "One sign per row", initialselection=1, deselectable=False)
         self.byglossorsign_switch.toggled.connect(self.toggle_byglossorsign)
         self.byglossorsign_switch.setwhichbuttonselected(1 if app_settings['display']['corpus_byglossorsign'] == 'gloss' else 2)
         main_layout.addWidget(self.byglossorsign_switch)

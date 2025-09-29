@@ -417,7 +417,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         self.body_radio = DeselectableRadioButton("Body")
         self.body_radio.setProperty('loctype', 'body')
         body_layout.addWidget(self.body_radio)
-        body_layout.addSpacerItem(QSpacerItem(60, 0))  # TODO KV , QSizePolicy.Minimum, QSizePolicy.Maximum))
+        body_layout.addSpacerItem(QSpacerItem(60, 0))  # TODO , QSizePolicy.Minimum, QSizePolicy.Maximum))
         body_box = QGroupBox()
         body_box.setLayout(body_layout)
         loctype_layout.addWidget(body_box, alignment=Qt.AlignVCenter)
@@ -670,7 +670,7 @@ class LocationSpecificationPanel(ModuleSpecificationPanel):
         # return super().eventFilter(source, event)
 
         if event.type() == QEvent.ContextMenu and source == self.pathslistview:
-            proxyindex = self.pathslistview.currentIndex()  # TODO KV what if multiple are selected?
+            proxyindex = self.pathslistview.currentIndex()  # TODO what if multiple are selected?
             listindex = proxyindex.model().mapToSource(proxyindex)
             addedinfo = listindex.model().itemFromIndex(listindex).treeitem.addedinfo
 

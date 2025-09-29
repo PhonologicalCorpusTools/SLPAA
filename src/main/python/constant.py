@@ -39,6 +39,7 @@ from lexicon.predefined_handshape import (
 # system info
 FROZEN = hasattr(sys, 'frozen')
 VERSION = (0, 2, 0)  # (major, minor, patch)
+SYSTEM = sys.platform
 
 # symbols
 X_IN_BOX = '\u2327'
@@ -463,7 +464,7 @@ SIGN_TYPE = {
     "TWO_ARMS_ONE_MVMT": "2a.only 1 moves",
     "TWO_ARMS_BOTH_MVMT": "2a.both move",
     "TWO_ARMS_ONLY_A1": "2a.only 1 moves.A1 moves",
-    "TWO_ARMS_ONLY_A2": "2a.only 1 moves.A1 moves",
+    "TWO_ARMS_ONLY_A2": "2a.only 1 moves.A2 moves",
     "TWO_ARMS_BOTH_MVMT_DIFF": "2a.both move.move differently",
     "TWO_ARMS_BOTH_MVMT_SAME": "2a.both move.move similarly",
     "TWO_ARMS_BOTH_MVMT_SEQ": "2a.both move.move similarly.sequential",
@@ -481,7 +482,7 @@ SIGN_TYPE = {
     "TWO_LEGS_ONE_MVMT": "2l.only 1 moves",
     "TWO_LEGS_BOTH_MVMT": "2l.both move",
     "TWO_LEGS_ONLY_L1": "2l.only 1 moves.L1 moves",
-    "TWO_LEGS_ONLY_L2": "2l.only 1 moves.L1 moves",
+    "TWO_LEGS_ONLY_L2": "2l.only 1 moves.L2 moves",
     "TWO_LEGS_BOTH_MVMT_DIFF": "2l.both move.move differently",
     "TWO_LEGS_BOTH_MVMT_SAME": "2l.both move.move similarly",
     "TWO_LEGS_BOTH_MVMT_SEQ": "2l.both move.move similarly.sequential",
@@ -604,7 +605,7 @@ PARTS_OF_SPEECH = {
     "Other": 13
 }
 
-# TODO KV - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
+# TODO - define here or in module_classes? or user-defined in global settings? or maybe even in the module window(s)?
 treepathdelimiter = ">"
 
 
