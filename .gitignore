@@ -19,4 +19,3 @@ dist/*
 !dist/SLPAA-win64*.zip
 !dist/SLPAA-macos*.zip
 
-

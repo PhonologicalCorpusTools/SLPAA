@@ -54,7 +54,7 @@ class ModuleLinkingListItem(QStandardItem):
 
     def data(self, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            # TODO KV can this abbreviated module name come from elsewhere?
+            # TODO can this abbreviated module name come from elsewhere?
             #  sign summary panel uses the same kind of abbreviation, eg
             articulator, articulators_dict = self.module.articulators
             # hands_dict = self.module.hands
@@ -62,4 +62,4 @@ class ModuleLinkingListItem(QStandardItem):
             arts_str = "+".join(arts_list)
             moduleabbrev = ModuleTypes.abbreviations[self.moduletype]
             return moduleabbrev + str(self.modnum) + "(" + arts_str + "): " + self.module.getabbreviation()
-        # TODO KV any other roles to worry about?
+        # TODO any other roles to worry about?

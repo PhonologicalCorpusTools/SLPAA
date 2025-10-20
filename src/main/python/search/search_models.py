@@ -355,31 +355,31 @@ class SearchModel(QStandardItemModel):
                     HAND: {
                         1: BodypartInfo(
                             bodyparttype=HAND,
-                            bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][1].bodyparttree),
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedbodyparttree=serialmodule.bodyparts_dict[HAND][1].bodyparttree),
                             addedinfo=serialmodule.bodyparts_dict[HAND][1].addedinfo),
                         2: BodypartInfo(
                             bodyparttype=HAND,
-                            bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedlocntree=serialmodule.bodyparts_dict[HAND][2].bodyparttree),
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=HAND, serializedbodyparttree=serialmodule.bodyparts_dict[HAND][2].bodyparttree),
                             addedinfo=serialmodule.bodyparts_dict[HAND][2].addedinfo),
                     },
                     ARM: {
                         1: BodypartInfo(
                             bodyparttype=ARM,
-                            bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][1].bodyparttree),
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedbodyparttree=serialmodule.bodyparts_dict[ARM][1].bodyparttree),
                             addedinfo=serialmodule.bodyparts_dict[ARM][1].addedinfo),
                         2: BodypartInfo(
                             bodyparttype=ARM,
-                            bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedlocntree=serialmodule.bodyparts_dict[ARM][2].bodyparttree),
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=ARM, serializedbodyparttree=serialmodule.bodyparts_dict[ARM][2].bodyparttree),
                             addedinfo=serialmodule.bodyparts_dict[ARM][2].addedinfo),
                     },
                     LEG: {
                         1: BodypartInfo(
                             bodyparttype=LEG,
-                            bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][1].bodyparttree),
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedbodyparttree=serialmodule.bodyparts_dict[LEG][1].bodyparttree),
                             addedinfo=serialmodule.bodyparts_dict[LEG][1].addedinfo),
                         2: BodypartInfo(
                             bodyparttype=LEG,
-                            bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedlocntree=serialmodule.bodyparts_dict[LEG][2].bodyparttree),
+                            bodyparttreemodel=BodypartTreeModel(bodyparttype=LEG, serializedbodyparttree=serialmodule.bodyparts_dict[LEG][2].bodyparttree),
                             addedinfo=serialmodule.bodyparts_dict[LEG][2].addedinfo),
                     },
                 }

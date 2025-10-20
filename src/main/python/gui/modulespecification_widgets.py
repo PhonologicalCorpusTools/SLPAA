@@ -470,7 +470,7 @@ def findvaliditemspaths(pathitemslists):
                 if lastitem.parent() == secondlastitem:
                     higherpaths = findvaliditemspaths(pathitemslists[:-2]+[[secondlastitem]])
                     for higherpath in higherpaths:
-                        if len(higherpath) == len(pathitemslists)-1:  # TODO KV
+                        if len(higherpath) == len(pathitemslists)-1:
                             validpaths.append(higherpath + [lastitem])
     elif len(pathitemslists) == 1:  # the path is only 1 level long (but possibly with multiple options)
         for lastitem in pathitemslists[0]:

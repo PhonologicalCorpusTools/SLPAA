@@ -46,7 +46,9 @@ class BodypartSpecificationPanel(QFrame):
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
             if bodypartinfotoload.bodyparttreemodel is not None:
-                treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel))
+                treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype,
+                                              serializedbodyparttree=LocationTreeSerializable(
+                                                  bodypartinfotoload.bodyparttreemodel))
             addedinfo = deepcopy(bodypartinfotoload.addedinfo)
 
         # create layout with bodypart title and added info button
@@ -94,13 +96,14 @@ class BodypartSpecificationPanel(QFrame):
         if bodypartinfotoload is not None and isinstance(bodypartinfotoload, BodypartInfo):
             # make a copy, so that the module is not being edited directly via this layout
             # (otherwise "cancel" doesn't actually revert to the original contents)
-            treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedlocntree=LocationTreeSerializable(bodypartinfotoload.bodyparttreemodel))
+            treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype, serializedbodyparttree=LocationTreeSerializable(
+                bodypartinfotoload.bodyparttreemodel))
             addedinfo = deepcopy(bodypartinfotoload.addedinfo)
         else:
             treemodel = BodypartTreeModel(bodyparttype=self.bodyparttype)
             treemodel.populate(treemodel.invisibleRootItem())
 
-        # TODO KV this seems like too much detail to be handling at this level
+        # TODO this seems like too much detail to be handling at this level
         self.locationoptionsselectionpanel.treemodel = treemodel
         self.locationoptionsselectionpanel.refresh_listproxies()
         self.locationoptionsselectionpanel.update_detailstable()
@@ -192,13 +195,11 @@ class BodypartSelectorDialog(QDialog):
             self.validate_and_save()
 
         elif standard == QDialogButtonBox.RestoreDefaults:
-            # TODO KV -- where should the "defaults" be defined?
+            # TODO -- where should the "defaults" be defined?
             self.bodypart1_panel.clear()
             self.bodypart2_panel.clear()
             
-            
 
-            
     def validate_and_save(self):
         messagestring = ""
 
