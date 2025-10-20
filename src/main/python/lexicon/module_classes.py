@@ -515,6 +515,9 @@ class MovementModule(ParameterModule):
     def inphase(self, inphase):
         self._inphase = inphase
 
+    def __repr__(self):
+        return '<MovementModule: ' + repr(self.getabbreviation()) + '>'
+
     def getabbreviation(self):
         def refactor_list(strings):
             if not strings:
@@ -1456,8 +1459,9 @@ class LocationModule(ParameterModule):
     @inphase.setter
     def inphase(self, inphase):
         self._inphase = inphase
-    
 
+    def __repr__(self):
+        return '<LocationModule: ' + repr(self.getabbreviation()) + '>'
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
@@ -2268,7 +2272,6 @@ class MannerRelation:
             repr_str = "intermittent"
 
         return '<MannerRelation: ' + repr(repr_str) + '>'
-    
 
     @property
     def holding(self):
@@ -2905,7 +2908,9 @@ class HandConfigurationModule(ParameterModule):
                 fieldstext += slot.symbol
             fieldstext += "] "
 
-        return predefinedname + fieldstext
+        forearm = "+ forearm" if self.overalloptions['forearm'] else ""
+
+        return predefinedname + fieldstext + forearm
 
     # checks if this module's *module-specific* specifications (everything except articulators, phonlocs, uniqueid, and timing) 
     #   are the same as othermodule
