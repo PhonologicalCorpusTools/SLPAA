@@ -1,3 +1,4 @@
+from PyQt5.QtCore import pyqtSignal, QObject
 from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, ParameterModule, ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule
 from models.location_models import locn_options_body, locn_options_hand, locn_options_purelyspatial
 from compare_signs.compare_helpers import (analyze_modules, extract_handshape_slots, parse_predefined_names,
@@ -11,12 +12,23 @@ from constant import PREDEFINED_MAP  # for predefined hand config name
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 
-class CompareModel:
-    def __init__(self, sign1, sign2):
+class CompareModel(QObject):
+    warning_signal = pyqtSignal(str)
+
+    def __init__(self, sign1, sign2, parent=None):
+        super().__init__(parent)
         self.sign1 = sign1
         self.sign2 = sign2
         self.implemented = ['handconfig', 'movement', 'location', 'orientation']
         self.yet_to_implement = ['relation', 'nonmanual']
+        self._last_warn_msg = None
+
+    # emit warnings
+    def _warn(self, msg: str, dedupe=True):
+        if dedupe and msg == self._last_warn_msg:  # do not prompt the same warning twice
+            return
+        self._last_warn_msg = msg
+        self.warning_signal.emit(msg)
 
     # this is the main compare function that dispatches each module comparison!
     def compare_sign_pair(self, options) -> tuple[dict, list]:
@@ -96,8 +108,22 @@ class CompareModel:
         results1, results2 = [], []
         if self.sign1.signtype is None or self.sign2.signtype is None:
             return {'sign1': {}, 'sign2': {}}
-        s1path = self.parse_st_representations(self.sign1.signtype.specslist, merger=options['articulator_merger'])
-        s2path = self.parse_st_representations(self.sign2.signtype.specslist, merger=options['articulator_merger'])
+        s1_conflict_warning, s1path = self.parse_st_representations(self.sign1.signtype.specslist, merger=options['articulator_merger'])
+
+        s2_conflict_warning, s2path = self.parse_st_representations(self.sign2.signtype.specslist,
+                                                                    merger=options['articulator_merger'] if not s1_conflict_warning else False,
+                                                                    )
+
+        warning_msg_base = 'has more than one articulator. Multiple articulators in one sign cannot be abstracted over.'
+        if s1_conflict_warning:
+            # untoggle merge checkbox
+            self._warn(msg=f'Sign 1 ({self.sign1.signlevel_information.idgloss}) {warning_msg_base}')
+        if s2_conflict_warning:
+            # impacts the opposite direction... better to rerun s1path
+            s1_conflict_warning, s1path = self.parse_st_representations(self.sign1.signtype.specslist,
+                                                                        merger=False)
+            self._warn(msg=f'Sign 2 ({self.sign2.signlevel_information.idgloss}) {warning_msg_base}')
+        del warning_msg_base
 
         s1_path_element = get_informative_elements(s1path)
         s2_path_element = get_informative_elements(s2path)
@@ -145,13 +171,13 @@ class CompareModel:
         hands = []
         arms = []
         legs = []
+        conflict_flag = False   # True if articulator conflict
+        conflict_warning = False
         abstract_articulator = []
 
         for spec in signtype_specs:
             if 'Unspecified' in spec:  # articulator number actively unspecified
-                if merger:
-                    abstract_articulator.append('Unspecified')
-                    continue
+                abstract_articulator.append('Unspecified')
                 whats_unspecified = spec.split('_')[1]
                 if 'hands' in whats_unspecified:
                     hands.append('Unspecified')
@@ -178,9 +204,9 @@ class CompareModel:
             _ = [art_discription, descriptions]
             descriptions = '>'.join([element for element in _ if element is not None])
 
-            if merger:
-                abstract_articulator.append(descriptions)
-            elif articulator_shortname == 'h':
+            abstract_articulator.append(descriptions)  # in case of merging hands, arms and legs.
+
+            if articulator_shortname == 'h':
                 hands.append(descriptions)
             elif articulator_shortname == 'a':
                 arms.append(descriptions)
@@ -188,18 +214,26 @@ class CompareModel:
                 legs.append(descriptions)
 
         result = []
-        if merger:
+
+        specified_articulator_count = sum(bool(art) for art in (hands, arms, legs))
+        if specified_articulator_count > 1:
+            conflict_flag = True
+
+        if merger and conflict_flag:
+            conflict_warning = True
+
+        if merger and not conflict_flag:
             for s in abstract_articulator:
                 s = inject_signtype_intermediates(s)
                 result.append(f'Articulator>{s}')
-            return result
+            return conflict_warning, result
 
         for label, specs in (("Hands", hands), ("Arms", arms), ("Legs", legs)):
             for s in specs:
                 s = inject_signtype_intermediates(s)
                 result.append(f"{label}>{s}")
 
-        return result
+        return conflict_warning, result
 
     def compare_movements(self) -> dict:
         def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):

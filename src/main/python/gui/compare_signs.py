@@ -455,7 +455,7 @@ class CompareSignsDialog(QDialog):
     def _gen_options_content_signtype(self):
         self.signtype_groupbox = QGroupBox("Sign type")
         hand_opts_layout = QVBoxLayout(self.signtype_groupbox)
-        self.sign_type_art_button = QCheckBox("Merge articulators in sign type comparison.")
+        self.sign_type_art_button = QCheckBox("Use abstract articulator in sign type comparison.")
         self.sign_type_art_button.toggled.connect(self._on_signtype_option_changed)
         hand_opts_layout.addWidget(self.sign_type_art_button)
         hand_opts_layout.addStretch()
@@ -485,6 +485,11 @@ class CompareSignsDialog(QDialog):
     def _on_signtype_option_changed(self, state):
         # state: bool. whether checked or not
         self.comparison_options['signtype']['articulator_merger'] = state
+        self.update_trees(self.comparison_options)
+
+    def prompt_warning(self, msg):
+        QMessageBox.warning(self, 'Warning', msg, QMessageBox.Ok)
+        self.sign_type_art_button.setChecked(False)
         self.update_trees(self.comparison_options)
 
     def gen_bottom_btns(self):
@@ -917,6 +922,7 @@ class CompareSignsDialog(QDialog):
 
         sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # Identify signs to compare
         compare = CompareModel(sign1, sign2)
+        compare.warning_signal.connect(self.prompt_warning)
         compare_res, unknown_modules = compare.compare_sign_pair(self.comparison_options)
 
         # Future proofing: warn the user if any existing module is unknown and cannot be compared
