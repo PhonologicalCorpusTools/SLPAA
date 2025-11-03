@@ -1,4 +1,5 @@
 from collections import defaultdict, Counter
+import itertools
 
 from PyQt5.QtCore import Qt
 
@@ -95,25 +96,21 @@ def alignmodules_helper(modulesbysign, moduletype):
         return modsalignedbypalm + modsalignedbyfingerroot + modsalignedbycodingorder, unmatched
     elif moduletype == ModuleTypes.HANDCONFIG:
         # ii. After aligning by hand, align by full handshape name if possible (e.g. align two '5' handshapes, or 2 'extended A' handshapes, etc.).
-        modsalignedbyhsname, unmatched = alignbyhandshape(modulesbysign, 'name')
         # iii. If aligning by full handshape name isn’t possible, align by ‘base’ handshape.
         #   That is, align any variant of an “A” handshape with another variant of an “A” handshape (e.g. "A" and "extended A"),
         #   or any variant of a “B” handshape with another variant of a “B” handshape, etc.
         #   The base handshapes appear in the first column of the predefined handshape chart,
         #   so basically this is aligning by rows in that chart.
         #   If there are multiple handshapes with the same base, they can just be aligned by coding order.
-        modsalignedbyhsbase, unmatched = alignbyhandshape(unmatched, 'base')
         # iv. If aligning by ‘base’ handshape isn’t possible, align by ‘variant type.’
         #   That is, align any ‘bent’ handshape with another ‘bent’ handshape, or any ‘clawed’ handshape with another
         #   ‘clawed’ handshape, etc. The variant types are listed in the first row of the predefined handshape chart,
         #   so basically this is aligning by columns in that chart.
-        modsalignedbyhsvariant, unmatched = alignbyhandshape(unmatched, 'variant')
         # from 20250908 meeting: align by forearm after variant and before coding order
-        modsalignedbyhsforearm, unmatched = alignbyhandshape(unmatched, 'forearm')
+        modsalignedbyhs, unmatched = alignbyhandshape(modulesbysign)
         # v. If there are still unaligned handshapes, align by coding order.
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
-        return modsalignedbyhsname + modsalignedbyhsbase + modsalignedbyhsvariant + modsalignedbyhsforearm + modsalignedbycodingorder, unmatched
-        #   [NB: this one might eventually need to get refined.]
+        return modsalignedbyhs + modsalignedbycodingorder, unmatched
     elif moduletype == ModuleTypes.RELATION:
         # TODO - waiting for further intructions from Kathleen
         modsalignedbycodingorder, unmatched = alignbycodingorder(modulesbysign, matchwithnone=False)
@@ -182,95 +179,253 @@ def directionsmatch(sign1dirs, sign2dirs, level='specific'):
 #   ‘clawed’ handshape, etc. The variant types are listed in the first row of the predefined handshape chart,
 #   so basically this is aligning by columns in that chart.
 # from 20250908 meeting: align by forearm after variant and before coding order
-def alignbyhandshape(configmodsbysign, elementtoalignby):
-    # elementtoalignby: str. one of 'name', 'base', 'variant', or 'forearm'
+def alignbyhandshape(configmodsbysign):
+    matchedmods = []
+    unmatchedmods = {1: [], 2: []}
+
     sign1mods = [mod for mod in configmodsbysign[1]]
     sign2mods = [mod for mod in configmodsbysign[2]]
 
-    matchedmods = []
-    matchedonelements = []
+    names = {1: [get_hsname(mod) for mod in sign1mods],
+             2: [get_hsname(mod) for mod in sign2mods]}
 
-    index1 = 0
-    while index1 < len(sign1mods):
-        mod1 = sign1mods[index1]
-        mod1hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(mod1.handconfiguration).get_hand_transcription_list()))
-        # tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
-        if mod1hs is not None:
-            mod1hsname = mod1hs.name
+    setofnames = set(names[1] + names[2])
+    namesbysign = {1: {name: 0 for name in setofnames},
+                   2: {name: 0 for name in setofnames}}
+    signsbyname = {name: {1: 0, 2: 0} for name in setofnames}
+    for snum in snums:
+        for configname in names[snum]:
+            namesbysign[snum][configname] += 1
+            signsbyname[configname][snum] += 1
 
-            index2 = 0
-            while index2 < len(sign2mods):
-                mod2 = sign2mods[index2]
-                mod2hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(mod2.handconfiguration).get_hand_transcription_list()))
-                if mod2hs is not None:
-                    mod2hsname = mod2hs.name
+    # try to match by handshape name (including forearm info)
+    for configname in signsbyname.keys():
+        modsthisname_matched, modsthisname_unmatched, configmodsbysign, names = match_by_handshapename(configname, signsbyname[configname], configmodsbysign, names)
+        matchedmods.extend(modsthisname_matched)
+        unmatchedmods = concatenate_dictlists(unmatchedmods, modsthisname_unmatched, allowduplicates=False)
 
-                    mod1bases, mod1variants = parse_predefined_names(mod1hsname, None, mod2hsname, return_path_form=False)
-                    mod2bases, mod2variants = parse_predefined_names(mod2hsname, None, mod1hsname, return_path_form=False)
+    # send any unmatched modules onward to be matched by base/variant/forearm
+    sign1mods = [mod for mod in unmatchedmods[1]]
+    sign2mods = [mod for mod in unmatchedmods[2]]
+    unmatchedmods = {1: [], 2: []}
+
+    lendiff = len(sign2mods) - len(sign1mods)
+    if lendiff > 0:
+        allorderings_s1mods_tooshort = [list(ordering_tuple) for ordering_tuple in itertools.permutations(sign1mods)]
+        possible_unmatch_locs = get_all_combinations(len(allorderings_s1mods_tooshort)+1, lendiff)
+        allorderings_s1mods = []
+        for ordering_tooshort in [ordering for ordering in allorderings_s1mods_tooshort]:
+            for unmatch_locs_list in possible_unmatch_locs:
+                thisordering_theseunmatches = [mod for mod in ordering_tooshort]
+                for idx, unmatch_loc in enumerate(unmatch_locs_list):
+                    thisordering_theseunmatches.insert(unmatch_loc+idx, None)
+                allorderings_s1mods.append(thisordering_theseunmatches)
+
+        # match up allorderings_s1mods vs s2mods in order to calculate the possible alignment scores
+        allorderings_s2mods = [sign2mods]
+        which_has_multiple_orderings = 1
+
+    else:
+        lendiff = -lendiff
+        allorderings_s2mods_tooshort = [list(ordering_tuple) for ordering_tuple in itertools.permutations(sign2mods)]
+        possible_unmatch_locs = get_all_combinations(len(allorderings_s2mods_tooshort)+1, lendiff)
+        allorderings_s2mods = []
+        for ordering_tooshort in [ordering for ordering in allorderings_s2mods_tooshort]:
+            for unmatch_locs_list in possible_unmatch_locs:
+                thisordering_theseunmatches = [mod for mod in ordering_tooshort]
+                for idx, unmatch_loc in enumerate(unmatch_locs_list):
+                    thisordering_theseunmatches.insert(unmatch_loc+idx, None)
+                allorderings_s2mods.append(thisordering_theseunmatches)
+
+        # match up allorderings_s2mods vs s1mods in order to calculate the possible alignment scores
+        allorderings_s1mods = [sign1mods]
+        which_has_multiple_orderings = 2
+
+    # TODO make a list of lists of matching scores per pairing above
+    class AlignmentScoring:
+        def __init__(self, listofscores):
+            self.scores = listofscores
+            self.basematches = sum([int(score[0]) for score in listofscores])
+            self.variantmatches = sum([int(score[1]) for score in listofscores])
+            self.forearmmatches = sum([int(score[2]) for score in listofscores])
+
+    possiblescorings = []
+    for s1ordering in allorderings_s1mods:
+        for s2ordering in allorderings_s2mods:
+            # match up s1ordering with s2ordering, then calculate pair-by-pair scores for this alignment
+            #   and add the list of scores to possiblescores
+
+            scores_thisalignment = []
+            for idx, s1mod in enumerate(s1ordering):
+                s2mod = s2ordering[idx]
+
+                if s1mod is None or s2mod is None:
+                    scores_thisalignment.append("000")
+                else:
+                    s1hsname = get_hsname(s1mod)
+                    s2hsname = get_hsname(s2mod)
+                    mod1bases, mod1variants = parse_predefined_names(s1hsname, None, s2hsname, return_path_form=False)
+                    mod2bases, mod2variants = parse_predefined_names(s2hsname, None, s1hsname, return_path_form=False)
 
                     mod1bases = set(mod1bases)
                     mod2bases = set(mod2bases)
                     mod1variants = [v for v in mod1variants if v not in mod1bases]
                     mod2variants = [v for v in mod2variants if v not in mod2bases]
 
-                    matchflag = False
-                    if (elementtoalignby == 'name' and mod1hsname == mod2hsname):
-                        matchflag = True
-                        matchedonelements.append(mod1hsname)
-                    elif (elementtoalignby == 'base' and (mod1bases.issubset(mod2bases) or mod2bases.issubset(mod1bases))):
-                        matchflag = True
-                        # set is not hashable (needed later for Counter())-- store the intersection as a tuple instead
-                        intersect_tuple = tuple(sorted(list(mod1bases.intersection(mod2bases))))
-                        matchedonelements.append(intersect_tuple)
-                        # matchedonelements.append(mod1bases.intersection(mod2bases))
-                    elif (elementtoalignby == 'variant' and mod1variants == mod2variants):
-                        matchflag = True
-                        matchedonelements.append(mod1variants)
-                    elif (elementtoalignby == 'forearm' and mod1.overalloptions['forearm'] == mod2.overalloptions['forearm']):
-                        matchflag = True
-                        matchedonelements.append(mod1.overalloptions['forearm'])
+                    basematch = int(mod1bases.issubset(mod2bases) or mod2bases.issubset(mod1bases))
+                    variantmatch = int(mod1variants == mod2variants)
+                    forearmmatch = int(s1mod.overalloptions['forearm'] == s2mod.overalloptions['forearm'])
+                    score_thispair = str(basematch) + str(variantmatch) + str(forearmmatch)
 
-                    if matchflag:
-                        print('aligned by ' + elementtoalignby)
-                        matchedmods.append((mod1, mod2))
-                        sign1mods.remove(mod1)
-                        sign2mods.remove(mod2)
+                    scores_thisalignment.append(score_thispair)
 
-                index2 += 1
-        index1 += 1
+            possiblescorings.append(AlignmentScoring(scores_thisalignment))
 
-    # if matching by name/base/variant/forearm and there is > 1 pair in matchedmods with the same matched value,
-    #   then feed those pairs through the next level down
-    matchedelementcounts = Counter(matchedonelements)
-    for matchedelement in matchedelementcounts:
-        numpairs = matchedelementcounts[matchedelement]
-        if numpairs > 1:
-            # identify which positions in the matchedmods list they occupy
-            indicestorematch = [i for i, x in enumerate(matchedonelements) if x == matchedelement]
-            # remove from matchedmods
-            matchedmods = [pair for idx, pair in enumerate(matchedmods) if idx not in indicestorematch]
-            # re-match by next element down if possible (otherwise coding order);
-            # there should not be any unmatched modules as a result of this process
-            if elementtoalignby == 'name':
-                rematchedpairs, _ = alignbyhandshape({1: [matchedmods[i][0] for i in indicestorematch],
-                                                      2: [matchedmods[i][1] for i in indicestorematch]}, 'base')
-            elif elementtoalignby == 'base':
-                rematchedpairs, _ = alignbyhandshape({1: [matchedmods[i][0] for i in indicestorematch],
-                                                      2: [matchedmods[i][1] for i in indicestorematch]}, 'variant')
-            elif elementtoalignby == 'variant':
-                rematchedpairs, _ = alignbyhandshape({1: [matchedmods[i][0] for i in indicestorematch],
-                                                      2: [matchedmods[i][1] for i in indicestorematch]}, 'forearm')
-            elif elementtoalignby == 'forearm':
-                rematchedpairs, _ = alignbycodingorder({1: [matchedmods[i][0] for i in indicestorematch],
-                                                        2: [matchedmods[i][1] for i in indicestorematch]},
-                                                       matchwithnone=True)
-            else:
-                rematchedpairs = []
-            # add the re-matched pairs back to the matchedmods list
-            matchedmods.extend(rematchedpairs)
+    # now compare alignment scorings and prune lower-scoring alignments
 
-    return matchedmods, {1: sign1mods, 2: sign2mods}
+    # TODO these following three sections are super repetitive-- make a generic function to make this more modular!
 
+    # ... prioritizing first by base
+    max_base_matches = max([alignscoring.basematches for alignscoring in possiblescorings])
+    alignment_indices_to_prune = []
+    for idx, alignscoring in enumerate(possiblescorings):
+        # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
+        if alignscoring.basematches < max_base_matches:
+            alignment_indices_to_prune.append(idx)
+    for idx_to_prune in reversed(alignment_indices_to_prune):
+        possiblescorings.pop(idx_to_prune)
+        if which_has_multiple_orderings == 1:
+            allorderings_s1mods.pop(idx_to_prune)
+        elif which_has_multiple_orderings == 2:
+            allorderings_s2mods.pop(idx_to_prune)
+
+    # ... then by variant
+    max_variant_matches = max([alignscoring.variantmatches for alignscoring in possiblescorings])
+    alignment_indices_to_prune = []
+    for idx, alignscoring in enumerate(possiblescorings):
+        # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
+        if alignscoring.variantmatches < max_variant_matches:
+            alignment_indices_to_prune.append(idx)
+    for idx_to_prune in reversed(alignment_indices_to_prune):
+        possiblescorings.pop(idx_to_prune)
+        if which_has_multiple_orderings == 1:
+            allorderings_s1mods.pop(idx_to_prune)
+        elif which_has_multiple_orderings == 2:
+            allorderings_s2mods.pop(idx_to_prune)
+
+    # ... then by forearm
+    max_forearm_matches = max([alignscoring.forearmmatches for alignscoring in possiblescorings])
+    alignment_indices_to_prune = []
+    for idx, alignscoring in enumerate(possiblescorings):
+        # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
+        if alignscoring.forearmmatches < max_forearm_matches:
+            alignment_indices_to_prune.append(idx)
+    for idx_to_prune in reversed(alignment_indices_to_prune):
+        possiblescorings.pop(idx_to_prune)
+        if which_has_multiple_orderings == 1:
+            allorderings_s1mods.pop(idx_to_prune)
+        elif which_has_multiple_orderings == 2:
+            allorderings_s2mods.pop(idx_to_prune)
+
+    # now all we have left is possible alignments with the maximum possible base, variant, and forearm matches
+    #   (prioritized in that order)
+    # TODO could there be more than one such alignment? I suppose so...
+    #  in which case, do we just choose a random one? or is there a way to prioritize coding order here?
+    # alignment_scoring = possiblescorings[0]
+    s1mods_alignmentorder = allorderings_s1mods[0]
+    s2mods_alignmentorder = allorderings_s2mods[0]
+    for idx, s1mod in enumerate(s1mods_alignmentorder):
+        s2mod = s2mods_alignmentorder[idx]
+
+        if s1mod is not None and s2mod is not None:
+            matchedmods.append((s1mod, s2mod))
+        elif s1mod is None:
+            unmatchedmods[2].append(s2mod)
+        elif s2mod is None:
+            unmatchedmods[1].append(s1mod)
+
+    return matchedmods, unmatchedmods
+
+
+def get_hsname(handconfigmodule):
+    hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(handconfigmodule.handconfiguration).get_hand_transcription_list()))
+    return hs.name
+
+
+def match_by_handshapename(configname, modswiththisname_dict, configmodsbysign, names):
+    modsthisname_matched = []
+    modsthisname_unmatched = {1: [], 2: []}
+
+    nummods_s1 = modswiththisname_dict[1]
+    nummods_s2 = modswiththisname_dict[2]
+    if nummods_s1 == 0 or nummods_s2 == 0:
+        # no matches possible since one or the other sign has 0 modules with this name
+        modsthisname_unmatched = {1: [mod for mod in configmodsbysign[1]], 2: [mod for mod in configmodsbysign[2]]}  # [mod for mod in configmodsbysign]
+    elif nummods_s1 > 0 and nummods_s2 > 0:
+        # at least one match is possible
+
+        # move all modules with this name into a separate dict, and organize by forearm value
+        modsthisname_byforearmvalue = {1: {True: [], False: []},
+                                       2: {True: [], False: []}}
+        for snum in snums:
+            for mod_idx in range(len(configmodsbysign[snum])-1, -1, -1):
+                if names[snum][mod_idx] == configname:
+                    names[snum].pop(mod_idx)
+                    themod = configmodsbysign[snum].pop(mod_idx)
+                    modsthisname_byforearmvalue[snum][themod.overalloptions['forearm']].append(themod)
+
+        for forearm_value in [True, False]:
+            # since names are same and forearm values are the same, these matches will be done by coding order
+            matchedpairs_thisforearmvalue, unmatched_thisforearmvalue = \
+                alignbycodingorder({1: modsthisname_byforearmvalue[1][forearm_value],
+                                    2: modsthisname_byforearmvalue[2][forearm_value]},
+                                   matchwithnone=False)
+            modsthisname_matched.extend(matchedpairs_thisforearmvalue)
+            modsthisname_unmatched = concatenate_dictlists(modsthisname_unmatched, unmatched_thisforearmvalue,
+                                                           allowduplicates=False)
+
+        # at this point we have one or more pairs of modules matched by name + forearm, and possibly some that
+        #   didn't get matched by forearm... so now we will match the remaining same-name modules
+        #   regardless of their forearm value
+        matchedpairs_forearmmoot, unmatched_forearmmoot = alignbycodingorder(modsthisname_unmatched,
+                                                                             matchwithnone=False)
+        modsthisname_matched.extend(matchedpairs_forearmmoot)
+        modsthisname_unmatched = concatenate_dictlists(modsthisname_unmatched, unmatched_forearmmoot,
+                                                       allowduplicates=False)
+
+    return modsthisname_matched, modsthisname_unmatched, configmodsbysign, names
+
+
+def get_all_combinations(range_stop, size):
+    prods_lists = []
+    for prod in itertools.product(range(range_stop), repeat=size):
+        sorted_list = sorted(list(prod))
+        if sorted_list not in prods_lists:
+            prods_lists.append(sorted_list)
+    return prods_lists
+
+
+def get_allpossible_pairings(sign1mods, sign2mods):
+
+    lendiff = len(sign2mods) - len(sign1mods)
+    if lendiff > 0:
+        allorderings_s1mods_tooshort = [list(ordering_tuple) for ordering_tuple in itertools.permutations(sign1mods)]
+        possible_unmatch_locs = itertools.product(range(len(allorderings_s1mods_tooshort)), repeat=lendiff)
+        allorderings_s1mods = []
+        for ordering_tooshort in allorderings_s1mods_tooshort:
+            ordering_tooshort = list(ordering_tooshort)
+            for unmatch_locs_tuple in possible_unmatch_locs:
+                ordering = "TODO"
+                # TODO cotninue
+    elif lendiff < 0:
+        allorderings_s2mods_tooshort = [list(ordering_tuple) for ordering_tuple in itertools.permutations(sign2mods)]
+        possible_unmatch_locs = itertools.product(range(len(allorderings_s2mods_tooshort)), repeat=-lendiff)
+        allorderings_s2mods = []
+        for ordering_tooshort in allorderings_s2mods_tooshort:
+            ordering_tooshort = list(ordering_tooshort)
+            for unmatch_locs_tuple in possible_unmatch_locs:
+                ordering = "TODO"
+                # TODO cotninue
 
 
 
