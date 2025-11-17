@@ -241,7 +241,7 @@ def alignbyhandshape(configmodsbysign, elementtoalignby):
 
     # if matching by name/base/variant/forearm and there is > 1 pair in matchedmods with the same matched value,
     #   then feed those pairs through the next level down
-    matchedelementcounts = Counter(matchedonelements)
+    matchedelementcounts = Counter(matchedonelements) if len(matchedonelements) > 1 else []
     for matchedelement in matchedelementcounts:
         numpairs = matchedelementcounts[matchedelement]
         if numpairs > 1:
