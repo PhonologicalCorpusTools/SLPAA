@@ -210,7 +210,7 @@ def alignbyhandshape(configmodsbysign):
     unmatchedmods = {1: [], 2: []}
 
     lendiff = len(sign2mods) - len(sign1mods)
-    if lendiff > 0:
+    if lendiff >= 0:
         allorderings_s1mods_tooshort = [list(ordering_tuple) for ordering_tuple in itertools.permutations(sign1mods)]
         possible_unmatch_locs = get_all_combinations(len(allorderings_s1mods_tooshort)+1, lendiff)
         allorderings_s1mods = []
@@ -286,46 +286,52 @@ def alignbyhandshape(configmodsbysign):
     # TODO these following three sections are super repetitive-- make a generic function to make this more modular!
 
     # ... prioritizing first by base
-    max_base_matches = max([alignscoring.basematches for alignscoring in possiblescorings])
-    alignment_indices_to_prune = []
-    for idx, alignscoring in enumerate(possiblescorings):
-        # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
-        if alignscoring.basematches < max_base_matches:
-            alignment_indices_to_prune.append(idx)
-    for idx_to_prune in reversed(alignment_indices_to_prune):
-        possiblescorings.pop(idx_to_prune)
-        if which_has_multiple_orderings == 1:
-            allorderings_s1mods.pop(idx_to_prune)
-        elif which_has_multiple_orderings == 2:
-            allorderings_s2mods.pop(idx_to_prune)
+    basematches = [alignscoring.basematches for alignscoring in possiblescorings]
+    max_base_matches = max(basematches)
+    if max_base_matches != min(basematches):
+        alignment_indices_to_prune = []
+        for idx, alignscoring in enumerate(possiblescorings):
+            # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
+            if alignscoring.basematches < max_base_matches:
+                alignment_indices_to_prune.append(idx)
+        for idx_to_prune in reversed(alignment_indices_to_prune):
+            possiblescorings.pop(idx_to_prune)
+            if which_has_multiple_orderings == 1:
+                allorderings_s1mods.pop(idx_to_prune)
+            elif which_has_multiple_orderings == 2:
+                allorderings_s2mods.pop(idx_to_prune)
 
     # ... then by variant
-    max_variant_matches = max([alignscoring.variantmatches for alignscoring in possiblescorings])
-    alignment_indices_to_prune = []
-    for idx, alignscoring in enumerate(possiblescorings):
-        # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
-        if alignscoring.variantmatches < max_variant_matches:
-            alignment_indices_to_prune.append(idx)
-    for idx_to_prune in reversed(alignment_indices_to_prune):
-        possiblescorings.pop(idx_to_prune)
-        if which_has_multiple_orderings == 1:
-            allorderings_s1mods.pop(idx_to_prune)
-        elif which_has_multiple_orderings == 2:
-            allorderings_s2mods.pop(idx_to_prune)
+    variantmatches = [alignscoring.variantmatches for alignscoring in possiblescorings]
+    max_variant_matches = max(variantmatches)
+    if max_variant_matches != min(variantmatches):
+        alignment_indices_to_prune = []
+        for idx, alignscoring in enumerate(possiblescorings):
+            # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
+            if alignscoring.variantmatches < max_variant_matches:
+                alignment_indices_to_prune.append(idx)
+        for idx_to_prune in reversed(alignment_indices_to_prune):
+            possiblescorings.pop(idx_to_prune)
+            if which_has_multiple_orderings == 1:
+                allorderings_s1mods.pop(idx_to_prune)
+            elif which_has_multiple_orderings == 2:
+                allorderings_s2mods.pop(idx_to_prune)
 
     # ... then by forearm
-    max_forearm_matches = max([alignscoring.forearmmatches for alignscoring in possiblescorings])
-    alignment_indices_to_prune = []
-    for idx, alignscoring in enumerate(possiblescorings):
-        # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
-        if alignscoring.forearmmatches < max_forearm_matches:
-            alignment_indices_to_prune.append(idx)
-    for idx_to_prune in reversed(alignment_indices_to_prune):
-        possiblescorings.pop(idx_to_prune)
-        if which_has_multiple_orderings == 1:
-            allorderings_s1mods.pop(idx_to_prune)
-        elif which_has_multiple_orderings == 2:
-            allorderings_s2mods.pop(idx_to_prune)
+    forearmmatches = [alignscoring.forearmmatches for alignscoring in possiblescorings]
+    max_forearm_matches = max(forearmmatches)
+    if max_forearm_matches != min(forearmmatches):
+        alignment_indices_to_prune = []
+        for idx, alignscoring in enumerate(possiblescorings):
+            # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
+            if alignscoring.forearmmatches < max_forearm_matches:
+                alignment_indices_to_prune.append(idx)
+        for idx_to_prune in reversed(alignment_indices_to_prune):
+            possiblescorings.pop(idx_to_prune)
+            if which_has_multiple_orderings == 1:
+                allorderings_s1mods.pop(idx_to_prune)
+            elif which_has_multiple_orderings == 2:
+                allorderings_s2mods.pop(idx_to_prune)
 
     # now all we have left is possible alignments with the maximum possible base, variant, and forearm matches
     #   (prioritized in that order)
