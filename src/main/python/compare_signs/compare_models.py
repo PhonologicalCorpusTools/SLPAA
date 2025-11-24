@@ -66,7 +66,7 @@ class CompareModel(QObject):
             'Handconfig': self.compare_handconfigs(options['handconfig']),
             'Movement': self.compare_movements(),
             'Location': self.compare_locations(),
-            #'Relation': self,   # not impplemented yet
+            'Relation': self.compare_relation(),   # not impplemented yet
             'Orientation': self.compare_orientations(),
             #'Nonmanual': self,  # not implemented yet
         }
@@ -643,5 +643,136 @@ class CompareModel(QObject):
 
         return pair_comparison
     def compare_relation(self) -> dict:
-        # not implemented
+        def convert_to_path(sign) -> list:
+            articulator_flags = {'Both hands':'hboth',
+                                 'H1': 'h1',
+                                 'H2': 'h2',
+                                 'Both arms': 'aboth',
+                                 'Arm1': 'arm1',
+                                 'Arm2': 'arm2',
+                                 'Both legs': 'lboth',
+                                 'Leg1': 'leg1',
+                                 'Leg2': 'leg2'
+                                 }
+            path = ['Distance']
+            # X
+            X_raw = sign.relationx
+            X_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(X_raw, attr, False))
+            path.append(f'X>{X_selected_articulator}')
+            # Y
+            Y_raw = sign.relationy
+            Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
+            path.append(f'Y>{Y_selected_articulator}')
+
+            # Contact
+            contact_raw = sign.contactrel.contact  # bool
+            if contact_raw:
+                path.append('Contact>Contact')
+                return path
+            else:
+                path.append('Contact>No contact')
+
+            # Distance
+            distance_raw = sign.contactrel.distances  # list
+
+            for d in distance_raw:
+                close = d.close
+                med = d.medium
+                far = d.far
+                flag = {
+                    'Close': close,
+                    'Medium': med,
+                    'Far': far
+                }
+                if any(flag.values()):
+                    axis = d.axis
+                    specified = next(key for key, value in flag.items() if value)
+                    path.append(f'Distance>{axis}>{specified}')
+            return path
+
+        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+            # pair: pair of relationModule
+            # relation module has relatively fixed set of sub-modules.
+            # X, Y, Contact, Body parts, Distance between X and Y
+            sign1 = pair[0]  # RelationModule
+            sign2 = pair[1]
+            results1 = []
+            results2 = []
+
+
+            # for sign1
+            s1path = convert_to_path(sign1)
+
+            # for sign2
+            s2path = convert_to_path(sign2)
+
+            s1_path_element = get_informative_elements(s1path)
+            s2_path_element = get_informative_elements(s2path)
+
+            s1_path_btn_types = {
+                path: get_btn_type_for_path('rel', path, None) for path in s1_path_element
+            }
+            s2_path_btn_types = {
+                path: get_btn_type_for_path('rel', path, None) for path in s2_path_element
+            }
+
+            finished_roots = []  # to track compared roots
+
+            for e1 in s1_path_element:
+                matched = False
+                for e2 in s2_path_element:
+                    if e1.split('>')[0] == e2.split('>')[0]:  # Compare only if they share the same root
+                        matched = True
+                        finished_roots.append(e2.split('>')[0])
+                        res1, res2 = compare_elements(
+                            e1=e1,
+                            e2=e2,
+                            btn_types1=s1_path_btn_types,
+                            btn_types2=s2_path_btn_types,
+                            pairwise=pairwise
+                        )
+                        results1.append(res1)
+                        results2.append(res2)
+
+                if not matched:
+                    res1, _ = compare_elements(e1, '', s1_path_btn_types, {}, pairwise=False)
+                    results1.append(res1)
+
+            for e2 in s2_path_element:
+                if e2.split('>')[0] not in finished_roots:
+                    _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
+                    results2.append(res2)
+
+            results1 = summarize_path_comparison(results1)
+            results2 = summarize_path_comparison(results2)
+            return results1, results2
+
+
+
+        # currently, use modules naively. eventually, use the results of relation module alignment as the line below!
+        # aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.RELATION)
+
+
+        [(_, sign1_relmodule)] = self.sign1.relationmodules.items()
+        [(_, sign2_relmodule)] = self.sign2.relationmodules.items()
+        aligned_modules = [(sign1_relmodule, sign2_relmodule)]
+
+        pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
+
+        for i, module in enumerate(aligned_modules):
+            sign1_module_label, sign2_module_label = self.get_module_labels(module)
+
+            if all(module):  # pair of modules
+                r_sign1, r_sign2 = compare_module_pair(module)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
+            elif module[0]:  # only sign 1 has this module
+                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
+            else:            # only sign 2 has this module
+                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
+
+        return pair_comparison
+
         pass

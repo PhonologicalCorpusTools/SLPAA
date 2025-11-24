@@ -372,6 +372,14 @@ def get_btn_type_for_path(module_type, path, root_node):
             btn_types.append(to_append)
         return '>'.join(btn_types)
 
+    elif module_type == 'rel':
+        # relation.
+        # i have no idea what to do. just specify all as radiobutton for now
+        for i, part in enumerate(parts):
+            to_append = 'radio button'
+            btn_types.append(to_append)
+        return '>'.join(btn_types)
+
     def traverse(path_parts: list, node):
         if not path_parts:
             return True  # Reached the end successfully
