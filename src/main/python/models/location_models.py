@@ -83,6 +83,7 @@ hand_surfaces = "default hand surfaces" # [back, friction, radial, ulnar]
 nonhand_surfaces = "default nonhand surfaces" # [anterior, posterior, lateral, medial, top, bottom]
 nonhand_surfaces_2 = "default except top, bottom" # [anterior, posterior, lateral, medial]
 heelofhand_surfaces = "default plus wrist" # [back, friction, wrist, radial, ulnar]
+wholehand_surfaces = "whole hand surfaces"  # [back, friction, radial, ulnar, wrist, tip]
 
 tongue_subareas = "default plus dorsum, blade, tip" # [contra_half, whole, centre, ipsi_half, dorsum, blade, tip]
 nonhand_subareas =  "default nonhand subareas" # [contra_half, upper_half, whole, centre, lower_half, ipsi_half]
@@ -99,7 +100,8 @@ surface_lists = {
     hand_surfaces: [back, friction, radial, ulnar],
     nonhand_surfaces: [anterior, posterior, lateral, medial, top, bottom],
     nonhand_surfaces_2: [anterior, posterior, lateral, medial],
-    heelofhand_surfaces: [back, friction, wrist, radial, ulnar]
+    heelofhand_surfaces: [back, friction, wrist, radial, ulnar],
+    wholehand_surfaces: [back, friction, radial, ulnar, wrist, tip]
 }
 
 subarea_lists = {
@@ -245,9 +247,9 @@ class LocnOptionsNode:
 
 
 # should these go into constant.py... or somewhere similar?
-locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, hand_surfaces, hand_subareas, children=[
-    LocnOptionsNode("Whole hand - contra", fx, rb, hs, hand_surfaces, hand_subareas),
-    LocnOptionsNode("Whole hand - ipsi", fx, rb, hs, hand_surfaces, hand_subareas),
+locn_options_hand = LocnOptionsNode("Whole hand", fx, rb, hs, wholehand_surfaces, hand_subareas, children=[
+    LocnOptionsNode("Whole hand - contra", fx, rb, hs, wholehand_surfaces, hand_subareas),
+    LocnOptionsNode("Whole hand - ipsi", fx, rb, hs, wholehand_surfaces, hand_subareas),
     LocnOptionsNode("Hand minus fingers", fx, rb, hs, hand_surfaces, hand_subareas, children=[
         LocnOptionsNode("Hand minus fingers - contra", fx, rb, hs, hand_surfaces, hand_subareas),
         LocnOptionsNode("Hand minus fingers - ipsi", fx, rb, hs, hand_surfaces, hand_subareas),
