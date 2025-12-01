@@ -654,25 +654,10 @@ class CompareModel(QObject):
                                  'Leg1': 'leg1',
                                  'Leg2': 'leg2'
                                  }
-            path = ['Distance']
-            # X
-            X_raw = sign.relationx
-            X_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(X_raw, attr, False))
-            path.append(f'X>{X_selected_articulator}')
-            # Y
-            Y_raw = sign.relationy
-            Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
-            path.append(f'Y>{Y_selected_articulator}')
-
-            # Contact
-            contact_raw = sign.contactrel.contact  # bool
-            if contact_raw:
-                path.append('Contact>Contact')
-                return path
-            else:
-                path.append('Contact>No contact')
 
             # Distance
+            path = ['Distance']
+
             distance_raw = sign.contactrel.distances  # list
 
             for d in distance_raw:
@@ -688,6 +673,24 @@ class CompareModel(QObject):
                     axis = d.axis
                     specified = next(key for key, value in flag.items() if value)
                     path.append(f'Distance>{axis}>{specified}')
+
+            # contact
+            contact_raw = sign.contactrel.contact  # bool
+            if contact_raw:
+                path.append('Contact>Contact')
+            else:
+                path.append('Contact>No contact')
+
+            # Y
+            Y_raw = sign.relationy
+            Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
+            path.append(f'Y>{Y_selected_articulator}')
+
+            # X
+            X_raw = sign.relationx
+            X_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(X_raw, attr, False))
+            path.append(f'X>{X_selected_articulator}')
+
             return path
 
         def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
@@ -774,5 +777,3 @@ class CompareModel(QObject):
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
-
-        pass
