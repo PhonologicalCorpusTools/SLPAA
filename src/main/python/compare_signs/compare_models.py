@@ -642,6 +642,7 @@ class CompareModel(QObject):
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
+
     def compare_relation(self) -> dict:
         def convert_to_path(sign) -> list:
             articulator_flags = {'Both hands':'hboth',
@@ -673,6 +674,27 @@ class CompareModel(QObject):
                     axis = d.axis
                     specified = next(key for key, value in flag.items() if value)
                     path.append(f'Distance>{axis}>{specified}')
+
+            # direction
+            direction_raw = sign.directions
+            direction_spec_bool = [d.axisselected for d in direction_raw]
+            if any(direction_spec_bool):
+                for i, b in enumerate(direction_spec_bool):
+                    if not b:
+                        continue
+                    direction = direction_raw[i]
+                    direction_abbr = direction.getabbreviation()
+                    to_append = f'Direction>{direction.axis}'
+
+                    if direction_abbr != 'any':
+                        to_append += f'>{direction_abbr}'
+                    path.append(to_append)
+
+            cross_linked_raw = [sign.xy_crossed, sign.xy_linked]
+            if cross_linked_raw[1]:
+                path.append(f'Direction>X and Y are linked')
+            if cross_linked_raw[0]:
+                path.append(f'Direction>X and Y are crossed')
 
             # contact
             contact_raw = sign.contactrel.contact  # bool
@@ -754,7 +776,6 @@ class CompareModel(QObject):
 
         # currently, use modules naively. eventually, use the results of relation module alignment as the line below!
         # aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.RELATION)
-
 
         [(_, sign1_relmodule)] = self.sign1.relationmodules.items()
         [(_, sign2_relmodule)] = self.sign2.relationmodules.items()
