@@ -6,7 +6,7 @@ import re
 import sys
 from collections import defaultdict
 from copy import deepcopy
-from datetime import date
+from datetime import date, datetime  # TODO remove datetime before merging to main (leave date)
 from fractions import Fraction
 
 from PyQt5.QtCore import (
@@ -1820,6 +1820,7 @@ class AlignTestDialog(QDialog):
         self.setLayout(main_layout)
 
     def handle_alignmodules(self, checked):
+        starttime = datetime.today()  # TODO remove before merging to main
         self.aligndisplay.setText("aligning...")
 
         allalignedmodules = []
@@ -1848,6 +1849,13 @@ class AlignTestDialog(QDialog):
             resultstring += "S1: " + mod1string + "\n" + self.gethackymoduleabbreviation(mod1) + "S2: " + mod2string + "\n" + self.gethackymoduleabbreviation(mod2) + "\n"
 
         self.aligndisplay.setText(resultstring)
+
+        # TODO remove before merging to main
+        endtime = datetime.today()
+        print("handle_alignmodules() completed...")
+        print("   starttime:", starttime)
+        print("   endtime:", endtime)
+        print("   duration:", endtime - starttime)
 
     def gethackymoduleabbreviation(self, module):
         if module is None:
