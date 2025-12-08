@@ -644,7 +644,7 @@ class CompareModel(QObject):
         return pair_comparison
 
     def compare_relation(self) -> dict:
-        def convert_to_path(sign) -> list:
+        def convert_to_path(sign, upstream) -> list:
             articulator_flags = {'Both hands':'hboth',
                                  'H1': 'h1',
                                  'H2': 'h2',
@@ -729,8 +729,13 @@ class CompareModel(QObject):
 
             # Y
             Y_raw = sign.relationy
-            Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
-            path.append(f'Y>{Y_selected_articulator}')
+            if Y_raw.linkedmoduletype:  # Y is either location or movement
+                linked_modules = getattr(upstream, f'{Y_raw.linkedmoduletype}modules')
+                for _, m in linked_modules.items():
+                    path.append(f'Y>{m.moduletype}>{m.getabbreviation()}')
+            else:
+                Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
+                path.append(f'Y>{Y_selected_articulator}')
 
             # X
             X_raw = sign.relationx
@@ -739,21 +744,22 @@ class CompareModel(QObject):
 
             return path
 
-        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+        def compare_module_pair(pair: tuple, upstream, pairwise: bool = True) -> (list, list):
             # pair: pair of relationModule
+            # upstream: tuple of two Sign objects
             # relation module has relatively fixed set of sub-modules.
             # X, Y, Contact, Body parts, Distance between X and Y
             sign1 = pair[0]  # RelationModule
             sign2 = pair[1]
             results1 = []
             results2 = []
-
+            sign1_upstream, sign2_upstream = upstream
 
             # for sign1
-            s1path = convert_to_path(sign1)
+            s1path = convert_to_path(sign1, sign1_upstream)
 
             # for sign2
-            s2path = convert_to_path(sign2)
+            s2path = convert_to_path(sign2, sign2_upstream)
 
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
@@ -798,6 +804,7 @@ class CompareModel(QObject):
 
 
 
+        signpair = (self.sign1, self.sign2)
         # currently, use modules naively. eventually, use the results of relation module alignment as the line below!
         # aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.RELATION)
 
@@ -811,14 +818,14 @@ class CompareModel(QObject):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(module)
+                r_sign1, r_sign2 = compare_module_pair(module, upstream=signpair)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
             elif module[0]:  # only sign 1 has this module
-                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                r_sign1, _ = compare_module_pair((module[0], module[0]), upstream=signpair, pairwise=False)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:            # only sign 2 has this module
-                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                _, r_sign2 = compare_module_pair((module[1], module[1]), upstream=signpair, pairwise=False)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
