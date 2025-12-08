@@ -697,9 +697,33 @@ class CompareModel(QObject):
                 path.append(f'Direction>X and Y are crossed')
 
             # contact
-            contact_raw = sign.contactrel.contact  # bool
-            if contact_raw:
-                path.append('Contact>Contact')
+            contact_raw = sign.contactrel
+            if contact_raw.contact:  # bool
+                to_append = 'Contact>Contact'
+
+                # check for further specifications
+                contacttype_types = ['light', 'firm', 'other']
+
+
+                selected_contacttype = next(
+                    (t for t in contacttype_types    # for each possible contact type
+                     if getattr(contact_raw.contacttype, t, False)),  # check whether selected
+                    None  # fallback case
+                )
+
+                if selected_contacttype:
+                    to_append += f'>{selected_contacttype}'
+                path.append(to_append)
+
+                # now contact manner
+                contactmanner_types = ['continuous', 'holding', 'intermittent']
+                selected_manner = next(
+                    (t for t in contactmanner_types    # for each possible type
+                     if getattr(contact_raw.manner, t, False)),  # check whether selected
+                    None  # fallback case
+                )
+                if selected_manner:
+                    path.append(f'Contact>Contact>Manner>{selected_manner}')
             else:
                 path.append('Contact>No contact')
 
