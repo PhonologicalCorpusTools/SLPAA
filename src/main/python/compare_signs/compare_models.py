@@ -729,7 +729,8 @@ class CompareModel(QObject):
 
             # Y
             Y_raw = sign.relationy
-            if Y_raw.linkedmoduletype:  # Y is either location or movement
+            if Y_raw.existingmodule:
+                # Y is connected to an existing module and is either location or movement
                 linked_modules = getattr(upstream, f'{Y_raw.linkedmoduletype}modules')
                 for _, m in linked_modules.items():
                     path.append(f'Y>{m.moduletype}>{m.getabbreviation()}')
