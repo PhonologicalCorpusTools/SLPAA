@@ -63,6 +63,7 @@ friction = "Friction"
 radial = "Radial"
 ulnar = "Ulnar"
 wrist = "Wrist"
+fingertip = "Fingertip"
 finger_side = "Finger side"
 wrist_side = "Wrist side"
 radial_side = "Radial side"
@@ -83,7 +84,7 @@ hand_surfaces = "default hand surfaces" # [back, friction, radial, ulnar]
 nonhand_surfaces = "default nonhand surfaces" # [anterior, posterior, lateral, medial, top, bottom]
 nonhand_surfaces_2 = "default except top, bottom" # [anterior, posterior, lateral, medial]
 heelofhand_surfaces = "default plus wrist" # [back, friction, wrist, radial, ulnar]
-wholehand_surfaces = "whole hand surfaces"  # [back, friction, radial, ulnar, wrist, tip]
+wholehand_surfaces = "whole hand surfaces"  # [back, friction, radial, ulnar, wrist, fingertip]
 
 tongue_subareas = "default plus dorsum, blade, tip" # [contra_half, whole, centre, ipsi_half, dorsum, blade, tip]
 nonhand_subareas =  "default nonhand subareas" # [contra_half, upper_half, whole, centre, lower_half, ipsi_half]
@@ -101,7 +102,7 @@ surface_lists = {
     nonhand_surfaces: [anterior, posterior, lateral, medial, top, bottom],
     nonhand_surfaces_2: [anterior, posterior, lateral, medial],
     heelofhand_surfaces: [back, friction, wrist, radial, ulnar],
-    wholehand_surfaces: [back, friction, radial, ulnar, wrist, tip]
+    wholehand_surfaces: [back, friction, radial, ulnar, wrist, fingertip]
 }
 
 subarea_lists = {
