@@ -414,7 +414,7 @@ def alignbyhandshape_combinatoric(s1mods, s2mods):
 
     # now compare alignment scorings and prune lower-scoring alignments
 
-    # TODO these following three sections are super repetitive-- make a generic function to make this more modular!
+    # TODO KV these following three sections are super repetitive-- make a generic function to make this more modular!
 
     # ... prioritizing first by base
     basematches = [alignscoring.basematches for alignscoring in possiblescorings]
@@ -466,7 +466,7 @@ def alignbyhandshape_combinatoric(s1mods, s2mods):
 
     # now all we have left is possible alignments with the maximum possible base, variant, and forearm matches
     #   (prioritized in that order)
-    # TODO could there be more than one such alignment? I suppose so...
+    # TODO KV could there be more than one such alignment? I suppose so...
     #  in which case, do we just choose a random one? or is there a way to prioritize coding order here?
     # alignment_scoring = possiblescorings[0]
     s1mods_alignmentorder = allorderings_s1mods[0]
@@ -893,6 +893,7 @@ def alignbycodingorder(modulesbysign, matchwithnone=False):
 
 def alignbyarticulator(modulesbysign, moduletype):
     matchedmods = []
+    warningstrings = []
 
     sign1modsbyarticulator = {
         HAND: {1: [], 2: [], 3: []},  # with 3 meaning both 1 and 2
@@ -918,6 +919,8 @@ def alignbyarticulator(modulesbysign, moduletype):
                     2: sign2modsbyarticulator[art][artnum]
                 },
                 moduletype)
+                if warningstring not in warningstrings:
+                    warningstrings.append(warningstring)
                 # save aligned modules to be returned at the end of the function
                 matchedmods.extend(alignedmodules)
                 # put any unmatched ones back into the pot
@@ -937,6 +940,8 @@ def alignbyarticulator(modulesbysign, moduletype):
                     2: sign2modsbyarticulator[art][3]
                 },
                 moduletype)
+                if warningstring not in warningstrings:
+                    warningstrings.append(warningstring)
                 # save aligned modules to be returned at the end of the function
                 matchedmods.extend(alignedmodules)
                 # put any unmatched ones back into the pot
@@ -949,6 +954,8 @@ def alignbyarticulator(modulesbysign, moduletype):
                     2: sign2modsbyarticulator[art][artnum]
                 },
                 moduletype)
+                if warningstring not in warningstrings:
+                    warningstrings.append(warningstring)
                 # save aligned modules to be returned at the end of the function
                 matchedmods.extend(alignedmodules)
                 # put any unmatched ones back into the pot
@@ -961,6 +968,8 @@ def alignbyarticulator(modulesbysign, moduletype):
             2: sign2modsbyarticulator[art][1] + sign2modsbyarticulator[art][2] + sign2modsbyarticulator[art][3],
         }
         alignedmodules, unmatched, warningstring = alignmodules_helper(stillunmatchedwithinarticulator, moduletype)
+        if warningstring not in warningstrings:
+            warningstrings.append(warningstring)
         # save aligned modules to be returned at the end of the function
         matchedmods.extend(alignedmodules)
         # put unmatched mods back into the pot
@@ -982,6 +991,8 @@ def alignbyarticulator(modulesbysign, moduletype):
                         2: sign2modsbyarticulator[arttype2][artnum]
                     },
                     moduletype)
+                    if warningstring not in warningstrings:
+                        warningstrings.append(warningstring)
                     # save aligned modules to be returned at the end of the function
                     matchedmods.extend(alignedmodules)
                     # put any unmatched ones back into the pot
@@ -997,6 +1008,8 @@ def alignbyarticulator(modulesbysign, moduletype):
                         2: sign2modsbyarticulator[arttype2][3]
                     },
                     moduletype)
+                    if warningstring not in warningstrings:
+                        warningstrings.append(warningstring)
                     # save aligned modules to be returned at the end of the function
                     matchedmods.extend(alignedmodules)
                     # put any unmatched ones back into the pot
@@ -1009,6 +1022,8 @@ def alignbyarticulator(modulesbysign, moduletype):
                         2: sign2modsbyarticulator[arttype2][artnum]
                     },
                     moduletype)
+                    if warningstring not in warningstrings:
+                        warningstrings.append(warningstring)
                     # save aligned modules to be returned at the end of the function
                     matchedmods.extend(alignedmodules)
                     # put any unmatched ones back into the pot
@@ -1023,6 +1038,8 @@ def alignbyarticulator(modulesbysign, moduletype):
             }
 
             alignedmodules, unmatched, warningstring = alignmodules_helper(stillunmatchedwithinarticulatorpair, moduletype)
+            if warningstring not in warningstrings:
+                warningstrings.append(warningstring)
             # save aligned modules to be returned at the end of the function
             matchedmods.extend(alignedmodules)
             # put unmatched mods back into the pot
@@ -1039,12 +1056,12 @@ def alignbyarticulator(modulesbysign, moduletype):
         for artnumlist in articulatordict.values():
             allremainingunmatchedmods[2].extend(artnumlist)
 
-    # TODO at this point any unmatched modules should be... aligned by coding order? left unmatched? ... it is tres confusing
-    # TODO at this point will as much be aligned as possible? I think so... but just in case should we try by coding order?
+    # TODO KV at this point any unmatched modules should be... aligned by coding order? left unmatched? ... it is tres confusing
+    # TODO KV at this point will as much be aligned as possible? I think so... but just in case should we try by coding order?
     alignedmodules, unmatched = alignbycodingorder(allremainingunmatchedmods, matchwithnone=True)
     matchedmods.extend(alignedmodules)
 
-    return matchedmods, warningstring  # all the aligned modules, some possibly with 'none'
+    return matchedmods, "\n".join(warningstrings)  # all the aligned modules, some possibly with 'none'
 
 
 # in-place

@@ -293,6 +293,8 @@ class CompareModel(QObject):
             return results1, results2
 
         aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.MOVEMENT)
+        # if warningstring:
+        #     self._warn(warningstring)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
 
@@ -424,6 +426,8 @@ class CompareModel(QObject):
             return results1, results2
 
         aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, ModuleTypes.LOCATION)
+        # if warningstring:
+        #     self._warn(warningstring)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
@@ -487,6 +491,8 @@ class CompareModel(QObject):
             return results1, results2
 
         aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.ORIENTATION)
+        # if warningstring:
+        #     self._warn(warningstring)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
@@ -624,6 +630,8 @@ class CompareModel(QObject):
             return results1, results2
 
         aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.HANDCONFIG)
+        # if warningstring:
+        #     self._warn(warningstring)
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
         for i, module in enumerate(aligned_modules):
