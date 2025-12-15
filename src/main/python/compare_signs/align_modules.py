@@ -279,9 +279,6 @@ def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
                 index2 += 1
         index1 += 1
 
-
-    ################################### begin experimental section
-
     # if matching by name/base/variant/forearm and there is > 1 pair in matchedmods with the same matched value,
     #   then feed those pairs through the next level down
     matchedelementcounts = Counter(matchedonelements) if len(matchedonelements) > 1 else []
@@ -290,14 +287,9 @@ def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
         if numpairs > 1:
             # identify which positions in the matchedmods list they occupy
             indicestorematch = [i for i, x in enumerate(matchedonelements) if x == matchedelement]
-            # # remove from matchedmods
-            # matchedmods = [pair for idx, pair in enumerate(matchedmods) if idx not in indicestorematch]
             # re-match by next element down if possible (otherwise coding order);
             # there should not be any unmatched modules as a result of this process
             if elementtoalignby == 'base':
-                # TODO alignbyhandshape_greedy() missing 1 required positional argument: 'elementtoalignby'
-                # TODO somehow the rematch dies...? *** need to figure out how to re-incorporate the notrematched ones
-                # TODO... and also why arent' we going down level by level regardless of whether or not there are pairs to rematch?
                 rematchedpairs, notrematched = alignbyhandshape_greedy([matchedmods[i][0] for i in indicestorematch],
                                                             [matchedmods[i][1] for i in indicestorematch],
                                                             'variant')
@@ -318,8 +310,6 @@ def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
             matchedmods.extend(rematchedpairs)
             matchedmods.extend([(notrematched[1][i], notrematched[2][i]) for i in range(len(notrematched[1]))])
 
-    #################################### end experimental section
-    
     # any unmatched modules should be sent to the next level down
     if s1mods and s2mods:
         if elementtoalignby == 'base':
