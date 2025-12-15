@@ -810,11 +810,13 @@ class CompareModel(QObject):
         # currently, compare modules naively. eventually, it should compare aligned modules as the line below!
         # aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.RELATION)
 
+        pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
+
+        if len(self.sign1.relationmodules) + len(self.sign1.relationmodules) == 0:
+            return pair_comparison
         [(_, sign1_relmodule)] = self.sign1.relationmodules.items()
         [(_, sign2_relmodule)] = self.sign2.relationmodules.items()
         aligned_modules = [(sign1_relmodule, sign2_relmodule)]
-
-        pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
 
         for i, module in enumerate(aligned_modules):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
