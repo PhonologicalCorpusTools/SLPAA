@@ -727,6 +727,23 @@ class CompareModel(QObject):
             else:
                 path.append('Contact>No contact')
 
+            # optional body parts to be attached to X or Y
+            bodyparts_raw = sign.bodyparts_dict
+            bodyparts_dict = {}
+            for art in bodyparts_raw.values():
+                bodypart_art = art[1].bodyparttreemodel.bodyparttype
+                bodypart_art = bodypart_art[0] if bodypart_art == 'Hand' else bodypart_art
+                bodypart_art += '1'
+                for bp_tree in art[1].bodyparttreemodel.checked:
+                    bodyparts_dict[f'{bodypart_art}'] = bp_tree
+
+                bodypart_art = art[2].bodyparttreemodel.bodyparttype
+                bodypart_art = bodypart_art[0] if bodypart_art == 'Hand' else bodypart_art
+                bodypart_art += '2'
+
+                for bp_tree in art[2].bodyparttreemodel.checked:
+                    bodyparts_dict[f'{bodypart_art}'] = bp_tree
+
             # Y
             Y_raw = sign.relationy
             if Y_raw.existingmodule:
@@ -737,11 +754,15 @@ class CompareModel(QObject):
             else:
                 Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
                 path.append(f'Y>Articulator>{Y_selected_articulator}')
+                if bodyparts_dict.get(Y_selected_articulator):
+                    path.append(f'Y>Articulator>{Y_selected_articulator}>{bodyparts_dict[Y_selected_articulator]}')
 
             # X
             X_raw = sign.relationx
             X_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(X_raw, attr, False))
             path.append(f'X>{X_selected_articulator}')
+            if bodyparts_dict.get(X_selected_articulator):
+                path.append(f'X>{X_selected_articulator}>{bodyparts_dict[X_selected_articulator]}')
 
             return path
 
