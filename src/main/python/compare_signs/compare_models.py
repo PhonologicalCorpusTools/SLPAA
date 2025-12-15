@@ -733,10 +733,10 @@ class CompareModel(QObject):
                 # Y is connected to an existing module and is either location or movement
                 linked_modules = getattr(upstream, f'{Y_raw.linkedmoduletype}modules')
                 for _, m in linked_modules.items():
-                    path.append(f'Y>{m.moduletype}>{m.getabbreviation()}')
+                    path.append(f'Y>Existing module>{m.moduletype}>{m.getabbreviation()}')
             else:
                 Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
-                path.append(f'Y>{Y_selected_articulator}')
+                path.append(f'Y>Articulator>{Y_selected_articulator}')
 
             # X
             X_raw = sign.relationx
@@ -765,6 +765,7 @@ class CompareModel(QObject):
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
 
+            # btn types for colouring and collapsing.
             s1_path_btn_types = {
                 path: get_btn_type_for_path('rel', path, None) for path in s1_path_element
             }
@@ -806,7 +807,7 @@ class CompareModel(QObject):
 
 
         signpair = (self.sign1, self.sign2)
-        # currently, use modules naively. eventually, use the results of relation module alignment as the line below!
+        # currently, compare modules naively. eventually, it should compare aligned modules as the line below!
         # aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.RELATION)
 
         [(_, sign1_relmodule)] = self.sign1.relationmodules.items()
