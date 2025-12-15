@@ -292,7 +292,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.MOVEMENT)
+        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.MOVEMENT)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
 
@@ -423,7 +423,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules = alignmodules(self.sign1, self.sign2, ModuleTypes.LOCATION)
+        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, ModuleTypes.LOCATION)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
@@ -486,7 +486,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.ORIENTATION)
+        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.ORIENTATION)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
@@ -623,7 +623,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.HANDCONFIG)
+        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.HANDCONFIG)
         pair_comparison = {'sign1': {}, 'sign2': {}}
 
         for i, module in enumerate(aligned_modules):

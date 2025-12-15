@@ -3,7 +3,6 @@ import pickle
 import json
 import csv
 import re
-import sys
 from collections import defaultdict
 from copy import deepcopy
 from datetime import date
@@ -1827,7 +1826,7 @@ class AlignTestDialog(QDialog):
         sign1 = [s for s in self.corpus.signs if s.signlevel_information.entryid.counter == int(self.sign1combo.currentText()[:self.sign1combo.currentText().index(":")])][0]
         sign2 = [s for s in self.corpus.signs if s.signlevel_information.entryid.counter == int(self.sign2combo.currentText()[:self.sign2combo.currentText().index(":")])][0]
         for modtype in ModuleTypes.alltypes:
-            alignedmodulesthistype = alignmodules(sign1, sign2, modtype)
+            alignedmodulesthistype, warningstring = alignmodules(sign1, sign2, modtype)
             allalignedmodules.extend(alignedmodulesthistype)
 
         resultstring = ""

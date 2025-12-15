@@ -469,6 +469,48 @@ def rb_red_buttons(children: list, parents: list, should_paint_red, yellow_brush
     return [should_paint_red[0], should_paint_red[1]]
 
 
+# returns the set of possible base names given the text name of the handshape
+# note that in most cases, there is only one base per handshape (e.g. "clawed spread C" --> {"C"}), but
+#   for combined handshapes there could be two or more (e.g. "combined ILY" --> {"I", "L", "Y"}
+def get_possible_bases(pred_name: str) -> set:
+    bases = []
+
+    # very special case of 'combined ILY'
+    if pred_name == 'combined ILY':
+        pred_name = 'combined I+L+Y'
+
+    pname_comp = pred_name.split(' ')
+
+    # process 'combined'
+    if 'combined' in pname_comp:
+        # combination of two or more bases
+        bases, variants = get_bases_and_variants(pname_comp)
+        return set(bases)
+
+    # the last of pname_comp is always the base name except for 'middle finger'
+    if pred_name == 'middle finger':
+        bases.append(pred_name)
+        return set(bases)
+    else:
+        bases.append(pname_comp.pop())
+        return set(bases)
+
+
+def get_bases_and_variants(components):
+    b = []
+    v = []
+    combined_base_processed = False
+    for component in components:
+        if '+' in component:
+            b = [c for c in component.split('+')]
+            combined_base_processed = True
+        else:
+            v.append(component)
+    if not combined_base_processed:
+        b = components[-1]  # if no multiple bases, then the last in components should be the only base
+    return b, v
+
+
 # it parses one sign's handshape predefined name into bases and variants.
 def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str, return_path_form=True) -> list:
     # pred_name: str. predefined_names like 'extended A'
@@ -485,20 +527,6 @@ def parse_predefined_names(pred_name: str, viz_name: str, counterpart_name: str,
                     for detail in category]
         else:
             return bases, variants
-
-    def get_bases_and_variants(components):
-        b = []
-        v = []
-        combined_base_processed = False
-        for component in components:
-            if '+' in component:
-                b = [c for c in component.split('+')]
-                combined_base_processed = True
-            else:
-                v.append(component)
-        if not combined_base_processed:
-            b = components[-1]  # if no multiple bases, then the last in components should be the only base
-        return b, v
 
     bases = []
     variants = []

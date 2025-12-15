@@ -2901,6 +2901,9 @@ class HandConfigurationModule(ParameterModule):
     @overalloptions.setter
     def overalloptions(self, new_overalloptions):
         self._overalloptions = new_overalloptions
+
+    def __repr__(self):
+        return '<HandConfigurationModule: ' + repr(self.getabbreviation()) + '>'
     
     def config_tuple(self):
         return tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
