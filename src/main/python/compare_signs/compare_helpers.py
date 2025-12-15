@@ -374,9 +374,15 @@ def get_btn_type_for_path(module_type, path, root_node):
 
     elif module_type == 'rel':
         # relation.
-        # i have no idea what to do. just specify all as radiobutton for now
+        # some node should be checkbox, but the default is radio button
+        # 'contact manner' under 'contact' should be cb. that line is represented as 'Manner'
+        # Also 'generic', 'sagittal', and 'horizontal' under 'Distance' should be checkbox.
         for i, part in enumerate(parts):
             to_append = 'radio button'
+            if i == 0:
+                to_append = 'autogen label'
+            elif part in ['Manner', 'generic', 'sagittal', 'horizontal']:
+                to_append = 'checkbox'
             btn_types.append(to_append)
         return '>'.join(btn_types)
 
