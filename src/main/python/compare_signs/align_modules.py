@@ -21,9 +21,10 @@ snums = [1, 2]
 # returns a list of pairs of aligned modules of this type, the first element from sign1 and the second from sign2
 #   if there are unaligned modules then the other member of the pair will be None
 #   return format example: [(s1mod1,s2mod2),(s1mod2,s2mod1),(s1mod3,None)]
+# ALSO returns a (possibly empty) string containing any relevant warning text about the way that modules were aligned
 def alignmodules(sign1, sign2, moduletype):
     if moduletype == ModuleTypes.SIGNTYPE:
-        return [(sign1.signtype, sign2.signtype)]
+        return [(sign1.signtype, sign2.signtype)], ""
     else:
         modulesbysign = {
             1: list(sign1.getmoduledict(moduletype).values()),
@@ -33,13 +34,13 @@ def alignmodules(sign1, sign2, moduletype):
 
         if signswiththismodule == [1]:
             # no need to try and align modules; this module type only exists in sign1
-            return [(mod, None) for mod in modulesbysign[1]]
+            return [(mod, None) for mod in modulesbysign[1]], ""
         elif signswiththismodule == [2]:
             # no need to try and align modules; this module type only exists in sign2
-            return [(None, mod) for mod in modulesbysign[2]]
+            return [(None, mod) for mod in modulesbysign[2]], ""
         elif signswiththismodule == []:
             # no need to try and align modules; this module type isn't used in sign1 or sign2
-            return []
+            return [], ""
         # else signswiththismodule == [1, 2]
         # try to align them; continue below
 
@@ -54,9 +55,9 @@ def alignmodules(sign1, sign2, moduletype):
             return alignbyarticulator(modulesbysign, moduletype)
         elif moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL]:
             # TODO - waiting for further intructions from Kathleen
-            matched1, unmatched = alignmodules_helper(modulesbysign, moduletype)
+            matched1, unmatched, warningstring = alignmodules_helper(modulesbysign, moduletype)
             matched2, unmatched = alignbycodingorder(unmatched, matchwithnone=True)
-            return matched1 + matched2
+            return matched1 + matched2, warningstring
 
 
 def alignmodules_helper(modulesbysign, moduletype):
@@ -72,7 +73,7 @@ def alignmodules_helper(modulesbysign, moduletype):
         modsalignedbymovtype, unmatched = alignbymovement(modulesbysign)
         #   If modules still can't be aligned, align by coding order.
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
-        return modsalignedbymovtype + modsalignedbycodingorder, unmatched
+        return modsalignedbymovtype + modsalignedbycodingorder, unmatched, ""
     elif moduletype == ModuleTypes.LOCATION:
         # ii. After aligning by hand, try to align by general location type (body-anchored or signing space)
         #   -- e.g., if sign1 has both body-anchored and signing space locations, and sign2 has only a body-anchored location,
@@ -83,7 +84,7 @@ def alignmodules_helper(modulesbysign, moduletype):
         modsalignedbyloctype, unmatched = alignbylocation(modulesbysign)
         #   If modules still can't be aligned, align by coding order.
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
-        return modsalignedbyloctype + modsalignedbycodingorder, unmatched
+        return modsalignedbyloctype + modsalignedbycodingorder, unmatched, ""
     elif moduletype == ModuleTypes.ORIENTATION:
         # ii. After aligning by hand, align by palm orientation if possible (e.g. align two palm-up modules).
         # modsalignedbypalm, unmatched = alignbypalmori(modulesbysign)
@@ -93,7 +94,7 @@ def alignmodules_helper(modulesbysign, moduletype):
         modsalignedbyfingerroot, unmatched = alignbyorientation(unmatched, focus='root', level='specific')
         #   If still not possible, align by coding order.
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
-        return modsalignedbypalm + modsalignedbyfingerroot + modsalignedbycodingorder, unmatched
+        return modsalignedbypalm + modsalignedbyfingerroot + modsalignedbycodingorder, unmatched, ""
     elif moduletype == ModuleTypes.HANDCONFIG:
         # ii. After aligning by hand, align by full handshape name if possible (e.g. align two '5' handshapes, or 2 'extended A' handshapes, etc.).
         # iii. If aligning by full handshape name isn’t possible, align by ‘base’ handshape.
@@ -107,18 +108,18 @@ def alignmodules_helper(modulesbysign, moduletype):
         #   ‘clawed’ handshape, etc. The variant types are listed in the first row of the predefined handshape chart,
         #   so basically this is aligning by columns in that chart.
         # from 20250908 meeting: align by forearm after variant and before coding order
-        modsalignedbyhs, unmatched = alignbyhandshape(modulesbysign)
+        modsalignedbyhs, unmatched, warningstring = alignbyhandshape(modulesbysign)
         # v. If there are still unaligned handshapes, align by coding order.
         modsalignedbycodingorder, unmatched = alignbycodingorder(unmatched, matchwithnone=False)
-        return modsalignedbyhs + modsalignedbycodingorder, unmatched
+        return modsalignedbyhs + modsalignedbycodingorder, unmatched, warningstring
     elif moduletype == ModuleTypes.RELATION:
         # TODO - waiting for further intructions from Kathleen
         modsalignedbycodingorder, unmatched = alignbycodingorder(modulesbysign, matchwithnone=False)
-        return modsalignedbycodingorder, unmatched
+        return modsalignedbycodingorder, unmatched, ""
     elif moduletype == ModuleTypes.NONMANUAL:
         # TODO - waiting for further intructions from Kathleen
         modsalignedbycodingorder, unmatched = alignbycodingorder(modulesbysign, matchwithnone=False)
-        return modsalignedbycodingorder, unmatched
+        return modsalignedbycodingorder, unmatched, ""
 
 
 # try to match as specifically as possible (eg vertical/up with vertical/up)
@@ -187,7 +188,7 @@ def alignbyhandshape(configmodsbysign):
     sign1mods = [mod for mod in configmodsbysign[1]]
     sign2mods = [mod for mod in configmodsbysign[2]]
 
-    # TODO - put this first step (match by name/forearm) into a separate function as well?
+    # first, we try matching by exact name + forearm value
 
     names = {1: [get_hsname(mod) for mod in sign1mods],
              2: [get_hsname(mod) for mod in sign2mods]}
@@ -212,25 +213,23 @@ def alignbyhandshape(configmodsbysign):
     sign2mods = [mod for mod in unmatchedmods[2]]
     unmatchedmods = {1: [], 2: []}
 
-    if len(sign1mods) > 8 or len(sign2mods) > 8:
-        print("Due to the computational complexity of aligning the high number of hand configuration modules in these signs, alignments may not be maximally optimal.\nAlignment will be performed using the greedy algorithm.")
+    if len(sign1mods) > 6 or len(sign2mods) > 6:
+        warningstring = "Due to the computational complexity of aligning the high number of hand configuration modules in these signs, a simpler fallback algorithm will be used. Therefore, alignments may not maximize similarity. See documentation for details."
         # use original (greedy/simpler) alignment method
         matched_greedy, unmatched_greedy = alignbyhandshape_greedy(sign1mods, sign2mods, "base")
         matchedmods.extend(matched_greedy)
         unmatchedmods = unmatched_greedy
     else:
-        print("Alignment will be performed using the combinatoric algorithm.")
+        warningstring = ""
         # use combinatoric (more complicated but better at finding optimal matchings) alignment method
         matched_combinatoric, unmatched_combinatoric = alignbyhandshape_combinatoric(sign1mods, sign2mods)
         matchedmods.extend(matched_combinatoric)
         unmatchedmods = unmatched_combinatoric
 
-    # print("ending alignbyhandshape with {} matched pairs, {} leftover sign1 modules, and {} leftover sign2 modules".format(len(matchedmods), len(unmatchedmods[1]), len(unmatchedmods[2])))
-    return matchedmods, unmatchedmods
+    return matchedmods, unmatchedmods, warningstring
 
 
 def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
-    # print("starting alignbyhandshape_greedy on *{}* with {} sign1 modules and {} sign2 modules".format(elementtoalignby, len(s1mods), len(s2mods)))
     matchedmods = []
     unmatchedmods = {1: [], 2: []}
     matchedonelements = []
@@ -239,13 +238,11 @@ def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
     while index1 < len(s1mods):
         mod1 = s1mods[index1]
         mod1hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(mod1.handconfiguration).get_hand_transcription_list()))
-        # tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
         if mod1hs is not None:
             mod1hsname = mod1hs.name
 
             index2 = 0
             while index2 < len(s2mods):
-                # print("index1 = {} / index2 = {}".format(index1, index2))
                 mod2 = s2mods[index2]
                 mod2hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(mod2.handconfiguration).get_hand_transcription_list()))
                 if mod2hs is not None:
@@ -267,13 +264,12 @@ def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
                         matchedonelements.append(intersect_tuple)
                     elif (elementtoalignby == 'variant' and mod1variants == mod2variants):
                         matchflag = True
-                        matchedonelements.append(mod1variants)
+                        matchedonelements.append(tuple(mod1variants))
                     elif (elementtoalignby == 'forearm' and mod1.overalloptions['forearm'] == mod2.overalloptions['forearm']):
                         matchflag = True
                         matchedonelements.append(mod1.overalloptions['forearm'])
 
                     if matchflag:
-                        print('aligned by ' + elementtoalignby)
                         matchedmods.append((mod1, mod2))
                         s1mods.pop(index1)
                         s2mods.pop(index2)
@@ -283,41 +279,46 @@ def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
                 index2 += 1
         index1 += 1
 
-    # # if matching by name/base/variant/forearm and there is > 1 pair in matchedmods with the same matched value,
-    # #   then feed those pairs through the next level down
-    # matchedelementcounts = Counter(matchedonelements) if len(matchedonelements) > 1 else []
-    # for matchedelement in matchedelementcounts:
-    #     numpairs = matchedelementcounts[matchedelement]
-    #     if numpairs > 1:
-    #         # identify which positions in the matchedmods list they occupy
-    #         indicestorematch = [i for i, x in enumerate(matchedonelements) if x == matchedelement]
-    #         # # remove from matchedmods
-    #         # matchedmods = [pair for idx, pair in enumerate(matchedmods) if idx not in indicestorematch]
-    #         # re-match by next element down if possible (otherwise coding order);
-    #         # there should not be any unmatched modules as a result of this process
-    #         if elementtoalignby == 'base':
-    #             # TODO alignbyhandshape_greedy() missing 1 required positional argument: 'elementtoalignby'
-    #             # TODO somehow the rematch dies...? *** need to figure out how to re-incorporate the notrematched ones
-    #             # TODO... and also why arent' we going down level by level regardless of whether or not there are pairs to rematch?
-    #             rematchedpairs, notrematched = alignbyhandshape_greedy([matchedmods[i][0] for i in indicestorematch],
-    #                                                         [matchedmods[i][1] for i in indicestorematch],
-    #                                                         'variant')
-    #         elif elementtoalignby == 'variant':
-    #             rematchedpairs, notrematched = alignbyhandshape_greedy([matchedmods[i][0] for i in indicestorematch],
-    #                                                         [matchedmods[i][1] for i in indicestorematch],
-    #                                                         'forearm')
-    #         elif elementtoalignby == 'forearm':
-    #             rematchedpairs, notrematched = alignbycodingorder({1: [matchedmods[i][0] for i in indicestorematch],
-    #                                                     2: [matchedmods[i][1] for i in indicestorematch]},
-    #                                                    matchwithnone=True)
-    #         else:
-    #             rematchedpairs = []
-    #             notrematched = {1: [matchedmods[i][0] for i in indicestorematch], 2: [matchedmods[i][1] for i in indicestorematch]}
-    #         # remove re-matched pairs from matchedmods
-    #         matchedmods = [pair for idx, pair in enumerate(matchedmods) if idx not in indicestorematch]
-    #         # add the re-matched pairs back to the matchedmods list
-    #         matchedmods.extend(rematchedpairs)
-    
+
+    ################################### begin experimental section
+
+    # if matching by name/base/variant/forearm and there is > 1 pair in matchedmods with the same matched value,
+    #   then feed those pairs through the next level down
+    matchedelementcounts = Counter(matchedonelements) if len(matchedonelements) > 1 else []
+    for matchedelement in matchedelementcounts:
+        numpairs = matchedelementcounts[matchedelement]
+        if numpairs > 1:
+            # identify which positions in the matchedmods list they occupy
+            indicestorematch = [i for i, x in enumerate(matchedonelements) if x == matchedelement]
+            # # remove from matchedmods
+            # matchedmods = [pair for idx, pair in enumerate(matchedmods) if idx not in indicestorematch]
+            # re-match by next element down if possible (otherwise coding order);
+            # there should not be any unmatched modules as a result of this process
+            if elementtoalignby == 'base':
+                # TODO alignbyhandshape_greedy() missing 1 required positional argument: 'elementtoalignby'
+                # TODO somehow the rematch dies...? *** need to figure out how to re-incorporate the notrematched ones
+                # TODO... and also why arent' we going down level by level regardless of whether or not there are pairs to rematch?
+                rematchedpairs, notrematched = alignbyhandshape_greedy([matchedmods[i][0] for i in indicestorematch],
+                                                            [matchedmods[i][1] for i in indicestorematch],
+                                                            'variant')
+            elif elementtoalignby == 'variant':
+                rematchedpairs, notrematched = alignbyhandshape_greedy([matchedmods[i][0] for i in indicestorematch],
+                                                            [matchedmods[i][1] for i in indicestorematch],
+                                                            'forearm')
+            elif elementtoalignby == 'forearm':
+                rematchedpairs, notrematched = alignbycodingorder({1: [matchedmods[i][0] for i in indicestorematch],
+                                                        2: [matchedmods[i][1] for i in indicestorematch]},
+                                                       matchwithnone=True)
+            else:
+                rematchedpairs = []
+                notrematched = {1: [matchedmods[i][0] for i in indicestorematch], 2: [matchedmods[i][1] for i in indicestorematch]}
+            # remove re-matched pairs from matchedmods
+            matchedmods = [pair for idx, pair in enumerate(matchedmods) if idx not in indicestorematch]
+            # add the re-matched pairs back to the matchedmods list
+            matchedmods.extend(rematchedpairs)
+            matchedmods.extend([(notrematched[1][i], notrematched[2][i]) for i in range(len(notrematched[1]))])
+
+    #################################### end experimental section
     
     # any unmatched modules should be sent to the next level down
     if s1mods and s2mods:
@@ -341,12 +342,10 @@ def alignbyhandshape_greedy(s1mods, s2mods, elementtoalignby):
     else:
         unmatchedmods = concatenate_dictlists(unmatchedmods, {1: s1mods, 2: s2mods})
 
-    # print("ending alignbyhandshape_greedy on *{}* with {} matched pairs, {} leftover sign1 modules, and {} leftover sign2 modules".format(elementtoalignby, len(matchedmods), len(unmatchedmods[1]), len(unmatchedmods[2])))
     return matchedmods, unmatchedmods
 
 
 def alignbyhandshape_combinatoric(s1mods, s2mods):
-    # print("starting alignbyhandshape_combinatoric with {} sign1 modules and {} sign2 modules".format(len(s1mods), len(s2mods)))
     matchedmods = []
     unmatchedmods = {1: [], 2: []}
 
@@ -384,7 +383,6 @@ def alignbyhandshape_combinatoric(s1mods, s2mods):
         allorderings_s1mods = [s1mods]
         which_has_multiple_orderings = 2
 
-    # TODO make a list of lists of matching scores per pairing above
     class AlignmentScoring:
         def __init__(self, listofscores):
             self.scores = listofscores
@@ -493,7 +491,6 @@ def alignbyhandshape_combinatoric(s1mods, s2mods):
         elif s2mod is None:
             unmatchedmods[1].append(s1mod)
 
-    # print("ending alignbyhandshape_combinatoric with {} matched pairs, {} leftover sign1 modules, and {} leftover sign2 modules".format(len(matchedmods), len(unmatchedmods[1]), len(unmatchedmods[2])))
     return matchedmods, unmatchedmods
 
 
@@ -521,7 +518,6 @@ def match_by_handshapename(configname, configmodsbysign, names):  # 2nd arg: mod
     if len(modsthisname[1]) == 0 or len(modsthisname[2]) == 0:
         # no matches possible since one or the other sign has 0 modules with this name
         modsthisname_unmatched = modsthisname
-        # modsthisname_unmatched = {1: [mod for mod in configmodsbysign[1]], 2: [mod for mod in configmodsbysign[2]]}
     else:
         # at least one match is possible
         for forearm_value in [True, False]:
@@ -551,30 +547,6 @@ def get_all_combinations(range_stop, size):
         if sorted_list not in prods_lists:
             prods_lists.append(sorted_list)
     return prods_lists
-
-
-# def get_allpossible_pairings(sign1mods, sign2mods):
-#
-#     lendiff = len(sign2mods) - len(sign1mods)
-#     if lendiff > 0:
-#         allorderings_s1mods_tooshort = [list(ordering_tuple) for ordering_tuple in itertools.permutations(sign1mods)]
-#         possible_unmatch_locs = itertools.product(range(len(allorderings_s1mods_tooshort)), repeat=lendiff)
-#         allorderings_s1mods = []
-#         for ordering_tooshort in allorderings_s1mods_tooshort:
-#             ordering_tooshort = list(ordering_tooshort)
-#             for unmatch_locs_tuple in possible_unmatch_locs:
-#                 ordering = "TODO"
-#                 # TODO cotninue
-#     elif lendiff < 0:
-#         allorderings_s2mods_tooshort = [list(ordering_tuple) for ordering_tuple in itertools.permutations(sign2mods)]
-#         possible_unmatch_locs = itertools.product(range(len(allorderings_s2mods_tooshort)), repeat=-lendiff)
-#         allorderings_s2mods = []
-#         for ordering_tooshort in allorderings_s2mods_tooshort:
-#             ordering_tooshort = list(ordering_tooshort)
-#             for unmatch_locs_tuple in possible_unmatch_locs:
-#                 ordering = "TODO"
-#                 # TODO cotninue
-
 
 
 # def alignbylocation_helper(locmodsbysign, locnodename=""):
@@ -644,13 +616,11 @@ def alignbymovement_helper_old(movmodsbysign, typename):
     index1 = 0
     while index1 < len(sign1mods):
         mod1 = sign1mods[index1]
-        # mod1smeetingcriteria = mvmttree_checked_subnodes(mod1.movementtreemodel, typename)
         mod1smeetingcriteria = get_tree_subnodes(ModuleTypes.MOVEMENT, mod1.movementtreemodel, typename, toplevel=False)
         if mod1smeetingcriteria is not None:
             index2 = 0
             while index2 < len(sign2mods):
                 mod2 = sign2mods[index2]
-                # mod2smeetingcriteria = mvmttree_checked_subnodes(mod2.movementtreemodel, typename)
                 mod2smeetingcriteria = get_tree_subnodes(ModuleTypes.MOVEMENT, mod2.movementtreemodel, typename, toplevel=False)
                 if mod2smeetingcriteria is not None:
                     if set(mod1smeetingcriteria) == set(mod2smeetingcriteria):
@@ -953,7 +923,7 @@ def alignbyarticulator(modulesbysign, moduletype):
         for artnum in [1, 2, 3]:
             if sign1modsbyarticulator[art][artnum] and sign2modsbyarticulator[art][artnum]:
                 # the articulators are a perfect match (eg, H1-H1 or L1&2-L1&2) so try and align whatever modules are in those lists
-                alignedmodules, unmatched = alignmodules_helper({
+                alignedmodules, unmatched, warningstring = alignmodules_helper({
                     1: sign1modsbyarticulator[art][artnum],
                     2: sign2modsbyarticulator[art][artnum]
                 },
@@ -972,7 +942,7 @@ def alignbyarticulator(modulesbysign, moduletype):
         for artnum in [1, 2]:
             if sign1modsbyarticulator[art][artnum] and sign2modsbyarticulator[art][3]:
                 # the articulators are a subset match (eg, H1-H1&2 or A2-A1&2) so try and align whatever modules are in those lists
-                alignedmodules, unmatched = alignmodules_helper({
+                alignedmodules, unmatched, warningstring = alignmodules_helper({
                     1: sign1modsbyarticulator[art][artnum],
                     2: sign2modsbyarticulator[art][3]
                 },
@@ -984,7 +954,7 @@ def alignbyarticulator(modulesbysign, moduletype):
                 sign2modsbyarticulator[art][3] = unmatched[2]
             if sign1modsbyarticulator[art][3] and sign2modsbyarticulator[art][artnum]:
                 # the articulators are a subset match (eg, H1&2-H2 or L1&2-L1) so try and align whatever modules are in those lists
-                alignedmodules, unmatched = alignmodules_helper({
+                alignedmodules, unmatched, warningstring = alignmodules_helper({
                     1: sign1modsbyarticulator[art][3],
                     2: sign2modsbyarticulator[art][artnum]
                 },
@@ -1000,7 +970,7 @@ def alignbyarticulator(modulesbysign, moduletype):
             1: sign1modsbyarticulator[art][1] + sign1modsbyarticulator[art][2] + sign1modsbyarticulator[art][3],
             2: sign2modsbyarticulator[art][1] + sign2modsbyarticulator[art][2] + sign2modsbyarticulator[art][3],
         }
-        alignedmodules, unmatched = alignmodules_helper(stillunmatchedwithinarticulator, moduletype)
+        alignedmodules, unmatched, warningstring = alignmodules_helper(stillunmatchedwithinarticulator, moduletype)
         # save aligned modules to be returned at the end of the function
         matchedmods.extend(alignedmodules)
         # put unmatched mods back into the pot
@@ -1017,7 +987,7 @@ def alignbyarticulator(modulesbysign, moduletype):
             for artnum in [1, 2, 3]:
                 if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][artnum]:
                     # the articulators are a near-perfect match (eg, H1-A1 or L1&2-H1&2) so try and align whatever modules are in those lists
-                    alignedmodules, unmatched = alignmodules_helper({
+                    alignedmodules, unmatched, warningstring = alignmodules_helper({
                         1: sign1modsbyarticulator[arttype1][artnum],
                         2: sign2modsbyarticulator[arttype2][artnum]
                     },
@@ -1032,7 +1002,7 @@ def alignbyarticulator(modulesbysign, moduletype):
             for artnum in [1, 2]:
                 if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][3]:
                     # the articulators are a near-subset match (eg, L1-H1&2 or H2-A1&2) so try and align whatever modules are in those lists
-                    alignedmodules, unmatched = alignmodules_helper({
+                    alignedmodules, unmatched, warningstring = alignmodules_helper({
                         1: sign1modsbyarticulator[arttype1][artnum],
                         2: sign2modsbyarticulator[arttype2][3]
                     },
@@ -1044,7 +1014,7 @@ def alignbyarticulator(modulesbysign, moduletype):
                     sign2modsbyarticulator[arttype2][3] = unmatched[2]
                 if sign1modsbyarticulator[arttype1][3] and sign2modsbyarticulator[arttype2][artnum]:
                     # the articulators are a subset match (eg, H1&2-L2 or L1&2-A1) so try and align whatever modules are in those lists
-                    alignedmodules, unmatched = alignmodules_helper({
+                    alignedmodules, unmatched, warningstring = alignmodules_helper({
                         1: sign1modsbyarticulator[arttype1][3],
                         2: sign2modsbyarticulator[arttype2][artnum]
                     },
@@ -1062,7 +1032,7 @@ def alignbyarticulator(modulesbysign, moduletype):
                 2: sign2modsbyarticulator[arttype2][1] + sign2modsbyarticulator[arttype2][2] + sign2modsbyarticulator[arttype2][3],
             }
 
-            alignedmodules, unmatched = alignmodules_helper(stillunmatchedwithinarticulatorpair, moduletype)
+            alignedmodules, unmatched, warningstring = alignmodules_helper(stillunmatchedwithinarticulatorpair, moduletype)
             # save aligned modules to be returned at the end of the function
             matchedmods.extend(alignedmodules)
             # put unmatched mods back into the pot
@@ -1084,7 +1054,7 @@ def alignbyarticulator(modulesbysign, moduletype):
     alignedmodules, unmatched = alignbycodingorder(allremainingunmatchedmods, matchwithnone=True)
     matchedmods.extend(alignedmodules)
 
-    return matchedmods  # all the aligned modules, some possibly with 'none'
+    return matchedmods, warningstring  # all the aligned modules, some possibly with 'none'
 
 
 # in-place
