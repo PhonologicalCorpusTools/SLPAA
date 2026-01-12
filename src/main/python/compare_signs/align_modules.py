@@ -52,7 +52,8 @@ def alignmodules(sign1, sign2, moduletype):
             #   If sign1 has both hand1 and hand2 modules, while sign2 has only hand1 modules (or vice versa), then align the hand1 modules only,
             #   and leave all hand2 modules unmatched.
             #   If sign1 has only hand1 modules, and sign2 has only hand2 modules, then this is the only time that non-matching hand modules can be aligned.
-            return alignbyarticulator(modulesbysign, moduletype)
+            matchedmods, warningstring = alignbyarticulator(modulesbysign, moduletype)
+            return matchedmods, warningstring
         elif moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL]:
             # TODO - waiting for further intructions from Kathleen
             matched1, unmatched, warningstring = alignmodules_helper(modulesbysign, moduletype)
