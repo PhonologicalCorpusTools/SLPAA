@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 
 from lexicon.module_classes import HandConfigurationHand
 from compare_signs.compare_helpers import parse_predefined_names, get_possible_bases
-from constant import ModuleTypes, HAND, ARM, LEG, userdefinedroles as udr, PREDEFINED_MAP
+from constant import ModuleTypes, HAND, ARM, LEG, userdefinedroles as udr, PREDEFINED_MAP, alignmentcomplexitywarning
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 snums = [1, 2]
@@ -215,7 +215,7 @@ def alignbyhandshape(configmodsbysign):
     unmatchedmods = {1: [], 2: []}
 
     if len(sign1mods) > 6 or len(sign2mods) > 6:
-        warningstring = "Due to the computational complexity of aligning the high number of hand configuration modules in these signs, a simpler fallback algorithm will be used. Therefore, alignments may not maximize similarity. See documentation for details."
+        warningstring = alignmentcomplexitywarning
         # use original (greedy/simpler) alignment method
         matched_greedy, unmatched_greedy = alignbyhandshape_greedy(sign1mods, sign2mods, "base")
         matchedmods.extend(matched_greedy)

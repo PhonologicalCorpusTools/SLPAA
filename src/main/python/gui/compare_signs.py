@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt
 import re
 from typing import Union
 
+from constant import alignmentcomplexitywarning
 from lexicon.lexicon_classes import glossesdelimiter
 from compare_signs.compare_models import CompareModel
 from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons, next_pair_id
@@ -235,6 +236,7 @@ class CompareSignsDialog(QDialog):
 
         self.corpus = self.parent().corpus
         self.signs = self.corpus.signs  # don't need meta-data; only need 'signs' part
+        self.lastwarned_signs = set()
 
         # default sign comparison options
         self.comparison_options = {
@@ -337,9 +339,6 @@ class CompareSignsDialog(QDialog):
             self.sign1_dropdown.addItem(label, sign)  # just put a Sign object itself in dropdown!
             self.sign2_dropdown.addItem(label, sign)
 
-        self.sign1_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
-        self.sign2_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
-
         layout = QHBoxLayout()
         layout.addWidget(QLabel("Select Sign 1:"))
         layout.addWidget(self.sign1_dropdown)
@@ -352,6 +351,13 @@ class CompareSignsDialog(QDialog):
                 idx = dd.findData(sign)  # compares userData (Sign object)
                 if idx != -1:
                     dd.setCurrentIndex(idx)
+
+        # by activating these signals *after* the initial signs are set,
+        # CompareSignsDialog.update_trees() doesn't get called right away,
+        # but it will definitely get called at the end of CompareSignsDialog.__init__()
+        self.sign1_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
+        self.sign2_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
+
         return layout
 
     def initialize_signs_layout(self, counters_1, counters_2):
@@ -586,6 +592,10 @@ class CompareSignsDialog(QDialog):
         self.sign2_dropdown.blockSignals(False)
 
     def prompt_warning(self, msg):
+        currentsigns = set([self.sign1_dropdown.currentData(), self.sign2_dropdown.currentData()])
+        if msg.strip() == alignmentcomplexitywarning and currentsigns == self.lastwarned_signs:
+            return  # to avoid multiple (immediate) sign-complexity warnings triggered by the same pair of signs
+        self.lastwarned_signs = currentsigns
         QMessageBox.warning(self, 'Warning', msg, QMessageBox.Ok)
         self.sign_type_art_button.setChecked(False)
         self.update_trees(self.comparison_options)
