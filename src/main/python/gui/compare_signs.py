@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt
 import re
 from typing import Union
 
+from lexicon.lexicon_classes import glossesdelimiter
 from compare_signs.compare_models import CompareModel
 from compare_signs.compare_helpers import qcolor_to_rgba_str, parse_button_type, rb_red_buttons, next_pair_id
 from compare_signs.draw_compare_tree import trunc_count_and_label
@@ -237,6 +238,9 @@ class CompareSignsDialog(QDialog):
 
         # default sign comparison options
         self.comparison_options = {
+            'general': {
+                'dropdown_label': 'idgloss'
+            },
             'handconfig': {
                 'compare_target': 'predefined',
                 'details': False
@@ -321,10 +325,17 @@ class CompareSignsDialog(QDialog):
         return {key: ColourCounter(palette=palette) for key in counter_kinds}
 
     def initialize_dropdown(self, selected=None):
-        idgloss_list = self.corpus.get_all_idglosses()
+        # clear the dropdowns (just to be safe)
+        self.sign1_dropdown.clear()
+        self.sign2_dropdown.clear()
 
-        self.sign1_dropdown.addItems(idgloss_list)
-        self.sign2_dropdown.addItems(idgloss_list)
+        mode = self.comparison_options['general']['dropdown_label']  # user selected label to show (id_gloss by default)
+
+        # populate items
+        for sign in self.signs:
+            label = self._get_dropdown_sign_label(sign, mode)
+            self.sign1_dropdown.addItem(label, sign)  # just put a Sign object itself in dropdown!
+            self.sign2_dropdown.addItem(label, sign)
 
         self.sign1_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
         self.sign2_dropdown.currentIndexChanged.connect(self._on_sign_selection_changed)
@@ -336,10 +347,11 @@ class CompareSignsDialog(QDialog):
         layout.addWidget(self.sign2_dropdown)
 
         if selected:
-            # if two signs are selected on the 'Corpus' panel, update two dropdowns accordingly
-            given_idglosses = [sign.signlevel_information.idgloss for sign in selected]
-            self.sign1_dropdown.setCurrentText(given_idglosses[0])
-            self.sign2_dropdown.setCurrentText(given_idglosses[1])
+            for dd, sign in ((self.sign1_dropdown, selected[0]),
+                                (self.sign2_dropdown, selected[1])):
+                idx = dd.findData(sign)  # compares userData (Sign object)
+                if idx != -1:
+                    dd.setCurrentIndex(idx)
         return layout
 
     def initialize_signs_layout(self, counters_1, counters_2):
@@ -393,9 +405,11 @@ class CompareSignsDialog(QDialog):
         self.compare_options_widget = QWidget()
         options_major_hbox = QHBoxLayout(self.compare_options_widget)
 
-        # two groupboxes, side by side
-        self._gen_options_content_hc()  # Hand-configuration radio buttons (left)
+        # three groupboxes, side by side
+        self._gen_options_general()           # General (left)
+        self._gen_options_content_hc()        # Hand-configuration radio buttons (mid)
         self._gen_options_content_signtype()  # sign type articulator merger options (right)
+        options_major_hbox.addWidget(self.general_groupbox)
         options_major_hbox.addWidget(self.handconfig_groupbox)
         options_major_hbox.addWidget(self.signtype_groupbox)
 
@@ -417,6 +431,52 @@ class CompareSignsDialog(QDialog):
         tree_counter_layout.addLayout(counters_hbl)
 
         return tree_counter_layout
+
+    def _get_dropdown_sign_label(self, sign, mode):
+        # sign: Sign
+        # mode: str. either 'idgloss', 'gloss', or 'entry_id'
+        sli = sign.signlevel_information
+        mode = (mode or "idgloss").lower()  # the default is id gloss
+
+        label = ''
+
+        if mode == 'idgloss':
+            label = sli.idgloss or ""
+        elif mode == 'gloss':
+            label = glossesdelimiter.join(sli.gloss)
+        elif mode == 'entryid':
+            entryid = sli.entryid
+            if hasattr(entryid, 'display_string'):
+                label = entryid.display_string()
+            else:
+                label = str(getattr(entryid, "counter", ""))
+        return label
+
+    def _gen_options_general(self):
+        self.general_groupbox = QGroupBox("General")
+        general_layout = QVBoxLayout(self.general_groupbox)
+
+        # select dropbox identifier
+        sub_label = QLabel("Identify signs by...")
+        self.idgloss_rb = QRadioButton("ID gloss")
+        self.idgloss_rb.setChecked(True)   # ID gloss by default
+        self.gloss_rb = QRadioButton("Gloss")
+        self.entryid_rb = QRadioButton("Entry ID")
+
+        general_layout.addWidget(sub_label)
+        general_layout.addWidget(self.idgloss_rb)
+        general_layout.addWidget(self.gloss_rb)
+        general_layout.addWidget(self.entryid_rb)
+
+        self.general_btn_group = QButtonGroup(self)  # Group them for mutual exclusivity
+        for rb in (self.idgloss_rb, self.gloss_rb, self.entryid_rb):
+            self.general_btn_group.addButton(rb)
+
+        self.idgloss_rb.setProperty("dropdown_label", "idgloss")
+        self.gloss_rb.setProperty("dropdown_label", "gloss")
+        self.entryid_rb.setProperty("dropdown_label", "entryid")
+
+        self.general_btn_group.buttonClicked.connect(self._on_general_option_changed)
 
     def _gen_options_content_hc(self):
         self.handconfig_groupbox = QGroupBox("Handconfig")
@@ -476,6 +536,12 @@ class CompareSignsDialog(QDialog):
         # flip the arrow
         self.options_toggle_btn.setArrowType(Qt.UpArrow if checked else Qt.DownArrow)
 
+    def _on_general_option_changed(self, btn):
+        # btn: QAbstractButton object
+        label = btn.property("dropdown_label")
+        self.comparison_options['general']['dropdown_label'] = label
+        self._refresh_dropdown_labels()
+
     def _on_hand_option_changed(self, btn):
         # btn: QAbstractButton object
         self.comparison_options['handconfig'] = {'compare_target': btn.property('compare_target'),
@@ -486,6 +552,38 @@ class CompareSignsDialog(QDialog):
         # state: bool. whether checked or not
         self.comparison_options['signtype']['articulator_merger'] = state
         self.update_trees(self.comparison_options)
+
+    # called by _on_general_option_changed. rebuild dropdown according to the new user choice
+    def _refresh_dropdown_labels(self):
+        mode = self.comparison_options['general']['dropdown_label']
+        current_ids = (self.sign1_dropdown.currentData(), self.sign2_dropdown.currentData())
+
+        # anesthetize update tree so that nothing happens while rebuilding the drowndowns
+        self.sign1_dropdown.blockSignals(True)
+        self.sign2_dropdown.blockSignals(True)
+
+        # erase everything
+        self.sign1_dropdown.clear()
+        self.sign2_dropdown.clear()
+
+        # ... and add new texts to the dropbox menus
+        for sign in self.signs:
+            label = self._get_dropdown_sign_label(sign, mode)
+            self.sign1_dropdown.addItem(label, sign)
+            self.sign2_dropdown.addItem(label, sign)
+
+        # now restore previous selection
+        for combo, eid in ((self.sign1_dropdown, current_ids[0]),
+                           (self.sign2_dropdown, current_ids[1])):
+            if eid is None:
+                continue
+            idx = combo.findData(eid)
+            if idx != -1:
+                combo.setCurrentIndex(idx)
+
+        # the surgery was successful. now wake up.
+        self.sign1_dropdown.blockSignals(False)
+        self.sign2_dropdown.blockSignals(False)
 
     def prompt_warning(self, msg):
         QMessageBox.warning(self, 'Warning', msg, QMessageBox.Ok)
@@ -920,7 +1018,9 @@ class CompareSignsDialog(QDialog):
         self.tree1.setHeaderLabel(f"Sign 1: {label_sign1}")
         self.tree2.setHeaderLabel(f"Sign 2: {label_sign2}")
 
-        sign1, sign2 = self.find_target_signs(label_sign1, label_sign2)  # Identify signs to compare
+        # Identify signs to compare
+        sign1 = self.sign1_dropdown.currentData()
+        sign2 = self.sign2_dropdown.currentData()
         compare = CompareModel(sign1, sign2)
         compare.warning_signal.connect(self.prompt_warning)
         compare_res, unknown_modules = compare.compare_sign_pair(self.comparison_options)

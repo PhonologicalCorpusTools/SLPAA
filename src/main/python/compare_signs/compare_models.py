@@ -735,21 +735,42 @@ class CompareModel(QObject):
             else:
                 path.append('Contact>No contact')
 
+            # optional body parts to be attached to X or Y
+            bodyparts_raw = sign.bodyparts_dict
+            bodyparts_dict = {}
+            for art in bodyparts_raw.values():
+                bodypart_art = art[1].bodyparttreemodel.bodyparttype
+                bodypart_art = bodypart_art[0] if bodypart_art == 'Hand' else bodypart_art
+                bodypart_art += '1'
+                for bp_tree in art[1].bodyparttreemodel.checked:
+                    bodyparts_dict[f'{bodypart_art}'] = bp_tree
+
+                bodypart_art = art[2].bodyparttreemodel.bodyparttype
+                bodypart_art = bodypart_art[0] if bodypart_art == 'Hand' else bodypart_art
+                bodypart_art += '2'
+
+                for bp_tree in art[2].bodyparttreemodel.checked:
+                    bodyparts_dict[f'{bodypart_art}'] = bp_tree
+
             # Y
             Y_raw = sign.relationy
             if Y_raw.existingmodule:
                 # Y is connected to an existing module and is either location or movement
                 linked_modules = getattr(upstream, f'{Y_raw.linkedmoduletype}modules')
                 for _, m in linked_modules.items():
-                    path.append(f'Y>{m.moduletype}>{m.getabbreviation()}')
+                    path.append(f'Y>Existing module>{m.moduletype}>{m.getabbreviation()}')
             else:
                 Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
-                path.append(f'Y>{Y_selected_articulator}')
+                path.append(f'Y>Articulator>{Y_selected_articulator}')
+                if bodyparts_dict.get(Y_selected_articulator):
+                    path.append(f'Y>Articulator>{Y_selected_articulator}>{bodyparts_dict[Y_selected_articulator]}')
 
             # X
             X_raw = sign.relationx
             X_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(X_raw, attr, False))
             path.append(f'X>{X_selected_articulator}')
+            if bodyparts_dict.get(X_selected_articulator):
+                path.append(f'X>{X_selected_articulator}>{bodyparts_dict[X_selected_articulator]}')
 
             return path
 
@@ -773,6 +794,7 @@ class CompareModel(QObject):
             s1_path_element = get_informative_elements(s1path)
             s2_path_element = get_informative_elements(s2path)
 
+            # btn types for colouring and collapsing.
             s1_path_btn_types = {
                 path: get_btn_type_for_path('rel', path, None) for path in s1_path_element
             }
@@ -814,14 +836,29 @@ class CompareModel(QObject):
 
 
         signpair = (self.sign1, self.sign2)
-        # currently, use modules naively. eventually, use the results of relation module alignment as the line below!
+
+        # currently, compare modules naively. eventually, it should compare aligned modules as the line below!
         # aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.RELATION)
 
-        [(_, sign1_relmodule)] = self.sign1.relationmodules.items()
-        [(_, sign2_relmodule)] = self.sign2.relationmodules.items()
-        aligned_modules = [(sign1_relmodule, sign2_relmodule)]
-
+        # --- for now, assume all relation modules are properly aligned already.
         pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
+
+        if len(self.sign1.relationmodules) + len(self.sign1.relationmodules) == 0:
+            return pair_comparison
+
+        sign1_relmodule = list(self.sign1.relationmodules.values())
+        sign1_relmodule_count = len(sign1_relmodule)
+
+        sign2_relmodule = list(self.sign2.relationmodules.values())
+        sign2_relmodule_count = len(sign2_relmodule)
+
+        aligned_modules = []
+
+        for i in range(max(sign1_relmodule_count, sign2_relmodule_count)):
+            value1 = sign1_relmodule[i] if i < len(sign1_relmodule) else None
+            value2 = sign2_relmodule[i] if i < len(sign2_relmodule) else None
+            aligned_modules.append((value1, value2))
+        # --- end
 
         for i, module in enumerate(aligned_modules):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)

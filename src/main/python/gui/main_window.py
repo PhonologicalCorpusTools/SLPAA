@@ -930,10 +930,11 @@ class MainWindow(QMainWindow):
         count_xslots_window.exec_()
 
     def on_action_compare_signs(self):
-        selected_signs = None
-        if len(self.corpus_display.getselectedsigns()) == 2:
-            selected_signs = self.corpus_display.getselectedsigns()
-        compare_signs_window = CompareSignsDialog(parent=self, selected_signs=selected_signs)
+        selected_signs = self.corpus_display.getselectedsigns()
+        if len(selected_signs) == 2:  # the user picked two signs and prompted compare from the context menu
+            compare_signs_window = CompareSignsDialog(parent=self, selected_signs=selected_signs)
+        else:                         # the user did not select two signs. (e.g., one sign or three or more signs..)
+            compare_signs_window = CompareSignsDialog(parent=self, selected_signs=None)
         compare_signs_window.exec_()
 
     @check_unsaved_change
