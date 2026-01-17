@@ -1,6 +1,6 @@
 from fractions import Fraction
 
-import io, os, pickle
+import io, os, pickle, time
 from PyQt5.QtGui import (
     QIcon,
     QKeySequence
@@ -216,10 +216,13 @@ class SearchWindow(QMainWindow):
             self.searchmodel.searchtype = type
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
-
+            # start_time = time.time()
             resultsdict = self.searchmodel.search_corpus(self.corpus)
             self.results_view = ResultsView(resultsdict, mainwindow=self)
             self.results_view.show()
+            # end_time = time.time()
+            # elapsed_time = end_time - start_time
+            # print(f"Elapsed time: {elapsed_time} seconds")
         
 
 
