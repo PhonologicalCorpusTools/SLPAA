@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
-    QLabel, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox, QGroupBox
+    QLabel, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox, QGroupBox, QSizePolicy
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 import re
@@ -293,7 +293,7 @@ class CompareSignsDialog(QDialog):
         # Dropdown menus for selecting signs
         self.sign1_dropdown = QComboBox()
         self.sign2_dropdown = QComboBox()
-        dropdown_layout = self.initialize_dropdown(selected_signs)
+        dropdown_layout: QHBoxLayout = self.initialize_dropdown(selected_signs)
 
         # -- finalize creating main layout
         layout.addLayout(dropdown_layout)
@@ -327,27 +327,36 @@ class CompareSignsDialog(QDialog):
         return {key: ColourCounter(palette=palette) for key in counter_kinds}
 
     def initialize_dropdown(self, selected=None):
+        layout = QHBoxLayout()  # this will the output where dropdown menus and labels are added
+        mode = self.comparison_options['general']['dropdown_label']  # user selected label to show (id_gloss by default)
+
         # clear the dropdowns (just to be safe)
         self.sign1_dropdown.clear()
         self.sign2_dropdown.clear()
 
-        mode = self.comparison_options['general']['dropdown_label']  # user selected label to show (id_gloss by default)
-
-        # populate items
+        # populate items in dropdowns
         for sign in self.signs:
             label = self._get_dropdown_sign_label(sign, mode)
             self.sign1_dropdown.addItem(label, sign)  # just put a Sign object itself in dropdown!
             self.sign2_dropdown.addItem(label, sign)
 
-        layout = QHBoxLayout()
-        layout.addWidget(QLabel("Select Sign 1:"))
+        # now the dropdowns are ready, add labels.
+        select_sign1_label = QLabel("Select Sign 1:")
+        select_sign2_label = QLabel("Select Sign 2:")
+
+        # size policy for dropdowns and labels that give the dropdown menus the maximum space!
+        select_sign1_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        select_sign2_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        self.sign1_dropdown.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.sign2_dropdown.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        layout.addWidget(select_sign1_label)
         layout.addWidget(self.sign1_dropdown)
-        layout.addWidget(QLabel("Select Sign 2:"))
+        layout.addWidget(select_sign2_label)
         layout.addWidget(self.sign2_dropdown)
 
         if selected:
-            for dd, sign in ((self.sign1_dropdown, selected[0]),
-                                (self.sign2_dropdown, selected[1])):
+            for dd, sign in ((self.sign1_dropdown, selected[0]), (self.sign2_dropdown, selected[1])):
                 idx = dd.findData(sign)  # compares userData (Sign object)
                 if idx != -1:
                     dd.setCurrentIndex(idx)
@@ -441,21 +450,23 @@ class CompareSignsDialog(QDialog):
     def _get_dropdown_sign_label(self, sign, mode):
         # sign: Sign
         # mode: str. either 'idgloss', 'gloss', or 'entry_id'
-        sli = sign.signlevel_information
         mode = (mode or "idgloss").lower()  # the default is id gloss
-
-        label = ''
+        sli = sign.signlevel_information    # sli (sign level information) contains all sign id info.
+        # entry ID, which is always shown
+        entryid = sli.entryid
+        if hasattr(entryid, 'display_string'):
+            label = entryid.display_string()
+        else:
+            label = str(getattr(entryid, "counter", ""))
 
         if mode == 'idgloss':
-            label = sli.idgloss or ""
+            add_to_label = sli.idgloss or ""
         elif mode == 'gloss':
-            label = glossesdelimiter.join(sli.gloss)
+            add_to_label = glossesdelimiter.join(sli.gloss)
         elif mode == 'entryid':
-            entryid = sli.entryid
-            if hasattr(entryid, 'display_string'):
-                label = entryid.display_string()
-            else:
-                label = str(getattr(entryid, "counter", ""))
+            pass
+
+        label += f'  {add_to_label}'
         return label
 
     def _gen_options_general(self):
@@ -467,7 +478,7 @@ class CompareSignsDialog(QDialog):
         self.idgloss_rb = QRadioButton("ID gloss")
         self.idgloss_rb.setChecked(True)   # ID gloss by default
         self.gloss_rb = QRadioButton("Gloss")
-        self.entryid_rb = QRadioButton("Entry ID")
+        self.entryid_rb = QRadioButton("Entry ID only")
 
         general_layout.addWidget(sub_label)
         general_layout.addWidget(self.idgloss_rb)
