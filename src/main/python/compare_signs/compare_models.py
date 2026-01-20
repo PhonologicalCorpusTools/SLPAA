@@ -652,17 +652,37 @@ class CompareModel(QObject):
         return pair_comparison
 
     def compare_relation(self) -> dict:
+        def _parse_articulator_XY(raw_rel, bodyparts_dict):
+            # to convert front <--> back
+            articulator_flags = {'Both hands': 'hboth',  'H1':   'h1',    'H2':   'h2',
+                                 'Both arms':  'aboth',  'Arm1': 'arm1',  'Arm2': 'arm2',
+                                 'Both legs':  'lboth',  'Leg1': 'leg1',  'Leg2': 'leg2'}
+            articulator_front = {'h': 'H', 'a': 'Arm', 'l': 'Leg'}
+
+            path = []  # this will be returned
+
+            rel_type = type(raw_rel).__name__[-1]  # 'X' or 'Y'
+            selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(raw_rel, attr, False))
+            articulator_code = articulator_flags[selected_articulator]  # e.g., 'h1', 'hboth', 'lboth'
+            articulator_type = articulator_front[articulator_code[0]]
+            articulator_type_intermediate = 'Hand selected' if articulator_type == 'H' \
+                else f'{articulator_type} selected'
+
+            list_by_art_module = (    # this will have two elements if '..both' or one if 'h1', 'h2', etc.
+                [f'{articulator_type}{i}' for i in (2, 1)]
+                if articulator_code.endswith('both') else [selected_articulator]
+            )
+
+            for single_articulator in list_by_art_module:
+                parts = [rel_type, articulator_type_intermediate, single_articulator]
+                bodypart = bodyparts_dict.get(f'{single_articulator}')
+                if bodypart:
+                    parts.append(bodypart)
+                path.append('>'.join(parts))
+
+            return path
+
         def convert_to_path(sign, upstream) -> list:
-            articulator_flags = {'Both hands':'hboth',
-                                 'H1': 'h1',
-                                 'H2': 'h2',
-                                 'Both arms': 'aboth',
-                                 'Arm1': 'arm1',
-                                 'Arm2': 'arm2',
-                                 'Both legs': 'lboth',
-                                 'Leg1': 'leg1',
-                                 'Leg2': 'leg2'
-                                 }
 
             # Distance
             path = ['Distance']
@@ -760,17 +780,13 @@ class CompareModel(QObject):
                 for _, m in linked_modules.items():
                     path.append(f'Y>Existing module>{m.moduletype}>{m.getabbreviation()}')
             else:
-                Y_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(Y_raw, attr, False))
-                path.append(f'Y>Articulator>{Y_selected_articulator}')
-                if bodyparts_dict.get(Y_selected_articulator):
-                    path.append(f'Y>Articulator>{Y_selected_articulator}>{bodyparts_dict[Y_selected_articulator]}')
+                artipath_list = _parse_articulator_XY(raw_rel=Y_raw, bodyparts_dict=bodyparts_dict)
+                path.extend(artipath_list)
 
             # X
             X_raw = sign.relationx
-            X_selected_articulator = next(k for k, attr in articulator_flags.items() if getattr(X_raw, attr, False))
-            path.append(f'X>{X_selected_articulator}')
-            if bodyparts_dict.get(X_selected_articulator):
-                path.append(f'X>{X_selected_articulator}>{bodyparts_dict[X_selected_articulator]}')
+            artipath_list = _parse_articulator_XY(raw_rel=X_raw, bodyparts_dict=bodyparts_dict)
+            path.extend(artipath_list)
 
             return path
 
