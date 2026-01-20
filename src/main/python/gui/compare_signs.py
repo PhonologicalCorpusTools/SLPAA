@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
-    QLabel, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox, QGroupBox, QSizePolicy
+    QLabel, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox, QGroupBox, QSizePolicy, \
+    QSpacerItem
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt
 import re
@@ -461,12 +462,10 @@ class CompareSignsDialog(QDialog):
 
         if mode == 'idgloss':
             add_to_label = sli.idgloss or ""
+            label += f'  {add_to_label}'
         elif mode == 'gloss':
-            add_to_label = glossesdelimiter.join(sli.gloss)
-        elif mode == 'entryid':
-            pass
+            label += f'  {glossesdelimiter.join(sli.gloss)}'
 
-        label += f'  {add_to_label}'
         return label
 
     def _gen_options_general(self):
@@ -475,25 +474,38 @@ class CompareSignsDialog(QDialog):
 
         # select dropbox identifier
         sub_label = QLabel("Identify signs by...")
+
+        # three sign dropbox sign id options -- as radio buttons
+        signlabel_options_layout = QVBoxLayout()
         self.idgloss_rb = QRadioButton("ID gloss")
-        self.idgloss_rb.setChecked(True)   # ID gloss by default
+        self.idgloss_rb.setChecked(True)  # ID gloss by default
         self.gloss_rb = QRadioButton("Gloss")
         self.entryid_rb = QRadioButton("Entry ID only")
 
-        general_layout.addWidget(sub_label)
-        general_layout.addWidget(self.idgloss_rb)
-        general_layout.addWidget(self.gloss_rb)
-        general_layout.addWidget(self.entryid_rb)
+        signlabel_options_layout.addWidget(self.idgloss_rb)
+        signlabel_options_layout.addWidget(self.gloss_rb)
+        signlabel_options_layout.addWidget(self.entryid_rb)
 
-        self.general_btn_group = QButtonGroup(self)  # Group them for mutual exclusivity
-        for rb in (self.idgloss_rb, self.gloss_rb, self.entryid_rb):
-            self.general_btn_group.addButton(rb)
-
+        # radio button dynamics
         self.idgloss_rb.setProperty("dropdown_label", "idgloss")
         self.gloss_rb.setProperty("dropdown_label", "gloss")
         self.entryid_rb.setProperty("dropdown_label", "entryid")
 
+        self.general_btn_group = QButtonGroup(self)  # Group them for mutual exclusivity
+        for rb in (self.idgloss_rb, self.gloss_rb, self.entryid_rb):
+            self.general_btn_group.addButton(rb)
         self.general_btn_group.buttonClicked.connect(self._on_general_option_changed)
+
+
+        # add a spacer left to the buttons to show the three options are subsidiary
+        signlabel_options_spacer_layout = QHBoxLayout()
+        signlabel_options_spacer_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        signlabel_options_spacer_layout.addLayout(signlabel_options_layout)
+
+        # assemble all components!
+        general_layout.addWidget(sub_label)
+        general_layout.addLayout(signlabel_options_spacer_layout)
+        general_layout.addStretch()
 
     def _gen_options_content_hc(self):
         self.handconfig_groupbox = QGroupBox("Handconfig")
