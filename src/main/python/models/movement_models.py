@@ -1119,6 +1119,19 @@ class MovementListModel(QStandardItemModel):
     def setTreemodel(self, treemod):
         self.treemodel = treemod
 
+    # returns a list of strings, where each is the (tree) path of one of the checked items in this list
+    def get_checked_items(self, parent_item=None):
+        if parent_item is None:
+            parent_item = self.invisibleRootItem()
+
+        checked_values = []
+        for row in range(parent_item.rowCount()):
+            child_item = parent_item.child(row, 0)
+            if child_item.data(Qt.UserRole+udr.selectedrole):
+                checked_values.append(child_item.text())
+            checked_values.extend(self.get_checked_items(child_item))
+        return checked_values
+
 
 class MovementTreeModel(QStandardItemModel):
 
@@ -1130,7 +1143,6 @@ class MovementTreeModel(QStandardItemModel):
         self.setColumnCount(2)
         self.itemChanged.connect(self.updateCheckState)
         self.dataChanged.connect(self.updaterelateddata)
-        
 
         if serializedmvmttree is not None:
             self.serializedmvmttree = serializedmvmttree
@@ -1160,6 +1172,18 @@ class MovementTreeModel(QStandardItemModel):
                             self.checked.append(pathtext)
 
                     self.update_currently_checked(treechild)
+
+    # returns True iff input `other` is also a MovementTreeModel, and it has the exact same checked items as this one
+    # note that this function OPTIONALLY ignores any potential user-specified values
+    #   or AddedInfo (right-click menu) info associated with each tree item
+    def matches(self, other, includeAddedInfos=False, includeUserSpecifiedValues=False):
+        if isinstance(other, MovementTreeModel):
+            checkstates_self, addedinfos_self, userspecifiedvalues_self = self.data_as_dicts()
+            checkstates_other, addedinfos_other, userspecifiedvalues_other = other.data_as_dicts()
+            return checkstates_self == checkstates_other \
+                and (not includeAddedInfos or addedinfos_self == addedinfos_other) \
+                and (not includeUserSpecifiedValues or userspecifiedvalues_self == userspecifiedvalues_other)
+        return False
 
     # Compare what was serialized with what the current tree actually shows
     # Also updates the list
@@ -1330,6 +1354,28 @@ class MovementTreeModel(QStandardItemModel):
                             treechild.editablepart().setText(userspecifiedvalues[pathtext])
 
                     self.setvaluesfromserializedtree(treechild, userspecifiedvalues)
+
+    # collect data from the MovementTreeModel and return as three dicts (checkstates, addedinfos, userspecifiedvalues),
+    # each of which has the full texts of the treemodel's paths as its keys
+    def data_as_dicts(self):
+        checkstates = {}
+        addedinfos = {}
+        userspecifiedvalues = {}
+        self.datadictshelper(self.invisibleRootItem(), checkstates, addedinfos, userspecifiedvalues)
+        return checkstates, addedinfos, userspecifiedvalues
+
+    def datadictshelper(self, treenode, checkstates, addedinfos, userspecifiedvalues):
+        for r in range(treenode.rowCount()):
+            treechild = treenode.child(r, 0)
+            if treechild is not None:
+                pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                checkstates[pathtext] = treechild.checkState()
+                addedinfos[pathtext] = copy(treechild.addedinfo)
+                iseditable = treechild.data(Qt.UserRole + udr.isuserspecifiablerole) != fx
+                userspecifiedvalue = treechild.data(Qt.UserRole + udr.userspecifiedvaluerole)
+                if iseditable:
+                    userspecifiedvalues[pathtext] = userspecifiedvalue
+                self.datadictshelper(treechild, checkstates, addedinfos, userspecifiedvalues)
 
     # def tempprinttreemodel(self):
     #     print("treemodel contents...")

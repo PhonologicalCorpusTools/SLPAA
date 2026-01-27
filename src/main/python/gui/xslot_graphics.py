@@ -335,13 +335,19 @@ class ModuleButtonContextMenu(QMenu):
         clipboardlist = clipboardlist or []
         if whichactions is None:
             # seemed potentially messy to include "edit" so I didn't
-            whichactions = ["copy", "paste", "delete", "copy timing", "paste timing"]
+            whichactions = ["copy", "paste", "delete", "copy timing", "paste timing", "TODO compare modules"]
 
         if "copy" in whichactions:
             self.copy_action = QAction("Copy module(s)")  # : " + str([btn.text for btn in selected_buttons]))
             self.copy_action.setEnabled(len(selected_modules) > 0 and islistofmodules(selected_modules))
             self.copy_action.triggered.connect(lambda checked: self.action_selected.emit("copy"))
             self.addAction(self.copy_action)
+
+        if "TODO compare modules" in whichactions:
+            self.compare_action = QAction("TODO compare module(s)")  # : " + str([btn.text for btn in selected_buttons]))
+            self.compare_action.setEnabled(len(selected_modules) == 2 and islistofmodules(selected_modules))
+            self.compare_action.triggered.connect(lambda checked: self.action_selected.emit("TODO compare"))
+            self.addAction(self.compare_action)
 
         if "paste" in whichactions:
             self.paste_action = QAction("Paste module(s)")

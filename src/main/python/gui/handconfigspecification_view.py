@@ -86,10 +86,9 @@ class ConfigSlot(QLineEdit):
         self.setCompleter(completer)
 
         self.num = descriptions[1]
-        self.description = 'Field type: {f_type}; Slot number: {s_num}; Slot type: {s_type}'.format(
-            f_type=descriptions[0],
-            s_num=descriptions[1],
-            s_type=descriptions[2])
+        self.field_type = descriptions[0]
+        self.slot_type = descriptions[2]
+        self.description = f'Field type: {self.field_type}; Slot number: {self.num}; Slot type: {self.slot_type}'
 
         self.current_prop = self.get_value()
         self.textChanged.connect(self.on_text_changed)
@@ -948,7 +947,6 @@ class Config(QGroupBox):
         # self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
-        self._addedinfo = AddedInfo()
         self.add_slot1()
         self.generate_hands()
 
@@ -1016,20 +1014,17 @@ class Config(QGroupBox):
         self.hand.set_value(HandConfigurationHand(handconfigmodule.handconfiguration))
         self.slot1.setChecked(handconfigmodule.overalloptions['forearm'])
         self.slot1.addedinfo = handconfigmodule.overalloptions['forearm_addedinfo']
-        self._addedinfo = handconfigmodule.overalloptions['overall_addedinfo']
 
     def clear(self):
         self.hand.clear()
         self.slot1.setChecked(False)
         self.slot1.addedinfo = AddedInfo()
-        self._addedinfo = AddedInfo()
 
     def get_value(self):
         return {
             'forearm': self.slot1.isChecked(),
             'forearm_addedinfo': self.slot1.addedinfo,
             'hand': self.hand.get_value(),  # this is a list of field values
-            'overall_addedinfo': self._addedinfo
         }
 
 

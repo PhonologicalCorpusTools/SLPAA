@@ -727,7 +727,20 @@ class LocationTreeModel(QStandardItemModel):
                     checked.append(k)
         return checked
 
-        # Compare what was serialized with what the current tree actually shows
+    # returns True iff input `other` is also a LocationTreeModel, and it has the exact same checked items as this one
+    # note that this function ignores the loc type associated with the tree (body, body-anchored, purely spatial, etc)
+    # includes OPTIONAL comparison of any potential surface/subarea selection or item-level AddedInfo (right-click menu) info
+    def matches(self, other, includeAddedInfos=False, includeDetailsTables=False):
+        if isinstance(other, LocationTreeModel):
+            checkstates_self, addedinfos_self, detailstables_self = self.data_as_dicts()
+            checkstates_other, addedinfos_other, detailstables_other = other.data_as_dicts()
+            checkstatesmatch = checkstates_self == checkstates_other
+            addedinfosmatch = not includeAddedInfos or addedinfos_self == addedinfos_other
+            detailsmatch = not includeDetailsTables or detailstables_self == detailstables_other
+            return checkstatesmatch and addedinfosmatch and detailsmatch
+        return False
+
+    # Compare what was serialized with what the current tree actually shows
     def compare_checked_lists(self):
         differences = []
         serialized = self.get_checked_from_serialized_tree()
@@ -739,10 +752,44 @@ class LocationTreeModel(QStandardItemModel):
         # print("   Serialized locn:" + str(len(serialized)) + "; Listed locn:" + str(len(self.checked)))
                 
         return differences
-                
-    
 
+    def findItemsByRoleValues(self, role, possiblevalues, parentnode=None):
+        if not isinstance(possiblevalues, list):
+            possiblevalues = [possiblevalues]
+        if parentnode is None:
+            parentnode = self.invisibleRootItem()
 
+        items = []
+        numchildren = parentnode.rowCount()
+        for i in range(numchildren):
+            child = parentnode.child(i, 0)
+            roledata = child.data(role)
+            matches = [roledata == pv for pv in possiblevalues]
+            if True in matches:
+                items.append(child)
+
+            subresults = self.findItemsByRoleValues(role, possiblevalues, parentnode=child)
+            items.extend(subresults)
+        return items
+
+    # collect data from the LocationTreeModel and return as three dicts (checkstates, addedinfos, detailstables),
+    # each of which has the full texts of the treemodel's paths as its keys
+    def data_as_dicts(self):
+        checkstates = {}
+        addedinfos = {}
+        detailstables = {}
+        self.datadictshelper(self.invisibleRootItem(), checkstates, addedinfos, detailstables)
+        return checkstates, addedinfos, detailstables
+
+    def datadictshelper(self, treenode, checkstates, addedinfos, detailstables):
+        for r in range(treenode.rowCount()):
+            treechild = treenode.child(r, 0)
+            if treechild is not None:
+                pathtext = treechild.data(Qt.UserRole + udr.pathdisplayrole)
+                checkstates[pathtext] = treechild.checkState()
+                addedinfos[pathtext] = copy(treechild.addedinfo)
+                detailstables[pathtext] = LocationTableSerializable(treechild.detailstable)
+                self.datadictshelper(treechild, checkstates, addedinfos, detailstables)
 
     # def tempprintcheckeditems(self):
     #     treenode = self.invisibleRootItem()
@@ -999,6 +1046,19 @@ class LocationListModel(QStandardItemModel):
 
     def setTreemodel(self, treemod):
         self.treemodel = treemod
+
+    # returns a list of strings, where each is the (tree) path of one of the checked items in this list
+    def get_checked_items(self, parent_item=None):
+        if parent_item is None:
+            parent_item = self.invisibleRootItem()
+
+        checked_values = []
+        for row in range(parent_item.rowCount()):
+            child_item = parent_item.child(row, 0)
+            if child_item.data(Qt.UserRole+udr.selectedrole):
+                checked_values.append(child_item.text())
+            checked_values.extend(self.get_checked_items(child_item))
+        return checked_values
 
 
 # This class stores specific details about body locations; e.g. surfaces and/or subareas involved

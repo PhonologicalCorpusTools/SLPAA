@@ -3,7 +3,6 @@ import pickle
 import json
 import csv
 import re
-import sys
 from collections import defaultdict
 from copy import deepcopy
 from datetime import date
@@ -40,7 +39,9 @@ from PyQt5.QtWidgets import (
     QApplication,
     QRadioButton,
     QButtonGroup,
-    QSpacerItem
+    QSpacerItem,
+    QComboBox,
+    QPushButton
 )
 
 from PyQt5.QtGui import (
@@ -53,6 +54,7 @@ from gui.initialization_dialog import InitializationDialog
 from gui.corpus_view import CorpusDisplay
 from search.search_builder import SearchWindow
 from gui.countxslots_dialog import CountXslotsDialog
+from gui.compare_signs import CompareSignsDialog
 from gui.mergecorpora_dialog import MergeCorporaWizard
 from gui.importcorpus_dialog import ImportCorpusWizard
 # from gui.compareexports_dialog import CompareExportsDialog
@@ -72,6 +74,8 @@ from lexicon.lexicon_classes import Corpus, Sign, glossesdelimiter
 from serialization_classes import renamed_load
 from constant import ModuleTypes
 from lexicon.module_utils import deepcopymodule, deepcopysign
+from compare_signs.align_modules import alignmodules
+from gui.modulespecification_widgets import StatusDisplay
 
 
 class SubWindow(QMdiSubWindow):
@@ -198,16 +202,21 @@ class MainWindow(QMainWindow):
         action_count_xslots.triggered.connect(self.on_action_count_xslots)
         action_count_xslots.setCheckable(False)
 
+        # compare signs
+        action_compare_signs = QAction("Compare signs", parent=self)
+        action_compare_signs.triggered.connect(self.on_action_compare_signs)
+        action_compare_signs.setCheckable(False)
+
         # search
         action_search = QAction("Search", parent=self)
         action_search.triggered.connect(self.on_action_search)
         action_search.setShortcut(QKeySequence(Qt.CTRL + Qt.ALT + Qt.Key_S))
         action_search.setCheckable(False)
 
-        # # compare exports
-        # action_compareexports = QAction("Compare exports", parent=self)
-        # action_compareexports.triggered.connect(self.on_action_compareexports)
-        # action_compareexports.setCheckable(False)
+        # align modules (TODO temporary - remove before merging with main)
+        action_align = QAction("Align modules", parent=self)
+        action_align.triggered.connect(self.on_action_align)
+        action_align.setCheckable(False)
 
         # new corpus
         action_new_corpus = QAction(QIcon(self.app_ctx.icons['blank16']), "New corpus", parent=self)
@@ -405,8 +414,9 @@ class MainWindow(QMainWindow):
 
         menu_analysis_beta = main_menu.addMenu("&Analysis functions (beta)")
         menu_analysis_beta.addAction(action_count_xslots)
+        menu_analysis_beta.addAction(action_compare_signs)
         menu_analysis_beta.addAction(action_search)
-        # menu_analysis_beta.addAction(action_compareexports)
+        menu_analysis_beta.addAction(action_align)
         menu_help = main_menu.addMenu("&Help")  # Alt (Option) + H can toggle this menu
         menu_help.addAction(action_help_main)
         menu_help.addAction(action_help_about)
@@ -697,6 +707,8 @@ class MainWindow(QMainWindow):
             self.delete_modules()
         elif action_str == "copy":
             self.on_action_copy()
+        elif action_str == "TODO compare":
+            self.on_action_compare_fortesting()
         elif action_str == "paste":
             self.on_action_paste()
         elif action_str == "copy timing":
@@ -705,7 +717,7 @@ class MainWindow(QMainWindow):
             self.on_action_pastetiming()
 
     # action_str indicates the type of action selected fom the Corpus View R-click menu:
-    #   "copy", "paste", "edit" (sign-level info), or "delete"
+    #   "copy", "paste", "edit" (sign-level info), "compare", or "delete"
     def handle_signaction_selected(self, action_str):
         if action_str == "edit":
             self.on_action_edit_signs()
@@ -715,6 +727,8 @@ class MainWindow(QMainWindow):
             self.on_action_copy()
         elif action_str == "paste":
             self.on_action_paste()
+        elif action_str == "compare":
+            self.on_action_compare_signs()
 
     def handle_app_settings(self):
         self.app_settings = defaultdict(dict)
@@ -816,9 +830,9 @@ class MainWindow(QMainWindow):
         self.app_settings['location']['loctype'] = self.app_qsettings.value('loctype', defaultValue='none')
         self.app_settings['location']['default_loctype_1h'] = self.app_qsettings.value('default_loctype_1h', defaultValue="purely spatial", type=str)
         self.app_settings['location']['default_loctype_2h'] = self.app_qsettings.value('default_loctype_2h', defaultValue='purely spatial', type=str)
-        self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h', 
+        self.app_settings['location']['default_loc_1h'] = self.app_qsettings.value('default_loc_1h',
                                                                                    DEFAULT_LOC_1H)
-        self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h', 
+        self.app_settings['location']['default_loc_2h'] = self.app_qsettings.value('default_loc_2h',
                                                                                    DEFAULT_LOC_2H)
         self.app_settings['location']['autocheck_neutral'] = self.app_qsettings.value('autocheck_neutral', defaultValue=True, type=bool)
         self.app_settings['location']['autocheck_neutral_on_locn_selected'] = self.app_qsettings.value('autocheck_neutral_on_locn_selected', defaultValue=True, type=bool)
@@ -915,9 +929,13 @@ class MainWindow(QMainWindow):
         count_xslots_window = CountXslotsDialog(self.app_settings, parent=self)
         count_xslots_window.exec_()
 
-    # def on_action_compareexports(self):
-    #     compareexports_window = CompareExportsDialog(self.app_settings, parent=self)
-    #     compareexports_window.exec_()
+    def on_action_compare_signs(self):
+        selected_signs = self.corpus_display.getselectedsigns()
+        if len(selected_signs) == 2:  # the user picked two signs and prompted compare from the context menu
+            compare_signs_window = CompareSignsDialog(parent=self, selected_signs=selected_signs)
+        else:                         # the user did not select two signs. (e.g., one sign or three or more signs..)
+            compare_signs_window = CompareSignsDialog(parent=self, selected_signs=None)
+        compare_signs_window.exec_()
 
     @check_unsaved_change
     def on_action_merge_corpora(self, clicked):
@@ -938,6 +956,12 @@ class MainWindow(QMainWindow):
     def on_action_search(self):
         self.search_window = SearchWindow(app_settings=self.app_settings, corpus=self.corpus, app_ctx=self.app_ctx)
         self.search_window.show()
+
+    # test module alignment  TODO temporary - remove before merging with main
+    def on_action_align(self):
+        self.align_test_window = AlignTestDialog(self.app_settings, corpus=self.corpus, parent=self)
+        self.align_test_window.show()
+
 
     def save_new_locations(self, new_locations):
         # TODO: need to reimplement this once corpus class is there
@@ -1108,6 +1132,43 @@ class MainWindow(QMainWindow):
         else:
             # TODO: implement for other panels/objects (not just Corpus View / Signs or Sign Summary Scene / Modules)
             pass
+
+    # TODO compares the modules currently selected in the sign summary scene
+    def on_action_compare_fortesting(self, clicked=None):
+        self.copypaste_referencesign = self.current_sign
+
+        if self.signsummary_panel.scene.hasFocus():
+            twomodulestocompare = self.modules_fromselectedbuttons()
+            module0 = twomodulestocompare[0]
+            module1 = twomodulestocompare[1]
+
+            if module0.moduletype != module1.moduletype:
+                print(module0.moduletype, "&", module1.moduletype, "modules have different types and therefore can't be compared")
+                return
+
+            print(module0.moduletype, "modules")
+            if module0.moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                results0 = module0.locationtreemodel.data_as_dicts() if hasattr(module0, "locationtreemodel") else module0.movementtreemodel.data_as_dicts()
+                results1 = module1.locationtreemodel.data_as_dicts() if hasattr(module1, "locationtreemodel") else module1.movementtreemodel.data_as_dicts()
+                for dictidx in [0, 1, 2]:
+                    aresame = results0[dictidx] == results1[dictidx]
+                    print(dictidx, ":", aresame)
+                    if not aresame:
+                        for k, v in results0[dictidx].items():
+                            if k not in results1[dictidx].keys() or results1[dictidx][k] != v:
+                                print("   0:", k, v)
+                                print("   1:", k, results1[dictidx][k])
+            elif module0.moduletype == ModuleTypes.RELATION:
+                for ai in [True, False]:
+                    for dt in [True, False]:
+                        ai_str = ("" if ai else "not ") + "including addedinfos"
+                        dt_str = ("" if dt else "not ") + "including details tables"
+                        print(ai_str, "and", dt_str, "- match:", module0.matchesmodulespecs(module1, includeAddedInfos=ai, includeDetailsTables=dt))
+            else:
+                for ai in [True, False]:
+                    ai_str = ("" if ai else "not ") + "including addedinfos"
+                    print("    ", ai_str, "- match:", module0.matchesmodulespecs(module1, includeAddedInfos=ai))
+            print("-----------------------------")
 
     # copies timing info from the module (there can only be one) currently selected in the sign summary window
     def on_action_copytiming(self):
@@ -1719,3 +1780,135 @@ class MinCounterDialog(QDialog):
         if standard == QDialogButtonBox.Save:
             self.parent().corpus.increaseminID(countervalue)
             self.accept()
+
+
+# test module alignment TODO temporary - remove before merging with main
+class AlignTestDialog(QDialog):
+
+    def __init__(self, app_settings, corpus, **kwargs):
+        super().__init__(**kwargs)
+        self.app_settings = app_settings
+        self.corpus = corpus
+        self.sign1 = None
+        self.sign2 = None
+
+        main_layout = QVBoxLayout()
+
+        sign1layout = QHBoxLayout()
+        self.sign1label = QLabel("Sign 1:")
+        self.sign1combo = QComboBox(parent=self)
+        self.sign1combo.addItems(
+            [str(s.signlevel_information.entryid.counter) + ": " + " / ".join(s.signlevel_information.gloss) for s in self.corpus.signs])
+        sign1layout.addWidget(self.sign1label)
+        sign1layout.addWidget(self.sign1combo)
+
+        sign2layout = QHBoxLayout()
+        self.sign2label = QLabel("Sign 2:")
+        self.sign2combo = QComboBox(parent=self)
+        self.sign2combo.addItems(
+            [str(s.signlevel_information.entryid.counter) + ": " + " / ".join(s.signlevel_information.gloss) for s in self.corpus.signs])
+        sign2layout.addWidget(self.sign2label)
+        sign2layout.addWidget(self.sign2combo)
+
+        main_layout.addLayout(sign1layout)
+        main_layout.addLayout(sign2layout)
+
+        self.alignbutton = QPushButton("Align modules")
+        self.alignbutton.clicked.connect(self.handle_alignmodules)
+        main_layout.addWidget(self.alignbutton)
+
+        self.aligndisplay = StatusDisplay(parent=self)
+        main_layout.addWidget(self.aligndisplay)
+
+        self.setLayout(main_layout)
+
+    def handle_alignmodules(self, checked):
+        self.aligndisplay.setText("aligning...")
+
+        allalignedmodules = []
+
+        sign1 = [s for s in self.corpus.signs if s.signlevel_information.entryid.counter == int(self.sign1combo.currentText()[:self.sign1combo.currentText().index(":")])][0]
+        sign2 = [s for s in self.corpus.signs if s.signlevel_information.entryid.counter == int(self.sign2combo.currentText()[:self.sign2combo.currentText().index(":")])][0]
+        for modtype in ModuleTypes.alltypes:
+            alignedmodulesthistype, warningstring = alignmodules(sign1, sign2, modtype)
+            allalignedmodules.extend(alignedmodulesthistype)
+
+        resultstring = ""
+        for mod1, mod2 in allalignedmodules:
+            mod1string = "no match"
+            if mod1 is not None:
+                if mod1.moduletype == ModuleTypes.SIGNTYPE:
+                    mod1string = "Sign type"
+                else:
+                    mod1string = sign1.getmoduleabbreviation(mod1)
+
+            mod2string = "no match"
+            if mod2 is not None:
+                if mod2.moduletype == ModuleTypes.SIGNTYPE:
+                    mod2string = "Sign type"
+                else:
+                    mod2string = sign2.getmoduleabbreviation(mod2)
+            resultstring += "S1: " + mod1string + "\n" + self.gethackymoduleabbreviation(mod1) + "S2: " + mod2string + "\n" + self.gethackymoduleabbreviation(mod2) + "\n"
+
+        self.aligndisplay.setText(resultstring)
+
+    def gethackymoduleabbreviation(self, module):
+        if module is None:
+            return ""
+
+        mtype = module.moduletype
+
+        if mtype == ModuleTypes.MOVEMENT:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            mlm = module.movementtreemodel.listmodel
+            rootnode = mlm.invisibleRootItem()
+            for r in range(rootnode.rowCount()):
+                child = rootnode.child(r, 0)
+                if child.treeitem.checkState() == Qt.Checked:
+                    abbrevstr += "     " + child.text() + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.LOCATION:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            abbrevstr += "     " + repr(module.locationtreemodel.locationtype) + "\n"
+            llm = module.locationtreemodel.listmodel
+            rootnode = llm.invisibleRootItem()
+            for r in range(rootnode.rowCount()):
+                child = rootnode.child(r, 0)
+                if child.treeitem.checkState() == Qt.Checked:
+                    abbrevstr += "     " + child.text() + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.HANDCONFIG:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            return abbrevstr + "     " + module.getabbreviation() + "\n"
+        elif mtype == ModuleTypes.SIGNTYPE:
+            return "     " + module.getabbreviation() + "\n"
+        elif mtype == ModuleTypes.RELATION:
+            abbrevstr = ""
+            abbrevstr += "     " + module.relationx.displaystr() + "\n"
+            abbrevstr += "     " + module.relationy.displaystr() + "\n"
+            abbrevstr += "     " + repr(module.contactrel) + "\n"
+            abbrevstr += "     " + repr(module.directions) + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.NONMANUAL:
+            abbrevstr = ""
+            for k in module.nonmanual.keys():
+                subdict = self.nonmanualdictreducer(module.nonmanual[k])
+                if subdict:
+                    abbrevstr += "     " + k + ": " + str(subdict) + "\n"
+            return abbrevstr
+        elif mtype == ModuleTypes.ORIENTATION:
+            abbrevstr = "     articulators: " + module.articulators[0] + ("1" if module.articulators[1][1] else "") + ("2" if module.articulators[1][2] else "") + "\n"
+            abbrevstr += "     " + "palm: " + repr(module.palm) + "\n"
+            abbrevstr += "     " + "root: " + repr(module.root) + "\n"
+            return abbrevstr
+
+    def nonmanualdictreducer(self, nonmandict):
+        reduceddict = {}
+        for k in nonmandict.keys():
+            if isinstance(nonmandict[k], dict):
+                subdict = self.nonmanualdictreducer(nonmandict[k])
+                if subdict:
+                    reduceddict[k] = subdict
+            elif nonmandict[k]:
+                reduceddict[k] = nonmandict[k]
+        return reduceddict

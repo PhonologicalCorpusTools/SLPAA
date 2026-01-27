@@ -522,6 +522,7 @@ class ModuleTypes:
 
     parametertypes = list(abbreviations.keys())
     parametertypes_relationfirst = [RELATION] + [mtype for mtype in parametertypes if mtype != 'relation']
+    alltypes = [SIGNTYPE] + parametertypes
 
 
 class UserDefinedRoles(dict):
@@ -639,3 +640,5 @@ class HandConfigSlots:
 
 def filenamefrompath(filepath):
     return os.path.split(filepath)[1]
+
+alignmentcomplexitywarning = "Due to the computational complexity of aligning the high number of hand configuration modules in these signs, a simpler fallback algorithm will be used. Therefore, alignments may not maximize similarity. See documentation for details."
