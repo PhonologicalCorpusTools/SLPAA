@@ -487,7 +487,10 @@ def alignbyhandshape_combinatoric(s1mods, s2mods):
 
 def get_hsname(handconfigmodule):
     hs = PREDEFINED_MAP.get(tuple(HandConfigurationHand(handconfigmodule.handconfiguration).get_hand_transcription_list()))
-    return hs.name
+    if hs is not None:
+        return hs.name
+    else:
+        return "unnamed"
 
 
 def match_by_handshapename(configname, configmodsbysign, names):  # 2nd arg: modswiththisname_dict,
