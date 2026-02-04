@@ -2924,10 +2924,11 @@ class HandConfigurationModule(ParameterModule):
     def getabbreviation(self):
         handconfighand = HandConfigurationHand(self.handconfiguration)
 
-        predefinedname = ""
         txntuple = tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
         if txntuple in PREDEFINED_MAP.keys():
             predefinedname = "'" + PREDEFINED_MAP[txntuple].name + "' "
+        else:
+            predefinedname = "unnamed "
 
         fieldstext = ""
         fields = [handconfighand.field2, handconfighand.field3, handconfighand.field4, handconfighand.field5, handconfighand.field6, handconfighand.field7]
