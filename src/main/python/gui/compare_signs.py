@@ -242,7 +242,7 @@ class CompareSignsDialog(QDialog):
         # default sign comparison options
         self.comparison_options = {
             'general': {
-                'dropdown_label': 'idgloss'
+                'dropdown_label': 'gloss'
             },
             'handconfig': {
                 'compare_target': 'predefined',
@@ -329,7 +329,7 @@ class CompareSignsDialog(QDialog):
 
     def initialize_dropdown(self, selected=None):
         layout = QHBoxLayout()  # this will the output where dropdown menus and labels are added
-        mode = self.comparison_options['general']['dropdown_label']  # user selected label to show (id_gloss by default)
+        mode = self.comparison_options['general']['dropdown_label']  # user selected label to show (gloss by default)
 
         # clear the dropdowns (just to be safe)
         self.sign1_dropdown.clear()
@@ -450,15 +450,15 @@ class CompareSignsDialog(QDialog):
 
     def _get_dropdown_sign_label(self, sign, mode):
         # sign: Sign
-        # mode: str. either 'idgloss', 'gloss', or 'entry_id'
-        mode = (mode or "idgloss").lower()  # the default is id gloss
+        # mode: str. either 'idgloss', 'gloss', 'lemma', or 'entry_id'
+        mode = (mode or 'gloss').lower()  # the default is id gloss
         sli = sign.signlevel_information    # sli (sign level information) contains all sign id info.
         # entry ID, which is always shown
         entryid = sli.entryid
         if hasattr(entryid, 'display_string'):
             label = entryid.display_string()
         else:
-            label = str(getattr(entryid, "counter", ""))
+            label = str(getattr(entryid, 'counter', ""))
 
         add_to_label: str = ''
         if mode == 'idgloss':
