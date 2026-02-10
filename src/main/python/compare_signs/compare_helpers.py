@@ -332,7 +332,7 @@ def extract_handshape_slots(hcm, linear=False):
 #  Traverse the path and return the button types of each element in the path.
 def get_btn_type_for_path(module_type, path, root_node):
     # btn_types are in two types: basic and additional
-    # basic types are radio_button and checkbox, which are decided by the module spec gui
+    # basic types are 'radio button' and 'checkbox', which are decided by the module spec gui
     # additional types are 'major loc' and 'autogen label'
     #
     # basic btn_types are needed because mismatching rb's and cb's are treated differently in sign comparison

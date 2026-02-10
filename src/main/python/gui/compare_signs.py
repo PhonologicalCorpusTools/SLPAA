@@ -105,10 +105,9 @@ class TreeWidgetItemKey:
         return
 
     def get_original_key(self, many_keys: list, key: Union[str, int]):
-        if isinstance(key, int):
-            for i in many_keys:
-                if ':' in i and i.split(':')[0] == str(key):
-                    return i
+        for i in many_keys:
+            if ':' in i and i.split(':')[0] == str(key):
+                return i
         return key
 
 # This class represents one row consisting of three counters
@@ -638,21 +637,14 @@ class CompareSignsDialog(QDialog):
     def clean_data_keys(self, k_lst: list):
         confirmed_clean = dict()
         for k in k_lst:
+            # injecting for handshape alignment
+            if 'handshape: ' in k.lower():
+                k = k.split(' ')[0]
+                k = k[:-1]
             match = re.match(r'^(\d+):', k)
             key = int(match.group(1)) if match else k
             confirmed_clean[key] = None
         return list(confirmed_clean)
-
-    # get '0:Mov1' from '0'
-    def get_original_key(self, many_keys, int_key):
-        try:
-            key = str(int_key)
-            for item in many_keys:
-                if ':' in item and item.split(':')[0] == key:
-                    return item
-        except ValueError:
-            pass
-        return int_key
 
     # generate a pair of CompareTreeWidgetItem instances
     def _gen_twi_pair(self, label1: str, label2: str = None,         # text of the twi that shows up in gui
@@ -928,7 +920,7 @@ class CompareSignsDialog(QDialog):
         # it does (or dispatches?) five tasks:
         # (1) generate CompareTreeWidgetItem (twi)
         # (2) decide own colours (twi.initialize_bg_color)
-        # (3) recurse with their children and (if not terminal)
+        # (3) (if not terminal) recurse with their children and
         # (4) decide parent red hints (whether parent should also be red or not)
         # (5) parent.addChild(twi)
         # return parents (with children added)
