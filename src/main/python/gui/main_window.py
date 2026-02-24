@@ -976,7 +976,10 @@ class MainWindow(QMainWindow):
                                        parent=self)
         pref_dialog.xslotgeneration_changed.connect(self.handle_xslotgeneration_changed)
         pref_dialog.fontsize_changed.connect(self.handle_fontsize_changed)
+        # ensure that any relevant changes appear immediately in both the sign summary panel and the corpus display list as soon as they're saved
         pref_dialog.prefs_saved.connect(self.signsummary_panel.refreshsign)
+        pref_dialog.prefs_saved.connect(lambda: self.corpus_display.updated_signs(signs=self.corpus.signs, current_sign=self.current_sign))
+
         pref_dialog.exec_()
 
     def handle_xslotgeneration_changed(self, prev_xslotgen, new_xslotgen):

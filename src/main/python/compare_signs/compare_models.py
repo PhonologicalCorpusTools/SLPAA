@@ -580,10 +580,10 @@ class CompareModel(QObject):
 
             # button types
             s1_path_btn_types = {
-                path: get_btn_type_for_path("handconfig", path, None) for path in s1_path_element
+                path: get_btn_type_for_path('handconfig', path, None) for path in s1_path_element
             }
             s2_path_btn_types = {
-                path: get_btn_type_for_path("handconfig", path, None) for path in s2_path_element
+                path: get_btn_type_for_path('handconfig', path, None) for path in s2_path_element
             }
 
             # quick patch to the btn_types
@@ -591,6 +591,12 @@ class CompareModel(QObject):
             for btn_types in [s1_path_btn_types, s2_path_btn_types]:
                 first_child_flag = True
                 for path_btn in btn_types.keys():
+
+                    if 'Handshape' in path_btn:
+                        path_chunks = btn_types[path_btn].split('>')
+                        path_chunks[0] = 'checkbox'
+                        btn_types[path_btn] = '>'.join(path_chunks)
+
                     if '>Base' in path_btn and not first_child_flag:
                         path_chunks = btn_types[path_btn].split('>')
                         path_chunks[-1] = 'checkbox'
