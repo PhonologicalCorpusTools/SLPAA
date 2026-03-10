@@ -632,7 +632,7 @@ def alignbymovement_helper_old(movmodsbysign, typename):
     return matchedmods, unmatched
 
 
-def alignbymoveorloc_helper(modsbysign, modtype, nodename=""):
+def alignbymovorloc_helper(modsbysign, modtype, nodename=""):
     matchedmods = []
     unmatched = {1: [], 2: []}
 
@@ -662,7 +662,7 @@ def alignbymoveorloc_helper(modsbysign, modtype, nodename=""):
         subnodegroups_inbothsigns = s1subnodegroups.intersection(s2subnodegroups)
         for sharedsubnodegroup in subnodegroups_inbothsigns:
             if len(sharedsubnodegroup) == 1:
-                matches, unmatches = alignbymoveorloc_helper({1: modsbysubnodesbysign[1][sharedsubnodegroup], 2: modsbysubnodesbysign[2][sharedsubnodegroup]}, modtype=modtype, nodename=sharedsubnodegroup[0])
+                matches, unmatches = alignbymovorloc_helper({1: modsbysubnodesbysign[1][sharedsubnodegroup], 2: modsbysubnodesbysign[2][sharedsubnodegroup]}, modtype=modtype, nodename=sharedsubnodegroup[0])
             else:
                 matches, unmatches = alignbycodingorder({1: modsbysubnodesbysign[1][sharedsubnodegroup], 2: modsbysubnodesbysign[2][sharedsubnodegroup]}, matchwithnone=False)
             matchedmods.extend(matches)
@@ -776,7 +776,7 @@ def alignbymovement(movmodsbysign):
         if movementtypemodsbysign[1] and movementtypemodsbysign[2]:
             # match up the modules of this movement type
             # matchedpairs, unmatchedmodsbysign = alignbymovement_helper(movementtypemodsbysign, movementtype)
-            matchedpairs, unmatchedmodsbysign = alignbymoveorloc_helper(movementtypemodsbysign, modtype=ModuleTypes.MOVEMENT, nodename=movementtype)
+            matchedpairs, unmatchedmodsbysign = alignbymovorloc_helper(movementtypemodsbysign, modtype=ModuleTypes.MOVEMENT, nodename=movementtype)
             toreturn.extend(matchedpairs)
 
             if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
@@ -819,7 +819,7 @@ def alignbylocation(locmodsbysign):
             # match up the modules of this location type
             # matchedpairs, unmatchedmodsbysign = alignbyloctreeitems_helper(loctypemodsbysign)
             # matchedpairs, unmatchedmodsbysign = alignbylocation_helper(loctypemodsbysign)
-            matchedpairs, unmatchedmodsbysign = alignbymoveorloc_helper(loctypemodsbysign, modtype=ModuleTypes.LOCATION)
+            matchedpairs, unmatchedmodsbysign = alignbymovorloc_helper(loctypemodsbysign, modtype=ModuleTypes.LOCATION)
             toreturn.extend(matchedpairs)
 
             if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
@@ -844,7 +844,7 @@ def alignbylocation(locmodsbysign):
         #   where some are body type and some are body-anchored type
         # matchedpairs, unmatchedmodsbysign = alignbyloctreeitems_helper(rematchbodymods)
         # matchedpairs, unmatchedmodsbysign = alignbylocation_helper(rematchbodymods)
-        matchedpairs, unmatchedmodsbysign = alignbymoveorloc_helper(rematchbodymods, modtype=ModuleTypes.LOCATION)
+        matchedpairs, unmatchedmodsbysign = alignbymovorloc_helper(rematchbodymods, modtype=ModuleTypes.LOCATION)
         toreturn.extend(matchedpairs)
 
         if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
