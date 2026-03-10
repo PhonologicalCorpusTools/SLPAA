@@ -2020,6 +2020,9 @@ class RelationModule(ParameterModule):
     def directions(self, directions):
         self._directions = directions
 
+    def __repr__(self):
+        return '<RelationModule: ' + repr(self.getabbreviation()) + '>'
+
     def get_treemodel_from_articulator_label(self, label):
         """
         Returns self.bodyparts_dict[articulator][number].bodyparttreemodel,
