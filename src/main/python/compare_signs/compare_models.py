@@ -6,7 +6,7 @@ from compare_signs.compare_helpers import (analyze_modules, extract_handshape_sl
                                            get_btn_type_for_path, get_checked_paths_from_list,
                                            get_detailed_checked_paths_location, get_detailed_selections_orientation,
                                            inject_signtype_intermediates)
-from compare_signs.align_modules import alignmodules
+from compare_signs.align_modules import AlignModel
 from constant import PREDEFINED_MAP  # for predefined hand config name
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
@@ -19,6 +19,7 @@ class CompareModel(QObject):
         super().__init__(parent)
         self.sign1 = sign1
         self.sign2 = sign2
+        self.alignmodel = AlignModel(self.sign1, self.sign2)
         self.implemented = ['handconfig', 'movement', 'location', 'orientation']
         self.yet_to_implement = ['relation', 'nonmanual']
         self._last_warn_msg = None
@@ -292,7 +293,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.MOVEMENT)
+        aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.MOVEMENT)
         if warningstring:
             self._warn(warningstring)
 
@@ -425,7 +426,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, ModuleTypes.LOCATION)
+        aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.LOCATION)
         if warningstring:
             self._warn(warningstring)
 
@@ -490,7 +491,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.ORIENTATION)
+        aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.ORIENTATION)
         if warningstring:
             self._warn(warningstring)
 
@@ -629,7 +630,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules, warningstring = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.HANDCONFIG)
+        aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.HANDCONFIG)
         if warningstring:
             self._warn(warningstring)
         pair_comparison = {'sign1': {}, 'sign2': {}}
@@ -854,7 +855,7 @@ class CompareModel(QObject):
         signpair = (self.sign1, self.sign2)
 
         # currently, compare modules naively. eventually, it should compare aligned modules as the line below!
-        # aligned_modules = alignmodules(self.sign1, self.sign2, moduletype=ModuleTypes.RELATION)
+        # aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.RELATION)
 
         # --- for now, assume all relation modules are properly aligned already.
         pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
