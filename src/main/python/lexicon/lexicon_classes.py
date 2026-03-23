@@ -74,6 +74,8 @@ class Sign:
         self.handconfigmodulenumbers = {}
         self.nonmanualmodules = {}
         self.nonmanualmodulenumbers = {}
+        
+        
 
         if serializedsign is not None:
             # these attributes don't need to be deep-copied
@@ -92,6 +94,8 @@ class Sign:
             # note that relation *must* come before location
             for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
                 self.loadmodules_and_numbering(serializedsign, moduletype)
+                
+            self.as_dict()
 
     def loadmodules_and_numbering(self, serializedsign, moduletype):
         if moduletype == ModuleTypes.MOVEMENT:
@@ -204,6 +208,15 @@ class Sign:
             return self.nonmanualmodulenumbers
         else:
             return {}
+        
+    def as_dict(self):
+        # like serialize(), but in a more readable format
+        print(self._signlevel_information.gloss)
+        for k, module in self.relationmodules.items():
+            print(module.timingintervals)
+        for k, module in self.movementmodules.items():
+            module.as_dict()
+        return
 
     def serialize(self):
         return {

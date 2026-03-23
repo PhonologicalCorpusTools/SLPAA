@@ -10,7 +10,7 @@ from PyQt5.QtCore import (
     QSettings
 )
 
-from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, \
+from constant import NULL, PREDEFINED_MAP, HAND, ARM, LEG, userdefinedroles as udr, treepathdelimiter, ModuleTypes, ModuleInfo, \
     SURFACE_SUBAREA_ABBREVS, DEFAULT_LOC_1H, DEFAULT_LOC_2H, TargetTypes, HandConfigSlots, SIGN_TYPE
 from constant import (specifytotalcycles_str, numberofreps_str, custom_abbrev)
 
@@ -487,6 +487,18 @@ class SignLevelInformation:
     def partsofspeech(self, pos):
         self._partsofspeech = pos
 
+# TODO move this to utilities or something. It's used by the abbreviation functions.
+def refactor_list(strings):
+    if not strings:
+        return ""
+    prefix = os.path.commonprefix(strings)
+        # eg factor Hand (across), Hand (away), Hand (to wrist) into Hand (across + away + to wrist)
+    if len(strings) > 1 and prefix and '(' in prefix: 
+        prefix = prefix[:prefix.find('(')+1] 
+        unique_parts = [re.sub(f"^{re.escape(prefix)}", "", s).strip(" ()") for s in strings]
+        return f"{prefix}{' + '.join(unique_parts)})"
+    else:
+        return f"{' + '.join(filter(None, strings))}"
 
 # This module stores the movement information for a particular articulator/s.
 # It also stores "Added Info" (estimated, uncertain, etc) characteristics for each selected movement
@@ -517,18 +529,221 @@ class MovementModule(ParameterModule):
     def inphase(self, inphase):
         self._inphase = inphase
 
-    def getabbreviation(self):
-        def refactor_list(strings):
-            if not strings:
-                return ""
-            prefix = os.path.commonprefix(strings)
-             # eg factor Hand (across), Hand (away), Hand (to wrist) into Hand (across + away + to wrist)
-            if len(strings) > 1 and prefix and '(' in prefix: 
-                prefix = prefix[:prefix.find('(')+1] 
-                unique_parts = [re.sub(f"^{re.escape(prefix)}", "", s).strip(" ()") for s in strings]
-                return f"{prefix}{' + '.join(unique_parts)})"
+            
+    def as_dict(self):
+        '''
+        can definitely be more efficient.\n
+        '''
+        print(self.timingintervals)
+        # timing_type = ''
+        # timing_info = []
+        # for ti in self.timingintervals:
+        #     if ti.whole
+        paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
+        leaf_paths = []
+        last_path = paths[0] if paths else None
+        for path in paths: 
+            # we'll mainly work with the leaf nodes, but occasionally we need to access the abbreviations of other nodes as well.
+            if last_path["path"] in path["path"]: # this is a child of last_path
+                last_path = path
             else:
-                return f"{' + '.join(filter(None, strings))}"
+                leaf_paths.append(last_path)
+                last_path = path
+        if last_path is not None: leaf_paths.append(last_path) 
+        paths_dict = {}
+        for d in paths: # convert to dict for quick lookup
+            paths_dict[d['path']] = d
+   
+        
+        module_info = {
+            'movement type': ModuleInfo.NOT_SPECIFIED,
+            # 'timing type': timing_type, # whole sign, interval, point, or mixed (both intervals and points)
+            'timing intervals': ModuleInfo.NOT_APPLICABLE, # list 
+            'timing points': ModuleInfo.NOT_APPLICABLE, # list
+            'movement details': ModuleInfo.NOT_SPECIFIED, # dict. depends on whether this is perceptual or joint-specific
+            'repetition': ModuleInfo.NOT_SPECIFIED, # single, trilled, or repeated
+            'repetition details': ModuleInfo.NOT_APPLICABLE, # dict for repeated movements
+            'directionality': ModuleInfo.NOT_SPECIFIED, # uni, bi, or not specified
+            'additional characteristics': ModuleInfo.NOT_SPECIFIED, # nested dict where keys are specified characteristics, e.g.: {size: {spec: big, relative_to: xx}, ...}
+            
+        }
+        repetition_details = {
+            'number of cycles': ModuleInfo.NOT_SPECIFIED,
+            'number is minimum': ModuleInfo.NOT_SPECIFIED, # True or not specified
+            'location changes': ModuleInfo.NOT_SPECIFIED, # True or False
+            'new location info': {} # dict, e.g. {Hori: ipsi}
+        }
+        additional_chars = {}
+        perceptual_info = {
+            'shape': ModuleInfo.NOT_SPECIFIED,
+            'subsequent interaction': ModuleInfo.NOT_APPLICABLE, # not applicable if shape is not Straight, OR if straight mvmt doesn't interact with subsequent straight mvmt
+            'axis reference': ModuleInfo.NOT_SPECIFIED, # Absolute, or a body part
+            'axis specification': {}, # e.g. {hori: x, vert: y} or {across: x, along: y, perpendicular: z} 
+            'H1/H2 axis interaction': ModuleInfo.NOT_SPECIFIED,
+            'plane reference': ModuleInfo.NOT_APPLICABLE, #  only if shape is not straight
+            'plane specification': {},
+            'H1/H2 plane interaction': ModuleInfo.NOT_APPLICABLE, # only if shape is not straight
+        }
+        joint_specific_info = {
+          'joint specific movement': ModuleInfo.NOT_SPECIFIED, # e.g. Pinch/un
+          'joint specific details': ModuleInfo.NOT_SPECIFIED, # e.g. Pinching. Not applicable for 'other' or wiggle/flutter movements. Dict for rubbing movement
+        }  
+        rubbing_info = {
+            'articulators': ModuleInfo.NOT_SPECIFIED,
+            'location': ModuleInfo.NOT_SPECIFIED,
+            'direction': {} # e.g. {across: x, along: y}
+        }
+        
+        for pathitem in leaf_paths: # each path contains keys "path", "abbrev", "usv"
+            path = pathitem['path']
+            path_nodes = path.split(treepathdelimiter)
+            
+            
+            # 2: Movement type > Handshape change
+            if 'Handshape change' in path_nodes:
+                module_info['movement type'] = 'Handshape change'
+                module_info['movement details'] = ModuleInfo.NOT_APPLICABLE
+                continue
+            
+            elif 'Perceptual shape' in path_nodes:
+                module_info['movement type'] = 'Perceptual shape'
+                # Perceptual shape: possibilities are
+                # 6: Movement type > Perceptual shape > Shape > Straight > Interacts with... > [spec]
+                # 5: Movement type > Perceptual shape > Shape > Straight > Doesn't interact with...
+                # 4: Movement type > Perceptual shape > Shape > [spec (arc/circle etc, other)]
+                
+                if path_nodes[2] == 'Shape' and len(path_nodes) >= 4:
+                    perceptual_info['shape'] = path_nodes[3] if path_nodes[3] != 'Other' else paths_dict[path]["usv"]
+                    if path_nodes[3] == 'Straight' and len(path_nodes) >= 5: 
+                        perceptual_info['subsequent interaction'] = path_nodes[-1]
+                        perceptual_info['plane_reference'] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info['plane_specification'] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info['H1/H2 plane interaction'] = ModuleInfo.NOT_APPLICABLE
+                    
+                # Perceptual shape axis direction: possibilities are
+                # 4: Movement type > Perceptual shape > Axis direction > Not relevant
+                # 4: Movement type > Perceptual shape > Axis direction > [H1 and H2...]
+                # 6: Movement type > Perceptual shape > Axis direction > Absolute > [axis (hori/vert/sag)] > [spec]
+                # 7: Movement type > Perceptual shape > Axis direction > Relative > [body part ref or other] > [Axis] > [spec]
+                if path_nodes[2] == 'Axis direction' and len(path_nodes) >= 4:
+                    if path_nodes[3] == 'Not relevant':
+                        perceptual_info['axis reference'] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info['axis specification'] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info['H1/H2 axis interaction'] = ModuleInfo.NOT_APPLICABLE
+                    elif 'H1 and H2' in path_nodes[3]:
+                        perceptual_info['H1/H2 axis interaction'] = path_nodes[3]
+                    if (path_nodes[3] == 'Absolute' and len(path_nodes) == 6) or (path_nodes[3] == 'Relative' and len(path_nodes) == 7):
+                        perceptual_info['axis reference'] = path_nodes[4] if path_nodes[3] == 'Relative' else 'Absolute'
+                        axis_index = 4 if path_nodes[3] == 'Absolute' else 5 
+                        axis_abbrev = path_nodes[axis_index]
+                        axis_spec = paths_dict[path]['abbrev'] if path_nodes[-1] != 'Other' else paths_dict[path]["usv"]
+                        perceptual_info['axis specification'].update({axis_abbrev: axis_spec})
+
+            
+                # Perceptual shape plane: possibilities are
+                # 4: Movement type > Perceptual shape > Plane > Not relevant
+                # 4: Movement type > Perceptual shape > Plane > [H1 and H2...]
+                # 6: Movement type > Perceptual shape > Plane > Absolute > [axis (hori/vert/sag)] > [spec]
+                # 7: Movement type > Perceptual shape > Plane > Relative > [body part ref or other] > [plane] > [spec]
+                # 6: Movement type > Perceptual shape > Plane > Relative > Other > Specify top of area 
+                if path_nodes[2] == 'Plane' and len(path_nodes) >= 4:
+                    if path_nodes[3] == 'Not relevant':
+                        perceptual_info['plane reference'] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info['plane specification'] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info['H1/H2 plane interaction'] = ModuleInfo.NOT_APPLICABLE
+                    elif 'H1 and H2' in path_nodes[3]:
+                        perceptual_info['H1/H2 plane interaction'] = path_nodes[3]
+                    if (path_nodes[3] == 'Absolute' and len(path_nodes) == 6) or (path_nodes[3] == 'Relative' and len(path_nodes) == 7):
+                        perceptual_info['plane reference'] = path_nodes[4] if path_nodes[3] == 'Relative' else 'Absolute'
+                        axis_index = 4 if path_nodes[3] == 'Absolute' else 5 
+                        axis_abbrev = path_nodes[axis_index]
+                        axis_spec = paths_dict[path]['abbrev'] if path_nodes[-1] != 'Other' else paths_dict[path]["usv"]
+                        perceptual_info['plane specification'].update({axis_abbrev: axis_spec})
+
+            
+            
+            # Joint-specific
+            # 4: Movement type > Joint-specific movements > [type] > [spec]
+            # 3: Movement type > Joint-specific movements > Wiggling/Fluttering
+            # 3: Movement type > Joint-specific movements > Other
+            # 5: Movement type > Joint-specific movements > Rubbing > Articulator(s) > [spec]
+            # 5: Movement type > Joint-specific movements > Rubbing > Location > [spec]
+            # 5: Movement type > Joint-specific movements > Rubbing > Across > [spec]
+            # 5: Movement type > Joint-specific movements > Rubbing > Along > [spec]
+            elif 'Joint-specific movements' in path_nodes and len(path_nodes) >= 3:
+                module_info['movement type'] = 'Joint-specific'
+                joint_specific_info['joint specific movement'] = path_nodes[2]
+                if path_nodes[2] == 'Other':
+                    joint_specific_info['joint specific movement'] = 'Other' or paths_dict[treepathdelimiter.join(path_nodes[0:3])]["usv"]
+                    joint_specific_info['joint specific details'] = ModuleInfo.NOT_APPLICABLE
+                elif path_nodes[2] == 'Wiggling/Fluttering':
+                    joint_specific_info['joint specific details'] = ModuleInfo.NOT_APPLICABLE
+                elif path_nodes[2] == 'Rubbing' and len(path_nodes) == 5:
+                    if path_nodes[3] == 'Articulator(s)':
+                       rubbing_info['articulators'] = path_nodes[4] if path_nodes[4] != 'Other' else paths_dict['path']['usv']    
+                    elif path_nodes[3] == 'Location':
+                       rubbing_info['location'] = path_nodes[4] if path_nodes[4] != 'Other' else paths_dict['path']['usv']    
+                    elif path_nodes[3] in ['Across', 'Along']:
+                        spec = path_nodes[4] if path_nodes[4] != 'Other' else paths_dict['path']['usv'] 
+                        rubbing_info['direction'].update({path_nodes[3]: spec})
+                elif len(path_nodes) == 4:
+                    joint_specific_info['joint specific details'] = path_nodes[3]
+                else:
+                    joint_specific_info['joint specific details'] = ModuleInfo.NOT_SPECIFIED
+                
+
+            # Characteristics
+            # 3: Movement characteristics > Repetition > Single
+            # 3: Movement characteristics > Repetition > Trilled
+            # 4: Movement characteristics > Repetition > Repeated > Specify...
+            # 5: Movement characteristics > Repetition > Repeated > Specify... > This number is a minimum
+            # 5: Movement characteristics > Repetition > Repeated > Location of repetition > Same location
+            # 7: Movement characteristics > Repetition > Repeated > Location of repetition > Different location > [axis] > [spec]
+            if path_nodes[1] == 'Repetition' and len(path_nodes) >= 3:
+                module_info['repetition'] = path_nodes[2]
+                if path_nodes[2] == 'Repeated':
+                    if path_nodes[-1] == 'Specify total number of cycles':
+                        repetition_details['number of cycles'] = paths_dict[treepathdelimiter.join(path_nodes[0:4])]["usv"]
+                    elif path_nodes[-1] == 'This number is a minimum':
+                        repetition_details['number is minimum'] = True
+                        repetition_details['number of cycles'] = paths_dict[treepathdelimiter.join(path_nodes[0:4])]["usv"]
+                    elif path_nodes[-1] == 'Same location':
+                        repetition_details['location changes'] = False
+                    elif len(path_nodes) == 7 and path_nodes[4] == 'Different location':
+                        repetition_details['location changes'] = True
+                        repetition_details['new location info'].update({path_nodes[5]: path_nodes[6]})
+                else:
+                    module_info['repetition details'] = ModuleInfo.NOT_APPLICABLE
+            
+            # 3: Movement characteristics > Directionality > [spec]
+            elif path_nodes[1] == 'Directionality' and len(path_nodes) == 3:
+                module_info['directionality'] = path_nodes[2]
+                
+            # 4: Movement characteristics > Additional characteristics > [type] > [spec]
+            # 4: Movement characteristics > Additional characteristics > [type] > Relative to
+            elif path_nodes[1] == 'Additional characteristics' and len(path_nodes) == 4:
+                spec = path_nodes[2] 
+                if spec not in additional_chars:
+                    additional_chars[spec] = {'spec': ModuleInfo.NOT_SPECIFIED, 'relative to': ModuleInfo.NOT_APPLICABLE}
+                if path_nodes[3] == 'Relative to':
+                    additional_chars[spec]['relative to'] = ModuleInfo.NOT_SPECIFIED or paths_dict[path]["usv"]
+                else:
+                    additional_chars[spec]['spec'] = path_nodes[3] if path_nodes[3] != 'Other' else paths_dict[path]["usv"] if paths_dict[path]["usv"] else ModuleInfo.NOT_SPECIFIED
+        
+        if module_info['repetition'] == 'Repeated':
+            module_info['repetition details'] = repetition_details 
+        module_info['additional characteristics'] = additional_chars
+        
+        if module_info['movement type'] == 'Perceptual shape':
+            module_info['movement details'] = perceptual_info
+        elif module_info['movement type'] == 'Joint-specific':
+            if joint_specific_info['joint specific movement'] == 'Rubbing':
+                joint_specific_info['joint specific details'] = rubbing_info
+            module_info['movement details'] = joint_specific_info
+    
+        print(module_info)
+
+    def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
         perceptual_info = {
             "Shape": [],
@@ -2810,6 +3025,12 @@ class HandConfigurationModule(ParameterModule):
     def overalloptions(self, new_overalloptions):
         self._overalloptions = new_overalloptions
     
+    # def as_dict(self):
+    #     if self._timingintervals
+    #     return {
+            
+    #     }
+        
     def config_tuple(self):
         return tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
 
