@@ -2020,6 +2020,9 @@ class RelationModule(ParameterModule):
     def directions(self, directions):
         self._directions = directions
 
+    def __repr__(self):
+        return '<RelationModule: ' + repr(self.getabbreviation()) + '>'
+
     def get_treemodel_from_articulator_label(self, label):
         """
         Returns self.bodyparts_dict[articulator][number].bodyparttreemodel,
@@ -2379,7 +2382,7 @@ class ContactRelation:
                 repr_str += " " + repr(self._contacttype)
             if self._manner:
                 repr_str += ", " + repr(self._manner)
-        elif not self._contact:
+        elif self._contact is not None:  # "no contact" is selected, as opposed to just left unspecified
             repr_str = "no"
             if self._distances:
                 distance_str_list = [repr(axis_dist) for axis_dist in self._distances]
