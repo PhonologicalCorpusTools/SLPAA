@@ -95,7 +95,7 @@ class Sign:
             for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
                 self.loadmodules_and_numbering(serializedsign, moduletype)
                 
-            self.as_dict()
+            self.full_info()
 
     def loadmodules_and_numbering(self, serializedsign, moduletype):
         if moduletype == ModuleTypes.MOVEMENT:
@@ -208,15 +208,42 @@ class Sign:
             return self.nonmanualmodulenumbers
         else:
             return {}
-        
-    def as_dict(self):
-        # like serialize(), but in a more readable format
+    
+    
+    def full_info(self):
+        # like serialize(), but in a more compact and readable format
         print(self._signlevel_information.gloss)
+        sign_info = {
+            
+        }
         for k, module in self.relationmodules.items():
             print(module.timingintervals)
         for k, module in self.movementmodules.items():
             module.as_dict()
-        return
+        
+        perceptual_mov = []
+        js_mov = []
+        hc_mov = []
+
+        for k, module in self.movementmodules.items():
+            module_info = module.as_dict()
+            if module_info['movement type'] == 'Joint-specific':
+                js_mov.append(module_info)
+            elif module_info['movement type'] == 'Perceptual shape':
+                perceptual_mov.append(module_info)
+            elif module_info['movement type'] == 'Handshape change':
+                hc_mov.append(module)
+                
+        sign_info = {
+            'signlevel': self._signlevel_information.serialize(),
+            'type': self._signtype.as_dict(),
+            'xslot structure': self.xslotstructure,
+            'specified xslots': self.specifiedxslots,
+            'perceptual movements': perceptual_mov,
+            'joint-specific movements': js_mov,
+            'handshape change movements': hc_mov
+        }
+        print(sign_info)
 
     def serialize(self):
         return {

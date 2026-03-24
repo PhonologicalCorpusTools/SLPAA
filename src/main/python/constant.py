@@ -524,8 +524,8 @@ class ModuleTypes:
     parametertypes_relationfirst = [RELATION] + [mtype for mtype in parametertypes if mtype != 'relation']
 
 class ModuleInfo:
-    NOT_SPECIFIED = 'not specified'
-    NOT_APPLICABLE = 'not applicable'
+    NOT_SPECIFIED = 'NOT_SPECIFIED'
+    NOT_APPLICABLE = 'NOT_APPLICABLE'
 
 class UserDefinedRoles(dict):
     __getattr__ = dict.__getitem__
