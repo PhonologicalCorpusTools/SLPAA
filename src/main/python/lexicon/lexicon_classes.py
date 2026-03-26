@@ -95,7 +95,7 @@ class Sign:
             for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.RELATION, ModuleTypes.LOCATION, ModuleTypes.ORIENTATION, ModuleTypes.HANDCONFIG, ModuleTypes.NONMANUAL]:
                 self.loadmodules_and_numbering(serializedsign, moduletype)
                 
-            self.full_info()
+            
 
     def loadmodules_and_numbering(self, serializedsign, moduletype):
         if moduletype == ModuleTypes.MOVEMENT:
@@ -213,11 +213,8 @@ class Sign:
     def full_info(self):
         # like serialize(), but in a more compact and readable format
         print(self._signlevel_information.gloss)
-        sign_info = {
-            
-        }
-        for k, module in self.relationmodules.items():
-            print(module.timingintervals)
+
+
         for k, module in self.movementmodules.items():
             module.as_dict()
         
@@ -227,23 +224,25 @@ class Sign:
 
         for k, module in self.movementmodules.items():
             module_info = module.as_dict()
+            module_info["module key"] = k
+            module_info["module number"] = self.movementmodulenumbers[k]
             if module_info['movement type'] == 'Joint-specific':
                 js_mov.append(module_info)
             elif module_info['movement type'] == 'Perceptual shape':
                 perceptual_mov.append(module_info)
             elif module_info['movement type'] == 'Handshape change':
-                hc_mov.append(module)
+                hc_mov.append(module_info)
                 
         sign_info = {
-            'signlevel': self._signlevel_information.serialize(),
-            'type': self._signtype.as_dict(),
-            'xslot structure': self.xslotstructure,
-            'specified xslots': self.specifiedxslots,
+            'sign level info': self._signlevel_information.serialize(),
+            'sign type': self._signtype.as_dict(),
+            'number of xslots': self.xslotstructure.number,
+            'specified xslots?': self.specifiedxslots,
             'perceptual movements': perceptual_mov,
             'joint-specific movements': js_mov,
             'handshape change movements': hc_mov
         }
-        print(sign_info)
+        return sign_info
 
     def serialize(self):
         return {

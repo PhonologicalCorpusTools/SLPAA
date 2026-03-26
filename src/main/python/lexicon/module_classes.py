@@ -534,11 +534,12 @@ class MovementModule(ParameterModule):
         '''
         can definitely be more efficient.\n
         '''
-        print(self.timingintervals)
-        # timing_type = ''
-        # timing_info = []
-        # for ti in self.timingintervals:
-        #     if ti.whole
+        # print(self.timingintervals)
+        timing_type, intervals, points = get_timing_info(self.timingintervals)
+        # timing type should be either 'whole sign' or 'interval', never 'mixed' or 'point'
+        if timing_type in ['mixed', 'point']:
+            print("movement module has timing point spec??")                                
+                
         paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
         leaf_paths = []
         last_path = paths[0] if paths else None
@@ -557,9 +558,9 @@ class MovementModule(ParameterModule):
         
         module_info = {
             "movement type": ModuleInfo.NOT_SPECIFIED,
-            # "timing type": timing_type, # whole sign, interval, point, or mixed (both intervals and points)
-            "timing intervals": ModuleInfo.NOT_APPLICABLE, # list 
-            "timing points": ModuleInfo.NOT_APPLICABLE, # list
+            "timing type": timing_type, # whole sign, interval, point, or mixed (both intervals and points). For mvmt, expect only whole or interval
+            "timing intervals": intervals, # NA if timing type is whole sign; otherwise, list of tuples
+            # "timing points": ModuleInfo.NOT_APPLICABLE, # list
             "movement details": ModuleInfo.NOT_SPECIFIED, # dict. depends on whether this is perceptual or joint-specific
             "repetition": ModuleInfo.NOT_SPECIFIED, # single, trilled, or repeated
             "repetition details": ModuleInfo.NOT_APPLICABLE, # dict for repeated movements
@@ -616,8 +617,8 @@ class MovementModule(ParameterModule):
                     perceptual_info["shape"] = path_nodes[3] if path_nodes[3] != "Other" else paths_dict[path]["usv"]
                     if path_nodes[3] == "Straight" and len(path_nodes) >= 5: 
                         perceptual_info["subsequent interaction"] = path_nodes[-1]
-                        perceptual_info["plane_reference"] = ModuleInfo.NOT_APPLICABLE
-                        perceptual_info["plane_specification"] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info["plane reference"] = ModuleInfo.NOT_APPLICABLE
+                        perceptual_info["plane specification"] = ModuleInfo.NOT_APPLICABLE
                         perceptual_info["H1/H2 plane interaction"] = ModuleInfo.NOT_APPLICABLE
                     
                 # Perceptual shape axis direction: possibilities are
@@ -1093,6 +1094,19 @@ class TimingPoint:
                     return True
         return False
 
+    def as_decimal(self): 
+        # For convenience, returns the timing point as a decimal, either 0, 1, or a multiple of 0.25 or 0.33. 
+        # start counting at 0
+        denom = self.fractionalpart.denominator
+        num = self.fractionalpart.numerator
+        if num == 0:
+            return self.wholepart - 1
+        elif denom == num:
+            return self.wholepart
+        else:
+            return self.wholepart + int(num*100/denom)/100 - 1
+
+
     # returns True iff this and the other point are at effectively the same point in time, whether
     #   because they are in fact equal OR because they are adjacent (see function adjacent())
     def equivalent(self, other):
@@ -1243,6 +1257,28 @@ class TimingInterval:
     def __repr__(self):
         return '<TimingInterval: ' + repr(self._startpoint) + ', ' + repr(self._endpoint) + '>'
 
+def get_timing_info(timingintervals):
+    # takes a list of TimingInterval objects and returns info used by as_dict() module functions
+    # timing_type: 'whole sign', 'interval', 'point', or 'mixed'
+    # timing_intervals: a list of pairs, (startpt, endpt). For example, [(0.00, 0.50)]. Decimals for convenience (multiples of .25 and .33)
+    # timing_points: a list of decimals (multiples of .25 and .33)
+    timing_type = ''
+    timing_intervals = []
+    timing_points = []
+    for ti in timingintervals:
+        if ti.iswholesign():
+            timing_type = 'whole sign'
+            timing_intervals = ModuleInfo.NOT_APPLICABLE
+            timing_points = ModuleInfo.NOT_APPLICABLE
+            break
+        if ti.ispoint():
+            timing_type = 'mixed' if timing_type in ['mixed', 'interval'] else 'point'
+            timing_points.append(ti.startpoint.as_decimal())
+        else:
+            timing_type = 'mixed' if timing_type in ['mixed', 'point'] else 'interval'
+            timing_intervals.append((ti.startpoint.as_decimal(), ti.endpoint.as_decimal()))
+        
+    return timing_type, timing_intervals, timing_points 
 
 # This class represents additional information that can be appended to many different types of entries in SLP-AA,
 #   such as to an entire module, one selection in a movement module, one surface selection in a location module, etc
