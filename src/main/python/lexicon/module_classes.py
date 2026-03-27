@@ -148,6 +148,17 @@ class ParameterModule:
                 todisplay += " connected, in phase"
         return todisplay
 
+    def get_arts_info(self): # articulator info used by as_dict() func for exporting as json; assumes hands only
+        rel = ModuleInfo.NOT_APPLICABLE # only applicable if both hands are involved
+        hands = ModuleInfo.NOT_SPECIFIED
+        art = 'H' if self.articulators[0] == HAND else 'A' if self.articulators[0] == ARM else 'L'
+
+        hands = [f"{art}{k}" for k in [1,2] if self.articulators[1][k]]
+        if len(hands) == 2:
+            rel = self.get_art_abbrev() if hasattr(self, "inphase") and self.inphase != 0 else ModuleInfo.NOT_SPECIFIED
+
+        return hands, rel
+
     def getabbreviation(self):
         return "Module abbreviations not yet implemented"
 
@@ -538,7 +549,9 @@ class MovementModule(ParameterModule):
         timing_type, intervals, points = get_timing_info(self.timingintervals)
         # timing type should be either 'whole sign' or 'interval', never 'mixed' or 'point'
         if timing_type in ['mixed', 'point']:
-            print("movement module has timing point spec??")                                
+            print("movement module has timing point spec??")      
+        
+        hands, handrel = self.get_arts_info()                       
                 
         paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
         leaf_paths = []
@@ -554,13 +567,15 @@ class MovementModule(ParameterModule):
         paths_dict = {}
         for d in paths: # convert to dict for quick lookup
             paths_dict[d['path']] = d
-   
+
         
         module_info = {
             "movement type": ModuleInfo.NOT_SPECIFIED,
             "timing type": timing_type, # whole sign, interval, point, or mixed (both intervals and points). For mvmt, expect only whole or interval
             "timing intervals": intervals, # NA if timing type is whole sign; otherwise, list of tuples
             # "timing points": ModuleInfo.NOT_APPLICABLE, # list
+            "hands": hands,
+            "H1/H2 relation": handrel,
             "movement details": ModuleInfo.NOT_SPECIFIED, # dict. depends on whether this is perceptual or joint-specific
             "repetition": ModuleInfo.NOT_SPECIFIED, # single, trilled, or repeated
             "repetition details": ModuleInfo.NOT_APPLICABLE, # dict for repeated movements
@@ -1742,7 +1757,21 @@ class LocationModule(ParameterModule):
     def inphase(self, inphase):
         self._inphase = inphase
     
-
+    def as_dict(self): 
+        loctype_str = self.locationtreemodel.locationtype.getabbreviation()
+        locations = []
+        timing_type, intervals, points = get_timing_info(self.timingintervals)
+        hands, handrel = self.get_arts_info()
+        module_info = {
+            "timing type": timing_type, # whole sign, interval, point, or mixed (both intervals and points). 
+            "timing intervals": intervals or ModuleInfo.NOT_APPLICABLE, # NA if timing type is whole sign or points; otherwise, list of tuples
+            "timing points": points or ModuleInfo.NOT_APPLICABLE, # NA if timing type is whole sign or intervals; otherwise, list of tuples
+            "articulators": hands,
+            "art1/art2 relation": handrel,
+            "loctype": "anchored" if "anch" in loctype_str else "spatial" if "spatial" in loctype_str else "body",
+            "locations": locations
+        }
+        return module_info
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
@@ -3114,11 +3143,23 @@ class HandConfigurationModule(ParameterModule):
     def overalloptions(self, new_overalloptions):
         self._overalloptions = new_overalloptions
     
-    # def as_dict(self):
-    #     if self._timingintervals
-    #     return {
-            
-    #     }
+    def as_dict(self):
+    
+        timing_type, intervals, points = get_timing_info(self.timingintervals)
+        hands, _ = self.get_arts_info()
+        predefined = self.get_predefined() or ModuleInfo.NOT_APPLICABLE
+        
+        
+        module_info = {
+            "hands": hands,
+            "timing type": timing_type, # whole sign, interval, point, or mixed (both intervals and points). 
+            "timing intervals": intervals or ModuleInfo.NOT_APPLICABLE, # NA if timing type is whole sign or points; otherwise, list of tuples
+            "timing points": points or ModuleInfo.NOT_APPLICABLE, # NA if timing type is whole sign or intervals; otherwise, list of tuples
+            "predefined config": predefined,
+            "forearm?": self.overalloptions['forearm'],
+            "config tuple": self.config_tuple(),
+        }
+        return module_info
         
     def config_tuple(self):
         return tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
@@ -3135,15 +3176,19 @@ class HandConfigurationModule(ParameterModule):
         if config_tuple[HandConfigSlots.MCP[finger]] in extended_symbols:
             return True
         return False
-
-    def getabbreviation(self):
-        handconfighand = HandConfigurationHand(self.handconfiguration)
-
+    
+    def get_predefined(self):
         predefinedname = ""
         txntuple = tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
         if txntuple in PREDEFINED_MAP.keys():
-            predefinedname = "'" + PREDEFINED_MAP[txntuple].name + "' "
-
+            predefinedname = PREDEFINED_MAP[txntuple].name
+        return predefinedname
+    
+    def getabbreviation(self):
+        predefinedname = self.get_predefined()
+        if predefinedname:
+            predefinedname = "'" + predefinedname + "' "
+        handconfighand = HandConfigurationHand(self.handconfiguration)
         fieldstext = ""
         fields = [handconfighand.field2, handconfighand.field3, handconfighand.field4, handconfighand.field5, handconfighand.field6, handconfighand.field7]
         for field in fields:

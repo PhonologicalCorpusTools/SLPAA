@@ -208,40 +208,71 @@ class Sign:
             return self.nonmanualmodulenumbers
         else:
             return {}
+        
+    def get_module_info(self, moduletype):
+        if moduletype == ModuleTypes.LOCATION:
+            loc_mods = []
+            for k, module in self.locationmodules.items():
+                module_info = module.as_dict()
+                module_info["module key"] = k
+                module_info["module number"] = self.locationmodulenumbers[k]
+                loc_mods.append(module_info)
+            return {'location modules': loc_mods}
+        
+        elif moduletype == ModuleTypes.MOVEMENT:
+            perceptual_mov = []
+            js_mov = []
+            hc_mov = []
+
+            for k, module in self.movementmodules.items():
+                module_info = module.as_dict()
+                module_info["module key"] = k
+                module_info["module number"] = self.movementmodulenumbers[k]
+                if module_info['movement type'] == 'Joint-specific':
+                    js_mov.append(module_info)
+                elif module_info['movement type'] == 'Perceptual shape':
+                    perceptual_mov.append(module_info)
+                elif module_info['movement type'] == 'Handshape change':
+                    hc_mov.append(module_info)
+            return {'perceptual movements': perceptual_mov,
+                    'joint-specific movements': js_mov,
+                    'handshape change movements': hc_mov}
+        
+        elif moduletype == ModuleTypes.HANDCONFIG:
+            hc_mods = []
+            for k, module in self.handconfigmodules.items():
+                module_info = module.as_dict()
+                module_info["module key"] = k
+                module_info["module number"] = self.handconfigmodulenumbers[k]
+                hc_mods.append(module_info)
+            return {'hand config modules': hc_mods}
+            
+        # elif moduletype == ModuleTypes.RELATION:
+        #     return self.relationmodulenumbers
+        # elif moduletype == ModuleTypes.ORIENTATION:
+        #     return self.orientationmodulenumbers
+        # elif moduletype == ModuleTypes.NONMANUAL:
+        #     return self.nonmanualmodulenumbers
+        else:
+            print("module type not done")
+        
     
     
     def full_info(self):
         # like serialize(), but in a more compact and readable format
-        print(self._signlevel_information.gloss)
-
-
-        for k, module in self.movementmodules.items():
-            module.as_dict()
-        
-        perceptual_mov = []
-        js_mov = []
-        hc_mov = []
-
-        for k, module in self.movementmodules.items():
-            module_info = module.as_dict()
-            module_info["module key"] = k
-            module_info["module number"] = self.movementmodulenumbers[k]
-            if module_info['movement type'] == 'Joint-specific':
-                js_mov.append(module_info)
-            elif module_info['movement type'] == 'Perceptual shape':
-                perceptual_mov.append(module_info)
-            elif module_info['movement type'] == 'Handshape change':
-                hc_mov.append(module_info)
-                
-        sign_info = {
-            'sign level info': self._signlevel_information.serialize(),
+        sign_info = {}
+        sli = self._signlevel_information.serialize()
+        print(sli['entryid'], sli['lemma'])
+        sign_info.update(sli)
+        sign_info.update({
             'sign type': self._signtype.as_dict(),
             'number of xslots': self.xslotstructure.number,
             'specified xslots?': self.specifiedxslots,
-            'perceptual movements': perceptual_mov,
-            'joint-specific movements': js_mov,
-            'handshape change movements': hc_mov
-        }
+        })
+        for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.HANDCONFIG, ModuleTypes.LOCATION]:
+            module_info_dict = self.get_module_info(moduletype)
+            sign_info.update(module_info_dict)
+        
         return sign_info
 
     def serialize(self):
