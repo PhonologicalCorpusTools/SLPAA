@@ -210,13 +210,26 @@ class Sign:
             return {}
         
     def get_module_info(self, moduletype):
-        if moduletype == ModuleTypes.LOCATION:
+        if moduletype == ModuleTypes.SIGNTYPE:
+            st, warning = self._signtype.as_dict()
+            if warning:
+                print(self._signlevel_information._lemma, moduletype, warning)
+            
+            # include xslot info too
+            return {
+            'sign type': st,
+            'number of xslots': self.xslotstructure.number,
+            'specified xslots?': self.specifiedxslots,
+            }
+        elif moduletype == ModuleTypes.LOCATION:
             loc_mods = []
             for k, module in self.locationmodules.items():
-                module_info = module.as_dict()
+                module_info, warning = module.as_dict()
                 module_info["module key"] = k
                 module_info["module number"] = self.locationmodulenumbers[k]
                 loc_mods.append(module_info)
+                if warning:
+                    print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
             return {'location modules': loc_mods}
         
         elif moduletype == ModuleTypes.MOVEMENT:
@@ -225,7 +238,7 @@ class Sign:
             hc_mov = []
 
             for k, module in self.movementmodules.items():
-                module_info = module.as_dict()
+                module_info, warning = module.as_dict()
                 module_info["module key"] = k
                 module_info["module number"] = self.movementmodulenumbers[k]
                 if module_info['movement type'] == 'Joint-specific':
@@ -234,6 +247,8 @@ class Sign:
                     perceptual_mov.append(module_info)
                 elif module_info['movement type'] == 'Handshape change':
                     hc_mov.append(module_info)
+                if warning:
+                    print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
             return {'perceptual movements': perceptual_mov,
                     'joint-specific movements': js_mov,
                     'handshape change movements': hc_mov}
@@ -241,10 +256,12 @@ class Sign:
         elif moduletype == ModuleTypes.HANDCONFIG:
             hc_mods = []
             for k, module in self.handconfigmodules.items():
-                module_info = module.as_dict()
+                module_info, warning = module.as_dict()
                 module_info["module key"] = k
                 module_info["module number"] = self.handconfigmodulenumbers[k]
                 hc_mods.append(module_info)
+                if warning:
+                    print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
             return {'hand config modules': hc_mods}
             
         # elif moduletype == ModuleTypes.RELATION:
@@ -262,14 +279,11 @@ class Sign:
         # like serialize(), but in a more compact and readable format
         sign_info = {}
         sli = self._signlevel_information.serialize()
-        print(sli['entryid'], sli['lemma'])
+        # print(sli['entryid'], sli['lemma'])
         sign_info.update(sli)
-        sign_info.update({
-            'sign type': self._signtype.as_dict(),
-            'number of xslots': self.xslotstructure.number,
-            'specified xslots?': self.specifiedxslots,
-        })
-        for moduletype in [ModuleTypes.MOVEMENT, ModuleTypes.HANDCONFIG, ModuleTypes.LOCATION]:
+        
+
+        for moduletype in [ModuleTypes.SIGNTYPE, ModuleTypes.MOVEMENT, ModuleTypes.HANDCONFIG, ModuleTypes.LOCATION]:
             module_info_dict = self.get_module_info(moduletype)
             sign_info.update(module_info_dict)
         

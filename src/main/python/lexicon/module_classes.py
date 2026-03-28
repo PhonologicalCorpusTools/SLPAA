@@ -551,6 +551,7 @@ class MovementModule(ParameterModule):
         if timing_type in ['mixed', 'point']:
             print("movement module has timing point spec??")      
         
+        warning = None
         hands, handrel = self.get_arts_info()                       
                 
         paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
@@ -651,7 +652,7 @@ class MovementModule(ParameterModule):
                     if (path_nodes[3] == "Absolute" and len(path_nodes) == 6) or (path_nodes[3] == "Relative" and len(path_nodes) == 7):
                         perceptual_info["axis reference"] = path_nodes[4] if path_nodes[3] == "Relative" else "Absolute"
                         axis_index = 4 if path_nodes[3] == "Absolute" else 5 
-                        axis_abbrev = path_nodes[axis_index]
+                        axis_abbrev = path_nodes[axis_index][0:3]
                         axis_spec = paths_dict[path]["abbrev"] if path_nodes[-1] != "Other" else paths_dict[path]["usv"]
                         perceptual_info["axis specification"].update({axis_abbrev: axis_spec})
 
@@ -758,7 +759,7 @@ class MovementModule(ParameterModule):
                 joint_specific_info["joint specific details"] = rubbing_info
             module_info["movement details"] = joint_specific_info
     
-        return module_info
+        return module_info, warning
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
@@ -1110,16 +1111,17 @@ class TimingPoint:
         return False
 
     def as_decimal(self): 
-        # For convenience, returns the timing point as a decimal, either 0, 1, or a multiple of 0.25 or 0.33. 
-        # start counting at 0
+        # For convenience, returns the timing point as a tuple (whole part, fractionalpart),
+        # but the fractional part is either 'start', 'end', or <a multiple of 0.25 or 0.33>. 
+        # e.g. TimingPoint(1, (Fraction(1/3))) is (1, "0.33")
         denom = self.fractionalpart.denominator
         num = self.fractionalpart.numerator
         if num == 0:
-            return self.wholepart - 1
-        elif denom == num:
-            return self.wholepart
+            return (self.wholepart, "start")
+        elif num == denom:
+            return (self.wholepart, "end")
         else:
-            return self.wholepart + int(num*100/denom)/100 - 1
+            return (self.wholepart, f"{int(num*100/denom)/100}") 
 
 
     # returns True iff this and the other point are at effectively the same point in time, whether
@@ -1275,8 +1277,9 @@ class TimingInterval:
 def get_timing_info(timingintervals):
     # takes a list of TimingInterval objects and returns info used by as_dict() module functions
     # timing_type: 'whole sign', 'interval', 'point', or 'mixed'
-    # timing_intervals: a list of pairs, (startpt, endpt). For example, [(0.00, 0.50)]. Decimals for convenience (multiples of .25 and .33)
-    # timing_points: a list of decimals (multiples of .25 and .33)
+    # timing_intervals: a list of pairs of pairs, ((startinterval, startpt), (endinterval, endpt)). 
+    # For example, [(1, "start"), (1, "end")]. 
+    # timing_points: a list of pairs, (interval, pt)
     timing_type = ''
     timing_intervals = []
     timing_points = []
@@ -1613,8 +1616,14 @@ class Signtype:
             self.ensurepathindict(pathelements[1:], abbrevsdict[pathelements[0]])
     
     def as_dict(self):
+        warning = None
         # alternative dict; only hand info for now
-        signtype_specslist = { art_setting for art_setting in self.specslist }
+        signtype_specslist = set()
+        for art_setting in self.specslist:
+            signtype_specslist.add(art_setting)
+            if art_setting[1] != 'h':
+                warning = "sign type has non-hand articulators"
+        
         num_hands = "1h"  if SIGN_TYPE["ONE_HAND"] in signtype_specslist else "2h" if SIGN_TYPE["TWO_HANDS"] in signtype_specslist else ModuleInfo.NOT_SPECIFIED
         hand_rel = ModuleInfo.NOT_APPLICABLE
         moves = False if SIGN_TYPE["ONE_HAND_NO_MVMT"] in signtype_specslist or SIGN_TYPE["TWO_HANDS_NO_MVMT"] in signtype_specslist else ModuleInfo.NOT_SPECIFIED
@@ -1662,7 +1671,7 @@ class Signtype:
             "hand relation details": hand_rel, # if 2h, dict; otherwise NA
             "has movement?": moves, # True, False, or not specified
             "movement details": move_details, # if 2h, dict or not specified; otherwise NA
-        }
+        }, warning
 
 
 class BodypartInfo:
@@ -1758,8 +1767,60 @@ class LocationModule(ParameterModule):
         self._inphase = inphase
     
     def as_dict(self): 
+        warning = ""
         loctype_str = self.locationtreemodel.locationtype.getabbreviation()
-        locations = []
+        locations = {} # dict
+        # spatial location: key value pairs are <axis>: <details>
+        # spatial details are {"side": str or NS, "dist": str or NA or NS}
+        # body location: key value pairs are <bodypart abbrev>: <details>
+        # body details are {"surfaces": list or NA, "bone/joints": list or NA, "subareas": list or NA}
+        
+        is_neutral = True if self.locationtreemodel.defaultneutralselected else False
+        paths = self.locationtreemodel.get_checked_items(only_fully_checked=True, include_details=True) 
+        # purely spatial locations don't have surfaces / subareas; we handle the abbrev differently
+        if loctype_str == "Signing space(spatial)":
+            # Each 'curr_path' is a dict. Keys are 'path', 'abbrev', 'details'
+            for curr_path in paths:
+                if curr_path['path'] == 'Default neutral space':
+                    is_neutral = True
+                    if len(paths) > 1:
+                        warning += "Default neutral location has additional paths; "
+                    break
+                else:
+                    # options:
+                    # Ver > Side
+                    # Hor/sag > Side > Dist
+                    nodes = curr_path['path'].split(treepathdelimiter)
+                    axis_abbrev = nodes[0][0:3] # Ver, Hor, Sag
+                    side = nodes[1] if len(nodes) > 1 else ModuleInfo.NOT_SPECIFIED
+                    dist = nodes[2] if len(nodes) == 3 else ModuleInfo.NOT_APPLICABLE
+                    if axis_abbrev in locations:
+                        warning += "spatial location has multiple specs for one axis"
+                    locations.update({axis_abbrev: {"side": side, "dist": dist}})
+        else:
+            # Each 'curr_path' is a dict. Keys are 'path', 'abbrev', 'details'
+            for curr_path in paths:
+                if curr_path['path'] == 'Default neutral space':
+                    is_neutral = True
+                    if len(paths) > 1:
+                        warning += "Default neutral location has additional paths; "
+                    break
+                else:
+                    # details_dict: keys are the subarea types ('surface', 'sub-area', or ''); 
+                    # values are lists of checked subareas
+                    details_dict = curr_path["details"].get_checked_values()
+                    nodes = curr_path['path'].split(treepathdelimiter)
+                    axis_abbrev = nodes[-1]
+                    curr_details = {}
+                    for key, val in details_dict.items(): 
+                        if key:
+                            curr_details.update({key: [v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val]})
+                    locations.update({
+                        axis_abbrev: curr_details
+                    })               
+                    
+        
+        
         timing_type, intervals, points = get_timing_info(self.timingintervals)
         hands, handrel = self.get_arts_info()
         module_info = {
@@ -1769,9 +1830,10 @@ class LocationModule(ParameterModule):
             "articulators": hands,
             "art1/art2 relation": handrel,
             "loctype": "anchored" if "anch" in loctype_str else "spatial" if "spatial" in loctype_str else "body",
+            "is neutral?": is_neutral,
             "locations": locations
         }
-        return module_info
+        return module_info, warning
 
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
@@ -3144,7 +3206,7 @@ class HandConfigurationModule(ParameterModule):
         self._overalloptions = new_overalloptions
     
     def as_dict(self):
-    
+        warning = None
         timing_type, intervals, points = get_timing_info(self.timingintervals)
         hands, _ = self.get_arts_info()
         predefined = self.get_predefined() or ModuleInfo.NOT_APPLICABLE
@@ -3159,7 +3221,7 @@ class HandConfigurationModule(ParameterModule):
             "forearm?": self.overalloptions['forearm'],
             "config tuple": self.config_tuple(),
         }
-        return module_info
+        return module_info, warning
         
     def config_tuple(self):
         return tuple(HandConfigurationHand(self.handconfiguration).get_hand_transcription_list())
