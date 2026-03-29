@@ -2,13 +2,14 @@ import logging
 import os
 import re
 from copy import deepcopy
+from collections import defaultdict
 
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from lexicon.module_classes import SignLevelInformation, MovementModule, LocationModule, BodypartInfo, RelationX, RelationY, Direction, RelationModule
 from gui.xslotspecification_view import XslotStructure
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
-from constant import HAND, ARM, LEG, ModuleTypes, treepathdelimiter
+from constant import HAND, ARM, LEG, ModuleTypes, treepathdelimiter, ModuleInfo
 
 NULL = '\u2205'
 glossesdelimiter = " / "
@@ -211,14 +212,23 @@ class Sign:
         
     def get_module_info(self, moduletype):
         if moduletype == ModuleTypes.SIGNTYPE:
-            st, warning = self._signtype.as_dict()
-            if warning:
-                print(self._signlevel_information._lemma, moduletype, warning)
-            
+            if self.signtype:
+                st, warning = self.signtype.as_dict()
+                if warning:
+                    print(self._signlevel_information._lemma, moduletype, warning)
+            else:
+                st = ModuleInfo.NOT_SPECIFIED
+                print(self._signlevel_information._lemma, "sign type not specified")
             # include xslot info too
+            if self.xslotstructure and self.xslotstructure.number:
+                num = self.xslotstructure.number
+            else:
+                num = ModuleInfo.NOT_SPECIFIED
+                print(self._signlevel_information._lemma, "number of xslots not specified")
+            
             return {
             'sign type': st,
-            'number of xslots': self.xslotstructure.number,
+            'number of xslots': num,
             'specified xslots?': self.specifiedxslots,
             }
         elif moduletype == ModuleTypes.LOCATION:
@@ -226,7 +236,7 @@ class Sign:
             for k, module in self.locationmodules.items():
                 module_info, warning = module.as_dict()
                 module_info["module key"] = k
-                module_info["module number"] = self.locationmodulenumbers[k]
+                module_info["module number"] = f"Loc{self.locationmodulenumbers[k]}"
                 loc_mods.append(module_info)
                 if warning:
                     print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
@@ -240,7 +250,7 @@ class Sign:
             for k, module in self.movementmodules.items():
                 module_info, warning = module.as_dict()
                 module_info["module key"] = k
-                module_info["module number"] = self.movementmodulenumbers[k]
+                module_info["module number"] = f"Mov{self.movementmodulenumbers[k]}"
                 if module_info['movement type'] == 'Joint-specific':
                     js_mov.append(module_info)
                 elif module_info['movement type'] == 'Perceptual shape':
@@ -258,14 +268,23 @@ class Sign:
             for k, module in self.handconfigmodules.items():
                 module_info, warning = module.as_dict()
                 module_info["module key"] = k
-                module_info["module number"] = self.handconfigmodulenumbers[k]
+                module_info["module number"] = f"Config{self.handconfigmodulenumbers[k]}"
                 hc_mods.append(module_info)
                 if warning:
                     print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
             return {'hand config modules': hc_mods}
             
-        # elif moduletype == ModuleTypes.RELATION:
-        #     return self.relationmodulenumbers
+        elif moduletype == ModuleTypes.RELATION:
+            rel_mods = []
+            for k, module in self.relationmodules.items():
+                module_info, warning = module.as_dict()
+                module_info["module key"] = k
+                module_info["module number"] = f"Rel{self.relationmodulenumbers[k]}"
+                rel_mods.append(module_info)
+                if warning:
+                    print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
+            return {'relation modules': rel_mods,
+                    'assoc rel map': self.loc_rel_map()}
         # elif moduletype == ModuleTypes.ORIENTATION:
         #     return self.orientationmodulenumbers
         # elif moduletype == ModuleTypes.NONMANUAL:
@@ -273,17 +292,40 @@ class Sign:
         else:
             print("module type not done")
         
+    def loc_rel_map(self):
+        # create a dict that maps associated location and relation modules 
+        # e.g. {"Loc1": ["Rel1, Rel2"], "Rel1": ["Loc1"], "Rel2": ["Loc1"]}
+        relloc_map = defaultdict(list)
+        for rel_uid, rel_mod in self.relationmodules.items():
+            rel_num = f"Rel{self.relationmodulenumbers[rel_uid]}"
+            if rel_mod.relationy.existingmodule:
+                assoc_uids = rel_mod.relationy._linkedmoduleids
+                assoc_type = rel_mod.relationy.linkedmoduletype
+                if assoc_type == ModuleTypes.LOCATION:
+                    relloc_map[rel_num] = [f"Loc{self.locationmodulenumbers[assoc_id]}" for assoc_id in assoc_uids if assoc_id != 0.0]
+                elif assoc_type == ModuleTypes.MOVEMENT:
+                    relloc_map[rel_num] = [f"Mov{self.movementmodulenumbers[assoc_id]}" for assoc_id in assoc_uids if assoc_id != 0.0]
+            else:
+                relloc_map[rel_num] = []
+        locrel_map = defaultdict(list)
+        for rel_num, assoc_nums in relloc_map.items():
+            for assoc_num in assoc_nums:
+                locrel_map[assoc_num].append(rel_num)
+        relloc_map.update(locrel_map)
+        return relloc_map 
     
     
     def full_info(self):
         # like serialize(), but in a more compact and readable format
         sign_info = {}
         sli = self._signlevel_information.serialize()
+        sli["date created"] = self._signlevel_information.datecreated.strftime('%Y-%m-%d %I:%M:%S%p')
+        sli["date last modified"] = self._signlevel_information.datelastmodified.strftime('%Y-%m-%d %I:%M:%S%p')
         # print(sli['entryid'], sli['lemma'])
         sign_info.update(sli)
         
 
-        for moduletype in [ModuleTypes.SIGNTYPE, ModuleTypes.MOVEMENT, ModuleTypes.HANDCONFIG, ModuleTypes.LOCATION]:
+        for moduletype in [ModuleTypes.SIGNTYPE, ModuleTypes.MOVEMENT, ModuleTypes.HANDCONFIG, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
             module_info_dict = self.get_module_info(moduletype)
             sign_info.update(module_info_dict)
         

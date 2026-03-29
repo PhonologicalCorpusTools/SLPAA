@@ -546,12 +546,13 @@ class MovementModule(ParameterModule):
         can definitely be more efficient.\n
         '''
         # print(self.timingintervals)
+        warning = ""
         timing_type, intervals, points = get_timing_info(self.timingintervals)
         # timing type should be either 'whole sign' or 'interval', never 'mixed' or 'point'
         if timing_type in ['mixed', 'point']:
-            print("movement module has timing point spec??")      
+            warning += "has timing point spec; "
         
-        warning = None
+        
         hands, handrel = self.get_arts_info()                       
                 
         paths = self.movementtreemodel.get_checked_items(only_fully_checked=False, include_details=True)
@@ -614,7 +615,9 @@ class MovementModule(ParameterModule):
         for pathitem in leaf_paths: # each path contains keys "path", "abbrev", "usv"
             path = pathitem["path"]
             path_nodes = path.split(treepathdelimiter)
-            
+            if len(path_nodes) == 1:
+                warning += f"path length is 1, {path} ; "
+                continue
             
             # 2: Movement type > Handshape change
             if "Handshape change" in path_nodes:
@@ -632,10 +635,12 @@ class MovementModule(ParameterModule):
                 if path_nodes[2] == "Shape" and len(path_nodes) >= 4:
                     perceptual_info["shape"] = path_nodes[3] if path_nodes[3] != "Other" else paths_dict[path]["usv"]
                     if path_nodes[3] == "Straight" and len(path_nodes) >= 5: 
-                        perceptual_info["subsequent interaction"] = path_nodes[-1]
-                        perceptual_info["plane reference"] = ModuleInfo.NOT_APPLICABLE
-                        perceptual_info["plane specification"] = ModuleInfo.NOT_APPLICABLE
-                        perceptual_info["H1/H2 plane interaction"] = ModuleInfo.NOT_APPLICABLE
+                        if "Doesn't interact" not in path_nodes[-1]:
+                            perceptual_info["subsequent interaction"] = path_nodes[-1]
+                            perceptual_info["plane reference"] = ModuleInfo.NOT_APPLICABLE
+                            perceptual_info["plane specification"] = ModuleInfo.NOT_APPLICABLE
+                            perceptual_info["H1/H2 plane interaction"] = ModuleInfo.NOT_APPLICABLE
+                        
                     
                 # Perceptual shape axis direction: possibilities are
                 # 4: Movement type > Perceptual shape > Axis direction > Not relevant
@@ -716,7 +721,7 @@ class MovementModule(ParameterModule):
             # 5: Movement characteristics > Repetition > Repeated > Specify... > This number is a minimum
             # 5: Movement characteristics > Repetition > Repeated > Location of repetition > Same location
             # 7: Movement characteristics > Repetition > Repeated > Location of repetition > Different location > [axis] > [spec]
-            if path_nodes[1] == "Repetition" and len(path_nodes) >= 3:
+            if path_nodes[0] == "Movement characteristics" and path_nodes[1] == "Repetition" and len(path_nodes) >= 3:
                 module_info["repetition"] = path_nodes[2]
                 if path_nodes[2] == "Repeated":
                     if path_nodes[-1] == "Specify total number of cycles":
@@ -2402,6 +2407,20 @@ class RelationModule(ParameterModule):
                 path_str += f'[{" " if len(val) == 0 else ", ".join([v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val])}]'
             path_strings.append(path_str)
         return f'{art}[{" " if len(path_strings) == 0 else ", ".join(path_strings)}]'
+    
+    def get_paths_as_dict(self, paths, art):
+        path_dict = {}
+        for path in paths[art]:
+            path_str = get_path_lowest_node(path['path']) if path['abbrev'] is None else path['abbrev']
+            details_dict = path['details'].get_checked_values()
+            curr_details = {}
+            for key, val in details_dict.items(): 
+                if key:
+                    curr_details.update({key: [v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val]})
+            path_dict.update({
+                path_str: curr_details
+            })    
+        return path_dict
 
     def has_any_distance(self):
         for dis in self.contactrel.distances:
@@ -2484,7 +2503,116 @@ class RelationModule(ParameterModule):
             1: self.relationx.lboth or self.relationy.lboth or self.relationx.leg1 or self.relationy.leg1,
             2: self.relationx.lboth or self.relationy.lboth or self.relationx.leg2 or self.relationy.leg2
         }
+        
+    def as_dict(self):
+        warning = ""
+        module_info = {}
+        
+        timing_type, intervals, points = get_timing_info(self.timingintervals)
+        
+        link_type = "body part" if not self.relationy.existingmodule else self.relationy.linkedmoduletype  
+        X_art = self.relationx.displaystr().capitalize()
+        X_parts = ModuleInfo.NOT_SPECIFIED
+        Y_art = self.relationy.displaystr().capitalize() if link_type == "body part" else ModuleInfo.NOT_APPLICABLE
+        Y_parts = ModuleInfo.NOT_APPLICABLE
+        has_contact = self.contactrel.contact == True
+        contact_rel = ModuleInfo.NOT_APPLICABLE
+        dir_rel = ModuleInfo.NOT_APPLICABLE
+        dist_rel = ModuleInfo.NOT_APPLICABLE
+        # paths
+        paths = self.get_paths()
+        if paths:
+            X_parts = {}
+            if "both" in X_art.lower():
+                art1, art2 = ('H1', 'H2') if "hands" in X_art else (('Arm1', 'Arm2') if "arms" in X_art else ('Leg1', 'Leg2'))
+                for a in [art1, art2]:
+                    X_parts[a] = self.get_paths_as_dict(paths, a)
+            elif "Other" in X_art:
+                X_parts = ModuleInfo.NOT_APPLICABLE
+            else:
+                X_parts[X_art] = self.get_paths_as_dict(paths, X_art) 
+        if link_type == "body part":
+            Y_parts = {}
+            if "both" in Y_art.lower():
+                art1, art2 = ('H1', 'H2') if "hands" in Y_art else (('Arm1', 'Arm2') if "arms" in Y_art else ('Leg1', 'Leg2'))
+                for a in [art1, art2]:
+                    Y_parts[a] = self.get_paths_as_dict(paths, a)
+            elif "Other" in Y_art:
+                Y_parts = ModuleInfo.NOT_APPLICABLE
+            else:
+                Y_parts[Y_art] = self.get_paths_as_dict(paths, Y_art) 
+        # contact, dir, dist info
+        if self.contactrel.contact in [False, None]: 
+            contact_rel = ModuleInfo.NOT_APPLICABLE
+            if self.has_any_distance():
+                dist_rel = {}
+                for i, label in enumerate(["Hor", "Ver", "Sag", "Gen"]):
+                    dist = self.contactrel._distances[i]
+                    if dist.getabbreviation():
+                        dist_rel[label] = dist.getabbreviation()
+                                    
+            else:
+                dist_rel = ModuleInfo.NOT_APPLICABLE
+        else:
+            dist_rel = ModuleInfo.NOT_APPLICABLE
+            contacttype, contactmanner = "", ""
+            # contact type
+            if self.contactrel.contacttype:
+                if self.contactrel.contacttype.light:
+                    contacttype += "light"
+                elif self.contactrel.contacttype.firm:
+                    contacttype += "firm"
+                elif self.contactrel.contacttype.other:
+                    contacttype += "other"
+                    if len(self.contactrel.contacttype.othertext) > 0:
+                        contacttype += f" ({self.contactrel.contacttype.othertext})"
+            # contact manner
+            if self.contactrel.manner:
+                if self.contactrel.manner.holding:
+                    contactmanner += "holding"
+                elif self.contactrel.manner.continuous:
+                    contactmanner += "continuous"
+                elif self.contactrel.manner.intermittent:
+                    contactmanner += "intermittent"
+            if (contactmanner or contacttype):
+                contact_rel = {
+                    "type": contacttype or ModuleInfo.NOT_APPLICABLE,
+                    "manner": contactmanner or ModuleInfo.NOT_APPLICABLE
+                } 
+        if self.xy_linked or self.xy_crossed or self.has_any_direction_axis():
+            xy_rel = []
+            dirs = {}
+            if self.xy_linked:
+                xy_rel.append("linked")
+            if self.xy_crossed:
+                xy_rel.append("crossed")
+            for i, label in enumerate(["Hor", "Ver", "Sag"]):
+                if self.directions[i].axisselected:
+                    dir_spec = self.directions[i].getabbreviation()
+                    dirs[label] = dir_spec if dir_spec != "any" else ModuleInfo.NOT_SPECIFIED
+            dir_rel = {
+                "X/Y rel": xy_rel or ModuleInfo.NOT_APPLICABLE, # set: linked, crossed, or both
+                "X/Y dir": dirs # dict. <axis>: <spec>
+            }
 
+        module_info = {
+            # linked modules have to be added at the Sign level -- we don't have access to the module numbers here
+            "timing type": timing_type, # whole sign, interval, point, or mixed (both intervals and points). 
+            "timing intervals": intervals or ModuleInfo.NOT_APPLICABLE, # NA if timing type is whole sign or points; otherwise, list of tuples
+            "timing points": points or ModuleInfo.NOT_APPLICABLE, # NA if timing type is whole sign or intervals; otherwise, list of tuples
+            "link type": link_type,
+            "X art(s)": X_art, # e.g. H1, H2, both hands, both hands connected
+            "Y art(s)": Y_art,
+            "X details": X_parts, # nested dict: e.g. {"H1": {}, "H2": {}}
+            "Y details": Y_parts,
+            "has contact": has_contact,
+            "contact details": contact_rel,
+            "dir rel": dir_rel,
+            "dist rel": dist_rel
+            
+        }
+        return module_info, warning
+    
     # relation abbreviation
     def getabbreviation(self):
         phonphon_str = self.phonlocs.getabbreviation() if self.phonlocs else ""
