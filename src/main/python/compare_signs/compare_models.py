@@ -7,6 +7,7 @@ from compare_signs.compare_helpers import (analyze_modules, extract_handshape_sl
                                            get_detailed_checked_paths_location, get_detailed_selections_orientation,
                                            inject_signtype_intermediates)
 from compare_signs.align_modules import AlignModel
+from compare_signs.compare_timing import compare_timings
 from constant import PREDEFINED_MAP  # for predefined hand config name
 
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
@@ -342,8 +343,9 @@ class CompareModel(QObject):
             modify_button_type(r)
             return r
 
-        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+        def compare_module_pair(pair: tuple, xslotstruc: tuple, pairwise: bool = True) -> (list, list):
             # pair = tuple of LocationModules
+            # xslotstruc = tuple of XslotStructure. required to parse timing (whether whole sign x-slot)
             # pairwise = False if not comparing one pair
             # return tuple of two dict each contains true or false at each level of granularity
             results1 = []
@@ -422,6 +424,12 @@ class CompareModel(QObject):
                     res2 = add_major_loc(res2, s2_location_type)
                     results2.append(res2)
 
+            # timing comparison
+            timing_r = compare_timings(pair, xslotstruc)
+            # sign1 whole?
+            results1.append(timing_r[0])
+            results2.append(timing_r[1])
+
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
             return results1, results2
@@ -431,19 +439,24 @@ class CompareModel(QObject):
             self._warn(warningstring)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
+        xslotstruc = (self.sign1.xslotstructure, self.sign2.xslotstructure)
 
         for i, module in enumerate(aligned_modules):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(module)
+                r_sign1, r_sign2 = compare_module_pair(pair=module, xslotstruc=xslotstruc)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
             elif module[0]:  # only sign 1 has this module
-                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                r_sign1, _ = compare_module_pair(pair=(module[0], module[0]),
+                                                 xslotstruc=(xslotstruc[0],xslotstruc[0]),
+                                                 pairwise=False)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:            # only sign 2 has this module
-                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                _, r_sign2 = compare_module_pair(pair=(module[1], module[1]),
+                                                 xslotstruc=(xslotstruc[1],xslotstruc[1]),
+                                                 pairwise=False)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
