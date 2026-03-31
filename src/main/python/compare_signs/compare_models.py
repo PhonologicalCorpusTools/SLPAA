@@ -67,7 +67,7 @@ class CompareModel(QObject):
             'Handconfig': self.compare_handconfigs(options['handconfig']),
             'Movement': self.compare_movements(),
             'Location': self.compare_locations(),
-            'Relation': self.compare_relation(),   # not impplemented yet
+            'Relation': self.compare_relation(),
             'Orientation': self.compare_orientations(),
             #'Nonmanual': self,  # not implemented yet
         }

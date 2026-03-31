@@ -64,10 +64,8 @@ class AlignModel(QObject):
     #   - modulesbysign is a dict of {signnum --> [list of modules of specified type from this signnum that need to be aligned]}
     #   - moduletype is the specified type that defines the contents of the first argument
     def alignbyarticulator(self, modulesbysign, moduletype):
-        if len(modulesbysign[1]) == 0 or len(modulesbysign[2]) == 0:
-            return [], modulesbysign
-        elif len(modulesbysign[1]) == len(modulesbysign[2]) == 1:
-            return [(modulesbysign[1][0], modulesbysign[2][0])], {1: [], 2: []}
+        if len(modulesbysign[1]) == len(modulesbysign[2]) == 1:
+            return [(modulesbysign[1][0], modulesbysign[2][0])], ""
 
         matchedmods = []
         warningstrings = []
