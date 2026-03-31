@@ -896,9 +896,9 @@ class AlignModel(QObject):
     #   - configmodsbysign is a dict of {signnum --> [list of handconfig modules from this signnum that need to be aligned]}
     def alignbyhandshape(self, configmodsbysign):
         if len(configmodsbysign[1]) == 0 or len(configmodsbysign[2]) == 0:
-            return [], configmodsbysign
+            return [], configmodsbysign, ""
         elif len(configmodsbysign[1]) == len(configmodsbysign[2]) == 1:
-            return [(configmodsbysign[1][0], configmodsbysign[2][0])], {1: [], 2: []}
+            return [(configmodsbysign[1][0], configmodsbysign[2][0])], {1: [], 2: []}, ""
 
         matchedmods = []
         unmatchedmods = {1: [], 2: []}
