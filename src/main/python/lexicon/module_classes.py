@@ -654,10 +654,11 @@ class MovementModule(ParameterModule):
                         perceptual_info["H1/H2 axis interaction"] = ModuleInfo.NOT_APPLICABLE
                     elif "H1 and H2" in path_nodes[3]:
                         perceptual_info["H1/H2 axis interaction"] = path_nodes[3]
-                    if (path_nodes[3] == "Absolute" and len(path_nodes) == 6) or (path_nodes[3] == "Relative" and len(path_nodes) == 7):
+                    if (path_nodes[3] == "Absolute" and len(path_nodes) > 4) or (path_nodes[3] == "Relative" and len(path_nodes) > 5):
                         perceptual_info["axis reference"] = path_nodes[4] if path_nodes[3] == "Relative" else "Absolute"
                         axis_index = 4 if path_nodes[3] == "Absolute" else 5 
                         axis_abbrev = path_nodes[axis_index][0:3]
+                        
                         axis_spec = paths_dict[path]["abbrev"] if path_nodes[-1] != "Other" else paths_dict[path]["usv"]
                         perceptual_info["axis specification"].update({axis_abbrev: axis_spec})
 
@@ -675,7 +676,7 @@ class MovementModule(ParameterModule):
                         perceptual_info["H1/H2 plane interaction"] = ModuleInfo.NOT_APPLICABLE
                     elif "H1 and H2" in path_nodes[3]:
                         perceptual_info["H1/H2 plane interaction"] = path_nodes[3]
-                    if (path_nodes[3] == "Absolute" and len(path_nodes) == 6) or (path_nodes[3] == "Relative" and len(path_nodes) == 7):
+                    if (path_nodes[3] == "Absolute" and len(path_nodes) >= 5) or (path_nodes[3] == "Relative" and len(path_nodes) >= 6):
                         perceptual_info["plane reference"] = path_nodes[4] if path_nodes[3] == "Relative" else "Absolute"
                         axis_index = 4 if path_nodes[3] == "Absolute" else 5 
                         axis_abbrev = path_nodes[axis_index]
@@ -1815,13 +1816,13 @@ class LocationModule(ParameterModule):
                     # values are lists of checked subareas
                     details_dict = curr_path["details"].get_checked_values()
                     nodes = curr_path['path'].split(treepathdelimiter)
-                    axis_abbrev = nodes[-1]
+                    # axis_abbrev = nodes[-1]
                     curr_details = {}
                     for key, val in details_dict.items(): 
                         if key:
                             curr_details.update({key: [v if v not in SURFACE_SUBAREA_ABBREVS else SURFACE_SUBAREA_ABBREVS[v] for v in val]})
                     locations.update({
-                        axis_abbrev: curr_details
+                        curr_path['path']: curr_details
                     })               
                     
         

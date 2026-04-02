@@ -7,16 +7,22 @@ from constant import ModuleTypes
 import logging
 logging.disable(logging.WARNING)
 
+"""Specify where to write logs"""
+CONST_OUTPUT_LOG = "/home/grace/Projects/SLPAA/outputlog.txt"
+
 """ Specify the source of .slpaa files. 
 Options are: 
 - a list of paths
 - a single path
 - a single directory
 """
-CONST_CORPUS_SOURCE = "/home/grace/Projects/SLPAA/to_export/all"
+
+CONST_CORPUS_SOURCE = "/home/grace/Projects/SLPAA/CD-ASL/"
+# CONST_CORPUS_SOURCE = "/home/grace/Projects/SLPAA/CD-ASL/2023_11_27_KANGAROO_KNOW_NOTHING_AA_new_main.slpaa"
 
 """ Specify output path or None. If the file doesn't exist, it will be created. Can be the same as CONST_EXISTING_JSONL_PATH. """
-CONST_NEW_JSONL_PATH = "/home/grace/Projects/SLPAA/SLPAA/src/main/python/export/allsigns.jsonl"
+CONST_NEW_JSONL_PATH = "/home/grace/Projects/SLPAA/2026.03.31_full.jsonl"
+# CONST_NEW_JSONL_PATH = "/home/grace/Projects/SLPAA/test.jsonl"
 
 """ Specify existing JSONL filepath, or None. """
 CONST_EXISTING_JSONL_PATH = "/home/grace/Projects/SLPAA/SLPAA/src/main/python/export/exported.jsonl"
@@ -40,6 +46,7 @@ Options are:
 """
 CONST_EXPORT_OPTION = "new"
 
+logs = []
 def get_id_from_sign_obj(sign: Sign):
     id = (sign._signlevel_information._entryid.counter, sign._signlevel_information.lemma)
     return id
@@ -53,8 +60,10 @@ def write_jsonl_to_file(jsonarr, outfile, option, verbose=False):
             json.dump(entry, f)
             f.write('\n')
             counter += 1
+    msg = f"Successfully {"wrote" if option == 'w' else "appended" if option == 'a' else ""} {counter} signs to {outfile}"
+    logs.append(msg)
     if verbose:
-        print(f"Successfully {"wrote" if option == 'w' else "appended" if option == 'a' else ""} {counter} signs to {outfile}")
+        print(msg)
         
 def map_to_id(jsonarr):
     # return a dict that maps from (lemma, entryid, corpus) values to indices of jsonarr
@@ -94,17 +103,23 @@ def load_jsonl_from_path(path, verbose=False):
             try:
                 sign_dict = json.loads(line)
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON on line: {line.strip()[0:30]}.... Error: {e}")
+                msg = f"Error decoding JSON on line: {line.strip()[0:30]}.... Error: {e}"
+                logs.append(msg)
+                print(msg)
             else:
                 id = (sign_dict["entryid"], sign_dict["lemma"], sign_dict["corpus source"])
                 jsonarr.append(sign_dict)
                 if id in mapping:
-                    print(f"warning: skipped duplicate {id} in {path}")
+                    msg = f"warning: skipped duplicate {id} in {path}"
+                    logs.append(msg)
+                    print(msg)
                 else:
                     mapping[id] = counter
             counter += 1
+    msg = f"Loaded {len(mapping)} out of {counter} signs from {path}."
+    logs.append(msg)
     if verbose:
-        print(f"Loaded {len(mapping)} out of {counter} signs from {path}.")
+        print(msg)
     return jsonarr, mapping
 
 
@@ -118,7 +133,9 @@ def load_corpus_binary(path, corpus_dir = None, as_dict = False, verbose=False):
         corpus = Corpus(serializedcorpus=renamed_load(f))
         # in case we're loading a corpus that was originally created on a different machine / in a different folder
         corpus.path = path
-        if verbose: print(f"Loaded corpus binary {path} containing {len(corpus.signs)} signs.")
+        msg = f"Loaded corpus binary {path} containing {len(corpus.signs)} signs."
+        logs.append(msg)
+        if verbose: print(msg)
     if as_dict:
         corpus_dict = {}
         for sign in corpus:
@@ -172,7 +189,9 @@ def get_sign_representation(sign: Sign, corpus_name, verbose=False):
     try:
         sign_rep = sign.full_info()
     except Exception:
-        print(traceback.format_exc())
+        msg = traceback.format_exc()
+        logs.append(msg)
+        print(msg)
         return None
     else:
         sign_rep["corpus source"] = corpus_name
@@ -187,7 +206,9 @@ def get_corpus_representation(corpus: Corpus, corpus_name, verbose=False):
             signlist.append(sign_rep)
         else:
             sign_id = get_id_from_sign_obj(sign)
-            print(f"Couldn't add {sign_id} from {corpus_name}. Skipped.")
+            msg = f"Couldn't add {sign_id} from {corpus_name}. Skipped."
+            logs.append(msg)
+            print(msg)
     return signlist
 
 class Exporter:
@@ -207,6 +228,7 @@ class Exporter:
         self.failed = set()
         
         self.set_options()
+
         
     def set_options(self):
         if self.export_option == "new":
@@ -261,7 +283,10 @@ class Exporter:
                             skipped_count += 1
                             self.failed.add(full_id)
                             print(f"Failed to add {full_id} from {corpus_name}. Skipped.")
-                if self.verbose: print(f"Will append {added_count} from {corpus_name}, skipping {skipped_count}.")
+                msg = f"Will append {added_count} from {corpus_name}, skipping {skipped_count}."
+                logs.append(msg)
+                if self.verbose: 
+                    print(msg)
         else:
             print("not done option", self.export_option)
             # json_arr = load_jsonarr_from_path()   
@@ -282,6 +307,11 @@ if __name__ == '__main__':
     )
 
     exp.run()
+    with open(CONST_OUTPUT_LOG, 'w', encoding='utf-8') as f:
+        for msg in logs:
+            f.write(msg)
+            f.write('\n')
+    
 
     
 # parser=argparse.ArgumentParser()
