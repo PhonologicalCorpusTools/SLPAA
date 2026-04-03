@@ -215,16 +215,16 @@ class Sign:
             if self.signtype:
                 st, warning = self.signtype.as_dict()
                 if warning:
-                    print(self._signlevel_information._lemma, moduletype, warning)
+                    print(self._signlevel_information.gloss, moduletype, warning)
             else:
                 st = ModuleInfo.NOT_SPECIFIED
-                print(self._signlevel_information._lemma, "sign type not specified")
+                print(self._signlevel_information.gloss, "sign type not specified")
             # include xslot info too
             if self.xslotstructure and self.xslotstructure.number:
                 num = self.xslotstructure.number
             else:
                 num = ModuleInfo.NOT_SPECIFIED
-                print(self._signlevel_information._lemma, "number of xslots not specified")
+                print(self._signlevel_information.gloss, "number of xslots not specified")
             
             return {
             'sign type': st,
@@ -239,7 +239,7 @@ class Sign:
                 module_info["module number"] = f"Loc{self.locationmodulenumbers[k]}"
                 loc_mods.append(module_info)
                 if warning:
-                    print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
+                    print(self._signlevel_information.gloss, moduletype, module_info["module number"], warning)
             return {'location modules': loc_mods}
         
         elif moduletype == ModuleTypes.MOVEMENT:
@@ -258,7 +258,7 @@ class Sign:
                 elif module_info['movement type'] == 'Handshape change':
                     hc_mov.append(module_info)
                 if warning:
-                    print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
+                    print(self._signlevel_information.gloss, moduletype, module_info["module number"], warning)
             return {'perceptual movements': perceptual_mov,
                     'joint-specific movements': js_mov,
                     'handshape change movements': hc_mov}
@@ -282,7 +282,7 @@ class Sign:
                 module_info["module number"] = f"Rel{self.relationmodulenumbers[k]}"
                 rel_mods.append(module_info)
                 if warning:
-                    print(self._signlevel_information._lemma, moduletype, module_info["module number"], warning)
+                    print(self._signlevel_information.gloss, moduletype, module_info["module number"], warning)
             return {'relation modules': rel_mods,
                     'assoc rel map': self.loc_rel_map()}
         # elif moduletype == ModuleTypes.ORIENTATION:
