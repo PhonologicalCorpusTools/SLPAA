@@ -160,7 +160,8 @@ class AlignModel(QObject):
             for arttype1, arttype2 in [artpair, artpair[::-1]]:
                 for artnum in [1, 2, 3]:
                     if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][artnum]:
-                        # the articulators are a near-perfect match (eg, H1-A1 or L1&2-H1&2) so try and align whatever modules are in those lists
+                        # the articulators are a near-perfect match (eg, H1-A1 or L1&2-H1&2)
+                        #   so try and align whatever modules are in those lists
                         alignedmodules, unmatched, warningstring = self.alignmodules_helper({
                             1: sign1modsbyarticulator[arttype1][artnum],
                             2: sign2modsbyarticulator[arttype2][artnum]
@@ -177,7 +178,8 @@ class AlignModel(QObject):
 
                 for artnum in [1, 2]:
                     if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][3]:
-                        # the articulators are a near-subset match (eg, L1-H1&2 or H2-A1&2) so try and align whatever modules are in those lists
+                        # the articulators are a near-subset match (eg, L1-H1&2 or H2-A1&2)
+                        #   so try and align whatever modules are in those lists
                         alignedmodules, unmatched, warningstring = self.alignmodules_helper({
                             1: sign1modsbyarticulator[arttype1][artnum],
                             2: sign2modsbyarticulator[arttype2][3]
@@ -191,7 +193,8 @@ class AlignModel(QObject):
                         sign1modsbyarticulator[arttype1][artnum] = unmatched[1]
                         sign2modsbyarticulator[arttype2][3] = unmatched[2]
                     if sign1modsbyarticulator[arttype1][3] and sign2modsbyarticulator[arttype2][artnum]:
-                        # the articulators are a subset match (eg, H1&2-L2 or L1&2-A1) so try and align whatever modules are in those lists
+                        # the articulators are a subset match (eg, H1&2-L2 or L1&2-A1)
+                        #   so try and align whatever modules are in those lists
                         alignedmodules, unmatched, warningstring = self.alignmodules_helper({
                             1: sign1modsbyarticulator[arttype1][3],
                             2: sign2modsbyarticulator[arttype2][artnum]
@@ -302,8 +305,8 @@ class AlignModel(QObject):
             return modsalignedbynonman + modsalignedbycodingorder, unmatched, ""
 
     # TODO this currently uses *solely* uniqueid (which is a timestamp) to determine coding order within the list of
-    # modules for each sign. If for some reason we need it to refer to the module numbers themselves (eg Loc1, Loc2) more
-    # explicitly, then this function will also need moduletype & sign1 & sign2 (or sign1 & 2 modulenumberdicts) as input too
+    #   modules for each sign. If for some reason we need it to refer to the module numbers themselves (eg Loc1, Loc2) more
+    #   explicitly, then this function will also need moduletype & sign1 & sign2 (or sign1 & 2 modulenumberdicts) as input too
     # parameters:
     #   - modulesbysign is a dict of {signnum --> [list of modules from this signnum that need to be aligned]}
     #   - matchwithnone is a boolean that specifies whether any leftover modules (in case of one sign having more than the other)
@@ -896,9 +899,9 @@ class AlignModel(QObject):
     #   - configmodsbysign is a dict of {signnum --> [list of handconfig modules from this signnum that need to be aligned]}
     def alignbyhandshape(self, configmodsbysign):
         if len(configmodsbysign[1]) == 0 or len(configmodsbysign[2]) == 0:
-            return [], configmodsbysign
+            return [], configmodsbysign, ""
         elif len(configmodsbysign[1]) == len(configmodsbysign[2]) == 1:
-            return [(configmodsbysign[1][0], configmodsbysign[2][0])], {1: [], 2: []}
+            return [(configmodsbysign[1][0], configmodsbysign[2][0])], {1: [], 2: []}, ""
 
         matchedmods = []
         unmatchedmods = {1: [], 2: []}
