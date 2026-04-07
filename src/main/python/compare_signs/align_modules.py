@@ -1502,13 +1502,15 @@ def get_all_combinations(range_stop, size):
     return prods_lists
 
 
-# assume that both dicts have the same set of keys, and that each key has a list as its value
-def concatenate_dictlists(d1, d2, allowduplicates=False):
-    if d1.keys() != d2.keys():
-        temp = "pause here"
-    newdict = {k: [] for k in d1.keys()}
-    for k in d1.keys():
-        for listitem in d1[k] + d2[k]:
-            if allowduplicates or listitem not in newdict[k]:
-                newdict[k].append(listitem)
+# args: an arbitrary number of dicts, and each key has a list as its value
+def concatenate_dictlists(*args, allowduplicates=False):
+    newdict = defaultdict(list)
+    keys = [item for arg in args for item in arg]
+    keys = sorted(list(set(keys)))
+
+    for d in args:
+        for k in keys:
+            for listitem in d[k]:
+                if allowduplicates or listitem not in newdict[k]:
+                    newdict[k].append(listitem)
     return newdict
