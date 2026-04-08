@@ -1817,6 +1817,22 @@ class AlignTestDialog(QDialog):
         self.alignbutton = QPushButton("Align modules")
         self.alignbutton.clicked.connect(self.handle_alignmodules)
         buttonoptionslayout.addWidget(self.alignbutton)
+        self.loclabel = QLabel("Location alignment - group body-anchored locations with...")
+        buttonoptionslayout.addWidget(self.loclabel)
+        self.loc_buttongroup = QButtonGroup()
+        self.loc_ba_as_body_rb = QRadioButton("body locations")
+        self.loc_ba_as_body_rb.setProperty('loc_strategy', 'body')
+        self.loc_ba_as_body_rb.setChecked(True)
+        buttonoptionslayout.addWidget(self.loc_ba_as_body_rb)
+        self.loc_buttongroup.addButton(self.loc_ba_as_body_rb)
+        self.loc_ba_as_signingspace_rb = QRadioButton("signing space locations")
+        self.loc_ba_as_signingspace_rb.setProperty('loc_strategy', 'signing space')
+        buttonoptionslayout.addWidget(self.loc_ba_as_signingspace_rb)
+        self.loc_buttongroup.addButton(self.loc_ba_as_signingspace_rb)
+        self.loc_ba_as_indep_rb = QRadioButton("none (independent)")
+        self.loc_ba_as_indep_rb.setProperty('loc_strategy', 'independent')
+        buttonoptionslayout.addWidget(self.loc_ba_as_indep_rb)
+        self.loc_buttongroup.addButton(self.loc_ba_as_indep_rb)
         main_layout.addLayout(buttonoptionslayout)
 
         self.aligndisplay = StatusDisplay(parent=self)
@@ -1833,7 +1849,7 @@ class AlignTestDialog(QDialog):
         sign2 = [s for s in self.corpus.signs if s.signlevel_information.entryid.counter == int(self.sign2combo.currentText()[:self.sign2combo.currentText().index(":")])][0]
         alignmodel = AlignModel(sign1, sign2)
         for modtype in ModuleTypes.alltypes:
-            alignedmodulesthistype, warningstring = alignmodel.alignmodules(modtype)
+            alignedmodulesthistype, warningstring = alignmodel.alignmodules(modtype, loc_strategy=self.loc_buttongroup.checkedButton().property('loc_strategy'))
             allalignedmodules.extend(alignedmodulesthistype)
 
         resultstring = ""
