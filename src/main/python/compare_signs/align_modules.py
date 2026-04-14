@@ -1265,36 +1265,7 @@ class AlignModel(QObject):
                                                                  modtype=modtype,
                                                                  nodename=sharedsubnodegroup[0])
             elif modtype == ModuleTypes.LOCATION:
-                sign1_lmods_body = [lmod for lmod in sign1locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.body]
-                sign1_lmods_bodyanchored = [lmod for lmod in sign1locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.bodyanchored]
-                sign2_lmods_body = [lmod for lmod in sign2locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.body]
-                sign2_lmods_bodyanchored = [lmod for lmod in sign2locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.bodyanchored]
-                sign1_bodybasedonly = len(sign1_lmods_body) + len(sign1_lmods_bodyanchored) == len(sign1locmods_thissubnodegroup)
-                sign2_bodybasedonly = len(sign2_lmods_body) + len(sign2_lmods_bodyanchored) == len(sign2locmods_thissubnodegroup)
-                sign1_bothbodytypes = sign1_lmods_body and sign1_lmods_bodyanchored
-                sign2_bothbodytypes = sign2_lmods_body and sign2_lmods_bodyanchored
-
-                if sign1_bodybasedonly and sign2_bodybasedonly and (sign1_bothbodytypes or sign2_bothbodytypes):
-                    # all body-based locations but some are body and others are body-anchored-- match within each category
-                    matches_body, unmatches_body = self.alignbycodingorder({1: sign1_lmods_body,
-                                                                            2: sign2_lmods_body},
-                                                                           matchwithnone=False)
-                    matches_bodyanchored, unmatches_bodyanchored = self.alignbycodingorder({1: sign1_lmods_bodyanchored,
-                                                                                            2: sign2_lmods_bodyanchored},
-                                                                                           matchwithnone=False)
-                    matches_leftovers, unmatches_leftovers = self.alignbycodingorder(concatenate_dictlists(unmatches_body,
-                                                                                                           unmatches_bodyanchored),
-                                                                                     matchwithnone=False)
-                    matches = matches_body + matches_bodyanchored + matches_leftovers
-                    unmatches = unmatches_leftovers
-                else:
-                    matches, unmatches = self.alignbycodingorder({1: sign1locmods_thissubnodegroup,
-                                                                  2: sign2locmods_thissubnodegroup},
-                                                                 matchwithnone=False)
-            else:
-                matches, unmatches = self.alignbycodingorder({1: sign1locmods_thissubnodegroup,
-                                                              2: sign2locmods_thissubnodegroup},
-                                                             matchwithnone=False)
+                matches, unmatches = self.alignbyloc_body_separate({1: sign1locmods_thissubnodegroup, 2: sign2locmods_thissubnodegroup})
             matchedmods.extend(matches)
             unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
         for s1onlysubnodegroup in s1subnodegroups.difference(subnodegroups_inbothsigns):
@@ -1302,10 +1273,47 @@ class AlignModel(QObject):
         for s2onlysubnodegroup in s2subnodegroups.difference(subnodegroups_inbothsigns):
             unmatched[2].extend(modsbysubnodesbysign[2][s2onlysubnodegroup])
 
+        if modtype == ModuleTypes.LOCATION:
+            # align by body vs body-anchored before resorting to coding order -- if location, and all body-based
+            matches, unmatched = self.alignbyloc_body_separate(unmatched)
+            matchedmods.extend(matches)
         matches, unmatched = self.alignbycodingorder(unmatched, matchwithnone=False)
         matchedmods.extend(matches)
 
         return matchedmods, unmatched
+
+    # helper function to see if the location mods to be aligned are all body-based, and if so, align based on separate
+    #   body vs body-anchored categories
+    # parameters:
+    #   - bodybasedmodsbysign is a dict of {signnum --> [list of body-based location modules from this signnum that need to be aligned]}
+    def alignbyloc_body_separate(self, bodybasedmodsbysign):
+        sign1_lmods_body = [lmod for lmod in bodybasedmodsbysign[1] if lmod.locationtreemodel.locationtype.body]
+        sign1_lmods_bodyanchored = [lmod for lmod in bodybasedmodsbysign[1] if lmod.locationtreemodel.locationtype.bodyanchored]
+        sign2_lmods_body = [lmod for lmod in bodybasedmodsbysign[2] if lmod.locationtreemodel.locationtype.body]
+        sign2_lmods_bodyanchored = [lmod for lmod in bodybasedmodsbysign[2] if lmod.locationtreemodel.locationtype.bodyanchored]
+        sign1_bodybasedonly = len(sign1_lmods_body) + len(sign1_lmods_bodyanchored) == len(bodybasedmodsbysign[1])
+        sign2_bodybasedonly = len(sign2_lmods_body) + len(sign2_lmods_bodyanchored) == len(bodybasedmodsbysign[2])
+        sign1_bothbodytypes = sign1_lmods_body and sign1_lmods_bodyanchored
+        sign2_bothbodytypes = sign2_lmods_body and sign2_lmods_bodyanchored
+
+        if sign1_bodybasedonly and sign2_bodybasedonly and (sign1_bothbodytypes or sign2_bothbodytypes):
+            # all body-based locations but some are body and others are body-anchored-- match within each category
+            matches_body, unmatches_body = self.alignbycodingorder({1: sign1_lmods_body,
+                                                                    2: sign2_lmods_body},
+                                                                   matchwithnone=False)
+            matches_bodyanchored, unmatches_bodyanchored = self.alignbycodingorder({1: sign1_lmods_bodyanchored,
+                                                                                    2: sign2_lmods_bodyanchored},
+                                                                                   matchwithnone=False)
+            matches_leftovers, unmatches_leftovers = self.alignbycodingorder(concatenate_dictlists(unmatches_body,
+                                                                                                   unmatches_bodyanchored),
+                                                                             matchwithnone=False)
+            matches = matches_body + matches_bodyanchored + matches_leftovers
+            unmatches = unmatches_leftovers
+        else:
+            matches, unmatches = self.alignbycodingorder({1: bodybasedmodsbysign[1],
+                                                          2: bodybasedmodsbysign[2]},
+                                                         matchwithnone=False)
+        return matches, unmatches
 
     # ii. After aligning by hand as described above, try to align by movement type (perceptual shape, joint specific, or handshape change)
     #   -- e.g., if sign 1 has both perceptual shape movement and joint-specific movement,
