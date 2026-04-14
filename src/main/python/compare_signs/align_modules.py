@@ -1236,56 +1236,82 @@ class AlignModel(QObject):
             return [], modsbysign
         elif len(modsbysign[1]) == len(modsbysign[2]) == 1:
             return [(modsbysign[1][0], modsbysign[2][0])], {1: [], 2: []}
+        # else both signs have modules of this type, and at least one sign has more than one; try to align
 
         matchedmods = []
         unmatched = {1: [], 2: []}
 
-        if len(modsbysign[1]) == len(modsbysign[2]) == 1:
-            matchedmods.append((modsbysign[1][0], modsbysign[2][0]))
-            return matchedmods, unmatched
+        modsbysubnodesbysign = {1: defaultdict(list), 2: defaultdict(list)}
 
-        # do I need this stage or is this already taken care of above? ... or maybe I do need it because recursion? TODO
-        elif len(modsbysign[1]) == 0 or len(modsbysign[2]) == 0:
-            return matchedmods, modsbysign
+        for snum in snums:
+            thissignmods = modsbysign[snum]
+            for mod in thissignmods:
+                treemodel = mod.movementtreemodel if modtype == ModuleTypes.MOVEMENT else mod.locationtreemodel
+                toplevel = False if modtype == ModuleTypes.MOVEMENT else (nodename == "")
+                checkedsubnodes = get_tree_subnodes(modtype, treemodel, nodename, toplevel=toplevel)
+                checkedsubnodes_tuple = tuple(sorted(checkedsubnodes))
+                modsbysubnodesbysign[snum][checkedsubnodes_tuple].append(mod)
 
-        else:  # both signs have modules of this type, and at least one sign has more than one
-            modsbysubnodesbysign = {1: defaultdict(list), 2: defaultdict(list)}
+        # now run through all the subnode groupings and see if we can match any
+        s1subnodegroups = set(modsbysubnodesbysign[1].keys())
+        s2subnodegroups = set(modsbysubnodesbysign[2].keys())
+        subnodegroups_inbothsigns = s1subnodegroups.intersection(s2subnodegroups)
+        for sharedsubnodegroup in subnodegroups_inbothsigns:
+            sign1locmods_thissubnodegroup = modsbysubnodesbysign[1][sharedsubnodegroup]
+            sign2locmods_thissubnodegroup = modsbysubnodesbysign[2][sharedsubnodegroup]
+            if len(sharedsubnodegroup) == 1:
+                matches, unmatches = self.alignbymovorloc_helper({1: sign1locmods_thissubnodegroup,
+                                                                  2: sign2locmods_thissubnodegroup},
+                                                                 modtype=modtype,
+                                                                 nodename=sharedsubnodegroup[0])
+            elif modtype == ModuleTypes.LOCATION:
+                sign1_lmods_body = [lmod for lmod in sign1locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.body]
+                sign1_lmods_bodyanchored = [lmod for lmod in sign1locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.bodyanchored]
+                sign2_lmods_body = [lmod for lmod in sign2locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.body]
+                sign2_lmods_bodyanchored = [lmod for lmod in sign2locmods_thissubnodegroup if lmod.locationtreemodel.locationtype.bodyanchored]
+                sign1_bodybasedonly = len(sign1_lmods_body) + len(sign1_lmods_bodyanchored) == len(sign1locmods_thissubnodegroup)
+                sign2_bodybasedonly = len(sign2_lmods_body) + len(sign2_lmods_bodyanchored) == len(sign2locmods_thissubnodegroup)
+                sign1_bothbodytypes = sign1_lmods_body and sign1_lmods_bodyanchored
+                sign2_bothbodytypes = sign2_lmods_body and sign2_lmods_bodyanchored
 
-            for snum in snums:
-                thissignmods = modsbysign[snum]
-                for mod in thissignmods:
-                    treemodel = mod.movementtreemodel if modtype == ModuleTypes.MOVEMENT else mod.locationtreemodel
-                    toplevel = False if modtype == ModuleTypes.MOVEMENT else (nodename == "")
-                    checkedsubnodes = get_tree_subnodes(modtype, treemodel, nodename, toplevel=toplevel)
-                    checkedsubnodes_tuple = tuple(sorted(checkedsubnodes))
-                    modsbysubnodesbysign[snum][checkedsubnodes_tuple].append(mod)
-
-            # now run through all the subnode groupings and see if we can match any
-            s1subnodegroups = set(modsbysubnodesbysign[1].keys())
-            s2subnodegroups = set(modsbysubnodesbysign[2].keys())
-            subnodegroups_inbothsigns = s1subnodegroups.intersection(s2subnodegroups)
-            for sharedsubnodegroup in subnodegroups_inbothsigns:
-                if len(sharedsubnodegroup) == 1:
-                    matches, unmatches = self.alignbymovorloc_helper({1: modsbysubnodesbysign[1][sharedsubnodegroup], 2: modsbysubnodesbysign[2][sharedsubnodegroup]}, modtype=modtype, nodename=sharedsubnodegroup[0])
+                if sign1_bodybasedonly and sign2_bodybasedonly and (sign1_bothbodytypes or sign2_bothbodytypes):
+                    # all body-based locations but some are body and others are body-anchored-- match within each category
+                    matches_body, unmatches_body = self.alignbycodingorder({1: sign1_lmods_body,
+                                                                            2: sign2_lmods_body},
+                                                                           matchwithnone=False)
+                    matches_bodyanchored, unmatches_bodyanchored = self.alignbycodingorder({1: sign1_lmods_bodyanchored,
+                                                                                            2: sign2_lmods_bodyanchored},
+                                                                                           matchwithnone=False)
+                    matches_leftovers, unmatches_leftovers = self.alignbycodingorder(concatenate_dictlists(unmatches_body,
+                                                                                                           unmatches_bodyanchored),
+                                                                                     matchwithnone=False)
+                    matches = matches_body + matches_bodyanchored + matches_leftovers
+                    unmatches = unmatches_leftovers
                 else:
-                    matches, unmatches = self.alignbycodingorder({1: modsbysubnodesbysign[1][sharedsubnodegroup], 2: modsbysubnodesbysign[2][sharedsubnodegroup]}, matchwithnone=False)
-                matchedmods.extend(matches)
-                unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
-            for s1onlysubnodegroup in s1subnodegroups.difference(subnodegroups_inbothsigns):
-                unmatched[1].extend(modsbysubnodesbysign[1][s1onlysubnodegroup])
-            for s2onlysubnodegroup in s2subnodegroups.difference(subnodegroups_inbothsigns):
-                unmatched[2].extend(modsbysubnodesbysign[2][s2onlysubnodegroup])
-
-                # TODO something weird is happening in here such that (eg) when i try to align S1 (one eyebrow ipsi module
-                #  & one eyebrow contra module) with S2 (one temple ipsi module)... we somehow get three matches of temple
-                #  ipsi with eyebrow contra, and no metnion whatsoever of eyebrow ipsi
-
-            # matches, unmatches = alignbycodingorder(unmatches, matchwithnone=False)
-            matches, unmatched = self.alignbycodingorder(unmatched, matchwithnone=False)
+                    matches, unmatches = self.alignbycodingorder({1: sign1locmods_thissubnodegroup,
+                                                                  2: sign2locmods_thissubnodegroup},
+                                                                 matchwithnone=False)
+            else:
+                matches, unmatches = self.alignbycodingorder({1: sign1locmods_thissubnodegroup,
+                                                              2: sign2locmods_thissubnodegroup},
+                                                             matchwithnone=False)
             matchedmods.extend(matches)
-            # unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
+            unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
+        for s1onlysubnodegroup in s1subnodegroups.difference(subnodegroups_inbothsigns):
+            unmatched[1].extend(modsbysubnodesbysign[1][s1onlysubnodegroup])
+        for s2onlysubnodegroup in s2subnodegroups.difference(subnodegroups_inbothsigns):
+            unmatched[2].extend(modsbysubnodesbysign[2][s2onlysubnodegroup])
 
-            return matchedmods, unmatched
+            # TODO something weird is happening in here such that (eg) when i try to align S1 (one eyebrow ipsi module
+            #  & one eyebrow contra module) with S2 (one temple ipsi module)... we somehow get three matches of temple
+            #  ipsi with eyebrow contra, and no metnion whatsoever of eyebrow ipsi
+
+        # matches, unmatches = alignbycodingorder(unmatches, matchwithnone=False)
+        matches, unmatched = self.alignbycodingorder(unmatched, matchwithnone=False)
+        matchedmods.extend(matches)
+        # unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
+
+        return matchedmods, unmatched
 
     # ii. After aligning by hand as described above, try to align by movement type (perceptual shape, joint specific, or handshape change)
     #   -- e.g., if sign 1 has both perceptual shape movement and joint-specific movement,
