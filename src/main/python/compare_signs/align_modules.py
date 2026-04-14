@@ -1302,14 +1302,8 @@ class AlignModel(QObject):
         for s2onlysubnodegroup in s2subnodegroups.difference(subnodegroups_inbothsigns):
             unmatched[2].extend(modsbysubnodesbysign[2][s2onlysubnodegroup])
 
-            # TODO something weird is happening in here such that (eg) when i try to align S1 (one eyebrow ipsi module
-            #  & one eyebrow contra module) with S2 (one temple ipsi module)... we somehow get three matches of temple
-            #  ipsi with eyebrow contra, and no metnion whatsoever of eyebrow ipsi
-
-        # matches, unmatches = alignbycodingorder(unmatches, matchwithnone=False)
         matches, unmatched = self.alignbycodingorder(unmatched, matchwithnone=False)
         matchedmods.extend(matches)
-        # unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
 
         return matchedmods, unmatched
 
@@ -1407,15 +1401,18 @@ class AlignModel(QObject):
             # we shouldn't reach here; by default just return no matches
             return [], locmodsbysign
 
-    # TODO description
-    # TODO need to implement the "memory" -
-    #   see example starting with "The 'memory' for the original body-based type would be relevant in a (simplified) case like the following" at
-    #   https://github.com/PhonologicalCorpusTools/SLPAA/issues/392#issuecomment-3969194671
-    def alignbyloc_body(self, bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign):  # modsbylocationtypebysign):
+    # aligns location modules such that body-anchored locations are grouped with body locations
+    # parameters: each is a dict of {signnum --> [list of location modules from this signnum that need to be aligned]}
+    #   where:
+    #   - bodymodsbysign contains only body locations
+    #   - bodyanchoredmodsbysign contains only signing-space / body-anchored locations
+    #   - purelyspatialmodsbysign contains only signing-space / purely-spatial locations
+    #   - signingspacemodsbysign contains only locations that are specified as signing-space but no further
+    #   - othermodsbysign contains only locations that are not specified at all for location type
+    def alignbyloc_body(self, bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign):
         allmatchedmods = []
 
         # align body-based mods based on their body part(s), and within those (if applicable) based on body vs body-anchored
-        # TODO make sure to update alignbymovorloc_helper to dig down into body vs body-anchored!
         matchedbybodybasedloc, unmatchedbybodybasedloc = self.alignbymovorloc_helper(concatenate_dictlists(bodymodsbysign,
                                                                                                            bodyanchoredmodsbysign),
                                                                                      modtype=ModuleTypes.LOCATION)
@@ -1435,7 +1432,14 @@ class AlignModel(QObject):
 
         return allmatchedmods, unmatchedbyloctype
 
-    # TODO description
+    # aligns location modules such that body-anchored locations are grouped with signing-space locations
+    # parameters: each is a dict of {signnum --> [list of location modules from this signnum that need to be aligned]}
+    #   where:
+    #   - bodymodsbysign contains only body locations
+    #   - bodyanchoredmodsbysign contains only signing-space / body-anchored locations
+    #   - purelyspatialmodsbysign contains only signing-space / purely-spatial locations
+    #   - signingspacemodsbysign contains only locations that are specified as signing-space but no further
+    #   - othermodsbysign contains only locations that are not specified at all for location type
     def alignbyloc_signingspace(self, bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign):  # modsbylocationtypebysign):
         allmatchedmods = []
 
@@ -1467,7 +1471,14 @@ class AlignModel(QObject):
 
         return allmatchedmods, unmatchedbyloctype
 
-    # TODO description
+    # aligns location modules such that body-anchored locations are grouped independently (ie, no more closely with any particular location type than another)
+    # parameters: each is a dict of {signnum --> [list of location modules from this signnum that need to be aligned]}
+    #   where:
+    #   - bodymodsbysign contains only body locations
+    #   - bodyanchoredmodsbysign contains only signing-space / body-anchored locations
+    #   - purelyspatialmodsbysign contains only signing-space / purely-spatial locations
+    #   - signingspacemodsbysign contains only locations that are specified as signing-space but no further
+    #   - othermodsbysign contains only locations that are not specified at all for location type
     def alignbyloc_independent(self, bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign):  # modsbylocationtypebysign):
         allmatchedmods = []
 
