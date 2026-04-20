@@ -1,14 +1,15 @@
 from collections import defaultdict, Counter
 import itertools
 
-from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtCore import Qt, QObject
 
 from lexicon.module_classes import HandConfigurationHand
-from compare_signs.compare_helpers import parse_predefined_names, get_possible_bases
+from compare_signs.compare_helpers import parse_predefined_names
 from constant import ModuleTypes, HAND, ARM, LEG, userdefinedroles as udr, PREDEFINED_MAP, alignmentcomplexitywarning
 PREDEFINED_MAP = {handshape.canonical: handshape for handshape in PREDEFINED_MAP.values()}
 
 snums = [1, 2]
+
 
 class AlignModel(QObject):
 
@@ -18,8 +19,10 @@ class AlignModel(QObject):
         self.sign2 = sign2
         self.movmods_aligned = []
         self.locmods_aligned = []
+        self.loc_strategy = 'body'  # group body-anchored locs with... 'body', 'signing space', or 'independent'
 
-    def alignmodules(self, moduletype):
+    def alignmodules(self, moduletype, loc_strategy='body'):  # default is body-based
+        self.loc_strategy = loc_strategy
         if moduletype == ModuleTypes.SIGNTYPE:
             return [(self.sign1.signtype, self.sign2.signtype)], ""
         else:
@@ -39,7 +42,7 @@ class AlignModel(QObject):
                 # no need to try and align modules; this module type isn't used in sign1 or sign2
                 return [], ""
             # else signswiththismodule == [1, 2]
-            # try to align them; continue below
+                # try to align them; continue below
 
             # now we are at the point where we know that the module type in questions exists in both sign1 and sign2;
             #   we have to decide how to align them
@@ -55,7 +58,7 @@ class AlignModel(QObject):
                 return matchedmods, warningstring
             elif moduletype in [ModuleTypes.RELATION, ModuleTypes.NONMANUAL]:
                 # neither of these module types has articulators specified, so we can skip alignbyarticulator()
-                # TODO implement (waiting for further intructions from Kathleen on nonmanuals)
+                # TODO implement nonmanual (waiting for further intructions from Kathleen)
                 matched1, unmatched, warningstring = self.alignmodules_helper(modulesbysign, moduletype)
                 matched2, unmatched = self.alignbycodingorder(unmatched, matchwithnone=True)
                 return matched1 + matched2, warningstring
@@ -160,7 +163,8 @@ class AlignModel(QObject):
             for arttype1, arttype2 in [artpair, artpair[::-1]]:
                 for artnum in [1, 2, 3]:
                     if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][artnum]:
-                        # the articulators are a near-perfect match (eg, H1-A1 or L1&2-H1&2) so try and align whatever modules are in those lists
+                        # the articulators are a near-perfect match (eg, H1-A1 or L1&2-H1&2)
+                        #   so try and align whatever modules are in those lists
                         alignedmodules, unmatched, warningstring = self.alignmodules_helper({
                             1: sign1modsbyarticulator[arttype1][artnum],
                             2: sign2modsbyarticulator[arttype2][artnum]
@@ -174,10 +178,10 @@ class AlignModel(QObject):
                         sign1modsbyarticulator[arttype1][artnum] = unmatched[1]
                         sign2modsbyarticulator[arttype2][artnum] = unmatched[2]
 
-
                 for artnum in [1, 2]:
                     if sign1modsbyarticulator[arttype1][artnum] and sign2modsbyarticulator[arttype2][3]:
-                        # the articulators are a near-subset match (eg, L1-H1&2 or H2-A1&2) so try and align whatever modules are in those lists
+                        # the articulators are a near-subset match (eg, L1-H1&2 or H2-A1&2)
+                        #   so try and align whatever modules are in those lists
                         alignedmodules, unmatched, warningstring = self.alignmodules_helper({
                             1: sign1modsbyarticulator[arttype1][artnum],
                             2: sign2modsbyarticulator[arttype2][3]
@@ -191,7 +195,8 @@ class AlignModel(QObject):
                         sign1modsbyarticulator[arttype1][artnum] = unmatched[1]
                         sign2modsbyarticulator[arttype2][3] = unmatched[2]
                     if sign1modsbyarticulator[arttype1][3] and sign2modsbyarticulator[arttype2][artnum]:
-                        # the articulators are a subset match (eg, H1&2-L2 or L1&2-A1) so try and align whatever modules are in those lists
+                        # the articulators are a subset match (eg, H1&2-L2 or L1&2-A1)
+                        #   so try and align whatever modules are in those lists
                         alignedmodules, unmatched, warningstring = self.alignmodules_helper({
                             1: sign1modsbyarticulator[arttype1][3],
                             2: sign2modsbyarticulator[arttype2][artnum]
@@ -302,8 +307,8 @@ class AlignModel(QObject):
             return modsalignedbynonman + modsalignedbycodingorder, unmatched, ""
 
     # TODO this currently uses *solely* uniqueid (which is a timestamp) to determine coding order within the list of
-    # modules for each sign. If for some reason we need it to refer to the module numbers themselves (eg Loc1, Loc2) more
-    # explicitly, then this function will also need moduletype & sign1 & sign2 (or sign1 & 2 modulenumberdicts) as input too
+    #   modules for each sign. If for some reason we need it to refer to the module numbers themselves (eg Loc1, Loc2) more
+    #   explicitly, then this function will also need moduletype & sign1 & sign2 (or sign1 & 2 modulenumberdicts) as input too
     # parameters:
     #   - modulesbysign is a dict of {signnum --> [list of modules from this signnum that need to be aligned]}
     #   - matchwithnone is a boolean that specifies whether any leftover modules (in case of one sign having more than the other)
@@ -460,7 +465,6 @@ class AlignModel(QObject):
         # categorize based on whether the associated module is a Location module(s) or a Movement module(s)
         relmodswithlocmods = {1: [], 2: []}
         relmodswithmovmods = {1: [], 2: []}
-        # relmodswithnospecifiedmods = {1: [], 2: []}
         for snum in snums:
             for relmod in relmodsbysign[snum]:
                 if relmod.relationy.linkedmoduletype == ModuleTypes.LOCATION:
@@ -876,7 +880,6 @@ class AlignModel(QObject):
         # if any leftovers, align by coding order across contact types
         matchedbycodingorder, unmatchedbycodingorder = self.alignbycodingorder(unmatchedmods)
         matchedmods.extend(matchedbycodingorder)
-        # unmatchedmods = concatenate_dictlists(unmatchedmods, unmatchedbycodingorder)
 
         return matchedmods, unmatchedbycodingorder
 
@@ -1136,56 +1139,35 @@ class AlignModel(QObject):
                 possiblescorings.append(AlignmentScoring(scores_thisalignment))
 
         # now compare alignment scorings and prune lower-scoring alignments
-
-        # TODO KV these following three sections are super repetitive-- make a generic function to make this more modular!
+        def comparealignmentscorings_and_prune(elementformatching):
+            elementmatches = [(alignscoring.basematches if elementformatching == 'base' else
+                               (alignscoring.variantmatches if elementformatching == 'variant' else
+                                alignscoring.forearmmatches  # if elementformatching == 'forearm'
+                                )) for alignscoring in possiblescorings]
+            max_element_matches = max(elementmatches)
+            if max_element_matches != min(elementmatches):
+                alignment_indices_to_prune = []
+                for i, alignscoring in enumerate(possiblescorings):
+                    alignscoring_elementmatches = (alignscoring.basematches if elementformatching == 'base' else
+                                                   (alignscoring.variantmatches if elementformatching == 'variant' else
+                                                    alignscoring.forearmmatches  # if elementformatching == 'forearm'
+                                                    ))
+                    # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
+                    if alignscoring_elementmatches < max_element_matches:
+                        alignment_indices_to_prune.append(i)
+                for idx_to_prune in reversed(alignment_indices_to_prune):
+                    possiblescorings.pop(idx_to_prune)
+                    if which_has_multiple_orderings == 1:
+                        allorderings_s1mods.pop(idx_to_prune)
+                    elif which_has_multiple_orderings == 2:
+                        allorderings_s2mods.pop(idx_to_prune)
 
         # ... prioritizing first by base
-        basematches = [alignscoring.basematches for alignscoring in possiblescorings]
-        max_base_matches = max(basematches)
-        if max_base_matches != min(basematches):
-            alignment_indices_to_prune = []
-            for idx, alignscoring in enumerate(possiblescorings):
-                # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
-                if alignscoring.basematches < max_base_matches:
-                    alignment_indices_to_prune.append(idx)
-            for idx_to_prune in reversed(alignment_indices_to_prune):
-                possiblescorings.pop(idx_to_prune)
-                if which_has_multiple_orderings == 1:
-                    allorderings_s1mods.pop(idx_to_prune)
-                elif which_has_multiple_orderings == 2:
-                    allorderings_s2mods.pop(idx_to_prune)
-
+        comparealignmentscorings_and_prune('base')
         # ... then by variant
-        variantmatches = [alignscoring.variantmatches for alignscoring in possiblescorings]
-        max_variant_matches = max(variantmatches)
-        if max_variant_matches != min(variantmatches):
-            alignment_indices_to_prune = []
-            for idx, alignscoring in enumerate(possiblescorings):
-                # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
-                if alignscoring.variantmatches < max_variant_matches:
-                    alignment_indices_to_prune.append(idx)
-            for idx_to_prune in reversed(alignment_indices_to_prune):
-                possiblescorings.pop(idx_to_prune)
-                if which_has_multiple_orderings == 1:
-                    allorderings_s1mods.pop(idx_to_prune)
-                elif which_has_multiple_orderings == 2:
-                    allorderings_s2mods.pop(idx_to_prune)
-
+        comparealignmentscorings_and_prune('variant')
         # ... then by forearm
-        forearmmatches = [alignscoring.forearmmatches for alignscoring in possiblescorings]
-        max_forearm_matches = max(forearmmatches)
-        if max_forearm_matches != min(forearmmatches):
-            alignment_indices_to_prune = []
-            for idx, alignscoring in enumerate(possiblescorings):
-                # these correspond to the items in allorderings_s{1 or 2}mods, whichever is the one with >1 entry
-                if alignscoring.forearmmatches < max_forearm_matches:
-                    alignment_indices_to_prune.append(idx)
-            for idx_to_prune in reversed(alignment_indices_to_prune):
-                possiblescorings.pop(idx_to_prune)
-                if which_has_multiple_orderings == 1:
-                    allorderings_s1mods.pop(idx_to_prune)
-                elif which_has_multiple_orderings == 2:
-                    allorderings_s2mods.pop(idx_to_prune)
+        comparealignmentscorings_and_prune('forearm')
 
         # now all we have left is possible alignments with the maximum possible base, variant, and forearm matches
         #   (prioritized in that order)
@@ -1254,56 +1236,84 @@ class AlignModel(QObject):
             return [], modsbysign
         elif len(modsbysign[1]) == len(modsbysign[2]) == 1:
             return [(modsbysign[1][0], modsbysign[2][0])], {1: [], 2: []}
+        # else both signs have modules of this type, and at least one sign has more than one; try to align
 
         matchedmods = []
         unmatched = {1: [], 2: []}
 
-        if len(modsbysign[1]) == len(modsbysign[2]) == 1:
-            matchedmods.append((modsbysign[1][0], modsbysign[2][0]))
-            return matchedmods, unmatched
+        modsbysubnodesbysign = {1: defaultdict(list), 2: defaultdict(list)}
 
-        # do I need this stage or is this already taken care of above? ... or maybe I do need it because recursion? TODO
-        elif len(modsbysign[1]) == 0 or len(modsbysign[2]) == 0:
-            return matchedmods, modsbysign
+        for snum in snums:
+            thissignmods = modsbysign[snum]
+            for mod in thissignmods:
+                treemodel = mod.movementtreemodel if modtype == ModuleTypes.MOVEMENT else mod.locationtreemodel
+                toplevel = False if modtype == ModuleTypes.MOVEMENT else (nodename == "")
+                checkedsubnodes = get_tree_subnodes(modtype, treemodel, nodename, toplevel=toplevel)
+                checkedsubnodes_tuple = tuple(sorted(checkedsubnodes))
+                modsbysubnodesbysign[snum][checkedsubnodes_tuple].append(mod)
 
-        else:  # both signs have modules of this type, and at least one sign has more than one
-            modsbysubnodesbysign = {1: defaultdict(list), 2: defaultdict(list)}
-
-            for snum in snums:
-                thissignmods = modsbysign[snum]
-                for mod in thissignmods:
-                    treemodel = mod.movementtreemodel if modtype == ModuleTypes.MOVEMENT else mod.locationtreemodel
-                    toplevel = False if modtype == ModuleTypes.MOVEMENT else (nodename == "")
-                    checkedsubnodes = get_tree_subnodes(modtype, treemodel, nodename, toplevel=toplevel)
-                    checkedsubnodes_tuple = tuple(sorted(checkedsubnodes))
-                    modsbysubnodesbysign[snum][checkedsubnodes_tuple].append(mod)
-
-            # now run through all the subnode groupings and see if we can match any
-            s1subnodegroups = set(modsbysubnodesbysign[1].keys())
-            s2subnodegroups = set(modsbysubnodesbysign[2].keys())
-            subnodegroups_inbothsigns = s1subnodegroups.intersection(s2subnodegroups)
-            for sharedsubnodegroup in subnodegroups_inbothsigns:
-                if len(sharedsubnodegroup) == 1:
-                    matches, unmatches = self.alignbymovorloc_helper({1: modsbysubnodesbysign[1][sharedsubnodegroup], 2: modsbysubnodesbysign[2][sharedsubnodegroup]}, modtype=modtype, nodename=sharedsubnodegroup[0])
-                else:
-                    matches, unmatches = self.alignbycodingorder({1: modsbysubnodesbysign[1][sharedsubnodegroup], 2: modsbysubnodesbysign[2][sharedsubnodegroup]}, matchwithnone=False)
-                matchedmods.extend(matches)
-                unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
-            for s1onlysubnodegroup in s1subnodegroups.difference(subnodegroups_inbothsigns):
-                unmatched[1].extend(modsbysubnodesbysign[1][s1onlysubnodegroup])
-            for s2onlysubnodegroup in s2subnodegroups.difference(subnodegroups_inbothsigns):
-                unmatched[2].extend(modsbysubnodesbysign[2][s2onlysubnodegroup])
-
-                # TODO something weird is happening in here such that (eg) when i try to align S1 (one eyebrow ipsi module
-                #  & one eyebrow contra module) with S2 (one temple ipsi module)... we somehow get three matches of temple
-                #  ipsi with eyebrow contra, and no metnion whatsoever of eyebrow ipsi
-
-            # matches, unmatches = alignbycodingorder(unmatches, matchwithnone=False)
-            matches, unmatched = self.alignbycodingorder(unmatched, matchwithnone=False)
+        # now run through all the subnode groupings and see if we can match any
+        s1subnodegroups = set(modsbysubnodesbysign[1].keys())
+        s2subnodegroups = set(modsbysubnodesbysign[2].keys())
+        subnodegroups_inbothsigns = s1subnodegroups.intersection(s2subnodegroups)
+        for sharedsubnodegroup in subnodegroups_inbothsigns:
+            sign1locmods_thissubnodegroup = modsbysubnodesbysign[1][sharedsubnodegroup]
+            sign2locmods_thissubnodegroup = modsbysubnodesbysign[2][sharedsubnodegroup]
+            if len(sharedsubnodegroup) == 1:
+                matches, unmatches = self.alignbymovorloc_helper({1: sign1locmods_thissubnodegroup,
+                                                                  2: sign2locmods_thissubnodegroup},
+                                                                 modtype=modtype,
+                                                                 nodename=sharedsubnodegroup[0])
+            elif modtype == ModuleTypes.LOCATION:
+                matches, unmatches = self.alignbyloc_body_separate({1: sign1locmods_thissubnodegroup, 2: sign2locmods_thissubnodegroup})
             matchedmods.extend(matches)
-            # unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
+            unmatched = concatenate_dictlists(unmatched, unmatches, allowduplicates=False)
+        for s1onlysubnodegroup in s1subnodegroups.difference(subnodegroups_inbothsigns):
+            unmatched[1].extend(modsbysubnodesbysign[1][s1onlysubnodegroup])
+        for s2onlysubnodegroup in s2subnodegroups.difference(subnodegroups_inbothsigns):
+            unmatched[2].extend(modsbysubnodesbysign[2][s2onlysubnodegroup])
 
-            return matchedmods, unmatched
+        if modtype == ModuleTypes.LOCATION:
+            # align by body vs body-anchored before resorting to coding order -- if location, and all body-based
+            matches, unmatched = self.alignbyloc_body_separate(unmatched)
+            matchedmods.extend(matches)
+        matches, unmatched = self.alignbycodingorder(unmatched, matchwithnone=False)
+        matchedmods.extend(matches)
+
+        return matchedmods, unmatched
+
+    # helper function to see if the location mods to be aligned are all body-based, and if so, align based on separate
+    #   body vs body-anchored categories
+    # parameters:
+    #   - bodybasedmodsbysign is a dict of {signnum --> [list of body-based location modules from this signnum that need to be aligned]}
+    def alignbyloc_body_separate(self, bodybasedmodsbysign):
+        sign1_lmods_body = [lmod for lmod in bodybasedmodsbysign[1] if lmod.locationtreemodel.locationtype.body]
+        sign1_lmods_bodyanchored = [lmod for lmod in bodybasedmodsbysign[1] if lmod.locationtreemodel.locationtype.bodyanchored]
+        sign2_lmods_body = [lmod for lmod in bodybasedmodsbysign[2] if lmod.locationtreemodel.locationtype.body]
+        sign2_lmods_bodyanchored = [lmod for lmod in bodybasedmodsbysign[2] if lmod.locationtreemodel.locationtype.bodyanchored]
+        sign1_bodybasedonly = len(sign1_lmods_body) + len(sign1_lmods_bodyanchored) == len(bodybasedmodsbysign[1])
+        sign2_bodybasedonly = len(sign2_lmods_body) + len(sign2_lmods_bodyanchored) == len(bodybasedmodsbysign[2])
+        sign1_bothbodytypes = sign1_lmods_body and sign1_lmods_bodyanchored
+        sign2_bothbodytypes = sign2_lmods_body and sign2_lmods_bodyanchored
+
+        if sign1_bodybasedonly and sign2_bodybasedonly and (sign1_bothbodytypes or sign2_bothbodytypes):
+            # all body-based locations but some are body and others are body-anchored-- match within each category
+            matches_body, unmatches_body = self.alignbycodingorder({1: sign1_lmods_body,
+                                                                    2: sign2_lmods_body},
+                                                                   matchwithnone=False)
+            matches_bodyanchored, unmatches_bodyanchored = self.alignbycodingorder({1: sign1_lmods_bodyanchored,
+                                                                                    2: sign2_lmods_bodyanchored},
+                                                                                   matchwithnone=False)
+            matches_leftovers, unmatches_leftovers = self.alignbycodingorder(concatenate_dictlists(unmatches_body,
+                                                                                                   unmatches_bodyanchored),
+                                                                             matchwithnone=False)
+            matches = matches_body + matches_bodyanchored + matches_leftovers
+            unmatches = unmatches_leftovers
+        else:
+            matches, unmatches = self.alignbycodingorder({1: bodybasedmodsbysign[1],
+                                                          2: bodybasedmodsbysign[2]},
+                                                         matchwithnone=False)
+        return matches, unmatches
 
     # ii. After aligning by hand as described above, try to align by movement type (perceptual shape, joint specific, or handshape change)
     #   -- e.g., if sign 1 has both perceptual shape movement and joint-specific movement,
@@ -1368,61 +1378,153 @@ class AlignModel(QObject):
         elif len(locmodsbysign[1]) == len(locmodsbysign[2]) == 1:
             return [(locmodsbysign[1][0], locmodsbysign[2][0])], {1: [], 2: []}
 
-        modsbylocationtypebysign = {}
+        bodymodsbysign = {1: [], 2: []}
+        bodyanchoredmodsbysign = {1: [], 2: []}
+        purelyspatialmodsbysign = {1: [], 2: []}
+        signingspacemodsbysign = {1: [], 2: []}
+        othermodsbysign = {1: [], 2: []}
 
         for snum in snums:
             for locmod in locmodsbysign[snum]:
                 loctype = locmod.locationtreemodel.locationtype
                 loctype_repr = repr(loctype)
-                if loctype_repr not in modsbylocationtypebysign.keys():
-                    modsbylocationtypebysign[loctype_repr] = {1: [], 2: []}
-                modsbylocationtypebysign[loctype_repr][snum].append(locmod)
+                if "body anchored" in loctype_repr:
+                    bodyanchoredmodsbysign[snum].append(locmod)
+                elif "purely spatial" in loctype_repr:
+                    purelyspatialmodsbysign[snum].append(locmod)
+                elif "signing space" in loctype_repr:
+                    signingspacemodsbysign[snum].append(locmod)
+                elif "body" in loctype_repr:
+                    bodymodsbysign[snum].append(locmod)
+                else:  # "nil"
+                    othermodsbysign[snum].append(locmod)
 
-        rematchbodymods = {1: [], 2: []}
-        rematchallmods = {1: [], 2: []}
-
-        toreturn = []
-        for loctype, loctypemodsbysign in modsbylocationtypebysign.items():
-            if loctypemodsbysign[1] and loctypemodsbysign[2]:
-                # match up the modules of this location type
-                matchedpairs, unmatchedmodsbysign = self.alignbymovorloc_helper(loctypemodsbysign, modtype=ModuleTypes.LOCATION)
-                toreturn.extend(matchedpairs)
-
-                if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
-                    # there should not be unmatched location module(s) of this location type in both signs at this point
-                    print("error: why are there unmatched " + loctype + " module(s) in both signs?", unmatchedmodsbysign)
-                else:
-                    for snum in snums:
-                        if "body" in loctype:
-                            rematchbodymods[snum].extend(unmatchedmodsbysign[snum])
-                        else:
-                            rematchallmods[snum].extend(unmatchedmodsbysign[snum])
-            else:
-                # there was only one sign with any modules of this location type; add them back to the rematch list
-                for snum in snums:
-                    if "body" in loctype:
-                        rematchbodymods[snum].extend(loctypemodsbysign[snum])
-                    else:
-                        rematchallmods[snum].extend(loctypemodsbysign[snum])
-
-        if rematchbodymods[1] and rematchbodymods[2]:
-            # there is at least one pair of potentially-matchable body-based location modules,
-            #   where some are body type and some are body-anchored type
-            matchedpairs, unmatchedmodsbysign = self.alignbymovorloc_helper(rematchbodymods, modtype=ModuleTypes.LOCATION)
-            toreturn.extend(matchedpairs)
-
-            if unmatchedmodsbysign[1] and unmatchedmodsbysign[2]:
-                # there should not be unmatched body-based module(s) in both signs at this point
-                print("error: why are there unmatched body-based module(s) in both signs?", unmatchedmodsbysign)
-            else:
-                for snum in snums:
-                    rematchallmods[snum].extend(unmatchedmodsbysign[snum])
+        if self.loc_strategy == 'body':
+            return self.alignbyloc_body(bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign)  # modsbylocationtypebysign)
+        elif self.loc_strategy == 'signing space':
+            return self.alignbyloc_signingspace(bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign)  # modsbylocationtypebysign)
+        elif self.loc_strategy == 'independent':
+            return self.alignbyloc_independent(bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign)  # modsbylocationtypebysign)
         else:
-            # there was only one sign with any body-based modules to rematch; add them back to the rematch-all list
-            for snum in snums:
-                rematchallmods[snum].extend(rematchbodymods[snum])
+            # we shouldn't reach here; by default just return no matches
+            return [], locmodsbysign
 
-        return toreturn, rematchallmods
+    # aligns location modules such that body-anchored locations are grouped with body locations
+    # parameters: each is a dict of {signnum --> [list of location modules from this signnum that need to be aligned]}
+    #   where:
+    #   - bodymodsbysign contains only body locations
+    #   - bodyanchoredmodsbysign contains only signing-space / body-anchored locations
+    #   - purelyspatialmodsbysign contains only signing-space / purely-spatial locations
+    #   - signingspacemodsbysign contains only locations that are specified as signing-space but no further
+    #   - othermodsbysign contains only locations that are not specified at all for location type
+    def alignbyloc_body(self, bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign):
+        allmatchedmods = []
+
+        # align body-based mods based on their body part(s), and within those (if applicable) based on body vs body-anchored
+        matchedbybodybasedloc, unmatchedbybodybasedloc = self.alignbymovorloc_helper(concatenate_dictlists(bodymodsbysign,
+                                                                                                           bodyanchoredmodsbysign),
+                                                                                     modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbybodybasedloc)
+
+        # align purely spatial mods based on their location trees
+        matchedbypurelyspatialloc, unmatchedbypurelyspatialloc = self.alignbymovorloc_helper(purelyspatialmodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbypurelyspatialloc)
+
+        # align leftover purely spatial mods together with unspecified signing space mods
+        matchedbysigningspaceloc, unmatchedbysigningspaceloc = self.alignbymovorloc_helper(concatenate_dictlists(signingspacemodsbysign, unmatchedbypurelyspatialloc), modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbysigningspaceloc)
+
+        # align leftover specified mods together with unspecified mods
+        matchedbyloctype, unmatchedbyloctype = self.alignbymovorloc_helper(concatenate_dictlists(othermodsbysign, unmatchedbybodybasedloc, unmatchedbysigningspaceloc), modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbyloctype)
+
+        return allmatchedmods, unmatchedbyloctype
+
+    # aligns location modules such that body-anchored locations are grouped with signing-space locations
+    # parameters: each is a dict of {signnum --> [list of location modules from this signnum that need to be aligned]}
+    #   where:
+    #   - bodymodsbysign contains only body locations
+    #   - bodyanchoredmodsbysign contains only signing-space / body-anchored locations
+    #   - purelyspatialmodsbysign contains only signing-space / purely-spatial locations
+    #   - signingspacemodsbysign contains only locations that are specified as signing-space but no further
+    #   - othermodsbysign contains only locations that are not specified at all for location type
+    def alignbyloc_signingspace(self, bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign):  # modsbylocationtypebysign):
+        allmatchedmods = []
+
+        # align body mods based on their body part(s)
+        matchedbybodyloc, unmatchedbybodyloc = self.alignbymovorloc_helper(bodymodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbybodyloc)
+
+        # align body-anchored mods based on their body part(s)
+        matchedbybodyanchoredloc, unmatchedbybodyanchoredloc = self.alignbymovorloc_helper(bodyanchoredmodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbybodyanchoredloc)
+
+        # align purely spatial mods based on their location trees
+        matchedbypurelyspatialloc, unmatchedbypurelyspatialloc = self.alignbymovorloc_helper(purelyspatialmodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbypurelyspatialloc)
+
+        # align leftover body-anchored & purely spatial mods together with unspecified signing space mods
+        matchedbysigningspaceloc, unmatchedbysigningspaceloc = self.alignbymovorloc_helper(concatenate_dictlists(signingspacemodsbysign,
+                                                                                                                 unmatchedbybodyanchoredloc,
+                                                                                                                 unmatchedbypurelyspatialloc),
+                                                                                           modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbysigningspaceloc)
+
+        # align leftover specified mods together with unspecified mods
+        matchedbyloctype, unmatchedbyloctype = self.alignbymovorloc_helper(concatenate_dictlists(othermodsbysign,
+                                                                                                 unmatchedbybodyloc,
+                                                                                                 unmatchedbysigningspaceloc),
+                                                                           modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbyloctype)
+
+        return allmatchedmods, unmatchedbyloctype
+
+    # aligns location modules such that body-anchored locations are grouped independently (ie, no more closely with any particular location type than another)
+    # parameters: each is a dict of {signnum --> [list of location modules from this signnum that need to be aligned]}
+    #   where:
+    #   - bodymodsbysign contains only body locations
+    #   - bodyanchoredmodsbysign contains only signing-space / body-anchored locations
+    #   - purelyspatialmodsbysign contains only signing-space / purely-spatial locations
+    #   - signingspacemodsbysign contains only locations that are specified as signing-space but no further
+    #   - othermodsbysign contains only locations that are not specified at all for location type
+    def alignbyloc_independent(self, bodymodsbysign, bodyanchoredmodsbysign, purelyspatialmodsbysign, signingspacemodsbysign, othermodsbysign):  # modsbylocationtypebysign):
+        allmatchedmods = []
+
+        # align body mods based on their body part(s)
+        matchedbybodyloc, unmatchedbybodyloc = self.alignbymovorloc_helper(bodymodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbybodyloc)
+
+        # align body-anchored mods based on their body part(s)
+        matchedbybodyanchoredloc, unmatchedbybodyanchoredloc = self.alignbymovorloc_helper(bodyanchoredmodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbybodyanchoredloc)
+
+        # align purely spatial mods based on their location trees
+        matchedbypurelyspatialloc, unmatchedbypurelyspatialloc = self.alignbymovorloc_helper(purelyspatialmodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbypurelyspatialloc)
+
+        # align unspecified signing space mods
+        matchedbysigningspaceloc, unmatchedbysigningspaceloc = self.alignbymovorloc_helper(signingspacemodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbysigningspaceloc)
+
+        # align overall unspecified mods
+        matchedbyotherloc, unmatchedbyotherloc = self.alignbymovorloc_helper(othermodsbysign, modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbyotherloc)
+
+        # align leftover body & body-anchored mods
+        matchedbybodybasedloc, unmatchedbybodybasedloc = self.alignbymovorloc_helper(concatenate_dictlists(unmatchedbybodyloc,
+                                                                                                           unmatchedbybodyanchoredloc),
+                                                                                     modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbybodybasedloc)
+
+        # align all leftover mods
+        matchedbyloctype, unmatchedbyloctype = self.alignbymovorloc_helper(concatenate_dictlists(unmatchedbybodybasedloc,
+                                                                                                 unmatchedbypurelyspatialloc,
+                                                                                                 unmatchedbysigningspaceloc,
+                                                                                                 unmatchedbyotherloc),
+                                                                           modtype=ModuleTypes.LOCATION)
+        allmatchedmods.extend(matchedbyloctype)
+
+        return allmatchedmods, unmatchedbyloctype
 
 
 # in-place
@@ -1502,13 +1604,15 @@ def get_all_combinations(range_stop, size):
     return prods_lists
 
 
-# assume that both dicts have the same set of keys, and that each key has a list as its value
-def concatenate_dictlists(d1, d2, allowduplicates=False):
-    if d1.keys() != d2.keys():
-        temp = "pause here"
-    newdict = {k: [] for k in d1.keys()}
-    for k in d1.keys():
-        for listitem in d1[k] + d2[k]:
-            if allowduplicates or listitem not in newdict[k]:
-                newdict[k].append(listitem)
+# args: an arbitrary number of dicts, and each key has a list as its value
+def concatenate_dictlists(*args, allowduplicates=False):
+    newdict = defaultdict(list)
+    keys = [item for arg in args for item in arg]
+    keys = sorted(list(set(keys)))
+
+    for d in args:
+        for k in keys:
+            for listitem in d[k]:
+                if allowduplicates or listitem not in newdict[k]:
+                    newdict[k].append(listitem)
     return newdict

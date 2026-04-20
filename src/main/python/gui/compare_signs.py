@@ -249,6 +249,9 @@ class CompareSignsDialog(QDialog):
             },
             'signtype': {
                 'articulator_merger': False
+            },
+            'location': {
+                'loc_strategy': 'body'
             }
         }
 
@@ -420,13 +423,15 @@ class CompareSignsDialog(QDialog):
         self.compare_options_widget = QWidget()
         options_major_hbox = QHBoxLayout(self.compare_options_widget)
 
-        # three groupboxes, side by side
-        self._gen_options_general()           # General (left)
-        self._gen_options_content_hc()        # Hand-configuration radio buttons (mid)
-        self._gen_options_content_signtype()  # sign type articulator merger options (right)
+        # four groupboxes, side by side
+        self._gen_options_general()           # General (far left)
+        self._gen_options_content_hc()        # Hand-configuration radio buttons (mid left)
+        self._gen_options_content_signtype()  # sign type articulator merger options (mid right)
+        self._gen_options_content_location()  # location options (far right)
         options_major_hbox.addWidget(self.general_groupbox)
         options_major_hbox.addWidget(self.handconfig_groupbox)
         options_major_hbox.addWidget(self.signtype_groupbox)
+        options_major_hbox.addWidget(self.location_groupbox)
 
         # hide by default
         self.compare_options_widget.setVisible(False)
@@ -550,6 +555,30 @@ class CompareSignsDialog(QDialog):
         hand_opts_layout.addWidget(self.sign_type_art_button)
         hand_opts_layout.addStretch()
 
+    def _gen_options_content_location(self):
+        self.location_groupbox = QGroupBox("Location")
+        loc_opts_layout = QVBoxLayout(self.location_groupbox)
+        loc_bodyanchored_label = QLabel("Group body-anchored locations with:")
+        loc_opts_layout.addWidget(loc_bodyanchored_label)
+
+        self.loc_body_rb = QRadioButton("Body locations")
+        self.loc_body_rb.setProperty('loc_strategy', 'body')
+        self.loc_body_rb.setChecked(True)
+        loc_opts_layout.addWidget(self.loc_body_rb)
+        self.loc_signingspace_rb = QRadioButton("Signing space locations")
+        self.loc_body_rb.setProperty('loc_strategy', 'signing space')
+        loc_opts_layout.addWidget(self.loc_signingspace_rb)
+        self.loc_independent_rb = QRadioButton("None (independent)")
+        self.loc_body_rb.setProperty('loc_strategy', 'independent')
+        loc_opts_layout.addWidget(self.loc_independent_rb)
+        loc_opts_layout.addStretch()
+
+        # group them so only one can be checked
+        self.loc_opts_bgroup = QButtonGroup(self)
+        for rb in (self.loc_body_rb, self.loc_signingspace_rb, self.loc_independent_rb):
+            self.loc_opts_bgroup.addButton(rb)
+        self.loc_opts_bgroup.buttonClicked.connect(self._on_location_option_changed)
+
     def sync_scrollbars(self, scrolled_value, other_tree):
         if not self.syncing_scrollbars:
             target_scrollbar = other_tree.verticalScrollBar()  # the scrollbar to programmatically scroll
@@ -582,6 +611,12 @@ class CompareSignsDialog(QDialog):
         # state: bool. whether checked or not
         self.comparison_options['signtype']['articulator_merger'] = state
         self.update_trees(self.comparison_options)
+
+    def _on_location_option_changed(self, btn):
+        # btn: QAbstractButton object
+        self.comparison_options['loc_strategy'] = btn.property('loc_strategy')
+        self.update_trees(self.comparison_options)
+
 
     # called by _on_general_option_changed. rebuild dropdown according to the new user choice
     def _refresh_dropdown_labels(self):
