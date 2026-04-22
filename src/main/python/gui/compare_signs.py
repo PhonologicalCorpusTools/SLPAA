@@ -460,7 +460,12 @@ class CompareSignsDialog(QDialog):
     # update the summary of currently selected options, which is shown in the main Compare Signs dialog
     def update_optionslabels(self):
         # general
-        self.general_label.setText("General: identify signs by {}".format(self.comparison_options['general']['dropdown_label']))
+        dropdown_label = self.comparison_options['general']['dropdown_label']
+        if dropdown_label == 'entryid':
+            dropdown_label = 'entry ID only'
+        elif dropdown_label == 'idgloss':
+            dropdown_label = 'ID gloss'
+        self.general_label.setText("General: identify signs by {}".format(dropdown_label))
 
         # hand config
         handconfig_str = "Hand configuration: "
