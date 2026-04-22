@@ -1,11 +1,12 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
     QLabel, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox, QGroupBox, QSizePolicy, \
-    QSpacerItem, QDialogButtonBox
+    QSpacerItem, QDialogButtonBox, QApplication
 from PyQt5.QtGui import QBrush, QColor, QPalette
 from PyQt5.QtCore import Qt, pyqtSignal
 import re
 from typing import Union
 from copy import copy
+import math
 
 from constant import alignmentcomplexitywarning
 from lexicon.lexicon_classes import glossesdelimiter
@@ -149,7 +150,11 @@ class ColourCounter(QWidget):
         # label. should have background in the given colour
         label = QLabel(text)
         label.setStyleSheet(f'background-color: {color}; color: black;')
-        label.setFixedWidth(150)  # TODO this should maybe depend on font size
+        # setting a fixed width for the labels is necessary for aesthetic purposes, but can't be done with a constant
+        #   since there is a possibility that the user will change the font size settings;
+        #   hence the scaling by a factor relative to default font size 10
+        #   (though note that this works better for font sizes bigger than 8 than it does for those smaller)
+        label.setFixedWidth(math.ceil(120*QApplication.instance().font().pointSize()/8))
         label.setAlignment(Qt.AlignLeft)
 
         # counter outside the label
