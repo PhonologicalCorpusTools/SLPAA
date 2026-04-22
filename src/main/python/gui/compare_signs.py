@@ -289,7 +289,7 @@ class CompareSignsDialog(QDialog):
         self.collapsed_colour_counter_2 = sign2_counters["all collapsed"]
 
         # Vertical tree layout for signs 1 and 2 (tree, expand/collapse btns, and counters)
-        sign_tree_and_counters_layout = self.initialize_signs_layout(sign1_counters, sign2_counters, editbuttonleftTODO=False)
+        sign_tree_and_counters_layout = self.initialize_signs_layout(sign1_counters, sign2_counters)
 
         # Add OK and Cancel buttons
         button_layout = self.gen_bottom_btns()
@@ -373,7 +373,7 @@ class CompareSignsDialog(QDialog):
 
         return layout
 
-    def initialize_signs_layout(self, counters_1, counters_2, editbuttonleftTODO=True):
+    def initialize_signs_layout(self, counters_1, counters_2):
         def create_counters_layout(counters):
             # helper function to create vertical box layout for counters
             vbl = QVBoxLayout()
@@ -409,17 +409,6 @@ class CompareSignsDialog(QDialog):
         options_overall_layout = QHBoxLayout()
         options_summary_layout = QGridLayout()
 
-        if editbuttonleftTODO:  # TODO make final decision
-            options_edit_btn = QPushButton("Edit\noptions")
-            options_edit_btn.clicked.connect(self.handle_edit_options)
-            options_overall_layout.addWidget(options_edit_btn)
-            # options_summary_layout.addWidget(options_edit_btn, 0, 0, 2, 1)
-
-            separate_line = QFrame()
-            separate_line.setFrameShape(QFrame.VLine)
-            separate_line.setFrameShadow(QFrame.Sunken)
-            options_overall_layout.addWidget(separate_line)
-
         self.general_label = QLabel("General: n/a")
         options_summary_layout.addWidget(self.general_label, 0, 0)
         self.handconfig_label = QLabel("Hand configuration: n/a")
@@ -432,16 +421,14 @@ class CompareSignsDialog(QDialog):
         options_overall_layout.addLayout(options_summary_layout)
         options_overall_layout.setStretchFactor(options_summary_layout, 1)
 
-        if not editbuttonleftTODO:  # TODO make final decision
-            separate_line = QFrame()
-            separate_line.setFrameShape(QFrame.VLine)
-            separate_line.setFrameShadow(QFrame.Sunken)
-            options_overall_layout.addWidget(separate_line)
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.VLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        options_overall_layout.addWidget(separate_line)
 
-            options_edit_btn = QPushButton("Edit\noptions")
-            options_edit_btn.clicked.connect(self.handle_edit_options)
-            options_overall_layout.addWidget(options_edit_btn)
-            # options_summary_layout.addWidget(options_edit_btn, 0, 0, 2, 1)
+        options_edit_btn = QPushButton("Edit\noptions")
+        options_edit_btn.clicked.connect(self.handle_edit_options)
+        options_overall_layout.addWidget(options_edit_btn)
 
         options_groupbox.setLayout(options_overall_layout)
         tree_counter_layout.addWidget(options_groupbox)
@@ -454,20 +441,18 @@ class CompareSignsDialog(QDialog):
 
         return tree_counter_layout
 
-    # TODO description
     def handle_edit_options(self, checked):
         comparison_options_dialog = ComparisonOptionsDialog(parent=self, startingoptions=self.comparison_options)
         comparison_options_dialog.optionsUpdated.connect(self.handle_options_updated)
         comparison_options_dialog.exec_()
 
-    # TODO description
     def handle_options_updated(self, updated_options_dict):
         self.comparison_options = updated_options_dict
         self.update_optionslabels()
         self._refresh_dropdown_labels()
         self.update_trees(self.comparison_options)
 
-    # TODO description
+    # update the summary of currently selected options, which is shown in the main Compare Signs dialog
     def update_optionslabels(self):
         # general
         self.general_label.setText("General: identify signs by {}".format(self.comparison_options['general']['dropdown_label']))
@@ -1189,6 +1174,8 @@ class CompareSignsDialog(QDialog):
         return counts
 
 
+# This class is a popup dialog that is spawned from the Compare Signs dialog, which allows the user to set/update
+#   a number of options for how the comparison is done and/or displayed.
 class ComparisonOptionsDialog(QDialog):
     optionsUpdated = pyqtSignal(dict)
 
