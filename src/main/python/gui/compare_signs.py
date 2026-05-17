@@ -1,10 +1,12 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QTreeWidget, QTreeWidgetItem, QMessageBox, QComboBox, \
     QLabel, QPushButton, QWidget, QFrame, QButtonGroup, QRadioButton, QToolButton, QCheckBox, QGroupBox, QSizePolicy, \
-    QSpacerItem
+    QSpacerItem, QDialogButtonBox, QApplication
 from PyQt5.QtGui import QBrush, QColor, QPalette
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 import re
 from typing import Union
+from copy import copy
+import math
 
 from constant import alignmentcomplexitywarning
 from lexicon.lexicon_classes import glossesdelimiter
@@ -124,7 +126,7 @@ class ColourCounter(QWidget):
         # what we mean by each colour
         colour_mapping = [
             ('red', "Mismatch"),
-            ('yellow', "No\nCorrespondence"),
+            ('yellow', "No Correspondence"),
             ('blue', "Match")
         ]
 
@@ -148,7 +150,11 @@ class ColourCounter(QWidget):
         # label. should have background in the given colour
         label = QLabel(text)
         label.setStyleSheet(f'background-color: {color}; color: black;')
-        label.setFixedWidth(100)
+        # setting a fixed width for the labels is necessary for aesthetic purposes, but can't be done with a constant
+        #   since there is a possibility that the user will change the font size settings;
+        #   hence the scaling by a factor relative to default font size 10
+        #   (though note that this works better for font sizes bigger than 8 than it does for those smaller)
+        label.setFixedWidth(math.ceil(120*QApplication.instance().font().pointSize()/8))
         label.setAlignment(Qt.AlignLeft)
 
         # counter outside the label
@@ -249,6 +255,9 @@ class CompareSignsDialog(QDialog):
             },
             'signtype': {
                 'articulator_merger': False
+            },
+            'location': {
+                'loc_strategy': 'body'
             }
         }
 
@@ -400,44 +409,34 @@ class CompareSignsDialog(QDialog):
 
         tree_counter_layout.addLayout(expand_collapse_layout_hbox)
 
-        # Hand configuration options
-        toggle_layout = QHBoxLayout()
-        toggle_layout.setContentsMargins(0, 0, 0, 0)
-        options_label = QLabel("Options:")
-        toggle_layout.addWidget(options_label)
+        # options summary panel
+        options_groupbox = QGroupBox("Options")
+        options_overall_layout = QHBoxLayout()
+        options_summary_layout = QGridLayout()
 
-        self.options_toggle_btn = QToolButton()
-        self.options_toggle_btn.setArrowType(Qt.DownArrow)
-        self.options_toggle_btn.setCheckable(True)
-        self.options_toggle_btn.setToolButtonStyle(Qt.ToolButtonIconOnly)
-        self.options_toggle_btn.setFixedSize(16, 16)
-        toggle_layout.addWidget(self.options_toggle_btn)
-        toggle_layout.addStretch()
+        self.general_label = QLabel("General: n/a")
+        options_summary_layout.addWidget(self.general_label, 0, 0)
+        self.handconfig_label = QLabel("Hand configuration: n/a")
+        options_summary_layout.addWidget(self.handconfig_label, 0, 1)
+        self.signtype_label = QLabel("Sign type: n/a")
+        options_summary_layout.addWidget(self.signtype_label, 1, 0)
+        self.location_label = QLabel("Location: n/a")
+        options_summary_layout.addWidget(self.location_label, 1, 1)
+        self.update_optionslabels()
+        options_overall_layout.addLayout(options_summary_layout)
+        options_overall_layout.setStretchFactor(options_summary_layout, 1)
 
-        tree_counter_layout.addLayout(toggle_layout)
-
-        # Compare signs options (hidden by default)
-        self.compare_options_widget = QWidget()
-        options_major_hbox = QHBoxLayout(self.compare_options_widget)
-
-        # three groupboxes, side by side
-        self._gen_options_general()           # General (left)
-        self._gen_options_content_hc()        # Hand-configuration radio buttons (mid)
-        self._gen_options_content_signtype()  # sign type articulator merger options (right)
-        options_major_hbox.addWidget(self.general_groupbox)
-        options_major_hbox.addWidget(self.handconfig_groupbox)
-        options_major_hbox.addWidget(self.signtype_groupbox)
-
-        # hide by default
-        self.compare_options_widget.setVisible(False)
-        tree_counter_layout.addWidget(self.compare_options_widget)
-        self.options_toggle_btn.toggled.connect(self._on_options_toggled)
-
-        # separator
         separate_line = QFrame()
-        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShape(QFrame.VLine)
         separate_line.setFrameShadow(QFrame.Sunken)
-        tree_counter_layout.addWidget(separate_line)
+        options_overall_layout.addWidget(separate_line)
+
+        options_edit_btn = QPushButton("Edit\noptions")
+        options_edit_btn.clicked.connect(self.handle_edit_options)
+        options_overall_layout.addWidget(options_edit_btn)
+
+        options_groupbox.setLayout(options_overall_layout)
+        tree_counter_layout.addWidget(options_groupbox)
 
         # colour counters
         counters_hbl = QHBoxLayout()
@@ -446,6 +445,59 @@ class CompareSignsDialog(QDialog):
         tree_counter_layout.addLayout(counters_hbl)
 
         return tree_counter_layout
+
+    def handle_edit_options(self, checked):
+        comparison_options_dialog = ComparisonOptionsDialog(parent=self, startingoptions=self.comparison_options)
+        comparison_options_dialog.optionsUpdated.connect(self.handle_options_updated)
+        comparison_options_dialog.exec_()
+
+    def handle_options_updated(self, updated_options_dict):
+        self.comparison_options = updated_options_dict
+        self.update_optionslabels()
+        self._refresh_dropdown_labels()
+        self.update_trees(self.comparison_options)
+
+    # update the summary of currently selected options, which is shown in the main Compare Signs dialog
+    def update_optionslabels(self):
+        # general
+        dropdown_label = self.comparison_options['general']['dropdown_label']
+        if dropdown_label == 'entryid':
+            dropdown_label = 'entry ID only'
+        elif dropdown_label == 'idgloss':
+            dropdown_label = 'ID gloss'
+        self.general_label.setText("General: identify signs by {}".format(dropdown_label))
+
+        # hand config
+        handconfig_str = "Hand configuration: "
+        if self.comparison_options['handconfig']['compare_target'] == 'predefined':
+            handconfig_str += "compare predefined "
+            if self.comparison_options['handconfig']['details']:
+                handconfig_str += "names with a base-variant hierarchy"
+            else:
+                handconfig_str += "hand shape names"
+        elif self.comparison_options['handconfig']['compare_target'] == 'transcriptions':
+            handconfig_str += "compare actual transcriptions "
+            if self.comparison_options['handconfig']['details']:
+                handconfig_str += "(exact matches only)"
+            else:
+                handconfig_str += "(lenient)"
+        else:
+            handconfig_str += "n/a"
+        self.handconfig_label.setText(handconfig_str)
+
+        # sign type
+        self.signtype_label.setText("Sign type:{} use abstract articulator".format(
+            "" if self.comparison_options['signtype']['articulator_merger'] else " do not"))
+
+        # location
+        location_str = "Location: group body-anchored locations with "
+        if self.comparison_options['location']['loc_strategy'] == 'body':
+            location_str += "body locations"
+        elif self.comparison_options['location']['loc_strategy'] == 'signing space':
+            location_str += "signing space locations"
+        else:
+            location_str += "none (independent)"
+        self.location_label.setText(location_str)
 
     def _get_dropdown_sign_label(self, sign, mode):
         # sign: Sign
@@ -472,84 +524,6 @@ class CompareSignsDialog(QDialog):
 
         return label
 
-    def _gen_options_general(self):
-        self.general_groupbox = QGroupBox("General")
-        general_layout = QVBoxLayout(self.general_groupbox)
-
-        # select dropbox identifier
-        sub_label = QLabel("Identify signs by...")
-
-        # three sign dropbox sign id options -- as radio buttons
-        signlabel_options_layout = QVBoxLayout()
-        self.gloss_rb = QRadioButton("Gloss")
-        self.gloss_rb.setChecked(True)          # gloss by default
-        self.lemma_rb = QRadioButton("Lemma")
-        self.idgloss_rb = QRadioButton("ID gloss")
-        self.entryid_rb = QRadioButton("Entry ID only")
-
-        self.general_btn_group = QButtonGroup(self)  # container for the four radio buttons
-
-        for rb, v in zip(
-                (self.gloss_rb, self.lemma_rb, self.idgloss_rb, self.entryid_rb),
-                ('gloss', 'lemma', 'idgloss', 'entryid')):
-            signlabel_options_layout.addWidget(rb)  # add radio button to signlabel_options_layout
-            rb.setProperty('dropdown_label', v)     # radio button dymanics
-            self.general_btn_group.addButton(rb)    # group radio buttons for mutual exclusivity
-
-        self.general_btn_group.buttonClicked.connect(self._on_general_option_changed)
-
-        # add a spacer left to the buttons to show the three options are subsidiary
-        signlabel_options_spacer_layout = QHBoxLayout()
-        signlabel_options_spacer_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
-        signlabel_options_spacer_layout.addLayout(signlabel_options_layout)
-
-        # assemble all components!
-        general_layout.addWidget(sub_label)
-        general_layout.addLayout(signlabel_options_spacer_layout)
-        general_layout.addStretch()
-
-    def _gen_options_content_hc(self):
-        self.handconfig_groupbox = QGroupBox("Handconfig")
-        hand_opts_layout = QVBoxLayout(self.handconfig_groupbox)
-
-        # four radio buttons for handshape name
-        self.predefined_HC = QRadioButton("Compare predefined hand shape names.")
-        self.predefined_HC.setChecked(True)
-        self.predefined_HC.setProperty("compare_target", "predefined")
-        self.predefined_HC.setProperty("details", False)
-        hand_opts_layout.addWidget(self.predefined_HC)
-
-        self.predefined_base_variant = QRadioButton("Compare predefined names with a base-variant hierarchy.")
-        self.predefined_base_variant.setProperty("compare_target", "predefined")
-        self.predefined_base_variant.setProperty("details", True)
-        hand_opts_layout.addWidget(self.predefined_base_variant)
-
-        self.transcription_exact = QRadioButton("Compare actual transcriptions (exact matches only).")
-        self.transcription_exact.setProperty("compare_target", "transcriptions")
-        self.transcription_exact.setProperty("details", True)
-        hand_opts_layout.addWidget(self.transcription_exact)
-
-        self.transcription_lenient = QRadioButton("Compare actual transcriptions (lenient).")
-        self.transcription_lenient.setProperty("compare_target", "transcriptions")
-        self.transcription_lenient.setProperty("details", False)
-        hand_opts_layout.addWidget(self.transcription_lenient)
-        hand_opts_layout.addStretch()
-
-        # group them so only one can be checked
-        self.hand_btn_group = QButtonGroup(self)
-        for rb in (
-        self.predefined_HC, self.predefined_base_variant, self.transcription_exact, self.transcription_lenient):
-            self.hand_btn_group.addButton(rb)
-        self.hand_btn_group.buttonClicked.connect(self._on_hand_option_changed)
-
-    def _gen_options_content_signtype(self):
-        self.signtype_groupbox = QGroupBox("Sign type")
-        hand_opts_layout = QVBoxLayout(self.signtype_groupbox)
-        self.sign_type_art_button = QCheckBox("Use abstract articulator in sign type comparison.")
-        self.sign_type_art_button.toggled.connect(self._on_signtype_option_changed)
-        hand_opts_layout.addWidget(self.sign_type_art_button)
-        hand_opts_layout.addStretch()
-
     def sync_scrollbars(self, scrolled_value, other_tree):
         if not self.syncing_scrollbars:
             target_scrollbar = other_tree.verticalScrollBar()  # the scrollbar to programmatically scroll
@@ -559,29 +533,6 @@ class CompareSignsDialog(QDialog):
 
     def _on_sign_selection_changed(self, idx):
         self.update_trees()
-
-    def _on_options_toggled(self, checked):
-        # show or hide the container
-        self.compare_options_widget.setVisible(checked)
-        # flip the arrow
-        self.options_toggle_btn.setArrowType(Qt.UpArrow if checked else Qt.DownArrow)
-
-    def _on_general_option_changed(self, btn):
-        # btn: QAbstractButton object
-        label = btn.property("dropdown_label")
-        self.comparison_options['general']['dropdown_label'] = label
-        self._refresh_dropdown_labels()
-
-    def _on_hand_option_changed(self, btn):
-        # btn: QAbstractButton object
-        self.comparison_options['handconfig'] = {'compare_target': btn.property('compare_target'),
-                                                 'details': btn.property('details')}
-        self.update_trees(self.comparison_options)
-
-    def _on_signtype_option_changed(self, state):
-        # state: bool. whether checked or not
-        self.comparison_options['signtype']['articulator_merger'] = state
-        self.update_trees(self.comparison_options)
 
     # called by _on_general_option_changed. rebuild dropdown according to the new user choice
     def _refresh_dropdown_labels(self):
@@ -1231,3 +1182,183 @@ class CompareSignsDialog(QDialog):
             walk_tree(root.child(i), tree, fully_visible=True)
 
         return counts
+
+
+# This class is a popup dialog that is spawned from the Compare Signs dialog, which allows the user to set/update
+#   a number of options for how the comparison is done and/or displayed.
+class ComparisonOptionsDialog(QDialog):
+    optionsUpdated = pyqtSignal(dict)
+
+    def __init__(self, startingoptions, **kwargs):
+        super().__init__(**kwargs)
+        self.startingoptions = startingoptions
+        self.updatedoptions = copy(startingoptions)
+
+        main_layout = QVBoxLayout()
+        self.setLayout(main_layout)
+
+        options_layout = QGridLayout(self)
+
+        # four groupboxes
+        self._gen_options_general()           # General
+        self._gen_options_content_hc()        # Hand-configuration radio buttons
+        self._gen_options_content_signtype()  # sign type articulator merger options
+        self._gen_options_content_location()  # location options
+        options_layout.addWidget(self.general_groupbox, 0, 0)
+        options_layout.addWidget(self.handconfig_groupbox, 0, 1)
+        options_layout.addWidget(self.signtype_groupbox, 1, 0)
+        options_layout.addWidget(self.location_groupbox, 1, 1)
+
+        main_layout.addLayout(options_layout)
+
+        separate_line = QFrame()
+        separate_line.setFrameShape(QFrame.HLine)
+        separate_line.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separate_line)
+
+        buttons = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        self.button_box = QDialogButtonBox(buttons, parent=self)
+        self.button_box.clicked.connect(self.handle_button_click)
+
+        main_layout.addWidget(self.button_box)
+
+    def _gen_options_general(self):
+        self.general_groupbox = QGroupBox("General")
+        general_layout = QVBoxLayout(self.general_groupbox)
+
+        # select dropbox identifier
+        sub_label = QLabel("Identify signs by...")
+
+        # three sign dropbox sign id options -- as radio buttons
+        signlabel_options_layout = QVBoxLayout()
+        self.gloss_rb = QRadioButton("Gloss")
+        self.gloss_rb.setChecked(self.startingoptions['general']['dropdown_label'] == 'gloss')
+        self.lemma_rb = QRadioButton("Lemma")
+        self.lemma_rb.setChecked(self.startingoptions['general']['dropdown_label'] == 'lemma')
+        self.idgloss_rb = QRadioButton("ID gloss")
+        self.idgloss_rb.setChecked(self.startingoptions['general']['dropdown_label'] == 'idgloss')
+        self.entryid_rb = QRadioButton("Entry ID only")
+        self.entryid_rb.setChecked(self.startingoptions['general']['dropdown_label'] == 'entryid')
+
+        self.general_btn_group = QButtonGroup(self)  # container for the four radio buttons
+
+        for rb, v in zip(
+                (self.gloss_rb, self.lemma_rb, self.idgloss_rb, self.entryid_rb),
+                ('gloss', 'lemma', 'idgloss', 'entryid')):
+            signlabel_options_layout.addWidget(rb)  # add radio button to signlabel_options_layout
+            rb.setProperty('dropdown_label', v)     # radio button dymanics
+            self.general_btn_group.addButton(rb)    # group radio buttons for mutual exclusivity
+
+        self.general_btn_group.buttonClicked.connect(self._on_general_option_changed)
+
+        # add a spacer left to the buttons to show the three options are subsidiary
+        signlabel_options_spacer_layout = QHBoxLayout()
+        signlabel_options_spacer_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Maximum))
+        signlabel_options_spacer_layout.addLayout(signlabel_options_layout)
+
+        # assemble all components!
+        general_layout.addWidget(sub_label)
+        general_layout.addLayout(signlabel_options_spacer_layout)
+        general_layout.addStretch()
+
+    def _gen_options_content_hc(self):
+        self.handconfig_groupbox = QGroupBox("Handconfig")
+        hand_opts_layout = QVBoxLayout(self.handconfig_groupbox)
+
+        # four radio buttons for handshape name
+        self.predefined_HC = QRadioButton("Compare predefined hand shape names.")
+        self.predefined_HC.setProperty("compare_target", "predefined")
+        self.predefined_HC.setProperty("details", False)
+        self.predefined_HC.setChecked(self.startingoptions['handconfig']['compare_target'] == 'predefined'
+                                      and not self.startingoptions['handconfig']['details'])
+        hand_opts_layout.addWidget(self.predefined_HC)
+
+        self.predefined_base_variant = QRadioButton("Compare predefined names with a base-variant hierarchy.")
+        self.predefined_base_variant.setProperty("compare_target", "predefined")
+        self.predefined_base_variant.setProperty("details", True)
+        self.predefined_base_variant.setChecked(self.startingoptions['handconfig']['compare_target'] == 'predefined'
+                                                and self.startingoptions['handconfig']['details'])
+        hand_opts_layout.addWidget(self.predefined_base_variant)
+
+        self.transcription_exact = QRadioButton("Compare actual transcriptions (exact matches only).")
+        self.transcription_exact.setProperty("compare_target", "transcriptions")
+        self.transcription_exact.setProperty("details", True)
+        self.transcription_exact.setChecked(self.startingoptions['handconfig']['compare_target'] == 'transcriptions'
+                                            and self.startingoptions['handconfig']['details'])
+        hand_opts_layout.addWidget(self.transcription_exact)
+
+        self.transcription_lenient = QRadioButton("Compare actual transcriptions (lenient).")
+        self.transcription_lenient.setProperty("compare_target", "transcriptions")
+        self.transcription_lenient.setProperty("details", False)
+        self.transcription_lenient.setChecked(self.startingoptions['handconfig']['compare_target'] == 'transcriptions'
+                                              and not self.startingoptions['handconfig']['details'])
+        hand_opts_layout.addWidget(self.transcription_lenient)
+        hand_opts_layout.addStretch()
+
+        # group them so only one can be checked
+        self.hand_btn_group = QButtonGroup(self)
+        for rb in (
+        self.predefined_HC, self.predefined_base_variant, self.transcription_exact, self.transcription_lenient):
+            self.hand_btn_group.addButton(rb)
+        self.hand_btn_group.buttonClicked.connect(self._on_hand_option_changed)
+
+    def _gen_options_content_signtype(self):
+        self.signtype_groupbox = QGroupBox("Sign type")
+        hand_opts_layout = QVBoxLayout(self.signtype_groupbox)
+        self.sign_type_art_button = QCheckBox("Use abstract articulator in sign type comparison.")
+        self.sign_type_art_button.setChecked(self.startingoptions['signtype']['articulator_merger'])
+        self.sign_type_art_button.toggled.connect(self._on_signtype_option_changed)
+        hand_opts_layout.addWidget(self.sign_type_art_button)
+        hand_opts_layout.addStretch()
+
+    def _gen_options_content_location(self):
+        self.location_groupbox = QGroupBox("Location")
+        loc_opts_layout = QVBoxLayout(self.location_groupbox)
+        loc_bodyanchored_label = QLabel("Group body-anchored locations with:")
+        loc_opts_layout.addWidget(loc_bodyanchored_label)
+
+        self.loc_body_rb = QRadioButton("Body locations")
+        self.loc_body_rb.setProperty('loc_strategy', 'body')
+        self.loc_body_rb.setChecked(self.startingoptions['location']['loc_strategy'] == 'body')
+        loc_opts_layout.addWidget(self.loc_body_rb)
+        self.loc_signingspace_rb = QRadioButton("Signing space locations")
+        self.loc_signingspace_rb.setProperty('loc_strategy', 'signing space')
+        self.loc_signingspace_rb.setChecked(self.startingoptions['location']['loc_strategy'] == 'signing space')
+        loc_opts_layout.addWidget(self.loc_signingspace_rb)
+        self.loc_independent_rb = QRadioButton("None (independent)")
+        self.loc_independent_rb.setProperty('loc_strategy', 'independent')
+        self.loc_independent_rb.setChecked(self.startingoptions['location']['loc_strategy'] == 'independent')
+        loc_opts_layout.addWidget(self.loc_independent_rb)
+        loc_opts_layout.addStretch()
+
+        # group them so only one can be checked
+        self.loc_opts_bgroup = QButtonGroup(self)
+        for rb in (self.loc_body_rb, self.loc_signingspace_rb, self.loc_independent_rb):
+            self.loc_opts_bgroup.addButton(rb)
+        self.loc_opts_bgroup.buttonClicked.connect(self._on_location_option_changed)
+
+    def handle_button_click(self, button):
+        standard = self.button_box.standardButton(button)
+        if standard == QDialogButtonBox.Cancel:
+            self.reject()
+        elif standard == QDialogButtonBox.Ok:
+            self.optionsUpdated.emit(self.updatedoptions)
+            self.accept()
+
+    def _on_general_option_changed(self, btn):
+        # btn: QAbstractButton object
+        label = btn.property("dropdown_label")
+        self.updatedoptions['general']['dropdown_label'] = label
+
+    def _on_hand_option_changed(self, btn):
+        # btn: QAbstractButton object
+        self.updatedoptions['handconfig'] = {'compare_target': btn.property('compare_target'),
+                                                 'details': btn.property('details')}
+
+    def _on_signtype_option_changed(self, state):
+        # state: bool. whether checked or not
+        self.updatedoptions['signtype']['articulator_merger'] = state
+
+    def _on_location_option_changed(self, btn):
+        # btn: QAbstractButton object
+        self.updatedoptions['location']['loc_strategy'] = btn.property('loc_strategy')

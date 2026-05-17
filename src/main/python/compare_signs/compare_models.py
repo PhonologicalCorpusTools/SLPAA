@@ -67,7 +67,7 @@ class CompareModel(QObject):
         module_comparison_results = {
             'Handconfig': self.compare_handconfigs(options['handconfig']),
             'Movement': self.compare_movements(),
-            'Location': self.compare_locations(),
+            'Location': self.compare_locations(options['location']),
             'Relation': self.compare_relation(),
             'Orientation': self.compare_orientations(),
             #'Nonmanual': self,  # not implemented yet
@@ -316,7 +316,7 @@ class CompareModel(QObject):
 
         return pair_comparison
 
-    def compare_locations(self) -> [bool]:
+    def compare_locations(self, options) -> [bool]:
         # ad hoc solution to add major location (e.g., Body > Body)
         # on top of the hierarchical comparison results
         def add_major_loc(compare_result_dict: dict, loc_type) -> dict:
@@ -434,7 +434,7 @@ class CompareModel(QObject):
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-        aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.LOCATION)
+        aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.LOCATION, loc_strategy=options['loc_strategy'])
         if warningstring:
             self._warn(warningstring)
 
