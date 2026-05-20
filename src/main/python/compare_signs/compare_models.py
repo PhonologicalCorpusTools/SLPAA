@@ -32,7 +32,12 @@ class CompareModel(QObject):
         self.warning_signal.emit(msg)
 
     # this is the main compare function that dispatches each module comparison!
-    def compare_sign_pair(self, options) -> tuple[dict, list]:
+    def compare_sign_pair(self, options):
+        """
+        Returns:
+            tuple: (dict, list)
+
+        """
         result = {'sign1': {}, 'sign2': {}}  # this is the output
 
         # signtype comparison before all module comparisons
