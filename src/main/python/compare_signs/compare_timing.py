@@ -38,10 +38,6 @@ def count_points_and_interval(sign_pair):
 
     return s1_output, s2_output
 
-def check_point_interval(s1_timing, s2_timing):
-
-
-    return {}, {}
 def check_whole_sign(sign1_timing, sign2_timing, xslotstruc, point_interval, sign1_n_xslot, sign2_n_xslot):
     sign1_xslotstruc = xslotstruc[0]
     sign2_xslotstruc = xslotstruc[1]
@@ -50,39 +46,61 @@ def check_whole_sign(sign1_timing, sign2_timing, xslotstruc, point_interval, sig
     is_sign1_whole = sign1_timing.startpoint.wholepart == sign1_timing.endpoint.wholepart == 0
     is_sign2_whole = sign2_timing.startpoint.wholepart == sign2_timing.endpoint.wholepart == 0
 
-    res = [{'Timing': {'Whole sign': {f'{is_sign1_whole}': xslot_count[0]}}},
-           {'Timing': {'Whole sign': {f'{is_sign2_whole}': xslot_count[1]}}}]
+    # default results: when only one sign timing is whole
+    res = [{'Timing':
+                {'Whole sign':
+                     {f'{is_sign1_whole}':
+                          {'button_type': 'autogen label>autogen label>radio button',
+                           'match': True
+                           }
+                      }
+                 }
+            },
+           {'Timing':
+                {'Whole sign':
+                     {f'{is_sign2_whole}':
+                          {'button_type': 'autogen label>autogen label>radio button',
+                           'match': True
+                           }
+                      }
+                 }
+            }]
+
 
     if is_sign1_whole != is_sign2_whole:
         return res
 
-    xslot_count = [{f'{sign1_xslotstruc.number}': ''},
-                   {f'{sign2_xslotstruc.number}': ''}]
+    xslot_count = [{f'{sign1_xslotstruc.number}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}},
+                   {f'{sign2_xslotstruc.number}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}}]
 
     if sign1_timing.endpoint.wholepart != 0:
-        xslot_count[0] = {f'{sign1_n_xslot}': ''}
+        xslot_count[0] = {f'{sign1_n_xslot}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}}
     if sign2_timing.endpoint.wholepart != 0:
-        xslot_count[1] = {f'{sign2_n_xslot}': ''}
+        xslot_count[1] = {f'{sign2_n_xslot}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}}
 
+    # xslot counts do not match
     if sign1_xslotstruc.number != sign2_xslotstruc.number or is_sign1_whole:
-        return [{'Timing': {'Whole sign': {f'{is_sign1_whole}': ''},
+        return [{'Timing': {'Whole sign': {f'{is_sign1_whole}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}},
                             'Number of x-slots': xslot_count[0]}},
-                {'Timing': {'Whole sign': {f'{is_sign2_whole}': ''},
+                {'Timing': {'Whole sign': {f'{is_sign2_whole}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}},
                             'Number of x-slots': xslot_count[1]}}]
 
     # Check point/interval associations
-    point_interval = [{f'{point_interval[0]}': ''},
-                      {f'{point_interval[1]}': ''}]
+    point_interval = [{f'{point_interval[0]}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}},
+                      {f'{point_interval[1]}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}}]
 
-    return [{'Timing': {'Whole sign': {f'{is_sign1_whole}': ''},
+    return [{'Timing': {'Whole sign': {f'{is_sign1_whole}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}},
                         'Number of x-slots': xslot_count[0],
                         'Type of association': point_interval[0]}},
-            {'Timing': {'Whole sign': {f'{is_sign2_whole}': ''},
+            {'Timing': {'Whole sign': {f'{is_sign2_whole}': {'button_type': 'autogen label>autogen label>radio button', 'match': True}},
                         'Number of x-slots': xslot_count[1],
                         'Type of association': point_interval[1]}}]
 
 
 def compare_timings(pair, xslotstruc):
+    # pair: tuple of two modules to compare (e.g., (LocationModule, LocationModule))
+    # xslotstruc: tuple of two XslotStructure objects to compare
+
     sign1_n_xslot = len(pair[0].timingintervals)
     sign1_timing = pair[0].timingintervals[0]  # assuming only one timing interval
 

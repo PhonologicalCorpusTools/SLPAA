@@ -21,8 +21,9 @@ class CompareModel(QObject):
         self.sign1 = sign1
         self.sign2 = sign2
         self.alignmodel = AlignModel(self.sign1, self.sign2)
-        self.implemented = ['handconfig', 'movement', 'location', 'orientation']
-        self.yet_to_implement = ['relation', 'nonmanual']
+        self.xslotstruc_pair = (sign1.xslotstructure, sign2.xslotstructure)
+        self.implemented = ['handconfig', 'movement', 'location', 'orientation', 'relation']
+        self.yet_to_implement = ['nonmanual']
         self._last_warn_msg = None
 
     # emit warnings
@@ -243,16 +244,13 @@ class CompareModel(QObject):
         return conflict_warning, result
 
     def compare_movements(self) -> dict:
-        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+        def compare_module_pair(pair: tuple, xslotstruc: tuple, pairwise: bool = True) -> (list, list):
             # pair = pair of movementModule
+            # xslotstruc = tuple of XslotStructure. required to parse timing (whether whole sign x-slot)
             # pairwise = False if not comparing one pair
             # return tuple of two dict each contains true or false at each level of granularity
             results1 = []
             results2 = []
-
-            # articulator comparison
-            # no more articulator comparison due to compare on aligned
-            # (articulators are already taken into consideration in sign align!)
 
             # path comparison
             s1path = get_checked_paths_from_list(pair[0].movementtreemodel)
@@ -295,6 +293,11 @@ class CompareModel(QObject):
                     _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
                     results2.append(res2)
 
+            # timing comparison
+            timing_r = compare_timings(pair, xslotstruc)
+            results1.append(timing_r[0])
+            results2.append(timing_r[1])
+
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
             return results1, results2
@@ -309,14 +312,14 @@ class CompareModel(QObject):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(module)
+                r_sign1, r_sign2 = compare_module_pair(pair=module, xslotstruc=self.xslotstruc_pair)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
             elif module[0]:  # only sign 1 has this module
-                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                r_sign1, _ = compare_module_pair((module[0], module[0]), xslotstruc=self.xslotstruc_pair, pairwise=False)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:            # only sign 2 has this module
-                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                _, r_sign2 = compare_module_pair((module[1], module[1]), xslotstruc=self.xslotstruc_pair, pairwise=False)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
@@ -337,7 +340,7 @@ class CompareModel(QObject):
             elif loc_type._purelyspatial:
                 r = {'Signing space': {'Purely spatial': compare_result_dict}}
             else:
-                print("[DEBUG] Major location type unspecified.")
+                print("[WARNING] Major location type unspecified.")
                 return {}
 
             # Add btn info
@@ -444,30 +447,29 @@ class CompareModel(QObject):
             self._warn(warningstring)
 
         pair_comparison = {'sign1': {}, 'sign2': {}}
-        xslotstruc = (self.sign1.xslotstructure, self.sign2.xslotstructure)
 
         for i, module in enumerate(aligned_modules):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(pair=module, xslotstruc=xslotstruc)
+                r_sign1, r_sign2 = compare_module_pair(pair=module, xslotstruc=self.xslotstruc_pair)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
             elif module[0]:  # only sign 1 has this module
                 r_sign1, _ = compare_module_pair(pair=(module[0], module[0]),
-                                                 xslotstruc=(xslotstruc[0],xslotstruc[0]),
+                                                 xslotstruc=self.xslotstruc_pair,
                                                  pairwise=False)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:            # only sign 2 has this module
                 _, r_sign2 = compare_module_pair(pair=(module[1], module[1]),
-                                                 xslotstruc=(xslotstruc[1],xslotstruc[1]),
+                                                 xslotstruc=self.xslotstruc_pair,
                                                  pairwise=False)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
 
     def compare_orientations(self) -> [bool]:
-        def compare_module_pair(pair: tuple, pairwise: bool = True) -> (list, list):
+        def compare_module_pair(pair: tuple, xslotstruc: tuple, pairwise: bool = True) -> (list, list):
             # pair = tuple of OrientationModules
             # pairwise = False if not comparing one pair
             # return tuple of two dict each contains true or false at each level of granularity
@@ -505,6 +507,11 @@ class CompareModel(QObject):
                     _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
                     results2.append(res2)
 
+            # timing comparison
+            timing_r = compare_timings(pair, xslotstruc)
+            results1.append(timing_r[0])
+            results2.append(timing_r[1])
+
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
             return results1, results2
@@ -519,20 +526,20 @@ class CompareModel(QObject):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(module)
+                r_sign1, r_sign2 = compare_module_pair(pair=module, xslotstruc=self.xslotstruc_pair)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
             elif module[0]:  # only sign 1 has this module
-                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False)
+                r_sign1, _ = compare_module_pair(pair=(module[0], module[0]), xslotstruc=self.xslotstruc_pair, pairwise=False)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:            # only sign 2 has this module
-                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False)
+                _, r_sign2 = compare_module_pair(pair=(module[1], module[1]), xslotstruc=self.xslotstruc_pair, pairwise=False)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
 
     def compare_handconfigs(self, options) -> dict:
-        def compare_module_pair(pair: tuple, pairwise: bool = True, options: dict = None) -> (list, list):
+        def compare_module_pair(pair: tuple, xslotstruc: tuple, pairwise: bool = True, options: dict = None) -> (list, list):
             # pair = tuple of HandConfigurationModule
             # pairwise = False if not comparing one pair
             # return tuple of two dict. each contains true or false at each level of granularity
@@ -650,6 +657,11 @@ class CompareModel(QObject):
                     _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
                     results2.append(res2)
 
+            # timing comparison
+            timing_r = compare_timings(pair, xslotstruc)
+            results1.append(timing_r[0])
+            results2.append(timing_r[1])
+
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
             return results1, results2
@@ -663,15 +675,21 @@ class CompareModel(QObject):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(module, options=options)
+                r_sign1, r_sign2 = compare_module_pair(module, xslotstruc=self.xslotstruc_pair, options=options)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
             elif module[0]:  # only sign 1 has this module
-                r_sign1, _ = compare_module_pair((module[0], module[0]), pairwise=False, options=options)
+                r_sign1, _ = compare_module_pair(pair=(module[0], module[0]),
+                                                 xslotstruc=self.xslotstruc_pair,
+                                                 pairwise=False,
+                                                 options=options)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:  # only sign 2 has this module
-                _, r_sign2 = compare_module_pair((module[1], module[1]), pairwise=False, options=options)
+                _, r_sign2 = compare_module_pair(pair=(module[1], module[1]),
+                                                 xslotstruc=self.xslotstruc_pair,
+                                                 pairwise=False,
+                                                 options=options)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
@@ -815,7 +833,7 @@ class CompareModel(QObject):
 
             return path
 
-        def compare_module_pair(pair: tuple, upstream, pairwise: bool = True) -> (list, list):
+        def compare_module_pair(pair: tuple, upstream, xslotstruc: tuple, pairwise: bool = True) -> (list, list):
             # pair: pair of relationModule
             # upstream: tuple of two Sign objects
             # relation module has relatively fixed set of sub-modules.
@@ -870,49 +888,41 @@ class CompareModel(QObject):
                     _, res2 = compare_elements('', e2, {}, {}, pairwise=False)
                     results2.append(res2)
 
+            # timing comparison
+            timing_r = compare_timings(pair, xslotstruc)
+            results1.append(timing_r[0])
+            results2.append(timing_r[1])
+
             results1 = summarize_path_comparison(results1)
             results2 = summarize_path_comparison(results2)
             return results1, results2
 
-
-
         signpair = (self.sign1, self.sign2)
 
-        # currently, compare modules naively. eventually, it should compare aligned modules as the line below!
-        # aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.RELATION)
+        aligned_modules, warningstring = self.alignmodel.alignmodules(ModuleTypes.RELATION)
+        if warningstring:
+            self._warn(warningstring)
 
-        # --- for now, assume all relation modules are properly aligned already.
-        pair_comparison = {'sign1': {}, 'sign2': {}}  # compare results stored here and to be returned
-
-        if len(self.sign1.relationmodules) + len(self.sign1.relationmodules) == 0:
-            return pair_comparison
-
-        sign1_relmodule = list(self.sign1.relationmodules.values())
-        sign1_relmodule_count = len(sign1_relmodule)
-
-        sign2_relmodule = list(self.sign2.relationmodules.values())
-        sign2_relmodule_count = len(sign2_relmodule)
-
-        aligned_modules = []
-
-        for i in range(max(sign1_relmodule_count, sign2_relmodule_count)):
-            value1 = sign1_relmodule[i] if i < len(sign1_relmodule) else None
-            value2 = sign2_relmodule[i] if i < len(sign2_relmodule) else None
-            aligned_modules.append((value1, value2))
-        # --- end
+        pair_comparison = {'sign1': {}, 'sign2': {}}
 
         for i, module in enumerate(aligned_modules):
             sign1_module_label, sign2_module_label = self.get_module_labels(module)
 
             if all(module):  # pair of modules
-                r_sign1, r_sign2 = compare_module_pair(module, upstream=signpair)
+                r_sign1, r_sign2 = compare_module_pair(pair=module, xslotstruc=self.xslotstruc_pair, upstream=signpair)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1  # the key is like '0:Mov1'
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2  # int preceding : is for aligning when drawing trees
             elif module[0]:  # only sign 1 has this module
-                r_sign1, _ = compare_module_pair((module[0], module[0]), upstream=signpair, pairwise=False)
+                r_sign1, _ = compare_module_pair(pair=(module[0], module[0]),
+                                                 xslotstruc=self.xslotstruc_pair,
+                                                 upstream=signpair,
+                                                 pairwise=False)
                 pair_comparison['sign1'][str(i) + ':' + sign1_module_label] = r_sign1
             else:            # only sign 2 has this module
-                _, r_sign2 = compare_module_pair((module[1], module[1]), upstream=signpair, pairwise=False)
+                _, r_sign2 = compare_module_pair(pair=(module[1], module[1]),
+                                                 xslotstruc=self.xslotstruc_pair,
+                                                 upstream=signpair,
+                                                 pairwise=False)
                 pair_comparison['sign2'][str(i) + ':' + sign2_module_label] = r_sign2
 
         return pair_comparison
