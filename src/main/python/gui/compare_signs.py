@@ -88,7 +88,7 @@ class TreeWidgetItemKey:
         depth = self.depth
 
         if depth < 0:
-            print("[DEBUG] update_with_alternative() is called with a negative depth.")
+            print("[WARNING] update_with_alternative() is called with a negative depth.")
             return
 
         for k, v in self.path_context.items():
@@ -102,8 +102,6 @@ class TreeWidgetItemKey:
                 self.btn_type = target_btn_type
                 self.vacuous = False
                 return
-
-        print("[DEBUG] update_with_alternative() cannot find an alternative key.")
         return
 
     def get_original_key(self, many_keys: list, key: Union[str, int]):
@@ -679,7 +677,7 @@ class CompareSignsDialog(QDialog):
         del children
 
         if depth >= 0:
-            print(f'[DEBUG] incorrectly called _add_twi_for_module_roots()')
+            print(f'[WARNING] _add_twi_for_module_roots() is called incorrectly.')
             return
 
         # task1
