@@ -692,7 +692,16 @@ class CompareSignsDialog(QDialog):
         twi_1, twi_2 = self.add_tree_widget_items(twi_1, twi_2, child1.children, child2.children, depth + 1)
 
         # task2
-        twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
+        if child2.vacuous:
+            # if sign1 has it but sign2 does not, sign1 becomes yellow, 2 greys out
+            twi_1, twi_2 = self._asymmetric_twi_colours(yellow_twi=twi_1,
+                                                        greyout_twi=twi_2)
+        elif child1.vacuous:
+            # vice versa
+            twi_2, twi_1 = self._asymmetric_twi_colours(yellow_twi=twi_2,
+                                                        greyout_twi=twi_1)
+        else:
+            twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
 
         # task4
         if twi_1.underlying_bg in ['red', 'yellow'] or twi_2.underlying_bg in ['red', 'yellow']:
