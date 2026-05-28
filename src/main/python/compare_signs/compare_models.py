@@ -726,10 +726,9 @@ class CompareModel(QObject):
             return path
 
         def convert_to_path(sign, upstream) -> list:
+            path = []  # container for all path information
 
             # Distance
-            path = ['Distance']
-
             distance_raw = sign.contactrel.distances  # list
 
             for d in distance_raw:
