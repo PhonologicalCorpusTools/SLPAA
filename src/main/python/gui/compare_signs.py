@@ -201,9 +201,10 @@ class CompareTreeWidgetItem(QTreeWidgetItem):
         # imagine each tree item carries a palette and use it to change background colour
         self.palette = palette
 
-        self.is_label: bool = False
-        if override_is_label or ':' in self._text:
-            self.is_label = True
+        # the bool is_label's value is explicitly overridden or derived from the ._text
+        # honour previous value specified as 'override_is_label.'
+        # If ._text is the "{decimal}:..." form, is_label is True
+        self.is_label = bool(override_is_label or re.match(r'^\d+:', self._text))
 
         # pair_id to help finding corresponding line in the other tree
         self.pair_id = pair_id
@@ -764,7 +765,7 @@ class CompareSignsDialog(QDialog):
         # parents: CompareTreeWidgetItem instances
         # children: TreeWidgetItemKey instances
         newly_added = []
-        what_should_be_yellow = None  # self-colouring hint
+        what_should_be_yellow = None  # hint for self-colouring. May be valued as  1 or 2 (1 if sign 1 should be yellow)
         parent1, parent2 = parents
         child1, child2 = children
 
