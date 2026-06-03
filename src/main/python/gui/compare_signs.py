@@ -723,6 +723,8 @@ class CompareSignsDialog(QDialog):
         del children
 
         should_paint_red = [False, False]
+        what_should_be_yellow = None
+
         depth = child1.depth
 
         # task0: major location lines should always align even though they do not match
@@ -733,11 +735,19 @@ class CompareSignsDialog(QDialog):
             child2.update_with_alternative(target_btn_type='major loc')
             newly_added.append(child2.key)
 
+        # check again after finding alternative. if still vacuous, mark yellow
+        if child2.vacuous:
+            what_should_be_yellow = 1
+            parent1.red_when_folded_hint, parent2.red_when_folded_hint = True, True
+        elif child1.vacuous:
+            what_should_be_yellow = 2
+            parent1.red_when_folded_hint, parent2.red_when_folded_hint = True, True
+
         # task1
         twi_1, twi_2 = self._gen_twi_pair(child1.key, child2.key)
 
         # task2
-        if child1 != child2:  # they are red for sure when labels themselves don't match
+        if what_should_be_yellow is None and child1 != child2:  # they must be red when labels themselves don't match
             twi_1.initialize_bg_color('red')
             twi_2.initialize_bg_color('red')
             # task4
@@ -751,8 +761,19 @@ class CompareSignsDialog(QDialog):
         if twi_2.red_when_folded_hint:
             parent2.red_when_folded_hint = True
 
-        # task2: only after adding children, we may be able to confirm major loc background colours as blue
-        twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
+        # task2: only after adding children, we may be able to confirm major loc background colours as blue / yellow
+        if what_should_be_yellow == 1:
+            twi_1, twi_2 = self._asymmetric_twi_colours(
+                yellow_twi=twi_1,
+                greyout_twi=twi_2
+            )
+        elif what_should_be_yellow == 2:
+            twi_2, twi_1 = self._asymmetric_twi_colours(
+                yellow_twi=twi_2,
+                greyout_twi=twi_1
+            )
+        else:
+            twi_1, twi_2 = self._colour_twi_bg(twi_1, twi_2)
 
         # task5
         parent1.addChild(twi_1)
