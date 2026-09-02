@@ -18,6 +18,8 @@ The handshape fonts are created by <a href="http://www.cslds.org/v4/resources.ph
 
 See a list of our [contributors](CONTRIBUTORS.md).
 
+SLP-AA is licensed under the terms of the [GNU GPLv3 license](LICENSE.md).
+
 References:
 
 Brentari, D. (1998). A Prosodic Model of Sign Language Phonology. Cambridge, MA: MIT Press.
