@@ -34,8 +34,6 @@ Contents:
    global_settings.rst
    glossary.rst
    references.rst
-   license.rst
-
    
 
 Indices and tables
