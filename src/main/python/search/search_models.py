@@ -18,15 +18,14 @@ from gui.panel import SignLevelMenuPanel
 from lexicon.module_classes import (AddedInfo, TimingInterval, TimingPoint, ParameterModule, 
                                     ModuleTypes, BodypartInfo, MovementModule, LocationModule, RelationModule,
                                     HandConfigurationHand, PREDEFINED_MAP)
-from constant import TargetTypes, HAND, ARM, LEG, HandConfigSlots
-import logging
+from constant import TargetTypes, HAND, ARM, LEG, HandConfigSlots, Precomputed
+import logging, time
 
 from models.movement_models import MovementTreeModel
 from models.location_models import LocationTreeModel, BodypartTreeModel
 from serialization_classes import LocationModuleSerializable, MovementModuleSerializable, RelationModuleSerializable
 from search.helper_functions import *
 from search.search_classes import SearchTargetItem
-
 
 
 
@@ -141,13 +140,32 @@ class SearchModel(QStandardItemModel):
             if self.is_included(row):
                 rows.append(row)
         return rows
+    
+    def precompute_targets(self, selected_rows):
+        # TODO potentially update each time a new target is created.
+        # we pre-compute some things such as movement and location paths
+        # to avoid re-computing them each time we call a filter or sign_matches_ function
+        # Done so far: 
+        # Movement modules: set of checked paths
+        # Location modules: list of dicts, where keys are checked paths and values
+    
+        for row in selected_rows:
+            kwargs = {}
+            if self.target_type(row) == ModuleTypes.LOCATION:
+                kwargs = {'nodes_are_terminal': True}
+            if self.target_type(row) in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION]:
+                self.target_module(row).compute_selections(**kwargs)
+            
+        
+        
 
     def search_corpus(self, corpus): # TODO potentially add a rows_to_skip for adding on to existing results table
         corpusname = os.path.split(corpus.path)[1]
         selected_rows = self.get_selected_rows()       
+        self.precompute_targets(selected_rows)
         resultsdict = {}
         
-
+        
         if self.matchdegree == 'all':
             # Create a dictionary to store like targets together. Keys are target type, values are lists containing row numbers.
             negative_rows = [] 
@@ -165,7 +183,7 @@ class SearchModel(QStandardItemModel):
             for sign in corpus.signs:
                 if self.sign_matches_target(sign, target_dict):
                     matchingsigns.append(sign.signlevel_information)
-            resultsdict[target_name] = {"corpus": corpusname, "display": display_vals,"signs": matchingsigns, "negative": negative_rows}
+            resultsdict[target_name] = {"corpus": corpusname, "display": display_vals,"signs": matchingsigns, "negative": negative_rows, "matchtype": self.matchtype}
         
         elif self.matchdegree == 'any':
             for row in selected_rows:
@@ -180,7 +198,7 @@ class SearchModel(QStandardItemModel):
                 for sign in corpus.signs:
                     if self.sign_matches_target(sign, target_dict):
                         matchingsigns.append(sign.signlevel_information)
-                resultsdict[target_name] = {"corpus": corpusname, "display": self.target_display(row), "signs": matchingsigns, "negative": negative_rows}
+                resultsdict[target_name] = {"corpus": corpusname, "display": self.target_display(row), "signs": matchingsigns, "negative": negative_rows, "matchtype": self.matchtype}
 
         return resultsdict
     
@@ -225,8 +243,16 @@ class SearchModel(QStandardItemModel):
                 orientation_matching = filter_modules_by_target_orientation(modules_to_check, target_module, matchtype=self.matchtype)
                 if not (self.is_negative(row) ^ bool(orientation_matching)):
                     return False
+        
+        if ModuleTypes.MOVEMENT in target_dict:
+            if not self.sign_matches_movement(target_dict[ModuleTypes.MOVEMENT], sign):
+                return False
+        
+        if ModuleTypes.LOCATION in target_dict:
+            if not self.sign_matches_location(target_dict[ModuleTypes.LOCATION], sign):
+                return False
 
-        for ttype in [ModuleTypes.MOVEMENT, ModuleTypes.LOCATION, ModuleTypes.RELATION]:
+        for ttype in [ ModuleTypes.RELATION]:
             if ttype in target_dict:                
                 modules_to_check = [m for m in sign.getmoduledict(ttype).values()]
                 if not modules_to_check:
@@ -235,12 +261,9 @@ class SearchModel(QStandardItemModel):
                 for row in target_rows:
                     matching_modules = modules_to_check
                     terminate_early = True if row == target_rows[-1] else False
-                    # TODO match xslottype
                     target_module = self.target_module(row)
                     if ttype == ModuleTypes.LOCATION:
                         matching_modules = filter_modules_by_target_locn(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
-                    elif ttype == ModuleTypes.MOVEMENT:
-                        matching_modules = filter_modules_by_target_mvmt(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
                     elif ttype == ModuleTypes.RELATION:
                         matching_modules = filter_modules_by_target_reln(matching_modules, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
 
@@ -321,7 +344,32 @@ class SearchModel(QStandardItemModel):
             if not (self.is_negative(row) ^ bool(filter_modules_by_target_extendedfingers(matching_modules, target_module, self.matchtype))):
                 return False
         return True
+    
+    def sign_matches_movement(self, rows, sign):
+           
+        modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.MOVEMENT).values()]
+        for row in rows:
+            target_module = self.target_module(row)
+            # if negative ("match signs not containing path xyz"), stop as soon as we find a module containing path xyz
+            terminate_early = True if self.is_negative(row) else False 
+            
+            matching_modules = filter_modules_by_target_mvmt(modules_to_check, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
+            if not (self.is_negative(row) ^ bool(matching_modules)):
+                return False
+        return True
         
+    def sign_matches_location(self, rows, sign):
+        modules_to_check = [m for m in sign.getmoduledict(ModuleTypes.LOCATION).values()]
+        for row in rows:
+            target_module = self.target_module(row)            
+            # if negative ("match signs not containing path xyz"), stop as soon as we find a module containing path xyz
+            terminate_early = True if self.is_negative(row) else False 
+            
+            matching_modules = filter_modules_by_target_locn(modules_to_check, target_module, matchtype=self.matchtype, terminate_early=terminate_early)
+            if not (self.is_negative(row) ^ bool(matching_modules)):
+                return False
+        return True
+
 
     def unserialize(self, type, serialmodule): # TODO reduce repetition by combining param modules?
         if serialmodule is not None:

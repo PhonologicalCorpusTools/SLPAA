@@ -33,11 +33,15 @@ class ResultHeaders:
     NAME = 1
     VALUES = 2
     TYPE = 3
-    ID = 4
     FREQUENCY = 4
-    GLOSS = 5
-    LEMMA = 6
-    IDGLOSS = 7
+    MATCHTYPE_SUMMARY = 5
+    MATCHTYPE_INDIV = 4
+    ID = 5
+    GLOSS = 6
+    LEMMA = 7
+    IDGLOSS = 8
+    
+    
 
 class ResultsView(QWidget):
     def __init__(self, resultsdict, mainwindow, **kwargs):
@@ -45,6 +49,7 @@ class ResultsView(QWidget):
         self.setWindowTitle("Search Results")
         self.resultsdict = resultsdict
         self.mainwindow = mainwindow
+        self.appctxt = mainwindow.app_ctx
         self.corpus = self.mainwindow.corpus
         self.individualresultspath = None
         self.summaryresultspath = None
@@ -57,8 +62,12 @@ class ResultsView(QWidget):
         self.summarytab = QWidget()
         self.summary_table_view = QTableView()
         self.summarymodel = ResultSummaryModel()
-        self.summarymodel.populate(self.resultsdict)
-        self.summary_table_view.setModel(self.summarymodel)
+        self.individualtab = QWidget()
+        self.individual_table_view = QTableView()
+        self.individualmodel = IndividualSummaryModel()
+        
+        self.set_results(resultsdict)
+    
         self.summary_table_view.setItemDelegate(self.listdelegate)
         self.summary_table_view.setEditTriggers(QTableView.NoEditTriggers)
         summarylayout = QVBoxLayout()
@@ -66,11 +75,7 @@ class ResultsView(QWidget):
         summarylayout.addWidget(self.summary_table_view)
         self.summarytab.setLayout(summarylayout)
         
-        self.individualtab = QWidget()
-        self.individual_table_view = QTableView()
-        self.individualmodel = IndividualSummaryModel()
-        self.individualmodel.populate(self.resultsdict)
-        self.individual_table_view.setModel(self.individualmodel)
+
         self.individual_table_view.setItemDelegate(self.listdelegate)
         self.individual_table_view.doubleClicked.connect(self.handle_result_doubleclicked)
         self.individual_table_view.setEditTriggers(QTableView.NoEditTriggers) # disable edit via clicking table
@@ -87,6 +92,18 @@ class ResultsView(QWidget):
         self.showMaximized()
         main_layout.addWidget(self.tab_widget)
         self.setLayout(main_layout)    
+        
+    def clear_results(self):
+        self.individualmodel.clear()
+        self.summarymodel.clear()
+         
+    def set_results(self, new_results_dict):
+        self.resultsdict = new_results_dict
+        self.individualmodel.populate(self.resultsdict)
+        self.individual_table_view.setModel(self.individualmodel)
+        self.summarymodel.populate(self.resultsdict)
+        self.summary_table_view.setModel(self.summarymodel)
+        
 
     def create_toolbar(self, label):
         toolbar = QToolBar(f'{label} toolbar', parent=self)
@@ -162,27 +179,37 @@ class ResultsView(QWidget):
 
     def handle_result_doubleclicked(self, index):
         entryid = self.individualmodel.entry_id(index.row())
+        previous_sign = self.appctxt.main_window.current_sign
         for s in self.corpus.signs:
             if s.signlevel_information.entryid == entryid:
                 thissign = s
                 idgloss = s.signlevel_information.idgloss
                 entryid = s.signlevel_information.entryid
                 break
-
-        self.mainwindow.current_sign = None
-        signsummary_panel = SignSummaryPanel(mainwindow=self.mainwindow, sign=thissign, parent=self)
-        signsummary_panel.mainwindow.current_sign = thissign  # refreshsign() checks for this
-        signsummary_panel.refreshsign(thissign)
+        self.appctxt.main_window.current_sign  = thissign
+        # self.mainwindow.current_sign = None
+        signsummary_panel = SignSummaryPanel(mainwindow=self.appctxt.main_window, sign=thissign, parent=self)
+        # signsummary_panel.mainwindow.current_sign = thissign  # refreshsign() checks for this
+        # signsummary_panel.refreshsign(thissign)
+        
+        # TODO. subclass the sign summary panel. connect focus in and focus out events to switch the current sign.
+        
 
         layout = QHBoxLayout()
         layout.addWidget(signsummary_panel)
         resultpopup = QWidget(parent=self)
         resultpopup.setLayout(layout)
         resultpopup.setWindowFlags(Qt.Window)
-        resultpopup.setWindowTitle("Search Result: " + str(entryid) +"idgloss")
+        resultpopup.setWindowTitle(f"Search Result: {thissign}")
         resultpopup.setAttribute(Qt.WA_DeleteOnClose) 
+        resultpopup.destroyed.connect(lambda: self.reset_mainwindow_sign(previous_sign))
         resultpopup.show()
         
+    def reset_mainwindow_sign(self, previous_sign):
+        # when we doubleclick on a search result, it sets the current sign to that search result.
+        # but if we then return to the mainwindow, the current sign will still be the double-clicked search result 
+        # even if the active sign is different. So we reset it to the previous active sign.s
+        self.appctxt.main_window.current_sign = previous_sign
         
 
 class ListDelegate(QStyledItemDelegate):
@@ -198,7 +225,11 @@ class ResultSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)", "Target Value(s)", "Result Type(s)", "Frequency"]
+        self.headers = ["Corpus", "Target Name(s)", "Target Value(s)", "Result Type(s)", "Frequency", "Match type"]
+        self.setHorizontalHeaderLabels(self.headers)
+
+    def clear(self):
+        super().clear()
         self.setHorizontalHeaderLabels(self.headers)
     
     def entry(self, row, col):
@@ -295,14 +326,20 @@ class ResultSummaryModel(QStandardItemModel):
             resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
             frequency = QStandardItem()
             frequency.setData(len(resultrow["signs"]), Qt.DisplayRole)
+            matchtype = QStandardItem()
+            matchtype.setData(resultrow["matchtype"], Qt.DisplayRole)
 
-            self.appendRow([corpus, name, values, resulttypes, frequency])
+            self.appendRow([corpus, name, values, resulttypes, frequency, matchtype])
 
 class IndividualSummaryModel(QStandardItemModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Entry ID", "Gloss(es)", "Lemma", "ID Gloss"]
+        self.headers = ["Corpus", "Target Name(s)",  "Target Value(s)", "Result Type(s)", "Match type", "Entry ID", "Gloss(es)", "Lemma", "ID Gloss"]
+        self.setHorizontalHeaderLabels(self.headers)
+    
+    def clear(self):
+        super().clear()
         self.setHorizontalHeaderLabels(self.headers)
     
     def entry_id(self, row):
@@ -404,9 +441,6 @@ class IndividualSummaryModel(QStandardItemModel):
         return ET.ElementTree(root)
 
 
-
-
-
     def populate(self, resultsdict):
         for targetname in resultsdict:
             resultrow = resultsdict[targetname]
@@ -419,6 +453,8 @@ class IndividualSummaryModel(QStandardItemModel):
                 corpus.setData(resultrow["corpus"], Qt.DisplayRole)
                 resulttypes = QStandardItem()
                 resulttypes.setData(resultrow["negative"], Qt.DisplayRole)
+                matchtype = QStandardItem()
+                matchtype.setData(resultrow["matchtype"], Qt.DisplayRole)
                 entryid = QStandardItem()
                 entryid.setData(sli.entryid, Qt.UserRole)
                 entryid.setData(sli.entryid.display_string(), Qt.DisplayRole)
@@ -428,4 +464,4 @@ class IndividualSummaryModel(QStandardItemModel):
                 lemma.setData(sli.lemma, Qt.DisplayRole)
                 idgloss = QStandardItem()
                 idgloss.setData(sli.idgloss, Qt.DisplayRole)
-                self.appendRow([corpus, name, values, resulttypes, entryid, gloss, lemma, idgloss])
+                self.appendRow([corpus, name, values, resulttypes, matchtype, entryid, gloss, lemma, idgloss])

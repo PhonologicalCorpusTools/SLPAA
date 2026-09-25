@@ -467,7 +467,50 @@ class Search_LocationSpecPanel(LocationSpecificationPanel):
         self.make_terminal_node_cb()
         if moduletoload is not None and isinstance(moduletoload, LocationModule):
             self.locationoptionsselectionpanel.terminal_node_cb.setChecked(self.getcurrenttreemodel().nodes_are_terminal)
+
+    def add_neutral_pb_layout(self, signingspace_layout):
+        # in the main window, the neutral settings depend on whether the sign type is 1-handed or 2-handed
+        # but sign type is not specified for a location search target
+        # so here we provide push buttons for both sign types 
+        pb_layout = QHBoxLayout()
+        self.applyneutral_pb = QPushButton() # does not appear in location search target panel
+        self.applyneutral_pb_1h = QPushButton("Apply one-handed\nneutral settings")
+        self.applyneutral_pb_2h = QPushButton("Apply two-handed\nneutral settings")
+        pb_layout.addWidget(self.applyneutral_pb_1h)
+        pb_layout.addWidget(self.applyneutral_pb_2h)
+
+        self.applyneutral_pb_1h.clicked.connect(lambda: self.handle_toggle_neutral_pb('1h'))
+        self.applyneutral_pb_2h.clicked.connect(lambda: self.handle_toggle_neutral_pb('2h'))
+        signingspace_layout.addLayout(pb_layout, 0, 3)
+        return signingspace_layout
+
+    def handle_toggle_neutral_pb(self, hands):
+        # hands: '1h' or '2h'
+        neutral_loctype = self.default_neutral_loctype(hands) # eg 'purely spatial' or 'body-anchored'
+        
+        is_spatial = neutral_loctype in ['purely spatial', 'body-anchored']
+        is_body = 'body' in neutral_loctype
+        self.signingspace_radio.setChecked(is_spatial)
+        self.signingspacebody_radio.setChecked(is_spatial and is_body)
+        self.signingspacespatial_radio.setChecked(is_spatial and not is_body)
+        self.body_radio.setChecked(not is_spatial)
+
+        self.recreate_treeandlistmodels()
+        treemodel = self.getcurrenttreemodel()
+        neutrallist = self.mainwindow.app_settings['location'][f'default_loc_{hands}']
+
+        if self.mainwindow.app_settings['location']['autocheck_neutral']:
+            self.markneutral_cb.setChecked(True)
+            treemodel.defaultneutralselected = True 
+            treemodel.defaultneutrallist = neutrallist
+        if not neutral_loctype == 'purely spatial' and len(neutrallist) > 1:
+            treemodel.multiple_selection_allowed = True
+            self.locationoptionsselectionpanel.multiple_selection_cb.setChecked(True)
+        treemodel.addcheckedvalues(treemodel.invisibleRootItem(), neutrallist, include_details=True)
+        self.enablelocationtools()
     
+
+        
     def make_terminal_node_cb(self):
         # used in search window
         self.locationoptionsselectionpanel.terminal_node_cb = QCheckBox("Interpret selections as terminal nodes")

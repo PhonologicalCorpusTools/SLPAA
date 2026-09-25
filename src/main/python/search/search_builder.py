@@ -1,6 +1,6 @@
 from fractions import Fraction
 
-import io, os, pickle
+import io, os, pickle, time
 from PyQt5.QtGui import (
     QIcon,
     QKeySequence
@@ -45,6 +45,7 @@ from lexicon.module_classes import AddedInfo, TimingInterval, TimingPoint, Param
 from search.search_models import SearchModel, TargetHeaders, SearchValuesItem
 from gui.signlevelinfospecification_view import SignlevelinfoSelectorDialog, SignLevelInformation
 from search.search_classes import *
+
 class SearchWindow(QMainWindow):
 
     def __init__(self, app_settings, corpus, app_ctx, **kwargs):
@@ -175,21 +176,30 @@ class SearchWindow(QMainWindow):
         self.build_search_target_view = BuildSearchTargetView(sign=None, mainwindow=self, parent=self)
         self.build_search_target_view.target_added.connect(self.handle_new_search_target_added)
         self.build_search_target_view.target_modified.connect(self.handle_target_modified)
+        self.results_view = ResultsView({}, mainwindow=self)
+        
+        flags = Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint
 
-        search_param_window = QMdiSubWindow()
+        search_param_window = QMdiSubWindow(flags=flags)
         search_param_window.setWidget(self.search_params_view)
         search_param_window.setWindowTitle("Search Parameters")
 
-        build_search_window = QMdiSubWindow()
+        build_search_window = QMdiSubWindow(flags=flags)
         build_search_window.setWidget(self.build_search_target_view)
         build_search_window.setWindowTitle("Build Search Target")
 
-        search_targets_window = QMdiSubWindow()
+        search_targets_window = QMdiSubWindow(flags=flags)
         search_targets_window.setWidget(self.search_targets_view)
         search_targets_window.setWindowTitle("Search Targets")
+        
+        search_results_window = QMdiSubWindow(flags=flags)
+        search_results_window.setWidget(self.results_view)
+        search_results_window.setWindowTitle("Search Results")
 
-        for w in [search_param_window, build_search_window, search_targets_window]:
+        for w in [search_param_window, search_results_window, build_search_window, search_targets_window]:
             self.mdi_area.addSubWindow(w)    
+            
+            
 
         self.mdi_area.tileSubWindows()
         self.showMaximized()
@@ -201,7 +211,7 @@ class SearchWindow(QMainWindow):
         # search_param_window.setGeometry(int(2*w/3), int(1/2*h), int(1*w/3), int(1/2*h))
 
         
-    def handle_search_clicked(self, type):
+    def handle_search_clicked(self, add_or_new):
         
         mssg = ""
         if self.search_params_view.match_type is None: 
@@ -212,14 +222,29 @@ class SearchWindow(QMainWindow):
             mssg += "\nNothing to search"
         if mssg != "":
             QMessageBox.critical(self, "Warning", mssg)
+        
         else:
-            self.searchmodel.searchtype = type
             self.searchmodel.matchtype = self.search_params_view.match_type
             self.searchmodel.matchdegree = self.search_params_view.match_degree
-
+            # start_time = time.time()
+            if add_or_new == 'new' and self.results_view.resultsdict:
+                response = QMessageBox.question(self,
+                                                'Warning',
+                                                'Really clear the current results table?')
+                if response == QMessageBox.Yes:
+                    self.results_view.clear_results()
+                else:
+                    return
             resultsdict = self.searchmodel.search_corpus(self.corpus)
-            self.results_view = ResultsView(resultsdict, mainwindow=self)
-            self.results_view.show()
+            self.results_view.set_results(resultsdict)
+
+            
+
+            # self.results_view = ResultsView(resultsdict, mainwindow=self)
+            # self.results_view.show()
+            # end_time = time.time()
+            # elapsed_time = end_time - start_time
+            # print(f"Elapsed time: {elapsed_time} seconds")
         
 
 
